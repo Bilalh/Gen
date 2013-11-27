@@ -6,10 +6,12 @@
 """
 
 Usage:
-   chain iterations <limit> [ --model_timeout=<int> --working_dir=<dir> --seed=<int> --output_dir=<dir> ]
+   chain iterations <limit>
    ( --chain_length=<int>  --select_radius=<int>  --influence_radius=<int> --essence=<file> )
-   chain time <limit> [ --model_timeout=<int> --working_dir=<dir> --seed=<int> --output_dir=<dir> ]
+   [ --model_timeout=<int> --working_dir=<dir> --seed=<int> --output_dir=<dir>  --mode=<str> ]
+   chain time <limit>
    ( --chain_length=<int>  --select_radius=<int>  --influence_radius=<int> --essence=<file> )
+   [ --model_timeout=<int> --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str>]
 
 Options:
   --help                    Show this screen.
@@ -21,6 +23,7 @@ Options:
   --seed=<int>              Random seed to use
   --output_dir=<dir>        Where to put the results
   --essence=<file>          Essence file
+  --mode<str>               Conjure mode used [default: df]
 
 """
 from docopt import docopt

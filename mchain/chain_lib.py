@@ -6,9 +6,10 @@ from collections import namedtuple
 import sqlite3
 import subprocess
 import json
+import fnmatch
 
 
-Settings=namedtuple('Settings', ['chain_length', 'select_radius', 'influence_radius', 'seed',
+Settings=namedtuple('Settings', ['chain_length', 'select_radius', 'influence_radius', 'seed', 'mode',
 								'model_timeout', "essence", "working_dir", "output_dir", "limit"])
 
 
@@ -73,17 +74,26 @@ def timeme(method):
 def run_models(now, param_path, cutoff_time, working_dir, output_dir):
 	""" Run the toolchain """
 
-	@timeme
+	def get_number_of_models(dirname):
+		return len([f for f in os.listdir(dirname) if fnmatch.fnmatch(f, "*.eprime")])
+
+
+	models_dir = os.path.join(working_dir, os.path.basename(working_dir) + "-df")
+	num_models = get_number_of_models( models_dir )
+	print(num_models)
+
+	time_per_model = int(cutoff_time) // num_models
+	print("time_per_model, cutoff_time", time_per_model, cutoff_time)
+
 	def runner():
 		current_env= os.environ.copy()
 		current_env["OUT_BASE_DIR"] = output_dir
 
 		subprocess.Popen([
-			wrappers("run.sh"), now, param_path, str(int(cutoff_time)), working_dir
+			wrappers("run.sh"), now, param_path, str(time_per_model), working_dir
 		], env=current_env).communicate()
-	(runtime, _) = runner()
-	runtime /=1000  # ms -> sec
-	return runtime
+
+	return runner()
 
 
 def get_results(working_dir, output_dir, param_name, cutoff_time, then):
