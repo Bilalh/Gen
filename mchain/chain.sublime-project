@@ -1,0 +1,19 @@
+{
+	"folders":
+	[
+		{
+			"follow_symlinks": true,
+			"path": "/Users/bilalh/CS/chain-sampling"
+		}
+	],
+
+
+	"settings": {
+        "python_interpreter_path": "/Users/bilalh/.local/anaconda/envs/py3/bin/python",
+        "extra_paths":
+        [
+        	"/Users/bilalh/.local/anaconda/lib/python3.3/site-packages"
+        ],
+    }
+
+}

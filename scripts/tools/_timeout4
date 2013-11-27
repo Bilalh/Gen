@@ -1,0 +1,14 @@
+#compdef timeout4
+#zsh completion for timeout4
+#Bilal Syed Hussain
+
+typeset -A opt_args
+local context state line
+
+_arguments -s -S \
+	"-t[Number of seconds to wait for command completion]::"\
+	"-i[Interval between checks if the process is still alive]::"\
+	"-d[Delay between sending SIGTERM and destroying the process by SIGKILL]::"\
+	"*::args:_files"
+
+# vim: ft=zsh
