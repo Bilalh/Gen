@@ -8,12 +8,12 @@ import subprocess
 import json
 
 
-prog_name = os.path.dirname(sys.argv[0])
-abs_prog_dir = os.path.abspath(prog_name)
-
-
 Settings=namedtuple('Settings', ['chain_length', 'select_radius', 'influence_radius', 'seed',
 								'model_timeout', "essence", "working_dir", "output_dir", "limit"])
+
+
+def wrappers(script_name):
+	return os.path.join(os.path.expandvars("${PARAM_GEN_SCRIPTS}/"), "wrappers", script_name)
 
 
 def gather_param_info(essence_file, output_dir):
@@ -22,7 +22,7 @@ def gather_param_info(essence_file, output_dir):
 	json_path = os.path.join(output_dir, "essence.json")
 
 	subprocess.Popen([
-		os.path.join(abs_prog_dir, "scripts", "essenceGivensToJson.sh"), essence_file, json_path, "100"
+		wrappers("essenceGivensToJson.sh"), essence_file, json_path, "100"
 	]).communicate()
 
 
@@ -79,7 +79,7 @@ def run_models(now, param_path, cutoff_time, working_dir, output_dir):
 		current_env["OUT_BASE_DIR"] = output_dir
 
 		subprocess.Popen([
-			os.path.join(abs_prog_dir, "scripts", "run.sh"), now, param_path, str(int(cutoff_time)), working_dir
+			wrappers("run.sh"), now, param_path, str(int(cutoff_time)), working_dir
 		], env=current_env).communicate()
 	(runtime, _) = runner()
 	runtime /=1000  # ms -> sec
@@ -94,7 +94,7 @@ def get_results(working_dir, output_dir, param_name, cutoff_time, then):
 	current_env["TOTAL_TIMEOUT"] = str(cutoff_time)
 	current_env["USE_DATE"] = then
 
-	subprocess.Popen([os.path.join(abs_prog_dir, "scripts", "run_gather.sh"), param_name, working_dir], env=current_env).communicate()
+	subprocess.Popen([wrappers("run_gather.sh"), param_name, working_dir], env=current_env).communicate()
 	conn = sqlite3.connect(os.path.join(output_dir, 'results.db'))
 	# conn.row_factory = sqlite3.Row
 

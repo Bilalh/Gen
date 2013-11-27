@@ -12,7 +12,6 @@ import os
 import sys
 import calendar
 import json
-from limit import Limit
 
 
 class Chain(object):
@@ -141,8 +140,9 @@ class Chain(object):
 if __name__ == "__main__":
     from limit import IterationsLimit
     s = chain_lib.Settings(select_radius=10, influence_radius=10, chain_length=20,
-        model_timeout=20, essence="/Users/bilalh/CS/smac/prob010-SCP/prob010-SCP.essence",
-working_dir="/Users/bilalh/CS/smac/prob010-SCP", seed=None, output_dir=None, limit=2)
+        model_timeout=20, seed=None, output_dir=None, limit=2,
+        essence="/Users/bilalh/CS/instancegen-models/prob024-Langford/prob024-Langford.essence",
+        working_dir="/Users/bilalh/CS/instancegen-models/prob024-Langford")
     chain = Chain(s, IterationsLimit(s.limit))
     chain.run()
 
