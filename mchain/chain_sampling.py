@@ -37,7 +37,7 @@ class Chain(object):
 
         [self.names, self.data] = list(zip(*vals))
         self.data_points= []
-        self.current_iteration = 0
+        self._current_iteration = 0
         self.settings = settings
 
         self.dim = len(self.data)
@@ -102,9 +102,10 @@ class Chain(object):
         print("Chain:")
         print([ [int(v) for v in vs] for vs in current_chain])
 
-        with open(os.path.join(self.output_dir, "chain", "iter-{}-chain.json".format(self.current_iteration)), "w") as f:
+        with open(os.path.join(self.output_dir, "chain", "iter-{}-chain.json".format(self._current_iteration)), "w") as f:
             f.write(json.dumps(current_chain))
 
+        self._current_iteration+=1
         return current_chain[-1]
 
 
