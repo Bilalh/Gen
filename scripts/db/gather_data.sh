@@ -107,7 +107,7 @@ parallel  -j${NUM_JOBS:-6} --tagstring "{/}"  'addParamIndexes "{/.}"'  \
 	::: `ls ${results_dir}/*${param_glob}.zstarted`
 
 # So we know which minion were created
-ls ${results_dir}/*${param_glob}.minion  >> "${stats_dir}/.minions"
+ls ${results_dir}/*${param_glob}.minion  >> "${stats_dir}/_${Essence_base}.minions"
 echo ""  >> "${stats_dir}/_${Essence_base}.minions"
 
 echo "<$0> finished"
