@@ -62,7 +62,7 @@ print("---------------------")
 
 datee = calendar.datetime.datetime.now()
 print("<toolchain_wrapper.py> Start",datee.isoformat())
-now = int(datee.timestamp())
+now = str(int(datee.timestamp()))
 
 def create_param_essence(params):
 	"""Create  a essence param form (name,values) pairs """
@@ -86,9 +86,13 @@ with open(param_path,"w") as f:
 res = "SAT"
 runlength=0
 
+cutoff_time_str = str(int(cutoff_time))
 
 print("###Running SR/Minion###")
 
+
+def wrappers(script_name):
+	return os.path.join(os.path.expandvars("${PARAM_GEN_SCRIPTS}/"), "wrappers", script_name)
 
 def timeme(method):
 	""" @timeme annotation which returns the time taken in ms as well as the result"""
@@ -105,13 +109,18 @@ def timeme(method):
 @timeme
 def runner():
 	subprocess.Popen([
-        "../scripts/run.sh", str(now), param_path, str(int(cutoff_time))
+        wrappers("run.sh"), str(now), param_path, cutoff_time_str
     ]).communicate()
 
 (runtime,_) = runner()
 runtime /=1000  # ms -> sec
 
-subprocess.Popen(["../scripts/run_gather.sh", param_name]).communicate()
+
+gather_env= os.environ.copy()
+gather_env["TOTAL_TIMEOUT"] = cutoff_time_str
+gather_env["USE_DATE"] = now
+
+subprocess.Popen([wrappers("run_gather.sh"), param_name],env=gather_env).communicate()
 
 conn = sqlite3.connect('out/results.db')
 # conn.row_factory = sqlite3.Row
