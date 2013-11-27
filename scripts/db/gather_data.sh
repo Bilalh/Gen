@@ -69,7 +69,7 @@ function isDominated(){
 	if [ ! -f "$fastest_dir/${f:5}.param.fastest" ]; then
 		echo 0
 	elif [ ! -f $results_dir/${f}.zfinished ]; then
-		# Not allways 1 
+		# Not allways 1
 		# only Dominated if  the timeout is  >  DOMINATION_MULTIPLIER  * fastest
 		(( fastest =  `head -n 1 $fastest_dir/${f:5}.param.fastest` * ${DOMINATION_MULTIPLIER:-2}))
 		(( dominated =  TOTAL_TIMEOUT > fastest  ))
@@ -78,7 +78,7 @@ function isDominated(){
 		(( fastest =  `head -n 1 $fastest_dir/${f:5}.param.fastest` * ${DOMINATION_MULTIPLIER:-2}))
 		# TODO use SR + Minion time
 		(( dominated  = `grep "real" $results_dir/$f.time.all | tail -n1 | sed -Ee 's/.*m([0-9]+).*/\1/'` > $fastest ))
-		echo $dominated 
+		echo $dominated
 	fi
 }
 
@@ -98,7 +98,7 @@ function addParamIndexes(){
 	f="$1"
 	sed '1,/\$SQL\$/d' "$results_dir/../params/${f:5}.param" \
 		| cut -c 2- \
-		| sqlite3 ${REPOSITORY_BASE}/results.db 
+		| sqlite3 ${REPOSITORY_BASE}/results.db
 }
 
 export -f addParamIndexes
@@ -107,7 +107,7 @@ parallel  -j${NUM_JOBS:-6} --tagstring "{/}"  'addParamIndexes "{/.}"'  \
 	::: `ls ${results_dir}/*${param_glob}.zstarted`
 
 # So we know which minion were created
-ls ${stats_dir}/*${param_glob}.minion  >> "${stats_dir}/_${Essence_base}.minions"
+ls ${results_dir}/*${param_glob}.minion  >> "${stats_dir}/.minions"
 echo ""  >> "${stats_dir}/_${Essence_base}.minions"
 
 echo "<$0> finished"
