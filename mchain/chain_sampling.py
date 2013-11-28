@@ -81,7 +81,7 @@ class Chain(object):
         choice = random.uniform(0, 1)
         print("mean is {}, choice is {}".format(mean, choice))
 
-        return (choice <= mean)
+        return (choice >= mean)
 
 
     def first_point(self, data):
