@@ -6,10 +6,7 @@
 """
 
 Usage:
-   chain iterations <limit>
-   ( --chain_length=<int>  --select_radius=<int>  --influence_radius=<int> --essence=<file> )
-   [ --model_timeout=<int> --working_dir=<dir> --seed=<int> --output_dir=<dir>  --mode=<str> ]
-   chain time <limit>
+   chain (time|iterations) <limit>
    ( --chain_length=<int>  --select_radius=<int>  --influence_radius=<int> --essence=<file> )
    [ --model_timeout=<int> --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str>]
 
