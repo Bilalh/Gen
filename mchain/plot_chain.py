@@ -9,7 +9,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import random
 import json
 
-from ncube import pick_inside_ncube
+from ncube import pick_inside_ncube, pick_inside_ncube2
 
 
 def iter_many(it, length, num):
@@ -66,7 +66,7 @@ def plot_json_ouput(chain_fp, data_fp, limit=100):
 
 
 def test_ncube():
-    data_points = [pick_inside_ncube((0, 0), 5 ) for i in range(0, 100)]
+    data_points = [pick_inside_ncube2((5, 3), (50, 25), ) for i in range(0, 50)]
     fig, ax = plt.subplots()
     ax.scatter(*list(zip(*data_points)), c='b')
     print(data_points)
@@ -75,7 +75,7 @@ def test_ncube():
     fig = plt.figure()
     fig.clf()
 
-    data_points = [pick_inside_ncube((0, 0, 0), 5 ) for i in range(0, 100)]
+    data_points = [pick_inside_ncube2((5, 3, 5) , (50, 25, 50), ) for i in range(0, 50)]
     print(data_points)
 
     ax = fig.add_subplot(111, projection='3d')
