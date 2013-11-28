@@ -4,9 +4,11 @@
 
 import random
 from pprint import pprint
+import math
 
 import chain_lib
 import ncube
+import ncuboid
 
 import os
 import sys
@@ -16,24 +18,37 @@ import json
 
 class Chain(object):
 
-    def __init__(self, settings, limiter):
+    def __init__(self, options, limiter):
 
         if "PARAM_GEN_SCRIPTS" not in os.environ:
             print("$PARAM_GEN_SCRIPTS needs to defined", file=sys.stderr)
             exit(2)
 
-        if settings.output_dir:
-            self.output_dir = settings.output_dir
+        if options['output_dir']:
+            self.output_dir = options['output_dir']
         else:
-            self.output_dir = os.path.join(settings.working_dir, "out")
+            self.output_dir = os.path.join(options['working_dir'], "out")
 
         os.makedirs(self.output_dir, exist_ok=True)
 
         for fp in ["chain", "params"]:
             os.makedirs(os.path.join(self.output_dir, fp), exist_ok=True)
 
-        vals = chain_lib.gather_param_info(settings.essence, self.output_dir)
+        vals = chain_lib.gather_param_info(options['essence'], self.output_dir)
         print(vals)
+
+        if options['radius_as_percentage']:
+            self.shape = ncuboid
+            for s in ['select_radius', 'influence_radius']:
+                per = options[s]
+                radii = [ math.ceil((u - l) * (per / 100)) for (_, (l, u) ) in vals ]
+                options[s] = radii
+
+        else:
+            self.shape = ncube
+
+        settings = chain_lib.Settings(**options)
+        print(settings)
 
         [self.names, self.data] = list(zip(*vals))
         self.data_points= []
@@ -60,10 +75,11 @@ class Chain(object):
         print(("acceptance", previous_point, candidate_point, data, local_data))
         # Bound check
         if previous_point == candidate_point or any( (p < l or p > u) for (p, (l, u)) in zip(candidate_point, data)):
+            print(("rejected", candidate_point))
             return False
 
         # Get points that effect
-        points = [ p for p in self.data_points if ncube.is_in_ncube(self.settings.influence_radius, candidate_point, p) ]
+        points = [ p for p in self.data_points if self.shape.is_in_inside(self.settings.influence_radius, candidate_point, p) ]
         print("influence points for {} are : {}".format(candidate_point, points))
 
         if len(points) == 0:
@@ -89,7 +105,7 @@ class Chain(object):
 
 
     def next_point(self, current_chain):
-        return [int(x) for x in ncube.pick_inside_ncube(self.settings.select_radius, current_chain[-1])]
+        return [int(x) for x in self.shape.pick_inside(self.settings.select_radius, current_chain[-1])]
 
 
     def make_chain(self):

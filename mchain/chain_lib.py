@@ -10,7 +10,7 @@ import fnmatch
 
 
 Settings=namedtuple('Settings', ['chain_length', 'select_radius', 'influence_radius', 'seed', 'mode',
-								'model_timeout', "essence", "working_dir", "output_dir", "limit"])
+								'model_timeout', "essence", "working_dir", "output_dir", "limit", "radius_as_percentage"])
 
 
 def wrappers(script_name):

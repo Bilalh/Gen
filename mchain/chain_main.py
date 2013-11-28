@@ -6,9 +6,10 @@
 """
 
 Usage:
-   chain (time|iterations) <limit>
+   chain (iterations|time) <limit>
    ( --chain_length=<int>  --select_radius=<int>  --influence_radius=<int> --essence=<file> )
-   [ --model_timeout=<int> --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str>]
+   [ --model_timeout=<int> --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str> --radius_as_percentage]
+
 
 Options:
   --help                    Show this screen.
@@ -20,14 +21,15 @@ Options:
   --seed=<int>              Random seed to use
   --output_dir=<dir>        Where to put the results
   --essence=<file>          Essence file
-  --mode<str>               Conjure mode used [default: df]
+  --radius_as_percentage    Radius setting as in %
+  --mode=<str>               Conjure mode used [default: df]
+
 
 """
 from docopt import docopt
 import re
 import os
 
-from chain_lib import Settings
 from chain_sampling import Chain
 import limit
 
@@ -37,6 +39,7 @@ if __name__ == '__main__':
         "time": limit.TimeLimit,
         "iterations": limit.IterationsLimit
     }
+
 
     arguments = docopt(__doc__, version='')
 
@@ -63,10 +66,7 @@ if __name__ == '__main__':
     print(options)
 
     options['limit'] = int(options['limit'])
-    settings = Settings(**options)
-    print(settings)
 
-    limiter = limiter_s(settings.limit)
-
-    chain = Chain(settings, limiter)
+    limiter = limiter_s(options['limit'])
+    chain = Chain(options, limiter)
     chain.run()
