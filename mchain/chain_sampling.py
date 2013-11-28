@@ -6,7 +6,7 @@ import random
 from pprint import pprint
 
 import chain_lib
-import hypersphere
+import ncube
 
 import os
 import sys
@@ -63,7 +63,7 @@ class Chain(object):
             return False
 
         # Get points that effect
-        points = [ p for p in self.data_points if hypersphere.is_in_hypersphere(self.settings.influence_radius, candidate_point, p) ]
+        points = [ p for p in self.data_points if ncube.is_in_ncube(self.settings.influence_radius, candidate_point, p) ]
         print("influence points for {} are : {}".format(candidate_point, points))
 
         if len(points) == 0:
@@ -89,7 +89,7 @@ class Chain(object):
 
 
     def next_point(self, current_chain):
-        return [int(x) for x in hypersphere.pick_in_hypersphere(self.dim, self.settings.select_radius, current_chain[-1])]
+        return [int(x) for x in ncube.pick_inside_ncube(self.settings.select_radius, current_chain[-1])]
 
 
     def make_chain(self):
@@ -141,9 +141,9 @@ class Chain(object):
 if __name__ == "__main__":
     from limit import IterationsLimit
     s = chain_lib.Settings(select_radius=10, influence_radius=10, chain_length=20,
-        model_timeout=20, seed=None, output_dir=None, limit=2,
+        model_timeout=80, seed=None, output_dir=None, limit=2,
         essence="/Users/bilalh/CS/instancegen-models/prob024-Langford/prob024-Langford.essence",
-        working_dir="/Users/bilalh/CS/instancegen-models/prob024-Langford")
+        working_dir="/Users/bilalh/CS/instancegen-models/prob024-Langford", mode='df')
     chain = Chain(s, IterationsLimit(s.limit))
     chain.run()
 

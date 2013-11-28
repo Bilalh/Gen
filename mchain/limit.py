@@ -40,5 +40,7 @@ class IterationsLimit(Limit):
 
 	@copydoc(Limit.continue_running)
 	def continue_running(self):
+		res = self.current_iteration < self.iterations
 		self.current_iteration += 1
-		return self.current_iteration < self.iterations
+		return res
+

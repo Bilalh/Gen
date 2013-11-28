@@ -9,6 +9,9 @@ from mpl_toolkits.mplot3d import Axes3D
 import random
 import json
 
+from ncube import pick_inside_ncube
+
+
 def iter_many(it, length, num):
     for i in range(0, length, num):
         yield (it[i:i+1 + num])
@@ -28,7 +31,7 @@ def plot_chain(current_chain, data_points):
     ax.plot(*list(zip(*current_chain)), c='g')
     ax.scatter(*list(zip(*current_chain[1:])), c='m')
     ax.scatter(*current_chain[0], c='b')
-    fig  #show
+    fig
 
 
 def plot_chain_3d(current_chain, data_points):
@@ -62,11 +65,30 @@ def plot_json_ouput(chain_fp, data_fp, limit=100):
     plot_chain_3d(chain[0:limit], data[0:limit])
 
 
+def test_ncube():
+    data_points = [pick_inside_ncube((0, 0), 5 ) for i in range(0, 100)]
+    fig, ax = plt.subplots()
+    ax.scatter(*list(zip(*data_points)), c='b')
+    print(data_points)
+
+
+    fig = plt.figure()
+    fig.clf()
+
+    data_points = [pick_inside_ncube((0, 0, 0), 5 ) for i in range(0, 100)]
+    print(data_points)
+
+    ax = fig.add_subplot(111, projection='3d')
+    ax.scatter(*list(zip(*data_points)), c='b')
+
+
+
 if __name__ == "__main__":
     import sys
     [_, chain_fp, data_fp, limit] = sys.argv
     print([chain_fp, data_fp, limit])
     plot_json_ouput(chain_fp, data_fp, int(limit))
     print("Saved temp.pdf")
+
 
 
