@@ -65,12 +65,13 @@ def run(fp):
 	lines = markov(data, common)
 
 	header =[
+		"#!/bin/bash",
 		"export PARAM_GEN_SCRIPTS=`pwd`/../instancegen/scripts/",
 		"export NUM_JOBS={}".format(data['cores']),
 		""
 	]
 
-	with open("cmd.sh", "w") as f:
+	with open("markov.sh", "w") as f:
 		f.write("\n".join(header))
 		f.write("\n".join(lines))
 
