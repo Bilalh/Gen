@@ -66,6 +66,8 @@ def run(fp):
 
 	header =[
 		"#!/bin/bash",
+		"# Assumes python3 is on the $PATH ",
+		"# and docopt is installed",
 		"export PARAM_GEN_SCRIPTS=`pwd`/../instancegen/scripts/",
 		"export NUM_JOBS={}".format(data['cores']),
 		""
