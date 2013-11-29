@@ -2,7 +2,7 @@
 set -o nounset
 
 # limit swap space used on my laptop
-if [ "$(uname)" = "Darwin" ] ; then 
+if [ "$(uname)" = "Darwin" ] ; then
     ulimit -Sv 2000000
 fi
 
@@ -50,7 +50,7 @@ set -x
     --in-essence $ESSENCE                                               \
     --in-eprime  $EPRIME                                                \
     --in-essence-param $PARAM                                           \
-    --out-eprime-param $EPRIME_PARAM; 
+    --out-eprime-param $EPRIME_PARAM;
 }  2> >(tee "${TIME_TEMPLATE}.refineParam" >&2 )
 set +x
 
@@ -70,15 +70,12 @@ timeout_file=${TIMEOUT5_FILE:-"${OUT_BASE_DIR:-.}/timeout5PerModelPerParam"}
 
 if [ -z "${NO_TIMERS:-}" ]; then
 	timer="${PARAM_GEN_SCRIPTS}/tools/timeout5 --timeout-file $timeout_file ${TOTAL_TIMEOUT}"
-	if [ "$(uname)" = "Darwin" ] ; then
-		timer="timelimit -t ${TOTAL_TIMEOUT} -T $(($TOTAL_TIMEOUT+20)) "
-	fi
 else
 	timer=""
 fi
 
 set -x
-{ 
+{
 time \
 ${timer} \
 savilerow                                                               \
@@ -150,7 +147,7 @@ RESULTOF_TRANSLATESOLN=$?
 if (( $RESULTOF_TRANSLATESOLN != 0 )) ; then
 	echo "$MSG_TRANSLATESOLN" >> "$FAIL_FILE"
 	exit 1
-else 
+else
 	echo "${MSG_TEMPLATE}" >> "$SUCCESS_FILE"
 fi
 

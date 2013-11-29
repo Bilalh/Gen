@@ -47,7 +47,7 @@ while read minion_timeout total_timeout; do
 done < `ls ${stats_dir}/${USE_DATE}.timeout-used | tail -n1`
 
 if [ !  -n "${NO_MINION_STATS:-}" ]; then
-ls ${results_dir}/*${param_glob}.minion-stats \
+ls ${results_dir}/*${param_glob}*.minion-stats \
    | parallel --tag  {} 2>&1 \
    | runhaskell ${Script_Base}/db/gather_data.hs  ${Essence_base}\
    | sqlite3 ${REPOSITORY_BASE}/results.db
@@ -55,7 +55,7 @@ fi
 
 echo "<$0> using *.info"
 
-ls ${results_dir}/*${param_glob}.info \
+ls ${results_dir}/*${param_glob}*.info \
   | parallel --tagstring "{/.}" cat {}  2>&1 \
   | grep -v 'MinionCommandLineArguments\|MinionFilename' \
   | runhaskell ${Script_Base}/db/gather_data.hs  ${Essence_base}\

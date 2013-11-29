@@ -20,7 +20,9 @@ Mode="${3:-${USE_MODE:-df}}";
 Eprime_dir="${Name}-${Mode}";
 Param_dir="params";
 
-TIMEOUT5_FILE=${TIMEOUT5_FILE:-timeout5-$Name-$Mode}
+Output_dir=${GENERATED_OUTPUT_DIR:-}
+
+TIMEOUT5_FILE=${TIMEOUT5_FILE:-${Output_dir}/timeout5-$Name-$Mode}
 echo "TIMEOUT5_FILE is ${TIMEOUT5_FILE}"
 echo "Deleting ${TIMEOUT5_FILE}"
 rm -f $TIMEOUT5_FILE
@@ -31,7 +33,6 @@ if [ ! "${Stats_output}" == "" ]; then
 fi
 
 
-Output_dir=${GENERATED_OUTPUT_DIR:-}
 
 if [ ! "${Output_dir}" == "" ]; then
 	Output_dir="${Output_dir}/";
@@ -53,13 +54,20 @@ echo "`pwd`";
 echo " --- ${Essence} --- ";
 
 function update_timeout(){
-tf=$1
+tf="$1.time.all"
+fin="$1.zfinished"
 shift
 
-if [ ! -f $results_dir/${1}-{2}.zfinished ]; then
+echo "<update_timeout> ${tf}"
+echo "<update_timeout> ${fin}"
+echo "<update_timeout> $TIMEOUT5_FILE"
+
+if [ ! -f "${fin}" ]; then
+	echo "<update_timeout> no ${fin}"
 	return
 fi
 
+set -x
 if [ ! -f "$TIMEOUT5_FILE" ]; then
 	if ( grep -q "real" "$tf" ); then
 		(( time_taken  = `grep "real" $tf | tail -n1 | sed -Ee 's/.*m([0-9]+).*/\1/'` ))
@@ -71,18 +79,18 @@ if [ ! -f "$TIMEOUT5_FILE" ]; then
 			echo $new_timeout > $TIMEOUT5_FILE
 		fi
 	fi
-fi	
+fi
+set +x
 # FIXME if found better timeout
 }
 
 Command=$( cat <<EOF
 echo -e '\n***  {1} {2/} ***';
-(	
-time $TIMEOUT5 --timeout-file $TIMEOUT5_FILE --interval 10  -k15 $TOTAL_TIMEOUT \
+(
+time $TIMEOUT5 --timeout-file $TIMEOUT5_FILE --interval 5  -k15 $TOTAL_TIMEOUT \
 	bash "${Dir}/perModelPerParam.sh"  ${Essence} {1} {2} ${MINION_TIMEOUT} ${TOTAL_TIMEOUT} ${Mode}  \
-	| tee "${Output_dir}/{1/.}-{2/.}.output"
 ) 3>&1 1>&2 2>&3  | tee "${Output_dir}/{1/.}-{2/.}.time.all";
-update_timeout  "${Output_dir}/{1/.}-{2/.}.time.all" {1/} {2/}
+update_timeout  "${Output_dir}/{1/.}-{2/.}" {1/} {2/}
 EOF
 )
 
@@ -90,4 +98,4 @@ export -f update_timeout
 export TOTAL_TIMEOUT
 export TIMEOUT5_FILE
 
-parallel -j${NUM_JOBS:-6}  $Command ::: ${Eprimes} ::: ${Params};
+parallel --tagstring "{1/.} {2/.}" -j${NUM_JOBS:-6}  $Command ::: ${Eprimes} ::: ${Params};
