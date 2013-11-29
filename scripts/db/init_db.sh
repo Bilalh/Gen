@@ -147,6 +147,17 @@ sqlite3 ${REPOSITORY_BASE}/results.db <<SQL
 		;
 
 
+	CREATE VIEW IF NOT EXISTS DiscriminatingParams as 
+
+    Select P.*, group_concat(D.eprime, ", ") as eprimes
+    From ParamQuality P
+    Join TimingsDomination D on P.param = D.param
+    Where P.Quality < 1 and isDominated = 0
+    Group by P.param
+    Order by P.quality
+        ;
+    
+
 	CREATE VIEW IF NOT EXISTS Stats as 
 	-- MUST USE SQLITE >= 3.7.12 2012-04-03   (3.7.11 will work as well)
 
