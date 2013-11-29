@@ -7,8 +7,8 @@
 
 Usage:
    chain (iterations|time) <limit>
-   ( --chain_length=<int>  --select_radius=<int>  --influence_radius=<int> --essence=<file> )
-   [ --model_timeout=<int> --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str> --radius_as_percentage]
+   ( --chain_length=<int>  --select_radius=<int>  --influence_radius=<int> --essence=<file> --model_timeout=<int>)
+   [ --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str> --radius_as_percentage]
 
 
 Options:
@@ -16,13 +16,13 @@ Options:
   --chain_length=<int>      Length of each chain.
   --select_radius=<int>     Radius for picking next point.
   --influence_radius=<int>  Radius for the acceptance function.
-  --model_timeout=<int>     Timeout in seconds [default: 600].
+  --model_timeout=<int>     Timeout in seconds.
   --working_dir=<dir>       Where the essence file is [default: .]
-  --seed=<int>              Random seed to use
-  --output_dir=<dir>        Where to put the results
-  --essence=<file>          Essence file
-  --radius_as_percentage    Radius setting as in %
-  --mode=<str>               Conjure mode used [default: df]
+  --seed=<int>              Random seed to use.
+  --output_dir=<dir>        Where to put the results.
+  --essence=<file>          Essence file.
+  --radius_as_percentage    Radius setting as in %.
+  --mode=<str>              Conjure mode used [default: df].
 
 
 """
