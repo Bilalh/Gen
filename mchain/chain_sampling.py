@@ -122,7 +122,7 @@ class Chain(object):
         print("Chain:")
         print([ [int(v) for v in vs] for vs in current_chain])
 
-        with open(os.path.join(self.output_dir, "chain", "iter-{}-chain.json".format(self._current_iteration)), "w") as f:
+        with open(os.path.join(self.output_dir, "chain", "iter-{:03}-chain.json".format(self._current_iteration)), "w") as f:
             f.write(json.dumps(current_chain))
 
         self._current_iteration+=1
