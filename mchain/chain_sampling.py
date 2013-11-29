@@ -24,6 +24,10 @@ class Chain(object):
             print("$PARAM_GEN_SCRIPTS needs to defined", file=sys.stderr)
             exit(2)
 
+        if "NUM_JOBS" not in os.environ:
+            print("$NUM_JOBS needs to defined", file=sys.stderr)
+            exit(3)
+
         if options['output_dir']:
             self.output_dir = options['output_dir']
         else:
