@@ -10,6 +10,7 @@ Usage:
    ( --chain_length=<int>  --select_radius=<int>  --influence_radius=<int> --essence=<file> --model_timeout=<int>)
    [ --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str> --radius_as_percentage]
 
+`time <limit>` is the total time the program can take
 
 Options:
   --help                    Show this screen.
@@ -41,7 +42,7 @@ if __name__ == '__main__':
     }
 
 
-    arguments = docopt(__doc__, version='')
+    arguments = docopt(__doc__, version='1.0')
 
     for l in limiters:
         if arguments[l]:
