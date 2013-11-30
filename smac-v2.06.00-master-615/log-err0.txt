@@ -1,1 +1,0 @@
-15:28:46.349 [main] ERROR c.u.c.b.smac.executors.SMACExecutor - Message: Expected a value after parameter --scenario-file
