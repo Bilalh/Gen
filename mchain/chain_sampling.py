@@ -119,8 +119,8 @@ class Chain(object):
             if self.acceptance(current_chain[-1], candidate_point, self.data, None):
                 current_chain.append(candidate_point)
 
-        print("Chain:")
-        print([ [int(v) for v in vs] for vs in current_chain])
+        # print("Chain:")
+        # print([ [int(v) for v in vs] for vs in current_chain])
 
         with open(os.path.join(self.output_dir, "chain", "iter-{:03}-chain.json".format(self._current_iteration)), "w") as f:
             f.write(json.dumps(current_chain))
