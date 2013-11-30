@@ -7,6 +7,7 @@ import os
 import itertools
 from pprint import pprint
 import math
+import argparse
 
 def read_json(fp):
 	os.path.abspath(os.path.expanduser(fp))
@@ -24,46 +25,44 @@ def common_product(data):
 	return [dict(kv) for kv in itertools.product(*zipped)]
 
 
-def markov(data, commons):
+def markov(data, commons, place_dir):
 	cur = data['markov']
 	cores = data['cores']
 
-	lines = ["### markov ###"]
-
-	for essence in data['essences']:
-		lines.append("#-- {} --#".format(essence))
+	def func(*, name, filepath, mode, num_models):
+		lines = ["### markov ###"]
+		lines.append("#-- {} --#".format(filepath))
 		for common in commons:
 			lines.append("   # {}h, {} races".format(common['total_time'] / 60 / 60, common['races'] )  )
 
 			settings = {
-				"essence": essence,
-				"essence_dir": os.path.dirname(essence),
+				"essence": filepath,
+				"essence_dir": os.path.dirname(filepath),
 				"model_timeout": math.ceil(common['total_time'] / common['races'] / cores),
-				"limit": math.ceil(common['total_time'] / data['cores'])
+				"limit": math.ceil(common['total_time'] / data['cores']),
+				"mode": mode,
+				"output_dir": os.path.join(place_dir, "results", "markov", name, "out"),
+				"log_path": os.path.join(place_dir, "results", "markov", name, "out", "logs", "log")
 			}
 			settings.update(cur)
-			print(settings)
+			# print(settings)
 			command ="""
-			record logs/runs ../instancegen/mchain/chain_main.py time {limit}\
-				--radius_as_percentage \
-				--chain_length={chain_length} \
+			record_cp {log_path} ../instancegen/mchain/chain_main.py time {limit}\
+				--mode={mode} --radius_as_percentage \
 				--select_radius={select_radius} --influence_radius={influence_radius} \
-				--model_timeout={model_timeout} \
-				--essence={essence} --working_dir={essence_dir}
+				--chain_length={chain_length} \
+				--model_timeout={model_timeout}\
+				--essence={essence} --working_dir={essence_dir} --output_dir={output_dir}
 			""".format(**settings).strip().replace("\t", " ")
 
 			lines.append(command)
 
-	return lines
+		return lines
+
+	return { kv['name']: func(**kv) for kv in data['essences'] }
 
 
-
-def run(fp):
-	data = read_json(fp)
-	common = common_product(data)
-	pprint(common)
-	lines = markov(data, common)
-
+def write_with_header(fp, lines, **data):
 	header =[
 		"#!/bin/bash",
 		"# Assumes python3 is on the $PATH ",
@@ -73,10 +72,36 @@ def run(fp):
 		""
 	]
 
-	with open("markov.sh", "w") as f:
+	with open(fp, "w") as f:
 		f.write("\n".join(header))
 		f.write("\n".join(lines))
+	print("Wrote", fp)
+
+
+def run(fp, place_dir):
+	data = read_json(fp)
+	commons = common_product(data)
+	pprint(commons)
+
+	results = { f.__name__: f(data, commons, place_dir) for f in [markov] }
+	# pprint(results)
+
+	for (method, essences) in results.items():
+		for (essence, lines) in essences.items():
+			dir_path = os.path.join(place_dir, "results", method, essence)
+			os.makedirs(dir_path, exist_ok=True)
+			write_with_header(os.path.join(dir_path, essence + ".sh"), lines, **data)
+
+
+if __name__ == "__main__":
+	parser = argparse.ArgumentParser()
+	parser.add_argument("json_settings")
+	parser.add_argument("output_dir")
+	args = parser.parse_args()
+	run(os.path.abspath(os.path.expanduser(args.json_settings)),
+		os.path.abspath(os.path.expanduser(args.output_dir)) )
 
 
 
-run("/Users/bilalh/CS/instancegen/settings.json")
+
+
