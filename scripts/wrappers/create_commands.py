@@ -73,7 +73,7 @@ def write_with_header(fp, lines):
 	header =[
 		"#!/bin/bash",
 		"# Assumes python3 is on the $PATH ",
-		"# and docopt is installed",
+		"# and docopt is installed (i.e pip install docopt) ",
 		"export PARAM_GEN_SCRIPTS=`pwd`/../instancegen/scripts/",
 		""
 	]
@@ -82,6 +82,57 @@ def write_with_header(fp, lines):
 		f.write("\n".join(header))
 		f.write("\n".join(lines))
 	print("Wrote", fp)
+	return fp
+
+
+record_funcs="""
+function record(){
+	if [[ -z "${1}" || -z "${2}" ]]; then
+		echo "$0 name command"
+	else
+		local name="$1"
+		shift
+		if [ "`basename \"${name}\"`" != "${name}" ]; then
+			mkdir -p "`dirname \"${name}\"`"
+		fi
+		local fp="${name}-`date +%F_%H-%M_%s`"
+		echo "pwd:`pwd`"> "${fp}.cmds"
+		echo "$@"  >> "${fp}.cmds"
+		$@ 2>&1 | tee "${fp}.log"
+	fi
+}
+
+
+function record_cp(){
+	if [[ -z "${1}" || -z "${2}" ]]; then
+		echo "$0 name command"
+	else
+		local name="$1"
+		shift
+		if [ "`basename \"${name}\"`" != "${name}" ]; then
+			mkdir -p "`dirname \"${name}\"`"
+		fi
+		local fp="${name}-`date +%F_%H-%M_%s`"
+		echo "pwd:`pwd`"> "${fp}.cmds"
+
+		echo "conjure">> "${fp}.cmds"
+		conjure 2>&1 | grep Version						  >> "${fp}.cmds"
+		minion 2>&1	 | egrep 'Git version|Minion Version' >> "${fp}.cmds"
+		savilerow	 | head -n 2 | tail -n 1			  >> "${fp}.cmds"
+
+		local sr="$(dirname `which savilerow`)"
+		if [ -f "${sr}/.hg/cache/branchheads" ]; then
+			cat "${sr}/.hg/cache/branchheads" >> "${fp}.cmds"
+		fi
+		echo "Command:"  >> "${fp}.cmds"
+		echo "$@"        >> "${fp}.cmds"
+		$@ 2>&1 | tee "${fp}.log"
+	fi
+}
+
+export -f record
+export -f record_cp
+"""
 
 
 def run(fp, place_dir):
@@ -92,12 +143,15 @@ def run(fp, place_dir):
 	results = { f.__name__: f(data, commons, place_dir) for f in [markov] }
 	# pprint(results)
 
+	scripts = [record_funcs]
 	for (method, essences) in results.items():
 		for (essence, lines) in essences.items():
 			dir_path = os.path.join(place_dir, "results", method, essence)
 			os.makedirs(dir_path, exist_ok=True)
-			write_with_header(os.path.join(dir_path, essence + ".sh"), lines)
+			fp = write_with_header(os.path.join(dir_path, essence + ".sh"), lines)
+			scripts.append(fp)
 
+	write_with_header(os.path.join(place_dir, "run_all.sh"), scripts)
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
