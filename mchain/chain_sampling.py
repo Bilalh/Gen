@@ -76,15 +76,15 @@ class Chain(object):
     def acceptance(self, previous_point, candidate_point, data, local_data):
         """ Return True if the  candidate_point should be added to the chain """
 
-        print(("acceptance", previous_point, candidate_point, data, local_data))
+        # print(("acceptance", previous_point, candidate_point, data, local_data))
         # Bound check
         if previous_point == candidate_point or any( (p < l or p > u) for (p, (l, u)) in zip(candidate_point, data)):
-            print(("rejected", candidate_point))
+            # print(("rejected", candidate_point))
             return False
 
         # Get points that effect
         points = [ p for p in self.data_points if self.shape.is_in_inside(self.settings.influence_radius, candidate_point, p) ]
-        print("influence points for {} are : {}".format(candidate_point, points))
+        # print("influence points for {} are : {}".format(candidate_point, points))
 
         if len(points) == 0:
             return random.choice([True, False])
@@ -95,11 +95,11 @@ class Chain(object):
 
         # Get the quailties of these points
         quailties = [get_quailty(p) for p in points]
-        print("quailties {}".format(quailties))
+        # print("quailties {}".format(quailties))
 
         mean = sum(quailties) / len(quailties)
         choice = random.uniform(0, 1)
-        print("mean is {}, choice is {}".format(mean, choice))
+        # print("mean is {}, choice is {}".format(mean, choice))
 
         return (choice >= mean)
 

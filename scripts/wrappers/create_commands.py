@@ -26,7 +26,7 @@ def common_product(data):
 	return [dict(kv) for kv in itertools.product(*zipped)]
 
 
-def markov(data, commons, place_dir):
+def markov(data, commons, place_dir, init_source):
 	cur = data['markov']
 	cores = data['cores']
 
@@ -37,19 +37,21 @@ def markov(data, commons, place_dir):
 		else:
 			jobs = cores
 
-		lines = ["export NUM_JOBS={}".format(jobs), "### markov ###"]
+		lines = [ "export NUM_JOBS={}".format(jobs), "### markov ###", init_source]
 		lines.append("#-- {} --#".format(filepath))
 		for common in commons:
-			lines.append("   # {}h, {} races".format(common['total_time'] / 60 / 60, common['races'] )  )
+			tu = (int(math.ceil(common['total_time'] / 60 / 60)), common['races'] )
+			lines.append("   # {:03}h, {:03} races".format(*tu) )
 
+			extra = "{:03}-{:03}".format(*tu)
 			settings = {
 				"essence": filepath,
 				"essence_dir": os.path.dirname(filepath),
 				"model_timeout": math.ceil(common['total_time'] / common['races'] / cores),
 				"limit": math.ceil(common['total_time'] / data['cores']),
 				"mode": mode,
-				"output_dir": os.path.join(place_dir, "results", "markov", name, "out"),
-				"log_path": os.path.join(place_dir, "results", "markov", name, "out", "logs", "log")
+				"output_dir": os.path.join(place_dir, "results", "markov", name, "out-" + extra),
+				"log_path": os.path.join(place_dir, "results", "markov", name, "out-" + extra, "logs", "log")
 			}
 			settings.update(cur)
 			# print(settings)
@@ -140,10 +142,12 @@ def run(fp, place_dir):
 	commons = common_product(data)
 	pprint(commons)
 
-	results = { f.__name__: f(data, commons, place_dir) for f in [markov] }
+	init_path = os.path.join(place_dir, "results", "init.sh")
+	init_source = '. ' + os.path.join(place_dir, "results", "init.sh")
+	results = { f.__name__: f(data, commons, place_dir, init_source) for f in [markov] }
 	# pprint(results)
 
-	scripts = [record_funcs]
+	scripts = [init_source]
 	for (method, essences) in results.items():
 		for (essence, lines) in essences.items():
 			dir_path = os.path.join(place_dir, "results", method, essence)
@@ -152,6 +156,7 @@ def run(fp, place_dir):
 			scripts.append(fp)
 
 	write_with_header(os.path.join(place_dir, "run_all.sh"), scripts)
+	write_with_header(init_path, [record_funcs])
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
