@@ -9,6 +9,7 @@ from pprint import pprint
 import math
 import argparse
 
+
 def read_json(fp):
 	os.path.abspath(os.path.expanduser(fp))
 	with open( fp ) as f:
@@ -30,7 +31,13 @@ def markov(data, commons, place_dir):
 	cores = data['cores']
 
 	def func(*, name, filepath, mode, num_models):
-		lines = ["### markov ###"]
+
+		if num_models < cores:
+			jobs = num_models
+		else:
+			jobs = cores
+
+		lines = ["export NUM_JOBS={}".format(jobs), "### markov ###"]
 		lines.append("#-- {} --#".format(filepath))
 		for common in commons:
 			lines.append("   # {}h, {} races".format(common['total_time'] / 60 / 60, common['races'] )  )
@@ -62,13 +69,12 @@ def markov(data, commons, place_dir):
 	return { kv['name']: func(**kv) for kv in data['essences'] }
 
 
-def write_with_header(fp, lines, **data):
+def write_with_header(fp, lines):
 	header =[
 		"#!/bin/bash",
 		"# Assumes python3 is on the $PATH ",
 		"# and docopt is installed",
 		"export PARAM_GEN_SCRIPTS=`pwd`/../instancegen/scripts/",
-		"export NUM_JOBS={}".format(data['cores']),
 		""
 	]
 
@@ -90,7 +96,7 @@ def run(fp, place_dir):
 		for (essence, lines) in essences.items():
 			dir_path = os.path.join(place_dir, "results", method, essence)
 			os.makedirs(dir_path, exist_ok=True)
-			write_with_header(os.path.join(dir_path, essence + ".sh"), lines, **data)
+			write_with_header(os.path.join(dir_path, essence + ".sh"), lines)
 
 
 if __name__ == "__main__":
