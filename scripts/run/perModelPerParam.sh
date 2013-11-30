@@ -41,17 +41,22 @@ FAIL_FILE="${EPRIMEBASE}.fails"
 SUCCESS_FILE="${EPRIMEBASE}.success"
 
 
+timeout_file=${TIMEOUT5_FILE:-"${OUT_BASE_DIR:-.}/timeout5PerModelPerParam"}
+#"
+
 RESULTOF_REFINEPARAM=0
 MSG_REFINEPARAM="{refineParam}       $MSG_TEMPLATE"
 echo "$MSG_REFINEPARAM"
+
 set -x
-{ time conjure                                                                 \
+{
+time conjure                                                                 \
     --mode       refineParam                                            \
     --in-essence $ESSENCE                                               \
     --in-eprime  $EPRIME                                                \
     --in-essence-param $PARAM                                           \
     --out-eprime-param $EPRIME_PARAM;
-}  2> >(tee "${TIME_TEMPLATE}.refineParam" >&2 )
+}
 set +x
 
 RESULTOF_REFINEPARAM=$?
@@ -65,8 +70,6 @@ RESULTOF_SAVILEROW=0
 MSG_SAVILEROW="{savilerow}         $MSG_TEMPLATE"
 echo "$MSG_SAVILEROW"
 
-timeout_file=${TIMEOUT5_FILE:-"${OUT_BASE_DIR:-.}/timeout5PerModelPerParam"}
-#"
 
 if [ -z "${NO_TIMERS:-}" ]; then
 	timer="${PARAM_GEN_SCRIPTS}/tools/timeout5 --timeout-file $timeout_file ${TOTAL_TIMEOUT}"
@@ -86,7 +89,7 @@ savilerow                                                               \
     -m minion                                                           \
     -boundvars                                                          \
     -minion-options "-timelimit ${MINION_TIMEOUT}";
-}  2> >(tee  "${TIME_TEMPLATE}.savilerow" >&2  )
+}
 set +x
 
 RESULTOF_SAVILEROW=$?
@@ -95,11 +98,10 @@ touch $END_FILE
 
 RESULTOF_MINIONSTATS=0
 if [ !  -n "${NO_MINION_STATS:-}" ]; then
-
-MSG_MINIONSTATS="{minionStats}       $MSG_TEMPLATE"
-echo "$MSG_MINIONSTATS"
-${timer} minion -instancestats $MINION > $MINION_STATS
-RESULTOF_MINIONSTATS=$?
+    MSG_MINIONSTATS="{minionStats}       $MSG_TEMPLATE"
+    echo "$MSG_MINIONSTATS"
+    ${timer} minion -instancestats $MINION > $MINION_STATS
+    RESULTOF_MINIONSTATS=$?
 fi
 
 if (( $RESULTOF_SAVILEROW != 0 )) ; then
@@ -112,7 +114,7 @@ if (( $RESULTOF_MINIONSTATS != 0 )) ; then
     fail=1
 fi
 
-MSG_SOLUTION_MISSING="{noSolution}        $MSG_TEMPLATE"
+MSG_SOLUTION_MISSING="{noSolution?}        $MSG_TEMPLATE"
 if ! [ -f $EPRIME_SOLUTION ] ; then
 	echo "${MSG_SOLUTION_MISSING}" >> "$FAIL_FILE"
 	exit 1
@@ -136,7 +138,7 @@ conjure                                                                 \
     --in-eprime-param       $EPRIME_PARAM                               \
     --in-eprime-solution    $EPRIME_SOLUTION                            \
     --out-essence-solution  $ESSENCE_SOLUTION
-} 2> >(tee  "${TIME_TEMPLATE}.translateSolution" >&2  )
+}
 set +x
 
 RESULTOF_TRANSLATESOLN=$?
@@ -163,7 +165,7 @@ conjure                                                                 \
     --in-essence  $ESSENCE                                              \
     --in-param    $PARAM                                                \
     --in-solution $ESSENCE_SOLUTION
-} 2> >(tee  "${TIME_TEMPLATE}.validateSolution" >&2  )
+}
 set +x
 
 RESULTOF_VALIDATESOLN=$?
