@@ -98,11 +98,7 @@ if [ !  -n "${NO_MINION_STATS:-}" ]; then
 
 MSG_MINIONSTATS="{minionStats}       $MSG_TEMPLATE"
 echo "$MSG_MINIONSTATS"
-if [ "$(uname)" = "Darwin" ] ; then
-    ${timer} minion -instancestats $MINION > $MINION_STATS
-else
-    ${timer} minion -instancestats $MINION > $MINION_STATS
-fi
+${timer} minion -instancestats $MINION > $MINION_STATS
 RESULTOF_MINIONSTATS=$?
 fi
 

@@ -67,7 +67,6 @@ if [ ! -f "${fin}" ]; then
 	return
 fi
 
-set -x
 if [ ! -f "$TIMEOUT5_FILE" ]; then
 	if ( grep -q "real" "$tf" ); then
 		(( time_taken  = `grep "real" $tf | tail -n1 | sed -Ee 's/.*m([0-9]+).*/\1/'` ))
@@ -80,14 +79,14 @@ if [ ! -f "$TIMEOUT5_FILE" ]; then
 		fi
 	fi
 fi
-set +x
-# FIXME if found better timeout
+
+# FIXME if found better timeout to speed things up
 }
 
 Command=$( cat <<EOF
 echo -e '\n***  {1} {2/} ***';
 (
-time $TIMEOUT5 --timeout-file $TIMEOUT5_FILE --interval 5  -k15 $TOTAL_TIMEOUT \
+time $TIMEOUT5 --timeout-file $TIMEOUT5_FILE --interval 3  -k15 $TOTAL_TIMEOUT \
 	bash "${Dir}/perModelPerParam.sh"  ${Essence} {1} {2} ${MINION_TIMEOUT} ${TOTAL_TIMEOUT} ${Mode}  \
 ) 3>&1 1>&2 2>&3  | tee "${Output_dir}/{1/.}-{2/.}.time.all";
 update_timeout  "${Output_dir}/{1/.}-{2/.}" {1/} {2/}
