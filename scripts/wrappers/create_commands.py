@@ -9,6 +9,7 @@ from pprint import pprint
 import math
 import argparse
 
+from itertools import groupby
 
 def read_json(fp):
 	os.path.abspath(os.path.expanduser(fp))
@@ -26,11 +27,11 @@ def common_product(data):
 	return [dict(kv) for kv in itertools.product(*zipped)]
 
 
-def markov(data, commons, place_dir, init_source):
+def markov(data, commons_grouped, place_dir, init_source):
 	cur = data['markov']
 	cores = data['cores']
 
-	def func(*, name, filepath, mode, num_models):
+	def func(commons, *, name, filepath, mode, num_models):
 
 		if num_models < cores:
 			jobs = num_models
@@ -68,7 +69,10 @@ def markov(data, commons, place_dir, init_source):
 
 		return lines
 
-	return { kv['name']: func(**kv) for kv in data['essences'] }
+	return { kv['name']: {num: func(commons, **kv)
+		for (num, commons) in commons_grouped.items()}
+		for kv in data['essences']
+		}
 
 
 def write_with_header(fp, lines):
@@ -140,22 +144,29 @@ export -f record_cp
 def run(fp, place_dir):
 	data = read_json(fp)
 	commons = common_product(data)
-	pprint(commons)
+
+	commons_grouped = { k: list(v) for (k, v) in groupby(commons, key=lambda d: d["races"] )}
+	pprint(commons_grouped)
 
 	init_path = os.path.join(place_dir, "results", "init.sh")
 	init_source = '. ' + os.path.join(place_dir, "results", "init.sh")
-	results = { f.__name__: f(data, commons, place_dir, init_source) for f in [markov] }
+	results = { f.__name__: f(data, commons_grouped, place_dir, init_source) for f in [markov] }
 	# pprint(results)
+
+	def write_race(essence, races, lines):
+		return write_with_header(os.path.join(dir_path, "{}-races-{:03}.sh".format(essence, races)), lines)
 
 	scripts = [init_source]
 	for (method, essences) in results.items():
-		for (essence, lines) in essences.items():
+		for (essence, races) in essences.items():
 			dir_path = os.path.join(place_dir, "results", method, essence)
 			os.makedirs(dir_path, exist_ok=True)
-			fp = write_with_header(os.path.join(dir_path, essence + ".sh"), lines)
+
+			races_fps = [ write_race(essence, races_no, lines) for (races_no, lines) in races.items() ]
+			fp = write_with_header(os.path.join(dir_path, essence + ".sh"), sorted(races_fps))
 			scripts.append(fp)
 
-	write_with_header(os.path.join(place_dir, "run_all.sh"), scripts)
+	write_with_header(os.path.join(place_dir, "run_all.sh"), sorted(scripts))
 	write_with_header(init_path, [record_funcs])
 
 if __name__ == "__main__":
