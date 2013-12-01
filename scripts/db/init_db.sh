@@ -41,6 +41,7 @@ sqlite3 ${REPOSITORY_BASE}/results.db <<SQL
 	From Experiment
 	Order by attribute;
 
+
 	CREATE VIEW IF NOT EXISTS TimingsDomination as
 
 	Select *
@@ -87,10 +88,10 @@ sqlite3 ${REPOSITORY_BASE}/results.db <<SQL
 
 		-- Unioning the eprime that never finished
 		Select param , eprime,
-		  0 as SavileRow, 0 as Minion, 0 as TotalTime,
-		  0 as MinionNodes ,1 as MinionTimeout,
-		  0 as MinionSatisfiable ,0 as MinionSolutionsFound,
-		  0 as IsOptimum, Cast(f.value as Integer) as isDominated
+		  -1 as SavileRow, -1 as Minion, -1 as TotalTime,
+		  -1 as MinionNodes ,1 as MinionTimeout,
+		   0 as MinionSatisfiable , 0 as MinionSolutionsFound,
+		   0 as IsOptimum, Cast(f.value as Integer) as isDominated
 		From  Experiment f
 		Where f.attribute = 'isDominated' and (
 			Select count(attribute) From Experiment g
