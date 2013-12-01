@@ -54,7 +54,7 @@ def markov(data, commons_grouped, place_dir, init_source, num_runs):
 			settings = {
 				"essence": filepath,
 				"essence_dir": os.path.dirname(filepath),
-				"model_timeout": math.ceil(common['total_time'] / common['races'] / cores),
+				"model_timeout": math.ceil(math.ceil(common['total_time'] / common['races']) / cores),
 				"limit": math.ceil(common['total_time'] / data['cores']),
 				"mode": mode,
 				"output_dir": os.path.join(place_dir, "results", "markov", name, extra),

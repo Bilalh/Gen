@@ -7,6 +7,7 @@ import sqlite3
 import subprocess
 import json
 import fnmatch
+import math
 
 import logging
 logger = logging.getLogger(__name__)
@@ -88,7 +89,7 @@ def run_models(now, param_path, cutoff_time, working_dir, output_dir):
 	num_models = get_number_of_models( models_dir )
 	logger.info(num_models)
 
-	time_per_model = int(cutoff_time) // num_models
+	time_per_model = int(math.ceil(cutoff_time) / num_models)
 	logger.info("time_per_model:%s cutoff_time:%s", time_per_model, cutoff_time)
 
 	def runner():
