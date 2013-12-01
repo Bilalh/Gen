@@ -27,7 +27,7 @@ def common_product(data):
 	return [dict(kv) for kv in itertools.product(*zipped)]
 
 
-def markov(data, commons_grouped, place_dir, init_source):
+def markov(data, commons_grouped, place_dir, init_source, num_runs):
 	cur = data['markov']
 	cores = data['cores']
 
@@ -38,35 +38,41 @@ def markov(data, commons_grouped, place_dir, init_source):
 		else:
 			jobs = cores
 
-		lines = [ "export NUM_JOBS={}".format(jobs), "### markov ###", init_source]
-		lines.append("#-- {} --#".format(filepath))
+		lines = [
+			"export NUM_JOBS={}".format(jobs),
+			"### markov ###",
+			init_source,
+			"#-- {} --#".format(filepath),
+			"for race_no in {1..%d}; do" % (num_runs)
+		]
 		for common in commons:
 			tu = (int(math.ceil(common['total_time'] / 60 / 60)), common['races'] )
-			lines.append("   # {:03}h, {:03} races".format(*tu) )
+			lines.append("		# {:03}h, {:03} races".format(*tu) )
 
-			extra = "{:03}-{:03}".format(*tu)
+			extra = "out-{:03}-{:03}__{race_no}".format(*tu, race_no="${race_no}")
 			settings = {
 				"essence": filepath,
 				"essence_dir": os.path.dirname(filepath),
 				"model_timeout": math.ceil(common['total_time'] / common['races'] / cores),
 				"limit": math.ceil(common['total_time'] / data['cores']),
 				"mode": mode,
-				"output_dir": os.path.join(place_dir, "results", "markov", name, "out-" + extra),
-				"log_path": os.path.join(place_dir, "results", "markov", name, "out-" + extra, "logs", "log")
+				"output_dir": os.path.join(place_dir, "results", "markov", name, extra),
+				"log_path": os.path.join(place_dir, "results", "markov", name, extra, "logs", "log-${race_no}")
 			}
 			settings.update(cur)
 			# print(settings)
-			command ="""
+			command ="\t" + """
 			record_cp {log_path} ../instancegen/mchain/chain_main.py time {limit}\
+				--model_timeout={model_timeout}\
 				--mode={mode} --radius_as_percentage \
 				--select_radius={select_radius} --influence_radius={influence_radius} \
 				--chain_length={chain_length} \
-				--model_timeout={model_timeout}\
 				--essence={essence} --working_dir={essence_dir} --output_dir={output_dir}
 			""".format(**settings).strip().replace("\t", " ")
 
 			lines.append(command)
 
+		lines.append("done")
 		return lines
 
 	return { kv['name']: {num: func(commons, **kv)
@@ -141,16 +147,17 @@ export -f record_cp
 """
 
 
-def run(fp, place_dir):
+def run(fp, place_dir, num_runs):
 	data = read_json(fp)
 	commons = common_product(data)
 
-	commons_grouped = { k: list(v) for (k, v) in groupby(commons, key=lambda d: d["races"] )}
+	commons_grouped = { k: list(v) for (k, v) in
+		groupby(sorted(commons, key=lambda d: d["races"]), key=lambda d: d["races"] )}
 	pprint(commons_grouped)
 
 	init_path = os.path.join(place_dir, "results", "init.sh")
 	init_source = '. ' + os.path.join(place_dir, "results", "init.sh")
-	results = { f.__name__: f(data, commons_grouped, place_dir, init_source) for f in [markov] }
+	results = { f.__name__: f(data, commons_grouped, place_dir, init_source, num_runs) for f in [markov] }
 	# pprint(results)
 
 	def write_race(essence, races, lines):
@@ -173,9 +180,11 @@ if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
 	parser.add_argument("json_settings")
 	parser.add_argument("output_dir")
+	parser.add_argument("num_runs", type=int)
 	args = parser.parse_args()
 	run(os.path.abspath(os.path.expanduser(args.json_settings)),
-		os.path.abspath(os.path.expanduser(args.output_dir)) )
+		os.path.abspath(os.path.expanduser(args.output_dir)),
+		args.num_runs)
 
 
 
