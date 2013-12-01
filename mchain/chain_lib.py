@@ -8,12 +8,15 @@ import subprocess
 import json
 import fnmatch
 
+import logging
+logger = logging.getLogger(__name__)
 
 Settings=namedtuple('Settings', ['chain_length', 'select_radius', 'influence_radius', 'seed', 'mode',
 								'model_timeout', "essence", "working_dir", "output_dir", "limit", "radius_as_percentage"])
 
 
 def wrappers(script_name):
+	""" return the complete path to a script in $PARAM_GEN_SCRIPTS/wrappers """
 	return os.path.join(os.path.expandvars("${PARAM_GEN_SCRIPTS}/"), "wrappers", script_name)
 
 
@@ -21,6 +24,9 @@ def gather_param_info(essence_file, output_dir):
 	""" Get param bounds in json """
 
 	json_path = os.path.join(output_dir, "essence.json")
+
+	sys.stdout.flush()
+	sys.stderr.flush()
 
 	subprocess.Popen([
 		wrappers("essenceGivensToJson.sh"), essence_file, json_path, "100"
@@ -53,7 +59,7 @@ def create_param_essence(params):
 def write_param(output_dir, contents, param_name):
 	""" Write the param at dirname with param_name """
 	param_path = os.path.join(output_dir, "params", "{}.param".format(param_name) )
-	print("%s\n" % param_path)
+	logger.info("%s\n" % param_path)
 	with open(param_path, "w") as f:
 		f.write(contents)
 	return param_path
@@ -80,10 +86,10 @@ def run_models(now, param_path, cutoff_time, working_dir, output_dir):
 
 	models_dir = os.path.join(working_dir, os.path.basename(working_dir) + "-df")
 	num_models = get_number_of_models( models_dir )
-	print(num_models)
+	logger.info(num_models)
 
 	time_per_model = int(cutoff_time) // num_models
-	print("time_per_model, cutoff_time", time_per_model, cutoff_time)
+	logger.info("time_per_model:%s cutoff_time:%s", time_per_model, cutoff_time)
 
 	def runner():
 		current_env= os.environ.copy()
@@ -103,6 +109,9 @@ def get_results(working_dir, output_dir, param_name, cutoff_time, then):
 	current_env["OUT_BASE_DIR"] = output_dir
 	current_env["TOTAL_TIMEOUT"] = str(cutoff_time)
 	current_env["USE_DATE"] = then
+
+	sys.stdout.flush()
+	sys.stderr.flush()
 
 	subprocess.Popen([wrappers("run_gather.sh"), param_name, working_dir], env=current_env).communicate()
 	conn = sqlite3.connect(os.path.join(output_dir, 'results.db'))
@@ -134,7 +143,7 @@ def quality(count, minionTimeout, minionSatisfiable, minionSolutionsFound, isOpt
 	"""
 	0.0 perfect  1.0 terrible
 	"""
-	print("quality", (count, minionTimeout, minionSatisfiable, minionSolutionsFound, isOptimum, isDominated))
+	logger.info("quality %s", (count, minionTimeout, minionSatisfiable, minionSolutionsFound, isOptimum, isDominated))
 
 	if minionTimeout == 0:
 		return 1

@@ -3,7 +3,7 @@
 # Bilal Syed Hussain
 
 import random
-from pprint import pprint
+import pprint
 import math
 
 import chain_lib
@@ -15,17 +15,20 @@ import sys
 import calendar
 import json
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class Chain(object):
 
     def __init__(self, options, limiter):
 
         if "PARAM_GEN_SCRIPTS" not in os.environ:
-            print("$PARAM_GEN_SCRIPTS needs to defined", file=sys.stderr)
+            logger.error("$PARAM_GEN_SCRIPTS needs to defined")
             exit(2)
 
         if "NUM_JOBS" not in os.environ:
-            print("$NUM_JOBS needs to defined", file=sys.stderr)
+            logger.error("$NUM_JOBS needs to defined")
             exit(3)
 
         if options['output_dir']:
@@ -39,7 +42,7 @@ class Chain(object):
             os.makedirs(os.path.join(self.output_dir, fp), exist_ok=True)
 
         vals = chain_lib.gather_param_info(options['essence'], self.output_dir)
-        print(vals)
+        logger.info(vals)
 
         if options['radius_as_percentage']:
             self.shape = ncuboid
@@ -52,7 +55,7 @@ class Chain(object):
             self.shape = ncube
 
         settings = chain_lib.Settings(**options)
-        print(settings)
+        logger.info(settings)
 
         [self.names, self.data] = list(zip(*vals))
         self.data_points= []
@@ -68,7 +71,7 @@ class Chain(object):
 
         self.limiter = limiter
 
-        print("Using Seed {}".format(seed))
+        logger.info("Using Seed {}".format(seed))
         random.seed(seed)
 
 
@@ -76,15 +79,15 @@ class Chain(object):
     def acceptance(self, previous_point, candidate_point, data, local_data):
         """ Return True if the  candidate_point should be added to the chain """
 
-        # print(("acceptance", previous_point, candidate_point, data, local_data))
+        logger.debug(("acceptance", previous_point, candidate_point, data, local_data))
         # Bound check
         if previous_point == candidate_point or any( (p < l or p > u) for (p, (l, u)) in zip(candidate_point, data)):
-            # print(("rejected", candidate_point))
+            logger.debug(("rejected", candidate_point))
             return False
 
         # Get points that effect
         points = [ p for p in self.data_points if self.shape.is_in_inside(self.settings.influence_radius, candidate_point, p) ]
-        # print("influence points for {} are : {}".format(candidate_point, points))
+        logger.debug("influence points for {} are : {}".format(candidate_point, points))
 
         if len(points) == 0:
             return random.choice([True, False])
@@ -95,11 +98,11 @@ class Chain(object):
 
         # Get the quailties of these points
         quailties = [get_quailty(p) for p in points]
-        # print("quailties {}".format(quailties))
+        logger.debug("quailties {}".format(quailties))
 
         mean = sum(quailties) / len(quailties)
         choice = random.uniform(0, 1)
-        # print("mean is {}, choice is {}".format(mean, choice))
+        logger.debug("mean is {}, choice is {}".format(mean, choice))
 
         return (choice >= mean)
 
@@ -119,8 +122,8 @@ class Chain(object):
             if self.acceptance(current_chain[-1], candidate_point, self.data, None):
                 current_chain.append(candidate_point)
 
-        # print("Chain:")
-        # print([ [int(v) for v in vs] for vs in current_chain])
+        logger.debug("Chain:")
+        logger.debug([ [int(v) for v in vs] for vs in current_chain])
 
         with open(os.path.join(self.output_dir, "chain", "iter-{:03}-chain.json".format(self._current_iteration)), "w") as f:
             f.write(json.dumps(current_chain))
@@ -136,21 +139,19 @@ class Chain(object):
             self.data_points.append(selected_point)
 
             (param_string, param_name) = chain_lib.create_param_essence(zip(self.names, self.data_points[-1]))
-            print(param_string)
+            logger.info(param_string)
             param_path = chain_lib.write_param(self.output_dir, param_string, param_name)
 
             datee = calendar.datetime.datetime.now()
-            print("<chain_sampling.py> Start", datee.isoformat())
+            logger.info("Start %s", datee.isoformat())
             now = str(int(datee.timestamp()))
 
-            print("AAAAAAA1", now)
             chain_lib.run_models(now, param_path, self.settings.model_timeout, self.settings.working_dir, self.output_dir)
-            print("<chain_sampling.py> End", calendar.datetime.datetime.now().isoformat()  )
+            logger.info("End %s", calendar.datetime.datetime.now().isoformat()  )
 
-            print("AAAAAAA2", now)
             results = chain_lib.get_results(self.settings.working_dir, self.output_dir, param_name, self.settings.model_timeout, now)
             quailty = chain_lib.quality(*results)
-            print("results: {} quailty: {}".format(results, quailty))
+            logger.info("results: {} quailty: {}".format(results, quailty))
             chain_lib.save_quality(self.output_dir, param_name, quailty)
 
 
@@ -159,6 +160,7 @@ class Chain(object):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(format='%(name)s:%(levelname)s: %(message)s', level=logging.info)
     from limit import IterationsLimit
     s = chain_lib.Settings(select_radius=10, influence_radius=10, chain_length=20,
         model_timeout=80, seed=None, output_dir=None, limit=2,
