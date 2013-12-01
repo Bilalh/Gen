@@ -11,6 +11,7 @@ import argparse
 
 from itertools import groupby
 
+
 def read_json(fp):
 	os.path.abspath(os.path.expanduser(fp))
 	with open( fp ) as f:
@@ -151,9 +152,11 @@ def run(fp, place_dir, num_runs):
 	data = read_json(fp)
 	commons = common_product(data)
 
+	# Sort by number of races
 	commons_grouped = { k: list(v) for (k, v) in
 		groupby(sorted(commons, key=lambda d: d["races"]), key=lambda d: d["races"] )}
 	pprint(commons_grouped)
+
 
 	init_path = os.path.join(place_dir, "results", "init.sh")
 	init_source = '. ' + os.path.join(place_dir, "results", "init.sh")

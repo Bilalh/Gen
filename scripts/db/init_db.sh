@@ -14,7 +14,7 @@ sqlite3 ${REPOSITORY_BASE}/results.db <<SQL
 	PRIMARY KEY ("eprime", "param", "attribute")
 	);
 
-	
+
 	CREATE TABLE IF NOT EXISTS "ParamQuality" (
 	"param" TEXT NOT NULL UNIQUE,
 	"quality" REAL NOT NULL,
@@ -28,58 +28,58 @@ sqlite3 ${REPOSITORY_BASE}/results.db <<SQL
 	"MinionTimeout" REAL,
 	"TotalTimeout" REAL
 	);
-	
+
 	CREATE TABLE IF NOT EXISTS "ParamIndexes" (
 	"param" TEXT NOT NULL,
 	"paramPartNo" INTEGER NOT NULL,
 	"paramIndex" INTEGER NOT NULL,
 	PRIMARY KEY ("param", "paramPartNo", "paramIndex")
 	);
-	
+
 	CREATE VIEW IF NOT EXISTS Attributes as
 	Select DISTINCT attribute
 	From Experiment
 	Order by attribute;
-	
-	CREATE VIEW IF NOT EXISTS TimingsDomination as 
-	
-	Select * 
+
+	CREATE VIEW IF NOT EXISTS TimingsDomination as
+
+	Select *
 
 	From(
-		Select SR.param, SR.eprime, SavileRow, Minion,  (SavileRow + Minion) as TotalTime, 
-	           Cast(MinionNodes AS Integer) as MinionNodes, MinionTimeout, 
+		Select SR.param, SR.eprime, SavileRow, Minion,  (SavileRow + Minion) as TotalTime,
+	           Cast(MinionNodes AS Integer) as MinionNodes, MinionTimeout,
 			   MinionSatisfiable, MinionSolutionsFound,
 			   (MinionSatisfiable = 1 and MinionTimeOut = 0) as IsOptimum, isDominated
 		From (
-			Select eprime, param, f.value as SavileRow From Experiment f  
-			Where f.attribute='SavileRowTotalTime' 
+			Select eprime, param, f.value as SavileRow From Experiment f
+			Where f.attribute='SavileRowTotalTime'
 			Order By param, eprime
 		) SR Join (
-			Select eprime, param, f.value as Minion From Experiment f  
-			Where f.attribute='MinionTotalTime' 
+			Select eprime, param, f.value as Minion From Experiment f
+			Where f.attribute='MinionTotalTime'
 			Order By param, eprime
-		) M Join ( 
+		) M Join (
 			Select eprime, param, Cast(f.value as Integer) as MinionNodes From Experiment f
 			Where f.attribute='MinionNodes'
 			Order By param, eprime
-		) N Join ( 
+		) N Join (
 			Select eprime, param, Cast(f.value as Integer) as MinionSatisfiable From Experiment f
 			Where f.attribute='MinionSatisfiable'
 			Order By param, eprime
-		) MS Join ( 
+		) MS Join (
 			Select eprime, param, Cast(f.value as Integer) as MinionSolutionsFound From Experiment f
 			Where f.attribute='MinionSolutionsFound'
 			Order By param, eprime
-		) MF Join ( 
+		) MF Join (
 			Select eprime, param, Cast(f.value as Integer) as MinionTimeOut From Experiment f
 			Where f.attribute='MinionTimeOut'
 			Order By param, eprime
-		) MT  Join ( 
+		) MT  Join (
 			Select eprime, param, Cast(f.value as Integer) as isDominated From Experiment f
 			Where f.attribute='isDominated'
 			Order By param, eprime
 		) DO
-	
+
 		on  SR.eprime = M.eprime And M.eprime  = N.eprime And N.eprime  = MS.eprime And MS.eprime  = MF.eprime And MF.eprime  = MT.eprime And MT.eprime  = DO.eprime
 		and SR.param  = M.param  And M.param   = N.param  And N.param   = MS.param  And MS.param   = MF.param  And MF.param   = MT.param  And MT.param   = DO.param
 
@@ -93,48 +93,48 @@ sqlite3 ${REPOSITORY_BASE}/results.db <<SQL
 		  0 as IsOptimum, Cast(f.value as Integer) as isDominated
 		From  Experiment f
 		Where f.attribute = 'isDominated' and (
-			Select count(attribute) From Experiment g 
+			Select count(attribute) From Experiment g
 			Where f.eprime = g.eprime and f.param = g.param
 		) = 1
 
-	) 
+	)
 
 	Order by param, eprime
 		;
 
 
 
-	CREATE VIEW IF NOT EXISTS TimingsRecorded as 
+	CREATE VIEW IF NOT EXISTS TimingsRecorded as
 
-	Select SR.param, SR.eprime, SavileRow, Minion,  (SavileRow + Minion) as TotalTime, 
-           Cast(MinionNodes AS Integer) as MinionNodes, MinionTimeout, 
+	Select SR.param, SR.eprime, SavileRow, Minion,  (SavileRow + Minion) as TotalTime,
+           Cast(MinionNodes AS Integer) as MinionNodes, MinionTimeout,
 		   MinionSatisfiable, MinionSolutionsFound,
 		   (MinionSatisfiable = 1 and MinionTimeOut = 0) as IsOptimum, isDominated
 	From (
-		Select eprime, param, f.value as SavileRow From Experiment f  
-		Where f.attribute='SavileRowTotalTime' 
+		Select eprime, param, f.value as SavileRow From Experiment f
+		Where f.attribute='SavileRowTotalTime'
 		Order By param, eprime
 	) SR Join (
-		Select eprime, param, f.value as Minion From Experiment f  
-		Where f.attribute='MinionTotalTime' 
+		Select eprime, param, f.value as Minion From Experiment f
+		Where f.attribute='MinionTotalTime'
 		Order By param, eprime
-	) M Join ( 
+	) M Join (
 		Select eprime, param, Cast(f.value as Integer) as MinionNodes From Experiment f
 		Where f.attribute='MinionNodes'
 		Order By param, eprime
-	) N Join ( 
+	) N Join (
 		Select eprime, param, Cast(f.value as Integer) as MinionSatisfiable From Experiment f
 		Where f.attribute='MinionSatisfiable'
 		Order By param, eprime
-	) MS Join ( 
+	) MS Join (
 		Select eprime, param, Cast(f.value as Integer) as MinionSolutionsFound From Experiment f
 		Where f.attribute='MinionSolutionsFound'
 		Order By param, eprime
-	) MF Join ( 
+	) MF Join (
 		Select eprime, param, Cast(f.value as Integer) as MinionTimeOut From Experiment f
 		Where f.attribute='MinionTimeOut'
 		Order By param, eprime
-	) MT  Join ( 
+	) MT  Join (
 		Select eprime, param, Cast(f.value as Integer) as isDominated From Experiment f
 		Where f.attribute='isDominated'
 		Order By param, eprime
@@ -147,8 +147,7 @@ sqlite3 ${REPOSITORY_BASE}/results.db <<SQL
 		;
 
 
-	CREATE VIEW IF NOT EXISTS DiscriminatingParams as 
-
+	CREATE VIEW IF NOT EXISTS DiscriminatingParams as
     Select P.*, group_concat(D.eprime, ", ") as eprimes
     From ParamQuality P
     Join TimingsDomination D on P.param = D.param
@@ -156,47 +155,26 @@ sqlite3 ${REPOSITORY_BASE}/results.db <<SQL
     Group by P.param
     Order by P.quality
         ;
-    
-
-	CREATE VIEW IF NOT EXISTS Stats as 
-	-- MUST USE SQLITE >= 3.7.12 2012-04-03   (3.7.11 will work as well)
-
-	Select Y.param, T.eprime as Fastest,
-
-	( Select eprime  from (
-	Select DISTINCT eprime, param, min(Minion) as MinMinion
-	From TimingsRecorded f
-	where param = Y.param and  f.minion <= T.Minion
-	Group By param
-	)) FastestMinion 
 
 
-	From (
-		Select min(TotalTime) as MinTime, eprime, Minion
-		From TimingsRecorded 
-		Group By param
-	) T 
-	Join TimingsRecorded Y 
-	On   T.MinTime = Y.TotalTime
+	CREATE VIEW IF NOT EXISTS Fastest as
+	Select param, eprime, min(TotalTime) as Time
+	From TimingsRecorded
+	Group by param
+		;
 
-	Order by Y.param;
-	
+	CREATE VIEW IF NOT EXISTS FastestMinion as
+	Select param, eprime, min(Minion) as Time
+	From TimingsRecorded
+	Group by param
+		;
 
-	
-	CREATE VIEW IF NOT EXISTS Stats2 as
-	Select 
-	S.*,
-	T.TotalTime as FastestTotalTime,
-	Y.TotalTime as FastestMinionTotalTime 
+	CREATE VIEW IF NOT EXISTS FastestSavileRow as
+	Select param, eprime, min(SavileRow) as Time
+	From TimingsRecorded
+	Group by param
+		;
 
-	From Stats S 
-	Join TimingsRecorded T 
-	Join TimingsRecorded Y
-	where T.param =S.param and T.eprime = Fastest 
-	and   Y.param =S.param and Y.eprime = FastestMinion 
-	;
 
-	
-	
-	
+
 SQL
