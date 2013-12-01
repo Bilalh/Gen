@@ -11,6 +11,9 @@ import argparse
 
 from itertools import groupby
 
+from distutils import dir_util
+from distutils import file_util
+
 
 def read_json(fp):
 	os.path.abspath(os.path.expanduser(fp))
@@ -152,6 +155,29 @@ def run(fp, place_dir, num_runs):
 	data = read_json(fp)
 	commons = common_product(data)
 
+	essences_dir = os.path.join(place_dir, "results", "essences")
+	os.makedirs(essences_dir, exist_ok=True)
+
+	# copy the essences and eprime
+	# and changes the paths to use our copy of the eprimes and essence's
+	for values in data['essences']:
+		essence_dir = os.path.join(essences_dir, os.path.dirname(values['filepath']))
+		os.makedirs(essence_dir, exist_ok=True)
+		essence_name = os.path.splitext(os.path.basename(essence_dir))[0]
+		eprimes_dir = essence_name + "-" + values['mode']
+
+
+		results_essence = os.path.join(essences_dir, values['filepath'])
+		file_util.copy_file(values['filepath'], results_essence)
+		dir_util.copy_tree( os.path.join(essence_name, eprimes_dir),
+							os.path.join(essences_dir, essence_name, eprimes_dir))
+
+		values['filepath'] = results_essence
+
+	pprint(data)
+
+
+
 	# Sort by number of races
 	commons_grouped = { k: list(v) for (k, v) in
 		groupby(sorted(commons, key=lambda d: d["races"]), key=lambda d: d["races"] )}
@@ -160,6 +186,8 @@ def run(fp, place_dir, num_runs):
 
 	init_path = os.path.join(place_dir, "results", "init.sh")
 	init_source = '. ' + os.path.join(place_dir, "results", "init.sh")
+
+	# Get lines for each method
 	results = { f.__name__: f(data, commons_grouped, place_dir, init_source, num_runs) for f in [markov] }
 	# pprint(results)
 
@@ -178,6 +206,7 @@ def run(fp, place_dir, num_runs):
 
 	write_with_header(os.path.join(place_dir, "run_all.sh"), sorted(scripts))
 	write_with_header(init_path, [record_funcs])
+
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
