@@ -215,8 +215,8 @@ if __name__ == "__main__":
 	parser.add_argument("output_dir")
 	parser.add_argument("num_runs", type=int)
 	args = parser.parse_args()
-	run(os.path.abspath(os.path.expanduser(args.json_settings)),
-		os.path.abspath(os.path.expanduser(args.output_dir)),
+	run(args.json_settings,
+		args.output_dir,
 		args.num_runs)
 
 
