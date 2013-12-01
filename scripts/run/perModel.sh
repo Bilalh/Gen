@@ -84,11 +84,11 @@ fi
 }
 
 Command=$( cat <<EOF
-echo -e '\n***  {1} {2/} ***';
 (
 time $TIMEOUT5 --timeout-file $TIMEOUT5_FILE --interval 3  -k15 $TOTAL_TIMEOUT \
 	bash "${Dir}/perModelPerParam.sh"  ${Essence} {1} {2} ${MINION_TIMEOUT} ${TOTAL_TIMEOUT} ${Mode}  \
 ) 3>&1 1>&2 2>&3  | tee "${Output_dir}/{1/.}-{2/.}.time.all";
+echo "";
 update_timeout  "${Output_dir}/{1/.}-{2/.}" {1/} {2/}
 EOF
 )

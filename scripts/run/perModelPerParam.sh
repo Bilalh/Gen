@@ -40,24 +40,30 @@ TIME_TEMPLATE="${EPRIMEBASE}-${PARAMBASE}.time"
 FAIL_FILE="${EPRIMEBASE}.fails"
 SUCCESS_FILE="${EPRIMEBASE}.success"
 
-
 timeout_file=${TIMEOUT5_FILE:-"${OUT_BASE_DIR:-.}/timeout5PerModelPerParam"}
+
+echo ""
+echo "*** `basename $ESSENCE` - `basename $EPRIME` - `basename $PARAM` ***"
+
 #"
 
 RESULTOF_REFINEPARAM=0
 MSG_REFINEPARAM="{refineParam}       $MSG_TEMPLATE"
 echo "$MSG_REFINEPARAM"
 
-set -x
-{
-time conjure                                                                 \
-    --mode       refineParam                                            \
-    --in-essence $ESSENCE                                               \
-    --in-eprime  $EPRIME                                                \
-    --in-essence-param $PARAM                                           \
-    --out-eprime-param $EPRIME_PARAM;
+# print the command the run it
+function echoer(){
+    echo "$@"
+    time "$@"
 }
-set +x
+
+echoer \
+conjure                                                            \
+    --mode       refineParam                                       \
+    --in-essence $ESSENCE                                          \
+    --in-eprime  $EPRIME                                           \
+    --in-essence-param $PARAM                                      \
+    --out-eprime-param $EPRIME_PARAM;
 
 RESULTOF_REFINEPARAM=$?
 if (( $RESULTOF_REFINEPARAM != 0 )) ; then
@@ -77,9 +83,7 @@ else
 	timer=""
 fi
 
-set -x
-{
-time \
+echoer \
 ${timer} \
 savilerow                                                               \
     -in-eprime    $EPRIME                                               \
@@ -89,8 +93,7 @@ savilerow                                                               \
     -m minion                                                           \
     -boundvars                                                          \
     -minion-options "-timelimit ${MINION_TIMEOUT}";
-}
-set +x
+
 
 RESULTOF_SAVILEROW=$?
 
@@ -127,8 +130,7 @@ RESULTOF_TRANSLATESOLN=0
 MSG_TRANSLATESOLN="{translateSolution} $MSG_TEMPLATE"
 echo "$MSG_TRANSLATESOLN"
 
-set -x
-{ time \
+echoer   \
 ${timer} \
 conjure                                                                 \
     --mode translateSolution                                            \
@@ -138,8 +140,7 @@ conjure                                                                 \
     --in-eprime-param       $EPRIME_PARAM                               \
     --in-eprime-solution    $EPRIME_SOLUTION                            \
     --out-essence-solution  $ESSENCE_SOLUTION
-}
-set +x
+
 
 RESULTOF_TRANSLATESOLN=$?
 if (( $RESULTOF_TRANSLATESOLN != 0 )) ; then
@@ -157,16 +158,14 @@ MSG_VALIDATESOLN="{validateSolution} $MSG_TEMPLATE"
 echo "$MSG_VALIDATESOLN"
 
 
-set -x
-{ time \
+echoer   \
 ${timer} \
 conjure                                                                 \
     --mode validateSolution                                             \
     --in-essence  $ESSENCE                                              \
     --in-param    $PARAM                                                \
     --in-solution $ESSENCE_SOLUTION
-}
-set +x
+
 
 RESULTOF_VALIDATESOLN=$?
 if (( $RESULTOF_VALIDATESOLN != 0 )) ; then
