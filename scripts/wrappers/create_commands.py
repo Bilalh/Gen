@@ -163,9 +163,10 @@ def run(fp, place_dir, num_runs):
 	for values in data['essences']:
 		essence_dir = os.path.join(essences_dir, os.path.dirname(values['filepath']))
 		os.makedirs(essence_dir, exist_ok=True)
+
 		essence_name = os.path.splitext(os.path.basename(essence_dir))[0]
 		eprimes_dir = essence_name + "-" + values['mode']
-
+		values['name'] = essence_name
 
 		results_essence = os.path.join(essences_dir, values['filepath'])
 		file_util.copy_file(values['filepath'], results_essence)
