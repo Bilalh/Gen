@@ -21,13 +21,17 @@ sqlite3 ${REPOSITORY_BASE}/results.db <<SQL
 	"ordering" INTEGER PRIMARY KEY NOT NULL UNIQUE
 	);
 
-	CREATE TABLE IF NOT EXISTS "Models" (
-	"Essence" TEXT PRIMARY KEY ASC NOT NULL UNIQUE,
-	"Model #" INTEGER NOT NULL,
-	"Param #" INTEGER NOT NULL,
-	"MinionTimeout" REAL,
-	"TotalTimeout" REAL
+	CREATE TABLE IF NOT EXISTS "Metadata" (
+	"essence" TEXT PRIMARY KEY NOT NULL UNIQUE
 	);
+
+	CREATE TABLE IF NOT EXISTS "Timeouts" (
+	"param" TEXT NOT NULL PRIMARY KEY NOT NULL UNIQUE,
+	"MinionTimeout" REAL NOT NULL,
+	"TotalTimeout" REAL NOT NULL,
+	"timestamp" TEXT NOT NULL
+	);
+
 
 	CREATE TABLE IF NOT EXISTS "ParamIndexes" (
 	"param" TEXT NOT NULL,

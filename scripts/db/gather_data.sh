@@ -41,10 +41,16 @@ echo "param_num: $param_num"
 echo "eprime_num $eprime_num"
 
 while read minion_timeout total_timeout; do
-	echo "INSERT OR REPLACE into Models(Essence,'Model #', 'Param #','MinionTimeout','TotalTimeout')
-				  Values('${Essence_base}', ${eprime_num}, ${param_num}, ${minion_timeout}, ${total_timeout} );" \
+	echo "INSERT OR REPLACE into Timeouts('param', 'MinionTimeout','TotalTimeout', 'timestamp')
+				  Values('${PARAM_BASE_NAME}', ${minion_timeout}, ${total_timeout}, '$USE_DATE' );" \
 	|  sqlite3 ${REPOSITORY_BASE}/results.db
 done < `ls ${stats_dir}/${USE_DATE}.timeout-used | tail -n1`
+
+
+echo "INSERT OR REPLACE into Metadata('essence')
+			  Values('${Essence_base}');" \
+	|  sqlite3 ${REPOSITORY_BASE}/results.db
+
 
 if [ !  -n "${NO_MINION_STATS:-}" ]; then
 ls ${results_dir}/*${param_glob}*.minion-stats \
