@@ -6,7 +6,7 @@ import random
 #Assumes a pcs file is next to the essence
 smac_scenario = """
 algo = ../../../../instancegen/scripts/wrappers/toolchain_wrapper.py
-execdir = results/essences/{essence_dir}
+execdir = ../../essences/{essence_base}
 deterministic = 1
 run_obj = quality
 overall_obj = mean
@@ -55,12 +55,14 @@ def create_commands(data, commons_grouped, place_dir, init_source, num_runs):
 			settings = {
 				"essence": filepath,
 				"essence_dir": os.path.dirname(filepath),
+				"essence_base": essence_base,
 				"model_timeout": util.calc_model_timeout(common, jobs),
 				"limit": util.calc_total_time(common, jobs),
 				"mode": mode,
 				"output_dir": os.path.join("smac-output", extra),
-				"seed": random.randint(0, 2 ** 32),
+				"seed": random.randint(0, 2 ** 12),
 				"log_path": os.path.join("smac-output", extra, "logs", "log-${race_no}"),
+				"group_path": extra,
 				"scenario_path": os.path.join("scenarios", extra0 + ".txt")
 			}
 			settings.update(cur)
@@ -72,9 +74,9 @@ def create_commands(data, commons_grouped, place_dir, init_source, num_runs):
 
 			# print(settings)
 			command ="\t" + """
-			record_cp {log_path} ../../../instancegen/smac-v2.06.00-master-615/smac\
+			record_cp {log_path} ../../../../instancegen/smac-v2.06.00-master-615/smac\
 				--scenario-file {scenario_path}  \
-				--rungroup {log_path}   \
+				--rungroup {group_path}   \
 				--seed     {seed}
 				# {output_dir}
 			""".format(**settings).strip().replace("\t", " ")

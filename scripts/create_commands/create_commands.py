@@ -70,7 +70,10 @@ def run(fp, place_dir, num_runs):
 		values['name'] = essence_name
 
 		results_essence = os.path.join(essences_dir, values['filepath'])
+
 		file_util.copy_file(values['filepath'], results_essence)
+		file_util.copy_file(os.path.join(os.path.dirname(values['filepath']), "params.pcs"),
+							os.path.join(essences_dir, essence_name, "params.pcs"))
 		dir_util.copy_tree( os.path.join(essence_name, eprimes_dir),
 							os.path.join(essences_dir, essence_name, eprimes_dir))
 
