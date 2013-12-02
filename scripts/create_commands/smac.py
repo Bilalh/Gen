@@ -34,7 +34,7 @@ def create_commands(data, commons_grouped, place_dir, init_source, num_runs):
 			jobs = cores
 
 		lines = [
-			"export PARAM_GEN_SCRIPTS=`pwd`/../../../../instancegen/scripts/",
+			"export PARAM_GEN_SCRIPTS=`pwd`/../instancegen/scripts/",
 			"export NUM_JOBS={}".format(jobs),
 			"### markov ###",
 			init_source,
@@ -82,8 +82,10 @@ def create_commands(data, commons_grouped, place_dir, init_source, num_runs):
 
 			""".format(**settings).strip().replace("\t", " ")
 
+			lines.append("pushd results/smac/{essence_base}".format(**settings))
 			lines.append("export OUT_BASE_DIR=`pwd`/{output_dir}".format(**settings))
 			lines.append(command)
+			lines.append("popd")
 
 		lines.append("done")
 		return lines
