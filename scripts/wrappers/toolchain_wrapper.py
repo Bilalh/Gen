@@ -21,8 +21,8 @@ import calendar
 import time
 
 def iter_many(it, length, num):
-    for i in range(0, length, num):
-        yield (it[i:i + num])
+	for i in range(0, length, num):
+		yield (it[i:i + num])
 
 
 #Where we are
@@ -36,11 +36,11 @@ print("---------------------")
 print(sys.argv)
 
 if sys.argv[1] == '--cutoff-div':
-    cutoff_time_div = int(sys.argv[2])
-    argv = sys.argv[3:]
+	cutoff_time_div = int(sys.argv[2])
+	argv = sys.argv[3:]
 else:
-    argv = sys.argv[1:]
-    cutoff_time_div = 1
+	argv = sys.argv[1:]
+	cutoff_time_div = 1
 
 [eprime, instance_specific] = argv[0:2]
 [cutoff_time, cutoff_length] = map(float,argv[2:4])
@@ -74,12 +74,16 @@ def create_param_essence(params):
 	return ("\n".join(essence), "-".join(name))
 
 
+def outputdir(file):
+	return os.path.join(os.path.expandvars("${OUT_BASE_DIR}"), file)
+
+
 (param_string,param_name)=create_param_essence(params)
 
 print(param_string)
-os.makedirs("out/params",exist_ok=True)
+os.makedirs(outputdir("params"), exist_ok=True)
 
-param_path="out/params/{}.param".format(param_name)
+param_path= outputdir("params/{}.param".format(param_name))
 with open(param_path,"w") as f:
 	f.write(param_string)
 
@@ -92,7 +96,8 @@ print("###Running SR/Minion###")
 
 
 def wrappers(script_name):
-	return os.path.join(os.path.expandvars("${PARAM_GEN_SCRIPTS}/"), "wrappers", script_name)
+	return os.path.join(os.path.expandvars("${PARAM_GEN_SCRIPTS}"), "wrappers", script_name)
+
 
 def timeme(method):
 	""" @timeme annotation which returns the time taken in ms as well as the result"""
@@ -109,8 +114,8 @@ def timeme(method):
 @timeme
 def runner():
 	subprocess.Popen([
-        wrappers("run.sh"), str(now), param_path, cutoff_time_str
-    ]).communicate()
+		wrappers("run.sh"), str(now), param_path, cutoff_time_str
+	]).communicate()
 
 (runtime,_) = runner()
 runtime /=1000  # ms -> sec
@@ -122,7 +127,8 @@ gather_env["USE_DATE"] = now
 
 subprocess.Popen([wrappers("run_gather.sh"), param_name],env=gather_env).communicate()
 
-conn = sqlite3.connect('out/results.db')
+
+conn = sqlite3.connect(outputdir('results.db'))
 # conn.row_factory = sqlite3.Row
 
 
@@ -149,16 +155,16 @@ def quality_(count,minionTimeout, minionSatisfiable,minionSolutionsFound, isOpti
 		return (1.0 - (minionTimeout/count)) * 100
 
 if len(results) != 6:
-    quality = 500 # The SR Error e.g where statements
+	quality = 500 # The SR Error e.g where statements
 else:
-    quality = quality_(*results)
+	quality = quality_(*results)
 
 print("<toolchain_wrapper.py> End",calendar.datetime.datetime.now().isoformat())
 
 
 print("                         : {}, {}, {}, {}, {}".format(
- 	  "res", "runtime", "runlength", "quality", "seed"))
+	  "res", "runtime", "runlength", "quality", "seed"))
 
 print("Final Result for ParamILS: {}, {}, {}, {}, {}\n".format(
- 	 res, runtime, runlength, quality, seed))
+	 res, runtime, runlength, quality, seed))
 

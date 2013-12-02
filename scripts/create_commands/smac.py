@@ -63,7 +63,7 @@ def create_commands(data, commons_grouped, place_dir, init_source, num_runs):
 				"output_dir": os.path.join("smac-output", extra),
 				"seed": random.randint(0, 2 ** 12),
 				"log_path": os.path.join("smac-output", extra, "logs", "log-${race_no}"),
-				"group_path": extra,
+				"group_path": os.path.join(extra, "smac-output"),
 				"scenario_path": os.path.join("scenarios", extra0 + ".txt")
 			}
 			settings.update(cur)
@@ -79,9 +79,10 @@ def create_commands(data, commons_grouped, place_dir, init_source, num_runs):
 				--scenario-file {scenario_path}  \
 				--rungroup {group_path}   \
 				--seed     {seed}
-				# {output_dir}
+
 			""".format(**settings).strip().replace("\t", " ")
 
+			lines.append("export OUT_BASE_DIR=`pwd`/{output_dir}".format(**settings))
 			lines.append(command)
 
 		lines.append("done")
