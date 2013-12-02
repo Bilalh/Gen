@@ -21,6 +21,7 @@ def create_commands(data, commons_grouped, place_dir, init_source, num_runs):
 			"#-- {} --#".format(filepath),
 			"for race_no in {1..%d}; do" % (num_runs)
 		]
+
 		for common in commons:
 			tu = (int(math.ceil(common['total_time'] / 60 / 60)), common['races'] )
 			lines.append("		# {:03}h, {:03} races".format(*tu) )
@@ -29,8 +30,8 @@ def create_commands(data, commons_grouped, place_dir, init_source, num_runs):
 			settings = {
 				"essence": filepath,
 				"essence_dir": os.path.dirname(filepath),
-				"model_timeout": util.calc_model_timeout(common, cores),
-				"limit": util.calc_total_time(common, cores),
+				"model_timeout": util.calc_model_timeout(common, jobs),
+				"limit": util.calc_total_time(common, jobs),
 				"mode": mode,
 				"output_dir": os.path.join(place_dir, "results", "markov", name, extra),
 				"log_path": os.path.join(place_dir, "results", "markov", name, extra, "logs", "log-${race_no}")
