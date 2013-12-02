@@ -77,7 +77,6 @@ def run(fp, place_dir, num_runs):
 
 	pprint(data)
 
-
 	# Sort by number of races
 	commons_grouped = { k: list(v) for (k, v) in
 		groupby(sorted(commons, key=lambda d: d["races"]), key=lambda d: d["races"] )}

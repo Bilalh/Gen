@@ -1,5 +1,6 @@
 import math
 import os
+import util
 
 
 def create_commands(data, commons_grouped, place_dir, init_source, num_runs):
@@ -28,8 +29,8 @@ def create_commands(data, commons_grouped, place_dir, init_source, num_runs):
 			settings = {
 				"essence": filepath,
 				"essence_dir": os.path.dirname(filepath),
-				"model_timeout": math.ceil(math.ceil(common['total_time'] / common['races']) / cores),
-				"limit": math.ceil(common['total_time'] / data['cores']),
+				"model_timeout": util.calc_model_timeout(common, cores),
+				"limit": util.calc_total_time(common, cores),
 				"mode": mode,
 				"output_dir": os.path.join(place_dir, "results", "markov", name, extra),
 				"log_path": os.path.join(place_dir, "results", "markov", name, extra, "logs", "log-${race_no}")
