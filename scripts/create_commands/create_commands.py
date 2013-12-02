@@ -40,7 +40,6 @@ def write_with_header(fp, lines):
 		"#!/bin/bash",
 		"# Assumes python3 is on the $PATH ",
 		"# and docopt is installed (i.e pip install docopt) ",
-		"export PARAM_GEN_SCRIPTS=`pwd`/../instancegen/scripts/",
 		""
 	]
 
