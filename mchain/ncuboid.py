@@ -8,4 +8,24 @@ def pick_inside(radii, centre):
 
 def is_in_inside(radii, centre, point):
 	""" True if point is in a ncuboid of specified radii """
-	return not any( (p < c - r or p > c + r) for (p, c,r) in zip(point, centre, radii) )
+	return not any( (p < c - r or p > c + r) for (p, c, r) in zip(point, centre, radii) )
+
+
+def relfect(ranges, point):
+	[lowers, uppers] = zip(*ranges)
+
+	def f_upper(upper, v):
+		if v > upper:
+			return upper + (upper - v)
+		else:
+			return v
+
+	def f_lower(lower, v):
+		if v < lower:
+			return lower + (lower - v)
+		else:
+			return v
+
+	point = [f_lower(lower, (f_upper(upper, v))) for(upper, lower, v) in zip(uppers, lowers, point)]
+
+	return point
