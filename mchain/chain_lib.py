@@ -166,3 +166,22 @@ def copydoc(fromfunc, sep="\n"):
 		return func
 	return _decorator
 
+
+def relfect(ranges, point):
+	[lowers, uppers] = zip(*ranges)
+
+	def f_upper(upper, v):
+		if v > upper:
+			return upper + (upper - v)
+		else:
+			return v
+
+	def f_lower(lower, v):
+		if v < lower:
+			return lower + (lower - v)
+		else:
+			return v
+
+	point = [f_lower(lower, (f_upper(upper, v))) for(upper, lower, v) in zip(uppers, lowers, point)]
+
+	return point
