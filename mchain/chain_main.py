@@ -77,3 +77,5 @@ if __name__ == '__main__':
     limiter = limiter_s(options['limit'])
     chain = Chain(options, limiter)
     chain.run()
+    logger.info("<finished>")
+
