@@ -42,11 +42,15 @@ def create_commands(data, commons_grouped, place_dir, init_source, num_runs):
 			command ="\t" + """
 			record_cp {log_path} ../instancegen/mchain/chain_main.py time {limit}\
 				--model_timeout={model_timeout}\
-				--mode={mode} --radius_as_percentage \
+				--mode={mode}\
 				--select_radius={select_radius} --influence_radius={influence_radius} \
 				--chain_length={chain_length} \
 				--essence={essence} --working_dir={essence_dir} --output_dir={output_dir}
 			""".format(**settings).strip().replace("\t", " ")
+			#FIXME handle all boolean options
+			if 'radius_as_percentage' in cur:
+				command += " --radius_as_percentage "
+
 
 			lines.append(command)
 
