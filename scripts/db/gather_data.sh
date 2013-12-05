@@ -4,8 +4,6 @@ set -o nounset
 # get the repository base
 Dir="$( cd "$( dirname "$0" )" && pwd )"
 Script_Base="$Dir/../"
-Dir="$Dir/../.."
-export REPOSITORY_BASE="${REPOSITORY_BASE:-${Dir}}"
 
 
 results_dir=${GENERATED_OUTPUT_DIR:-"${OUT_BASE_DIR:-.}/results-`basename $(pwd)`-${USE_MODE}"}

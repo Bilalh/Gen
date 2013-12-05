@@ -3,6 +3,7 @@
 
 set -o nounset
 
+set -x
 PARAM_BASE_NAME=$1
 export PARAM_BASE_NAME
 
@@ -17,5 +18,6 @@ export USE_MODE="$MODE"
 export NO_MINION_STATS=true;
 export REPOSITORY_BASE="$OUT_BASE_DIR"
 echo $USE_DATE
+set +x
 
 $PARAM_GEN_SCRIPTS/db/gather_data.sh

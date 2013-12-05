@@ -3,7 +3,7 @@
 set -o nounset
 Dir="$( cd "$( dirname "$0" )" && pwd )";
 Tools="$Dir/../tools"
-Mode="${USE_MODE:-df}";
+Mode="${USE_MODE}";
 
 
 if [ ! -f "$Tools/timeout5" ]; then

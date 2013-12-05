@@ -5,8 +5,8 @@ set -o nounset
 Dir="$( cd "$( dirname "$0" )" && pwd )";
 TIMEOUT5="$Dir/../tools/timeout5"
 
-MINION_TIMEOUT=${1:-${MINION_TIMEOUT:-600}}
-TOTAL_TIMEOUT=${2:-${TOTAL_TIMEOUT:-800}}
+MINION_TIMEOUT=${1:-${MINION_TIMEOUT}}
+TOTAL_TIMEOUT=${2:-${TOTAL_TIMEOUT}}
 
 echo "MINION_TIMEOUT is ${MINION_TIMEOUT}"
 echo "TOTAL_TIMEOUT  is ${TOTAL_TIMEOUT}"

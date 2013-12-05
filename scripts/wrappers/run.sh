@@ -8,7 +8,7 @@ DIR=`basename $BASE`
 cd $BASE
 
 set -x
-cutoff_time=$3
+cutoff_time=${3:-$TOTAL_TIMEOUT}
 export USE_DATE="$1";
 
 
@@ -28,7 +28,7 @@ export NO_TRANSLATE=true
 # 6 SR/minon on my mac, 31 on servers
 if [ "$(uname)" = "Darwin" ] ; then
     export NUM_JOBS=${NUM_JOBS:-6}
-    export MODELS_TO_USE=`ls -1 $BASE/$DIR-$USE_MODE/*.eprime | head -n 5`;
+    export MODELS_TO_USE=`ls -1 $BASE/$DIR-$USE_MODE/*.eprime | head -n 2`;
 else
     export NUM_JOBS=${NUM_JOBS:-31}
     export MODELS_TO_USE=`ls -1 $BASE/$DIR-$USE_MODE/*.eprime`;
