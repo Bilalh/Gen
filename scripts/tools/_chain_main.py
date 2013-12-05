@@ -1,5 +1,4 @@
-#compdef chain_main.py
-
+#compdef chain_main.py ../instancegen/mchain/chain_main.py
 _message_next_arg()
 {
     argcount=0
@@ -61,14 +60,16 @@ _chain_main.py-iterations ()
     if [[ $words[$CURRENT] == -* ]] ; then
     	_arguments -C \
     	':command:->command' \
-		'(--model_timeout=-)--model_timeout=-[Timeout in seconds \[default: 600\].]:files:_files' \
-		'(--working_dir=-)--working_dir=-[Where the essence file is \[default: .\]]:files:_files' \
-		'(--seed=-)--seed=-[Random seed to use]:files:_files' \
-		'(--output_dir=-)--output_dir=-[Where to put the results]:files:_files' \
 		'(--chain_length=-)--chain_length=-[Length of each chain.]:files:_files' \
 		'(--select_radius=-)--select_radius=-[Radius for picking next point.]:files:_files' \
 		'(--influence_radius=-)--influence_radius=-[Radius for the acceptance function.]:files:_files' \
-		'(--essence=-)--essence=-[Essence file]:files:_files' \
+		'(--essence=-)--essence=-[Essence file.]:files:_files' \
+		'(--model_timeout=-)--model_timeout=-[Timeout in seconds.]:files:_files' \
+		'(--working_dir=-)--working_dir=-[Where the essence file is \[default: .\]]:files:_files' \
+		'(--seed=-)--seed=-[Random seed to use.]:files:_files' \
+		'(--output_dir=-)--output_dir=-[Where to put the results.]:files:_files' \
+		'(--mode=-)--mode=-[Conjure mode used \[default: df\].]:files:_files' \
+		'(--radius_as_percentage)--radius_as_percentage[Radius setting as in %.]:files:_files' \
 
     else
         myargs=('<limit>')
@@ -84,14 +85,16 @@ _chain_main.py-time ()
     if [[ $words[$CURRENT] == -* ]] ; then
     	_arguments -C \
     	':command:->command' \
-		'(--model_timeout=-)--model_timeout=-[Timeout in seconds \[default: 600\].]:files:_files' \
-		'(--working_dir=-)--working_dir=-[Where the essence file is \[default: .\]]:files:_files' \
-		'(--seed=-)--seed=-[Random seed to use]:files:_files' \
-		'(--output_dir=-)--output_dir=-[Where to put the results]:files:_files' \
 		'(--chain_length=-)--chain_length=-[Length of each chain.]:files:_files' \
 		'(--select_radius=-)--select_radius=-[Radius for picking next point.]:files:_files' \
 		'(--influence_radius=-)--influence_radius=-[Radius for the acceptance function.]:files:_files' \
-		'(--essence=-)--essence=-[Essence file]:files:_files' \
+		'(--essence=-)--essence=-[Essence file.]:files:_files' \
+		'(--model_timeout=-)--model_timeout=-[Timeout in seconds.]:files:_files' \
+		'(--working_dir=-)--working_dir=-[Where the essence file is \[default: .\]]:files:_files' \
+		'(--seed=-)--seed=-[Random seed to use.]:files:_files' \
+		'(--output_dir=-)--output_dir=-[Where to put the results.]:files:_files' \
+		'(--mode=-)--mode=-[Conjure mode used \[default: df\].]:files:_files' \
+		'(--radius_as_percentage)--radius_as_percentage[Radius setting as in %.]:files:_files' \
 
     else
         myargs=('<limit>')
