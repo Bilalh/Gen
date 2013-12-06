@@ -10,6 +10,8 @@ import glob
 import re
 import csv
 
+import sqlite3
+
 
 def extant_file(parser, fp):
 	abs_fp = os.path.abspath(os.path.expanduser(fp))
@@ -36,25 +38,32 @@ parser.add_argument('--essence',    type=lambda x: extant_file(parser, x),     r
 parser.add_argument('--output_dir', type=lambda x: output_dir_smac(parser, x), required=True)
 
 args = parser.parse_args()
+print("<parse_smac_output> Start")
 pprint(args)
 
 os.chdir(args.output_dir)
 
 
-results = glob.glob('smac-output/state-run*/runs_and_results*csv')
-print(results)
+results_fp = glob.glob('smac-output/state-run*/runs_and_results*csv')
+print(results_fp)
 
-names = glob.glob('smac-output/state-run*/paramstrings*.txt')
-print(names)
+names_fp = glob.glob('smac-output/state-run*/paramstrings*.txt')
+print(results_fp)
 
 
-if len(results) !=1 or len(names) != 1:
+if len(results_fp) !=1 or len(names_fp) != 1:
 	print("Invaild smac dir {}".format(args.output_dir) )
 	exit(44)
 
-results = results[0]
-names = names[0]
+results_fp = results_fp[0]
+names_fp = names_fp[0]
 
+
+def read_results(fp):
+	"Reads results"
+	with open(fp, newline='') as csvfile:
+		reader = csv.DictReader(csvfile, skipinitialspace=True, quoting=csv.QUOTE_ALL)
+		return [float(row['Run Quality']) for row in reader ]
 
 
 def read_param_data(fp):
@@ -62,9 +71,11 @@ def read_param_data(fp):
 	with open(fp) as csvfile:
 		lines = csvfile.readlines()
 
+		# remove the numbers from the start
 		remove = re.compile(r"^\d+:\s*")
-		names_re = re.compile(r"(\w+)=")
 
+		# Get the fields names
+		names_re = re.compile(r"(\w+)=")
 		names = names_re.findall(lines[0])
 		print(names)
 
@@ -78,8 +89,39 @@ def read_param_data(fp):
 		return rows
 
 
-param_values = read_param_data(names)
+def get_param_order():
+	"""Find out the order of smac put the params values"""
+	param_fp = glob.glob("params/*.param")[0]
+	with open(param_fp, 'r') as f:
+		let =re.compile(r"letting (\w+)")
+
+		def g(line):
+			return re.search(let, line).group(1)
+
+		return [g(line) for line in f if line.startswith("letting") ]
+
+
+def save_quality(output_dir, param_name, quality):
+	conn = sqlite3.connect(os.path.join(output_dir, 'results.db'))
+	conn.execute('INSERT OR REPLACE INTO ParamQuality(param, quality) Values(?, ?)', (param_name, quality))
+	conn.commit()
+
+
+
+results_values = read_results(results_fp)
+pprint(results_values)
+
+param_values = read_param_data(names_fp)
 pprint(param_values)
 
+ordering = get_param_order()
+pprint(ordering)
+
+for (param_hash, quality) in zip(param_values, results_values):
+	quality_normalised = quality / 100
+	param_name = "-".join( ["{%s:03}" % p for p in ordering] ).format(**param_hash)
+	pprint((param_name, quality_normalised))
+	save_quality(args.output_dir, param_name, quality_normalised)
 
 
+print("<parse_smac_output> End")
