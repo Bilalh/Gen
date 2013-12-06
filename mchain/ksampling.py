@@ -18,8 +18,6 @@ import json
 import logging
 logger = logging.getLogger(__name__)
 
-import operator
-
 
 class KSample(object):
 
@@ -82,7 +80,11 @@ class KSample(object):
 
 
 	def random_point(self):
-		return tuple([random.randint(l, u) for (l, u) in self.data])
+
+		def uniform_int(l, u):
+			return math.ceil(random.uniform(l, u))
+
+		return tuple([uniform_int(l, u) for (l, u) in self.data])
 
 
 	def do_iteration(self):
@@ -112,7 +114,7 @@ class KSample(object):
 
 		with_quailty = [ (avg_quality(rp), rp) for rp in random_points ]
 		for (v, p) in sorted(with_quailty):
-			logger.info("rp (%0.2f,%s)", v, p)
+			logger.info("rp (%0.4f,%s)", v, p)
 
 		mins_with_quailty = self.find_mins(with_quailty)
 
@@ -126,7 +128,7 @@ class KSample(object):
 
 	def find_mins(self, arr):
 		smallest = min(arr)
-		return [ e for e in arr if e[1] == smallest[1] ]
+		return [ e for e in arr if e[0] == smallest[0] ]
 
 
 	def run(self):
