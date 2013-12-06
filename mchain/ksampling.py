@@ -155,3 +155,7 @@ class KSample(object):
 			logger.info("point {} results: {} quailty: {}".format(selected_point, results, quailty))
 			chain_lib.save_quality(self.output_dir, param_name, quailty)
 
+		with open(os.path.join(self.output_dir, "info", "data-points.json"), "w") as f:
+			f.write(json.dumps(self.data_points))
+
+
