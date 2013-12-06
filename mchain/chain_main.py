@@ -31,7 +31,7 @@ from docopt import docopt
 import re
 import os
 
-from chain_sampling2 import Chain2
+from ksampling import KSample
 import limit
 import pprint
 
@@ -39,7 +39,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 if __name__ == '__main__':
-    logging.basicConfig(format='%(name)s:%(lineno)d:%(funcName)s: %(message)s', level=logging.DEBUG)
+    logging.basicConfig(format='%(name)s:%(lineno)d:%(funcName)s: %(message)s', level=logging.INFO)
 
     limiters = {
         "time": limit.TimeLimit,
@@ -74,7 +74,7 @@ if __name__ == '__main__':
     options['limit'] = int(options['limit'])
 
     limiter = limiter_s(options['limit'])
-    chain = Chain2(options, limiter)
-    chain.run()
+    k = KSample(options, limiter)
+    k.run()
     logger.info("<finished>")
 
