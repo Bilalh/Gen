@@ -80,7 +80,6 @@ class KSample(object):
 
 
 	def random_point(self):
-
 		def uniform_int(l, u):
 			return math.ceil(random.uniform(l, u))
 
