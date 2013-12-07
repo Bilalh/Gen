@@ -2,158 +2,115 @@
 # -*- coding: utf-8 -*-
 # Bilal Syed Hussain
 
-import random
-import pprint
-import math
+"""
+Usage:
+   chain (iterations|time) <limit>
+   ( --chain_length=<int>  --select_radius=<int>  --influence_radius=<int> --essence=<file> --model_timeout=<int>)
+   [ --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str> --radius_as_percentage]
+
+`time <limit>` is the total time the program can take
+
+Options:
+  --help                    Show this screen.
+  --chain_length=<int>      Length of each chain.
+  --select_radius=<int>     Radius for picking next point.
+  --influence_radius=<int>  Radius for the acceptance function.
+  --model_timeout=<int>     Timeout in seconds.
+  --working_dir=<dir>       Where the essence file is [default: .]
+  --seed=<int>              Random seed to use.
+  --output_dir=<dir>        Where to put the results.
+  --essence=<file>          Essence file.
+  --radius_as_percentage    Radius setting as in %.
+  --mode=<str>              Conjure mode used [default: df].
+"""
 
 import chain_lib
+import method
 import ncube
 import ncuboid
+import option_handing
 
+import math
 import os
-import sys
-import calendar
-import json
+import random
 
 import logging
 logger = logging.getLogger(__name__)
 
 
-class KSample(object):
+class KSample(method.Method):
 
-	def __init__(self, options, limiter):
+    def __init__(self, options, limiter):
+        super(KSample, self,).__init__(options, limiter, chain_lib.Settings)
 
-		if "PARAM_GEN_SCRIPTS" not in os.environ:
-			logger.error("$PARAM_GEN_SCRIPTS needs to defined")
-			exit(2)
+        for fp in ["info"]:
+            os.makedirs(os.path.join(self.output_dir, fp), exist_ok=True)
 
-		if "NUM_JOBS" not in os.environ:
-			logger.error("$NUM_JOBS needs to defined")
-			exit(3)
+        if self.settings.radius_as_percentage:
+            self.shape = ncuboid
+            for s in ['select_radius', 'influence_radius']:
+                per = options[s]
+                radii = [ math.ceil((u - l) * (per / 100)) for (l, u) in self.data ]
+                options[s] = radii
+        else:
+            self.shape = ncube
 
-		if options['output_dir']:
-			self.output_dir = options['output_dir']
-		else:
-			self.output_dir = os.path.join(options['working_dir'], "out")
+        self.dim = len(self.data)
 
-		os.makedirs(self.output_dir, exist_ok=True)
+        # To shown it works
+        # self.data_points = [(1, 3), (1, 7), (1, 8), (1, 9), (1, 10), (1, 12), (1, 13), (1, 15), (1, 16), (1, 17), (1, 18), (1, 20), (1, 23), (1, 24), (1, 25), (1, 26), (1, 28), (1, 29), (2, 3), (2, 4), (2, 5), (2, 6), (2, 7), (2, 8), (2, 11), (3, 3), (3, 4), (3, 5), (3, 6), (3, 7), (3, 8), (3, 9), (3, 11), (4, 1), (4, 3), (4, 4), (4, 5), (4, 6), (4, 7), (4, 8), (4, 9), (4, 10), (5, 1), (5, 2), (5, 4), (5, 5), (5, 6), (5, 7), (5, 8)]
 
-		for fp in ["info", "params"]:
-			os.makedirs(os.path.join(self.output_dir, fp), exist_ok=True)
+    def find_mins(self, arr):
+        smallest = min(arr)
+        return [ e for e in arr if e[0] == smallest[0] ]
 
-		vals = chain_lib.gather_param_info(options['essence'], self.output_dir)
-		logger.info(vals)
+    def do_iteration(self):
+        picked = self.pick_point()
+        self.run_param_and_store_quality(picked)
 
-		if options['radius_as_percentage']:
-			self.shape = ncuboid
-			for s in ['select_radius', 'influence_radius']:
-				per = options[s]
-				radii = [ math.ceil((u - l) * (per / 100)) for (_, (l, u) ) in vals ]
-				options[s] = radii
+    def pick_point(self):
+        random_points = [ self.random_point() for i in range(self.settings.chain_length) ]
 
-		else:
-			self.shape = ncube
+        # If we have no data then pick a random point
+        if len(self.data_points) == 0:
+            return random.choice(random_points)
 
-		settings = chain_lib.Settings(**options)
-		logger.info(settings)
-		self.settings = settings
+        def get_quailty(point):
+            name = "-".join( [ ("%03d" % p) for p in point ] )
+            return chain_lib.get_quailty(self.output_dir, name)
 
-		[self.names, self.data] = list(zip(*vals))
+        def avg_quality(rp):
+            # TODO can made more efficient
+            influence_points = [ p for p in self.data_points
+                if self.shape.is_in_inside(self.settings.influence_radius, rp, p) ]
 
-		self.dim = len(self.data)
+            if (len(influence_points) == 0):
+                return 0.5
 
-		self.limiter = limiter
+            quailties = [get_quailty(p) for p in influence_points]
 
-		if not settings.seed:
-			seed = random.randint(0, 2 ** 32)
-		else:
-			seed = settings.seed
-
-
-		logger.info("Using Seed {}".format(seed))
-		random.seed(seed)
-
-		# To shown it works
-		self.data_points = []
-		# self.data_points = [(1, 3), (1, 7), (1, 8), (1, 9), (1, 10), (1, 12), (1, 13), (1, 15), (1, 16), (1, 17), (1, 18), (1, 20), (1, 23), (1, 24), (1, 25), (1, 26), (1, 28), (1, 29), (2, 3), (2, 4), (2, 5), (2, 6), (2, 7), (2, 8), (2, 11), (3, 3), (3, 4), (3, 5), (3, 6), (3, 7), (3, 8), (3, 9), (3, 11), (4, 1), (4, 3), (4, 4), (4, 5), (4, 6), (4, 7), (4, 8), (4, 9), (4, 10), (5, 1), (5, 2), (5, 4), (5, 5), (5, 6), (5, 7), (5, 8)]
+            mean = sum(quailties) / len(quailties)
+            return mean
 
 
-	def random_point(self):
-		def uniform_int(l, u):
-			return math.ceil(random.uniform(l, u))
+        with_quailty = [ (avg_quality(rp), rp) for rp in random_points ]
+        for (v, p) in sorted(with_quailty):
+            logger.info("rp (%0.4f,%s)", v, p)
 
-		return tuple([uniform_int(l, u) for (l, u) in self.data])
+        mins_with_quailty = self.find_mins(with_quailty)
 
+        mins = list(zip(*mins_with_quailty))[1]
+        logger.info("mins @ %f %s ", mins_with_quailty[0][0], mins)
 
-	def do_iteration(self):
-		random_points = [ self.random_point() for i in range(self.settings.chain_length) ]
-
-		# If we have no data then pick a random point
-		if len(self.data_points) == 0:
-			return random.choice(random_points)
-
-
-		def get_quailty(point):
-			name = "-".join( [ ("%03d" % p) for p in point ] )
-			return chain_lib.get_quailty(self.output_dir, name)
-
-		def avg_quality(rp):
-			# TODO can made more efficient
-			influence_points = [ p for p in self.data_points
-				if self.shape.is_in_inside(self.settings.influence_radius, rp, p) ]
-
-			if (len(influence_points) == 0):
-				return 0.5
-
-			quailties = [get_quailty(p) for p in influence_points]
-
-			mean = sum(quailties) / len(quailties)
-			return mean
-
-		with_quailty = [ (avg_quality(rp), rp) for rp in random_points ]
-		for (v, p) in sorted(with_quailty):
-			logger.info("rp (%0.4f,%s)", v, p)
-
-		mins_with_quailty = self.find_mins(with_quailty)
-
-		mins = list(zip(*mins_with_quailty))[1]
-		logger.info("mins @ %f %s ", mins_with_quailty[0][0], mins)
-
-		# If multiple minimums pick randomly from them
-		chosen = random.choice(mins)
-		return chosen
+        # If multiple minimums pick randomly from them
+        chosen = random.choice(mins)
+        return chosen
 
 
-	def find_mins(self, arr):
-		smallest = min(arr)
-		return [ e for e in arr if e[0] == smallest[0] ]
+if __name__ == '__main__':
+    logging.basicConfig(format='%(name)s:%(lineno)d:%(funcName)s: %(message)s', level=logging.INFO)
 
-
-	def run(self):
-		self.limiter.start()
-		while self.limiter.continue_running():
-			selected_point = self.do_iteration()
-			logger.info("Picked %s", selected_point)
-
-			self.data_points.append(selected_point)
-
-			(param_string, param_name) = chain_lib.create_param_essence(zip(self.names, self.data_points[-1]))
-			logger.info(param_string)
-			param_path = chain_lib.write_param(self.output_dir, param_string, param_name)
-
-			datee = calendar.datetime.datetime.now()
-			logger.info("Start %s", datee.isoformat())
-			now = str(int(datee.timestamp()))
-
-			chain_lib.run_models(now, param_path, self.settings.model_timeout, self.settings.working_dir, self.output_dir)
-			logger.info("End %s", calendar.datetime.datetime.now().isoformat()  )
-
-			results = chain_lib.get_results(self.settings.working_dir, self.output_dir, param_name, self.settings.model_timeout, now)
-			quailty = chain_lib.quality(*results)
-			logger.info("point {} results: {} quailty: {}".format(selected_point, results, quailty))
-			chain_lib.save_quality(self.output_dir, param_name, quailty)
-
-		with open(os.path.join(self.output_dir, "info", "data-points.json"), "w") as f:
-			f.write(json.dumps(self.data_points))
-
-
+    (options, limiter) = option_handing.parse_arguments(__doc__, version="1.0")
+    k = KSample(options, limiter)
+    k.run()
+    logger.info("<finished>")
