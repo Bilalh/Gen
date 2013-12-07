@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 def parse_arguments(doc, *, version):
+	""" Parse docopt help and do some type convertion  """
 	limiters = {
 		"time": limit.TimeLimit,
 		"iterations": limit.IterationsLimit
