@@ -61,7 +61,6 @@ class KSample(object):
 		[self.names, self.data] = list(zip(*vals))
 
 		self.dim = len(self.data)
-		self._current_iteration = 0
 
 		self.limiter = limiter
 
