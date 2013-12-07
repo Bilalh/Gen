@@ -32,14 +32,14 @@ import option_handing
 import logging
 logger = logging.getLogger(__name__)
 
-from ksampling import KSample
+from chain_sampling2 import Chain2
 
 if __name__ == '__main__':
     logging.basicConfig(format='%(name)s:%(lineno)d:%(funcName)s: %(message)s', level=logging.INFO)
 
     (options, limiter) = option_handing.parse_arguments(__doc__, version="1.0")
 
-    k = KSample(options, limiter)
+    k = Chain2(options, limiter)
     k.run()
     logger.info("<finished>")
 
