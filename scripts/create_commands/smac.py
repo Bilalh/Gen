@@ -87,6 +87,10 @@ def create_commands(data, commons_grouped, place_dir, init_source, num_runs):
 			lines.append(command)
 			lines.append("popd")
 
+			lines.append("$PARAM_GEN_SCRIPTS/db/parse_smac_output.py --essence={essence} --output_dir=results/smac/{essence_base}/{output_dir}"
+				.format(**settings))
+			lines.append("")
+
 		lines.append("done")
 		return lines
 
