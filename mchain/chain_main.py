@@ -27,53 +27,18 @@ Options:
 
 
 """
-from docopt import docopt
-import re
-import os
-
-from ksampling import KSample
-import limit
-import pprint
+import option_handing
 
 import logging
 logger = logging.getLogger(__name__)
 
+from ksampling import KSample
+
 if __name__ == '__main__':
     logging.basicConfig(format='%(name)s:%(lineno)d:%(funcName)s: %(message)s', level=logging.INFO)
 
-    limiters = {
-        "time": limit.TimeLimit,
-        "iterations": limit.IterationsLimit
-    }
+    (options, limiter) = option_handing.parse_arguments(__doc__, version="1.0")
 
-
-    arguments = docopt(__doc__, version='1.0')
-
-    for l in limiters:
-        if arguments[l]:
-            limiter_s = limiters[l]
-        del arguments[l]
-
-    logger.debug(arguments)
-    logger.debug(limiter_s)
-
-    # Convert ints to ints
-    for key in re.findall(r"(--[_a-zA-Z]+)=<int>", __doc__):
-        if arguments[key]:
-            arguments[key] = int(arguments[key])
-
-    # Convert dirs to abspath
-    for (key, _) in re.findall(r"(--[_a-zA-Z]+)=<(dir|file)>", __doc__):
-        if arguments[key]:
-            arguments[key] = os.path.abspath(os.path.expanduser(arguments[key]))
-
-    # remove -- from the start and <> around positional arguments
-    options = { k.strip('<>').replace('--', ''): v for (k, v) in arguments.items()  }
-    logger.info(pprint.pformat(options))
-
-    options['limit'] = int(options['limit'])
-
-    limiter = limiter_s(options['limit'])
     k = KSample(options, limiter)
     k.run()
     logger.info("<finished>")
