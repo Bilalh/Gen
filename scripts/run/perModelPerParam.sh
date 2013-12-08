@@ -86,13 +86,13 @@ fi
 echoer \
 ${timer} \
 savilerow                                                               \
+    -minion-options "-timelimit ${MINION_TIMEOUT}"                      \
     -in-eprime    $EPRIME                                               \
     -in-param     $EPRIME_PARAM                                         \
     -out-minion   $MINION                                               \
     -out-solution $EPRIME_SOLUTION                                      \
     -m minion                                                           \
-    -boundvars                                                          \
-    -minion-options "-timelimit ${MINION_TIMEOUT}";
+    -boundvars;
 
 
 RESULTOF_SAVILEROW=$?
