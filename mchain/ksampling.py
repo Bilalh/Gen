@@ -60,13 +60,15 @@ class KSample(method.Method):
         # To shown it works
         # self.data_points = [(1, 3), (1, 7), (1, 8), (1, 9), (1, 10), (1, 12), (1, 13), (1, 15), (1, 16), (1, 17), (1, 18), (1, 20), (1, 23), (1, 24), (1, 25), (1, 26), (1, 28), (1, 29), (2, 3), (2, 4), (2, 5), (2, 6), (2, 7), (2, 8), (2, 11), (3, 3), (3, 4), (3, 5), (3, 6), (3, 7), (3, 8), (3, 9), (3, 11), (4, 1), (4, 3), (4, 4), (4, 5), (4, 6), (4, 7), (4, 8), (4, 9), (4, 10), (5, 1), (5, 2), (5, 4), (5, 5), (5, 6), (5, 7), (5, 8)]
 
-    def find_mins(self, arr):
-        smallest = min(arr)
-        return [ e for e in arr if e[0] == smallest[0] ]
 
     def do_iteration(self):
         picked = self.pick_point()
+        logger.info("picked %s", picked)
         self.run_param_and_store_quality(picked)
+
+    def find_mins(self, arr):
+        smallest = min(arr)
+        return [ e for e in arr if e[0] == smallest[0] ]
 
     def pick_point(self):
         random_points = [ self.random_point() for i in range(self.settings.chain_length) ]
