@@ -10,6 +10,7 @@ Usage:
    nsample json <file>
 
 `time <limit>` is the total time the program can take
+`json` allow reloading of the state including the seed
 
 Options:
   --help                    Show this screen.

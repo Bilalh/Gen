@@ -34,7 +34,7 @@ class Method(metaclass=ABCMeta):
         if not options['seed']:
             options['seed'] = random.randint(0, 2 ** 32)
 
-        with open(os.path.join(self.output_dir, "info", "settings.json"), "w") as f:
+        with open(os.path.join(self.output_dir, "info", "rerun_settings.json"), "w") as f:
             options['limiter'] = limiter.__class__.__name__
             f.write(json.dumps(options))
             del options['limiter']
