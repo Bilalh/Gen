@@ -81,7 +81,7 @@ echo "$MSG_SAVILEROW"
 
 function save_time(){
     echo "$@"
-    time ("$@" 2>&1) 2> "$SAVILEROW_TIME"
+    time ("$@" 1>/dev/null 2>&1) 2> "$SAVILEROW_TIME"
     (cat $SAVILEROW_TIME 1>&2)
 }
 
