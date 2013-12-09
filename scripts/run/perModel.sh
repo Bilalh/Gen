@@ -68,10 +68,13 @@ if [ ! -f "${fin}" ]; then
 fi
 
 if [ ! -f "$TIMEOUT5_FILE" ]; then
+	echo "<update_timeout> if"
 	if ( grep -q "real" "$tf" ); then
+		echo "<update_timeout> if grep"
 		(( time_taken  = `grep "real" $tf | tail -n1 | sed -Ee 's/.*m([0-9]+).*/\1/'` ))
 		(( new_timeout = $time_taken  * ${DOMINATION_MULTIPLIER:-2} ))
 		if [[ $new_timeout -lt $TOTAL_TIMEOUT ]]; then
+			echo "<update_timeout> if grep time"
 			echo $time_taken >   "$FASTEST_OUTPUT_DIR/$2.fastest"
 			echo $1          >>  "$FASTEST_OUTPUT_DIR/$2.fastest"
 			echo "{$@}   Changing timeout to $new_timeout from $TOTAL_TIMEOUT"
@@ -86,7 +89,7 @@ fi
 Command=$( cat <<EOF
 (
 time $TIMEOUT5 --timeout-file $TIMEOUT5_FILE --interval 3  -k15 $TOTAL_TIMEOUT \
-	bash "${Dir}/perModelPerParam.sh"  ${Essence} {1} {2} ${MINION_TIMEOUT} ${TOTAL_TIMEOUT} ${Mode}  \
+	bash "${Dir}/perModelPerParamSeparate.sh"  ${Essence} {1} {2} ${MINION_TIMEOUT} ${TOTAL_TIMEOUT} ${Mode}  \
 ) 3>&1 1>&2 2>&3  | tee "${Output_dir}/{1/.}-{2/.}.time.all";
 echo "";
 update_timeout  "${Output_dir}/{1/.}-{2/.}" {1/} {2/}

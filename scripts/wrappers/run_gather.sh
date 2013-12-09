@@ -20,4 +20,4 @@ export REPOSITORY_BASE="$OUT_BASE_DIR"
 echo $USE_DATE
 set +x
 
-$PARAM_GEN_SCRIPTS/db/gather_data.sh
+$PARAM_GEN_SCRIPTS/db/gather_data_separate.sh
