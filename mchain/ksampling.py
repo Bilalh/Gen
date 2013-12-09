@@ -7,8 +7,10 @@ Usage:
    ksample (iterations|time) <limit>
    ( --chain_length=<int>  --select_radius=<int>  --influence_radius=<int> --essence=<file> --model_timeout=<int>)
    [ --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str> --radius_as_percentage]
+   ksample json <file>
 
 `time <limit>` is the total time the program can take
+`json` allows reloading of the state including the seed
 
 Options:
   --help                    Show this screen.

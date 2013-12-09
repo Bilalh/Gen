@@ -9,8 +9,8 @@ Usage:
    [ --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str> --radius_as_percentage]
    nsample json <file>
 
-`time <limit>` is the total time the program can take
-`json` allow reloading of the state including the seed
+`time <limit>` is the total time the program can take.
+`json` allows reloading of the state including the seed.
 
 Options:
   --help                    Show this screen.
