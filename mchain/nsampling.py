@@ -40,8 +40,10 @@ Settings=namedtuple('Settings', ['seed', 'mode', 'model_timeout', "essence", "wo
 class NSample(method.Method):
     def __init__(self, options, limiter):
         super(NSample, self,).__init__(options, limiter, Settings)
+        self.goodness_x_prev = 1
 
-        if self.settings.radius_as_percentage:
+    def before_settings(self, options):
+        if options['radius_as_percentage']:
             self.shape = ncuboid
             per = options['influence_radius']
             radii = [ math.ceil((u - l) * (per / 100)) for (l, u) in self.data ]
@@ -49,7 +51,7 @@ class NSample(method.Method):
         else:
             self.shape = ncube
 
-        self.goodness_x_prev = 1
+        return options
 
     def goodness(self, point):
 

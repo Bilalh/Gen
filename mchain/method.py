@@ -43,6 +43,7 @@ class Method(metaclass=ABCMeta):
         [self.names, self.data] = list(zip(*vals))
         self.limiter = limiter
 
+        options = self.before_settings(options)
         settings = setting_constructor(**options)
         logger.info(settings)
         self.settings = settings
@@ -70,6 +71,9 @@ class Method(metaclass=ABCMeta):
 
     @abstractmethod
     def do_iteration():
+        pass
+
+    def before_settings(self, options):
         pass
 
     def run_param_and_store_quality(self, point):

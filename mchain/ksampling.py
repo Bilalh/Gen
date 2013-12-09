@@ -46,6 +46,7 @@ class KSample(method.Method):
         for fp in ["info"]:
             os.makedirs(os.path.join(self.output_dir, fp), exist_ok=True)
 
+        #FIXME
         if self.settings.radius_as_percentage:
             self.shape = ncuboid
             for s in ['select_radius', 'influence_radius']:
