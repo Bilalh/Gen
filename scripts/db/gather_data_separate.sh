@@ -52,9 +52,24 @@ echo "INSERT OR REPLACE into Metadata('essence')
 
 echo "<$0> using *.info"
 
-ls ${results_dir}/*${param_glob}*.minion-table \
-  | parallel --tagstring "{/.}"  "${Script_Base}/db/parse_minion_tableout.py {} ${REPOSITORY_BASE}/results.db 1"  2>&1
 
+function doMinionTable(){
+	set -x
+	fp="$1"
+	sr_time="${results_dir}/$2.sr-time"
+
+
+	${Script_Base}/db/parse_minion_tableout.py "$fp" ${REPOSITORY_BASE}/results.db `grep real ${sr_time} | tail -n1 | sed -Ee 's/.*m([0-9]+.[0-9]+).*/\1/'`
+	set +x
+}
+
+export  results_dir
+export Script_Base
+export REPOSITORY_BASE
+export -f doMinionTable
+
+
+parallel --tagstring "{/.}"  'echo $(doMinionTable {} {/.})' ::: ${results_dir}/*${param_glob}*.minion-table
 
 
 # I could not get traping SIGTERM to work in perModel.sh, so store files to specify if the process has finished
