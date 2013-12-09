@@ -71,7 +71,8 @@ if [ ! -f "$TIMEOUT5_FILE" ]; then
 	echo "<update_timeout> if"
 	if ( grep -q "real" "$tf" ); then
 		echo "<update_timeout> if grep"
-		(( time_taken  = `grep "real" $tf | tail -n1 | sed -Ee 's/.*m([0-9]+).*/\1/'` ))
+		# doing ceil() on the time taken since bash can't do floating point
+		(( time_taken  = `grep "real" $tf | tail -n1 | sed -Ee 's/.*m([0-9]+).*/\1/'` + 1 ))
 		(( new_timeout = $time_taken  * ${DOMINATION_MULTIPLIER:-2} ))
 		if [[ $new_timeout -lt $TOTAL_TIMEOUT ]]; then
 			echo "<update_timeout> if grep time"
