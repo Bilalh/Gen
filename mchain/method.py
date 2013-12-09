@@ -35,7 +35,9 @@ class Method(metaclass=ABCMeta):
             options['seed'] = random.randint(0, 2 ** 32)
 
         with open(os.path.join(self.output_dir, "info", "settings.json"), "w") as f:
+            options['limiter'] = limiter.__class__.__name__
             f.write(json.dumps(options))
+            del options['limiter']
 
         vals = chain_lib.gather_param_info(options['essence'], self.output_dir)
         logger.info(vals)

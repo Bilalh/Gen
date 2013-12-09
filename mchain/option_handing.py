@@ -4,6 +4,8 @@ import os
 
 import limit
 import pprint
+import json
+import sys
 
 import logging
 logger = logging.getLogger(__name__)
@@ -11,12 +13,24 @@ logger = logging.getLogger(__name__)
 
 def parse_arguments(doc, *, version):
 	""" Parse docopt help and do some type convertion  """
+
+	arguments = docopt(doc, version=version)
+
+	if arguments['json']:
+		with open(arguments['<file>']) as fp:
+			options = json.load(fp)
+			limiter = getattr(limit, options['limiter'])(options['limit'])
+			del options['limiter']
+			return (options, limiter)
+
 	limiters = {
 		"time": limit.TimeLimit,
 		"iterations": limit.IterationsLimit
 	}
 
-	arguments = docopt(doc, version=version)
+	to_delete = ['json', '<file>']
+	for l in to_delete:
+		del arguments[l]
 
 	for l in limiters:
 		if arguments[l]:

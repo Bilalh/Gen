@@ -7,6 +7,7 @@ Usage:
    nsample (iterations|time) <limit>
    ( --essence=<file> --model_timeout=<int> --influence_radius=<int>)
    [ --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str> --radius_as_percentage]
+   nsample json <file>
 
 `time <limit>` is the total time the program can take
 
