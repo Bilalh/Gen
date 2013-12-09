@@ -1,17 +1,12 @@
-import logging
-
-import random
-import pprint
-import math
-
 import chain_lib
 
-import os
-import sys
-import json
-import calendar
-
 from abc import ABCMeta, abstractmethod
+import calendar
+import json
+import logging
+import math
+import os
+import random
 
 logger = logging.getLogger(__name__)
 
