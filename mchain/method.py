@@ -31,28 +31,31 @@ class Method(metaclass=ABCMeta):
         for fp in ["info", "params"]:
             os.makedirs(os.path.join(self.output_dir, fp), exist_ok=True)
 
+        if not options['seed']:
+            options['seed'] = random.randint(0, 2 ** 32)
+
+        with open(os.path.join(self.output_dir, "info", "settings.json"), "w") as f:
+            f.write(json.dumps(options))
+
         vals = chain_lib.gather_param_info(options['essence'], self.output_dir)
         logger.info(vals)
 
-
         [self.names, self.data] = list(zip(*vals))
         self.limiter = limiter
+
 
         options = self.before_settings(options)
         settings = setting_constructor(**options)
         logger.info(settings)
         self.settings = settings
 
-        if settings.seed:
-            seed = settings.seed
-        else:
-            seed = random.randint(0, 2 ** 32)
 
-        logger.info("Using Seed {}".format(seed))
-        random.seed(seed)
+        logger.info("Using Seed {}".format(settings.seed))
+        random.seed(settings.seed)
 
         self.data_points = []
         self._current_iteration = 0
+
 
 
     def run(self):
