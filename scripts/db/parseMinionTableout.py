@@ -17,7 +17,7 @@ args = parser.parse_args()
 [eprime, *param] = os.path.basename(args.minionTableout).split(".")[0].split("-")
 param = "-".join(param)
 
-with sqlite3.connect(args.db) as conn:
+with sqlite3.connect(args.db, timeout=10) as conn:
 	with open(args.minionTableout, "r") as f:
 		reader = csv.DictReader(f, skipinitialspace=True, delimiter=' ')
 		for row in reader:
