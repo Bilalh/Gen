@@ -30,6 +30,7 @@ MINION_SOLUTION="${EPRIMEBASE}-${PARAMBASE}.minion-solution"
 MINION_TABLE="${EPRIMEBASE}-${PARAMBASE}.minion-table"
 MINION_STATS="${EPRIMEBASE}-${PARAMBASE}.minion-stats"
 EPRIME_SOLUTION="${EPRIMEBASE}-${PARAMBASE}.eprime-solution"
+SAVILEROW_TIME="${EPRIMEBASE}-${PARAMBASE}.time"
 ESSENCE_SOLUTION="${EPRIMEBASE}-${PARAMBASE}.solution"
 END_FILE="${EPRIMEBASE}-${PARAMBASE}.zfinished"
 START_FILE="${EPRIMEBASE}-${PARAMBASE}.zstarted"
@@ -78,8 +79,13 @@ MSG_SAVILEROW="{savilerow}         $MSG_TEMPLATE"
 echo "$MSG_SAVILEROW"
 
 
+function save_time(){
+    echo "$@"
+    time ("$@" 2>&1) 2> "$SAVILEROW_TIME"
+    (cat $SAVILEROW_TIME 1>&2)
+}
 
-echoer \
+save_time \
 savilerow -mode Normal \
     -in-eprime    $EPRIME       \
     -in-param     $EPRIME_PARAM \
