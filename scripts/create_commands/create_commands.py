@@ -17,6 +17,7 @@ import bash
 
 import markov
 import smac
+import uniform
 
 
 def read_json(fp):
@@ -89,7 +90,7 @@ def run(fp, place_dir, num_runs):
 	init_path = os.path.join(place_dir, "results", "init.sh")
 	init_source = '. ' + os.path.join(place_dir, "results", "init.sh")
 
-	methods = [markov, smac]
+	methods = [markov, smac, uniform]
 
 	# Get lines for each method
 	results = { f.__name__: f.create_commands(data, commons_grouped, place_dir, init_source, num_runs)

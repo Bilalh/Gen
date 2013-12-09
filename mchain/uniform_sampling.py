@@ -34,7 +34,8 @@ class UniformSampling(method.Method):
         super(UniformSampling, self,).__init__(options, limiter, Settings)
 
     def do_iteration(self):
-        picked = self.random_point()
+        # picked = self.random_point()
+        picked = (4, 1)
         logger.info("Picked %s", picked)
         self.run_param_and_store_quality(picked)
 
