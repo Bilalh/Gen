@@ -50,7 +50,7 @@ echo "INSERT OR REPLACE into Metadata('essence')
 	|  sqlite3 ${REPOSITORY_BASE}/results.db
 
 
-echo "<$0> using *.info"
+echo "<$0> using *.minion-table"
 
 
 function doMinionTable(){
@@ -69,7 +69,8 @@ export REPOSITORY_BASE
 export -f doMinionTable
 
 
-parallel --tagstring "{/.}"  'echo $(doMinionTable {} {/.})' ::: ${results_dir}/*${param_glob}*.minion-table
+ls ${results_dir}/*${param_glob}*.minion-table | parallel --tagstring "{/.}"  'echo $(doMinionTable {} {/.})'
+
 
 
 # I could not get traping SIGTERM to work in perModel.sh, so store files to specify if the process has finished
