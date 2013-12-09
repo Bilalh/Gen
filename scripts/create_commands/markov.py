@@ -47,10 +47,7 @@ def create_commands(data, commons_grouped, place_dir, init_source, num_runs):
 				--chain_length={chain_length} \
 				--essence={essence} --working_dir={essence_dir} --output_dir={output_dir}
 			""".format(**settings).strip().replace("\t", " ")
-			#FIXME handle all boolean options
-			if 'radius_as_percentage' in cur:
-				command += " --radius_as_percentage "
-
+			command += " ".join([ " --{}".format(k) for (k, v) in cur.items() if v is True ])
 
 			lines.append(command)
 
