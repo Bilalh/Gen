@@ -48,9 +48,9 @@ class Method(metaclass=ABCMeta):
         self.settings = settings
 
         if settings.seed:
-            seed = random.randint(0, 2 ** 32)
-        else:
             seed = settings.seed
+        else:
+            seed = random.randint(0, 2 ** 32)
 
         logger.info("Using Seed {}".format(seed))
         random.seed(seed)
