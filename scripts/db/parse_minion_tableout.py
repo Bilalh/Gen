@@ -7,7 +7,7 @@ import csv
 import os
 import sqlite3
 
-parser = argparse.ArgumentParser(prog='parseMinionTableout')
+parser = argparse.ArgumentParser(prog='parse_minion_tableout')
 parser.add_argument("minionTableout", help='from minion -tableout named {eprime}-{param}')
 parser.add_argument("db",             help="db to put results in")
 parser.add_argument("savileRowTime",  help="Time SR took", type=float)
@@ -30,4 +30,4 @@ with sqlite3.connect(args.db, timeout=10) as conn:
 	conn.execute('INSERT OR REPLACE INTO Experiment ( eprime, param, attribute, value) VALUES(?,?,?,?)',
 					(eprime, param, "SavileRowTotalTime", args.savileRowTime) )
 
-print("Finished")
+print("Finished parsing", os.path.basename(args.minionTableout) )
