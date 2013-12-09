@@ -7,8 +7,10 @@ Usage:
    uniform (iterations|time) <limit>
    ( --essence=<file> --model_timeout=<int>)
    [ --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str>]
+   uniform json <file>
 
 `time <limit>` is the total time the program can take
+`json` allow reloading of the state including the seed
 
 Options:
   --help                    Show this screen.

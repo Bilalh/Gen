@@ -74,7 +74,7 @@ class Method(metaclass=ABCMeta):
         pass
 
     def before_settings(self, options):
-        pass
+        return options
 
     def run_param_and_store_quality(self, point):
         (param_string, param_name) = chain_lib.create_param_essence(zip(self.names, point))
