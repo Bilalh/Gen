@@ -8,12 +8,19 @@ import subprocess
 import json
 import fnmatch
 import math
+import random
 
 import logging
 logger = logging.getLogger(__name__)
 
 Settings=namedtuple('Settings', ['chain_length', 'select_radius', 'influence_radius', 'seed', 'mode',
 								'model_timeout', "essence", "working_dir", "output_dir", "limit", "radius_as_percentage"])
+
+
+def uniform_int(l, u):
+	return math.ceil(random.uniform(l - 1, u))
+	# import numpy as np
+	# return math.ceil(np.random.uniform(l - 1, u))
 
 
 def wrappers(script_name):
