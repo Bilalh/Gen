@@ -119,10 +119,10 @@ if (( $RESULTOF_MINION != 0 )) ; then
 fi
 
 echoer \
-(savilerow -mode ReadSolution \
+savilerow -mode ReadSolution \
     -out-minion      $MINION    \
     -minion-sol-file $MINION_SOLUTION \
-    -out-solution    $EPRIME_SOLUTION 1>/dev/null)
+    -out-solution    $EPRIME_SOLUTION 1>/dev/null
 
 
 RESULTOF_SAVILEROW2=0
