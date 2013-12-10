@@ -32,7 +32,7 @@ class Method(metaclass=ABCMeta):
             os.makedirs(os.path.join(self.output_dir, fp), exist_ok=True)
 
         if not options['seed']:
-            options['seed'] = random.randint(0, 2 ** 32)
+            options['seed'] = self.uniform_int(0, 2 ** 32)
 
         with open(os.path.join(self.output_dir, "info", "rerun_settings.json"), "w") as f:
             options['limiter'] = limiter.__class__.__name__
@@ -96,8 +96,5 @@ class Method(metaclass=ABCMeta):
         return quailty
 
     def random_point(self):
-        def uniform_int(l, u):
-            return math.ceil(random.uniform(l, u))
-
-        return tuple([uniform_int(l, u) for (l, u) in self.data])
+        return tuple([chain_lib.uniform_int(l, u) for (l, u) in self.data])
 

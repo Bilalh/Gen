@@ -1,9 +1,9 @@
-import random
+import chain_lib
 
 
 def pick_inside(radii, centre):
 	"""Pick a point from a ncuboid of with specified radii"""
-	return [random.randint(c - r, c + r) for (r, c) in zip(radii, centre) ]
+	return [chain_lib.uniform_int(c - r, c + r) for (r, c) in zip(radii, centre) ]
 
 
 def is_in_inside(radii, centre, point):
