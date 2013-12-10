@@ -69,7 +69,7 @@ export REPOSITORY_BASE
 export -f doMinionTable
 
 
-ls ${results_dir}/*${param_glob}*.minion-table | parallel --tagstring "{/.}"  'echo $(doMinionTable {} {/.})'
+ls ${results_dir}/*${param_glob}*.minion-table | parallel -j1 --tagstring "{/.}"  'echo $(doMinionTable {} {/.})'
 
 
 
@@ -99,7 +99,7 @@ export  results_dir
 export  fastest_dir
 export TOTAL_TIMEOUT
 
-parallel   --tagstring "{/}"  'echo "isDominated:$(isDominated {/.})"'  \
+parallel -j1 --tagstring "{/}"  'echo "isDominated:$(isDominated {/.})"'  \
 	::: `ls ${results_dir}/*${param_glob}.zstarted` \
 	|   runhaskell ${Script_Base}/db/gather_data.hs  ${Essence_base} \
 	|   sqlite3 ${REPOSITORY_BASE}/results.db
