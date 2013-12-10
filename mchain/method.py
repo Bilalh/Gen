@@ -32,7 +32,7 @@ class Method(metaclass=ABCMeta):
             os.makedirs(os.path.join(self.output_dir, fp), exist_ok=True)
 
         if not options['seed']:
-            options['seed'] = self.uniform_int(0, 2 ** 32)
+            options['seed'] = chain_lib.uniform_int(0, 2 ** 32)
 
         with open(os.path.join(self.output_dir, "info", "rerun_settings.json"), "w") as f:
             options['limiter'] = limiter.__class__.__name__
