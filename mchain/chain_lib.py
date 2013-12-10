@@ -85,14 +85,14 @@ def timeme(method):
 	return wrapper
 
 
-def run_models(now, param_path, cutoff_time, working_dir, output_dir):
+def run_models(now, param_path, cutoff_time, working_dir, output_dir, mode):
 	""" Run the toolchain """
 
 	def get_number_of_models(dirname):
 		return len([f for f in os.listdir(dirname) if fnmatch.fnmatch(f, "*.eprime")])
 
 	#FIXME should allow specifying the mode
-	models_dir = os.path.join(working_dir, os.path.basename(working_dir) + "-df")
+	models_dir = os.path.join(working_dir, os.path.basename(working_dir) + "-" + mode)
 	num_models = get_number_of_models( models_dir )
 	logger.info(num_models)
 
