@@ -81,7 +81,7 @@ echo "$MSG_SAVILEROW"
 
 function save_time(){
     echo "$@"
-    time ("$@" 1>/dev/null 2>&1) 2> "$SAVILEROW_TIME"
+    time ("$@" 2>&1) 2> "$SAVILEROW_TIME"
     (cat $SAVILEROW_TIME 1>&2)
 }
 
@@ -119,10 +119,10 @@ if (( $RESULTOF_MINION != 0 )) ; then
 fi
 
 echoer \
-savilerow -mode ReadSolution \
+(savilerow -mode ReadSolution \
     -out-minion      $MINION    \
     -minion-sol-file $MINION_SOLUTION \
-    -out-solution    $EPRIME_SOLUTION
+    -out-solution    $EPRIME_SOLUTION 1>/dev/null)
 
 
 RESULTOF_SAVILEROW2=0
