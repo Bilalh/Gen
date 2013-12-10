@@ -35,6 +35,10 @@ from collections import namedtuple
 import logging
 import option_handing
 import random
+import itertools
+from fractions import Fraction
+
+from pprint import pprint
 
 logger = logging.getLogger(__name__)
 Settings=namedtuple('Settings', ['num_points', 'seed', 'mode', 'model_timeout', "essence", "working_dir", "output_dir", "limit", "influence_radius", "radius_as_percentage"])
@@ -63,6 +67,7 @@ class KSample(method.Method):
         picked = self.pick_point()
         logger.info("picked %s", picked)
         self.run_param_and_store_quality(picked)
+        self.data_points.append(picked)
 
 
     def find_mins(self, arr):
@@ -99,14 +104,64 @@ class KSample(method.Method):
         for (v, p) in sorted(with_quailty):
             logger.info("rp (%0.4f,%s)", v, p)
 
-        mins_with_quailty = self.find_mins(with_quailty)
-
-        mins = list(zip(*mins_with_quailty))[1]
-        logger.info("mins @ %f %s ", mins_with_quailty[0][0], mins)
-
-        # If multiple minimums pick randomly from them
-        chosen = random.choice(mins)
+        chosen = self.pick_next_point(with_quailty)
         return chosen
+
+
+    def pick_next_point(self, points_in):
+        """
+        Change of picking each point
+        3/4        for 1st point
+        1/8        for 2nd point
+        1/2**(n+1) for nth point
+
+        ties
+        3/4    [(1, [(0, 5)]),
+        7/32   (3,  [(1, 3), (1, 8), (1, 8)]),
+        7/256  (3,  [(2, 0), (2, 4), (2, 10)]),
+        1/512  (1,  [(5, 5)]),
+        3/2048 (2,   [(6, 2), (6, 8)])]
+        """
+        points = sorted(points_in)
+        # points = sorted([ (random.randint(0, 7), random.randint(0, 10)) for i in range(10) ])
+
+
+        def f(k, v):
+            l = list(v)
+            return (len(l), l)
+
+        grouped = [ f(k, v) for (k, v) in itertools.groupby(points, lambda x: x[0])  ]
+
+        probs = [ 0 for i in range(len(grouped)) ]
+
+        cur = 2
+        for (i, (n, _) ) in enumerate(grouped):
+            pa = [  Fraction(1, cur * 2 ** i) for i in range(0, n  ) ]
+            # logger.info(pa)
+
+            probs[i] = sum(pa)
+            cur = pa[-1].denominator * 2
+
+
+        logger.info("probs %s", probs)
+        # logger.info((sum(probs),  float(sum(probs)) ))
+
+        partial_sums = itertools.accumulate(probs)
+        u = random.uniform(0, 1)
+        logger.info(u)
+
+        index = len(probs) -1
+        for (i, v) in enumerate(partial_sums):
+            if v > u:
+                index = i
+                break
+
+        logger.debug(grouped[index])
+        choices = list(zip(*grouped[index][1]))[1]
+        logger.info(choices)
+
+        return random.choice(choices)
+
 
 
 if __name__ == '__main__':
