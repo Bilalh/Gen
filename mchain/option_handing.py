@@ -42,13 +42,23 @@ def parse_arguments(doc, *, version):
 
 	# Convert ints to ints
 	for key in re.findall(r"(--[_a-zA-Z]+)=<int>", doc):
-		if arguments[key]:
+		if arguments[key] is not None:
 			arguments[key] = int(arguments[key])
 
 	# Convert dirs to abspath
-	for (key, _) in re.findall(r"(--[_a-zA-Z]+)=<(dir|file)>", doc):
-		if arguments[key]:
+	for (key, kind) in re.findall(r"(--[_a-zA-Z]+)=<(dir|file)>", doc):
+		if arguments[key] is not None:
+			if arguments[key].strip() == "":
+				raise RuntimeError("{} can not be empty if specifed".format(key))
+
 			arguments[key] = os.path.abspath(os.path.expanduser(arguments[key]))
+			if kind == "dir" and os.path.exists(arguments[key]) and not os.path.isdir(arguments[key]):
+				raise NotADirectoryError("{}".format(arguments[key]))
+
+			if kind == "file" and not os.path.isfile(arguments[key]):
+				raise RuntimeError("{} is not a file".format(arguments[key]))
+
+
 
 	# remove -- from the start and <> around positional arguments
 	options = { k.strip('<>').replace('--', ''): v for (k, v) in arguments.items()  }
