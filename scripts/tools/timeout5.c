@@ -128,9 +128,19 @@ static void cleanup (int sig){
 				double next_alarm  = timeout_left < timeout_increment
 				                   ? timeout_left : timeout_increment;
 
+                // printf("timeout5:timeout before:%lf\n", timeout_left);
 				timeout_left      -= next_alarm;
-				unsigned alarm_ret = alarm(next_alarm);
-				return;
+                // printf("timeout5:timeout after:%lf\n", timeout_left);
+                // printf("timeout5:next_alarm:%lf\n", next_alarm);
+                
+				if (timeout_left + next_alarm <= 0){
+                    printf("timeout5: timed_out inside timeout_left > 0 ~L137  \n");
+					timed_out = 1;
+					sig = term_signal;
+				}else{
+					unsigned alarm_ret = alarm(next_alarm);	
+					return;
+				}
 			}else{
 				timed_out = 1;
 				sig = term_signal;				
