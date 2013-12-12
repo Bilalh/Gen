@@ -57,12 +57,10 @@ void usage (int status){
 char help[] =
 	"cputimeout [-o filepath] [-k seconds] [-f] [-h] timeout command\n"
 	"  Execute a command with a cpu timeout.\n"
-	"\n"
 	"  Upon time-out expiration SIGTERM(15) is sent to the process. If SIGTERM signal\n"
 	"  is blocked and -k is specified, then the subsequent SIGKILL(9) terminates it.\n"
 	"\n"
-	"    timeout\n"
-	"       Number of seconds in cpu time to wait for command completion.\n"
+	"    timeout: Number of seconds in cpu time to wait for command completion.\n"
 	"    -i,   --interval interval\n"
 	"       Interval between checks if the process is still alive.\n"
 	"       Positive integer, default value: 3 seconds.\n"
@@ -76,7 +74,9 @@ char help[] =
 	"       Upon time-out expiration send SIGKILL(9) instead of SIGTERM(15)\n"
 	"    -p,  --previous-used\n"
 	"       Time to subtract from new time n in -o e.g running a series of processes\n"
-	"        using one timeout file \n"
+	"         using one timeout file \n"
+	"    -w --write-time\n"
+	"        Write the usr, sys and real time in  time -p `posix.2` format\n"
     " by Bilal Syed Hussain based on GNU timeout"
 	;
 	puts(help);
@@ -104,7 +104,6 @@ static double timeout_total;
 // the timeleft is (timeout_new - timeout_total) - timeout_previous_used
 // This allows one timeoutfile for running a series of processess
 static double timeout_previous_used = 0;
-
 static struct timeval start_time = {};
 
 static double kill_after;
@@ -119,6 +118,8 @@ static bool foreground = false;
 
 static struct ProcessStats starting_stats = {};
 static struct ProcessStats cur_stats = {};
+
+static char *time_info_file;
 
 // Exit statuses for programs like 'env' that exec other programs.
 enum {
@@ -141,6 +142,7 @@ static struct option const long_options[] = {
   {"help"            , no_argument       , NULL , 'h'                    } ,
   {"use-sigkill"     , no_argument       , NULL , 'f'                    } ,
   {"previous-used"   , required_argument , NULL , 'p'                    } ,
+  {"write-time"      , required_argument , NULL , 'w'                    } ,
   {NULL              , 0                 , NULL , 0                      }
 };
 
@@ -263,7 +265,7 @@ int main (int argc, char **argv){
 	int c;
 
 	atexit (close_stdout);
-	while ((c = getopt_long (argc, argv, "+k:hfo:ip:", long_options, NULL)) != -1) {
+	while ((c = getopt_long (argc, argv, "+k:hfo:i:p:w:", long_options, NULL)) != -1) {
 		switch (c) {
 			case 'i':
 				timeout_increment = parse_duration(optarg);
@@ -278,7 +280,10 @@ int main (int argc, char **argv){
 				timeout_file = strdup(optarg);
 				break;
 			case 'p':
-				timeout_previous_used = parse_duration (optarg);
+				timeout_previous_used = parse_duration(optarg);
+				break;
+			case 'w':
+				time_info_file = strdup(optarg);
 				break;
 			case PRESERVE_STATUS_OPTION:
 				preserve_status = true;
@@ -339,11 +344,18 @@ int main (int argc, char **argv){
 		gettimeofday(&end_time, NULL);
 
 		double wall_time = (end_time.tv_sec * 1e6  +  end_time.tv_usec) - (start_time.tv_sec * 1e6  +  start_time.tv_usec);
-		double wall_time_seconds = wall_time / 1e6;
 
-		printf("cputimeout: recorded utime   :%0.4lf\n", ((float)(cur_stats.utime - starting_stats.utime))/1000 );
-		printf("cputimeout: recorded stime   :%0.4lf\n", ((float)(cur_stats.stime - starting_stats.stime))/1000 );
-		printf("cputimeout: recorded walltime:%0.4lf\n", wall_time_seconds );
+		printf("cputimeout: real %0.3lf\n", wall_time / 1e6 );
+		printf("cputimeout: user %0.3lf\n", ((float)(cur_stats.utime - starting_stats.utime))/1000 );
+		printf("cputimeout: sys %0.3lf\n", ((float)(cur_stats.stime - starting_stats.stime))/1000 );
+
+		FILE *fp = NULL;
+		if (time_info_file && (fp = fopen(time_info_file,"w")) ){
+			fprintf(fp, "real %0.3lf\n", wall_time / 1e6 );
+			fprintf(fp, "user %0.3lf\n", ((float)(cur_stats.utime - starting_stats.utime))/1000 );
+			fprintf(fp, "sys %0.3lf\n", ((float)(cur_stats.stime - starting_stats.stime))/1000 );
+			fclose(fp);
+		}
 
 		if (wait_result < 0) {
 			// shouldn't happen.
