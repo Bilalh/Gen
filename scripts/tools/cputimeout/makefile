@@ -3,7 +3,7 @@ LIBS=-lm
 TARGETS=cputimeout
 CC=gcc
 
-cputimeout: cputimeout.o
+cputimeout: cputimeout.o get_process_info.o
 	$(CC) $(CFLAGS) $(LIBS) $^ -o $@
 
 clean:
