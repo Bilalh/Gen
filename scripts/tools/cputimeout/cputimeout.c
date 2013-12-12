@@ -181,6 +181,7 @@ static void cleanup (int sig){
 							timeout_left, timeout_new, timeout_total, timeout_previous_used);
 
 				}
+				fclose(fp);
 			}
 			if (timeout_left > 0){
 				double next_alarm  = timeout_left < timeout_increment
