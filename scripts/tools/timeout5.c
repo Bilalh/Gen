@@ -123,6 +123,7 @@ static void cleanup (int sig){
 							timeout_left, timeout_new, timeout_total);
 
 				}
+				fclose(fp);
 			}
 			if (timeout_left > 0){
 				double next_alarm  = timeout_left < timeout_increment
@@ -132,18 +133,18 @@ static void cleanup (int sig){
 				timeout_left      -= next_alarm;
                 // printf("timeout5:timeout after:%lf\n", timeout_left);
                 // printf("timeout5:next_alarm:%lf\n", next_alarm);
-                
+
 				if (timeout_left + next_alarm <= 0){
                     printf("timeout5: timed_out inside timeout_left > 0 ~L137  \n");
 					timed_out = 1;
 					sig = term_signal;
 				}else{
-					unsigned alarm_ret = alarm(next_alarm);	
+					unsigned alarm_ret = alarm(next_alarm);
 					return;
 				}
 			}else{
 				timed_out = 1;
-				sig = term_signal;				
+				sig = term_signal;
 			}
 		}else{
 			timed_out = 1;
