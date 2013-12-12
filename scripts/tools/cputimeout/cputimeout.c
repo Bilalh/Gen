@@ -63,20 +63,20 @@ char help[] =
 	"\n"
 	"    timeout\n"
 	"       Number of seconds in cpu time to wait for command completion.\n"
-	"\n"
 	"    -i,   --interval interval\n"
 	"       Interval between checks if the process is still alive.\n"
 	"       Positive integer, default value: 3 seconds.\n"
 	"       Specifying -i means that the command will NOT be killed until \n"
 	"       interval seconds have passed, even if it is changed by the timeout file\n"
-	"\n"
 	"    -k,   --kill-after delay\n"
 	"       Delay between sending SIGTERM and destroying the process by SIGKILL.\n"
-	"\n"
 	"    -o,  --timeout-file timeout-file\n"
 	"       The timeout can be changed ONCE by placing a integer into timeout-file\n"
 	"    -f,  --use-sigkill\n"
-	"        Upon time-out expiration send SIGKILL(9) instead of SIGTERM(15)\n"
+	"       Upon time-out expiration send SIGKILL(9) instead of SIGTERM(15)\n"
+	"    -p,  --previous-used\n"
+	"       Time to subtract from new time n in -o e.g running a series of processes\n"
+	"        using one timeout file \n"
     " by Bilal Syed Hussain based on GNU timeout"
 	;
 	puts(help);
@@ -98,6 +98,13 @@ static pid_t monitored_pid;
 static double timeout_increment = 3;
 static double timeout_left;
 static double timeout_total;
+
+// for use with the timeoutfile
+// e.g if 3 have a timeout of 5 seconds and timeout changes to 10 
+// the timeleft is (timeout_new - timeout_total) - timeout_previous_used
+// This allows one timeoutfile for running a series of processess 
+static double timeout_previous_used = 0;
+
 static double kill_after;
 
 static char *timeout_file;
@@ -131,6 +138,7 @@ static struct option const long_options[] = {
   {"preserve-status" , no_argument       , NULL , PRESERVE_STATUS_OPTION } ,
   {"help"            , no_argument       , NULL , 'h'                    } ,
   {"use-sigkill"     , no_argument       , NULL , 'f'                    } ,
+  {"previous-used"   , required_argument , NULL , 'p'                    } ,
   {NULL              , 0                 , NULL , 0                      }
 };
 
@@ -166,9 +174,9 @@ static void cleanup (int sig){
 				if (res >= 1){
 					timeout_changed = true;
 					printf("cputimeout: timeout changed to %ds after %0.0lf seconds\n", timeout_new, timeout_total - timeout_left );
-					timeout_left += timeout_new - timeout_total;
-					printf("cputimeout: timeout_left %0.0lf timeout_new %d timeout_total(Original) %0.0lf  \n", \
-							timeout_left, timeout_new, timeout_total);
+					timeout_left += timeout_new - timeout_total - timeout_previous_used;
+					printf("cputimeout: timeout_left %0.0lf timeout_new %d timeout_total(Original) %0.0lf  timeout_previous_used %0.0lf\n", \
+							timeout_left, timeout_new, timeout_total, timeout_previous_used);
 
 				}
 			}
@@ -183,13 +191,13 @@ static void cleanup (int sig){
 				// printf("cputimeout:timeout before:%lf\n", timeout_left);
 				timeout_left      -= cputime/1000;
 				// printf("cputimeout:timeout after:%lf\n", timeout_left);
+				// printf("cputimeout:next_alarm:%lf\n", next_alarm);
 				
 				if (timeout_left + next_alarm <= 0){
-                    printf("cputimeout: timed_out inside timeout_left > 0 ~L190  \n");
+                    // printf("cputimeout: timed_out inside timeout_left > 0 ~L190  \n");
 					timed_out = 1;
 					sig = term_signal;
 				}else{
-					// printf("cputimeout:next_alarm:%lf\n", ceil(next_alarm));
 					unsigned alarm_ret = alarm(next_alarm);	
 					return;
 				}
@@ -252,19 +260,22 @@ int main (int argc, char **argv){
 	int c;
 
 	atexit (close_stdout);
-	while ((c = getopt_long (argc, argv, "+k:hfo:i:", long_options, NULL)) != -1) {
+	while ((c = getopt_long (argc, argv, "+k:hfo:ip:", long_options, NULL)) != -1) {
 		switch (c) {
 			case 'i':
-				timeout_increment = parse_duration (optarg);
+				timeout_increment = parse_duration(optarg);
 				break;
 			case 'f':
 				term_signal = SIGKILL;
 				break;
 			case 'k':
-				kill_after = parse_duration (optarg);
+				kill_after = parse_duration(optarg);
 				break;
 			case 'o':
 				timeout_file = strdup(optarg);
+				break;
+			case 'p':
+				timeout_previous_used = parse_duration (optarg);
 				break;
 			case PRESERVE_STATUS_OPTION:
 				preserve_status = true;
