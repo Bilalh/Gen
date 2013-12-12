@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <limits.h>
 #include <dirent.h>
+#include <stdbool.h>
 
 struct ProcessStats {
     long utime;
