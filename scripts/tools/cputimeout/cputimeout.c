@@ -109,7 +109,7 @@ static int term_signal = SIGTERM;
 static bool foreground = false;
 
 static struct ProcessStats starting_stats = {};
-static struct ProcessStats last_stats = {};
+static struct ProcessStats cur_stats = {};
 
 // Exit statuses for programs like 'env' that exec other programs.
 enum {
@@ -152,16 +152,15 @@ static void install_signal_handlers (int sigterm){
 }
 
 static void cleanup (int sig){
-	if (sig == SIGALRM) {
-		update_process_stats(monitored_pid, &last_stats);
-		// printf("cputimeout: u %ld\n", (last_stats.utime - starting_stats.utime) );
-		// printf("cputimeout: s %ld\n", (last_stats.stime - starting_stats.stime) );
+	if (sig == SIGALRM){
+		struct ProcessStats prev_stats = cur_stats;
+		update_process_stats(monitored_pid, &cur_stats);
+		// printf("cputimeout: u %ld\n", (cur_stats.utime - prev_stats.utime) );
+		// printf("cputimeout: s %ld\n", (cur_stats.stime - prev_stats.stime) );
 			
 		if (timeout_left > 0){
 			FILE *fp = NULL;
 			if (timeout_file && !timeout_changed && (fp = fopen(timeout_file,"r")) ){
-				fprintf(stderr, "%s\n", "Not done yet");
-				exit(1);
 				int timeout_new;
 				int res = fscanf(fp, "%d", &timeout_new);
 				if (res >= 1){
@@ -176,15 +175,17 @@ static void cleanup (int sig){
 			if (timeout_left > 0){
 				double next_alarm  = timeout_left < timeout_increment
 				                   ? timeout_left : timeout_increment;
-				float cputime = (last_stats.utime - starting_stats.utime) + (last_stats.stime - starting_stats.stime);	
+				float cputime = (cur_stats.utime - prev_stats.utime) + (cur_stats.stime - prev_stats.stime);	
 			
 				//TODO should we use ceil? floor will over estimate the timeleft which
 				//     might be a good thing
+				// printf("cputimeout:cputime:%lf\n", cputime);
 				// printf("cputimeout:timeout before:%lf\n", timeout_left);
 				timeout_left      -= cputime/1000;
 				// printf("cputimeout:timeout after:%lf\n", timeout_left);
 				
-				if (timeout_left <= 0){
+				if (timeout_left + next_alarm <= 0){
+                    printf("cputimeout: timed_out inside timeout_left > 0 ~L190  \n");
 					timed_out = 1;
 					sig = term_signal;
 				}else{
@@ -319,8 +320,8 @@ int main (int argc, char **argv){
 			continue;
 		}
 
-		printf("cputimeout: recorded utime:%lf\n", ((float)(last_stats.utime - starting_stats.utime))/1000 );
-		printf("cputimeout: recorded stime:%lf\n", ((float)(last_stats.stime - starting_stats.stime))/1000 );
+		printf("cputimeout: recorded utime:%lf\n", ((float)(cur_stats.utime - starting_stats.utime))/1000 );
+		printf("cputimeout: recorded stime:%lf\n", ((float)(cur_stats.stime - starting_stats.stime))/1000 );
 
 		if (wait_result < 0) {
 			// shouldn't happen.
