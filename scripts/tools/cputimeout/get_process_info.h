@@ -30,5 +30,6 @@ struct ProcessStats {
 #endif
 
 
+bool update_process_stats(pid_t pid, struct ProcessStats *p);
 
 #endif
