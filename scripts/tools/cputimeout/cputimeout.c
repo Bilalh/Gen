@@ -12,21 +12,21 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdlib.h> 
+#include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #include <math.h>
-
+#include <sys/time.h>
 
 bool update_process_stats(pid_t pid, struct ProcessStats *p){
-	
+
 	static char buff[1024];
 	static char statfp[32];
-	
+
 	sprintf(statfp, "/proc/%d/stat", pid);
-	
+
 	FILE *fd = fopen(statfp, "r");
 	if (fd==NULL) return false;
 
@@ -36,20 +36,20 @@ bool update_process_stats(pid_t pid, struct ProcessStats *p){
 	}
 	fclose(fd);
 	// printf("%s\n",buff);
-	
+
 	char *field = strtok(buff, " ");
 	// skips the first 13 fields of /proc/{id}/stat
 	for (int i=0; i<13; i++){
 		field = strtok(NULL, " ");
 	}
-	
-	// convert utime and stime in `jiffies` to seconds * 1000 
+
+	// convert utime and stime in `jiffies` to seconds * 1000
 	// since HZ is a integer which has a max value of 1000
-	// so * 1000 to prevent (some) rounding errors 
+	// so * 1000 to prevent (some) rounding errors
 	p->utime = atoi(field) * 1000 / HZ;
 	field    = strtok(NULL, " ");
 	p->stime = atoi(field) * 1000 / HZ;
-	
+
 	return true;
 }
 
@@ -100,10 +100,12 @@ static double timeout_left;
 static double timeout_total;
 
 // for use with the timeoutfile
-// e.g if 3 have a timeout of 5 seconds and timeout changes to 10 
+// e.g if 3 have a timeout of 5 seconds and timeout changes to 10
 // the timeleft is (timeout_new - timeout_total) - timeout_previous_used
-// This allows one timeoutfile for running a series of processess 
+// This allows one timeoutfile for running a series of processess
 static double timeout_previous_used = 0;
+
+static struct timeval start_time = {};
 
 static double kill_after;
 
@@ -165,7 +167,7 @@ static void cleanup (int sig){
 		update_process_stats(monitored_pid, &cur_stats);
 		// printf("cputimeout: u %ld\n", (cur_stats.utime - prev_stats.utime) );
 		// printf("cputimeout: s %ld\n", (cur_stats.stime - prev_stats.stime) );
-			
+
 		if (timeout_left > 0){
 			FILE *fp = NULL;
 			if (timeout_file && !timeout_changed && (fp = fopen(timeout_file,"r")) ){
@@ -183,8 +185,8 @@ static void cleanup (int sig){
 			if (timeout_left > 0){
 				double next_alarm  = timeout_left < timeout_increment
 				                   ? timeout_left : timeout_increment;
-				float cputime = (cur_stats.utime - prev_stats.utime) + (cur_stats.stime - prev_stats.stime);	
-			
+				float cputime = (cur_stats.utime - prev_stats.utime) + (cur_stats.stime - prev_stats.stime);
+
 				//TODO should we use ceil? floor will over estimate the timeleft which
 				//     might be a good thing
 				// printf("cputimeout:cputime:%lf\n", cputime);
@@ -192,18 +194,18 @@ static void cleanup (int sig){
 				timeout_left      -= cputime/1000;
 				// printf("cputimeout:timeout after:%lf\n", timeout_left);
 				// printf("cputimeout:next_alarm:%lf\n", next_alarm);
-				
+
 				if (timeout_left + next_alarm <= 0){
                     // printf("cputimeout: timed_out inside timeout_left > 0 ~L190  \n");
 					timed_out = 1;
 					sig = term_signal;
 				}else{
-					unsigned alarm_ret = alarm(next_alarm);	
+					unsigned alarm_ret = alarm(next_alarm);
 					return;
 				}
 			}else{
 				timed_out = 1;
-				sig = term_signal;				
+				sig = term_signal;
 			}
 		}else{
 			timed_out = 1;
@@ -316,13 +318,14 @@ int main (int argc, char **argv){
 		fprintf(stderr,"failed to run command %s",argv[0]);
 		return exit_status;
 	}else{
-		printf("cputimeout: monitored_pid:%ld\n", (long) monitored_pid );
+		gettimeofday(&start_time, NULL);
+		printf("cputimeout: monitored_pid:%ld\n", (long) monitored_pid  );
 		bool res = update_process_stats(monitored_pid, &starting_stats);
 		if (!res){
 			fprintf(stderr, "Failed to get stats of pid:%d\n",monitored_pid );
 			exit(EXIT_FAILURE);
 		}
-		
+
 		pid_t wait_result;
 		int status;
 		settimeout(timeout_increment);
@@ -331,8 +334,15 @@ int main (int argc, char **argv){
 			continue;
 		}
 
-		printf("cputimeout: recorded utime:%lf\n", ((float)(cur_stats.utime - starting_stats.utime))/1000 );
-		printf("cputimeout: recorded stime:%lf\n", ((float)(cur_stats.stime - starting_stats.stime))/1000 );
+		struct timeval  end_time;
+		gettimeofday(&end_time, NULL);
+
+		double wall_time = (end_time.tv_sec * 1e6  +  end_time.tv_usec) - (start_time.tv_sec * 1e6  +  start_time.tv_usec);
+		double wall_time_seconds = wall_time / 1e6;
+
+		printf("cputimeout: recorded utime   :%0.4lf\n", ((float)(cur_stats.utime - starting_stats.utime))/1000 );
+		printf("cputimeout: recorded stime   :%0.4lf\n", ((float)(cur_stats.stime - starting_stats.stime))/1000 );
+		printf("cputimeout: recorded walltime:%0.4lf\n", wall_time_seconds );
 
 		if (wait_result < 0) {
 			// shouldn't happen.
@@ -416,7 +426,7 @@ static int send_sig (int where, int sig) {
 	return kill (where, sig);
 }
 
-// we keep track of the time in seconds 
+// we keep track of the time in seconds
 static double parse_duration (const char* str) {
 	double duration;
 
