@@ -4,6 +4,7 @@ set -o nounset
 
 Dir="$( cd "$( dirname "$0" )" && pwd )";
 TIMEOUT5="$Dir/../tools/timeout5"
+Time="/usr/bin/time -p"
 
 MINION_TIMEOUT=${1:-${MINION_TIMEOUT}}
 TOTAL_TIMEOUT=${2:-${TOTAL_TIMEOUT}}
@@ -89,9 +90,19 @@ fi
 
 Command=$( cat <<EOF
 (
-time $TIMEOUT5 --timeout-file $TIMEOUT5_FILE --interval 3  -k15 $TOTAL_TIMEOUT \
+$Time $TIMEOUT5 --timeout-file $TIMEOUT5_FILE --interval 3  -k15 $TOTAL_TIMEOUT \
 	bash "${Dir}/perModelPerParamSeparate.sh"  ${Essence} {1} {2} ${MINION_TIMEOUT} ${TOTAL_TIMEOUT} ${Mode}  \
 ) 3>&1 1>&2 2>&3  | tee "${Output_dir}/{1/.}-{2/.}.time.all";
+echo "";
+update_timeout  "${Output_dir}/{1/.}-{2/.}" {1/} {2/}
+EOF
+)
+
+Command=$( cat <<EOF
+(
+$Time \
+	bash "${Dir}/perModelPerParamCpuTime.sh"  ${Essence} {1} {2} ${MINION_TIMEOUT} ${TOTAL_TIMEOUT} ${Mode}  \
+) 3>&1 1>&2 2>&3  | tee "${Output_dir}/{1/.}-{2/.}.time.check";
 echo "";
 update_timeout  "${Output_dir}/{1/.}-{2/.}" {1/} {2/}
 EOF

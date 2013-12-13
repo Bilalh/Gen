@@ -39,7 +39,7 @@ MINION_STATS="${EPRIMEBASE}-${PARAMBASE}.minion-stats"
 MINION_TABLE="${EPRIMEBASE}-${PARAMBASE}.minion-table"
 MINION_TIME="${EPRIMEBASE}-${PARAMBASE}.minion-time"
 
-REFINE_TIME="${EPRIMEBASE}-${PARAMBASE}.sr-time"
+REFINE_TIME="${EPRIMEBASE}-${PARAMBASE}.param-time"
 SAVILEROW_TIME="${EPRIMEBASE}-${PARAMBASE}.sr-time"
 touch $START_FILE
 
@@ -52,6 +52,7 @@ SUCCESS_FILE="${EPRIMEBASE}.success"
 
 CPUTIMEOUT="${SCRIPT_DIR}/../tools/cputimeout/cputimeout --timeout-file $TIMEOUT5_FILE --interval 1 -k5"
 
+PREVIOUS_USED=0
 
 echo ""
 echo "*** `basename $ESSENCE` - `basename $EPRIME` - `basename $PARAM` ***"
@@ -67,8 +68,19 @@ function echoer(){
     $Time "$@"
 }
 
+function update_total_time(){
+    cur=$1
+    fp=$2
+    taken="`grep cpu $fp | egrep -o '[0-9]+.[0-9]+'`"
+    set -x
+    TOTAL_TIMEOUT="$(echo "(${cur}-${taken})/1" | bc)"
+    set +x
+    taken="$(echo "${taken}/1" | bc )"
+    (( PREVIOUS_USED += taken ))
+}
+
 echoer \
-${CPUTIMEOUT} --write-time ${REFINE_TIME} $TOTAL_TIMEOUT             \
+${CPUTIMEOUT} --write-time ${REFINE_TIME} --previous-used $PREVIOUS_USED $TOTAL_TIMEOUT  \
 conjure                                                            \
     --mode       refineParam                                       \
     --in-essence $ESSENCE                                          \
@@ -77,7 +89,7 @@ conjure                                                            \
     --out-eprime-param $EPRIME_PARAM;
 
 RESULTOF_REFINEPARAM=$?
-if (( $RESULTOF_REFINEPARAM != 0 )) ; then
+if (( $RESULTOF_REFINEPARAM != 0 || $TOTAL_TIMEOUT <= 0 )) ; then
     echo "$MSG_REFINEPARAM" >> "$FAIL_FILE"
     exit 1
 fi
@@ -86,6 +98,10 @@ if [ ! -f $EPRIME_PARAM ]; then
     echo "$MSG_REFINEPARAM" >> "$FAIL_FILE"
     exit 1
 fi
+
+update_total_time ${TOTAL_TIMEOUT} ${REFINE_TIME}
+echo "TOTAL_TIMEOUT is $TOTAL_TIMEOUT now"
+echo "PREVIOUS_USED is $PREVIOUS_USED now"
 
 
 RESULTOF_SAVILEROW=0
@@ -98,10 +114,10 @@ function savilerow(){
     shift
     sr_dir="`dirname $(which savilerow)`"
     echo "savilerow $@"
-    echo "java -XX:ParallelGCThreads=1 -Xmx7680M  -server -ea -jar $sr_dir/savilerow.jar $@"
+    echo "java -XX:ParallelGCThreads=1 -Xmx${JAVA_MEMORY:-2G}  -server -ea -jar $sr_dir/savilerow.jar $@"
 
-    $Time ${CPUTIMEOUT} --write-time ${SAVILEROW_TIME} $timeout \
-    java -XX:ParallelGCThreads=1 -Xmx7680M  -server -ea -jar $sr_dir/savilerow.jar $@
+    $Time ${CPUTIMEOUT} --write-time ${SAVILEROW_TIME} --previous-used $PREVIOUS_USED $timeout \
+    java -XX:ParallelGCThreads=1 -Xmx${JAVA_MEMORY:-2G}  -server -ea -jar $sr_dir/savilerow.jar $@
 }
 
 savilerow $TOTAL_TIMEOUT -mode Normal \
@@ -112,7 +128,7 @@ savilerow $TOTAL_TIMEOUT -mode Normal \
 
 RESULTOF_SAVILEROW=$?
 
-if (( $RESULTOF_SAVILEROW != 0 )) ; then
+if (( $RESULTOF_SAVILEROW != 0 || $TOTAL_TIMEOUT <= 0 )) ; then
     echo "$MSG_SAVILEROW" >> "$FAIL_FILE"
     exit 1
 fi
@@ -122,13 +138,18 @@ if [ ! -f $MINION ]; then
     exit 1
 fi
 
+update_total_time ${TOTAL_TIMEOUT} ${SAVILEROW_TIME}
+echo "TOTAL_TIMEOUT is $TOTAL_TIMEOUT now"
+echo "PREVIOUS_USED is $PREVIOUS_USED now"
+
+
 RESULTOF_MINION=0
 MSG_MINION="{minion}         $MSG_TEMPLATE"
 echo "$MSG_MINION"
 
 
 echoer \
-${CPUTIMEOUT} --write-time $MINION_TIME $TOTAL_TIMEOUT   \
+${CPUTIMEOUT} --write-time $MINION_TIME $TOTAL_TIMEOUT --previous-used $PREVIOUS_USED  \
 minion $MINION  \
     -printsolsonly \
     -preprocess SACBounds \
