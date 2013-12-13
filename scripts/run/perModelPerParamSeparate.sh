@@ -99,6 +99,11 @@ if (( $RESULTOF_SAVILEROW != 0 )) ; then
     exit 1
 fi
 
+if [ ! -f $MINION ]; then
+    echo "$MSG_SAVILEROW" >> "$FAIL_FILE"
+    exit 1
+fi
+
 RESULTOF_MINION=0
 MSG_MINION="{minion}         $MSG_TEMPLATE"
 echo "$MSG_MINION"
