@@ -45,7 +45,7 @@ char help[] =
 	"       Time to subtract from new time n in -o e.g running a series of processes\n"
 	"         using one timeout file \n"
 	"    -w --write-time\n"
-	"        Write the usr, sys and real time in  time -p `posix.2` format\n"
+	"        Write the usr, sys & real time in  time -p `posix.2` as well as cpu time\n"
     " by Bilal Syed Hussain based on GNU timeout"
 	;
 	puts(help);
@@ -317,12 +317,14 @@ int main (int argc, char **argv){
 		printf("cputimeout: real %0.3lf\n", wall_time / 1e6 );
 		printf("cputimeout: user %0.3lf\n", ((float)(cur_stats.utime - starting_stats.utime))/1000 );
 		printf("cputimeout: sys %0.3lf\n", ((float)(cur_stats.stime - starting_stats.stime))/1000 );
+		printf("cputimeout: cpu %0.3lf\n", ((float)(cur_stats.stime - starting_stats.stime) + (cur_stats.utime - starting_stats.utime) )/1000 );
 
 		FILE *fp = NULL;
 		if (time_info_file && (fp = fopen(time_info_file,"w")) ){
 			fprintf(fp, "real %0.3lf\n", wall_time / 1e6 );
 			fprintf(fp, "user %0.3lf\n", ((float)(cur_stats.utime - starting_stats.utime))/1000 );
 			fprintf(fp, "sys %0.3lf\n", ((float)(cur_stats.stime - starting_stats.stime))/1000 );
+			fprintf(fp, "cpu %0.3lf\n", ((float)(cur_stats.stime - starting_stats.stime) + (cur_stats.utime - starting_stats.utime) )/1000 );
 			fclose(fp);
 		}
 
