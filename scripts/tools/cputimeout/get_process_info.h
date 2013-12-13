@@ -5,8 +5,10 @@
 #include <limits.h>
 #include <dirent.h>
 #include <stdbool.h>
+#include "list.h"
 
 struct ProcessStats {
+	pid_t pid;
     long utime;
     long stime;
 };
@@ -30,6 +32,21 @@ struct ProcessStats {
 #endif
 
 
-bool update_process_stats(pid_t pid, struct ProcessStats *p);
+struct OtherProcess{
+	pid_t pid;
+	pid_t parent;
+	long last_updated;
+};
+
+// from cpulimit
+#define PIDHASH_SZ 128
+#define pid_hashfn(x) ((((x) >> 8) ^ (x)) & (PIDHASH_SZ - 1))
+
+// list of ourProcesses
+struct list *our_processes[PIDHASH_SZ];
+
+bool update_process_stats(struct ProcessStats *p);
+
+bool update_our_processes(pid_t monitored_pid);
 
 #endif

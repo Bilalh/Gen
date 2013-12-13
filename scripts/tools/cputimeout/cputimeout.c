@@ -135,7 +135,7 @@ static void install_signal_handlers (int sigterm){
 static void cleanup (int sig){
 	if (sig == SIGALRM){
 		struct ProcessStats prev_stats = cur_stats;
-		update_process_stats(monitored_pid, &cur_stats);
+		update_process_stats(&cur_stats);
 		// printf("cputimeout: u %ld\n", (cur_stats.utime - prev_stats.utime) );
 		// printf("cputimeout: s %ld\n", (cur_stats.stime - prev_stats.stime) );
 
@@ -266,7 +266,7 @@ int main (int argc, char **argv){
 	if (argc - optind < 2)
 		usage (EXIT_CANCELED);
 
-	timeout_left = timeout_total = parse_duration (argv[optind++]);
+	timeout_left = timeout_total = parse_duration(argv[optind++]);
 	argv += optind;
 
 	install_signal_handlers (term_signal);
@@ -290,16 +290,21 @@ int main (int argc, char **argv){
 
 		// exit like sh, env, nohup, ...
 		exit_status = (errno == ENOENT ? EXIT_ENOENT : EXIT_CANNOT_INVOKE);
-		fprintf(stderr,"failed to run command %s",argv[0]);
+		fprintf(stderr,"failed to run command %s\n",argv[0]);
 		return exit_status;
 	}else{
+
 		gettimeofday(&start_time, NULL);
 		printf("cputimeout: monitored_pid:%ld\n", (long) monitored_pid  );
-		bool res = update_process_stats(monitored_pid, &starting_stats);
+		starting_stats.pid = monitored_pid;
+		bool res = update_process_stats(&starting_stats);
+		cur_stats = starting_stats;
 		if (!res){
 			fprintf(stderr, "Failed to get stats of pid:%d\n",monitored_pid );
 			exit(EXIT_FAILURE);
 		}
+
+		update_our_processes(monitored_pid);
 
 		pid_t wait_result;
 		int status;

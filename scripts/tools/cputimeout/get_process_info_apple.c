@@ -18,11 +18,11 @@ static bool get_process_pti(pid_t pid, struct proc_taskallinfo *ti) {
 	return true;
 }
 
-bool update_process_stats(pid_t pid, struct ProcessStats *p){
+bool update_process_stats(struct ProcessStats *p){
 
 	static struct proc_taskallinfo ti;
 
-	if (! get_process_pti(pid, &ti) ) {
+	if (! get_process_pti(p->pid, &ti) ) {
 		return false;
 	}
 

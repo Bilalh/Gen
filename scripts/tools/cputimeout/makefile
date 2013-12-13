@@ -11,7 +11,7 @@ endif
 LIBS=-lm
 TARGETS=cputimeout
 
-cputimeout: cputimeout.o get_process_info.o
+cputimeout: cputimeout.o get_process_info.o list.o
 	$(CC) $(CFLAGS) $(LIBS) $^ -o $@
 
 # to force rebuilds when either changes
