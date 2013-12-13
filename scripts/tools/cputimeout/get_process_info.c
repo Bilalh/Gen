@@ -14,7 +14,7 @@
 
 #elif defined __APPLE__
 
-#include "get_process_info_linux_apple.c"
+#include "get_process_info_apple.c"
 
 #else
 

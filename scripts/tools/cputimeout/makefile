@@ -14,5 +14,8 @@ TARGETS=cputimeout
 cputimeout: cputimeout.o get_process_info.o
 	$(CC) $(CFLAGS) $(LIBS) $^ -o $@
 
+# to force rebuilds when either changes
+get_process_info.o : get_process_info_linux.c get_process_info_apple.c
+
 clean:
 	rm -f *~ *.o $(TARGETS)
