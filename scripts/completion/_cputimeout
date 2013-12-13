@@ -1,0 +1,27 @@
+#compdef cputimeout cputimeoutt
+#zsh completion for cputimeout
+#Bilal Syed Hussain
+
+typeset -A opt_args
+local context state line
+
+_arguments -C -s -S \
+	'--timeout-file[The timeout can be changed ONCE by placing a integer into timeout file ]:fs:_files' \
+	'-o[The timeout can be changed ONCE by placing a integer into timeout file ]:fs:_files' \
+	'--interval[Interval between checks if the process is still alive ]::' \
+	'-i[Interval between checks if the process is still alive ]::' \
+	'--kill-after[Delay between sending SIGTERM and destroying the process by SIGKILL ]::' \
+	'-k[Delay between sending SIGTERM and destroying the process by SIGKILL ]::' \
+	'--help[Display help]'\
+	'-h[Display help]'\
+	'--use-sigkill[Upon time-out, send SIGKILL(9) instead of SIGTERM(15)]'\
+	'-f[Upon time-out, send SIGKILL(9) instead of SIGTERM(15)]'\
+	'--write-time[Write the usr, sys & real time in  time -p `posix.2` as well as cpu time ]:fs:_files' \
+	'-w[Write the usr, sys & real time in  time -p `posix.2` as well as cpu time ]:fs:_files' \
+	'-p[Time to subtract from new time in the timeout file]::' \
+	'--previous-used[Time to subtract from new time in the timeout file]::' \
+	"*::args:_files"\
+	&& return 0
+
+# vim: ft=zsh
+#
