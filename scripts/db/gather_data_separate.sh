@@ -13,6 +13,8 @@ stats_dir=${STATS_OUTPUT_DIR:-"${OUT_BASE_DIR:-.}/stats-`basename $(pwd)`-${USE_
 fastest_dir=${FASTEST_OUTPUT_DIR:-"${OUT_BASE_DIR:-.}/fastest-`basename $(pwd)`-${USE_MODE}"}
 #"
 
+timing_method=${TIMING_METHOD:-real}
+
 echo " <<`basename $0` vars>>"
 echo "pwd: `pwd`"
 echo $REPOSITORY_BASE
@@ -59,18 +61,18 @@ function doMinionTable(){
 	sr_time="${results_dir}/$2.sr-time"
 
 
-	${Script_Base}/db/parse_minion_tableout.py "$fp" ${REPOSITORY_BASE}/results.db `grep real ${sr_time} | tail -n1 | sed -Ee 's/.*m([0-9]+.[0-9]+).*/\1/'`
+	${Script_Base}/db/parse_minion_tableout.py "$fp" ${REPOSITORY_BASE}/results.db `grep ${timing_method} ${sr_time} | egrep -o '[0-9]+(.[0-9]+)?'`
 	set +x
 }
 
 export  results_dir
 export Script_Base
+export timing_method
 export REPOSITORY_BASE
 export -f doMinionTable
 
 
 ls ${results_dir}/*${param_glob}*.minion-table | parallel -j1 --tagstring "{/.}"  'echo $(doMinionTable {} {/.})'
-
 
 
 # I could not get traping SIGTERM to work in perModel.sh, so store files to specify if the process has finished
@@ -87,7 +89,7 @@ function isDominated(){
 	else
 		(( fastest =  `head -n 1 $fastest_dir/${f:5}.param.fastest` * ${DOMINATION_MULTIPLIER:-2}))
 		# TODO use SR + Minion time
-		(( dominated  = `grep "real" $results_dir/$f.time.all | tail -n1 | sed -Ee 's/.*m([0-9]+).*/\1/'` > $fastest ))
+		(( dominated  = `grep "${TIMING_METHOD}" $results_dir/$f.time.all | tail -n1 | sed -Ee 's/.*m([0-9]+).*/\1/'` > $fastest ))
 		echo $dominated
 	fi
 }
