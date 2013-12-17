@@ -337,8 +337,11 @@ int main (int argc, char **argv){
 		settimeout(timeout_increment);
 
 
-		struct rusage rusage = {};
-		while ((wait_result = wait4(monitored_pid, &status, 0, &rusage)) < 0 && errno == EINTR){
+		// struct rusage rusage = {};
+		// valgrid say rusage is uninitialise later if I stack allocate it
+		struct rusage *rusage = calloc(1,sizeof(struct rusage));
+
+		while ((wait_result = wait4(monitored_pid, &status, 0, rusage)) < 0 && errno == EINTR){
 			continue;
 		}
 
@@ -364,34 +367,35 @@ int main (int argc, char **argv){
 		results.pid = monitored_pid;
 		difference_in_times(&our_starting,&our_current, &results);
 
+		// print what wait4 return which is the actual time used by the child
 		puts("");
-		int clocks_ticks = sysconf(_SC_CLK_TCK);
-		printf("clocks_ticks, sysconf(_SC_CLK_TCK) %d  HZ:%f\n", clocks_ticks, HZ );
-		printf("cputimeout: real %0.3f\n", wall_time / 1e6 );
-		printf("rusage: user %lds %ld usec\n", rusage.ru_utime.tv_sec,  rusage.ru_utime.tv_usec);
-		printf("rusage: sys %lds %ld usec\n",  rusage.ru_stime.tv_sec,  rusage.ru_stime.tv_usec);
+		printf("clocks_ticks, HZ:%f\n", HZ );
+		printf("rusage    : user %lds %ld usec\n", rusage->ru_utime.tv_sec,  rusage->ru_utime.tv_usec);
+		printf("rusage    : sys %lds %ld usec\n",  rusage->ru_stime.tv_sec,  rusage->ru_stime.tv_usec);
 
+		// print what what we record  e.g from /proc  on linux
 		puts("");
-
 		printf("cputimeout: real %0.3f\n", wall_time / 1e6 );
 		printf("cputimeout: user %0.3f\n", results.utime/1000.0 );
 		printf("cputimeout: sys  %0.3f\n",  results.stime/1000.0 );
 		printf("cputimeout: cpu  %0.3f\n",  (results.stime + results.utime) /1000.0 );
 
-		puts("");
-		printf("cputimeout: user %7ld\n", results.utime );
-		printf("cputimeout: sys  %7ld\n",  results.stime );
-		printf("cputimeout: cpu  %7ld\n",  (results.stime + results.utime));
-
+		// use the rusage when writing to file since our recording of time are
+		// not very accurate for processes that take less then a second.
+		double usr = rusage->ru_utime.tv_sec + rusage->ru_utime.tv_usec/1e6;
+		double sys = rusage->ru_stime.tv_sec + rusage->ru_stime.tv_usec/1e6;
+		double cpu = usr + cpu;
 
 		FILE *fp = NULL;
 		if (time_info_file && (fp = fopen(time_info_file,"w")) ){
 			fprintf(fp, "real %0.3lf\n", wall_time / 1e6 );
-			fprintf(fp, "user %0.3lf\n", results.utime/1000.0 );
-			fprintf(fp, "sys %0.3lf\n",  results.stime/1000.0 );
-			fprintf(fp, "cpu %0.3lf\n",  (results.stime + results.utime) /1000.0 );
+			fprintf(fp, "user %0.3f\n", usr );
+			fprintf(fp, "sys %0.3f\n",  sys );
+			fprintf(fp, "cpu %0.3f\n",  cpu );
 			fclose(fp);
+			free(time_info_file);
 		}
+		free(rusage);
 
 		delete_proclist(&our_starting);
 		delete_proclist(&our_current);
