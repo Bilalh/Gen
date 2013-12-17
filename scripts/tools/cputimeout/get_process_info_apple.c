@@ -1,7 +1,12 @@
 #include "get_process_info.h"
-#include <libproc.h>
+
 #include <errno.h>
+#include <libproc.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
 
 static bool get_process_pti(pid_t pid, struct proc_taskallinfo *ti) {
 	int bytes;
