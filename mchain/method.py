@@ -21,6 +21,17 @@ class Method(metaclass=ABCMeta):
             logger.error("$NUM_JOBS needs to defined")
             exit(3)
 
+        tools = os.path.join(os.path.expandvars("${PARAM_GEN_SCRIPTS}/"), "tools")
+
+        if not os.path.isfile(os.path.join(tools, "cputimeout", "cputimeout" )):
+            logger.error("Compile cputimeout in %s", os.path.join(tools, "cputimeout") )
+            exit(4)
+
+        if not os.path.isfile(os.path.join(tools, "timeout5")):
+            logger.error("Compile timeout5 in %s", tools )
+            exit(5)
+
+
         if options['output_dir']:
             self.output_dir = options['output_dir']
         else:
