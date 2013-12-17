@@ -5,6 +5,7 @@
 // Based off gnu timeout
 
 #include "get_process_info.h"
+#include "list.h"
 #include <errno.h>
 #include <getopt.h>
 #include <limits.h>
@@ -19,8 +20,8 @@
 #include <unistd.h>
 #include <math.h>
 #include <sys/time.h>
-
-
+#include <assert.h>
+#include <sys/resource.h>
 
 void usage (int status){
 char help[] =
@@ -45,7 +46,7 @@ char help[] =
 	"       Time to subtract from new time n in -o e.g running a series of processes\n"
 	"         using one timeout file \n"
 	"    -w --write-time\n"
-	"        Write the usr, sys & real time in  time -p `posix.2` as well as cpu time\n"
+	"        Write the usr, sys & real time in  time -p `posix.2` + total cpu time\n"
     " by Bilal Syed Hussain based on GNU timeout"
 	;
 	puts(help);
@@ -62,31 +63,35 @@ static void settimeout (double duration);
 static void unblock_signal (int sig);
 
 
-static pid_t monitored_pid;
+static pid_t monitored_pid = -1;
 
 static double timeout_increment = 3;
-static double timeout_left;
+static double timeout_total_original;
 static double timeout_total;
+
+static double kill_after;
+
+
+static char *timeout_file;
+static bool timeout_changed;
 
 // for use with the timeoutfile
 // e.g if 3 have a timeout of 5 seconds and timeout changes to 10
 // the timeleft is (timeout_new - timeout_total) - timeout_previous_used
 // This allows one timeoutfile for running a series of processess
 static double timeout_previous_used = 0;
+
+
+
 static struct timeval start_time = {};
-
-static double kill_after;
-
-static char *timeout_file;
-static bool timeout_changed;
-
 static int timed_out;
+
 static bool preserve_status;
 static int term_signal = SIGTERM;
 static bool foreground = false;
 
-static struct ProcessStats starting_stats = {};
-static struct ProcessStats cur_stats = {};
+static Processes our_starting = {};
+static Processes our_current  = {};
 
 static char *time_info_file;
 
@@ -133,48 +138,55 @@ static void install_signal_handlers (int sigterm){
 }
 
 static void cleanup (int sig){
-	if (sig == SIGALRM){
-		struct ProcessStats prev_stats = cur_stats;
-		update_process_stats(&cur_stats);
-		// printf("cputimeout: u %ld\n", (cur_stats.utime - prev_stats.utime) );
-		// printf("cputimeout: s %ld\n", (cur_stats.stime - prev_stats.stime) );
+	llprintf("sig:%d\n", sig );
 
-		if (timeout_left > 0){
+	if (sig == SIGALRM){
+       	struct ProcessStats times = {};
+       	times.pid = monitored_pid;
+		llprintf("SIGALRM:  monitored_pid: %d we are:%d\n", monitored_pid, getpid());
+
+		update_our_processes(&our_starting, &our_current, monitored_pid);
+		llprintf("our_starting\n");
+		print_proclist(&our_starting);
+		llprintf("our_current\n");
+		print_proclist(&our_current);
+
+       	difference_in_times(&our_starting, &our_current, &times);
+       	llprintf("times.pid %ld\n",   (long) times.pid);
+       	llprintf("times.utime %ld\n", times.utime);
+       	llprintf("times.stime %ld\n", times.stime);
+
+       	double cputime_used  = (times.utime + times.stime) / 1000.0;
+       	llprintf("cputime_used %f\n", cputime_used );
+       	assert(cputime_used >= 0);
+
+		if (cputime_used < timeout_total ){
 			FILE *fp = NULL;
 			if (timeout_file && !timeout_changed && (fp = fopen(timeout_file,"r")) ){
 				int timeout_new;
 				int res = fscanf(fp, "%d", &timeout_new);
 				if (res >= 1){
 					timeout_changed = true;
-					printf("cputimeout: timeout changed to %ds after %0.0lf seconds\n", timeout_new, timeout_total - timeout_left );
-					timeout_left += timeout_new - timeout_total - timeout_previous_used;
-					printf("cputimeout: timeout_left %0.0lf timeout_new %d timeout_total(Original) %0.0lf  timeout_previous_used %0.0lf\n", \
-							timeout_left, timeout_new, timeout_total, timeout_previous_used);
+					printf("cputimeout: timeout changed to %ds after %0.0lf seconds of cputime\n", timeout_new, cputime_used );
+					timeout_total = timeout_new - timeout_previous_used;
+					printf("cputimeout: timeout_left %0.0lf timeout_total: %0.0lf  timeout_total(Original) %0.0lf  timeout_previous_used %0.0lf\n",
+							timeout_total - cputime_used, timeout_total, timeout_total_original, timeout_previous_used);
 
 				}
 				fclose(fp);
 			}
-			if (timeout_left > 0){
+			if (cputime_used < timeout_total){
+				double timeout_left = timeout_total - cputime_used;
 				double next_alarm  = timeout_left < timeout_increment
 				                   ? timeout_left : timeout_increment;
-				float cputime = (cur_stats.utime - prev_stats.utime) + (cur_stats.stime - prev_stats.stime);
 
-				//TODO should we use ceil? floor will over estimate the timeleft which
-				//     might be a good thing
-				// printf("cputimeout:cputime:%lf\n", cputime);
-				// printf("cputimeout:timeout before:%lf\n", timeout_left);
-				timeout_left      -= cputime/1000;
-				// printf("cputimeout:timeout after:%lf\n", timeout_left);
-				// printf("cputimeout:next_alarm:%lf\n", next_alarm);
+				llprintf("timeout_left:%f next_alarm:%f\n", timeout_left, next_alarm);
+				next_alarm = ceil(next_alarm);
+				assert(next_alarm > 0);
+				// FIXME use this
+				unsigned alarm_ret = alarm(next_alarm);
+				return;
 
-				if (timeout_left + next_alarm <= 0){
-                    // printf("cputimeout: timed_out inside timeout_left > 0 ~L190  \n");
-					timed_out = 1;
-					sig = term_signal;
-				}else{
-					unsigned alarm_ret = alarm(next_alarm);
-					return;
-				}
 			}else{
 				timed_out = 1;
 				sig = term_signal;
@@ -183,7 +195,11 @@ static void cleanup (int sig){
 			timed_out = 1;
 			sig = term_signal;
 		}
+
+
+
 	}
+
 	if (monitored_pid) {
 		if (kill_after) {
 			// Start a new timeout after which we'll send SIGKILL.
@@ -206,9 +222,14 @@ static void cleanup (int sig){
 			if (!foreground)
 				send_sig (0, SIGCONT);
 		}
+
+	}else{
+		// we're the child or the child is not exec'd yet.
+		llprintf("we're the child or the child is not exec'd yet\n");
+		_exit (128 + sig);
 	}
-	// we're the child or the child is not exec'd yet.
-	else _exit (128 + sig);
+
+
 }
 
 // Start the timeout after which we'll receive a SIGALRM.
@@ -266,7 +287,7 @@ int main (int argc, char **argv){
 	if (argc - optind < 2)
 		usage (EXIT_CANCELED);
 
-	timeout_left = timeout_total = parse_duration(argv[optind++]);
+	timeout_total_original = timeout_total = parse_duration(argv[optind++]);
 	argv += optind;
 
 	install_signal_handlers (term_signal);
@@ -296,42 +317,84 @@ int main (int argc, char **argv){
 
 		gettimeofday(&start_time, NULL);
 		printf("cputimeout: monitored_pid:%ld\n", (long) monitored_pid  );
-		starting_stats.pid = monitored_pid;
-		bool res = update_process_stats(&starting_stats);
-		cur_stats = starting_stats;
+		bool res = update_our_processes(&our_starting, &our_current, monitored_pid);
+		// printf("our_starting\n");
+		// print_proclist2(&our_starting);
+		// printf("our_current\n");
+		// print_proclist2(&our_current);
+		assert(&our_current != &our_starting);
+
 		if (!res){
-			fprintf(stderr, "Failed to get stats of pid:%d\n",monitored_pid );
+			fprintf(stderr, "Failed to get stats of pid:%d and it's children\n",monitored_pid );
 			exit(EXIT_FAILURE);
 		}
+		// FIXME improve
 
-		update_our_processes(monitored_pid);
+		llprintf("Starting to wait\n");
 
-		pid_t wait_result;
-		int status;
+		pid_t wait_result = -77;
+		int status = -99;
 		settimeout(timeout_increment);
 
-		while ((wait_result = waitpid (monitored_pid, &status, 0)) < 0 && errno == EINTR){
+
+		struct rusage rusage = {};
+		while ((wait_result = wait4(monitored_pid, &status, 0, &rusage)) < 0 && errno == EINTR){
 			continue;
 		}
 
-		struct timeval  end_time;
+		struct timeval end_time = {};
 		gettimeofday(&end_time, NULL);
 
 		double wall_time = (end_time.tv_sec * 1e6  +  end_time.tv_usec) - (start_time.tv_sec * 1e6  +  start_time.tv_usec);
 
-		printf("cputimeout: real %0.3lf\n", wall_time / 1e6 );
-		printf("cputimeout: user %0.3lf\n", ((float)(cur_stats.utime - starting_stats.utime))/1000 );
-		printf("cputimeout: sys %0.3lf\n", ((float)(cur_stats.stime - starting_stats.stime))/1000 );
-		printf("cputimeout: cpu %0.3lf\n", ((float)(cur_stats.stime - starting_stats.stime) + (cur_stats.utime - starting_stats.utime) )/1000 );
+		// struct ProcessStats times = {};
+
+		llprintf("our_starting\n");
+		print_proclist(&our_starting);
+		llprintf("our_current before\n");
+		print_proclist(&our_current);
+
+		update_our_processes(&our_starting, &our_current, monitored_pid);
+		llprintf("our_current after\n");
+		print_proclist(&our_current);
+
+
+
+		struct ProcessStats results = {};
+		results.pid = monitored_pid;
+		difference_in_times(&our_starting,&our_current, &results);
+
+		puts("");
+		int clocks_ticks = sysconf(_SC_CLK_TCK);
+		printf("clocks_ticks, sysconf(_SC_CLK_TCK) %d  HZ:%f\n", clocks_ticks, HZ );
+		printf("cputimeout: real %0.3f\n", wall_time / 1e6 );
+		printf("rusage: user %lds %ld usec\n", rusage.ru_utime.tv_sec,  rusage.ru_utime.tv_usec);
+		printf("rusage: sys %lds %ld usec\n",  rusage.ru_stime.tv_sec,  rusage.ru_stime.tv_usec);
+
+		puts("");
+
+		printf("cputimeout: real %0.3f\n", wall_time / 1e6 );
+		printf("cputimeout: user %0.3f\n", results.utime/1000.0 );
+		printf("cputimeout: sys  %0.3f\n",  results.stime/1000.0 );
+		printf("cputimeout: cpu  %0.3f\n",  (results.stime + results.utime) /1000.0 );
+
+		puts("");
+		printf("cputimeout: user %7ld\n", results.utime );
+		printf("cputimeout: sys  %7ld\n",  results.stime );
+		printf("cputimeout: cpu  %7ld\n",  (results.stime + results.utime));
+
 
 		FILE *fp = NULL;
 		if (time_info_file && (fp = fopen(time_info_file,"w")) ){
 			fprintf(fp, "real %0.3lf\n", wall_time / 1e6 );
-			fprintf(fp, "user %0.3lf\n", ((float)(cur_stats.utime - starting_stats.utime))/1000 );
-			fprintf(fp, "sys %0.3lf\n", ((float)(cur_stats.stime - starting_stats.stime))/1000 );
-			fprintf(fp, "cpu %0.3lf\n", ((float)(cur_stats.stime - starting_stats.stime) + (cur_stats.utime - starting_stats.utime) )/1000 );
+			fprintf(fp, "user %0.3lf\n", results.utime/1000.0 );
+			fprintf(fp, "sys %0.3lf\n",  results.stime/1000.0 );
+			fprintf(fp, "cpu %0.3lf\n",  (results.stime + results.utime) /1000.0 );
 			fclose(fp);
 		}
+
+		delete_proclist(&our_starting);
+		delete_proclist(&our_current);
 
 		if (wait_result < 0) {
 			// shouldn't happen.

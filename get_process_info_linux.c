@@ -1,9 +1,16 @@
-#include "get_process_info.h"
 
-#include <unistd.h>
-#include <limits.h>
-#include <dirent.h>
+#include "get_process_info.h"
 #include "list.h"
+
+#include <dirent.h>
+#include <limits.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/procfs.h>
+#include <time.h>
+#include <unistd.h>
+#include <assert.h>
 
 static pid_t getppid_of(pid_t pid)
 {
@@ -32,29 +39,67 @@ static bool is_child_of(pid_t child_pid, pid_t parent_pid)
 	return ppid == parent_pid;
 }
 
-static void store_process(pid_t pid){
+static void store_process(Processes *our_processes, pid_t pid, bool replace){
 	int hashed = pid_hashfn(pid);
-	printf("pid:%d hashed:%d\n", pid, hashed);
+	llprintf("pid:%d hashed:%d replace:%d \n", pid, hashed, replace);
 
-	if (our_processes[hashed] == NULL){
+
+	if (our_processes->list[hashed] == NULL){
 		struct list *chain = malloc(sizeof(struct list));
 		init_list(chain, sizeof(struct ProcessStats));
-		our_processes[hashed] = chain;
+		our_processes->list[hashed] = chain;
 	}
 
-	struct ProcessStats *stats = malloc(sizeof(struct ProcessStats));
-	stats->pid =pid;
-	update_process_stats(stats);
+	if (our_processes->list[hashed] != NULL){
+		llprintf("check list[%d] count:%d\n", hashed, our_processes->list[hashed]->count);
+	}
 
-	add_elem(our_processes[hashed], stats);
+
+	struct ProcessStats *stats = calloc(1, sizeof(struct ProcessStats));
+	llprintf("stats addr:%p\n", stats);
+	stats->pid =pid;
+	stats->utime = 0;
+	stats->stime = 0;
+
+
+	// Could just use xlocate_node with the pid then make the stats inside?
+	struct list_node *node_inside= NULL;
+	if ( (node_inside = xlocate_node(our_processes->list[hashed], stats, 0, sizeof(pid_t)) ) ) {
+		llprintf("inside xlocate if  node_inside:%p\n", node_inside);
+		if (replace){
+			update_process_stats(node_inside->data);
+		}
+		free(stats);
+
+	}else{
+		printf("new pid added:%ld to %p\n", (long) pid, our_processes);
+
+		int count_before = get_list_count(our_processes->list[hashed]);
+		llprintf("inside xlocate if  list[%d] count:%d\n", hashed, our_processes->list[hashed]->count);
+
+		bool res = update_process_stats(stats);
+		llprintf("update_process_stats Sucess? %d\n", res);
+		llprintf("bucket:%d pid:%ld stime:%ld utime:%ld\n",hashed, (long)pid, stats->stime, stats->utime );
+		add_elem(our_processes->list[hashed], stats);
+
+
+		int count_after = get_list_count(our_processes->list[hashed]);
+		llprintf("added %ld,  count:%d \n", (long)pid, count_after);
+		assert(count_after = count_before + 1);
+
+		// print_proclist(our_processes);
+	}
+
+	llprintf("end\n");
 }
 
-bool update_our_processes(pid_t monitored_pid){
-	//FIXME error handing
-	printf("%s\n", "updating our processes");
+bool update_our_processes(Processes *our_starting, Processes *our_current, pid_t monitored_pid){
+	assert(our_starting);
+	assert(our_current);
 
-	sleep(1);
-	DIR *dir_proc =  opendir("/proc");
+	llprintf("%s for %d\n", "updating our processes", monitored_pid);
+
+	DIR *dir_proc =  NULL;
 	if ((dir_proc = opendir("/proc")) == NULL){
 		perror("opening /proc");
 		return false;
@@ -68,24 +113,23 @@ bool update_our_processes(pid_t monitored_pid){
 		pid_t pid = atoi(dit->d_name);
 
 		if (is_child_of(pid,monitored_pid)){
-			store_process(pid);
-			// printf("child %d\n", pid);
-		// 	struct ProcessStats proc_stats;
-		// 	int res = update_process_stats(&proc_stats);
-		// 	printf("%d utime:%ld  stime:%ld\n", res, proc_stats.utime, proc_stats.stime);
+			store_process(our_starting, pid, false);
+			store_process(our_current, pid, true);
 		}
 	}
 
+	if ( closedir(dir_proc) != 0 ){
+		perror("closing /proc");
+		return false;
+	}
+	llprintf("%s for %d\n", "Finished updating our processes", monitored_pid);
 	return true;
 }
 
 
-
-
 bool update_process_stats(struct ProcessStats *p){
-
-	static char buff[1024];
-	static char statfp[32];
+	char buff[1024];
+	char statfp[32];
 
 	sprintf(statfp, "/proc/%d/stat", p->pid);
 
@@ -97,9 +141,10 @@ bool update_process_stats(struct ProcessStats *p){
 		return false;
 	}
 	fclose(fd);
-	// printf("%s\n",buff);
 
-	char *field = strtok(buff, " ");
+	// printf("proc line for %ld\n%s\n", (long)p->pid, buff);
+
+	char *field = strtok(buff, " "); // pid
 	// skips the first 13 fields of /proc/{id}/stat
 	for (int i=0; i<13; i++){
 		field = strtok(NULL, " ");
