@@ -149,7 +149,7 @@ echo "$MSG_MINION"
 
 
 echoer \
-${CPUTIMEOUT} --write-time $MINION_TIME $TOTAL_TIMEOUT --previous-used $PREVIOUS_USED  \
+${CPUTIMEOUT} --write-time $MINION_TIME --previous-used $PREVIOUS_USED $TOTAL_TIMEOUT \
 minion $MINION  \
     -printsolsonly \
     -preprocess SACBounds \
