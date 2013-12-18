@@ -80,8 +80,8 @@ ls ${results_dir}/*${param_glob}*.minion-table | parallel -j1 --tagstring "{/.}"
 # I could not get traping SIGTERM to work in perModel.sh, so store files to specify if the process has finished
 function isDominated(){
 	f="$1"
-	sr_time="$1.sr-time"
-	minion_time="$1.minion-time"
+	sr_time="${results_dir}/$1.sr-time"
+	minion_time="${results_dir}/$1.minion-time"
 
 	if [ ! -f "$fastest_dir/${f:5}.param.fastest" ]; then
 		echo 0
