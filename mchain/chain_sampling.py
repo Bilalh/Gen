@@ -146,7 +146,7 @@ class Chain(object):
             logger.info("Start %s", datee.isoformat())
             now = str(int(datee.timestamp()))
 
-            chain_lib.run_models(now, param_path, self.settings.model_timeout, self.settings.working_dir, self.output_dir)
+            chain_lib.run_models(now, param_path, self.settings.model_timeout, self.settings.working_dir, self.output_dir, mode="df")
             logger.info("End %s", calendar.datetime.datetime.now().isoformat()  )
 
             results = chain_lib.get_results(self.settings.working_dir, self.output_dir, param_name, self.settings.model_timeout, now)
