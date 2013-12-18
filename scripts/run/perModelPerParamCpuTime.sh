@@ -73,6 +73,7 @@ function update_total_time(){
     fp=$2
     taken="`grep cpu $fp | egrep -o '[0-9]+.[0-9]+'`"
     set -x
+	# we are using floor which will up give up a second more time.
     TOTAL_TIMEOUT="$(echo "(${cur}-${taken})/1" | bc)"
     set +x
     taken="$(echo "${taken}/1" | bc )"
