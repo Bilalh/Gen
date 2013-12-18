@@ -84,6 +84,7 @@ class NSample(method.Method):
         logger.info("point %s,  goodness_x: %0.3f goodness_x_prev: %0.3f", x, goodness_x, self.goodness_x_prev)
 
         def accept_point():
+            #  if goodness_x and goodness_x_prev are both zero should we reject it?
             if self.goodness_x_prev == 0:
                 logger.info("Unconditionally accepting since goodness_x_prev is 0")
                 return True

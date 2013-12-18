@@ -101,7 +101,7 @@ class Method(metaclass=ABCMeta):
 
         results = chain_lib.get_results(self.settings.working_dir, self.output_dir, param_name, self.settings.model_timeout, now)
         quailty = chain_lib.quality(*results)
-        logger.info("results: {} quailty: {}".format(results, quailty))
+        logger.info("results: {} quailty: {} for {}".format(results, quailty, point))
         chain_lib.save_quality(self.output_dir, param_name, quailty)
 
         return quailty
