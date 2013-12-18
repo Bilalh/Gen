@@ -115,7 +115,7 @@ parallel -j1 --tagstring "{/}"  'echo "isDominated:$(isDominated {/.})"'  \
 
 
 parallel "grep ${timing_method} {} | egrep -o '[0-9].*'  " ::: `ls ${results_dir}/*${param_glob}.sr-time` `ls ${results_dir}/*${param_glob}.minion-time` \
-   	| ruby -e 'p $stdin.readlines.map(&:to_f).reduce(&:+)' > ${STATS_OUTPUT_DIR}/${USE_DATE}.total_solving_time
+   	| ruby -e 'p $stdin.readlines.map(&:to_f).reduce(&:+)' > ${stats_dir}/${USE_DATE}.total_solving_time
 
 # So we know which minion were created
 ls ${results_dir}/*${param_glob}.minion  >> "${stats_dir}/_${Essence_base}.minions"
