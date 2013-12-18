@@ -13,7 +13,10 @@ stats_dir=${STATS_OUTPUT_DIR:-"${OUT_BASE_DIR:-.}/stats-`basename $(pwd)`-${USE_
 fastest_dir=${FASTEST_OUTPUT_DIR:-"${OUT_BASE_DIR:-.}/fastest-`basename $(pwd)`-${USE_MODE}"}
 #"
 
-timing_method=${TIMING_METHOD:-real}
+timing_method=${TIMING_METHOD:-cpu}
+echo "timing_method: ${timing_method}"
+export  timing_method
+
 
 echo " <<`basename $0` vars>>"
 echo "pwd: `pwd`"
@@ -67,7 +70,6 @@ function doMinionTable(){
 
 export  results_dir
 export Script_Base
-export timing_method
 export REPOSITORY_BASE
 export -f doMinionTable
 
@@ -78,6 +80,9 @@ ls ${results_dir}/*${param_glob}*.minion-table | parallel -j1 --tagstring "{/.}"
 # I could not get traping SIGTERM to work in perModel.sh, so store files to specify if the process has finished
 function isDominated(){
 	f="$1"
+	sr_time="$1.sr-time"
+	minion_time="$1.minion-time"
+
 	if [ ! -f "$fastest_dir/${f:5}.param.fastest" ]; then
 		echo 0
 	elif [ ! -f $results_dir/${f}.zfinished ]; then
@@ -88,8 +93,10 @@ function isDominated(){
 		echo $dominated
 	else
 		(( fastest =  `head -n 1 $fastest_dir/${f:5}.param.fastest` * ${DOMINATION_MULTIPLIER:-2}))
-		# TODO use SR + Minion time
-		(( dominated  = `grep "${TIMING_METHOD}" $results_dir/$f.time.all | tail -n1 | sed -Ee 's/.*m([0-9]+).*/\1/'` > $fastest ))
+		(( time_taken  = `grep "${timing_method}" ${sr_time}     |  ruby -e 'print gets.to_f.ceil' ` ))
+		(( time_taken  += `grep "${timing_method}" ${minion_time} |  ruby -e 'print gets.to_f.ceil' ` ))
+
+		(( dominated  =  time_taken > $fastest ))
 		echo $dominated
 	fi
 }
@@ -106,17 +113,6 @@ parallel -j1 --tagstring "{/}"  'echo "isDominated:$(isDominated {/.})"'  \
 	|   runhaskell ${Script_Base}/db/gather_data.hs  ${Essence_base} \
 	|   sqlite3 ${REPOSITORY_BASE}/results.db
 
-function addParamIndexes(){
-	f="$1"
-	sed '1,/\$SQL\$/d' "$results_dir/../params/${f:5}.param" \
-		| cut -c 2- \
-		| sqlite3 ${REPOSITORY_BASE}/results.db
-}
-
-export -f addParamIndexes
-
-parallel  -j${NUM_JOBS:-6} --tagstring "{/}"  'addParamIndexes "{/.}"'  \
-	::: `ls ${results_dir}/*${param_glob}.zstarted`
 
 # So we know which minion were created
 ls ${results_dir}/*${param_glob}.minion  >> "${stats_dir}/_${Essence_base}.minions"

@@ -28,11 +28,14 @@ echo "TIMEOUT5_FILE is ${TIMEOUT5_FILE}"
 echo "Deleting ${TIMEOUT5_FILE}"
 rm -f $TIMEOUT5_FILE
 
+timing_method=${TIMING_METHOD:-cpu}
+echo "timing_method: ${timing_method}"
+export  timing_method
+
 Stats_output=${STATS_OUTPUT_DIR:-}
 if [ ! "${Stats_output}" == "" ]; then
 	Stats_output="${Stats_output}/"
 fi
-
 
 
 if [ ! "${Output_dir}" == "" ]; then
@@ -55,7 +58,8 @@ echo "`pwd`";
 echo " --- ${Essence} --- ";
 
 function update_timeout(){
-tf="$1.time.all"
+sr_time="$1.sr-time"
+minion_time="$1.minion-time"
 fin="$1.zfinished"
 shift
 
@@ -70,11 +74,12 @@ fi
 
 if [ ! -f "$TIMEOUT5_FILE" ]; then
 	echo "<update_timeout> if"
-	if ( grep -q "real" "$tf" ); then
+	if ( grep -q "${timing_method}" "$sr_time" && grep -q "${timing_method}"  "${minion_time}" ); then
 		echo "<update_timeout> if grep"
-		# doing ceil() on the time taken since bash can't do floating point
-		(( time_taken  = `grep "real" $tf | tail -n1 | sed -Ee 's/.*m([0-9]+).*/\1/'` + 1 ))
+		(( time_taken  = `grep "${timing_method}" ${sr_time}     |  ruby -e 'print gets.to_f.ceil' ` ))
+		(( time_taken  += `grep "${timing_method}" ${minion_time} |  ruby -e 'print gets.to_f.ceil' ` ))
 		(( new_timeout = $time_taken  * ${DOMINATION_MULTIPLIER:-2} ))
+
 		if [[ $new_timeout -lt $TOTAL_TIMEOUT ]]; then
 			echo "<update_timeout> if grep time"
 			echo $time_taken >   "$FASTEST_OUTPUT_DIR/$2.fastest"

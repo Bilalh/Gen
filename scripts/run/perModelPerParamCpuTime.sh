@@ -156,7 +156,6 @@ minion $MINION  \
     -tableout $MINION_TABLE \
     -solsout  $MINION_SOLUTION
 
-touch $END_FILE
 
 RESULTOF_MINION=$?
 if (( $RESULTOF_MINION != 0 )) ; then
@@ -164,4 +163,10 @@ if (( $RESULTOF_MINION != 0 )) ; then
     exit 1
 fi
 
+if [  ! -f ${MINION_TABLE} ]; then
+    echo "$MSG_MINION" >> "$FAIL_FILE"
+    exit 1
+fi
+
+touch $END_FILE
 
