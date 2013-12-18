@@ -77,8 +77,7 @@ static void store_process(Processes *our_processes, pid_t pid, bool replace){
 		int count_before = get_list_count(our_processes->list[hashed]);
 		llprintf("inside xlocate if  list[%d] count:%d\n", hashed, our_processes->list[hashed]->count);
 
-		bool res = update_process_stats(stats);
-		llprintf("update_process_stats Sucess? %d\n", res);
+		update_process_stats(stats);
 		llprintf("bucket:%d pid:%ld stime:%ld utime:%ld\n",hashed, (long)pid, stats->stime, stats->utime );
 		add_elem(our_processes->list[hashed], stats);
 

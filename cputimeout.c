@@ -183,8 +183,8 @@ static void cleanup (int sig){
 				llprintf("timeout_left:%f next_alarm:%f\n", timeout_left, next_alarm);
 				next_alarm = ceil(next_alarm);
 				assert(next_alarm > 0);
-				// FIXME use this
-				unsigned alarm_ret = alarm(next_alarm);
+				// if the alarm occur early it won't effect the results
+				alarm(next_alarm);
 				return;
 
 			}else{
@@ -337,11 +337,8 @@ int main (int argc, char **argv){
 		settimeout(timeout_increment);
 
 
-		// struct rusage rusage = {};
-		// valgrid say rusage is uninitialise later if I stack allocate it
-		struct rusage *rusage = calloc(1,sizeof(struct rusage));
-
-		while ((wait_result = wait4(monitored_pid, &status, 0, rusage)) < 0 && errno == EINTR){
+		struct rusage rusage = {};
+		while ((wait_result = wait4(monitored_pid, &status, 0, &rusage)) < 0 && errno == EINTR){
 			continue;
 		}
 
@@ -370,8 +367,8 @@ int main (int argc, char **argv){
 		// print what wait4 return which is the actual time used by the child
 		puts("");
 		printf("clocks_ticks, HZ:%f\n", HZ );
-		printf("rusage    : user %lds %ld usec\n", rusage->ru_utime.tv_sec,  rusage->ru_utime.tv_usec);
-		printf("rusage    : sys %lds %ld usec\n",  rusage->ru_stime.tv_sec,  rusage->ru_stime.tv_usec);
+		printf("rusage    : user %lds %ld usec\n", rusage.ru_utime.tv_sec,  rusage.ru_utime.tv_usec);
+		printf("rusage    : sys %lds %ld usec\n",  rusage.ru_stime.tv_sec,  rusage.ru_stime.tv_usec);
 
 		// print what what we record  e.g from /proc  on linux
 		puts("");
@@ -382,9 +379,9 @@ int main (int argc, char **argv){
 
 		// use the rusage when writing to file since our recording of time are
 		// not very accurate for processes that take less then a second.
-		double usr = rusage->ru_utime.tv_sec + rusage->ru_utime.tv_usec/1e6;
-		double sys = rusage->ru_stime.tv_sec + rusage->ru_stime.tv_usec/1e6;
-		double cpu = usr + cpu;
+		double usr = rusage.ru_utime.tv_sec + rusage.ru_utime.tv_usec/1e6;
+		double sys = rusage.ru_stime.tv_sec + rusage.ru_stime.tv_usec/1e6;
+		double cpu = usr + sys;
 
 		FILE *fp = NULL;
 		if (time_info_file && (fp = fopen(time_info_file,"w")) ){
@@ -395,7 +392,6 @@ int main (int argc, char **argv){
 			fclose(fp);
 			free(time_info_file);
 		}
-		free(rusage);
 
 		delete_proclist(&our_starting);
 		delete_proclist(&our_current);
