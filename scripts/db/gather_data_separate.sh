@@ -73,8 +73,8 @@ export Script_Base
 export REPOSITORY_BASE
 export -f doMinionTable
 
-
 ls ${results_dir}/*${param_glob}*.minion-table | parallel -j1 --tagstring "{/.}"  'echo $(doMinionTable {} {/.})'
+
 
 
 # I could not get traping SIGTERM to work in perModel.sh, so store files to specify if the process has finished
@@ -113,6 +113,9 @@ parallel -j1 --tagstring "{/}"  'echo "isDominated:$(isDominated {/.})"'  \
 	|   runhaskell ${Script_Base}/db/gather_data.hs  ${Essence_base} \
 	|   sqlite3 ${REPOSITORY_BASE}/results.db
 
+
+parallel "grep ${timing_method} {} | egrep -o '[0-9].*'  " ::: `ls ${results_dir}/*${param_glob}.sr-time` `ls ${results_dir}/*${param_glob}.minion-time` \
+   	| ruby -e 'p $stdin.readlines.map(&:to_f).reduce(&:+)' > ${STATS_OUTPUT_DIR}/${USE_DATE}.total_solving_time
 
 # So we know which minion were created
 ls ${results_dir}/*${param_glob}.minion  >> "${stats_dir}/_${Essence_base}.minions"
