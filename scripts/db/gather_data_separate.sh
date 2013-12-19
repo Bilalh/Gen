@@ -114,8 +114,11 @@ parallel -j1 --tagstring "{/}"  'echo "isDominated:$(isDominated {/.})"'  \
 	|   sqlite3 ${REPOSITORY_BASE}/results.db
 
 
+
+if (ls ${results_dir}/*${param_glob}.sr-time &>/dev/null); then
 parallel "grep ${timing_method} {} | egrep -o '[0-9].*'  " ::: `ls ${results_dir}/*${param_glob}.sr-time` `ls ${results_dir}/*${param_glob}.minion-time` \
    	| ruby -e 'p $stdin.readlines.map(&:to_f).reduce(&:+)' > ${stats_dir}/${USE_DATE}.total_solving_time
+fi
 
 # So we know which minion were created
 ls ${results_dir}/*${param_glob}.minion  >> "${stats_dir}/_${Essence_base}.minions"
