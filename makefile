@@ -5,11 +5,12 @@ LIBS=-lm
 TARGETS=cputimeout
 
 ifeq ($(OS),Darwin)
-CFLAGS=-Wall -g -std=gnu99 ${EXTRA_CFLAGS}
+CFLAGS=-Wall  -g -std=gnu99 ${EXTRA_CFLAGS}
 CC=clang
 OBJS += get_process_info_apple.o
 else
-CFLAGS=-Wall -ggdb  -fdiagnostics-show-caret -ftrack-macro-expansion -std=gnu99 ${EXTRA_CFLAGS}
+GCC_EXTRA=-fdiagnostics-show-caret -ftrack-macro-expansion
+CFLAGS=-Wall -ggdb  ${GCC_EXTRA} -std=gnu99 ${EXTRA_CFLAGS}
 CC=gcc
 OBJS +=  get_process_info_linux.o
 endif

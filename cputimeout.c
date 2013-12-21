@@ -88,13 +88,14 @@ static int timed_out;
 
 static bool preserve_status;
 static int term_signal = SIGTERM;
-static bool foreground = false;
+static bool foreground = false; // TODO this does not matter any more (should always be false)
 
 static Processes our_starting = {};
 static Processes our_current  = {};
 
 static char *time_info_file;
 
+//TODO add more
 // Exit statuses for programs like 'env' that exec other programs.
 enum {
 	EXIT_TIMEDOUT      = 124, // Time expired before child completed.
@@ -123,41 +124,53 @@ static struct option const long_options[] = {
 
 
 static void install_signal_handlers (int sigterm){
-  struct sigaction sa;
-  sigemptyset (&sa.sa_mask);  // Allow concurrent calls to handler
-  sa.sa_handler = cleanup;
-  sa.sa_flags = SA_RESTART;   /* Restart syscalls if possible, as that's
-                                 more likely to work cleanly.  */
+	struct sigaction sa;
+	sigset_t block_mask;
 
-  sigaction (SIGALRM, &sa, NULL); // our timeout.
-  sigaction (SIGINT, &sa, NULL);  // Ctrl-C at terminal for example.
-  sigaction (SIGQUIT, &sa, NULL); // Ctrl-\ at terminal for example.
-  sigaction (SIGHUP, &sa, NULL);  // terminal closed for example.
-  sigaction (SIGTERM, &sa, NULL); // if we're killed, stop monitored proc.
-  sigaction (sigterm, &sa, NULL); // user specified termination signal.
+	sigemptyset(&block_mask);
+	sigaddset (&block_mask, SIGALRM);
+	sigaddset (&block_mask, SIGINT);
+	sigaddset (&block_mask, SIGQUIT);
+	sigaddset (&block_mask, SIGTERM);
+	sigaddset (&block_mask, SIGHUP);
+
+	sa.sa_mask  = block_mask;
+	sa.sa_flags = 0;
+	// sigemptyset (&sa.sa_mask);  // Allow concurrent calls to handler
+
+	sa.sa_handler = cleanup;
+	sa.sa_flags = SA_RESTART;   /* Restart syscalls if possible, as that's
+	                             more likely to work cleanly.  */
+
+	sigaction(SIGALRM, &sa, NULL); // our timeout.
+	sigaction(SIGINT, &sa, NULL);  // Ctrl-C at terminal for example.
+	sigaction(SIGQUIT, &sa, NULL); // Ctrl-\ at terminal for example.
+	sigaction(SIGHUP, &sa, NULL);  // terminal closed for example.
+	sigaction(SIGTERM, &sa, NULL); // if we're killed, stop monitored proc.
+	sigaction(sigterm, &sa, NULL); // user specified termination signal.
 }
 
 static void cleanup (int sig){
-	llprintf("sig:%d\n", sig );
+	// llprintf("sig:%d\n", sig );
 
 	if (sig == SIGALRM){
        	struct ProcessStats times = {};
        	times.pid = monitored_pid;
-		llprintf("SIGALRM:  monitored_pid: %d we are:%d\n", monitored_pid, getpid());
+		// llprintf("SIGALRM:  monitored_pid: %d we are:%d\n", monitored_pid, getpid());
 
 		update_our_processes(&our_starting, &our_current, monitored_pid);
-		llprintf("our_starting\n");
-		print_proclist(&our_starting);
-		llprintf("our_current\n");
-		print_proclist(&our_current);
+		// llprintf("our_starting\n");
+		// print_proclist(&our_starting);
+		// llprintf("our_current\n");
+		// print_proclist(&our_current);
 
        	difference_in_times(&our_starting, &our_current, &times);
-       	llprintf("times.pid %ld\n",   (long) times.pid);
-       	llprintf("times.utime %ld\n", times.utime);
-       	llprintf("times.stime %ld\n", times.stime);
+       	// llprintf("times.pid %ld\n",   (long) times.pid);
+       	// llprintf("times.utime %ld\n", times.utime);
+       	// llprintf("times.stime %ld\n", times.stime);
 
        	double cputime_used  = (times.utime + times.stime) / 1000.0;
-       	llprintf("cputime_used %f\n", cputime_used );
+       	// llprintf("cputime_used %f\n", cputime_used );
        	assert(cputime_used >= 0);
 
 		if (cputime_used < timeout_total ){
@@ -180,7 +193,7 @@ static void cleanup (int sig){
 				double next_alarm  = timeout_left < timeout_increment
 				                   ? timeout_left : timeout_increment;
 
-				llprintf("timeout_left:%f next_alarm:%f\n", timeout_left, next_alarm);
+				// llprintf("timeout_left:%f next_alarm:%f\n", timeout_left, next_alarm);
 				next_alarm = ceil(next_alarm);
 				assert(next_alarm > 0);
 				// if the alarm occur early it won't effect the results
@@ -243,9 +256,9 @@ static void settimeout (double duration){
 	if (UINT_MAX <= duration){
 		timeint = UINT_MAX;
 	} else {
-		unsigned int duration_floor = duration;
-		timeint = duration_floor + (duration_floor < duration);
+		timeint =  ceil(duration);
 	}
+	llprintf("Set alarm for %u seconds from %f\n", timeint, duration);
 	alarm (timeint);
 }
 
@@ -290,7 +303,6 @@ int main (int argc, char **argv){
 	timeout_total_original = timeout_total = parse_duration(argv[optind++]);
 	argv += optind;
 
-	install_signal_handlers (term_signal);
 	signal (SIGTTIN, SIG_IGN);   // Don't stop if background child needs tty.
 	signal (SIGTTOU, SIG_IGN);   // Don't stop if background child needs tty.
 	signal (SIGCHLD, SIG_DFL);   // Don't inherit CHLD handling from parent.
@@ -301,6 +313,7 @@ int main (int argc, char **argv){
 		return EXIT_CANCELED;
 	}
 	else if (monitored_pid == 0) { // child
+		setpgid(0,0);
 		int exit_status;
 
 		// exec doesn't reset SIG_IGN -> SIG_DFL.
@@ -315,19 +328,16 @@ int main (int argc, char **argv){
 		return exit_status;
 	}else{
 
-		gettimeofday(&start_time, NULL);
-		printf("cputimeout: monitored_pid:%ld\n", (long) monitored_pid  );
-		bool res = update_our_processes(&our_starting, &our_current, monitored_pid);
-		// printf("our_starting\n");
-		// print_proclist2(&our_starting);
-		// printf("our_current\n");
-		// print_proclist2(&our_current);
-		assert(&our_current != &our_starting);
+		install_signal_handlers (term_signal);
 
+		gettimeofday(&start_time, NULL);
+		printf("cputimeout: monitored_pid:%ld,  our_pid:%ld\n", (long) monitored_pid, (long) getpid()  );
+		bool res = update_our_processes(&our_starting, &our_current, monitored_pid);
 		if (!res){
 			fprintf(stderr, "Failed to get stats of pid:%d and it's children\n",monitored_pid );
 			exit(EXIT_FAILURE);
 		}
+		assert(&our_current != &our_starting);
 		// FIXME improve
 
 		llprintf("Starting to wait\n");
@@ -335,19 +345,22 @@ int main (int argc, char **argv){
 		pid_t wait_result = -77;
 		int status = -99;
 		settimeout(timeout_increment);
+		llprintf("aftet settimeout\n");
 
 
 		struct rusage rusage = {};
 		while ((wait_result = wait4(monitored_pid, &status, 0, &rusage)) < 0 && errno == EINTR){
+			llprintf("inside wait\n");
 			continue;
 		}
+		llprintf("after wait\n");
 
 		struct timeval end_time = {};
 		gettimeofday(&end_time, NULL);
 
 		double wall_time = (end_time.tv_sec * 1e6  +  end_time.tv_usec) - (start_time.tv_sec * 1e6  +  start_time.tv_usec);
 
-		// struct ProcessStats times = {};
+		struct ProcessStats times = {};
 
 		llprintf("our_starting\n");
 		print_proclist(&our_starting);
@@ -383,6 +396,7 @@ int main (int argc, char **argv){
 		double sys = rusage.ru_stime.tv_sec + rusage.ru_stime.tv_usec/1e6;
 		double cpu = usr + sys;
 
+		printf("cputimeout: time_info_file: %s\n", time_info_file);
 		FILE *fp = NULL;
 		if (time_info_file && (fp = fopen(time_info_file,"w")) ){
 			fprintf(fp, "real %0.3lf\n", wall_time / 1e6 );
@@ -390,6 +404,7 @@ int main (int argc, char **argv){
 			fprintf(fp, "sys %0.3f\n",  sys );
 			fprintf(fp, "cpu %0.3f\n",  cpu );
 			fclose(fp);
+			printf("cputimeout: wrote time to %s\n", time_info_file);
 			free(time_info_file);
 		}
 
@@ -472,7 +487,10 @@ static int send_sig (int where, int sig) {
 	   multiple times to this process.  */
 	if (where == 0){
 		printf("cputimeout: ignoring signal %d to %d\n",sig,where);
-		signal (sig, SIG_IGN);
+		if (sig != SIGKILL){
+			signal (sig, SIG_IGN);
+		}
+		where = -monitored_pid;
 	}
 	printf("cputimeout: sending signal %d to %d\n",sig,where);
 	return kill (where, sig);
