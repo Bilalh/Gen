@@ -107,7 +107,7 @@ Command=$( cat <<EOF
 (
 $Time \
 	bash "${Dir}/perModelPerParamCpuTime.sh"  ${Essence} {1} {2} ${MINION_TIMEOUT} ${TOTAL_TIMEOUT} ${Mode}  \
-) 3>&1 1>&2 2>&3  | tee "${Output_dir}/{1/.}-{2/.}.time.check";
+) 3>&1 1>&2 2>&3  | tee "${Output_dir}/{1/.}-{2/.}.stderr";
 echo "";
 update_timeout  "${Output_dir}/{1/.}-{2/.}" {1/} {2/}
 EOF
