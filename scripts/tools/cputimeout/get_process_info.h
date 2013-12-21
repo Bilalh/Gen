@@ -46,11 +46,13 @@ typedef struct Processes{
 #endif
 
 
-// #define llprintf(fmt, ...) \
-// printf("%13s:%20s:%i%s" fmt , basename(__FILE__),__func__, __LINE__,"   " ,## __VA_ARGS__);
+#ifdef DEBUG
 
-#define llprintf(fmt, ...)
-
+#define llprintf(fmt, ...) \
+	printf("%13s:%20s:%i%s" fmt , basename(__FILE__),__func__, __LINE__,"   " ,## __VA_ARGS__);
+#else
+	#define llprintf(fmt, ...)
+#endif
 
 bool update_our_processes(Processes *our_starting, Processes *out_current, pid_t monitored_pid);
 
