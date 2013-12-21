@@ -76,10 +76,10 @@ class Chain(method.Method):
         return (choice >= mean)
 
     def make_chain(self):
-        def first_point(self, data):
-            self.random_point()
+        def first_point(data):
+            return self.random_point()
 
-        current_chain = [self.first_point(self.data)]
+        current_chain = [first_point(self.data)]
         for i in range(self.settings.chain_length):
             candidate_point = self.next_point(current_chain)
             if self.acceptance(current_chain[-1], candidate_point, self.data, None):
