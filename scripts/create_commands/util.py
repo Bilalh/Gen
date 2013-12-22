@@ -33,8 +33,7 @@ def create_commands_py(method_name, function_templete, data, commons_grouped, pl
 		par_function = function_templete % (
 			mode,
 			filepath,
-			os.path.dirname(filepath),
-			" ".join([ " --{}".format(k) for (k, v) in cur.items() if v is True ])
+			os.path.dirname(filepath)
 		)
 
 		line = 'parallel  --header : --tagstring "R{1}" -j%d $Command ' % (cores / num_models)
@@ -52,9 +51,7 @@ def create_commands_py(method_name, function_templete, data, commons_grouped, pl
 			}
 			lines.append("# {}h -- {limit}s * {jobs} cores".format(hours, jobs=jobs, **settings))
 
-
 			settings.update(cur)
-			settings = { k: v for (k, v) in settings.items() if v is not True and v is not False }
 			return settings
 
 		settings_list = [ build_dict(common).items() for common in commons ]

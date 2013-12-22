@@ -11,10 +11,12 @@ record_cp {base_path}/out-{limit}-{races}-{cores}__{race_no}/logs/log-{race_no} 
 		--select_radius={select_radius} \\
 		--influence_radius={influence_radius} \\
 		--chain_length={chain_length} \\
+		--radius_as_percentage={radius_as_percentage} \\
 		--mode=%s \\
 		--essence=%s \\
 		--working_dir=%s \\
-		--output_dir={base_path}/out-{limit}-{races}-{cores}__{race_no} %s
+		--output_dir={base_path}/out-{limit}-{races}-{cores}__{race_no}
+		--
 EOF
 )"""
 
