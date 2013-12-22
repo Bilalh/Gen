@@ -115,11 +115,14 @@ class Method(metaclass=ABCMeta):
     def do_radius_as_percentage(self, options):
         if options['radius_as_percentage']:
             self.shape = ncuboid
-            per = options['influence_radius']
-            radii = [ math.ceil((u - l) * (per / 100)) for (l, u) in self.data ]
-            options['influence_radius'] = radii
+            for s in ['select_radius', 'influence_radius']:
+                if s in options:
+                    per = options[s]
+                    radii = [ math.ceil((u - l) * (per / 100)) for (l, u) in self.data ]
+                    options[s] = radii
         else:
             self.shape = ncube
 
         return options
+
 
