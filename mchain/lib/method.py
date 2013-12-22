@@ -1,6 +1,7 @@
 from lib import chain_lib
 
 from abc import ABCMeta, abstractmethod
+from collections import namedtuple
 import calendar
 import json
 import logging
@@ -67,12 +68,12 @@ class Method(metaclass=ABCMeta):
 
         self.data_points = []
         self._current_iteration = 0
-
+        self.prev_timestamp = None
 
 
     def run(self):
         self.limiter.start()
-        while self.limiter.continue_running():
+        while self.limiter.continue_running(self):
             self.do_iteration()
             self._current_iteration+=1
 
@@ -103,6 +104,7 @@ class Method(metaclass=ABCMeta):
         logger.info("results: {} quailty: {} for {}".format(results, quailty, point))
         chain_lib.save_quality(self.output_dir, param_name, quailty)
 
+        self.prev_timestamp = now
         return quailty
 
     def random_point(self):
