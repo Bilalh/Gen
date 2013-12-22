@@ -26,7 +26,6 @@ Options:
 """
 
 from lib import chain_lib
-from lib import math
 from lib import method
 from lib import ncube
 from lib import ncuboid
@@ -36,6 +35,7 @@ from fractions import Fraction
 from pprint import pprint
 import itertools
 import logging
+import math
 import option_handing
 import random
 
