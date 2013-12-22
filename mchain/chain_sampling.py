@@ -4,12 +4,12 @@
 
 """
 Usage:
-   chain (iterations|time) <limit>
+   chain (iterations|time|cpu) <limit>
    ( --chain_length=<int>  --select_radius=<int>  --influence_radius=<int> --essence=<file> --model_timeout=<int>)
    [ --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str> --radius_as_percentage]
    chain json <file>
 
-`time <limit>` is the total time the program can take.
+`time <limit>` is the total time,  cpu <limit> is the total cputime.
 `json` allows reloading of the state including the seed.
 
 Options:

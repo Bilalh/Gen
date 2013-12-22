@@ -24,7 +24,8 @@ def parse_arguments(doc, *, version):
 
 	limiters = {
 		"time": limit.TimeLimit,
-		"iterations": limit.IterationsLimit
+		"iterations": limit.IterationsLimit,
+		"cpu": limit.CpuLimit
 	}
 
 	to_delete = ['json', '<file>']

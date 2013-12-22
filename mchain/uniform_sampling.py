@@ -4,7 +4,7 @@
 
 """
 Usage:
-   uniform (iterations|time) <limit>
+   uniform (iterations|time|cpu) <limit>
    ( --essence=<file> --model_timeout=<int>)
    [ --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str>]
    uniform json <file>

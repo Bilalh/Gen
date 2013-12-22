@@ -4,7 +4,7 @@
 
 """
 Usage:
-   nsample (iterations|time) <limit>
+   nsample (iterations|time|cpu) <limit>
    ( --essence=<file> --model_timeout=<int> --influence_radius=<int>)
    [ --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str> --radius_as_percentage]
    nsample json <file>

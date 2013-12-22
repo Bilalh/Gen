@@ -1,7 +1,11 @@
 from .chain_lib import copydoc
 
 from abc import ABCMeta, abstractmethod
+import os
 import time
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Limit(metaclass=ABCMeta):
@@ -49,7 +53,7 @@ class IterationsLimit(Limit):
 class CpuLimit(Limit):
 	""" Limit total cpu time """
 	def __init__(self, seconds):
-		super(IterationsLimit, self).__init__()
+		super(CpuLimit, self).__init__()
 		self.seconds = seconds
 
 	def start(self):
@@ -58,8 +62,12 @@ class CpuLimit(Limit):
 	@copydoc(Limit.continue_running)
 	def continue_running(self, method):
 		if method.prev_timestamp:
-			# FIXME Finish
-			pass
+			# Assumes only param is run on each iteration
+			timefile = os.path.join(method.settings.output_dir, "stats-" + method.settings.mode,
+				method.prev_timestamp + ".total_solving_time")
+			with open(timefile) as f:
+				self.current += float(f.readline())
 
+		logger.info("%f second left, total:%f",  self.seconds - self.current, self.seconds)
 		return self.current < self.seconds
 

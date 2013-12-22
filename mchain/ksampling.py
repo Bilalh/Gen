@@ -4,7 +4,7 @@
 
 """
 Usage:
-   ksample (iterations|time) <limit>
+   ksample (iterations|time|cpu) <limit>
    ( --num_points=<int>  --influence_radius=<int> --essence=<file> --model_timeout=<int>)
    [ --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str> --radius_as_percentage]
    ksample json <file>
