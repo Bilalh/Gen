@@ -5,12 +5,18 @@ def create_commands(data, commons_grouped, place_dir, init_source, num_runs):
 
 	par_function = """
 Command=$( cat <<EOF
-record_cp {base_path}/out-{limit}-{races}-{cores}__{race_no}/logs/log-{race_no} \\
+place="{base_path}/out-{limit}-{races}-{cores}__{race_no}___{models_timeout}";
+[ -d \$place ] \
+	&& echo "Not writing to \$place, it exists"
+	&& exit;
+echo "output_dir is \$place";
+record_cp \$place/logs/log-{race_no} \\
 		../instancegen/mchain/uniform_sampling.py cpu {limit} \\
+		--models_timeout={models_timeout} \\
 		--mode=%s \\
 		--essence=%s \\
 		--working_dir=%s \\
-		--output_dir={base_path}/out-{limit}-{races}-{cores}__{race_no}
+		--output_dir=\$place
 EOF
 )"""
 
