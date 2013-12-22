@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-
+#include <assert.h>
 
 static bool get_process_pti(pid_t pid, struct proc_taskallinfo *ti) {
 	int bytes;
@@ -23,11 +23,43 @@ static bool get_process_pti(pid_t pid, struct proc_taskallinfo *ti) {
 	return true;
 }
 
+bool update_our_processes(Processes *our_starting, Processes *our_current, pid_t monitored_pid){
+	assert(our_starting);
+	assert(our_current);
+
+	llprintf("%s for %d\n", "updating our processes", monitored_pid);
+
+	char *cmd;
+	asprintf(&cmd, "ps -o pid,pgid -ax | grep %ld | cut -d ' ' -f 1 ", (long) monitored_pid );
+
+    FILE *ps_out;
+	if (!(ps_out = popen(cmd, "r" ))){
+		free(cmd);
+		perror("Failed to run ps");
+		exit(32);
+	}
+	free(cmd);
+
+	char *line = NULL;
+	size_t linecap = 0;
+	ssize_t linelen;
+
+   	while ((linelen = getline(&line, &linecap, ps_out)) > 0){
+		int pid = atoi(line);
+		store_process(our_starting, pid, false);
+		store_process(our_current, pid, true);
+   	}
+
+   	llprintf("%s for %d\n", "Finished updating our processes", monitored_pid);
+	return true;
+}
+
 bool update_process_stats(struct ProcessStats *p){
 
 	static struct proc_taskallinfo ti;
 
 	if (! get_process_pti(p->pid, &ti) ) {
+		perror("get_process_pti failed");
 		return false;
 	}
 
@@ -36,3 +68,4 @@ bool update_process_stats(struct ProcessStats *p){
 
 	return true;
 }
+

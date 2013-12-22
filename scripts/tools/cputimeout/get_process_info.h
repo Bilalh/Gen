@@ -54,15 +54,19 @@ typedef struct Processes{
 	#define llprintf(fmt, ...)
 #endif
 
+
+void store_process(Processes *our_processes, pid_t pid, bool replace);
+
 bool update_our_processes(Processes *our_starting, Processes *out_current, pid_t monitored_pid);
 
 void difference_in_times(Processes *old_times, Processes *new_times, struct ProcessStats *results);
 
 bool update_process_stats(struct ProcessStats *p);
 
+void delete_proclist(Processes *our_processes);
+
 void print_proclist(Processes *our_processes);
 void print_proclist2(Processes *our_processes);
 
-void delete_proclist(Processes *our_processes);
 
 #endif
