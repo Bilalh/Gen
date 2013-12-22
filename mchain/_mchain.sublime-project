@@ -5,7 +5,8 @@
 			"folder_exclude_patterns":
 			[
 				"__",
-				"__f"
+				"__f",
+				"__pycache__"
 			],
 			"follow_symlinks": true,
 			"path": "/Users/bilalh/CS/instancegen/mchain"

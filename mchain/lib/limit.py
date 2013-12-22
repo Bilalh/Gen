@@ -1,6 +1,7 @@
+from .chain_lib import copydoc
+
 from abc import ABCMeta, abstractmethod
 import time
-from chain_lib import copydoc
 
 
 class Limit(metaclass=ABCMeta):

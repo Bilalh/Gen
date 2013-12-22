@@ -25,20 +25,19 @@ Options:
   --mode=<str>              Conjure mode used [default: df].
 """
 
-import chain_lib
-import math
-import method
-import ncube
-import ncuboid
+from lib import chain_lib
+from lib import math
+from lib import method
+from lib import ncube
+from lib import ncuboid
 
 from collections import namedtuple
+from fractions import Fraction
+from pprint import pprint
+import itertools
 import logging
 import option_handing
 import random
-import itertools
-from fractions import Fraction
-
-from pprint import pprint
 
 logger = logging.getLogger(__name__)
 Settings=namedtuple('Settings', ['num_points', 'seed', 'mode', 'model_timeout', "essence", "working_dir", "output_dir", "limit", "influence_radius", "radius_as_percentage"])
@@ -163,11 +162,9 @@ class KSample(method.Method):
         return random.choice(choices)
 
 
-
 if __name__ == '__main__':
     logging.basicConfig(format='%(name)s:%(lineno)d:%(funcName)s: %(message)s', level=logging.INFO)
-
     (options, limiter) = option_handing.parse_arguments(__doc__, version="1.0")
-    k = KSample(options, limiter)
-    k.run()
+    KSample(options, limiter).run()
     logger.info("<finished>")
+

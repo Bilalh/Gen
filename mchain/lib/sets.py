@@ -1,6 +1,7 @@
+from lib import chain_lib
+
 import itertools
 from pprint import pprint
-import chain_lib
 
 
 class SetPoint(object):

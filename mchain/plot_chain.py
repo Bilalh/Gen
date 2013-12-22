@@ -9,7 +9,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import random
 import json
 
-from ncube import pick_inside_ncube, pick_inside_ncube2
+from lib.ncube import pick_inside_ncube, pick_inside_ncube2
 
 
 def iter_many(it, length, num):

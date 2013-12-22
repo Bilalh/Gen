@@ -22,10 +22,12 @@ Options:
   --mode=<str>              Conjure mode used [default: df].
 
 """
-import option_handing
+
+from lib import option_handing
+
+from collections import namedtuple
 import logging
 import method
-from collections import namedtuple
 
 logger = logging.getLogger(__name__)
 Settings=namedtuple('Settings', ['seed', 'mode', 'model_timeout', "essence", "working_dir", "output_dir", "limit"])
@@ -44,9 +46,7 @@ class UniformSampling(method.Method):
 
 if __name__ == '__main__':
     logging.basicConfig(format='%(name)s:%(lineno)d:%(funcName)s: %(message)s', level=logging.INFO)
-
     (options, limiter) = option_handing.parse_arguments(__doc__, version="1.0")
-    k = UniformSampling(options, limiter)
-    k.run()
+    UniformSampling(options, limiter).run()
     logger.info("<finished>")
 

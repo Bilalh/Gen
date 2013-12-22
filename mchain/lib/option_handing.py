@@ -1,13 +1,12 @@
+from lib import limit
+
 from docopt import docopt
-import re
-import os
-
-import limit
-import pprint
 import json
-import sys
-
 import logging
+import os
+import pprint
+import re
+
 logger = logging.getLogger(__name__)
 
 

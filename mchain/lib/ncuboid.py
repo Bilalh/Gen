@@ -1,4 +1,4 @@
-import chain_lib
+from lib import chain_lib
 
 
 def pick_inside(radii, centre):

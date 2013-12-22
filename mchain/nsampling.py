@@ -24,11 +24,12 @@ Options:
   --radius_as_percentage    Radius setting as in %.
 
 """
-import chain_lib
-import math
-import method
-import ncube
-import ncuboid
+
+from lib import chain_lib
+from lib import math
+from lib import method
+from lib import ncube
+from lib import ncuboid
 
 from collections import namedtuple
 import logging
@@ -107,9 +108,7 @@ class NSample(method.Method):
 
 if __name__ == '__main__':
     logging.basicConfig(format='%(name)s:%(lineno)d:%(funcName)s: %(message)s', level=logging.INFO)
-
     (options, limiter) = option_handing.parse_arguments(__doc__, version="1.0")
-    k = NSample(options, limiter)
-    k.run()
+    NSample(options, limiter).run()
     logger.info("<finished>")
 

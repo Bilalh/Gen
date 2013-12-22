@@ -1,10 +1,9 @@
-import chain_lib
+from lib import chain_lib
 
 from abc import ABCMeta, abstractmethod
 import calendar
 import json
 import logging
-import math
 import os
 import random
 

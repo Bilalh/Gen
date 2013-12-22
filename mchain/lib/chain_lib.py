@@ -1,18 +1,16 @@
-import time
-import os
-import sys
-
 from collections import namedtuple
+import fnmatch
+import json
+import logging
+import math
+import os
+import random
 import sqlite3
 import subprocess
-import json
-import fnmatch
-import math
-import random
+import sys
+import time
 
-import logging
 logger = logging.getLogger(__name__)
-
 Settings=namedtuple('Settings', ['chain_length', 'select_radius', 'influence_radius', 'seed', 'mode',
 								'model_timeout', "essence", "working_dir", "output_dir", "limit", "radius_as_percentage"])
 

@@ -2,18 +2,42 @@
 # -*- coding: utf-8 -*-
 # Bilal Syed Hussain
 
-import chain_lib
-import math
-import method
-import ncube
-import ncuboid
-# import option_handing
+"""
+Usage:
+   chain (iterations|time) <limit>
+   ( --chain_length=<int>  --select_radius=<int>  --influence_radius=<int> --essence=<file> --model_timeout=<int>)
+   [ --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str> --radius_as_percentage]
+   chain json <file>
+
+`time <limit>` is the total time the program can take.
+`json` allows reloading of the state including the seed.
+
+Options:
+  --help                    Show this screen.
+  --chain_length=<int>      Length of each chain.
+  --select_radius=<int>     Radius for picking next point.
+  --influence_radius=<int>  Radius for the acceptance function.
+  --model_timeout=<int>     Timeout in seconds.
+  --working_dir=<dir>       Where the essence file is [default: .]
+  --seed=<int>              Random seed to use.
+  --output_dir=<dir>        Where to put the results.
+  --essence=<file>          Essence file.
+  --radius_as_percentage    Radius setting as in %.
+  --mode=<str>              Conjure mode used [default: df].
+"""
+
+from lib import chain_lib
+from lib import method
+from lib import ncube
+from lib import ncuboid
+from lib import option_handing
 
 from collections import namedtuple
-import logging
-import random
-import os
 import json
+import logging
+import os
+import math
+import random
 
 logger = logging.getLogger(__name__)
 Settings=namedtuple('Settings', ['chain_length', 'select_radius', 'influence_radius', 'seed', 'mode',
@@ -102,5 +126,10 @@ class Chain(method.Method):
             self.run_param_and_store_quality(selected_point)
 
 
+if __name__ == '__main__':
+    logging.basicConfig(format='%(name)s:%(lineno)d:%(funcName)s: %(message)s', level=logging.INFO)
+    (options, limiter) = option_handing.parse_arguments(__doc__, version="1.0")
+    Chain(options, limiter).run()
+    logger.info("<finished>")
 
 
