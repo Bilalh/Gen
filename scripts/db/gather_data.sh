@@ -6,11 +6,11 @@ Dir="$( cd "$( dirname "$0" )" && pwd )"
 Script_Base="$Dir/../"
 
 
-results_dir=${GENERATED_OUTPUT_DIR:-"${OUT_BASE_DIR:-.}/results-`basename $(pwd)`-${USE_MODE}"}
+results_dir=${GENERATED_OUTPUT_DIR:-"${OUT_BASE_DIR:-.}/results-${USE_MODE}"}
 #"
-stats_dir=${STATS_OUTPUT_DIR:-"${OUT_BASE_DIR:-.}/stats-`basename $(pwd)`-${USE_MODE}"}
+stats_dir=${STATS_OUTPUT_DIR:-"${OUT_BASE_DIR:-.}/stats-${USE_MODE}"}
 #"
-fastest_dir=${FASTEST_OUTPUT_DIR:-"${OUT_BASE_DIR:-.}/fastest-`basename $(pwd)`-${USE_MODE}"}
+fastest_dir=${FASTEST_OUTPUT_DIR:-"${OUT_BASE_DIR:-.}/fastest-${USE_MODE}"}
 #"
 
 echo " <<`basename $0` vars>>"
