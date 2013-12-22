@@ -24,10 +24,10 @@ Options:
 """
 
 from lib import option_handing
+from lib import method
 
 from collections import namedtuple
 import logging
-import method
 
 logger = logging.getLogger(__name__)
 Settings=namedtuple('Settings', ['seed', 'mode', 'models_timeout', "essence", "working_dir", "output_dir", "limit"])
