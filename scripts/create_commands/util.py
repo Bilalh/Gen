@@ -36,7 +36,11 @@ def create_commands_py(method_name, function_templete, data, commons_grouped, pl
 			os.path.dirname(filepath)
 		)
 
-		line = 'parallel --header : --tagstring "R{1}" -j%d $Command ' % (cores / num_models)
+		line = 'parallel --joblog %s/races-%03d.joblog --header : --tagstring "R{1}" -j%d $Command ' % (
+			os.path.join(place_dir, "results", method_name, name),
+			commons[0]['races'],
+			cores / num_models
+		)
 		line += ' \\\n ::: race_no `seq 1 %d`' % (num_runs)
 		line += ' \\\n ::: base_path  %s' % (os.path.join(place_dir, "results", method_name, name))
 		line += ' \\\n ::: cores %d \\' % (jobs)
