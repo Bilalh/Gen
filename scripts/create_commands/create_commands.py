@@ -111,7 +111,7 @@ def run(fp, place_dir, num_runs):
 			scripts.append(fp)
 
 	write_with_header(os.path.join(place_dir, "results", "run_all.sh"), ["#Run from ../instancegen-models"] + sorted(scripts))
-	write_with_header(init_path, [bash.record_funcs])
+	write_with_header(init_path, [bash.record_funcs, "export JAVA_MEMORY="+ data['JAVA_MEMORY'] ])
 
 
 if __name__ == "__main__":
