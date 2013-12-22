@@ -24,8 +24,9 @@ def create_commands_py(method_name, function_templete, data, commons_grouped, pl
 		lines = [
 			"export PARAM_GEN_SCRIPTS=`pwd`/../instancegen/scripts/",
 			"export NUM_JOBS={}".format(jobs),
-			"### %s ###" % (method_name),
 			init_source,
+			"",
+			"### %s ###" % (method_name),
 			"#-- {} --#".format(filepath),
 		]
 
