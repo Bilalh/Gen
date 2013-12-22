@@ -16,7 +16,6 @@ record_cp {base_path}/out-{limit}-{races}-{cores}__{race_no}/logs/log-{race_no} 
 		--essence=%s \\
 		--working_dir=%s \\
 		--output_dir={base_path}/out-{limit}-{races}-{cores}__{race_no}
-		--
 EOF
 )"""
 
