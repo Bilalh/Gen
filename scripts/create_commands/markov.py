@@ -1,4 +1,3 @@
-import math
 import os
 import util
 from pprint import pprint
@@ -71,7 +70,10 @@ EOF
 
 		def convert(d):
 			name = d[0][0]
-			return " ".join( str(v) for v in ["    :::", name] + sorted(list(set([ kv[1] for kv in d]))) )
+			part =[ kv[1] for kv in d]
+			if isinstance(part[0], list):
+				part = part[0]
+			return " ".join( str(v) for v in ["    :::", name] + sorted(set(part)) )
 
 
 		arr = [ convert(items) for items in zip(*settings_list) ]
