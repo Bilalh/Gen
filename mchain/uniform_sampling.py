@@ -5,7 +5,7 @@
 """
 Usage:
    uniform (iterations|time|cpu) <limit>
-   ( --essence=<file> --model_timeout=<int>)
+   ( --essence=<file> --models_timeout=<int>)
    [ --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str>]
    uniform json <file>
 
@@ -14,7 +14,7 @@ Usage:
 
 Options:
   --help                    Show this screen.
-  --model_timeout=<int>     Timeout in seconds.
+  --models_timeout=<int>     Timeout in seconds.
   --working_dir=<dir>       Where the essence file is [default: .]
   --seed=<int>              Random seed to use.
   --output_dir=<dir>        Where to put the results.
@@ -30,7 +30,7 @@ import logging
 import method
 
 logger = logging.getLogger(__name__)
-Settings=namedtuple('Settings', ['seed', 'mode', 'model_timeout', "essence", "working_dir", "output_dir", "limit"])
+Settings=namedtuple('Settings', ['seed', 'mode', 'models_timeout', "essence", "working_dir", "output_dir", "limit"])
 
 
 class UniformSampling(method.Method):

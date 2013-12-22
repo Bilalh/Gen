@@ -5,7 +5,7 @@
 """
 Usage:
    nsample (iterations|time|cpu) <limit>
-   ( --essence=<file> --model_timeout=<int> --influence_radius=<int>)
+   ( --essence=<file> --models_timeout=<int> --influence_radius=<int>)
    [ --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str> --radius_as_percentage]
    nsample json <file>
 
@@ -15,7 +15,7 @@ Usage:
 Options:
   --help                    Show this screen.
   --influence_radius=<int>  Radius for the acceptance function.
-  --model_timeout=<int>     Timeout in seconds.
+  --models_timeout=<int>     Timeout in seconds.
   --working_dir=<dir>       Where the essence file is [default: .]
   --seed=<int>              Random seed to use.
   --output_dir=<dir>        Where to put the results.
@@ -37,7 +37,7 @@ import math
 import random
 
 logger = logging.getLogger(__name__)
-Settings=namedtuple('Settings', ['seed', 'mode', 'model_timeout', "essence", "working_dir", "output_dir", "limit", "influence_radius", "radius_as_percentage"])
+Settings=namedtuple('Settings', ['seed', 'mode', 'models_timeout', "essence", "working_dir", "output_dir", "limit", "influence_radius", "radius_as_percentage"])
 
 
 class NSample(method.Method):

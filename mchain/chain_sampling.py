@@ -5,7 +5,7 @@
 """
 Usage:
    chain (iterations|time|cpu) <limit>
-   ( --chain_length=<int>  --select_radius=<int>  --influence_radius=<int> --essence=<file> --model_timeout=<int>)
+   ( --chain_length=<int>  --select_radius=<int>  --influence_radius=<int> --essence=<file> --models_timeout=<int>)
    [ --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str> --radius_as_percentage]
    chain json <file>
 
@@ -17,7 +17,7 @@ Options:
   --chain_length=<int>      Length of each chain.
   --select_radius=<int>     Radius for picking next point.
   --influence_radius=<int>  Radius for the acceptance function.
-  --model_timeout=<int>     Timeout in seconds.
+  --models_timeout=<int>     Timeout in seconds.
   --working_dir=<dir>       Where the essence file is [default: .]
   --seed=<int>              Random seed to use.
   --output_dir=<dir>        Where to put the results.
@@ -41,7 +41,7 @@ import random
 
 logger = logging.getLogger(__name__)
 Settings=namedtuple('Settings', ['chain_length', 'select_radius', 'influence_radius', 'seed', 'mode',
-                                'model_timeout', "essence", "working_dir", "output_dir", "limit", "radius_as_percentage"])
+                                'models_timeout', "essence", "working_dir", "output_dir", "limit", "radius_as_percentage"])
 
 
 class Chain(method.Method):

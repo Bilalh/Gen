@@ -96,10 +96,10 @@ class Method(metaclass=ABCMeta):
         logger.info("Start %s", datee.isoformat())
         now = str(int(datee.timestamp()))
 
-        chain_lib.run_models(now, param_path, self.settings.model_timeout, self.settings.working_dir, self.output_dir, self.settings.mode)
+        chain_lib.run_models(now, param_path, self.settings.models_timeout, self.settings.working_dir, self.output_dir, self.settings.mode)
         logger.info("End %s", calendar.datetime.datetime.now().isoformat()  )
 
-        results = chain_lib.get_results(self.settings.working_dir, self.output_dir, param_name, self.settings.model_timeout, now)
+        results = chain_lib.get_results(self.settings.working_dir, self.output_dir, param_name, self.settings.models_timeout, now)
         quailty = chain_lib.quality(*results)
         logger.info("results: {} quailty: {} for {}".format(results, quailty, point))
         chain_lib.save_quality(self.output_dir, param_name, quailty)

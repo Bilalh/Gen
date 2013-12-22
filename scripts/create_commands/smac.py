@@ -10,7 +10,7 @@ execdir = ../../essences/{essence_base}
 deterministic = 1
 run_obj = quality
 overall_obj = mean
-cutoff_time = {model_timeout}
+cutoff_time = {models_timeout}
 cutoff_length = max
 tunerTimeout = {limit}
 paramfile = params.pcs
@@ -57,7 +57,7 @@ def create_commands(data, commons_grouped, place_dir, init_source, num_runs):
 				"essence": filepath,
 				"essence_dir": os.path.dirname(filepath),
 				"essence_base": essence_base,
-				"model_timeout": util.calc_model_timeout(common, jobs),
+				"models_timeout": util.calc_models_timeout(common, jobs),
 				"limit": util.calc_total_time(common, jobs),
 				"mode": mode,
 				"output_dir": os.path.join("smac-output", extra),

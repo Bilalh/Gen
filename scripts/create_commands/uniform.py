@@ -31,7 +31,7 @@ def create_commands(data, commons_grouped, place_dir, init_source, num_runs):
 			settings = {
 				"essence": filepath,
 				"essence_dir": os.path.dirname(filepath),
-				"model_timeout": util.calc_model_timeout(common, jobs),
+				"models_timeout": util.calc_models_timeout(common, jobs),
 				"limit": util.calc_total_time(common, jobs),
 				"mode": mode,
 				"output_dir": os.path.join(place_dir, "results", "uniform", name, extra),
@@ -41,7 +41,7 @@ def create_commands(data, commons_grouped, place_dir, init_source, num_runs):
 			# print(settings)
 			command ="\t" + """
 			record_cp {log_path} ../instancegen/mchain/uniform_sampling.py time {limit}\
-				--model_timeout={model_timeout}\
+				--models_timeout={models_timeout}\
 				--mode={mode}\
 				--essence={essence} --working_dir={essence_dir} --output_dir={output_dir}
 			""".format(**settings).strip().replace("\t", " ")

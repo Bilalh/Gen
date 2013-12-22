@@ -12,7 +12,7 @@ import time
 
 logger = logging.getLogger(__name__)
 Settings=namedtuple('Settings', ['chain_length', 'select_radius', 'influence_radius', 'seed', 'mode',
-								'model_timeout', "essence", "working_dir", "output_dir", "limit", "radius_as_percentage"])
+								'models_timeout', "essence", "working_dir", "output_dir", "limit", "radius_as_percentage"])
 
 
 def uniform_int(l, u):

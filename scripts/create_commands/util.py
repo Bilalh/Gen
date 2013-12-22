@@ -1,7 +1,7 @@
 import math
 
 
-def calc_model_timeout(common, cores):
+def calc_models_timeout(common, cores):
 	return math.ceil(math.ceil(common['total_time'] / common['races']) / cores)
 
 
