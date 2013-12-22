@@ -1,12 +1,14 @@
 from lib import chain_lib
+from lib import ncube
+from lib import ncuboid
 
 from abc import ABCMeta, abstractmethod
-from collections import namedtuple
 import calendar
 import json
 import logging
 import os
 import random
+import math
 
 logger = logging.getLogger(__name__)
 
@@ -109,4 +111,15 @@ class Method(metaclass=ABCMeta):
 
     def random_point(self):
         return tuple([chain_lib.uniform_int(l, u) for (l, u) in self.data])
+
+    def do_radius_as_percentage(self, options):
+        if options['radius_as_percentage']:
+            self.shape = ncuboid
+            per = options['influence_radius']
+            radii = [ math.ceil((u - l) * (per / 100)) for (l, u) in self.data ]
+            options['influence_radius'] = radii
+        else:
+            self.shape = ncube
+
+        return options
 

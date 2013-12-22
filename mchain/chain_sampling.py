@@ -28,15 +28,12 @@ Options:
 
 from lib import chain_lib
 from lib import method
-from lib import ncube
-from lib import ncuboid
 from lib import option_handing
 
 from collections import namedtuple
 import json
 import logging
 import os
-import math
 import random
 
 logger = logging.getLogger(__name__)
@@ -45,7 +42,6 @@ Settings=namedtuple('Settings', ['chain_length', 'select_radius', 'influence_rad
 
 
 class Chain(method.Method):
-
     def __init__(self, options, limiter):
         super(Chain, self,).__init__(options, limiter, Settings)
 
@@ -56,17 +52,7 @@ class Chain(method.Method):
 
 
     def before_settings(self, options):
-        if options['radius_as_percentage']:
-            self.shape = ncuboid
-            per = options['influence_radius']
-            for s in ['select_radius', 'influence_radius']:
-                per = options[s]
-                radii = [ math.ceil((u - l) * (per / 100)) for (_, (l, u) ) in self.data ]
-                options[s] = radii
-        else:
-            self.shape = ncube
-
-        return options
+        return self.do_radius_as_percentage(options)
 
 
     def acceptance(self, previous_point, candidate_point, data, local_data):
@@ -99,6 +85,7 @@ class Chain(method.Method):
 
         return (choice >= mean)
 
+
     def make_chain(self):
         def first_point(data):
             return self.random_point()
@@ -117,8 +104,10 @@ class Chain(method.Method):
 
         return current_chain[-1]
 
+
     def next_point(self, current_chain):
         return [int(x) for x in self.shape.pick_inside(self.settings.select_radius, current_chain[-1])]
+
 
     def do_iteration(self):
             selected_point = self.make_chain()

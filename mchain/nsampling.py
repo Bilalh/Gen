@@ -27,13 +27,10 @@ Options:
 
 from lib import chain_lib
 from lib import method
-from lib import ncube
-from lib import ncuboid
 from lib import option_handing
 
 from collections import namedtuple
 import logging
-import math
 import random
 
 logger = logging.getLogger(__name__)
@@ -45,16 +42,10 @@ class NSample(method.Method):
         super(NSample, self,).__init__(options, limiter, Settings)
         self.goodness_x_prev = 1
 
-    def before_settings(self, options):
-        if options['radius_as_percentage']:
-            self.shape = ncuboid
-            per = options['influence_radius']
-            radii = [ math.ceil((u - l) * (per / 100)) for (l, u) in self.data ]
-            options['influence_radius'] = radii
-        else:
-            self.shape = ncube
 
-        return options
+    def before_settings(self, options):
+        return self.do_radius_as_percentage(options)
+
 
     def goodness(self, point):
 
