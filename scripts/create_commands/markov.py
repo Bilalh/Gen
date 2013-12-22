@@ -26,7 +26,7 @@ def create_commands(data, commons_grouped, place_dir, init_source, num_runs):
 		par_function = """
 Command=$( cat <<EOF
 record_cp {base_path}/out-{limit}-{races}-{cores}__{race_no}/logs/log-{race_no} \\
-		../instancegen/mchain/chain_sampling.py time {limit} \\
+		../instancegen/mchain/chain_sampling.py cpu {limit} \\
 		--models_timeout={models_timeout} \\
 		--mode=%s \\
 		--select_radius={select_radius} \\
@@ -44,20 +44,20 @@ EOF
 			" ".join([ " --{}".format(k) for (k, v) in cur.items() if v is True ])
 		)
 
-		line = 'parallel  --header : --dry-run --tagstring "run-{1}" -j%d $Command ' % (cores / num_models)
+		line = 'parallel  --header : --tagstring "R{1}" -j%d $Command ' % (cores / num_models)
 		line += ' \\\n ::: race_no `seq 1 %d`' % (num_runs)
 		line += ' \\\n ::: base_path  %s' % (os.path.join(place_dir, "results", "markov", name))
 		line += ' \\\n ::: cores %d \\' % (jobs)
 
 		def build_dict(common):
-			hours = int(math.ceil(common['total_time'] / 60 / 60))
+			hours = "%3.2f" % (common['total_time'] / 60 / 60)
 
 			settings = {
 				"models_timeout": util.calc_models_timeout(common, jobs),
 				"limit": util.calc_total_time(common, jobs),
 				"races": common['races']
 			}
-			lines.append("# {:03}h {limit}s * {jobs} cores".format(hours, jobs=jobs, **settings))
+			lines.append("# {}h -- {limit}s * {jobs} cores".format(hours, jobs=jobs, **settings))
 
 
 			settings.update(cur)
