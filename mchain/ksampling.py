@@ -29,6 +29,7 @@ from lib import chain_lib
 from lib import method
 from lib import ncube
 from lib import ncuboid
+from lib import option_handing
 
 from collections import namedtuple
 from fractions import Fraction
@@ -36,7 +37,6 @@ from pprint import pprint
 import itertools
 import logging
 import math
-import option_handing
 import random
 
 logger = logging.getLogger(__name__)
