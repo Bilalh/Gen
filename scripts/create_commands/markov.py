@@ -25,12 +25,16 @@ def create_commands(data, commons_grouped, place_dir, init_source, num_runs):
 
 		par_function = """
 Command=$( cat <<EOF
-record_cp {log_path}__{race_no}/logs/log-{race_no} ../instancegen/mchain/chain_sampling.py time {limit} \\
+record_cp {log_path}__{race_no}/logs/log-{race_no} \\
+		../instancegen/mchain/chain_sampling.py time {limit} \\
 		--models_timeout={models_timeout} \\
 		--mode=%s \\
-		--select_radius={select_radius} --influence_radius={influence_radius} \\
+		--select_radius={select_radius} \\
+		--influence_radius={influence_radius} \\
 		--chain_length={chain_length} \\
-		--essence=%s --working_dir=%s --output_dir={output_dir}__{race_no} %s
+		--essence=%s \\
+		--working_dir=%s \\
+		--output_dir={output_dir}__{race_no} %s
 
 EOF
 )""" % (
