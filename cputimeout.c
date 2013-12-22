@@ -165,12 +165,12 @@ static void cleanup (int sig){
 		// print_proclist(&our_current);
 
        	difference_in_times(&our_starting, &our_current, &times);
-       	// llprintf("times.pid %ld\n",   (long) times.pid);
-       	// llprintf("times.utime %ld\n", times.utime);
-       	// llprintf("times.stime %ld\n", times.stime);
+	// llprintf("times.pid %ld\n",   (long) times.pid);
+	// llprintf("times.utime %ld\n", times.utime);
+	// llprintf("times.stime %ld\n", times.stime);
 
        	double cputime_used  = (times.utime + times.stime) / 1000.0;
-       	// llprintf("cputime_used %f\n", cputime_used );
+	// llprintf("cputime_used %f\n", cputime_used );
        	assert(cputime_used >= 0);
 
 		if (cputime_used < timeout_total ){
@@ -360,8 +360,6 @@ int main (int argc, char **argv){
 
 		double wall_time = (end_time.tv_sec * 1e6  +  end_time.tv_usec) - (start_time.tv_sec * 1e6  +  start_time.tv_usec);
 
-		struct ProcessStats times = {};
-
 		llprintf("our_starting\n");
 		print_proclist(&our_starting);
 		llprintf("our_current before\n");
@@ -377,7 +375,7 @@ int main (int argc, char **argv){
 		results.pid = monitored_pid;
 		difference_in_times(&our_starting,&our_current, &results);
 
-		// print what wait4 return which is the actual time used by the child
+		// print what wait4 return which is the actual time used by the child if it was not killed
 		puts("");
 		printf("clocks_ticks, HZ:%f\n", HZ );
 		printf("rusage    : user %lds %ld usec\n", rusage.ru_utime.tv_sec,  rusage.ru_utime.tv_usec);
@@ -390,11 +388,18 @@ int main (int argc, char **argv){
 		printf("cputimeout: sys  %0.3f\n",  results.stime/1000.0 );
 		printf("cputimeout: cpu  %0.3f\n",  (results.stime + results.utime) /1000.0 );
 
-		// use the rusage when writing to file since our recording of time are
-		// not very accurate for processes that take less then a second.
-		double usr = rusage.ru_utime.tv_sec + rusage.ru_utime.tv_usec/1e6;
-		double sys = rusage.ru_stime.tv_sec + rusage.ru_stime.tv_usec/1e6;
-		double cpu = usr + sys;
+
+		// use rusage when the the process finished normally i.e NOT killing it
+		// since for for very quick processes we would not have gathered timing infomation
+		double usr, sys, cpu;
+		if (WIFEXITED(status)){
+			usr = rusage.ru_utime.tv_sec + rusage.ru_utime.tv_usec/1e6;
+			sys = rusage.ru_stime.tv_sec + rusage.ru_stime.tv_usec/1e6;
+		}else{
+			usr = results.utime/1000.0;
+			sys = results.stime/1000.0 ;
+		}
+		cpu = usr + sys;
 
 		printf("cputimeout: time_info_file: %s\n", time_info_file);
 		FILE *fp = NULL;

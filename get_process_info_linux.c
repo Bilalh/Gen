@@ -39,58 +39,6 @@ static bool is_child_of(pid_t child_pid, pid_t parent_pid)
 	return ppid == parent_pid;
 }
 
-static void store_process(Processes *our_processes, pid_t pid, bool replace){
-	int hashed = pid_hashfn(pid);
-	llprintf("pid:%d hashed:%d replace:%d \n", pid, hashed, replace);
-
-
-	if (our_processes->list[hashed] == NULL){
-		struct list *chain = malloc(sizeof(struct list));
-		init_list(chain, sizeof(struct ProcessStats));
-		our_processes->list[hashed] = chain;
-	}
-
-	if (our_processes->list[hashed] != NULL){
-		llprintf("check list[%d] count:%d\n", hashed, our_processes->list[hashed]->count);
-	}
-
-
-	struct ProcessStats *stats = calloc(1, sizeof(struct ProcessStats));
-	llprintf("stats addr:%p\n", stats);
-	stats->pid =pid;
-	stats->utime = 0;
-	stats->stime = 0;
-
-
-	// Could just use xlocate_node with the pid then make the stats inside?
-	struct list_node *node_inside= NULL;
-	if ( (node_inside = xlocate_node(our_processes->list[hashed], stats, 0, sizeof(pid_t)) ) ) {
-		llprintf("inside xlocate if  node_inside:%p\n", node_inside);
-		if (replace){
-			update_process_stats(node_inside->data);
-		}
-		free(stats);
-
-	}else{
-		printf("new pid added:%ld to %p\n", (long) pid, our_processes);
-
-		int count_before = get_list_count(our_processes->list[hashed]);
-		llprintf("inside xlocate if  list[%d] count:%d\n", hashed, our_processes->list[hashed]->count);
-
-		update_process_stats(stats);
-		llprintf("bucket:%d pid:%ld stime:%ld utime:%ld\n",hashed, (long)pid, stats->stime, stats->utime );
-		add_elem(our_processes->list[hashed], stats);
-
-
-		int count_after = get_list_count(our_processes->list[hashed]);
-		llprintf("added %ld,  count:%d \n", (long)pid, count_after);
-		assert(count_after = count_before + 1);
-
-		// print_proclist(our_processes);
-	}
-
-	llprintf("end\n");
-}
 
 bool update_our_processes(Processes *our_starting, Processes *our_current, pid_t monitored_pid){
 	assert(our_starting);
