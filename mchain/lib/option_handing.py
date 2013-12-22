@@ -45,6 +45,19 @@ def parse_arguments(doc, *, version):
 		if arguments[key] is not None:
 			arguments[key] = int(arguments[key])
 
+
+	# Convert bools to bools
+	for key in re.findall(r"  (--[_a-zA-Z]+)=<bool>", doc):
+		if arguments[key] is not None:
+			print(arguments[key])
+			if arguments[key].lower() == "true":
+				arguments[key] = True
+			elif arguments[key].lower() == "false":
+				arguments[key] = False
+			else:
+				raise RuntimeError("{} has to be (true|false)".format(key))
+
+
 	# Convert dirs to abspath
 	for (key, kind) in re.findall(r"(--[_a-zA-Z]+)=<(dir|file)>", doc):
 		if arguments[key] is not None:
@@ -69,3 +82,4 @@ def parse_arguments(doc, *, version):
 	limiter = limiter_s(options['limit'])
 
 	return (options, limiter)
+

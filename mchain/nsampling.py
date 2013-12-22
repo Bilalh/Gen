@@ -6,22 +6,22 @@
 Usage:
    nsample (iterations|time|cpu) <limit>
    ( --essence=<file> --models_timeout=<int> --influence_radius=<int>)
-   [ --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str> --radius_as_percentage]
+   [ --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str> --radius_as_percentage=<bool>]
    nsample json <file>
 
 `time <limit>` is the total time the program can take.
 `json` allows reloading of the state including the seed.
 
 Options:
-  --help                    Show this screen.
-  --influence_radius=<int>  Radius for the acceptance function.
-  --models_timeout=<int>     Timeout in seconds.
-  --working_dir=<dir>       Where the essence file is [default: .]
-  --seed=<int>              Random seed to use.
-  --output_dir=<dir>        Where to put the results.
-  --essence=<file>          Essence file.
-  --mode=<str>              Conjure mode used [default: df].
-  --radius_as_percentage    Radius setting as in %.
+  --help                           Show this screen.
+  --influence_radius=<int>         Radius for the acceptance function.
+  --essence=<file>                 Essence file.
+  --mode=<str>                     Conjure mode used [default: df].
+  --models_timeout=<int>           Timeout in seconds.
+  --output_dir=<dir>               Where to put the results.
+  --radius_as_percentage=<bool>    Radius setting as a % [default: false ].
+  --seed=<int>                     Random seed to use.
+  --working_dir=<dir>              Where the essence file is [default: .]
 
 """
 

@@ -14,12 +14,12 @@ Usage:
 
 Options:
   --help                    Show this screen.
-  --models_timeout=<int>     Timeout in seconds.
-  --working_dir=<dir>       Where the essence file is [default: .]
-  --seed=<int>              Random seed to use.
-  --output_dir=<dir>        Where to put the results.
   --essence=<file>          Essence file.
   --mode=<str>              Conjure mode used [default: df].
+  --models_timeout=<int>    Timeout in seconds.
+  --output_dir=<dir>        Where to put the results.
+  --seed=<int>              Random seed to use.
+  --working_dir=<dir>       Where the essence file is [default: .]
 
 """
 
