@@ -25,7 +25,7 @@ def create_commands(data, commons_grouped, place_dir, init_source, num_runs):
 
 		par_function = """
 Command=$( cat <<EOF
-record_cp {log_path}__{race_no}/logs/log-{race_no} \\
+record_cp {base_path}/out-{limit}-{races}-{cores}__{race_no}/logs/log-{race_no} \\
 		../instancegen/mchain/chain_sampling.py time {limit} \\
 		--models_timeout={models_timeout} \\
 		--mode=%s \\
@@ -34,7 +34,7 @@ record_cp {log_path}__{race_no}/logs/log-{race_no} \\
 		--chain_length={chain_length} \\
 		--essence=%s \\
 		--working_dir=%s \\
-		--output_dir={output_dir}__{race_no} %s
+		--output_dir={base_path}/out-{limit}-{races}-{cores}__{race_no} %s
 
 EOF
 )""" % (
@@ -45,20 +45,19 @@ EOF
 		)
 
 		line = 'parallel  --header : --dry-run --tagstring "run-{1}" -j%d $Command ' % (cores / num_models)
-		line += '\\\n ::: race_no `seq 1 %d` \\' % (num_runs)
-
+		line += ' \\\n ::: race_no `seq 1 %d`' % (num_runs)
+		line += ' \\\n ::: base_path  %s' % (os.path.join(place_dir, "results", "markov", name))
+		line += ' \\\n ::: cores %d \\' % (jobs)
 
 		def build_dict(common):
-			tu = (int(math.ceil(common['total_time'] / 60 / 60)), common['races'] )
+			hours = int(math.ceil(common['total_time'] / 60 / 60))
 
-			extra = "out-{:03}-{:03}".format(*tu)
 			settings = {
 				"models_timeout": util.calc_models_timeout(common, jobs),
 				"limit": util.calc_total_time(common, jobs),
-				"output_dir": os.path.join(place_dir, "results", "markov", name, extra),
-				"log_path": os.path.join(place_dir, "results", "markov", name, extra)
+				"races": common['races']
 			}
-			lines.append("# {:03}h {limit}s ".format(*tu, **settings))
+			lines.append("# {:03}h {limit}s * {jobs} cores".format(hours, jobs=jobs, **settings))
 
 
 			settings.update(cur)
@@ -72,7 +71,7 @@ EOF
 
 		def convert(d):
 			name = d[0][0]
-			return " ".join( str(v) for v in ["    :::", name] + list(set([ kv[1] for kv in d])) )
+			return " ".join( str(v) for v in ["    :::", name] + sorted(list(set([ kv[1] for kv in d]))) )
 
 
 		arr = [ convert(items) for items in zip(*settings_list) ]
