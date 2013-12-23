@@ -38,9 +38,10 @@ def create_commands_py(method_name, function_templete, data, commons_grouped, pl
 
 		limit_to_models_timeout = {}
 
-		line = 'parallel --joblog %s/races-%03d.joblog --header : --tagstring "R{1}" -j%d $Command ' % (
+		line = 'parallel --joblog %s/races-%03d-%s.joblog --header : --tagstring "R{1}" -j%d $Command ' % (
 			os.path.join(place_dir, "results", method_name, name),
 			commons[0]['races'],
+			'`date +%F_%H-%M_%s`',
 			cores / num_models
 		)
 		line += ' \\\n ::: race_no `seq 1 %d`' % (num_runs)
