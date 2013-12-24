@@ -6,11 +6,14 @@ def create_commands(data, commons_grouped, place_dir, init_source, num_runs):
 	par_function = """
 Command=$( cat <<EOF
 place="{base_path}/out-{limit}-{races}-{cores}__{race_no}___{influence_radius}_{influence_radius}_{chain_length}_{radius_as_percentage}";
-[ -d \$place ] \
+echo "INSERT OR REPLACE INTO markov('method', 'total_timeout', 'models_timeout', 'influence_radius', 'radius_as_percentage', 'chain_length', 'run_no', 'output_dir') \
+	VALUES('markov', '{limit}', '\$(models_timeout {limit})', '{influence_radius}', '{radius_as_percentage}', '{chain_length}', '{race_no}', '\$place');" \
+		| sqlite3 results/info.db;
+[ -d \$place ] \\
 	&& echo "Not writing to \$place, it exists"
 	&& exit;
 echo "output_dir is \$place \$(models_timeout {limit})";
-record_cp \$place/logs/log-{race_no} \\
+#record_cp \$place/logs/log-{race_no} \\
 		../instancegen/mchain/chain_sampling.py cpu {limit} \\
 		--models_timeout=\$(models_timeout {limit}) \
 		--select_radius={influence_radius} \\

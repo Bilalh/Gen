@@ -123,9 +123,13 @@ def create_db_table_query(method, *keys):
 	"""
 
 	pkeys = ["method", "total_timeout", "models_timeout"] + list(keys) + ["run_no", "output_dir"]
-	pjoined = '"' + "\", \"".join(pkeys) + '"'
+	pjoined = "'" + "', '".join(pkeys) + "'"
+	pvals = "'{" + "}', '{".join(pkeys) + "}'"
+
 
 	rows = ",\n\t\t".join(  '"{}" TEXT NOT NULL'.format(k) for k in pkeys )
+
+	print('INSERT INTO {method}({keys_joined}) VALUES({vals});'.format(method=method, keys_joined=pjoined, vals=pvals))
 
 	return templete.format(method=method, keys_joined=pjoined, rows=rows)
 
