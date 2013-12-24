@@ -44,6 +44,16 @@ function record_cp(){
 	fi
 }
 
+# only "True" is true
+function to_bool(){
+	if [ "$1" == "True" ]; then
+		echo 1
+	else
+		echo 0
+	fi
+}
+
 export -f record
 export -f record_cp
+export -f to_bool
 """

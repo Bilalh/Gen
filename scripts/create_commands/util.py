@@ -2,6 +2,7 @@ import math
 import os
 import sqlite3
 
+
 def calc_models_timeout(common, cores):
 	return math.ceil(common['total_time'] / (common['races'] + 1) / cores)
 
@@ -10,12 +11,27 @@ def calc_total_time(common, cores):
 	return math.ceil(common['total_time'] / cores)
 
 
-
 def create_commands_py(method_name, function_templete, data, commons_grouped, place_dir, init_source, num_runs):
 	cur = data[method_name]
 
 	# Create a table for this method
-	table_text = create_db_table_query(method_name, *cur.keys())
+
+	def get_sql_type(val):
+		if isinstance(val, int):
+			return "INTEGER"
+		elif isinstance(val, str):
+			return "TEXT"
+		elif isinstance(val, float):
+			return "FLOAT"
+		elif isinstance(val, list):
+			return get_sql_type(val[0])
+		else:
+			print("not sure what to do with %s when mapping to sql", val)
+			exit(44)
+
+	val_types = [ (k, get_sql_type(v)) for (k, v) in cur.items() ]
+
+	table_text = create_db_table_query(method_name, *val_types)
 	conn = sqlite3.connect(os.path.join(place_dir, "results", "Info.db"))
 	conn.execute(table_text)
 	conn.commit()
@@ -88,7 +104,30 @@ function models_timeout(){
 export -f models_timeout
 		""" % (lookuplines)
 
+		normalised_lookuplines = "\n".join( "		{}) echo {} ;; ".format(k, v * jobs) for (k, v) in limit_to_models_timeout.items() )
+		normalised_func = """
+function models_timeout_normalised(){
+	case $1 in
+%s
+	esac;
+}
+export -f models_timeout_normalised
+		""" % (normalised_lookuplines)
+
+		normalised_total_lines = "\n".join( "		{}) echo {} ;; ".format(k, k * jobs) for (k, v) in limit_to_models_timeout.items() )
+		normalised_total_func = """
+function total_normalised(){
+	case $1 in
+%s
+	esac;
+}
+export -f total_normalised
+		""" % (normalised_total_lines)
+
+
 		lines.append(models_timeout_func)
+		lines.append(normalised_func)
+		lines.append(normalised_total_func)
 		lines.append(par_function)
 		lines.append(line)
 
@@ -122,16 +161,18 @@ def create_db_table_query(method, *keys):
 	);
 	"""
 
-	pkeys = ["method", "total_timeout", "models_timeout"] + list(keys) + ["run_no", "output_dir"]
-	pjoined = "'" + "', '".join(pkeys) + "'"
-	pvals = "'{" + "}', '{".join(pkeys) + "}'"
+	pkeys = [("method", "TEXT"), ("total_timeout", "INTEGER"), ("models_timeout", "INTEGER"), ("races", "INTEGER") ] + list(keys) + [
+		("run_no", "INTEGER"), ("output_dir", "TEXT")]
+	pnames = [ v[0] for v in pkeys ]
+	pjoined = "'" + "', '".join(pnames) + "'"
+	pvals = "'{" + "}', '{".join(pnames) + "}'"
 
 
-	rows = ",\n\t\t".join(  '"{}" TEXT NOT NULL'.format(k) for k in pkeys )
+	rows = ",\n\t\t".join(  '"{}" {} NOT NULL'.format(name, kind) for (name, kind) in pkeys )
 
 	print('INSERT INTO {method}({keys_joined}) VALUES({vals});'.format(method=method, keys_joined=pjoined, vals=pvals))
 
 	return templete.format(method=method, keys_joined=pjoined, rows=rows)
 
 if __name__ == '__main__':
-	print(create_db_table_query("markov", "s", "ff"))
+	print(create_db_table_query("markov", ("s", "TEXT") ))

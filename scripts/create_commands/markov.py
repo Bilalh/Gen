@@ -6,8 +6,8 @@ def create_commands(data, commons_grouped, place_dir, init_source, num_runs):
 	par_function = """
 Command=$( cat <<EOF
 place="{base_path}/out-{limit}-{races}-{cores}__{race_no}___{influence_radius}_{influence_radius}_{chain_length}_{radius_as_percentage}";
-echo "INSERT OR REPLACE INTO markov('method', 'total_timeout', 'models_timeout', 'influence_radius', 'radius_as_percentage', 'chain_length', 'run_no', 'output_dir') \
-	VALUES('markov', '{limit}', '\$(models_timeout {limit})', '{influence_radius}', '{radius_as_percentage}', '{chain_length}', '{race_no}', '\$place');" \
+echo "INSERT OR REPLACE INTO markov('method', 'total_timeout', 'models_timeout', 'races', 'influence_radius', 'radius_as_percentage', 'chain_length', 'run_no', 'output_dir') \
+	VALUES('markov', '\$(total_normalised {limit})', '\$(models_timeout_normalised {limit})', '{races}', '{influence_radius}', '\$(to_bool {radius_as_percentage})', '{chain_length}', '{race_no}', '\$place');" \
 		| sqlite3 results/info.db;
 [ -d \$place ] \\
 	&& echo "Not writing to \$place, it exists"
