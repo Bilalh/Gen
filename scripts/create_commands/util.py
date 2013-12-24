@@ -66,7 +66,7 @@ def create_commands_py(method_name, function_templete, data, commons_grouped, pl
 		if jflag <=0:
 			jflag = 1
 
-		line = 'parallel  --dry-run --joblog %s/races-%03d-%s.joblog --header : --tagstring "R{1}" -j%d $Command ' % (
+		line = 'parallel --joblog %s/races-%03d-%s.joblog --header : --tagstring "R{1}" -j%d $Command ' % (
 			os.path.join(place_dir, "results", method_name, name),
 			commons[0]['races'],
 			'`date +%F_%H-%M_%s`',

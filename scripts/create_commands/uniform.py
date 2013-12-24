@@ -6,6 +6,9 @@ def create_commands(data, commons_grouped, place_dir, init_source, num_runs):
 	par_function = """
 Command=$( cat <<EOF
 place="{base_path}/out-{limit}-{races}-{cores}__{race_no}";
+printf ".timeout 5000\\nINSERT OR REPLACE INTO uniform('method', 'essence', 'total_timeout', 'models_timeout', 'races',  'run_no', 'output_dir') \
+	VALUES('uniform', '{essence}', '\$(total_normalised {limit})', '\$(models_timeout_normalised {limit})', '{races}', '{race_no}', '\$place');" \
+		| sqlite3 results/info.db;
 [ -d \$place ] \
 	&& echo "Not writing to \$place, it exists"
 	&& exit;

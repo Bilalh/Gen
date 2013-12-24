@@ -13,7 +13,7 @@ printf ".timeout 5000\\nINSERT OR REPLACE INTO markov('method', 'essence', 'tota
 	&& echo "Not writing to \$place, it exists"
 	&& exit;
 echo "output_dir is \$place \$(models_timeout {limit})";
-#record_cp \$place/logs/log-{race_no} \\
+record_cp \$place/logs/log-{race_no} \\
 		../instancegen/mchain/chain_sampling.py cpu {limit} \\
 		--models_timeout=\$(models_timeout {limit}) \
 		--select_radius={influence_radius} \\
