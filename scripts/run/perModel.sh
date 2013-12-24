@@ -73,35 +73,27 @@ if [ ! -f "${fin}" ]; then
 fi
 
 if [ ! -f "$TIMEOUT5_FILE" ]; then
+	set -x
 	echo "<update_timeout> if"
 	if ( grep -q "${timing_method}" "$sr_time" && grep -q "${timing_method}"  "${minion_time}" ); then
 		echo "<update_timeout> if grep"
-		(( time_taken  = `grep "${timing_method}" ${sr_time}     |  ruby -e 'print gets.to_f.ceil' ` ))
-		(( time_taken  += `grep "${timing_method}" ${minion_time} |  ruby -e 'print gets.to_f.ceil' ` ))
+		(( time_taken  = `grep "${timing_method}" ${sr_time}      |  ruby -e 'print gets[4..-1].to_f.ceil' ` ))
+		(( time_taken  += `grep "${timing_method}" ${minion_time} |  ruby -e 'print gets[4..-1].to_f.ceil' ` ))
 		(( new_timeout = $time_taken  * ${DOMINATION_MULTIPLIER:-2} ))
 
 		if [[ $new_timeout -lt $TOTAL_TIMEOUT ]]; then
-			echo "<update_timeout> if grep time"
+			echo "<update_timeout> if grep time ${time_taken} ${new_timeout}"
 			echo $time_taken >   "$FASTEST_OUTPUT_DIR/$2.fastest"
 			echo $1          >>  "$FASTEST_OUTPUT_DIR/$2.fastest"
 			echo "{$@}   Changing timeout to $new_timeout from $TOTAL_TIMEOUT"
 			echo $new_timeout > $TIMEOUT5_FILE
 		fi
 	fi
+	set +x
 fi
 
 # FIXME if found better timeout to speed things up
 }
-
-Command=$( cat <<EOF
-(
-$Time $TIMEOUT5 --timeout-file $TIMEOUT5_FILE --interval 3  -k15 $TOTAL_TIMEOUT \
-	bash "${Dir}/perModelPerParamSeparate.sh"  ${Essence} {1} {2} ${MINION_TIMEOUT} ${TOTAL_TIMEOUT} ${Mode}  \
-) 3>&1 1>&2 2>&3  | tee "${Output_dir}/{1/.}-{2/.}.time.all";
-echo "";
-update_timeout  "${Output_dir}/{1/.}-{2/.}" {1/} {2/}
-EOF
-)
 
 Command=$( cat <<EOF
 (
