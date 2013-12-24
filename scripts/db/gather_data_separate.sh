@@ -93,8 +93,8 @@ function isDominated(){
 		echo $dominated
 	else
 		(( fastest =  `head -n 1 $fastest_dir/${f:5}.param.fastest` * ${DOMINATION_MULTIPLIER:-2}))
-		(( time_taken  = `grep "${timing_method}" ${sr_time}     |  ruby -e 'print gets.to_f.ceil' ` ))
-		(( time_taken  += `grep "${timing_method}" ${minion_time} |  ruby -e 'print gets.to_f.ceil' ` ))
+		(( time_taken  = `grep "${timing_method}" ${sr_time}     |  ruby -e 'print gets[4..-1].to_f.ceil' ` ))
+		(( time_taken  += `grep "${timing_method}" ${minion_time} |  ruby -e 'print gets[4..-1].to_f.ceil' ` ))
 
 		(( dominated  =  time_taken > $fastest ))
 		echo $dominated
