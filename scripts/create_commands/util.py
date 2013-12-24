@@ -74,7 +74,8 @@ def create_commands_py(method_name, function_templete, data, commons_grouped, pl
 		)
 		line += ' \\\n ::: race_no `seq 1 %d`' % (num_runs)
 		line += ' \\\n ::: base_path  %s' % (os.path.join(place_dir, "results", method_name, name))
-		line += ' \\\n ::: cores %d \\' % (jobs)
+		line += ' \\\n ::: cores %d' % (jobs)
+		line += ' \\\n ::: essence %s \\' % (os.path.basename((os.path.dirname(filepath))))
 
 		def build_dict(common):
 			hours = "%3.2f" % (common['total_time'] / 60 / 60)
@@ -161,7 +162,7 @@ def create_db_table_query(method, *keys):
 	);
 	"""
 
-	pkeys = [("method", "TEXT"), ("total_timeout", "INTEGER"), ("models_timeout", "INTEGER"), ("races", "INTEGER") ] + list(keys) + [
+	pkeys = [("method", "TEXT"), ("essence", "TEXT"),  ("total_timeout", "INTEGER"), ("models_timeout", "INTEGER"), ("races", "INTEGER") ] + list(keys) + [
 		("run_no", "INTEGER"), ("output_dir", "TEXT")]
 	pnames = [ v[0] for v in pkeys ]
 	pjoined = "'" + "', '".join(pnames) + "'"
