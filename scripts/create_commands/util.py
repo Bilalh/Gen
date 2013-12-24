@@ -1,6 +1,6 @@
 import math
 import os
-
+import sqlite3
 
 def calc_models_timeout(common, cores):
 	return math.ceil(common['total_time'] / (common['races'] + 1) / cores)
@@ -10,8 +10,16 @@ def calc_total_time(common, cores):
 	return math.ceil(common['total_time'] / cores)
 
 
+
 def create_commands_py(method_name, function_templete, data, commons_grouped, place_dir, init_source, num_runs):
 	cur = data[method_name]
+
+	# Create a table for this method
+	table_text = create_db_table_query(method_name, *cur.keys())
+	conn = sqlite3.connect(os.path.join(place_dir, "results", "Info.db"))
+	conn.execute(table_text)
+	conn.commit()
+
 	cores = data['cores']
 
 	def func(commons, *, name, filepath, mode, num_models):
@@ -105,3 +113,21 @@ export -f models_timeout
 		for kv in data['essences']
 		}
 
+
+def create_db_table_query(method, *keys):
+	templete = """
+	CREATE TABLE IF NOT EXISTS  "{method}" (
+		{rows},
+		PRIMARY KEY ({keys_joined})
+	);
+	"""
+
+	pkeys = ["method", "total_timeout", "models_timeout"] + list(keys) + ["run_no", "output_dir"]
+	pjoined = '"' + "\", \"".join(pkeys) + '"'
+
+	rows = ",\n\t\t".join(  '"{}" TEXT NOT NULL'.format(k) for k in pkeys )
+
+	return templete.format(method=method, keys_joined=pjoined, rows=rows)
+
+if __name__ == '__main__':
+	print(create_db_table_query("markov", "s", "ff"))
