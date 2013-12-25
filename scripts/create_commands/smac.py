@@ -147,7 +147,7 @@ function total_normalised(){
 export -f total_normalised
 		""" % (normalised_total_lines)
 
-		seed_lines = "\n".join( "		{}) echo {} ;; ".format(k, math.ceil(random.uniform(- 1, 2 ** 32))) for (k, v) in limit_to_models_timeout.items() )
+		seed_lines = "\n".join( "		{}) echo {} ;; ".format(k, math.ceil(random.uniform(- 1, 2 ** 16))) for (k, v) in limit_to_models_timeout.items() )
 		seed_func = """
 function seed_for_limit(){
 	case $1 in
