@@ -37,64 +37,146 @@ def create_commands(data, commons_grouped, place_dir, init_source, num_runs):
 		lines = [
 			"export PARAM_GEN_SCRIPTS=`pwd`/../instancegen/scripts/",
 			"export NUM_JOBS={}".format(jobs),
-			"### markov ###",
 			init_source,
+			""
+			"### smac ###",
 			"#-- {} --#".format(filepath),
-			"for race_no in {1..%d}; do" % (num_runs)
 		]
+
+		par_function="""
+		Command=$( cat <<EOF
+place="{base_path}/smac-output/out-{limit}-{races}-{cores}__{race_no}";
+prefix="out-{limit}-{races}-{cores}__{race_no}";
+printf ".timeout 5000\\nINSERT OR REPLACE INTO smac('method', 'essence', 'total_timeout', 'models_timeout', 'races', 'run_no', 'output_dir') \
+	VALUES('smac', '{essence_base}', '\$(total_normalised {limit})', '\$(models_timeout_normalised {limit})', '{races}', '{race_no}', '\$place');" \
+		| sqlite3 results/info.db;
+[ -d \$place ] \\
+	&& echo "Not writing to \$place, it exists"
+	&& exit;
+echo "output_dir is \$place";
+pushd results/smac/{essence_base};
+export OUT_BASE_DIR=\$PWD/smac-output/\$prefix;
+record_cp smac-output/\$prefix/logs/log-{race_no} ../../../../instancegen/smac-v2.06.00-master-615/smac\\
+	--scenario-file scenarios/out-{limit}-{races}-{cores}.txt  \\
+	--rungroup \$prefix/smac-output    \\
+	--seed     \$(seed_for_limit {limit});
+popd;
+\$PARAM_GEN_SCRIPTS/db/parse_smac_output.py --essence={essence_path} --output_dir=\$place;
+EOF
+)
+"""
 
 		essence_base = os.path.splitext(os.path.basename(filepath))[0]
 		scenarios_dir = os.path.join(place_dir, "results", "smac", essence_base, "scenarios")
 		os.makedirs(scenarios_dir, exist_ok=True)
 
-		for common in commons:
-			tu = (int(math.ceil(common['total_time'] / 60 / 60)), common['races'] )
-			lines.append("		# {:03}h, {:03} races".format(*tu) )
+		limit_to_models_timeout = {}
 
-			extra0 = "out-{:03}-{:03}".format(*tu)
-			extra = "{}__{race_no}".format(extra0, race_no="${race_no}")
+		jflag = cores // num_models
+		if jflag <=0:
+			jflag = 1
+
+		line = 'parallel --joblog %s/races-%03d-%s.joblog --header : --tagstring "R{1}" -j%d $Command ' % (
+			os.path.join(place_dir, "results", "smac", name),
+			commons[0]['races'],
+			'`date +%F_%H-%M_%s`',
+			jflag
+		)
+
+		line += ' \\\n ::: race_no `seq 1 %d`' % (num_runs)
+		line += ' \\\n ::: base_path  %s' % (os.path.join(place_dir, "results", "smac", name))
+		line += ' \\\n ::: cores %d' % (jobs)
+		line += ' \\\n ::: essence_base %s \\' % (essence_base)
+		line += ' \\\n ::: essence_path %s \\' % (filepath)
+
+
+
+		def build_dict(common):
+			hours = "%3.2f" % (common['total_time'] / 60 / 60)
 
 			settings = {
+				"limit": util.calc_total_time(common, jobs),
+				"races": common['races'],
+			}
+			lines.append("# {}h -- {limit}s * {jobs} cores".format(hours, jobs=jobs, **settings))
+
+			_models_timeout = util.calc_models_timeout(common, jobs)
+			limit_to_models_timeout[settings["limit"]] = _models_timeout
+
+			settings.update(cur)
+
+			scenario_settings = {
 				"essence": filepath,
 				"essence_dir": os.path.dirname(filepath),
 				"essence_base": essence_base,
 				"models_timeout": util.calc_models_timeout(common, jobs),
-				"limit": util.calc_total_time(common, jobs),
 				"mode": mode,
-				"output_dir": os.path.join("smac-output", extra),
-				"seed": random.randint(0, 2 ** 12),
-				"log_path": os.path.join("smac-output", extra, "logs", "log-${race_no}"),
-				"group_path": os.path.join(extra, "smac-output"),
-				"scenario_path": os.path.join("scenarios", extra0 + ".txt")
 			}
-			settings.update(cur)
+			scenario_settings.update(settings)
+			scenario_settings.update(cur)
+
+			scenario_text = smac_scenario.format(**scenario_settings)
+			scenarios_name = "out-{limit}-{races}-{cores}.txt".format(cores=jobs, **settings)
 
 
-			scenario_text = smac_scenario.format(**settings)
-			with open(os.path.join(scenarios_dir, extra0 + ".txt"), "w") as f:
+			with open(os.path.join(scenarios_dir, scenarios_name), "w") as f:
 				f.write(scenario_text)
 
-			# print(settings)
-			command ="\t" + """
-			record_cp {log_path} ../../../../instancegen/smac-v2.06.00-master-615/smac\
-				--scenario-file {scenario_path}  \
-				--rungroup {group_path}   \
-				--seed     {seed}
 
-			""".format(**settings).strip().replace("\t", " ")
+			return settings
 
-			lines.append("pushd results/smac/{essence_base}".format(**settings))
-			lines.append("export OUT_BASE_DIR=`pwd`/{output_dir}".format(**settings))
-			lines.append(command)
-			lines.append("popd")
+		settings_list = [ build_dict(common).items() for common in commons ]
 
-			lines.append("$PARAM_GEN_SCRIPTS/db/parse_smac_output.py --essence={essence} --output_dir=results/smac/{essence_base}/{output_dir}"
-				.format(**settings))
-			lines.append("")
+		normalised_lookuplines = "\n".join( "		{}) echo {} ;; ".format(k, v * jobs) for (k, v) in limit_to_models_timeout.items() )
+		normalised_func = """
+function models_timeout_normalised(){
+	case $1 in
+%s
+	esac;
+}
+export -f models_timeout_normalised
+		""" % (normalised_lookuplines)
 
-		lines.append("done")
+		normalised_total_lines = "\n".join( "		{}) echo {} ;; ".format(k, k * jobs) for (k, v) in limit_to_models_timeout.items() )
+		normalised_total_func = """
+function total_normalised(){
+	case $1 in
+%s
+	esac;
+}
+export -f total_normalised
+		""" % (normalised_total_lines)
+
+		seed_lines = "\n".join( "		{}) echo {} ;; ".format(k, math.ceil(random.uniform(- 1, 2 ** 32))) for (k, v) in limit_to_models_timeout.items() )
+		seed_func = """
+function seed_for_limit(){
+	case $1 in
+%s
+	esac;
+}
+export -f seed_for_limit
+		""" % (seed_lines)
+
+		lines.append(normalised_func)
+		lines.append(normalised_total_func)
+		lines.append(seed_func)
+		lines.append(par_function)
+		lines.append(line)
+
+		def convert(d):
+			name = d[0][0]
+			part =[ kv[1] for kv in d]
+			if isinstance(part[0], list):
+				part = part[0]
+			return " ".join( str(v) for v in ["    :::", name] + sorted(set(part)) )
+
+		arr = [ convert(items) for items in zip(*settings_list) ]
+		parallel_args = " \\\n".join(arr)
+		lines.append(parallel_args)
+
+		# [print(l) for l in lines]
+
 		return lines
-
 
 
 	return { kv['name']: {num: func(commons, **kv)
