@@ -2,24 +2,23 @@
 # -*- coding: utf-8 -*-
 # Bilal Syed Hussain
 
+import argparse
+import itertools
 import json
 import os
-import itertools
-from pprint import pprint
-import argparse
-
-from itertools import groupby
+import sqlite3
 
 from distutils import dir_util
 from distutils import file_util
+from itertools import groupby
+from pprint import pprint
 
 import bash
-
+import ksample
 import markov
+import nsample
 import smac
 import uniform
-import nsample
-import ksample
 
 
 def read_json(fp):
