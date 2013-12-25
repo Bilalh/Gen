@@ -8,7 +8,7 @@ Command=$( cat <<EOF
 place="{base_path}/out-{limit}-{races}-{cores}__{race_no}___{influence_radius}_{radius_as_percentage}";
 printf ".timeout 5000\\nINSERT OR REPLACE INTO nsample('method', 'essence', 'total_timeout', 'models_timeout', 'races', 'influence_radius', 'radius_as_percentage', 'run_no', 'output_dir') \
 	VALUES('nsample', '{essence}', '\$(total_normalised {limit})', '\$(models_timeout_normalised {limit})', '{races}', '{influence_radius}', '\$(to_bool {radius_as_percentage})', '{race_no}', '\$place');" \
-		| sqlite3 results/info.db;
+		| sqlite3 results/Info.db;
 [ -d \$place ] \
 	&& echo "Not writing to \$place, it exists"
 	&& exit;

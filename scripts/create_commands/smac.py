@@ -49,7 +49,7 @@ place="{base_path}/smac-output/out-{limit}-{races}-{cores}__{race_no}";
 prefix="out-{limit}-{races}-{cores}__{race_no}";
 printf ".timeout 5000\\nINSERT OR REPLACE INTO smac('method', 'essence', 'total_timeout', 'models_timeout', 'races', 'run_no', 'output_dir') \
 	VALUES('smac', '{essence_base}', '\$(total_normalised {limit})', '\$(models_timeout_normalised {limit})', '{races}', '{race_no}', '\$place');" \
-		| sqlite3 results/info.db;
+		| sqlite3 results/Info.db;
 [ -d \$place ] \\
 	&& echo "Not writing to \$place, it exists"
 	&& exit;
