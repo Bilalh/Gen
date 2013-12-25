@@ -22,6 +22,7 @@ test_instance_file = ../../smac/zinstances-empty
 def create_commands(data, commons_grouped, place_dir, init_source, num_runs):
 	cur = data['smac']
 	cores = data['cores']
+	util.create_method_table("smac", cur, place_dir)
 
 	os.makedirs( os.path.join(place_dir, "results", "smac"), exist_ok=True)
 	with open(os.path.join(place_dir, "results", "smac", "zinstances-empty"), "w") as f:
