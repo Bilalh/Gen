@@ -52,6 +52,20 @@ def write_with_header(fp, lines):
 	return fp
 
 
+def create_essence_metadata(place_dir):
+	query = """
+	CREATE TABLE IF NOT EXISTS  "essences" (
+		essence TEXT PRIMARY KEY,
+		mode TEXT,
+		num_models TEXT,
+		filepath TEXT
+	);
+	"""
+	conn = sqlite3.connect(os.path.join(place_dir, "results", "Info.db"))
+	conn.execute(query)
+	conn.commit()
+	conn.close()
+
 
 def run(fp, place_dir, num_runs):
 	data = read_json(fp)
@@ -60,6 +74,7 @@ def run(fp, place_dir, num_runs):
 	essences_dir = os.path.join(place_dir, "results", "essences")
 	os.makedirs(essences_dir, exist_ok=True)
 
+	create_essence_metadata(place_dir)
 	# copy the essences and eprime
 	# and changes the paths to use our copy of the eprimes and essence's
 	for values in data['essences']:
@@ -79,6 +94,13 @@ def run(fp, place_dir, num_runs):
 							os.path.join(essences_dir, essence_name, eprimes_dir))
 
 		values['filepath'] = results_essence
+		insert = "INSERT INTO essences(essence, mode, num_models, filepath) VALUES(?, ?, ?, ?)"
+		conn = sqlite3.connect(os.path.join(place_dir, "results", "Info.db"))
+		conn.execute(insert, (essence_name, values['mode'], values['num_models'], values['filepath']))
+		conn.commit()
+		conn.close()
+
+
 
 	pprint(data)
 
