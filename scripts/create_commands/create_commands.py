@@ -94,7 +94,7 @@ def run(fp, place_dir, num_runs):
 							os.path.join(essences_dir, essence_name, eprimes_dir))
 
 		values['filepath'] = results_essence
-		insert = "INSERT INTO essences(essence, mode, num_models, filepath) VALUES(?, ?, ?, ?)"
+		insert = "INSERT OR REPLACE INTO essences(essence, mode, num_models, filepath) VALUES(?, ?, ?, ?)"
 		conn = sqlite3.connect(os.path.join(place_dir, "results", "Info.db"))
 		conn.execute(insert, (essence_name, values['mode'], values['num_models'], values['filepath']))
 		conn.commit()
