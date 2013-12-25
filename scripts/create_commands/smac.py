@@ -86,7 +86,7 @@ EOF
 		line += ' \\\n ::: race_no `seq 1 %d`' % (num_runs)
 		line += ' \\\n ::: base_path  %s' % (os.path.join(place_dir, "results", "smac", name))
 		line += ' \\\n ::: cores %d' % (jobs)
-		line += ' \\\n ::: essence_base %s \\' % (essence_base)
+		line += ' \\\n ::: essence_base %s' % (essence_base)
 		line += ' \\\n ::: essence_path %s \\' % (filepath)
 
 
