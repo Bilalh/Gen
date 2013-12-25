@@ -12,7 +12,7 @@ def calc_total_time(common, cores):
 
 
 def create_commands_py(method_name, function_templete, data, commons_grouped, place_dir, init_source, num_runs):
-	cur = data['smac']
+	cur = data[method_name]
 	cores = data['cores']
 	create_method_table(method_name, cur, place_dir)
 
