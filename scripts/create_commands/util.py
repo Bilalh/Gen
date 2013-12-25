@@ -12,31 +12,9 @@ def calc_total_time(common, cores):
 
 
 def create_commands_py(method_name, function_templete, data, commons_grouped, place_dir, init_source, num_runs):
-	cur = data[method_name]
-
-	# Create a table for this method
-
-	def get_sql_type(val):
-		if isinstance(val, int):
-			return "INTEGER"
-		elif isinstance(val, str):
-			return "TEXT"
-		elif isinstance(val, float):
-			return "FLOAT"
-		elif isinstance(val, list):
-			return get_sql_type(val[0])
-		else:
-			print("not sure what to do with %s when mapping to sql", val)
-			exit(44)
-
-	val_types = [ (k, get_sql_type(v)) for (k, v) in cur.items() ]
-
-	table_text = create_db_table_query(method_name, *val_types)
-	conn = sqlite3.connect(os.path.join(place_dir, "results", "Info.db"))
-	conn.execute(table_text)
-	conn.commit()
-
+	cur = data['smac']
 	cores = data['cores']
+	create_method_table(method_name, cur, place_dir)
 
 	def func(commons, *, name, filepath, mode, num_models):
 
@@ -152,6 +130,29 @@ export -f total_normalised
 		for (num, commons) in commons_grouped.items()}
 		for kv in data['essences']
 		}
+
+
+def create_method_table(method_name, cur, place_dir,):
+	# Create a table for this method
+	def get_sql_type(val):
+		if isinstance(val, int):
+			return "INTEGER"
+		elif isinstance(val, str):
+			return "TEXT"
+		elif isinstance(val, float):
+			return "FLOAT"
+		elif isinstance(val, list):
+			return get_sql_type(val[0])
+		else:
+			print("not sure what to do with %s when mapping to sql", val)
+			exit(44)
+
+	val_types = [ (k, get_sql_type(v)) for (k, v) in cur.items() ]
+
+	table_text = create_db_table_query(method_name, *val_types)
+	conn = sqlite3.connect(os.path.join(place_dir, "results", "Info.db"))
+	conn.execute(table_text)
+	conn.commit()
 
 
 def create_db_table_query(method, *keys):
