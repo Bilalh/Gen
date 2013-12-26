@@ -67,6 +67,36 @@ def create_essence_metadata(place_dir):
 	conn.close()
 
 
+def create_everything_table(place_dir):
+	query = """
+CREATE VIEW  IF NOT EXISTS everything as
+
+SELECT method, essence, total_timeout, models_timeout, races, NULL as chain_length , radius_as_percentage, influence_radius, num_points, run_no, output_dir
+
+FROM ksample UNION
+
+SELECT method, essence, total_timeout, models_timeout, races, chain_length, radius_as_percentage, influence_radius,  NULL, run_no, output_dir
+
+FROM markov UNION
+
+SELECT method, essence, total_timeout, models_timeout, races, NULL, radius_as_percentage, influence_radius, NULL, run_no, output_dir
+
+From nsample UNION
+
+SELECT method, essence, total_timeout, models_timeout, races, NULL, NULL, NULL, NULL, run_no, output_dir
+
+FROM smac UNION
+
+SELECT method, essence, total_timeout, models_timeout, races, NULL, NULL, NULL, NULL,  run_no, output_dir
+
+FROM uniform
+	"""
+	conn = sqlite3.connect(os.path.join(place_dir, "results", "Info.db"))
+	conn.execute(query)
+	conn.commit()
+	conn.close()
+
+
 def run(fp, place_dir, num_runs):
 	data = read_json(fp)
 	commons = common_product(data)
@@ -136,6 +166,7 @@ def run(fp, place_dir, num_runs):
 	write_with_header(os.path.join(place_dir, "results", "run_all.sh"), ["#Run from ../instancegen-models"] + sorted(scripts))
 	write_with_header(init_path, [bash.record_funcs, "export JAVA_MEMORY="+ data['JAVA_MEMORY'] ])
 
+	create_everything_table(place_dir)
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
