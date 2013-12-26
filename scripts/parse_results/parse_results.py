@@ -31,10 +31,16 @@ def parse_results(base_str):
 			row = dict(row)
 			del row['output_dir']
 			del row['quality']
+			del row['method']
 			results_conn.close()
 
+			info = str(dict(row))
+			info = info.replace("'", "")
+			info = info.replace("{", "")
+			info = info.replace("}", "")
+
 			nonlocal i
-			data.append({"x": i, "y": quality,  "parts": str(dict(row)) } )
+			data.append({"x": i, "y": quality,  "parts": info } )
 			i += 1
 
 		return data
