@@ -5,8 +5,17 @@ from pathlib import Path
 from pprint import pprint, pformat
 import sqlite3
 
+METHODS = ["markov", "uniform", "nsample" ]
 
-def parse_results(base_str):
+
+def parse_results(
+		base_str,
+		essence=None,
+		filterer=None,
+		xfunc=lambda num, row: num,
+		yfunc=lambda row: row['quality'],
+		):
+
 	base = Path(base_str)
 	info_db = base / "results" / "Info.db"
 	conn = sqlite3.connect(str(info_db))
@@ -15,8 +24,18 @@ def parse_results(base_str):
 	i = 0
 
 	def do_method(method_name):
+
 		data = []
-		for row in conn.execute("SELECT * FROM {}".format(method_name) ):
+
+		if filterer:
+			execute = conn.execute("SELECT * FROM everything Where method = ? AND NOT {0} ISNULL ORDER BY {0}".format(filterer), (method_name,) )
+		else:
+			if essence:
+				execute = conn.execute("SELECT * FROM everything Where method = ? AND essence = ?", (method_name, essence) )
+			else:
+				execute = conn.execute("SELECT * FROM everything Where method = ?", (method_name,) )
+
+		for row in execute:
 			# print(dict(row))
 			results_db = base / row['output_dir'] / "results.db"
 
@@ -30,28 +49,49 @@ def parse_results(base_str):
 
 			row = dict(row)
 			del row['output_dir']
-			del row['quality']
 			del row['method']
+			row['quality'] = quality
+
+			row = { k: v for (k, v) in row.items() if v }
+
 			results_conn.close()
 
-			info = str(dict(row))
+			nonlocal i
+			x = xfunc(i, row)
+			y = yfunc(row)
+
+			del row['quality']
+			if filterer:
+				info = str({ k: v for (k, v) in row.items() if k != filterer })
+			else:
+				info = str(row)
 			info = info.replace("'", "")
 			info = info.replace("{", "")
 			info = info.replace("}", "")
 
-			nonlocal i
-			data.append({"x": i, "y": quality,  "parts": info } )
+			d = {"x": x, "y": y,  "parts": info }
+			d.update(row)
+			data.append( d )
 			i += 1
 
+		print(method_name, len(data))
 		return data
 
-	methods_data = { k: do_method(k) for k in ["markov", "uniform", "nsample" ] }
+	methods_data = { k: do_method(k) for k in METHODS }
 
 	return methods_data
 	conn.close()
 
 
 if __name__ == '__main__':
-	data = parse_results("/Users/bilalh/Desktop/Experiments")
-	pprint(data)
+	from itertools import groupby
+	data = parse_results(
+		"/Users/bilalh/Desktop/Experiments",
+		essence=None,
+		filterer="influence_radius"
+	)
+
+	for (i, (k, g)) in enumerate(groupby(data['nsample'], key=lambda d: d['influence_radius'] )):
+		pprint( (k, i))
+
 

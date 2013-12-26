@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html class="no-js">
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<meta name="description" content="">
+		<meta name="viewport" content="width=device-width">
+
+
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+		<script>window.jQuery || document.write('<script src="js/vendor/jquery-1.10.1.min.js"><\/script>')</script>
+
+		<script src="http://code.highcharts.com/highcharts.js"></script>
+		<script src="http://code.highcharts.com/modules/exporting.js"></script>
+
+	</head>
+	<body>
+
+		<p></p>
+
+
+
+	{% for data in chart_data %}
+		<div id="container{{loop.index}}" style="min-width: 310px; height: 400px; margin: 0 auto">
+
+		</div>
+		<br>
+	{% endfor %}
+
+	<script type="text/javascript">
+	{% for data in chart_data %}
+		$(function () {
+			$('#container{{loop.index}}').highcharts({
+				chart: {
+					type: 'scatter',
+					zoomType: 'xy'
+				},
+				title: {
+					text: '{{data.title}}'
+				},
+				subtitle: {
+					text: '{{data.subtitle}}'
+				},
+				xAxis: {
+					title: {
+						enabled: true,
+						text: 'id'
+					},
+					startOnTick: true,
+					endOnTick: true,
+					showLastLabel: true,
+				},
+				yAxis: {
+					title: {
+						text: 'Quality (0..1)'
+					},
+					min: 0,
+					max: 1.5
+				},
+				legend: {
+					layout: 'vertical',
+					align: 'left',
+					verticalAlign: 'top',
+					x: 100,
+					y: 75,
+					floating: true,
+					backgroundColor: '#FFFFFF',
+					borderWidth: 1
+				},
+				plotOptions: {
+					scatter: {
+						marker: {
+							radius: 5,
+							states: {
+								hover: {
+									enabled: true,
+									lineColor: 'rgb(100,100,100)'
+								}
+							}
+						},
+						states: {
+							hover: {
+								marker: {
+									enabled: false
+								}
+							}
+						},
+						tooltip: {
+							headerFormat: '<b>{series.name}</b><br>',
+							pointFormat: '{point.parts}'
+						}
+					}
+				},
+				series: [{
+					name: 'Markov',
+					color: 'rgba(223, 83, 83, .5)',
+					data: [
+					{% for row in data.markov %}
+						{ "x":{{ row.x }}, "y":{{ row.y }}, "parts" : "{{ row.parts }}" },
+					{% endfor %}
+					]
+
+				},
+				{
+					name: 'Uniform',
+					color: 'rgba(119, 152, 191, .5)',
+					data: [
+					{% for row in data.uniform %}
+						{ "x":{{ row.x }}, "y":{{ row.y }}, "parts" : "{{ row.parts }}" },
+					{% endfor %}
+					]
+				},
+				{
+					name: 'nsample',
+					color: 'rgba(50, 158, 20, .5)',
+					data: [
+					{% for row in data.nsample %}
+						{ "x":{{ row.x }}, "y":{{ row.y }}, "parts" : "{{ row.parts }}" },
+					{% endfor %}
+					]
+				}
+
+				]
+			});
+		});
+	{% endfor %}
+	</script>
+
+	</body>
+</html>
