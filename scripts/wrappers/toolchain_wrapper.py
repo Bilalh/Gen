@@ -8,6 +8,7 @@ import sqlite3
 import subprocess
 import sys
 import time
+import math
 
 
 def iter_many(it, length, num):
@@ -25,7 +26,8 @@ print("---------------------")
 
 print(sys.argv)
 
-argv = sys.argv[1:]
+num_models = int(sys.argv[1])
+argv = sys.argv[2:]
 
 [eprime, instance_specific] = argv[0:2]
 [cutoff_time, cutoff_length] = map(float, argv[2:4])
@@ -34,7 +36,7 @@ seed = argv[4]
 params_arr = argv[5:]
 
 
-print([eprime, instance_specific, cutoff_time, cutoff_length, seed])
+print("args: eprime:{} instance_specific:{} cutoff_time:{} cutoff_length:{} seed:{} ".format(eprime, instance_specific, cutoff_time, cutoff_length, seed))
 
 print(cutoff_time)
 print(params_arr)
@@ -75,7 +77,10 @@ with open(param_path, "w") as f:
 res = "SAT"
 runlength=0
 
-cutoff_time_str = str(int(cutoff_time))
+
+cutoff_time = int(math.ceil(cutoff_time / num_models) )
+
+cutoff_time_str = str(cutoff_time)
 
 print("###Running SR/Minion###")
 
