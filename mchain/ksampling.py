@@ -5,7 +5,7 @@
 """
 Usage:
    ksample (iterations|time|cpu) <limit>
-   ( --num_points=<int>  --influence_radius=<int> --essence=<file> --models_timeout=<int>)
+   ( --num_points=<int>  --influence_radius=<int> --essence=<file> --models_timeout=<int> --point_selector=<first|halves> )
    [ --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str> --radius_as_percentage=<bool>]
    ksample json <file>
 
@@ -13,15 +13,16 @@ Usage:
 `json` allows reloading of the state including the seed.
 
 Options:
-  --help                           Show this screen.
-  --influence_radius=<int>         Radius for the acceptance function.
-  --mode=<str>                     Conjure mode used [default: df].
-  --models_timeout=<int>           Timeout in seconds.
-  --num_points=<int>               Number of points to pick each time.
-  --output_dir=<dir>               Where to put the results.
-  --radius_as_percentage=<bool>    Radius setting as a % [default: false].
-  --seed=<int>                     Random seed to use.
-  --working_dir=<dir>              Where the essence file is [default: .]
+  --help                            Show this screen.
+  --influence_radius=<int>          Radius for the acceptance function.
+  --mode=<str>                      Conjure mode used [default: df].
+  --models_timeout=<int>            Timeout in seconds.
+  --num_points=<int>                Number of points to pick each time.
+  --output_dir=<dir>                Where to put the results.
+  --radius_as_percentage=<bool>     Radius setting as a % [default: false].
+  --seed=<int>                      Random seed to use.
+  --working_dir=<dir>               Where the essence file is [default: .]
+  --point_selector=<first|halves>   Method to pick the next point
 """
 
 from lib import chain_lib
@@ -47,6 +48,13 @@ class KSample(method.Method):
 
 
     def before_settings(self, options):
+        point_selectors = {
+            "halves": self.pick_next_point
+        }
+
+        self.point_selector = point_selectors[options['point_selector']]
+        del options['point_selector']
+
         return self.do_radius_as_percentage(options)
 
 
