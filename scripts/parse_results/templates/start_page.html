@@ -16,13 +16,22 @@
 	<body>
 		<p></p>
 
-		<p>  Grouped by Options <p>
+		<p> Grouped by Options </p>
+		<p> yaxis: quality <p>
 		{% for option in options %}
-			<a class='pad' href="/by_option/{{option}}"> {{option}} </a>
+			<a class='pad' href="/by_option/{{option}}/yaxis/quality">{{option}}</a>
 		{% endfor %}
 		<hr>
 
-		<a href="/all">all</a>
+		<p>  Grouped by Options<p>
+		<p> yaxis: number of distinguishing params </p>
+		{% for option in options %}
+			<a class='pad' href="/by_option/{{option}}/yaxis/discriminating_count">{{option}}</a>
+		{% endfor %}
+		<hr>
+
+		<a href="/all/yaxis/quality">all by quality</a>
+		<a href="/all/yaxis/discriminating_count">all by number of distinguishing params</a>
 
 
 	</body>

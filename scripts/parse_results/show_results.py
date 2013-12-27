@@ -21,13 +21,16 @@ def start_page():
 	return render_template('start_page.html', options=options )
 
 
-@app.route('/by_option/<option>')
-def by_option(option):
+@app.route('/by_option/<option>/yaxis/<yoption>')
+def by_option(option, yoption):
 
 	data = parse_results.parse_results(
 		"/Users/bilalh/Desktop/Experiments",
-		filterer=option
+		filterer=option,
+		yfunc=lambda row: row[yoption]
 	)
+
+
 
 	chart_data = []
 	for method_name in parse_results.METHODS:
@@ -37,24 +40,38 @@ def by_option(option):
 					"title": "{}={}".format(option, k),
 					"subtitle": "Quality for each method grouped by {}".format(option)
 					}
-				chart_data.append(d)
+				if yoption == "discriminating_count":
+					d['yaxis_title'] = "Number of discriminating params"
+				elif yoption == "quality":
+					d['yaxis_title'] = "Quality [0..1] lower is better"
+					d['yaxis_min'] = 0
+					d['yaxis_max'] = 1.5
 
+				chart_data.append(d)
 			chart_data[i][method_name] = list(g)
 
 	return render_template('chart2.html', chart_data=chart_data )
 
 
-@app.route('/all')
-def show_all_results():
-	data = parse_results.parse_results("/Users/bilalh/Desktop/Experiments")
+@app.route('/all/yaxis/<yoption>')
+def show_all_results(yoption):
+	data = parse_results.parse_results("/Users/bilalh/Desktop/Experiments", yfunc=lambda row: row[yoption])
+	pprint(data['uniform'])
 
-	chart_data = {
+	chart_data = [{
 		"title": 'Quality for each configuration of each method',
 		"subtitle": "",
 		"markov": data['markov'],
 		"uniform": data['uniform'],
-		"nsample": data['nsample']
-	}
+		"nsample": data['nsample'],
+	}]
+
+	if yoption == "discriminating_count":
+		chart_data[0]['yaxis_title'] = "Number of discriminating params"
+	elif yoption == "quality":
+		chart_data[0]['yaxis_title'] = "Quality [0..1] lower is better"
+		chart_data[0]['yaxis_min'] = 0
+		chart_data[0]['yaxis_max'] = 1.5
 
 	return render_template('chart2.html', chart_data=chart_data)
 

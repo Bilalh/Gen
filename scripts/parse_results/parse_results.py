@@ -39,6 +39,10 @@ def parse_results(
 			# results_conn.row_factory = sqlite3.Row
 			quality_row = results_conn.execute("SELECT min(quality) FROM  DiscriminatingParams Limit 1")
 			quality = list(quality_row)[0][0]
+
+			discriminating_count_row = results_conn.execute("SELECT count(quality) FROM  DiscriminatingParams")
+			discriminating_count = list(discriminating_count_row)[0][0]
+
 			if not quality:
 				quality = 1.5
 			# print(quality)
@@ -47,8 +51,9 @@ def parse_results(
 			del row['output_dir']
 			del row['method']
 			row['quality'] = quality
+			row['discriminating_count'] = discriminating_count
 
-			row = { k: v for (k, v) in row.items() if v }
+			row = { k: v for (k, v) in row.items() if v is not None }
 
 			results_conn.close()
 
@@ -56,7 +61,6 @@ def parse_results(
 			x = xfunc(i, row)
 			y = yfunc(row)
 
-			del row['quality']
 			if filterer:
 				info = str({ k: v for (k, v) in row.items() if k != filterer })
 			else:
@@ -83,7 +87,6 @@ if __name__ == '__main__':
 	from itertools import groupby
 	data = parse_results(
 		"/Users/bilalh/Desktop/Experiments",
-		essence=None,
 		filterer="influence_radius"
 	)
 

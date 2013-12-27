@@ -52,10 +52,14 @@
 				},
 				yAxis: {
 					title: {
-						text: 'Quality (0..1)'
-					},
-					min: 0,
-					max: 1.5
+						text: '{{data.yaxis_title}}'
+					}
+					{% if data.yaxis_min %}
+					,min: {{data.yaxis_min}}
+					{% endif %}
+					{% if data.yaxis_max %}
+					,max: {{data.yaxis_max}}
+					{% endif %}
 				},
 				legend: {
 					layout: 'vertical',
