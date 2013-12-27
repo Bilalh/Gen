@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-
-from sys
 import calendar
 import os
 import os.path as path
@@ -28,7 +26,6 @@ print("---------------------")
 print(sys.argv)
 
 argv = sys.argv[1:]
-cutoff_time_div = 1
 
 [eprime, instance_specific] = argv[0:2]
 [cutoff_time, cutoff_length] = map(float, argv[2:4])
@@ -37,8 +34,7 @@ seed = argv[4]
 params_arr = argv[5:]
 
 
-print([eprime, instance_specific, cutoff_time, cutoff_length, seed, cutoff_time_div])
-cutoff_time /= cutoff_time_div  # to handle more models then cores
+print([eprime, instance_specific, cutoff_time, cutoff_length, seed])
 
 print(cutoff_time)
 print(params_arr)
@@ -63,8 +59,8 @@ def create_param_essence(params):
 	return ("\n".join(essence), "-".join(name))
 
 
-def outputdir(file):
-	return os.path.join(os.path.expandvars("${OUT_BASE_DIR}"), file)
+def outputdir(*fps):
+	return os.path.join(os.path.expandvars("${OUT_BASE_DIR}"), *fps)
 
 
 (param_string, param_name)=create_param_essence(params)
@@ -100,14 +96,12 @@ def timeme(method):
 	return wrapper
 
 
-@timeme
 def runner():
 	subprocess.Popen([
 		wrappers("run.sh"), str(now), param_path, cutoff_time_str
 	]).communicate()
 
-(runtime, _) = runner()
-runtime /=1000  # ms -> sec
+runner()
 
 
 gather_env= os.environ.copy()
@@ -116,6 +110,11 @@ gather_env["USE_DATE"] = now
 
 subprocess.Popen([wrappers("run_gather.sh"), param_name], env=gather_env).communicate()
 
+#TODO support modes other then df
+timefile = outputdir("stats-" + "df", str(now) + ".total_solving_time")
+print("timefile %s" % (timefile))
+with open(timefile) as f:
+	runtime = float(f.readline())
 
 
 conn = sqlite3.connect(outputdir('results.db'))
