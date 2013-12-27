@@ -19,7 +19,7 @@ Options:
   --models_timeout=<int>           Timeout in seconds.
   --num_points=<int>               Number of points to pick each time.
   --output_dir=<dir>               Where to put the results.
-  --radius_as_percentage=<bool>    Radius setting as a % [default: false ].
+  --radius_as_percentage=<bool>    Radius setting as a % [default: false].
   --seed=<int>                     Random seed to use.
   --working_dir=<dir>              Where the essence file is [default: .]
 """

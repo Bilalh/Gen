@@ -19,7 +19,7 @@ Options:
   --mode=<str>                     Conjure mode used [default: df].
   --models_timeout=<int>           Timeout in seconds.
   --output_dir=<dir>               Where to put the results.
-  --radius_as_percentage=<bool>    Radius setting as a % [default: false ].
+  --radius_as_percentage=<bool>    Radius setting as a % [default: false].
   --seed=<int>                     Random seed to use.
   --working_dir=<dir>              Where the essence file is [default: .]
 
