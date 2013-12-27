@@ -92,7 +92,7 @@
 					}
 				},
 				series: [{
-					name: 'Markov',
+					name: 'Markov ({{ data.markov | length }})',
 					color: 'rgba(223, 83, 83, .5)',
 					data: [
 					{% for row in data.markov %}
@@ -102,7 +102,7 @@
 
 				},
 				{
-					name: 'Uniform',
+					name: 'Uniform ({{ data.uniform | length }})',
 					color: 'rgba(119, 152, 191, .5)',
 					data: [
 					{% for row in data.uniform %}
@@ -111,7 +111,7 @@
 					]
 				},
 				{
-					name: 'nsample',
+					name: 'nsample ({{ data.nsample | length }})',
 					color: 'rgba(50, 158, 20, .5)',
 					data: [
 					{% for row in data.nsample %}

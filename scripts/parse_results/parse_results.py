@@ -10,7 +10,6 @@ METHODS = ["markov", "uniform", "nsample" ]
 
 def parse_results(
 		base_str,
-		essence=None,
 		filterer=None,
 		xfunc=lambda num, row: num,
 		yfunc=lambda row: row['quality'],
@@ -30,10 +29,7 @@ def parse_results(
 		if filterer:
 			execute = conn.execute("SELECT * FROM everything Where method = ? AND NOT {0} ISNULL ORDER BY {0}".format(filterer), (method_name,) )
 		else:
-			if essence:
-				execute = conn.execute("SELECT * FROM everything Where method = ? AND essence = ?", (method_name, essence) )
-			else:
-				execute = conn.execute("SELECT * FROM everything Where method = ?", (method_name,) )
+			execute = conn.execute("SELECT * FROM everything Where method = ?", (method_name,) )
 
 		for row in execute:
 			# print(dict(row))
