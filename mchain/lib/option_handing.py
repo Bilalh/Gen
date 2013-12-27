@@ -49,13 +49,20 @@ def parse_arguments(doc, *, version):
 	# Convert bools to bools
 	for key in re.findall(r"  (--[_a-zA-Z]+)=<bool>", doc):
 		if arguments[key] is not None:
-			print(arguments[key])
+			# print(arguments[key])
 			if arguments[key].lower() == "true":
 				arguments[key] = True
 			elif arguments[key].lower() == "false":
 				arguments[key] = False
 			else:
 				raise RuntimeError("{} has to be (true|false)".format(key))
+
+
+	for (key, str_values) in re.findall(r"  (--[_a-zA-Z]+)=<(\w+\|.*?)>", doc):
+		values = set(str_values.split("|"))
+		if arguments[key] not in values:
+			raise RuntimeError("{} has to be in {}".format(key, values))
+
 
 
 	# Convert dirs to abspath
