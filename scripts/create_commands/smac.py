@@ -5,7 +5,7 @@ import random
 
 #Assumes a pcs file is next to the essence
 smac_scenario = """
-algo = ../../../../instancegen/scripts/wrappers/toolchain_wrapper.py
+algo = ../../../../instancegen/scripts/wrappers/toolchain_wrapper.py {num_models}
 execdir = ../../essences/{essence_base}
 deterministic = 1
 run_obj = quality
@@ -111,6 +111,7 @@ EOF
 				"essence_base": essence_base,
 				"models_timeout": util.calc_models_timeout(common, jobs),
 				"mode": mode,
+				"num_models": num_models
 			}
 			scenario_settings.update(settings)
 			scenario_settings.update(cur)
