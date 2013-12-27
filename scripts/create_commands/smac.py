@@ -59,7 +59,7 @@ export OUT_BASE_DIR=\$PWD/smac-output/\$prefix;
 record_cp smac-output/\$prefix/logs/log-{race_no} ../../../../instancegen/smac-v2.06.00-master-615/smac\\
 	--scenario-file scenarios/out-{limit}-{races}-{cores}.txt  \\
 	--rungroup \$prefix/smac-output    \\
-	--seed     \$(seed_for_limit {limit});
+	--seed     \$(seed_for_limit {limit} {race_no});
 popd;
 \$PARAM_GEN_SCRIPTS/db/parse_smac_output.py --essence={essence_path} --output_dir=\$place;
 EOF
@@ -148,9 +148,10 @@ function total_normalised(){
 export -f total_normalised
 		""" % (normalised_total_lines)
 
-		seed_lines = "\n".join( "		{}) echo {} ;; ".format(k, math.ceil(random.uniform(- 1, 2 ** 16))) for (k, v) in limit_to_models_timeout.items() )
+		seed_lines = "\n".join( "		{}) echo $(({}+r)) ;; ".format(k, math.ceil(random.uniform(- 1, 2 ** 16))) for (k, v) in limit_to_models_timeout.items() )
 		seed_func = """
 function seed_for_limit(){
+	r=$2
 	case $1 in
 %s
 	esac;
