@@ -122,6 +122,15 @@
 						{ "x":{{ row.x }}, "y":{{ row.y }}, "parts" : "{{ row.parts }}" },
 					{% endfor %}
 					]
+				},
+				{
+					name: 'smac ({{ data.smac | length }})',
+					color: 'rgba(128, 0, 128, .5)',
+					data: [
+					{% for row in data.smac %}
+						{ "x":{{ row.x }}, "y":{{ row.y }}, "parts" : "{{ row.parts }}" },
+					{% endfor %}
+					]
 				}
 
 				]

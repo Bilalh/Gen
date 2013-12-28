@@ -65,6 +65,7 @@ def show_all_results(yoption):
 		"markov": data['markov'],
 		"uniform": data['uniform'],
 		"nsample": data['nsample'],
+		"smac": data['smac']
 	}]
 
 	if yoption == "discriminating_count":
