@@ -58,8 +58,8 @@ def parse_arguments(doc, *, version):
 				raise RuntimeError("{} has to be (true|false)".format(key))
 
 
-	for (key, str_values) in re.findall(r"  (--[_a-zA-Z]+)=<(\w+\|.*?)>", doc):
-		values = set(str_values.split("|"))
+	for (key, str_values) in re.findall(r"  (--[_a-zA-Z]+)=<(\w+\!.*?)>", doc):
+		values = set(str_values.split("!"))
 		if arguments[key] not in values:
 			raise RuntimeError("{} has to be in {}".format(key, values))
 

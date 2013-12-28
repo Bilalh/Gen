@@ -5,7 +5,7 @@
 """
 Usage:
    ksample (iterations|time|cpu) <limit>
-   ( --num_points=<int>  --influence_radius=<int> --essence=<file> --models_timeout=<int> --point_selector=<first|halving|halving_3_4>)
+   ( --num_points=<int>  --influence_radius=<int> --essence=<file> --models_timeout=<int> --point_selector=<first!halving!halving_3_4>)
    [ --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str> --radius_as_percentage=<bool>]
    ksample json <file>
 
@@ -22,7 +22,7 @@ Options:
   --radius_as_percentage=<bool>                 Radius setting as a % [default: false].
   --seed=<int>                                  Random seed to use.
   --working_dir=<dir>                           Where the essence file is [default: .]
-  --point_selector=<first|halving|halving_3_4>  Method to pick the next point
+  --point_selector=<first!halving!halving_3_4>  Method to pick the next point
 """
 
 from lib import chain_lib
