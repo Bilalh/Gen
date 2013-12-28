@@ -14,7 +14,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def start_page():
-	options = ["essence", "total_timeout", "models_timeout", "races", "chain_length ",
+	options = ["essence", "total_timeout", "models_timeout", "races", "chain_length",
 				"radius_as_percentage", "influence_radius", "num_points", "run_no"]
 
 
