@@ -38,12 +38,13 @@ def by_option(option, yoption):
 			if len(chart_data) == i:
 				d = {
 					"title": "{}={}".format(option, k),
-					"subtitle": "Quality for each method grouped by {}".format(option)
 					}
 				if yoption == "discriminating_count":
 					d['yaxis_title'] = "Number of discriminating params"
+					d["subtitle"] = "Number of discriminating params for each method grouped by {}".format(option)
 				elif yoption == "quality":
 					d['yaxis_title'] = "Quality [0..1] lower is better"
+					d["subtitle"] = "Quality for each method grouped by {}".format(option)
 					d['yaxis_min'] = 0
 					d['yaxis_max'] = 1.5
 
