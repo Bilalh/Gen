@@ -71,23 +71,23 @@ def create_everything_table(place_dir):
 	query = """
 CREATE VIEW  IF NOT EXISTS everything as
 
-SELECT method, essence, total_timeout, models_timeout, races, NULL as chain_length , radius_as_percentage, influence_radius, num_points, run_no, output_dir
+SELECT method, essence, total_timeout, models_timeout, races, NULL as chain_length , radius_as_percentage, influence_radius, num_points, point_selector, run_no, output_dir
 
 FROM ksample UNION
 
-SELECT method, essence, total_timeout, models_timeout, races, chain_length, radius_as_percentage, influence_radius,  NULL, run_no, output_dir
+SELECT method, essence, total_timeout, models_timeout, races, chain_length, radius_as_percentage, influence_radius, NULL, NULL, run_no, output_dir
 
 FROM markov UNION
 
-SELECT method, essence, total_timeout, models_timeout, races, NULL, radius_as_percentage, influence_radius, NULL, run_no, output_dir
+SELECT method, essence, total_timeout, models_timeout, races, NULL, radius_as_percentage, influence_radius, NULL, NULL, run_no, output_dir
 
 From nsample UNION
 
-SELECT method, essence, total_timeout, models_timeout, races, NULL, NULL, NULL, NULL, run_no, output_dir
+SELECT method, essence, total_timeout, models_timeout, races, NULL, NULL, NULL, NULL, NULL, run_no, output_dir
 
 FROM smac UNION
 
-SELECT method, essence, total_timeout, models_timeout, races, NULL, NULL, NULL, NULL,  run_no, output_dir
+SELECT method, essence, total_timeout, models_timeout, races, NULL, NULL, NULL, NULL, NULL, run_no, output_dir
 
 FROM uniform
 	"""
