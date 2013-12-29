@@ -39,7 +39,7 @@ char help[] =
 	"    -k,   --kill-after delay\n"
 	"       Delay between sending SIGTERM and destroying the process by SIGKILL.\n"
 	"    -o,  --timeout-file timeout-file\n"
-	"       The timeout can be changed ONCE by placing a integer into timeout-file\n"
+	"       The timeout can be changed by placing a integer into timeout-file\n"
 	"    -f,  --use-sigkill\n"
 	"       Upon time-out expiration send SIGKILL(9) instead of SIGTERM(15)\n"
 	"    -p,  --previous-used\n"
@@ -175,18 +175,21 @@ static void cleanup (int sig){
 
 		if (cputime_used < timeout_total ){
 			FILE *fp = NULL;
-			if (timeout_file && !timeout_changed && (fp = fopen(timeout_file,"r")) ){
+			if (timeout_file && (fp = fopen(timeout_file,"r")) ){
 				int timeout_new;
 				int res = fscanf(fp, "%d", &timeout_new);
+				fclose(fp);
 				if (res >= 1){
-					timeout_changed = true;
-					printf("cputimeout: timeout changed to %ds after %0.0lf seconds of cputime\n", timeout_new, cputime_used );
-					timeout_total = timeout_new - timeout_previous_used;
-					printf("cputimeout: timeout_left %0.0lf timeout_total: %0.0lf  timeout_total(Original) %0.0lf  timeout_previous_used %0.0lf\n",
-							timeout_total - cputime_used, timeout_total, timeout_total_original, timeout_previous_used);
+
+					if (!(timeout_new - timeout_previous_used == timeout_total )){
+						printf("cputimeout: timeout changed to %ds after %0.0lf seconds of cputime\n", timeout_new, cputime_used );
+						double timeout_prev = timeout_total;
+						timeout_total = timeout_new - timeout_previous_used;
+						printf("cputimeout: timeout_left: %0.0lf timeout_total: %0.0lf  timeout_total(Prev): %0.0lf  timeout_total(Original): %0.0lf  timeout_previous_used: %0.0lf\n",
+								timeout_total - cputime_used, timeout_total, timeout_prev, timeout_total_original, timeout_previous_used);
+					}
 
 				}
-				fclose(fp);
 			}
 			if (cputime_used < timeout_total){
 				double timeout_left = timeout_total - cputime_used;

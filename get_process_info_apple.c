@@ -50,7 +50,7 @@ bool update_our_processes(Processes *our_starting, Processes *our_current, pid_t
 		store_process(our_current, pid, true);
    	}
 
-   	llprintf("%s for %d\n", "Finished updating our processes", monitored_pid);
+	llprintf("%s for %d\n", "Finished updating our processes\n", monitored_pid);
 	return true;
 }
 

@@ -50,7 +50,7 @@ void store_process(Processes *our_processes, pid_t pid, bool replace){
 			llprintf("added %ld,  count:%d \n", (long)pid, count_after);
 			assert(count_after = count_before + 1);
 		}else{
-			printf("update_process_stats failed for %ld", (long)pid);
+			printf("update_process_stats failed for %ld\n", (long)pid);
 		}
 
 		// print_proclist(our_processes);
