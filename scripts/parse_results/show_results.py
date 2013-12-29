@@ -30,12 +30,10 @@ def by_option(option, yoption):
 		yfunc=lambda row: row[yoption]
 	)
 
-
-
-	chart_data = []
+	chart_data = {}
 	for method_name in parse_results.METHODS:
 		for (i, (k, g)) in enumerate(groupby(data[method_name], key=lambda d: d[option] )):
-			if len(chart_data) == i:
+			if k not in chart_data:
 				d = {
 					"title": "{}={}".format(option, k),
 					}
@@ -48,10 +46,11 @@ def by_option(option, yoption):
 					d['yaxis_min'] = 0
 					d['yaxis_max'] = 1.5
 
-				chart_data.append(d)
-			chart_data[i][method_name] = list(g)
+				chart_data[k] = d
+			chart_data[k][method_name] = list(g)
 
-	return render_template('chart2.html', chart_data=chart_data )
+	sorted_data = [ chart_data[k] for k in sorted(chart_data)]
+	return render_template('chart2.html', chart_data=sorted_data )
 
 
 @app.route('/all/yaxis/<yoption>')
@@ -65,7 +64,8 @@ def show_all_results(yoption):
 		"markov": data['markov'],
 		"uniform": data['uniform'],
 		"nsample": data['nsample'],
-		"smac": data['smac']
+		"smac": data['smac'],
+		"ksample": data['ksample'],
 	}]
 
 	if yoption == "discriminating_count":
