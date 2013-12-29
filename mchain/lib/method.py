@@ -3,12 +3,14 @@ from lib import ncube
 from lib import ncuboid
 
 from abc import ABCMeta, abstractmethod
+from datetime import datetime, timedelta
 import calendar
 import json
 import logging
 import os
 import random
 import math
+
 
 logger = logging.getLogger(__name__)
 
@@ -74,6 +76,9 @@ class Method(metaclass=ABCMeta):
 
 
     def run(self):
+        date_start = datetime.utcnow()
+        logger.info("Start %s", date_start.strftime("%a, %e %b %Y %H:%M:%S %s"))
+
         self.limiter.start()
         while self.limiter.continue_running(self):
             self.do_iteration()
@@ -81,6 +86,14 @@ class Method(metaclass=ABCMeta):
 
         with open(os.path.join(self.output_dir, "info", "data-points.json"), "w") as f:
             f.write(json.dumps(self.data_points))
+
+        date_end = datetime.utcnow()
+        logger.info("Ω Start %s", date_start.strftime("%a, %e %b %Y %H:%M:%S %s"))
+        logger.info("Ω End %s", date_end.strftime("%a, %e %b %Y %H:%M:%S %s"))
+
+        diff = datetime.utcnow() - date_start
+        logger.info("Ω Total real time %s", diff)
+        logger.info("Ω Total real time(seconds) %s", diff.total_seconds())
 
     @abstractmethod
     def do_iteration():
