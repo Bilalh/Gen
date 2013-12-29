@@ -5,7 +5,7 @@ from pathlib import Path
 from pprint import pprint, pformat
 import sqlite3
 
-METHODS = ["markov", "uniform", "nsample", "smac" ]
+METHODS = ["markov", "uniform", "nsample", "smac", "ksample" ]
 
 
 def parse_results(
