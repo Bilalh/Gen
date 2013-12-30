@@ -7,6 +7,7 @@ import sqlite3
 
 METHODS = ["markov", "uniform", "nsample", "smac", "ksample" ]
 
+cached_results = {}
 
 def parse_results(
 		base_str,
@@ -35,27 +36,30 @@ def parse_results(
 			# print(dict(row))
 			results_db = base / row['output_dir'] / "results.db"
 
-			results_conn = sqlite3.connect(str(results_db))
-			# results_conn.row_factory = sqlite3.Row
-			quality_row = results_conn.execute("SELECT min(quality) FROM  DiscriminatingParams Limit 1")
-			quality = list(quality_row)[0][0]
+			try:
+				row = cached_results[results_db]
+			except KeyError:
+				results_conn = sqlite3.connect(str(results_db))
+				# results_conn.row_factory = sqlite3.Row
+				quality_row = results_conn.execute("SELECT min(quality) FROM  DiscriminatingParams Limit 1")
+				quality = list(quality_row)[0][0]
 
-			discriminating_count_row = results_conn.execute("SELECT count(quality) FROM  DiscriminatingParams")
-			discriminating_count = list(discriminating_count_row)[0][0]
+				discriminating_count_row = results_conn.execute("SELECT count(quality) FROM  DiscriminatingParams")
+				discriminating_count = list(discriminating_count_row)[0][0]
 
-			if not quality:
-				quality = 1.5
-			# print(quality)
+				if not quality:
+					quality = 1.5
+				# print(quality)
 
-			row = dict(row)
-			del row['output_dir']
-			del row['method']
-			row['quality'] = quality
-			row['discriminating'] = discriminating_count
+				row = dict(row)
+				del row['output_dir']
+				del row['method']
+				row['quality'] = quality
+				row['discriminating'] = discriminating_count
 
-			row = { k: v for (k, v) in row.items() if v is not None }
-
-			results_conn.close()
+				row = { k: v for (k, v) in row.items() if v is not None }
+				results_conn.close()
+				cached_results[results_db] = row
 
 			nonlocal i
 			x = xfunc(i, row)
