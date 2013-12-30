@@ -51,7 +51,7 @@ def parse_results(
 			del row['output_dir']
 			del row['method']
 			row['quality'] = quality
-			row['discriminating_count'] = discriminating_count
+			row['discriminating'] = discriminating_count
 
 			row = { k: v for (k, v) in row.items() if v is not None }
 
@@ -61,10 +61,17 @@ def parse_results(
 			x = xfunc(i, row)
 			y = yfunc(row)
 
+			def format(val):
+				if isinstance(val, float) and val <=1 and val >=0:
+					return "%.5a" % val
+				else:
+					return val
+
 			if filterer:
-				info = str({ k: v for (k, v) in row.items() if k != filterer })
+				info = str({ k: format(v) for (k, v) in row.items() if k != filterer })
 			else:
-				info = str(row)
+				info = str({ k: format(v) for (k, v) in row.items() })
+
 			info = info.replace("'", "")
 			info = info.replace("{", "")
 			info = info.replace("}", "")
