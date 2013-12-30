@@ -15,7 +15,7 @@ app = Flask(__name__)
 @app.route('/')
 def start_page():
 	options = ["essence", "total_timeout", "models_timeout", "races", "chain_length",
-				"radius_as_percentage", "influence_radius", "num_points", "run_no"]
+				"radius_as_percentage", "influence_radius", "num_points", "run_no", "point_selector"]
 
 
 	return render_template('start_page.html', options=options )
@@ -51,6 +51,49 @@ def by_option(option, yoption):
 
 	sorted_data = [ chart_data[k] for k in sorted(chart_data)]
 	return render_template('chart2.html', chart_data=sorted_data )
+
+
+@app.route('/by_essence/by_option/<option>/yaxis/<yoption>')
+def by_essence_by_option(option, yoption):
+
+	data = parse_results.parse_results(
+		"/Users/bilalh/Desktop/Experiments",
+		filterer=option,
+		yfunc=lambda row: row[yoption]
+	)
+
+	chart_data = {}
+	for method_name in parse_results.METHODS:
+		for (opt, items) in groupby(data[method_name], key=lambda d: d[option]):
+			for (essence_name, g) in groupby(items, key=lambda d: d['essence']):
+
+				if essence_name not in chart_data:
+					chart_data[essence_name] = {}
+
+				if opt not in chart_data[essence_name]:
+					d = {
+						"title": "{}={}  for {}".format(option, opt, essence_name),
+						}
+					if yoption == "discriminating_count":
+						d['yaxis_title'] = "Number of discriminating params"
+						d["subtitle"] = "Number of discriminating params for each method grouped by {}".format(option)
+					elif yoption == "quality":
+						d['yaxis_title'] = "Quality [0..1] lower is better"
+						d["subtitle"] = "Quality for each method grouped by {}".format(option)
+						d['yaxis_min'] = 0
+						d['yaxis_max'] = 1.5
+
+					chart_data[essence_name][opt] = d
+				chart_data[essence_name][opt][method_name] = list(g)
+
+	sorted_data = [ ]
+	for essence_key in sorted(chart_data):
+		for opt_key in sorted(chart_data[essence_key]):
+			sorted_data.append(chart_data[essence_key][opt_key])
+
+	return render_template('chart2.html', chart_data=sorted_data )
+
+
 
 
 @app.route('/all/yaxis/<yoption>')
