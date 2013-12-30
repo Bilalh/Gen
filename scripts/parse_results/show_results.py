@@ -69,6 +69,7 @@ def by_essence_by_option(option, yoption, xoption=None):
 
 		def add_extra(d):
 			d["categories"] = categories
+			d['xaxis_title'] = xoption
 			return d
 
 		def process(group):
@@ -140,6 +141,7 @@ def by_essence_by_option_by_option(option, option2, yoption, xoption=None):
 
 		def add_extra(d):
 			d["categories"] = categories
+			d['xaxis_title'] = xoption
 			return d
 
 		def process(group):
