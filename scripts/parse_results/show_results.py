@@ -37,7 +37,7 @@ def by_option(option, yoption):
 				d = {
 					"title": "{}={}".format(option, k),
 					}
-				if yoption == "discriminating_count":
+				if yoption == "discriminating":
 					d['yaxis_title'] = "Number of discriminating params"
 					d["subtitle"] = "Number of discriminating params for each method grouped by {}".format(option)
 				elif yoption == "quality":
@@ -74,7 +74,7 @@ def by_essence_by_option(option, yoption):
 					d = {
 						"title": "{}={}  for {}".format(option, opt, essence_name),
 						}
-					if yoption == "discriminating_count":
+					if yoption == "discriminating":
 						d['yaxis_title'] = "Number of discriminating params"
 						d["subtitle"] = "Number of discriminating params for each method grouped by {}".format(option)
 					elif yoption == "quality":
@@ -90,6 +90,53 @@ def by_essence_by_option(option, yoption):
 	for essence_key in sorted(chart_data):
 		for opt_key in sorted(chart_data[essence_key]):
 			sorted_data.append(chart_data[essence_key][opt_key])
+
+	return render_template('chart2.html', chart_data=sorted_data )
+
+
+
+@app.route('/by_essence/by_option/<option>/by_option/<option2>/yaxis/<yoption>')
+def by_essence_by_option_by_option(option, option2, yoption):
+
+	data = parse_results.parse_results(
+		"/Users/bilalh/Desktop/Experiments",
+		filterer=option,
+		yfunc=lambda row: row[yoption]
+	)
+
+	chart_data = {}
+	for method_name in parse_results.METHODS:
+		for (opt0, items0) in groupby(data[method_name], key=lambda d: d[option]):
+			for (opt, items) in groupby(items0, key=lambda d: d[option2]):
+				for (essence_name, g) in groupby(items, key=lambda d: d['essence']):
+
+					if essence_name not in chart_data:
+						chart_data[essence_name] = {}
+
+					if opt0 not in chart_data[essence_name]:
+						chart_data[essence_name][opt0]= {}
+
+					if opt not in chart_data[essence_name][opt0]:
+						d = {
+							"title": "{}={}, {}={} for {}".format(option, opt0, option2, opt, essence_name),
+							}
+						if yoption == "discriminating":
+							d['yaxis_title'] = "Number of discriminating params"
+							d["subtitle"] = "Number of discriminating params for each method grouped by {}".format(option)
+						elif yoption == "quality":
+							d['yaxis_title'] = "Quality [0..1] lower is better"
+							d["subtitle"] = "Quality for each method grouped by {}".format(option)
+							d['yaxis_min'] = 0
+							d['yaxis_max'] = 1.5
+
+						chart_data[essence_name][opt0][opt] = d
+					chart_data[essence_name][opt0][opt][method_name] = list(g)
+
+	sorted_data = [ ]
+	for essence_key in sorted(chart_data):
+		for opt0_key in sorted(chart_data[essence_key]):
+			for opt_key in sorted(chart_data[essence_key][opt0_key]):
+				sorted_data.append(chart_data[essence_key][opt0_key][opt_key])
 
 	return render_template('chart2.html', chart_data=sorted_data )
 
@@ -111,7 +158,7 @@ def show_all_results(yoption):
 		"ksample": data['ksample'],
 	}]
 
-	if yoption == "discriminating_count":
+	if yoption == "discriminating":
 		chart_data[0]['yaxis_title'] = "Number of discriminating params"
 	elif yoption == "quality":
 		chart_data[0]['yaxis_title'] = "Quality [0..1] lower is better"

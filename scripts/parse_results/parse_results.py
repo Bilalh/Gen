@@ -71,10 +71,7 @@ def parse_results(
 				else:
 					return val
 
-			if filterer:
-				info = str({ k: format(v) for (k, v) in row.items() if k != filterer })
-			else:
-				info = str({ k: format(v) for (k, v) in row.items() })
+			info = str({ k: format(v) for (k, v) in row.items() })
 
 			info = info.replace("'", "")
 			info = info.replace("{", "")
