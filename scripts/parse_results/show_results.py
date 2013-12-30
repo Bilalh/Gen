@@ -53,13 +53,43 @@ def by_option(option, yoption):
 	return render_template('chart2.html', chart_data=sorted_data )
 
 
+@app.route('/by_essence/by_option/<option>/yaxis/<yoption>/xaxis/<xoption>')
+def by_essence_by_option_by_x(option, yoption, xoption):
+	return by_essence_by_option(option, yoption, xoption)
+
+
 @app.route('/by_essence/by_option/<option>/yaxis/<yoption>')
-def by_essence_by_option(option, yoption):
+def by_essence_by_option(option, yoption, xoption=None):
+
+	if xoption:
+		xfunc = lambda num, row: row[xoption]
+		categories = parse_results.get_values("/Users/bilalh/Desktop/Experiments", xoption)
+		cat_dict = dict( (k, i) for (i, k) in enumerate(categories))
+		print(categories)
+
+		def add_extra(d):
+			d["categories"] = categories
+			return d
+
+		def process(group):
+			for g in group:
+				g['x'] = cat_dict[g['x']]
+			return group
+
+	else:
+		xfunc = lambda num, row: num
+
+		def add_extra(d):
+			return d
+
+		def process(group):
+			return group
 
 	data = parse_results.parse_results(
 		"/Users/bilalh/Desktop/Experiments",
 		filterer=option,
-		yfunc=lambda row: row[yoption]
+		yfunc=lambda row: row[yoption],
+		xfunc=xfunc
 	)
 
 	chart_data = {}
@@ -84,25 +114,55 @@ def by_essence_by_option(option, yoption):
 						d['yaxis_max'] = 1.5
 
 					chart_data[essence_name][opt] = d
-				chart_data[essence_name][opt][method_name] = list(g)
+				chart_data[essence_name][opt][method_name] = process(list(g))
 
 	sorted_data = [ ]
 	for essence_key in sorted(chart_data):
 		for opt_key in sorted(chart_data[essence_key]):
-			sorted_data.append(chart_data[essence_key][opt_key])
+			sorted_data.append(add_extra(chart_data[essence_key][opt_key]))
 
 	return render_template('chart2.html', chart_data=sorted_data )
 
 
+@app.route('/by_essence/by_option/<option>/by_option/<option2>/yaxis/<yoption>/xaxis/<xoption>')
+def by_essence_by_option_by_option_by_x(option, option2, yoption, xoption):
+	return by_essence_by_option_by_option(option, option2, yoption, xoption)
+
 
 @app.route('/by_essence/by_option/<option>/by_option/<option2>/yaxis/<yoption>')
-def by_essence_by_option_by_option(option, option2, yoption):
+def by_essence_by_option_by_option(option, option2, yoption, xoption=None):
+
+	if xoption:
+		xfunc = lambda num, row: row[xoption]
+		categories = parse_results.get_values("/Users/bilalh/Desktop/Experiments", xoption)
+		cat_dict = dict( (k, i) for (i, k) in enumerate(categories))
+		print(categories)
+
+		def add_extra(d):
+			d["categories"] = categories
+			return d
+
+		def process(group):
+			for g in group:
+				g['x'] = cat_dict[g['x']]
+			return group
+
+	else:
+		xfunc = lambda num, row: num
+
+		def add_extra(d):
+			return d
+
+		def process(group):
+			return group
 
 	data = parse_results.parse_results(
 		"/Users/bilalh/Desktop/Experiments",
 		filterer=option,
-		yfunc=lambda row: row[yoption]
+		yfunc=lambda row: row[yoption],
+		xfunc=xfunc
 	)
+
 
 	chart_data = {}
 	for method_name in parse_results.METHODS:
@@ -130,13 +190,15 @@ def by_essence_by_option_by_option(option, option2, yoption):
 							d['yaxis_max'] = 1.5
 
 						chart_data[essence_name][opt0][opt] = d
-					chart_data[essence_name][opt0][opt][method_name] = list(g)
+
+					chart_data[essence_name][opt0][opt][method_name] = process(list(g))
 
 	sorted_data = [ ]
 	for essence_key in sorted(chart_data):
 		for opt0_key in sorted(chart_data[essence_key]):
 			for opt_key in sorted(chart_data[essence_key][opt0_key]):
-				sorted_data.append(chart_data[essence_key][opt0_key][opt_key])
+				res = chart_data[essence_key][opt0_key][opt_key]
+				sorted_data.append(add_extra(res))
 
 	return render_template('chart2.html', chart_data=sorted_data )
 

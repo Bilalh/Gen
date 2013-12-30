@@ -44,8 +44,18 @@
 				xAxis: {
 					title: {
 						enabled: true,
-						text: 'id'
+						text: ' '
 					},
+
+					{% if data.categories %}
+
+					categories: [
+						{% for c in data.categories %}
+						"{{c}}",
+						{% endfor %}
+					],
+					{% endif %}
+
 					startOnTick: true,
 					endOnTick: true,
 					showLastLabel: true,

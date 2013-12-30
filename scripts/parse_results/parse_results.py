@@ -9,6 +9,7 @@ METHODS = ["markov", "uniform", "nsample", "smac", "ksample" ]
 
 cached_results = {}
 
+
 def parse_results(
 		base_str,
 		filterer=None,
@@ -90,6 +91,17 @@ def parse_results(
 	return methods_data
 	conn.close()
 
+
+def get_values(base_str, val):
+	base = Path(base_str)
+	info_db = base / "results" / "Info.db"
+	conn = sqlite3.connect(str(info_db))
+
+	rows = conn.execute("SELECT distinct {0} from  everything where {0} IS NOT NULL ORDER by {0} ASC ".format(val) )
+	res = [ row[0] for row in rows ]
+
+	conn.close()
+	return res
 
 if __name__ == '__main__':
 	from itertools import groupby
