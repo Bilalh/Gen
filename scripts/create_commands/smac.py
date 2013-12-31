@@ -98,7 +98,7 @@ EOF
 				"limit": util.calc_total_time(common, jobs),
 				"races": common['races'],
 			}
-			lines.append("# {}h -- {limit}s * {jobs} cores".format(hours, jobs=jobs, **settings))
+			lines.append("# {}h -- {limit}s on {jobs} cores".format(hours, jobs=jobs, **settings))
 
 			_models_timeout = util.calc_models_timeout(common, jobs)
 			limit_to_models_timeout[settings["limit"]] = _models_timeout
