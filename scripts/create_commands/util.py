@@ -4,11 +4,11 @@ import sqlite3
 
 
 def calc_models_timeout(common, cores):
-	return math.ceil(common['total_time'] / (common['races'] + 1) / cores)
+	return math.ceil(common['total_time'] / (common['races'] + 1))
 
 
 def calc_total_time(common, cores):
-	return math.ceil(common['total_time'] / cores)
+	return common['total_time']
 
 
 def create_commands_py(method_name, function_templete, data, commons_grouped, place_dir, init_source, num_runs):
@@ -83,7 +83,7 @@ function models_timeout(){
 export -f models_timeout
 		""" % (lookuplines)
 
-		normalised_lookuplines = "\n".join( "		{}) echo {} ;; ".format(k, v * jobs) for (k, v) in limit_to_models_timeout.items() )
+		normalised_lookuplines = "\n".join( "		{}) echo {} ;; ".format(k, v) for (k, v) in limit_to_models_timeout.items() )
 		normalised_func = """
 function models_timeout_normalised(){
 	case $1 in
@@ -93,7 +93,7 @@ function models_timeout_normalised(){
 export -f models_timeout_normalised
 		""" % (normalised_lookuplines)
 
-		normalised_total_lines = "\n".join( "		{}) echo {} ;; ".format(k, k * jobs) for (k, v) in limit_to_models_timeout.items() )
+		normalised_total_lines = "\n".join( "		{}) echo {} ;; ".format(k, k) for (k, v) in limit_to_models_timeout.items() )
 		normalised_total_func = """
 function total_normalised(){
 	case $1 in
