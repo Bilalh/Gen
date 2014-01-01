@@ -34,9 +34,9 @@ def collect_data_as_dicts(base_str):
     return rows
 
 
-def write_dicts_as_csv(base_str, rows):
-    with ( Path(base_str) / "results" / "info.csv").open("w") as f:
-        csv_writer = csv.DictWriter(f, delimiter=',', fieldnames=rows[0].keys())
+def write_dicts_as_csv(fp, rows):
+    with ( Path(fp) ).open("w") as f:
+        csv_writer = csv.DictWriter(f, delimiter=',', fieldnames=sorted(rows[0].keys()))
         csv_writer.writeheader()
         for r in rows:
             csv_writer.writerow(r)
@@ -47,6 +47,7 @@ if __name__ == "__main__":
     parser.add_argument("base_dir")
     args = parser.parse_args()
     rows = collect_data_as_dicts(args.base_dir)
-    write_dicts_as_csv(args.base_dir, rows)
+    csv_fp = Path(args.base_dir) / "results" / "info.csv"
+    write_dicts_as_csv(csv_fp, rows)
 
 
