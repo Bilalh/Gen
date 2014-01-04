@@ -1,0 +1,36 @@
+#Progressive Party Problem
+prob013-party
+Used in CP13
+81 model in no-chanelling
+
+2 ints
+
+2 functions int --> int
+
+
+Dependencies 
+
+n_boats and the size of the domain of the both functions
+
+both functions have to the same size
+
+
+Generating 
+
+treat a function as two sets  which are the same size since the function is total. 
+
+
+#Fixed Length Error Correcting Codes
+prob036-F-LECC
+
+1 enum
+
+4 ints
+
+1 function  (enum_val, enum_val) -> int 
+
+Generating
+
+a enum could be treated as an int(1..n)
+
+a tuple could be treated as two Separate variables
