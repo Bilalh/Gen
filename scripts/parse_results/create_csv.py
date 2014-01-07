@@ -43,7 +43,7 @@ def collect_data_as_dicts(base_str, num_proc):
     q_rows = list(conn.execute("SELECT * FROM everything"))
     q_out = Queue()
     chunksize = int(math.ceil(len(q_rows) / num_proc))
-    print("num_proc chunksize len(q_rows)", num_proc, chunksize,  len(q_rows))
+    print("num_proc chunksize len(q_rows) for basedir", num_proc, chunksize,  len(q_rows), base_str)
     procs = []
     
     for i in range(num_proc):
