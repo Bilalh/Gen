@@ -49,3 +49,4 @@ mchain/logs
 __1
 mchain/__f/
 scripts/tools/cputimeout/cputimeout
+*-checkpoint.ipynb
