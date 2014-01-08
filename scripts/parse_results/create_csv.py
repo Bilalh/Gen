@@ -83,5 +83,5 @@ if __name__ == "__main__":
         write_dicts_as_csv(csv_fp, rows, keys)
         all_rows += rows
 
-    write_dicts_as_csv(args.all_results_fp, rows, keys)
+    write_dicts_as_csv(args.all_results_fp, all_rows, keys)
 
