@@ -27,8 +27,14 @@ def collect_data_as_dicts(base_str, num_proc):
         rows = []
         for row in rows_in:
             results_db = base / row['output_dir'] / "results.db"
+            
+            # if we have a partial result ignore the the result
+            if row['method'] != 'smac' and  not (base / row['output_dir'] / "info" / "data-points.json").exists():
+                continue
+            
             results_conn = sqlite3.connect(str(results_db))
             quality_row = results_conn.execute("SELECT min(quality) FROM  DiscriminatingParams Limit 1")
+            
             quality = list(quality_row)[0][0]
             discriminating_count_row = results_conn.execute("SELECT count(quality) FROM  DiscriminatingParams")
             discriminating_count = list(discriminating_count_row)[0][0]
