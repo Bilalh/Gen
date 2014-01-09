@@ -43,6 +43,10 @@ def collect_data_as_dicts(base_str, num_proc):
             row_data['quality'] = quality
             row_data['discriminating'] = discriminating_count
             row_data['num_models'] = num_models[row['essence']]
+            
+            if base.name == 'div_cores':
+                row_data['output_dir'] = str(Path("div_cores") / row_data['output_dir'])
+            
             rows.append(row_data)
         out_q.put(rows)
     
