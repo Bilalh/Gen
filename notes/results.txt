@@ -1,0 +1,2 @@
+for each row of data
+	get the set of models that are left for each param
