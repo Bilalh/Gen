@@ -13,6 +13,7 @@ import itertools as it
 
 from pprint import pprint
 
+
 def collect_data_as_dicts(base_str, num_proc):
 
     base = Path(base_str)
@@ -22,19 +23,20 @@ def collect_data_as_dicts(base_str, num_proc):
     conn.row_factory = sqlite3.Row
 
     num_models = { row['essence']: row['num_models'] for row in conn.execute("Select * from essences")  }
-    
-    def worker(rows_in, out_q):
+
+    def worker(rows_in, indexes, out_q):
+        indexes = list(indexes)
         rows = []
-        for row in rows_in:
+        for (i, row) in enumerate(rows_in):
             results_db = base / row['output_dir'] / "results.db"
-            
+
             # if we have a partial result ignore the the result
-            if row['method'] != 'smac' and  not (base / row['output_dir'] / "info" / "data-points.json").exists():
+            if row['method'] != 'smac' and not (base / row['output_dir'] / "info" / "data-points.json").exists():
                 continue
-            
+
             results_conn = sqlite3.connect(str(results_db))
             quality_row = results_conn.execute("SELECT min(quality) FROM  DiscriminatingParams Limit 1")
-            
+
             quality = list(quality_row)[0][0]
             discriminating_count_row = results_conn.execute("SELECT count(quality) FROM  DiscriminatingParams")
             discriminating_count = list(discriminating_count_row)[0][0]
@@ -43,30 +45,33 @@ def collect_data_as_dicts(base_str, num_proc):
             row_data['quality'] = quality
             row_data['discriminating'] = discriminating_count
             row_data['num_models'] = num_models[row['essence']]
-            
+            row_data['index'] = indexes[i]
+
             if base.name == 'div_cores':
                 row_data['output_dir'] = str(Path("div_cores") / row_data['output_dir'])
-            
+
             rows.append(row_data)
         out_q.put(rows)
-    
+
     q_rows = list(conn.execute("SELECT * FROM everything"))
     q_out = Queue()
     chunksize = int(math.ceil(len(q_rows) / num_proc))
     print("num_proc chunksize len(q_rows) for basedir", num_proc, chunksize,  len(q_rows), base_str)
     procs = []
-    
+
     for i in range(num_proc):
         p = multiprocessing.Process(
                 target=worker,
                 args=(q_rows[chunksize * i:chunksize * (i + 1)],
+                      range(chunksize * i, chunksize * (i + 1)),
                       q_out))
         procs.append(p)
         p.start()
-    
-    results_rows = it.chain( *(q_out.get()  for i in range(num_proc)) )
 
-    keys = q_rows[0].keys() + ['quality', 'discriminating', 'num_models']
+
+    results_rows = it.chain( *(q_out.get() for i in range(num_proc)) )
+
+    keys = q_rows[0].keys() + ['quality', 'discriminating', 'num_models', 'index']
 
     return (list(results_rows), keys)
 
