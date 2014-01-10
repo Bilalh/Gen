@@ -14,7 +14,7 @@ import itertools as it
 from pprint import pprint
 
 
-def collect_data_as_dicts(base_str, num_proc):
+def collect_data_as_dicts(base_str, num_proc, start_num=0):
 
     base = Path(base_str)
     info_db = base / "results" / "Info.db"
@@ -63,7 +63,7 @@ def collect_data_as_dicts(base_str, num_proc):
         p = multiprocessing.Process(
                 target=worker,
                 args=(q_rows[chunksize * i:chunksize * (i + 1)],
-                      range(chunksize * i, chunksize * (i + 1)),
+                      range(start_num + chunksize * i, start_num + chunksize * (i + 1)),
                       q_out))
         procs.append(p)
         p.start()
@@ -92,11 +92,13 @@ if __name__ == "__main__":
     args = parser.parse_args()
     pprint(args)
     all_rows = []
+    start_num = 0
     for base_dir in args.base_dirs:
-        (rows, keys) = collect_data_as_dicts(base_dir, args.num_proc)
+        (rows, keys) = collect_data_as_dicts(base_dir, args.num_proc, start_num)
         csv_fp = Path(base_dir) / "results" / "info.csv"
         write_dicts_as_csv(csv_fp, rows, keys)
         all_rows += rows
+        start_num += len(rows)
 
     write_dicts_as_csv(args.all_results_fp, all_rows, keys)
 
