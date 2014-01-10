@@ -33,7 +33,7 @@ def max_rc(num_rows, num_cols):
     yield
     pd.set_option("display.max_rows",old_rows)
     pd.set_option("display.max_columns",old_cols)
-    
+
 
 def put_legend_below(ax):
     box = ax.get_position()
@@ -55,10 +55,11 @@ def load_data_frame():
     base_str = Path("/Users/bilalh/Desktop/Experiments")
     df = pd.read_csv(str(base_str / "all.csv"))
 
-    df['resulting_models'] = df['num_models'] * df['quality'] 
+    df['resulting_models'] = df['num_models'] * df['quality']
     df['resulting_models_filled'] = df['resulting_models'].fillna(df['num_models'])
     df['total_timeout_h'] = df['total_timeout'] /60/ 60
-    
+    df['output_dir'] = df['output_dir'].apply(func=lambda p:  base_str / p  )
+
     return df
 
 
