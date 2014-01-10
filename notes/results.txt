@@ -1,2 +1,4 @@
 for each row of data
 	get the set of models that are left for each param
+
+time ./create_csv.py 3 /Users/bilalh/Desktop/Experiments/all.csv /Users/bilalh/Desktop/Experiments /Users/bilalh/Desktop/Experiments/div_cores
