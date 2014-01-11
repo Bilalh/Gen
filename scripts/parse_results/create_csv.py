@@ -13,8 +13,31 @@ import itertools as it
 
 from pprint import pprint
 
+param_eprime_results_sql="""
+Select count(param) as 'param#',eprimes_num as 'eprime#',  eprimes, group_concat(param, ", ") as params
+From (
+    Select P.param, count(D.eprime) as eprimes_num  , group_concat(D.eprime, ", ") as eprimes, quality
+    From ParamQuality P
+    Join TimingsDomination D on P.param = D.param
+    Where P.Quality < 1 and isDominated = 0
+    Group by P.param
 
-def collect_data_as_dicts(base_str, num_proc, start_num=0):
+    Union
+
+    Select Q.param, 0 as eprimes_num, "" as eprimes, 100 as quality
+    From ParamQuality Q
+    Where Q.param not in (Select D.param From DiscriminatingParams D)
+
+    Order by quality
+
+)
+
+Group by eprimes
+Order by eprimes_num,count(param), eprimes;
+"""
+
+
+def collect_data_as_dicts(base_str, num_proc, all_results_dir, start_num=0):
 
     base = Path(base_str)
     info_db = base / "results" / "Info.db"
@@ -51,7 +74,12 @@ def collect_data_as_dicts(base_str, num_proc, start_num=0):
                 row_data['output_dir'] = str(Path("div_cores") / row_data['output_dir'])
 
             rows.append(row_data)
-        out_q.put(rows)
+
+            results_conn.row_factory = sqlite3.Row
+            param_eprime_info_rows = results_conn.execute(param_eprime_results_sql)
+            param_eprime_info_rows = list(param_eprime_info_rows)
+
+        out_q.put( (rows, [ dict(cr) for cr in param_eprime_info_rows ]) )
 
     q_rows = list(conn.execute("SELECT * FROM everything"))
     q_out = Queue()
@@ -68,16 +96,17 @@ def collect_data_as_dicts(base_str, num_proc, start_num=0):
         procs.append(p)
         p.start()
 
+    # maybe too many stars to  join the rows then unzip them
+    results_rows = list(it.chain( *( zip(*q_out.get()) for i in range(num_proc)) ))
 
-    results_rows = it.chain( *(q_out.get() for i in range(num_proc)) )
-
-    keys = q_rows[0].keys() + ['quality', 'discriminating', 'num_models', 'index']
-
-    return (list(results_rows), keys)
+    (results, params_info) =list(zip(*results_rows))
+    return (results, params_info)
 
 
-def write_dicts_as_csv(fp, rows, keys):
+# I don't really need the keys since I can get them from the dict
+def write_dicts_as_csv(fp, rows):
     with ( Path(fp) ).open("w") as f:
+        keys = sorted(rows[0].keys())
         csv_writer = csv.DictWriter(f, delimiter=',', fieldnames=sorted(keys))
         csv_writer.writeheader()
         for r in rows:
@@ -92,13 +121,22 @@ if __name__ == "__main__":
     args = parser.parse_args()
     pprint(args)
     all_rows = []
+    all_param_info = []
     start_num = 0
-    for base_dir in args.base_dirs:
-        (rows, keys) = collect_data_as_dicts(base_dir, args.num_proc, start_num)
-        csv_fp = Path(base_dir) / "results" / "info.csv"
-        write_dicts_as_csv(csv_fp, rows, keys)
-        all_rows += rows
-        start_num += len(rows)
+    all_results_dir = Path(args.all_results_fp).parent / 'extra_data'
 
-    write_dicts_as_csv(args.all_results_fp, all_rows, keys)
+    import os
+    os.makedirs(str(all_results_dir), exist_ok=True)
+
+    for base_dir in args.base_dirs:
+        (rows, param_info) = collect_data_as_dicts(base_dir, args.num_proc, all_results_dir, start_num)
+        csv_fp = Path(base_dir) / "results" / "info.csv"
+        write_dicts_as_csv(csv_fp, rows)
+        all_rows += rows
+
+        start_num += len(rows)
+        all_param_info += param_info
+
+    write_dicts_as_csv(args.all_results_fp, all_rows)
+    write_dicts_as_csv(all_results_dir / 'param_eprime_info', all_param_info)
 
