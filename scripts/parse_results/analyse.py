@@ -62,6 +62,12 @@ def load_data_frame():
 
     return df
 
+def load_data_frame_param_eprime_info():
+    base_str = Path("/Users/bilalh/Desktop/Experiments")
+    df = pd.read_csv(str(base_str / "extra_data" / "param_eprime_info.csv"))
+    df["eprimes"].fillna("", inplace=True)
+    return df
+
 
 def make_style_mapping(names, styles):
     """ Returns a dict of all subsequences of names --> styles """
