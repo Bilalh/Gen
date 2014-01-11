@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import itertools as it
 
+Base_Path = Path("/Users/bilalh/Desktop/Experiments")
 
 @contextmanager
 def max_rows(num_rows):
@@ -51,8 +52,9 @@ def put_legend_on_right_side(ax):
     ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
 
+
 def load_data_frame():
-    base_str = Path("/Users/bilalh/Desktop/Experiments")
+    base_str = Base_Path
     df = pd.read_csv(str(base_str / "all.csv"))
 
     df['resulting_models'] = df['num_models'] * df['quality']
@@ -60,10 +62,29 @@ def load_data_frame():
     df['total_timeout_h'] = df['total_timeout'] /60/ 60
     df['output_dir'] = df['output_dir'].apply(func=lambda p:  base_str / p  )
 
-    return df
+
+    import re
+    df['output_dir_2'] = df['output_dir']
+    df['output_dir_2'] = df['output_dir_2'].apply(str)
+
+    def f(s):
+        return re.sub("__\\d", "", s)
+
+    df.output_dir_2 = df.output_dir_2.apply(f)
+
+
+    df['group_num'] = np.nan
+    group_ids=[ None for i in range(len(df))]
+    for (i, e) in enumerate(df.output_dir_2.unique()):
+        for idx in df[ df.output_dir_2 == e].index.values:
+            group_ids[idx] = i
+
+    df['group_num'] = group_ids
+    return df.drop('output_dir_2', 1)
+
 
 def load_data_frame_param_eprime_info():
-    base_str = Path("/Users/bilalh/Desktop/Experiments")
+    base_str = Base_Path
     df = pd.read_csv(str(base_str / "extra_data" / "param_eprime_info.csv"))
     df["eprimes"].fillna("", inplace=True)
     return df
