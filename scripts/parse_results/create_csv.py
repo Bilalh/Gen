@@ -50,6 +50,12 @@ def collect_data_as_dicts(base_str, num_proc, all_results_dir, start_num=0):
     def worker(rows_in, indexes, out_q):
         indexes = list(indexes)
         rows = []
+
+        def ff(cr):
+            d = dict(cr)
+            d['index'] = row_data['index']
+            return d
+
         for (i, row) in enumerate(rows_in):
             results_db = base / row['output_dir'] / "results.db"
 
@@ -73,13 +79,14 @@ def collect_data_as_dicts(base_str, num_proc, all_results_dir, start_num=0):
             if base.name == 'div_cores':
                 row_data['output_dir'] = str(Path("div_cores") / row_data['output_dir'])
 
-            rows.append(row_data)
 
             results_conn.row_factory = sqlite3.Row
             param_eprime_info_rows = results_conn.execute(param_eprime_results_sql)
             param_eprime_info_rows = list(param_eprime_info_rows)
 
-        out_q.put( (rows, [ dict(cr) for cr in param_eprime_info_rows ]) )
+            rows.append((row_data, [ ff(cr) for cr in param_eprime_info_rows ]))
+
+        out_q.put(rows )
 
     q_rows = list(conn.execute("SELECT * FROM everything"))
     q_out = Queue()
@@ -97,9 +104,23 @@ def collect_data_as_dicts(base_str, num_proc, all_results_dir, start_num=0):
         p.start()
 
     # maybe too many stars to  join the rows then unzip them
-    results_rows = list(it.chain( *( zip(*q_out.get()) for i in range(num_proc)) ))
+    results_rows = list( q_out.get() for i in range(num_proc) )
+    print(len(results_rows))
+    for (i, rs) in enumerate(results_rows):
+        print(i, len(rs), type(rs))
+        (a, b) =list(zip(*rs))
+        print(len(a), len(b))
+        print("~~~")
+        print("")
 
-    (results, params_info) =list(zip(*results_rows))
+    (results, params_info) = zip(*[ list(zip(*rs)) for rs in results_rows ])
+    print(len(results), len(params_info))
+
+    results = list(it.chain(*results))
+    params_info = list(it.chain(*it.chain(*params_info)))
+    print(len(results), len(params_info))
+
+
     return (results, params_info)
 
 
@@ -130,6 +151,10 @@ if __name__ == "__main__":
 
     for base_dir in args.base_dirs:
         (rows, param_info) = collect_data_as_dicts(base_dir, args.num_proc, all_results_dir, start_num)
+        pprint(rows[1:4])
+        pprint(param_info[1:4])
+
+        print("____", len(rows), len(param_info) )
         csv_fp = Path(base_dir) / "results" / "info.csv"
         write_dicts_as_csv(csv_fp, rows)
         all_rows += rows
@@ -138,5 +163,5 @@ if __name__ == "__main__":
         all_param_info += param_info
 
     write_dicts_as_csv(args.all_results_fp, all_rows)
-    write_dicts_as_csv(all_results_dir / 'param_eprime_info', all_param_info)
+    write_dicts_as_csv(all_results_dir / 'param_eprime_info.csv', all_param_info)
 
