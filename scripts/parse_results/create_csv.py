@@ -51,9 +51,9 @@ def collect_data_as_dicts(base_str, num_proc, all_results_dir, start_num=0):
         indexes = list(indexes)
         rows = []
 
-        def ff(cr):
+        def ff(cr, ix):
             d = dict(cr)
-            d['index'] = row_data['index']
+            d['index'] = ix
             return d
 
         for (i, row) in enumerate(rows_in):
@@ -84,7 +84,7 @@ def collect_data_as_dicts(base_str, num_proc, all_results_dir, start_num=0):
             param_eprime_info_rows = results_conn.execute(param_eprime_results_sql)
             param_eprime_info_rows = list(param_eprime_info_rows)
 
-            rows.append((row_data, [ ff(cr) for cr in param_eprime_info_rows ]))
+            rows.append((row_data, [ ff(cr, row_data['index']) for cr in param_eprime_info_rows ]))
 
         out_q.put(rows )
 
