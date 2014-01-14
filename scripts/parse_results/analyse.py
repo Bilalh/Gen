@@ -92,8 +92,10 @@ def load_data_frame_param_eprime_info():
 
 def make_style_mapping(names, styles):
     """ Returns a dict of all subsequences of names --> styles """
-    zipped = list(zip(names, styles,))
+    if len(styles) < len(names):
+        raise ValueError("not enough styles")
+    zipped = list(zip( sorted(names), sorted(styles)))
 
-    paired = it.chain( *(it.combinations(zipped,i + 1) for i in range(len(names))) )
+    paired = it.chain( *( it.combinations(zipped,i + 1) for i in range(len(names))) )
     mapping = dict( zip(*pairs) for pairs in paired )
     return mapping
