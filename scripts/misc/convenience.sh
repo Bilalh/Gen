@@ -21,7 +21,8 @@ function refine_param(){
 	
 }
 
-function run_eprime_param(){
+function solve_eprime_param(){
+	set -o nounset
 	eprime=$1
 	param=$2
 	
@@ -33,15 +34,41 @@ function run_eprime_param(){
 
 }
 
+function up_eprime(){
+	set -o nounset
+	eprime_solution=$1
+	param=$2
+	essence=$3
+	
+	eprime_solution_base=`basename ${eprime_solution}`
+	solution="${eprime_solution_base%.*}.solution"
+	
+	eprime_part="$( cut -d '-' -f 1 <<< "${eprime_solution_base%.*}" )"
+	
+	eprime="${eprime_part}.eprime"
+	parm="${eprime_solution_base%.*}.eprime-param"
+	
+	echoing conjure \
+		--mode translateSolution \
+		--in-eprime ${eprime} \
+		--in-eprime-param ${param} \
+		--in-essence ${essence} \
+		--in-eprime-solution ${eprime_solution} \
+		--in-essence-param ${param} \
+		--out-solution ${solution} \
+	&& head -n 10 ${solution}
+	
+}
+
 if [ $ZSH_VERSION ]; then
 	
-function _run_eprime_param(){
+function _solve_eprime_param(){
 	_arguments \
 		"1:eprimes:_files -g \*.eprime" \
 		"2:params:_files -g \*.eprime-param"
 }
 	
-compdef _run_eprime_param run_eprime_param
+compdef _solve_eprime_param solve_eprime_param
 
 function _refine_param(){
 	_arguments \
@@ -52,5 +79,13 @@ function _refine_param(){
 
 compdef _refine_param refine_param
 
+function _up_eprime(){
+	_arguments \
+		"1:eprime solution:_files -g \*.eprime-solution" \
+		"2:essence param:_files -g \*.param" \
+		"3:essence:_files -g \*.essence"
+}
+
+compdef _up_eprime up_eprime
 
 fi
