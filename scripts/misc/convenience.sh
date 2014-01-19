@@ -24,13 +24,13 @@ function refine_param(){
 function solve_eprime_param(){
 	set -o nounset
 	eprime=$1
-	param=$2
+	eparam=$2
 	
-	param_base=`basename ${param}`
+	param_base=`basename ${eparam}`
 	out_minion="${param_base%.*}.minion"
 	out_solution="${param_base%.*}.eprime-solution"	
 	
-	echoing savilerow -in-eprime ${eprime} -in-param ${param} -run-minion minion -out-minion ${out_minion} -out-solution ${out_solution}
+	echoing savilerow -in-eprime ${eprime} -in-param ${eparam} -run-minion minion -out-minion ${out_minion} -out-solution ${out_solution}
 
 }
 
@@ -60,6 +60,22 @@ function up_eprime(){
 	
 }
 
+function refine_run(){
+	set -o nounset
+    param=$1
+	eprime=$2
+	essence=$3
+	
+	param_base=`basename ${param}`
+	eprime_base=`basename ${eprime}`
+	out_eparam="${eprime_base%.*}-${param_base%.*}.eprime-param"
+	eprime_solution="${eprime_base%.*}-${param_base%.*}.eprime-solution"
+	
+	refine_param $@ && \
+	solve_eprime_param ${eprime} ${out_eparam} && \
+	up_eprime ${eprime_solution}  ${param}  ${essence}
+}
+
 if [ $ZSH_VERSION ]; then
 	
 function _solve_eprime_param(){
@@ -70,6 +86,7 @@ function _solve_eprime_param(){
 	
 compdef _solve_eprime_param solve_eprime_param
 
+
 function _refine_param(){
 	_arguments \
 		"1:essence param:_files -g \*.param" \
@@ -78,6 +95,8 @@ function _refine_param(){
 }
 
 compdef _refine_param refine_param
+compdef _refine_param refine_run
+
 
 function _up_eprime(){
 	_arguments \
