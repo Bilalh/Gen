@@ -76,12 +76,43 @@ e.g pick from the first `grid` then pick from second grid.
 
 Also change eprime ordering to what worked well before e.g. `best first`ish
 
+
+
+Change quailty from
+
+	if minionTimeout == 0:
+		return 1
+	elif minionTimeout == count:
+
+		return 1
+	else:
+		return 1 - (isDominated / count)
+
+
+to
+	if minionTimeout == count:
+		return 1
+	return 1 - (isDominated / count)
+
+
+since models can still be Dominated if they all finish
+
+
+
+PPP Dependencies
+
+forall i in Boat .
+	crew(i) <= capacity
+
+The size of the crew has to be <= the capacity of the both
+
 dependencies how to model them?
 with essence? need parser
-with json? could work
-with grasp-json? might work
+with json or grasp-json? could work
 
-should the crew size be less then capacity?
+if using  essence then generate the candidate param  then generate another essence file
+and use conjure's full evaluator to check it.
+
 
 
 
