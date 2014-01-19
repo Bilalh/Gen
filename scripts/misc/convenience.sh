@@ -3,10 +3,8 @@
 
 # print the command the run it
 function echoing(){
-	local a=$?
     echo "$@"
     "$@"
-	return a
 }
 
 function refine_param(){
@@ -74,7 +72,9 @@ function refine_run(){
 	local eprime_solution="${eprime_base%.*}-${param_base%.*}.eprime-solution"
 	
 	refine_param $@ && \
+	[ -f ${out_eparam} ] && \
 	solve_eprime_param ${eprime} ${out_eparam} && \
+	[ -f ${eprime_solution} ] && \
 	up_eprime ${eprime_solution}  ${param}  ${essence}
 }
 
