@@ -3,50 +3,53 @@
 
 # print the command the run it
 function echoing(){
+	local a=$?
     echo "$@"
     "$@"
+	return a
 }
 
 function refine_param(){
-	set -o nounset
-    param=$1
-	eprime=$2
-	essence=$3
+    local param=$1
+	local eprime=$2
+	local essence=$3
 	
-	param_base=`basename ${param}`
-	eprime_base=`basename ${eprime}`
-	out_param="${eprime_base%.*}-${param_base%.*}.eprime-param"
+	local param_base=`basename ${param}`
+	local eprime_base=`basename ${eprime}`
+	local out_param="${eprime_base%.*}-${param_base%.*}.eprime-param"
 	
 	echoing conjure --mode refineParam --in-eprime ${eprime} --in-essence-param ${param} --in-essence ${essence} --out-eprime-param ${out_param}
 	
 }
 
 function solve_eprime_param(){
-	set -o nounset
-	eprime=$1
-	eparam=$2
+	local eprime=$1
+	local eparam=$2
 	
-	param_base=`basename ${eparam}`
-	out_minion="${param_base%.*}.minion"
-	out_solution="${param_base%.*}.eprime-solution"	
+	local param_base=`basename ${eparam}`
+	local out_minion="${param_base%.*}.minion"
+	local out_solution="${param_base%.*}.eprime-solution"	
+	
+	rm ${out_solution}
 	
 	echoing savilerow -in-eprime ${eprime} -in-param ${eparam} -run-minion minion -out-minion ${out_minion} -out-solution ${out_solution}
 
 }
 
 function up_eprime(){
-	set -o nounset
-	eprime_solution=$1
-	param=$2
-	essence=$3
+	local eprime_solution=$1
+	local param=$2
+	local essence=$3
+
+	local eprime_solution_base=`basename ${eprime_solution}`
+	local solution="${eprime_solution_base%.*}.solution"
+
+	local eprime_part="$( cut -d '-' -f 1 <<< "${eprime_solution_base%.*}" )"
+
+	local eprime="${eprime_part}.eprime"
+	local parm="${eprime_solution_base%.*}.eprime-param"
 	
-	eprime_solution_base=`basename ${eprime_solution}`
-	solution="${eprime_solution_base%.*}.solution"
-	
-	eprime_part="$( cut -d '-' -f 1 <<< "${eprime_solution_base%.*}" )"
-	
-	eprime="${eprime_part}.eprime"
-	parm="${eprime_solution_base%.*}.eprime-param"
+	rm -f ${solution}
 	
 	echoing conjure \
 		--mode translateSolution \
@@ -61,15 +64,14 @@ function up_eprime(){
 }
 
 function refine_run(){
-	set -o nounset
-    param=$1
-	eprime=$2
-	essence=$3
-	
-	param_base=`basename ${param}`
-	eprime_base=`basename ${eprime}`
-	out_eparam="${eprime_base%.*}-${param_base%.*}.eprime-param"
-	eprime_solution="${eprime_base%.*}-${param_base%.*}.eprime-solution"
+    local param=$1
+	local eprime=$2
+	local essence=$3
+
+	local param_base=`basename ${param}`
+	local eprime_base=`basename ${eprime}`
+	local out_eparam="${eprime_base%.*}-${param_base%.*}.eprime-param"
+	local eprime_solution="${eprime_base%.*}-${param_base%.*}.eprime-solution"
 	
 	refine_param $@ && \
 	solve_eprime_param ${eprime} ${out_eparam} && \
