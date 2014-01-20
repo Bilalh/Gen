@@ -35,7 +35,7 @@ def gather_param_info(essence_file, output_dir):
     sys.stderr.flush()
 
     subprocess.Popen([
-        wrappers("essenceGivensToJson.sh"), essence_file, json_path, "100"
+        wrappers("essenceGivensToJson2.sh"), essence_file, json_path, "100"
     ]).communicate()
 
 
@@ -45,10 +45,15 @@ def gather_param_info(essence_file, output_dir):
     raw_data = json.loads(json_in)
 
     def transform(data):
-        d = data[1][0]
-        return (data[0], (d['lower'], d['upper']) )
+        return data
 
-    param_data = [ transform(data) for data in raw_data ]
+    param_data = [ transform(data) for data in raw_data['givens'] ]
+
+    from pprint import pprint
+    pprint(param_data)
+
+    sys.exit(1)
+
     return param_data
 
 
