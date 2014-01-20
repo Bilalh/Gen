@@ -1,16 +1,19 @@
 from lib import chain_lib
 from lib import ncube
 from lib import ncuboid
+from lib import domain
 
 from abc import ABCMeta, abstractmethod
-from datetime import datetime, timedelta
+from datetime import datetime
+from pprint import pprint, pformat
+
 import calendar
 import json
 import logging
 import os
 import random
 import math
-
+import sys
 
 logger = logging.getLogger(__name__)
 
@@ -54,12 +57,16 @@ class Method(metaclass=ABCMeta):
             f.write(json.dumps(options))
             del options['limiter']
 
-        vals = chain_lib.gather_param_info(options['essence'], self.output_dir)
-        logger.info(vals)
+        self.param_info = domain.gather_param_info(options['essence'], self.output_dir)
+        logger.info(pformat(self.param_info, width=80))
 
-        [self.names, self.data] = list(zip(*vals))
+        # hard coding ordering for langfords
+        self.ordering = ['k', 'n']
+        if len(self.ordering) != len(self.param_info):
+            print("Ordering size:{} != params size:{}".format(len(self.ordering), len(self.param_info)))
+            sys.exit(8)
+
         self.limiter = limiter
-
 
         options = self.before_settings(options)
         settings = setting_constructor(**options)
@@ -103,7 +110,7 @@ class Method(metaclass=ABCMeta):
         return options
 
     def run_param_and_store_quality(self, point):
-        (param_string, param_name) = chain_lib.create_param_essence(zip(self.names, point))
+        (param_string, param_name) = chain_lib.create_param_essence(zip(self.ordering, point))
         logger.info(param_string)
         param_path = chain_lib.write_param(self.output_dir, param_string, param_name)
 
@@ -123,8 +130,15 @@ class Method(metaclass=ABCMeta):
         return quailty
 
     def random_point(self):
-        return tuple([chain_lib.uniform_int(l, u) for (l, u) in self.data])
+        selected_vals = {}
+        # return tuple([chain_lib.uniform_int(l, u) for (l, u) in self.data])
+        for name in self.ordering:
+            v=self.param_info[name].random_value(selected_vals)
+            selected_vals[name] = v
+        return [  selected_vals[name] for name in self.ordering ]
 
+
+    # FIXME
     def do_radius_as_percentage(self, options):
         if options['radius_as_percentage']:
             self.shape = ncuboid
