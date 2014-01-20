@@ -1,3 +1,5 @@
+from lib import domain
+
 from collections import namedtuple
 import fnmatch
 import json
@@ -9,6 +11,9 @@ import sqlite3
 import subprocess
 import sys
 import time
+
+from pprint import pprint
+import itertools as it
 
 logger = logging.getLogger(__name__)
 Settings=namedtuple('Settings', ['chain_length', 'select_radius', 'influence_radius', 'seed', 'mode',
@@ -24,6 +29,80 @@ def uniform_int(l, u):
 def wrappers(script_name):
     """ return the complete path to a script in $PARAM_GEN_SCRIPTS/wrappers """
     return os.path.join(os.path.expandvars("${PARAM_GEN_SCRIPTS}/"), "wrappers", script_name)
+
+
+def next_ele(ele):
+    next_ele = ele['children'][0]
+    return (next_ele['tag'], next_ele)
+
+
+def transform_json_domain_to_domain(data):
+    dom = data[0]
+    assert dom['tag'] == 'domain'
+
+    (kind, kind_ele) = next_ele(dom)
+
+    dispach = {
+        "int": get_int_domain,
+        "function": get_function_domain
+    }
+
+    if kind not in dispach:
+        print(" not Implemented {}".format(kind), file=sys.stderr)
+        sys.exit(4)
+
+    return dispach[kind](kind_ele)
+
+
+def get_int_domain(data):
+
+    (_, rs_ele) = next_ele(data)
+    rs = rs_ele['children']
+
+    if len(rs) != 1:
+        print(" only len 1 ranges Implemented", file=sys.stderr)
+        sys.exit(5)
+
+    rr = rs[0]
+    (_, fromto_ele) = next_ele(rr)
+
+    def f(ele):
+        if ele['tag'] == 'reference':
+            return ele['children'][0]['primitive']
+        else:
+            return ele['children'][0]['children'][0]['primitive']
+
+    fromto = [  f(ele) for ele in fromto_ele['children'] ]
+
+    bs=[]
+    for b in fromto:
+        if "string" in b:
+            bs.append(domain.Ref(b['string']))
+        else:
+            bs.append(b['int'])
+
+
+    return domain.DomainInt(tuple(bs))
+
+
+def get_function_domain(data):
+
+    top = data['children']
+
+    (_, attrs) =next_ele(top[0])
+    atts_names = [ ele['children'][0]['children'][0]['children'][0]['primitive']['string'] for ele in attrs['children'] ]
+
+    # make the attrs into a dict so that they can be passed to __init__ of Func
+    as_bools = dict(zip(atts_names, it.repeat(True) ))
+
+    (_, inner_from) =next_ele(top[2])
+    (_, from_kind) = next_ele(inner_from)
+
+    fromm = get_int_domain(from_kind)
+
+    f = domain.DomainFunc(**as_bools)
+
+    return fromm
 
 
 def gather_param_info(essence_file, output_dir):
@@ -44,10 +123,8 @@ def gather_param_info(essence_file, output_dir):
 
     raw_data = json.loads(json_in)
 
-    def transform(data):
-        return data
 
-    param_data = [ transform(data) for data in raw_data['givens'] ]
+    param_data = {  data['name']: transform_json_domain_to_domain(data['domain']) for data in raw_data['givens'] }
 
     from pprint import pprint
     pprint(param_data)
@@ -55,6 +132,7 @@ def gather_param_info(essence_file, output_dir):
     sys.exit(1)
 
     return param_data
+
 
 
 def create_param_essence(params):
