@@ -7,6 +7,7 @@ from abc import ABCMeta, abstractmethod
 from datetime import datetime
 from pprint import pprint, pformat
 
+import time
 import calendar
 import json
 import logging
@@ -85,6 +86,7 @@ class Method(metaclass=ABCMeta):
     def run(self):
         date_start = datetime.utcnow()
         logger.info("Start %s", date_start.strftime("%a, %e %b %Y %H:%M:%S %s"))
+        cpu_time_start = time.process_time()
 
         self.limiter.start()
         while self.limiter.continue_running(self):
@@ -94,6 +96,7 @@ class Method(metaclass=ABCMeta):
         with open(os.path.join(self.output_dir, "info", "data-points.json"), "w") as f:
             f.write(json.dumps(self.data_points))
 
+        cpu_time_end = time.process_time()
         date_end = datetime.utcnow()
         logger.info("Ω Start %s", date_start.strftime("%a, %e %b %Y %H:%M:%S %s"))
         logger.info("Ω End %s", date_end.strftime("%a, %e %b %Y %H:%M:%S %s"))
@@ -101,6 +104,8 @@ class Method(metaclass=ABCMeta):
         diff = datetime.utcnow() - date_start
         logger.info("Ω Total real time %s", diff)
         logger.info("Ω Total real time(seconds) %s", diff.total_seconds())
+        logger.info("Ω Our cpu time %0.4f",  cpu_time_end- cpu_time_start )
+
 
     @abstractmethod
     def do_iteration():
