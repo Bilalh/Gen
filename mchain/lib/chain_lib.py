@@ -95,14 +95,12 @@ def get_function_domain(data):
     # make the attrs into a dict so that they can be passed to __init__ of Func
     as_bools = dict(zip(atts_names, it.repeat(True) ))
 
-    (_, inner_from) =next_ele(top[2])
-    (_, from_kind) = next_ele(inner_from)
+    # Assume int domains
+    [fromm, to] = [ get_int_domain(next_ele(next_ele(ele)[1])[1]) for ele in top[1:] ]
 
-    fromm = get_int_domain(from_kind)
+    f = domain.DomainFunc(fromm=fromm, to=to, **as_bools)
 
-    f = domain.DomainFunc(**as_bools)
-
-    return fromm
+    return f
 
 
 def gather_param_info(essence_file, output_dir):
