@@ -21,6 +21,11 @@ class Domain(metaclass=ABCMeta):
                 for key in self.__dict__ if not key.startswith('_'))
                 )
 
+    def resolve(self, v, selected_vals):
+        if isinstance(v, Ref):
+            return v.resolve(selected_vals)
+        return v
+
     @abstractmethod
     def random_value(self, selected_vals):
         """selected_vals is previous selected points"""
@@ -33,9 +38,10 @@ class DomainInt(Domain):
         super(DomainInt, self).__init__()
         self.low_high = low_high
 
-
     def random_value(self, selected_vals):
-        return chain_lib.uniform_int(*self.low_high)
+
+        vs = [ self.resolve(v, selected_vals) for v in self.low_high ]
+        return chain_lib.uniform_int(*vs)
 
 
 
@@ -48,11 +54,25 @@ class DomainFunc(Domain):
         self.to = to
 
 
-class Ref(object):
+class Ref():
     """Refences to another var"""
     def __init__(self, name):
         super(Ref, self).__init__()
         self.name = name
+
+    def resolve(self, selected_vals):
+        if self.name not in selected_vals:
+            raise UninitialisedVal("{} not initialised (ordering incorrect)".format(self.name))
+
+        return selected_vals[self.name]
+
+    def __repr__(self):
+        return "Ref(name={})".format(self.name)
+
+
+class UninitialisedVal(Exception):
+    """Thrown when a reference is unresolved"""
+    pass
 
 
 def next_ele(ele):
