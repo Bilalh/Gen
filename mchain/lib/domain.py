@@ -31,6 +31,9 @@ class Domain(metaclass=ABCMeta):
         """selected_vals is previous selected points"""
         pass
 
+    def all_values(self, selected_vals):
+        raise NotImplemented("All values not done yet")
+
 
 class DomainInt(Domain):
     """Int domain with (low,high) range"""
@@ -39,10 +42,12 @@ class DomainInt(Domain):
         self.low_high = low_high
 
     def random_value(self, selected_vals):
-
         vs = [ self.resolve(v, selected_vals) for v in self.low_high ]
         return chain_lib.uniform_int(*vs)
 
+    def all_values(self, selected_vals):
+        vs = [ self.resolve(v, selected_vals) for v in self.low_high ]
+        return vs
 
 
 class DomainFunc(Domain):
@@ -52,6 +57,13 @@ class DomainFunc(Domain):
         self.total = total
         self.fromm = fromm
         self.to = to
+
+    def random_value(self, selected_vals):
+        # TODO  assumes total at the momment
+        all_from = self.fromm.all_values(selected_vals)
+        tos = [ self.to.random_value(selected_vals) for i in range(len(all_from)) ]
+        res = dict(zip(all_from, tos))
+        return res
 
 
 class Ref():
@@ -73,6 +85,7 @@ class Ref():
 class UninitialisedVal(Exception):
     """Thrown when a reference is unresolved"""
     pass
+
 
 
 def next_ele(ele):
@@ -170,4 +183,12 @@ def gather_param_info(essence_file, output_dir):
 
     return param_data
 
+
+# from http://docs.python.org/3.3/library/itertools.html
+def random_combination_with_replacement(iterable, r):
+    "Random selection from itertools.combinations_with_replacement(iterable, r)"
+    pool = tuple(iterable)
+    n = len(pool)
+    indices = sorted(random.randrange(n) for i in range(r))
+    return tuple(pool[i] for i in indices)
 

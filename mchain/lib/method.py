@@ -62,7 +62,7 @@ class Method(metaclass=ABCMeta):
         logger.info(pformat(self.param_info, width=80))
 
         # hard coding ordering for langfords
-        self.ordering = ['k', 'n']
+        self.ordering = ['n_upper', 'n_boats', 'n_periods', 'capacity', 'crew']
         if len(self.ordering) != len(self.param_info):
             print("Ordering size:{} != params size:{}".format(len(self.ordering), len(self.param_info)))
             sys.exit(8)
