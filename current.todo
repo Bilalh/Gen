@@ -10,13 +10,12 @@ domains:
 		 -	the val
 
 	☐  radius calculation  say r=10 e.g for PPP, how should these be compared?
-		   [84, 93, 68, {1: 73, 2: 47}, {1: 48, 3: 28}]
-		   [73, 96, 38, {1: 1, 2: 71}, {1: 58, 2: 9}]
-		-  how to compare the functions:
-			- only after the checking the other values as extra dimension
-			- as extra dims.
-			- compare dom and range as pairs?
-			- what about when the function is not total?
+		   [84, 93, 68, {1: 73, 2: 47}, {1: 48, 2: 28}]
+		   [73, 96, 38, {1: 1, 2: 71, 3:12}, {1: 58, 2: 9, 3:42}]
+		-  how to compare the functions (assuming total):
+			✔ as extra dims.
+			✘ compare dom and range as pairs
+		- for `missing` mapping  treat the distance between the two parts  as zero
 
 	☐  functions
 		✔ Generate total function @done (14-01-21)
@@ -41,3 +40,6 @@ Dependencies:
 Misc:
 	✔  Show cpu time at the end @done (14-01-21 00:28)
 	☐  Ordering option parsing
+	☐  tar stats files to reduce the number of files
+
+
