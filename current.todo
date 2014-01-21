@@ -1,0 +1,28 @@
+
+domains:
+	✔ Make hs program to ouput json for givens @done
+	✔ ints @done
+	✔  References @done
+	☐  functions
+		☐
+
+
+Algorithms:
+	method.py:
+		✔ Update .\method.py>random_point to use new classes @done
+		✔ Update .\method.py>run_param_and_store_quality to use new classes @done
+
+
+Dependencies:
+	How to  repr them,  could use essence `where` statements
+
+	PPP:
+		✔ Variable references @done
+		☐ the size of the crew is less then it's capacity
+			for i in Boat .
+				crew(i) <= capacity(i)
+
+
+Misc:
+	✔  Show cpu time at the end @done (14-01-21 00:28)
+	☐  Ordering option parsing
