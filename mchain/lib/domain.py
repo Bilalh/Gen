@@ -46,7 +46,7 @@ class DomainInt(Domain):
         return chain_lib.uniform_int(*vs)
 
     def all_values(self, selected_vals):
-        vs = [ self.resolve(v, selected_vals) for v in self.low_high ]
+        vs = range(*[ self.resolve(v, selected_vals) for v in self.low_high ])
         return vs
 
 
