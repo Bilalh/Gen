@@ -1,10 +1,25 @@
 
 domains:
-	✔ Make hs program to ouput json for givens @done
+	✔ Make hs program to output json for givens @done
 	✔ ints @done
 	✔  References @done
+	✔  all values for ints @done (14-01-21)
+	☐  return a wrapper (named tuple?) for random_point (since we are not just using int any more),
+		   iincluding; (make sure to sort dict before creating it)
+		 - pretty printed form (could also be a method) but can't use named tuple then
+		 -	the val
+
+	☐  radius calculation  say r=10 e.g for PPP, how should these be compared?
+		   [84, 93, 68, {1: 73, 2: 47}, {1: 48, 3: 28}]
+		   [73, 96, 38, {1: 1, 2: 71}, {1: 58, 2: 9}]
+		-  how to compare the functions:
+			- only after the checking the other values as extra dimension
+			- as extra dims.
+			- compare dom and range as pairs?
+			- what about when the function is not total?
+
 	☐  functions
-		☐ What does it mean for a function to be in radius of another?
+		✔ Generate total function @done (14-01-21)
 
 
 Algorithms:
