@@ -4,10 +4,11 @@ set -o nounset
 # Tar files so that I don't have too many files
 # and for convenience since they grouped by param
 
-mode=${1:-${MODE}}
+place=${1}
+mode=${2:-${MODE}}
 
 if [  -d "results-${mode}" ]; then
-	pushd "results-${mode}"
+	pushd "${place}/results-${mode}"
 else
 	echo "results-${mode} does not exist"
 	exit 2
