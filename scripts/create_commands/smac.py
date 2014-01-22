@@ -62,6 +62,7 @@ record_cp smac-output/\$prefix/logs/log-{race_no} ../../../../instancegen/smac-v
 	--seed     \$(seed_for_limit {limit} {race_no});
 popd;
 \$PARAM_GEN_SCRIPTS/db/parse_smac_output.py --essence={essence_path} --output_dir=\$place;
+\$PARAM_GEN_SCRIPTS/misc/tar_results.sh \$place {mode};
 EOF
 )
 """
@@ -88,6 +89,7 @@ EOF
 		line += ' \\\n ::: cores %d' % (jobs)
 		line += ' \\\n ::: essence_base %s' % (essence_base)
 		line += ' \\\n ::: essence_path %s \\' % (filepath)
+		line += ' \\\n ::: mode %s \\' % (mode)
 
 
 

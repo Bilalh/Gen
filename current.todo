@@ -30,6 +30,7 @@ Algorithms:
 Dependencies:
 	How to  repr them,  could use essence `where` statements
 
+
 	PPP:
 		✔ Variable references @done
 		☐ the size of the crew is less then it's capacity
@@ -40,6 +41,8 @@ Dependencies:
 Misc:
 	✔  Show cpu time at the end @done (14-01-21 00:28)
 	☐  Ordering option parsing
-	☐  tar stats files to reduce the number of files
+	✔  tar stats files to reduce the number of files @done (14-01-22 05:27)
+		✔  Wrote script @done (14-01-22 03:33)
+		✔  add to metascript @done (14-01-22 05:25)
 
 

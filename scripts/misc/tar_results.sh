@@ -7,10 +7,10 @@ set -o nounset
 place=${1}
 mode=${2:-${MODE}}
 
-if [  -d "results-${mode}" ]; then
+if [  -d "${place}/results-${mode}" ]; then
 	pushd "${place}/results-${mode}"
 else
-	echo "results-${mode} does not exist"
+	echo "${place}/results-${mode} does not exist from $PWD"
 	exit 2
 fi
 
