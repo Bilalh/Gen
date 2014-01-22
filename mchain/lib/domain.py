@@ -8,6 +8,7 @@ import json
 import subprocess
 import sys
 import os
+import random
 
 
 class Domain(metaclass=ABCMeta):
