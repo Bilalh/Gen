@@ -8,7 +8,7 @@ def calc_models_timeout(common, cores):
 
 
 def calc_total_time(common, cores):
-	return common['total_time']
+	return int(math.ceil(common['total_time']))
 
 
 def create_commands_py(method_name, function_templete, data, commons_grouped, place_dir, init_source, num_runs):
