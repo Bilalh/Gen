@@ -15,18 +15,26 @@ else
 fi
 
 
-mkdir -p _stats
+Tar_dir="_tar"
+mkdir -p ${Tar_dir}
 
-Command=$( cat <<EOF
+Params=$( cat <<EOF
+echo "taring eprime-param" &&
+tar czf ${Tar_dir}/{/.}.params.tar.gz \
+	\$(ls *{/.}* | egrep  "eprime-param$")  
+EOF
+)
+
+Stats=$( cat <<EOF
 echo "taring stats" &&
-tar czf _stats/{/.}.tar.gz \
-	\$(ls *{/.}* | egrep -v "minion$|minion.aux$")  
+tar czf ${Tar_dir}/{/.}.stats.tar.gz \
+	\$(ls *{/.}* | egrep -v "minion$|minion.aux$|eprime-param$")  
 EOF
 )
 
 Minions=$( cat <<EOF
 echo "taring minions" &&
-tar czf _stats/{/.}.minions.tar.gz \
+tar czf ${Tar_dir}/{/.}.minions.tar.gz \
 	\$(ls *{/.}* | egrep "minion$|minion.aux$") 
 EOF
 )
@@ -38,13 +46,16 @@ EOF
 )
 
 
-parallel --tagstring "finding finished {/.}" 'ls *{/.}*.zfinished > p-{/.}.finished' ::: ../params/*
+
+parallel -j${NUM_JOBS} --tagstring "finding finished {/.}" 'ls *{/.}*.zfinished > p-{/.}.finished' ::: ../params/*
 find . -name 'p-*.finished' -empty -delete
 
 
-parallel --tagstring "{/.}" $Command ::: ../params/*
+parallel -j${NUM_JOBS} --tagstring "{/.}" $Params ::: ../params/*
 
-parallel --tagstring "{/.}" $Minions ::: ../params/*
+parallel -j${NUM_JOBS} --tagstring "{/.}" $Stats ::: ../params/*
+
+parallel -j${NUM_JOBS} --tagstring "{/.}" $Minions ::: ../params/*
 
 # rm ? seems to not delete some files in parallel
 parallel -j1 --tagstring "{/.}" $Remove ::: ../params/*
