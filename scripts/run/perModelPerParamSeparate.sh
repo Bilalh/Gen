@@ -37,7 +37,7 @@ START_FILE="${EPRIMEBASE}-${PARAMBASE}.zstarted"
 touch $START_FILE
 
 
-MSG_TEMPLATE="$ESSENCE $EPRIME $PARAM"
+MSG_TEMPLATE="$ESSENCE `basename ${EPRIME}` $PARAM_NAME"
 TIME_TEMPLATE="${EPRIMEBASE}-${PARAMBASE}.time"
 
 FAIL_FILE="${EPRIMEBASE}.fails"
@@ -50,7 +50,7 @@ echo "*** `basename $ESSENCE` - `basename $EPRIME` - `basename $PARAM` ***"
 #"
 
 RESULTOF_REFINEPARAM=0
-MSG_REFINEPARAM="{refineParam}       $MSG_TEMPLATE"
+MSG_REFINEPARAM="{refineParam}        $MSG_TEMPLATE"
 echo "$MSG_REFINEPARAM"
 
 # print the command the run it
@@ -75,7 +75,7 @@ fi
 
 
 RESULTOF_SAVILEROW=0
-MSG_SAVILEROW="{savilerow}         $MSG_TEMPLATE"
+MSG_SAVILEROW="{savilerow}          $MSG_TEMPLATE"
 echo "$MSG_SAVILEROW"
 
 
@@ -105,7 +105,7 @@ if [ ! -f $MINION ]; then
 fi
 
 RESULTOF_MINION=0
-MSG_MINION="{minion}         $MSG_TEMPLATE"
+MSG_MINION="{minion}             $MSG_TEMPLATE"
 echo "$MSG_MINION"
 
 
@@ -154,7 +154,7 @@ fi
 if [ !  -n "${NO_TRANSLATE:-}" ]; then
 
 RESULTOF_TRANSLATESOLN=0
-MSG_TRANSLATESOLN="{translateSolution} $MSG_TEMPLATE"
+MSG_TRANSLATESOLN="{translateSolution}  $MSG_TEMPLATE"
 echo "$MSG_TRANSLATESOLN"
 
 echoer   \
@@ -180,7 +180,7 @@ fi
 
 if [ !  -n "${NO_VALIDATE:-}" ]; then
 RESULTOF_VALIDATESOLN=0
-MSG_VALIDATESOLN="{validateSolution} $MSG_TEMPLATE"
+MSG_VALIDATESOLN="{validateSolution}   $MSG_TEMPLATE"
 echo "$MSG_VALIDATESOLN"
 
 

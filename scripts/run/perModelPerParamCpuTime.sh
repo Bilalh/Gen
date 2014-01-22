@@ -44,11 +44,10 @@ SAVILEROW_TIME="${EPRIMEBASE}-${PARAMBASE}.sr-time"
 touch $START_FILE
 
 
-MSG_TEMPLATE="$ESSENCE $EPRIME $PARAM"
+MSG_TEMPLATE="$ESSENCE `basename ${EPRIME}` $PARAM_NAME"
 TIME_TEMPLATE="${EPRIMEBASE}-${PARAMBASE}.time"
 
 FAIL_FILE="${EPRIMEBASE}.fails"
-SUCCESS_FILE="${EPRIMEBASE}.success"
 
 CPUTIMEOUT="${SCRIPT_DIR}/../tools/cputimeout/cputimeout --timeout-file $TIMEOUT5_FILE --interval 1 -k5"
 
@@ -59,7 +58,7 @@ echo "*** `basename $ESSENCE` - `basename $EPRIME` - `basename $PARAM` ***"
 #"
 
 RESULTOF_REFINEPARAM=0
-MSG_REFINEPARAM="{refineParam}       $MSG_TEMPLATE"
+MSG_REFINEPARAM="{refineParam}        $MSG_TEMPLATE"
 echo "$MSG_REFINEPARAM"
 
 # print the command the run it
@@ -106,7 +105,7 @@ echo "PREVIOUS_USED is $PREVIOUS_USED now"
 
 
 RESULTOF_SAVILEROW=0
-MSG_SAVILEROW="{savilerow}         $MSG_TEMPLATE"
+MSG_SAVILEROW="{savilerow}          $MSG_TEMPLATE"
 echo "$MSG_SAVILEROW"
 
 
@@ -146,7 +145,7 @@ echo "PREVIOUS_USED is $PREVIOUS_USED now"
 
 
 RESULTOF_MINION=0
-MSG_MINION="{minion}         $MSG_TEMPLATE"
+MSG_MINION="{minion}             $MSG_TEMPLATE"
 echo "$MSG_MINION"
 
 
