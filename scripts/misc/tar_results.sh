@@ -38,10 +38,10 @@ EOF
 )
 
 
- parallel --tagstring "{/.}" $Command ::: ../params/*
+parallel --tagstring "{/.}" $Command ::: ../params/*
 
- parallel --tagstring "{/.}" $Minions ::: ../params/*
- 
- parallel  --tagstring "{/.}" $Remove ::: ../params/*
- 
- popd
+parallel --tagstring "{/.}" $Minions ::: ../params/*
+
+parallel  --tagstring "{/.}" $Remove ::: ../params/*
+
+popd
