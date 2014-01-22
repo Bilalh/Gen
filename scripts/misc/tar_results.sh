@@ -33,15 +33,20 @@ EOF
 
 Remove=$( cat <<EOF
 echo "removing" &&
-	rm \$(ls *{/.}* | egrep -v "zfinished")  
+	rm \$(ls *{/.}* | egrep -v "^p-*{/.}")  
 EOF
 )
+
+
+parallel --tagstring "finding finished {/.}" 'ls *{/.}*.zfinished > p-{/.}.finished' ::: ../params/*
+find . -name 'p-*.finished' -empty -delete
 
 
 parallel --tagstring "{/.}" $Command ::: ../params/*
 
 parallel --tagstring "{/.}" $Minions ::: ../params/*
 
-parallel  --tagstring "{/.}" $Remove ::: ../params/*
+# rm ? seems to not delete some files in parallel
+parallel -j1 --tagstring "{/.}" $Remove ::: ../params/*
 
 popd
