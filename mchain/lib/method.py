@@ -56,8 +56,10 @@ class Method(metaclass=ABCMeta):
 
         with open(os.path.join(self.output_dir, "info", "rerun_settings.json"), "w") as f:
             options['limiter'] = limiter.__class__.__name__
+            options['info'] = self.info
             f.write(json.dumps(options))
             del options['limiter']
+            del options['info']
 
         self.param_info = domain.gather_param_info(options['essence'], self.output_dir)
         logger.info(pformat(self.param_info, width=80))
@@ -65,6 +67,7 @@ class Method(metaclass=ABCMeta):
 
         if len(self.info.ordering) != len(self.param_info):
             print("Ordering size:{} != params size:{}".format(len(self.info.ordering), len(self.param_info)))
+            print("ordering:{}\nparam_info:{}".format(self.info.ordering, self.param_info))
             sys.exit(8)
 
         self.limiter = limiter

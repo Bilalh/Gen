@@ -23,7 +23,10 @@ def parse_arguments(doc, *, version):
 			options = json.load(fp)
 			limiter = getattr(limit, options['limiter'])(options['limit'])
 			del options['limiter']
-			return (options, limiter)
+			info = Info(*options['info'])
+			del options['info']
+
+			return (options, limiter, info)
 
 	limiters = {
 		"time": limit.TimeLimit,
