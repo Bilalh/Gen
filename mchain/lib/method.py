@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 class Method(metaclass=ABCMeta):
-    def __init__(self, options, limiter, setting_constructor):
+    def __init__(self, options, limiter, setting_constructor, info):
         if "PARAM_GEN_SCRIPTS" not in os.environ:
             logger.error("$PARAM_GEN_SCRIPTS needs to defined")
             exit(2)
@@ -39,6 +39,7 @@ class Method(metaclass=ABCMeta):
             logger.error("Compile timeout5 in %s", tools )
             exit(5)
 
+        self.info = info
 
         if options['output_dir']:
             self.output_dir = options['output_dir']
@@ -61,10 +62,9 @@ class Method(metaclass=ABCMeta):
         self.param_info = domain.gather_param_info(options['essence'], self.output_dir)
         logger.info(pformat(self.param_info, width=80))
 
-        # hard coding ordering for langfords
-        self.ordering = ['n_upper', 'n_boats', 'n_periods', 'capacity', 'crew']
-        if len(self.ordering) != len(self.param_info):
-            print("Ordering size:{} != params size:{}".format(len(self.ordering), len(self.param_info)))
+
+        if len(self.info.ordering) != len(self.param_info):
+            print("Ordering size:{} != params size:{}".format(len(self.info.ordering), len(self.param_info)))
             sys.exit(8)
 
         self.limiter = limiter
@@ -115,7 +115,7 @@ class Method(metaclass=ABCMeta):
         return options
 
     def run_param_and_store_quality(self, point):
-        (param_string, param_name) = chain_lib.create_param_essence(zip(self.ordering, point))
+        (param_string, param_name) = chain_lib.create_param_essence(zip(self.info.ordering, point))
         logger.info(param_string)
         param_path = chain_lib.write_param(self.output_dir, param_string, param_name)
 
@@ -137,10 +137,10 @@ class Method(metaclass=ABCMeta):
     def random_point(self):
         selected_vals = {}
         # return tuple([chain_lib.uniform_int(l, u) for (l, u) in self.data])
-        for name in self.ordering:
+        for name in self.info.ordering:
             v=self.param_info[name].random_value(selected_vals)
             selected_vals[name] = v
-        return [  selected_vals[name] for name in self.ordering ]
+        return [  selected_vals[name] for name in self.info.ordering ]
 
 
     # FIXME

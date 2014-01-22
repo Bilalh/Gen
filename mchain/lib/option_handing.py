@@ -1,5 +1,6 @@
 from lib import limit
 
+from collections import namedtuple
 from docopt import docopt
 import json
 import logging
@@ -7,7 +8,9 @@ import os
 import pprint
 import re
 
+
 logger = logging.getLogger(__name__)
+Info=namedtuple("Info", ['ordering'])
 
 
 def parse_arguments(doc, *, version):
@@ -27,6 +30,7 @@ def parse_arguments(doc, *, version):
 		"iterations": limit.IterationsLimit,
 		"cpu": limit.CpuLimit
 	}
+
 
 	to_delete = ['json', '<file>']
 	for l in to_delete:
@@ -88,5 +92,10 @@ def parse_arguments(doc, *, version):
 
 	limiter = limiter_s(options['limit'])
 
-	return (options, limiter)
+	with open(options['info']) as fp:
+		info = Info(**json.load(fp))
+		del options['info']
+
+
+	return (options, limiter, info)
 
