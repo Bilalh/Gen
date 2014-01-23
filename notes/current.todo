@@ -40,7 +40,7 @@ Dependencies:
 
 Misc:
 	✔  Show cpu time at the end @done (14-01-21 00:28)
-	☐  Ordering option parsing
+	✔  Ordering option parsing @done (14-01-22 16:09)
 	✔  tar stats files to reduce the number of files @done (14-01-22 05:27)
 		✔  Wrote script @done (14-01-22 03:33)
 		✔  add to metascript @done (14-01-22 05:25)

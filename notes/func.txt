@@ -23,4 +23,4 @@ possible ideas
 		means that won't be much influence until there a lot of points
 		also what to do about function with different domain/range sizes?
 
-
+	- Euclidean distance
