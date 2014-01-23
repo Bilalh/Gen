@@ -5,7 +5,7 @@
 """
 Usage:
    nsample (iterations|time|cpu) <limit>
-   ( --essence=<file> --models_timeout=<int> --influence_radius=<int>)
+   ( --essence=<file> --models_timeout=<int> --influence_radius=<int> --info=<file> )
    [ --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str> --radius_as_percentage=<bool>]
    nsample json <file>
 
@@ -22,6 +22,7 @@ Options:
   --radius_as_percentage=<bool>    Radius setting as a % [default: false].
   --seed=<int>                     Random seed to use.
   --working_dir=<dir>              Where the essence file is [default: .]
+  --info=<file>                    Files that contains the ordering of the variable
 
 """
 
@@ -38,8 +39,8 @@ Settings=namedtuple('Settings', ['seed', 'mode', 'models_timeout', "essence", "w
 
 
 class NSample(method.Method):
-    def __init__(self, options, limiter):
-        super(NSample, self,).__init__(options, limiter, Settings)
+    def __init__(self, options, limiter, info):
+        super(NSample, self,).__init__(options, limiter, Settings, info)
         self.goodness_x_prev = 1
 
 
@@ -99,7 +100,7 @@ class NSample(method.Method):
 
 if __name__ == '__main__':
     logging.basicConfig(format='%(name)s:%(lineno)d:%(funcName)s: %(message)s', level=logging.INFO)
-    (options, limiter) = option_handing.parse_arguments(__doc__, version="1.0")
-    NSample(options, limiter).run()
+    (options, limiter, info) = option_handing.parse_arguments(__doc__, version="1.0")
+    NSample(options, limiter, info).run()
     logger.info("<finished>")
 
