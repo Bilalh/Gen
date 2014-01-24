@@ -3,12 +3,22 @@ from lib import chain_lib
 from abc import ABCMeta, abstractmethod
 from pprint import pprint
 
+from collections import namedtuple
+
 import itertools as it
 import json
 import subprocess
 import sys
 import os
 import random
+import logging
+
+import unicodedata
+import string
+
+DomainInstance = namedtuple("DomainInstance", ["point", "pretty"])
+logger = logging.getLogger(__name__)
+
 
 
 class Domain(metaclass=ABCMeta):
@@ -37,17 +47,29 @@ class Domain(metaclass=ABCMeta):
 
 
 class DomainInt(Domain):
-    """Int domain with (low,high) range"""
+    """Int domain in (low,high) inclusive """
     def __init__(self, low_high):
         super(DomainInt, self).__init__()
         self.low_high = low_high
 
+    def resolve(self, v, selected_vals):
+        if isinstance(v, Ref):
+            return v.resolve(selected_vals)
+        else:
+            pretty = "{}".format(v)
+            return DomainInstance(point=v, pretty=pretty )
+
+
     def random_value(self, selected_vals):
-        vs = [ self.resolve(v, selected_vals) for v in self.low_high ]
-        return chain_lib.uniform_int(*vs)
+        vs = [ self.resolve(v, selected_vals).point for v in self.low_high ]
+        u = chain_lib.uniform_int(*vs)
+        pretty = "{}".format(u)
+        return DomainInstance(point=u,  pretty=pretty )
 
     def all_values(self, selected_vals):
-        vs = range(*[ self.resolve(v, selected_vals) for v in self.low_high ])
+        low_high = [ self.resolve(v, selected_vals).point for v in self.low_high ]
+
+        vs = range(low_high[0], low_high[1] + 1)
         return vs
 
 
@@ -60,11 +82,19 @@ class DomainFunc(Domain):
         self.to = to
 
     def random_value(self, selected_vals):
-        # TODO  assumes total at the momment
+        # TODO  assumes total from ints at the momment
         all_from = self.fromm.all_values(selected_vals)
         tos = [ self.to.random_value(selected_vals) for i in range(len(all_from)) ]
         res = dict(zip(all_from, tos))
-        return res
+
+        logger.debug("rv %s", (all_from, tos, res))
+
+        kv = [ "{} --> {}".format(k, v.pretty) for (k, v) in sorted(res.items()) ]
+        pretty = "function( {} )".format( ", ".join(kv) )
+
+        di = DomainInstance(point=res, pretty=pretty)
+        logger.info("point Part %s", pretty)
+        return di
 
 
 class Ref():
