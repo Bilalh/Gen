@@ -74,7 +74,7 @@ class NSample(method.Method):
     def do_iteration(self):
         x = self.random_point()
         goodness_x = self.goodness(x)
-        logger.info("point %s,  goodness_x: %0.3f goodness_x_prev: %0.3f", x, goodness_x, self.goodness_x_prev)
+        logger.info("point %s,  goodness_x: %0.3f goodness_x_prev: %0.3f", [y.pretty for y in x ], goodness_x, self.goodness_x_prev)
 
         def accept_point():
             #  if goodness_x and goodness_x_prev are both zero should we reject it?
@@ -94,6 +94,8 @@ class NSample(method.Method):
         if accept_point():
             self.run_param_and_store_quality(x)
             self.data_points.append(x)
+        else:
+            logger.info("REJECTED point %s,  goodness_x: %0.3f goodness_x_prev: %0.3f", x, goodness_x, self.goodness_x_prev)
 
         self.goodness_x_prev = goodness_x
 
