@@ -119,7 +119,7 @@ class Method(metaclass=ABCMeta):
 
     def run_param_and_store_quality(self, point):
         (param_string, param_name) = chain_lib.create_param_essence(zip(self.info.ordering, point))
-        logger.info(param_string)
+        logger.info((param_string, param_name))
         param_path = chain_lib.write_param(self.output_dir, param_string, param_name)
 
         datee = calendar.datetime.datetime.now()

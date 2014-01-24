@@ -13,10 +13,8 @@ import os
 import random
 import logging
 
-import unicodedata
-import string
 
-DomainInstance = namedtuple("DomainInstance", ["point", "pretty"])
+DomainInstance = namedtuple("DomainInstance", ["point", "pretty", "safe"])
 logger = logging.getLogger(__name__)
 
 
@@ -57,14 +55,14 @@ class DomainInt(Domain):
             return v.resolve(selected_vals)
         else:
             pretty = "{}".format(v)
-            return DomainInstance(point=v, pretty=pretty )
+            return DomainInstance(point=v, pretty=pretty, safe=pretty )
 
 
     def random_value(self, selected_vals):
         vs = [ self.resolve(v, selected_vals).point for v in self.low_high ]
         u = chain_lib.uniform_int(*vs)
         pretty = "{}".format(u)
-        return DomainInstance(point=u,  pretty=pretty )
+        return DomainInstance(point=u,  pretty=pretty, safe=pretty )
 
     def all_values(self, selected_vals):
         low_high = [ self.resolve(v, selected_vals).point for v in self.low_high ]
@@ -92,7 +90,10 @@ class DomainFunc(Domain):
         kv = [ "{} --> {}".format(k, v.pretty) for (k, v) in sorted(res.items()) ]
         pretty = "function( {} )".format( ", ".join(kv) )
 
-        di = DomainInstance(point=res, pretty=pretty)
+        kv_safe = [ "{}_{}".format(k, v.safe) for (k, v) in sorted(res.items()) ]
+        safe = "F__{}__".format( ",".join(kv_safe) )
+
+        di = DomainInstance(point=res, pretty=pretty, safe=safe)
         logger.info("point Part %s", pretty)
         return di
 

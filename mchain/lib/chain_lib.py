@@ -35,8 +35,8 @@ def create_param_essence(params):
     essence = ["language Essence 1.3"]
     name = []
     for (k, v) in params:
-        essence.append( "letting {} be {}".format(k, v)  )
-        name.append("%03d" % v)
+        essence.append( "letting {} be {}".format(k, v.pretty)  )
+        name.append("%s" % v.safe)
     return ("\n".join(essence), "-".join(name))
 
 
