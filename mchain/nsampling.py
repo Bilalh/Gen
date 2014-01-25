@@ -51,7 +51,7 @@ class NSample(method.Method):
     def goodness(self, point):
 
         def get_quailty(x):
-            name = "-".join( [ ("%03d" % p) for p in x ] )
+            name = "-".join( [ ("%s" % p.safe) for p in x ] )
             return chain_lib.get_quailty(self.output_dir, name)
 
         def avg_quality(rp):
@@ -73,6 +73,11 @@ class NSample(method.Method):
 
     def do_iteration(self):
         x = self.random_point()
+        for pp in self.data_points:
+            logger.info("dp %s", self.point_pretty(pp))
+        logger.info("X %s", self.point_pretty(x))
+
+
         goodness_x = self.goodness(x)
         logger.info("point %s,  goodness_x: %0.3f goodness_x_prev: %0.3f", [y.pretty for y in x ], goodness_x, self.goodness_x_prev)
 

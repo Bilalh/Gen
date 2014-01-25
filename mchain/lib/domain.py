@@ -14,9 +14,54 @@ import random
 import logging
 
 
-DomainInstance = namedtuple("DomainInstance", ["point", "pretty", "safe"])
+# DomainInstance = namedtuple("DomainInstance", ["point", "pretty", "safe"])
 logger = logging.getLogger(__name__)
 
+
+class DomainInstance(metaclass=ABCMeta):
+    """Instantiation of a domain"""
+    def __init__(self, point, pretty, safe):
+        super(DomainInstance, self).__init__()
+        self.point = point
+        self.pretty = pretty
+        self.safe = safe
+
+    def __repr__(self):
+        return "{}({})".format(self.__class__.__name__,
+            ', '.join( key + "=" + str(getattr(self, key))
+                for key in self.__dict__ if not key.startswith('_'))
+                )
+
+    @abstractmethod
+    def distance(self, other_dom):
+        raise NotImplemented("distance not done yet")
+
+
+class InstanceInt(DomainInstance):
+    def __init__(self, point, pretty, safe):
+        super(InstanceInt, self).__init__(point, pretty, safe)
+
+    def distance(self, other_dom):
+        "  distance between the two domains, for use in euclidean "
+        if not isinstance(other_dom, self.__class__):
+            raise ValueError("other dom must of %s" % self.__class__.__name__)
+
+        return other_dom.point - self.point
+
+
+class InstanceFunc(DomainInstance):
+    def __init__(self, point, pretty, safe):
+        super(InstanceFunc, self).__init__(point, pretty, safe)
+
+    def distance(self, other_dom):
+        "  distance between the two domains, for use in euclidean "
+        if not isinstance(other_dom, self.__class__):
+            raise ValueError("other dom must of %s" % self.__class__.__name__)
+
+        logger.info("self %s other %s", self.pretty, other_dom.pretty)
+        logger.info("self %s other %s", self.point,  other_dom.point)
+
+        raise NotImplemented("distance not done yet")
 
 
 class Domain(metaclass=ABCMeta):
@@ -44,6 +89,9 @@ class Domain(metaclass=ABCMeta):
         raise NotImplemented("All values not done yet")
 
 
+
+
+
 class DomainInt(Domain):
     """Int domain in (low,high) inclusive """
     def __init__(self, low_high):
@@ -55,14 +103,14 @@ class DomainInt(Domain):
             return v.resolve(selected_vals)
         else:
             pretty = "{}".format(v)
-            return DomainInstance(point=v, pretty=pretty, safe=pretty )
+            return InstanceInt(point=v, pretty=pretty, safe=pretty )
 
 
     def random_value(self, selected_vals):
         vs = [ self.resolve(v, selected_vals).point for v in self.low_high ]
         u = chain_lib.uniform_int(*vs)
         pretty = "{}".format(u)
-        return DomainInstance(point=u,  pretty=pretty, safe=pretty )
+        return InstanceInt(point=u,  pretty=pretty, safe=pretty )
 
     def all_values(self, selected_vals):
         low_high = [ self.resolve(v, selected_vals).point for v in self.low_high ]
@@ -93,8 +141,8 @@ class DomainFunc(Domain):
         kv_safe = [ "{}_{}".format(k, v.safe) for (k, v) in sorted(res.items()) ]
         safe = "F__{}__".format( ",".join(kv_safe) )
 
-        di = DomainInstance(point=res, pretty=pretty, safe=safe)
-        logger.info("point Part %s", pretty)
+        di = InstanceFunc(point=res, pretty=pretty, safe=safe)
+        # logger.info("point Part %s", pretty)
         return di
 
 

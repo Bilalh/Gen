@@ -1,6 +1,7 @@
 from lib import chain_lib
 from lib import ncube
 from lib import ncuboid
+from lib import euclidean
 from lib import domain
 
 from abc import ABCMeta, abstractmethod
@@ -131,7 +132,7 @@ class Method(metaclass=ABCMeta):
 
         results = chain_lib.get_results(self.settings.working_dir, self.output_dir, param_name, self.settings.models_timeout, now)
         quailty = chain_lib.quality(*results)
-        logger.info("results: {} quailty: {} for {}".format(results, quailty, point))
+        logger.info("results: {} quailty: {} for {}".format(results, quailty, [p.pretty for p in point]))
         chain_lib.save_quality(self.output_dir, param_name, quailty)
 
         self.prev_timestamp = now
@@ -156,8 +157,10 @@ class Method(metaclass=ABCMeta):
                     radii = [ math.ceil((u - l) * (per / 100)) for (l, u) in self.data ]
                     options[s] = radii
         else:
-            self.shape = ncube
+            self.shape = euclidean
 
         return options
 
 
+    def point_pretty(self, x):
+        return [(n, y.pretty) for (n, y) in zip(self.info.ordering, x) ]
