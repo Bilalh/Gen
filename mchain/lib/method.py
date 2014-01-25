@@ -85,7 +85,7 @@ class Method(metaclass=ABCMeta):
         self.data_points = []
         self._current_iteration = 0
         self.prev_timestamp = None
-
+        self.use_previous_data = True
 
     def run(self):
         date_start = datetime.utcnow()
@@ -121,14 +121,21 @@ class Method(metaclass=ABCMeta):
     def run_param_and_store_quality(self, point):
         (param_string, param_name) = chain_lib.create_param_essence(zip(self.info.ordering, point))
         logger.info((param_string, param_name))
-        param_path = chain_lib.write_param(self.output_dir, param_string, param_name)
 
-        datee = calendar.datetime.datetime.now()
-        logger.info("Start %s", datee.isoformat())
-        now = str(int(datee.timestamp()))
 
-        chain_lib.run_models(now, param_path, self.settings.models_timeout, self.settings.working_dir, self.output_dir, self.settings.mode)
-        logger.info("End %s", calendar.datetime.datetime.now().isoformat()  )
+        check = self.use_previous(param_name)
+        if self.use_previous_data and check:
+            now = check
+        else:
+            param_path = chain_lib.write_param(self.output_dir, param_string, param_name)
+
+            datee = calendar.datetime.datetime.now()
+            logger.info("Start %s", datee.isoformat())
+            now = str(int(datee.timestamp()))
+
+            chain_lib.run_models(now, param_path, self.settings.models_timeout, self.settings.working_dir, self.output_dir, self.settings.mode)
+            logger.info("End %s", calendar.datetime.datetime.now().isoformat()  )
+
 
         results = chain_lib.get_results(self.settings.working_dir, self.output_dir, param_name, self.settings.models_timeout, now)
         quailty = chain_lib.quality(*results)
@@ -137,6 +144,16 @@ class Method(metaclass=ABCMeta):
 
         self.prev_timestamp = now
         return quailty
+
+    def use_previous(self, param_name):
+        import sqlite3
+        from pathlib import Path
+        if (Path(self.output_dir) / "results.db").exists():
+            conn = sqlite3.connect(os.path.join(self.output_dir, 'results.db'))
+            results = conn.execute("SELECT timestamp FROM Timeouts WHERE param = ?", (param_name,))
+            return list(results)[0][0]
+        else:
+            return None
 
     def random_point(self):
         selected_vals = {}
