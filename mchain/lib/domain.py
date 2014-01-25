@@ -13,12 +13,14 @@ import os
 import random
 import logging
 
+import itertools as it
 
 # DomainInstance = namedtuple("DomainInstance", ["point", "pretty", "safe"])
 logger = logging.getLogger(__name__)
 
 
 class DomainInstance(metaclass=ABCMeta):
+
     """Instantiation of a domain"""
     def __init__(self, point, pretty, safe):
         super(DomainInstance, self).__init__()
@@ -32,6 +34,10 @@ class DomainInstance(metaclass=ABCMeta):
                 for key in self.__dict__ if not key.startswith('_'))
                 )
 
+    def to_json(self):
+        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
+
+
     @abstractmethod
     def distance(self, other_dom):
         raise NotImplemented("distance not done yet")
@@ -42,7 +48,7 @@ class InstanceInt(DomainInstance):
         super(InstanceInt, self).__init__(point, pretty, safe)
 
     def distance(self, other_dom):
-        "  distance between the two domains, for use in euclidean "
+        "  distance squared between the two domains, for use in euclidean "
         if not isinstance(other_dom, self.__class__):
             raise ValueError("other dom must of %s" % self.__class__.__name__)
 
@@ -61,7 +67,17 @@ class InstanceFunc(DomainInstance):
         logger.info("self %s other %s", self.pretty, other_dom.pretty)
         logger.info("self %s other %s", self.point,  other_dom.point)
 
-        raise NotImplemented("distance not done yet")
+        def f(x1, x2):
+            if x1 is None or x2 is None:
+                return 0
+            else:
+                return (x1 - x2) ** 2
+
+
+        parts = [ f(x1, x2) for (x1, x2) in it.zip_longest(self.point, other_dom.point) ]
+        logger.debug("functin dist parts %s", parts)
+
+        return sum(parts)
 
 
 class Domain(metaclass=ABCMeta):

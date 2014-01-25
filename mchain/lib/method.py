@@ -97,8 +97,14 @@ class Method(metaclass=ABCMeta):
             self.do_iteration()
             self._current_iteration+=1
 
+        def jdefault(o):
+            if isinstance(o, set):
+                return list(o)
+            return o.__dict__
+
         with open(os.path.join(self.output_dir, "info", "data-points.json"), "w") as f:
-            f.write(json.dumps(self.data_points))
+            # f.write(json.dumps(self.data_points, default=jdefault))
+            f.write(json.dumps([  self.point_pretty(p) for p in self.data_points ]))
 
         cpu_time_end = time.process_time()
         date_end = datetime.utcnow()
@@ -150,8 +156,10 @@ class Method(metaclass=ABCMeta):
         from pathlib import Path
         if (Path(self.output_dir) / "results.db").exists():
             conn = sqlite3.connect(os.path.join(self.output_dir, 'results.db'))
-            results = conn.execute("SELECT timestamp FROM Timeouts WHERE param = ?", (param_name,))
-            return list(results)[0][0]
+            results = list(conn.execute("SELECT timestamp FROM Timeouts WHERE param = ?", (param_name,)))
+            if len(results) == 0:
+                return None
+            return results[0][0]
         else:
             return None
 
