@@ -80,6 +80,7 @@ class InstanceFunc(DomainInstance):
         return sum(parts)
 
 
+
 class Domain(metaclass=ABCMeta):
     """Domain e.g int or function"""
     def __init__(self):
@@ -103,9 +104,6 @@ class Domain(metaclass=ABCMeta):
 
     def all_values(self, selected_vals):
         raise NotImplemented("All values not done yet")
-
-
-
 
 
 class DomainInt(Domain):
