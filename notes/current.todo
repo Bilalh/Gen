@@ -20,6 +20,22 @@ domains:
 	☐  functions
 		✔ Generate total function @done (14-01-21)
 		☐ Dependencies such as forall as in PPP
+			-  Easy way would be generate and test (using conjure's full evaluator)
+			-  could take a long time
+			-
+			-  Keep a domain for each mapping, which is reduced when choosing other values
+			-  e.g when picking capacity change the domain of crew
+
+
+Where:
+	☐ prob006-GR				n >= 0
+	☐ prob009-PerSqu		(sum s : sizes . s**2) = container_size**2
+	☐ prob023-MagicHex  d % 2 = 1
+	☐ prob026-round-r   n_teams % 2 = 0
+	☐ prob028-Bibd      v = b   r = k
+	☐ prob045-cover			 k>=t, b>=g**t
+	☐ 123 128 131       complex where with Quantifiers, functions and other Expressions
+		                   But are commented out
 
 
 Algorithms:
@@ -45,6 +61,7 @@ Misc:
 	✔  tar stats files to reduce the number of files @done (14-01-22 05:27)
 		✔  Wrote script @done (14-01-22 03:33)
 		✔  add to metascript @done (14-01-22 05:25)
+	☐  Use the new EprimeOrdering view to choose which order the eprimes should be done in.
 
 
 Ideas:
