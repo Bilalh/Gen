@@ -4,12 +4,12 @@ domains:
 	✔ ints @done
 	✔  References @done
 	✔  all values for ints @done (14-01-21)
-	☐  return a wrapper (named tuple?) for random_point (since we are not just using int any more),
-		   iincluding; (make sure to sort dict before creating it)
+	✔  return a wrapper (named tuple?) for random_point (since we are not just using int any more), @done (14-01-26 00:14)
+		   including; (make sure to sort dict before creating it)
 		 - pretty printed form (could also be a method) but can't use named tuple then
 		 -	the val
 
-	☐  radius calculation  say r=10 e.g for PPP, how should these be compared?
+	✔  radius calculation  say r=10 e.g for PPP, how should these be compared? @done (14-01-26 00:12)
 		   [84, 93, 68, {1: 73, 2: 47}, {1: 48, 2: 28}]
 		   [73, 96, 38, {1: 1, 2: 71, 3:12}, {1: 58, 2: 9, 3:42}]
 		-  how to compare the functions (assuming total):
@@ -19,6 +19,7 @@ domains:
 
 	☐  functions
 		✔ Generate total function @done (14-01-21)
+		☐ Dependencies such as forall as in PPP
 
 
 Algorithms:
@@ -44,5 +45,12 @@ Misc:
 	✔  tar stats files to reduce the number of files @done (14-01-22 05:27)
 		✔  Wrote script @done (14-01-22 03:33)
 		✔  add to metascript @done (14-01-22 05:25)
+
+
+Ideas:
+ Instead of using the domain bounds as given, if we can be 50 point then first pick small n  point of the first 10% since then bounds could be massive
+
+ Try only only the first n  models  for the first k%.
+ e.g use the first 16 from 256 for the first 5% and use the most discriminating on the rest of the models
 
 
