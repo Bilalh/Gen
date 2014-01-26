@@ -52,7 +52,7 @@ class InstanceInt(DomainInstance):
         if not isinstance(other_dom, self.__class__):
             raise ValueError("other dom must of %s" % self.__class__.__name__)
 
-        return other_dom.point - self.point
+        return (other_dom.point - self.point) ** 2
 
 
 class InstanceFunc(DomainInstance):
