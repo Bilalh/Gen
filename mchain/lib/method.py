@@ -143,7 +143,7 @@ class Method(metaclass=ABCMeta):
             logger.info("End %s", calendar.datetime.datetime.now().isoformat()  )
 
 
-        results = chain_lib.get_results(self.settings.working_dir, self.output_dir, param_name, self.settings.models_timeout, now)
+        results = chain_lib.get_results(self.settings.working_dir, self.output_dir, param_name, self.settings.models_timeout, now, self.settings.mode)
         quailty = chain_lib.quality(*results)
         logger.info("results: {} quailty: {} for {}".format(results, quailty, [p.pretty for p in point]))
         chain_lib.save_quality(self.output_dir, param_name, quailty)
