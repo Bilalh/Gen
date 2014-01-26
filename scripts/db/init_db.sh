@@ -182,4 +182,36 @@ sqlite3 ${REPOSITORY_BASE}/results.db <<SQL
 
 
 
+
+	CREATE VIEW IF NOT EXISTS EprimeOrdering as
+	-- Eprimes which were the fastest on some param
+	Select eprime, 0 as Ord, count as Ord2,  avg as Ord3  From (
+
+	Select eprime, count(*) as count, avg(Time)  as avg
+	From Fastest
+	Group by eprime
+	)
+
+	UNION
+
+	-- Eprimes that did not timeout on some param
+	Select eprime, 1 as Ord, count as Ord2, avg as Ord3  From (
+	Select eprime, count(*) as count, avg(TotalTime) as avg
+	From TimingsRecorded
+	Where eprime not in (Select Distinct eprime From Fastest)
+	Group by eprime
+	)
+
+	UNION
+
+	-- All other eprimes
+	Select eprime, 2 as Ord, -1 as Ord2, -1 as Ord3 From(
+		Select eprime
+		From TimingsDomination
+		Where eprime not in (Select Distinct eprime From TimingsRecorded)
+	)
+
+	Order by Ord asc, Ord2 desc, Ord3 asc
+		;
+
 SQL
