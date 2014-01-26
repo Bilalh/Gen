@@ -97,13 +97,7 @@ class Method(metaclass=ABCMeta):
             self.do_iteration()
             self._current_iteration+=1
 
-        def jdefault(o):
-            if isinstance(o, set):
-                return list(o)
-            return o.__dict__
-
         with open(os.path.join(self.output_dir, "info", "data-points.json"), "w") as f:
-            # f.write(json.dumps(self.data_points, default=jdefault))
             f.write(json.dumps([  self.point_pretty(p) for p in self.data_points ]))
 
         cpu_time_end = time.process_time()
