@@ -16,7 +16,7 @@ export OUT_BASE_DIR=${OUT_BASE_DIR:-$BASE/out};
 mkdir -p $OUT_BASE_DIR
 
 export PARAMS_TO_USE="$2";
-export USE_MODE='df'
+echo $USE_MODE
 set +x
 
 

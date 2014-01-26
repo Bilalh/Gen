@@ -9,11 +9,10 @@ export PARAM_BASE_NAME
 
 BASE=${2:-`pwd`}
 cd $BASE
-MODE='df'
 DIR=`basename $BASE`
 
+echo $USE_MODE
 export OUT_BASE_DIR=${OUT_BASE_DIR:-$BASE/out};
-export USE_MODE="$MODE"
 
 export NO_MINION_STATS=true;
 export REPOSITORY_BASE="$OUT_BASE_DIR"

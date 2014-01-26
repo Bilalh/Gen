@@ -77,6 +77,7 @@ def run_models(now, param_path, cutoff_time, working_dir, output_dir, mode):
     def runner():
         current_env= os.environ.copy()
         current_env["OUT_BASE_DIR"] = output_dir
+        current_env["USE_MODE"] = mode
 
         subprocess.Popen([
             wrappers("run.sh"), now, param_path, str(time_per_model), working_dir
@@ -85,13 +86,14 @@ def run_models(now, param_path, cutoff_time, working_dir, output_dir, mode):
     return runner()
 
 
-def get_results(working_dir, output_dir, param_name, cutoff_time, then):
+def get_results(working_dir, output_dir, param_name, cutoff_time, then, mode):
     """ Get the results of running the toolchain """
 
     current_env= os.environ.copy()
     current_env["OUT_BASE_DIR"] = output_dir
     current_env["TOTAL_TIMEOUT"] = str(cutoff_time)
     current_env["USE_DATE"] = then
+    current_env["USE_MODE"] = mode
 
     sys.stdout.flush()
     sys.stderr.flush()
