@@ -153,7 +153,7 @@ sqlite3 ${REPOSITORY_BASE}/results.db <<SQL
 
 
 	CREATE VIEW IF NOT EXISTS DiscriminatingParams as
-    Select P.param, P.quality,
+    Select P.param, P.quality, P.ordering,
     	Cast(count(eprime) as Integer) as eprimes_count, Cast(max(D.MinionSatisfiable) as Integer) as Satisfiable, Cast(max(MinionSolutionsFound) as Integer) as MaxSolutions,
     	group_concat(D.eprime, ", ") as eprimes
     From ParamQuality P
