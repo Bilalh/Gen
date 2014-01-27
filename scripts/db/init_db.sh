@@ -153,7 +153,9 @@ sqlite3 ${REPOSITORY_BASE}/results.db <<SQL
 
 
 	CREATE VIEW IF NOT EXISTS DiscriminatingParams as
-    Select P.*, group_concat(D.eprime, ", ") as eprimes
+    Select P.param, P.quality,
+    	Cast(count(eprime) as Integer) as eprimes_count, Cast(max(D.MinionSatisfiable) as Integer) as Satisfiable, Cast(max(MinionSolutionsFound) as Integer) as MaxSolutions,
+    	group_concat(D.eprime, ", ") as eprimes
     From ParamQuality P
     Join TimingsDomination D on P.param = D.param
     Where P.Quality < 1 and isDominated = 0
