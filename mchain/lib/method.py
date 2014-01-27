@@ -64,7 +64,7 @@ class Method(metaclass=ABCMeta):
 
         self.param_info = domain.gather_param_info(options['essence'], self.output_dir)
         logger.info(pformat(self.param_info, width=80))
-
+        self.param_info['crew'].constraints.append(domain.FuncForallLessThen('capacity'))
 
         if len(self.info.ordering) != len(self.param_info):
             print("Ordering size:{} != params size:{}".format(len(self.info.ordering), len(self.param_info)))

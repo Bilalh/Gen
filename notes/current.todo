@@ -28,31 +28,29 @@ domains:
 
 
 Where:
-	☐ prob006-GR				n >= 0
-	☐ prob009-PerSqu		(sum s : sizes . s**2) = container_size**2
-	☐ prob023-MagicHex  d % 2 = 1
-	☐ prob026-round-r   n_teams % 2 = 0
-	☐ prob028-Bibd      v = b   r = k
-	☐ prob045-cover			 k>=t, b>=g**t
-	☐ 123 128 131       complex where with Quantifiers, functions and other Expressions
-		                   But are commented out
-
-
-Algorithms:
-	method.py:
-		✔ Update .\method.py>random_point to use new classes @done
-		✔ Update .\method.py>run_param_and_store_quality to use new classes @done
-
-
-Dependencies:
 	How to  repr them,  could use essence `where` statements
-
+	simple:
+		☐ prob006-GR				n >= 0
+		☐ prob023-MagicHex  d % 2 = 1
+		☐ prob026-round-r   n_teams % 2 = 0
+		☐ prob028-Bibd      v = b   r = k
+		☐ prob045-cover			 k>=t, b>=g**t
+	not simple:
+		☐ prob009-PerSqu		(sum s : sizes . s**2) = container_size**2
+		☐ 123 128 131       complex where with Quantifiers, functions and other Expressions
+			                   But are commented out
 
 	PPP:
 		✔ Variable references @done
 		☐ the size of the crew is less then it's capacity
 			for i in Boat .
 				crew(i) <= capacity(i)
+
+
+Algorithms:
+	method.py:
+		✔ Update .\method.py>random_point to use new classes @done
+		✔ Update .\method.py>run_param_and_store_quality to use new classes @done
 
 
 Misc:

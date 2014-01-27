@@ -85,6 +85,7 @@ class Domain(metaclass=ABCMeta):
     """Domain e.g int or function"""
     def __init__(self):
         super(Domain, self).__init__()
+        self.constraints = []
 
     def __repr__(self):
         return "{}({})".format(self.__class__.__name__,
@@ -144,7 +145,16 @@ class DomainFunc(Domain):
     def random_value(self, selected_vals):
         # TODO  assumes total from ints at the momment
         all_from = self.fromm.all_values(selected_vals)
-        tos = [ self.to.random_value(selected_vals) for i in range(len(all_from)) ]
+
+        import copy
+        tos_domains = [ copy.deepcopy(self.to) for i in range(len(all_from)) ]
+
+        for c in self.constraints:
+            tos_domains = c.process(selected_vals, self, (all_from, tos_domains) )
+
+        logger.info("func(total) doms %s", list(zip(all_from, [t.low_high for t in tos_domains ] )) )
+
+        tos = [ to_dom.random_value(selected_vals) for to_dom in tos_domains ]
         res = dict(zip(all_from, tos))
 
         logger.debug("rv %s", (all_from, tos, res))
@@ -159,6 +169,8 @@ class DomainFunc(Domain):
         # logger.info("point Part %s", pretty)
         return di
 
+
+    # Use a domain for each mapping  since this would allow placing a constaint it
 
 class Ref():
     """Refences to another var"""
@@ -179,6 +191,46 @@ class Ref():
 class UninitialisedVal(Exception):
     """Thrown when a reference is unresolved"""
     pass
+
+
+class Constraint(metaclass=ABCMeta):
+    def __init__(self):
+        super(Constraint, self).__init__()
+
+    @abstractmethod
+    def process(self, selected_vals, domain, extra=None):
+        pass
+
+
+class FuncForallLessThen(Constraint):
+    def __init__(self, target):
+        super(FuncForallLessThen, self).__init__()
+        self.target = target
+
+    def process(self, selected_vals, domain, from_to):
+        if not isinstance(domain, DomainFunc):
+            raise ValueError("not Function Domain %s" % domain)
+
+        (from_vals, tos_doms) = from_to
+        target_instance = selected_vals[self.target]
+
+        if not isinstance(target_instance, InstanceFunc):
+            raise ValueError("target %s not a function %s" % (self.target, target_instance) )
+
+        if len(target_instance.point) != len(from_vals):
+            raise ValueError('Functions not same length')
+
+        # assumming int function
+        def process(target_val, to_domain):
+            if not isinstance(target_val, InstanceInt):
+                raise ValueError("target_val not a int instance %s" % (target_val) )
+
+            (low, _) = to_domain.low_high
+            to_domain.low_high = (low, target_val.point - 1)
+
+            return to_domain
+
+        return [ process(target_instance.point[f], t) for (f, t) in zip(from_vals, tos_doms)  ]
 
 
 
