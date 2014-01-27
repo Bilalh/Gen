@@ -94,6 +94,7 @@ class Method(metaclass=ABCMeta):
 
         self.limiter.start()
         while self.limiter.continue_running(self):
+            logger.info("Started iteration %d", self._current_iteration + 1)
             self.do_iteration()
             self._current_iteration+=1
             logger.info("finished %d iterations", self._current_iteration)
