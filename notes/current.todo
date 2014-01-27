@@ -29,6 +29,11 @@ domains:
 
 Where:
 	How to  repr them,  could use essence `where` statements
+
+ ☐ What to do when a constaint empties a domain,
+ 	  - either keep on picking
+ 	  - start next iteration.
+
 	simple:
 		☐ prob006-GR				n >= 0
 		☐ prob023-MagicHex  d % 2 = 1

@@ -123,6 +123,10 @@ class DomainInt(Domain):
 
     def random_value(self, selected_vals):
         vs = [ self.resolve(v, selected_vals).point for v in self.low_high ]
+
+        if vs[0] > vs[1] or vs[1] < vs[0]:
+            raise NoValuesInDomainException("low_high: ", vs)
+
         u = chain_lib.uniform_int(*vs)
         pretty = "{}".format(u)
         return InstanceInt(point=u,  pretty=pretty, safe=pretty )
@@ -188,6 +192,10 @@ class Ref():
         return "Ref(name={})".format(self.name)
 
 
+class NoValuesInDomainException(Exception):
+    pass
+
+
 class UninitialisedVal(Exception):
     """Thrown when a reference is unresolved"""
     pass
@@ -202,9 +210,9 @@ class Constraint(metaclass=ABCMeta):
         pass
 
 
-class FuncForallLessThen(Constraint):
+class FuncForallLessThenEq(Constraint):
     def __init__(self, target):
-        super(FuncForallLessThen, self).__init__()
+        super(FuncForallLessThenEq, self).__init__()
         self.target = target
 
     def process(self, selected_vals, domain, from_to):
@@ -225,8 +233,11 @@ class FuncForallLessThen(Constraint):
             if not isinstance(target_val, InstanceInt):
                 raise ValueError("target_val not a int instance %s" % (target_val) )
 
-            (low, _) = to_domain.low_high
-            to_domain.low_high = (low, target_val.point - 1)
+            [low, high] = [to_domain.resolve(d, selected_vals).point for d in to_domain.low_high]
+
+            if target_val.point < high:
+                high = target_val.point
+            to_domain.low_high = (low, high)
 
             return to_domain
 

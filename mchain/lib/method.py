@@ -64,7 +64,7 @@ class Method(metaclass=ABCMeta):
 
         self.param_info = domain.gather_param_info(options['essence'], self.output_dir)
         logger.info(pformat(self.param_info, width=80))
-        self.param_info['crew'].constraints.append(domain.FuncForallLessThen('capacity'))
+        self.param_info['crew'].constraints.append(domain.FuncForallLessThenEq('capacity'))
 
         if len(self.info.ordering) != len(self.param_info):
             print("Ordering size:{} != params size:{}".format(len(self.info.ordering), len(self.param_info)))
@@ -159,10 +159,12 @@ class Method(metaclass=ABCMeta):
 
     def random_point(self):
         selected_vals = {}
-        # return tuple([chain_lib.uniform_int(l, u) for (l, u) in self.data])
+
         for name in self.info.ordering:
             v=self.param_info[name].random_value(selected_vals)
             selected_vals[name] = v
+            logger.info("Assigning %s=%s", name, v.pretty)
+
         return [  selected_vals[name] for name in self.info.ordering ]
 
 
