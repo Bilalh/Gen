@@ -61,18 +61,18 @@ def timeme(method):
     return wrapper
 
 
-def run_models(now, param_path, cutoff_time, working_dir, output_dir, mode):
-    """ Run the toolchain """
-
-    def get_number_of_models(dirname):
+def get_number_of_models(dirname):
         return len([f for f in os.listdir(dirname) if fnmatch.fnmatch(f, "*.eprime")])
+
+
+def run_models(now, param_path, time_per_model, working_dir, output_dir, mode):
+    """ Run the toolchain """
 
     models_dir = os.path.join(working_dir, os.path.basename(working_dir) + "-" + mode)
     num_models = get_number_of_models( models_dir )
     logger.info(num_models)
 
-    time_per_model = int(math.ceil(cutoff_time / num_models) )
-    logger.info("time_per_model:%s cutoff_time:%s", time_per_model, cutoff_time)
+    logger.info("time_per_model:%s", time_per_model)
 
     def runner():
         current_env= os.environ.copy()
@@ -86,14 +86,13 @@ def run_models(now, param_path, cutoff_time, working_dir, output_dir, mode):
     return runner()
 
 
-def get_results(working_dir, output_dir, param_name, cutoff_time, then, mode):
+def get_results(working_dir, output_dir, param_name, time_per_model, then, mode):
     """ Get the results of running the toolchain """
 
-    #FIXME use time_per_model = int(math.ceil(cutoff_time / num_models) )
 
     current_env= os.environ.copy()
     current_env["OUT_BASE_DIR"] = output_dir
-    current_env["TOTAL_TIMEOUT"] = str(cutoff_time)
+    current_env["TOTAL_TIMEOUT"] = str(time_per_model)
     current_env["USE_DATE"] = then
     current_env["USE_MODE"] = mode
 

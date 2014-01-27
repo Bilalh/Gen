@@ -66,7 +66,7 @@ Misc:
 		✔  add to metascript @done (14-01-22 05:25)
 	☐  Use the new EprimeOrdering view to choose which order the eprimes should be done in.
 
-	☐  Fix timeout (need to divide by total number of models) .\chain_lib.py>get_results
+	✔  Fix timeout (need to divide by total number of models) .\chain_lib.py>get_results @done (14-01-27 16:49)
 
 Ideas:
  Instead of using the domain bounds as given, if we can be 50 point then first pick small n  point of the first 10% since then bounds could be massive

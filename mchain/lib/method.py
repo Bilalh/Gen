@@ -16,6 +16,7 @@ import os
 import random
 import math
 import sys
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -87,6 +88,12 @@ class Method(metaclass=ABCMeta):
         self.prev_timestamp = None
         self.use_previous_data = True
 
+        p_work = Path(self.settings.working_dir)
+        models_dir = p_work / (p_work.name + "-" + self.settings.mode)
+        self.num_models = chain_lib.get_number_of_models( str(models_dir) )
+        logger.info(self.num_models)
+        self.time_per_model = int(math.ceil(self.settings.models_timeout / self.num_models) )
+
     def run(self):
         date_start = datetime.utcnow()
         logger.info("Start %s", date_start.strftime("%a, %e %b %Y %H:%M:%S %s"))
@@ -135,11 +142,11 @@ class Method(metaclass=ABCMeta):
             logger.info("Start %s", datee.isoformat())
             now = str(int(datee.timestamp()))
 
-            chain_lib.run_models(now, param_path, self.settings.models_timeout, self.settings.working_dir, self.output_dir, self.settings.mode)
+            chain_lib.run_models(now, param_path, self.time_per_model, self.settings.working_dir, self.output_dir, self.settings.mode)
             logger.info("End %s", calendar.datetime.datetime.now().isoformat()  )
 
 
-        results = chain_lib.get_results(self.settings.working_dir, self.output_dir, param_name, self.settings.models_timeout, now, self.settings.mode)
+        results = chain_lib.get_results(self.settings.working_dir, self.output_dir, param_name, self.time_per_model, now, self.settings.mode)
         quailty = chain_lib.quality(*results)
         logger.info("results: {} quailty: {} for {}".format(results, quailty, [p.pretty for p in point]))
         chain_lib.save_quality(self.output_dir, param_name, quailty)
