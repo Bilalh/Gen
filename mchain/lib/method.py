@@ -96,6 +96,7 @@ class Method(metaclass=ABCMeta):
         while self.limiter.continue_running(self):
             self.do_iteration()
             self._current_iteration+=1
+            logger.info("finished %d iterations", self._current_iteration)
 
         with open(os.path.join(self.output_dir, "info", "data-points.json"), "w") as f:
             f.write(json.dumps([  self.point_pretty(p) for p in self.data_points ]))

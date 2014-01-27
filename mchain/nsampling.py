@@ -109,6 +109,7 @@ class NSample(method.Method):
             logger.info("REJECTED point %s,  goodness_x: %0.3f goodness_x_prev: %0.3f", x, goodness_x, self.goodness_x_prev)
 
         self.goodness_x_prev = goodness_x
+        logger.info("do_iteration end")
 
 
 if __name__ == '__main__':

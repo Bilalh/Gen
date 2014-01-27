@@ -89,6 +89,8 @@ def run_models(now, param_path, cutoff_time, working_dir, output_dir, mode):
 def get_results(working_dir, output_dir, param_name, cutoff_time, then, mode):
     """ Get the results of running the toolchain """
 
+    #FIXME use time_per_model = int(math.ceil(cutoff_time / num_models) )
+
     current_env= os.environ.copy()
     current_env["OUT_BASE_DIR"] = output_dir
     current_env["TOTAL_TIMEOUT"] = str(cutoff_time)
