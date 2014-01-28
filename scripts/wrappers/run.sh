@@ -25,13 +25,12 @@ export NO_TIMERS=true;
 export NO_VALIDATE=true;
 export NO_TRANSLATE=true
 
-# 6 SR/minon on my mac, 31 on servers
+models=${MODELS_TO_USE:-`ls -1 $BASE/$DIR-$USE_MODE/*.eprime`}
+export MODELS_TO_USE="${models}";
 if [ "$(uname)" = "Darwin" ] ; then
-    export NUM_JOBS=${NUM_JOBS:-5}
-    export MODELS_TO_USE=`ls -1 $BASE/$DIR-$USE_MODE/*.eprime`;
+    export NUM_JOBS=${NUM_JOBS:-4}
 else
-    export NUM_JOBS=${NUM_JOBS:-31}
-    export MODELS_TO_USE=`ls -1 $BASE/$DIR-$USE_MODE/*.eprime`;
+    export NUM_JOBS=${NUM_JOBS:-32}
 fi
 
 
