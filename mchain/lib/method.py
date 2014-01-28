@@ -127,7 +127,7 @@ class Method(metaclass=ABCMeta):
     def before_settings(self, options):
         return options
 
-    def run_param_and_store_quality(self, point):
+    def create_run_param_and_store_quality(self, point):
         (param_string, param_name) = chain_lib.create_param_essence(zip(self.info.ordering, point))
         logger.info((param_string, param_name))
 

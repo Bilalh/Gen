@@ -41,7 +41,7 @@ class UniformSampling(method.Method):
         picked = self.random_point()
         # picked = (4, 1)
         logger.info("Picked %s", picked)
-        self.run_param_and_store_quality(picked)
+        self.create_run_param_and_store_quality(picked)
 
 
 if __name__ == '__main__':

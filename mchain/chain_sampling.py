@@ -112,7 +112,7 @@ class Chain(method.Method):
     def do_iteration(self):
             selected_point = self.make_chain()
             self.data_points.append(selected_point)
-            self.run_param_and_store_quality(selected_point)
+            self.create_run_param_and_store_quality(selected_point)
 
 
 if __name__ == '__main__':

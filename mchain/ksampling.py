@@ -63,7 +63,7 @@ class KSample(method.Method):
     def do_iteration(self):
         picked = self.pick_point()
         logger.info("picked %s", picked)
-        self.run_param_and_store_quality(picked)
+        self.create_run_param_and_store_quality(picked)
         self.data_points.append(picked)
 
 
