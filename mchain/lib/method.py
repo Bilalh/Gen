@@ -100,11 +100,14 @@ class Method(metaclass=ABCMeta):
         cpu_time_start = time.process_time()
 
         self.limiter.start()
-        while self.limiter.continue_running(self):
-            logger.info("Started iteration %d", self._current_iteration + 1)
-            self.do_iteration()
-            self._current_iteration+=1
-            logger.info("finished %d iterations", self._current_iteration)
+        try:
+            while self.limiter.continue_running(self):
+                logger.info("Started iteration %d", self._current_iteration + 1)
+                self.do_iteration()
+                self._current_iteration+=1
+                logger.info("finished %d iterations", self._current_iteration)
+        except StopIteration:
+            logger.info("StopIteration after/on iteration %d ", self._current_iteration)
 
         with open(os.path.join(self.output_dir, "info", "data-points.json"), "w") as f:
             f.write(json.dumps([  self.point_pretty(p) for p in self.data_points ]))
