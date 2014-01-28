@@ -163,6 +163,17 @@ sqlite3 ${REPOSITORY_BASE}/results.db <<SQL
     Order by P.quality
         ;
 
+	CREATE VIEW IF NOT EXISTS ParamsData as
+    Select P.param,  P.quality, P.ordering,
+    	Cast(count(eprime) as Integer) as eprimes_count, Cast(max(D.MinionSatisfiable) as Integer) as Satisfiable, Cast(max(MinionSolutionsFound) as Integer) as MaxSolutions,
+    	group_concat(D.eprime, ", ") as eprimes
+    From ParamQuality P
+    Join TimingsDomination D on P.param = D.param
+    Where isDominated = 0
+    Group by P.param
+    Order by P.quality
+    	;
+
 
 	CREATE VIEW IF NOT EXISTS Fastest as
 	Select param, eprime, min(TotalTime) as Time
