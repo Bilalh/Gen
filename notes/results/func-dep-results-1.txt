@@ -3,13 +3,12 @@
 - Progressive Party Problem (prob013)
 - 256 models
 - Using nsample 
-- 5 hours of cpu time
+- 5 hours on 16 cores  (324526.878 seconds of cpu time)
 - ~1 minute per model
 - 45 params generated 
 - 25 models which could not solve anything
 
 ## results
-
 
 all results 
 http://localhost/csvtotable/
@@ -27,7 +26,7 @@ eprime      fastest_count
 0005        1
 
 
-The 7 most discriminating params
+The 7 most discriminating params order by quality
 
 quality     ordering    eprimes_count  Satisfiable  MaxSolutions  eprimes                                                                                         param
 ----------  ----------  -------------  -----------  ------------  ----------------------------------------------------------------------------------------------  ---------------------------------------------------------------------------------------------
@@ -63,6 +62,8 @@ Model 0013 is not as good for proving  a model is not satisfiable  e.g  (13)  mo
 quality     ordering    eprimes_count  Satisfiable  MaxSolutions  eprimes
 ----------  ----------  -------------  -----------  ------------  ---------------------------------------------------------------------------------------------
 0.25        13          64             0            0             0009, 0010, 0011, 0012, 0041, 0042, 0043, 0044, 0045, 0046, 0047, 0048, 0049, 0050, 0051, 0052, 0089, 0090, 0091, 0092, 0093, 0094, 0095, 0096, 0097, 0098, 0099, 0100, 0185, 0186, 0187, 0188, 0189, 0190, 0191, 0192, 0193, 0194, 0195, 0196, 0197, 0198, 0199, 0200, 0201, 0202, 0203, 0204, 0205, 0206, 0207, 0208, 0209, 0210, 0211, 0212, 0213, 0214, 0215, 0216, 0217, 0218, 0219, 0220
+0.125       34          32             0            0             0009, 0012, 0041, 0042, 0045, 0048, 0049, 0052, 0089, 0090, 0093, 0096, 0097, 0099, 0100, 0185, 0186, 0187, 0188, 0194, 0197, 0200, 0201, 0202, 0205, 0208, 0209, 0210, 0213, 0216, 0217, 0220
+
 
 (13)
 letting n_upper be 7
@@ -71,15 +72,57 @@ letting n_periods be 2
 letting capacity be function( 1 --> 2 )
 letting crew be function( 1 --> 2 )
 
+(34)
+letting n_upper be 18
+letting n_boats be 1
+letting n_periods be 14
+letting capacity be function( 1 --> 8 )
+letting crew be function( 1 --> 1 )
+
 
 ## Compared with params used CP 2013 Experiments 
 
-As compared with the params we used in CP 2013 Experiments  (which were from the literature/csplib)
+As compared with the params we used in CP 2013 Experiments  (which were from the literature/csplib) 
+These params don't seems to be as good using the same timeout.
 
-Ian03  was left with  64/256 models,  0013 being the fastest
+Order by quality
 
+param        quality      eprimes_count  Satisfiable  MaxSolutions  eprimes
+-----------  -----------  -------------  -----------  ------------  ---------------------------------------------------------------------------------------------
+Ian03        0.25         64             1            1             0001, 0005, 0009, 0013, 0017, 0018, 0025, 0029, 0030, 0037, 0041, 0042, 0049, 0053, 0054, 0061, 0065, 0066, 0073, 0077, 0078, 0085, 0089, 0090, 0097, 0101, 0102, 0109, 0113, 0114, 0115, 0116, 0129, 0130, 0137, 0138, 0145, 0149, 0150, 0151, 0152, 0165, 0166, 0173, 0174, 0181, 0185, 0186, 0187, 0188, 0201, 0202, 0209, 0210, 0217, 0221, 0222, 0223, 0224, 0237, 0238, 0245, 0246, 0253
+Ian02        0.2890625    74             1            1             0001, 0005, 0009, 0013, 0017, 0018, 0025, 0029, 0030, 0037, 0041, 0042, 0049, 0053, 0054, 0060, 0061, 0064, 0065, 0066, 0073, 0077, 0078, 0085, 0089, 0090, 0097, 0101, 0102, 0105, 0108, 0109, 0112, 0113, 0114, 0115, 0116, 0129, 0130, 0137, 0138, 0145, 0149, 0150, 0151, 0152, 0165, 0166, 0173, 0174, 0181, 0185, 0186, 0187, 0188, 0201, 0202, 0209, 0210, 0217, 0221, 0222, 0223, 0224, 0236, 0237, 0238, 0241, 0244, 0245, 0246, 0252, 0253, 0256
+Ian01        0.39453125   101            1            1             0001, 0005, 0009, 0012, 0013, 0016, 0017, 0018, 0025, 0029, 0030, 0037, 0041, 0042, 0049, 0052, 0053, 0054, 0057, 0060, 0061, 0064, 0065, 0066, 0069, 0072, 0073, 0077, 0078, 0081, 0084, 0085, 0089, 0090, 0096, 0097, 0100, 0101, 0102, 0105, 0108, 0109, 0112, 0113, 0114, 0115, 0116, 0119, 0122, 0125, 0129, 0130, 0133, 0137, 0138, 0145, 0148, 0149, 0150, 0151, 0152, 0165, 0166, 0172, 0173, 0174, 0181, 0184, 0185, 0186, 0187, 0188, 0191, 0200, 0201, 0202, 0205, 0208, 0209, 0210, 0216, 0217, 0220, 0221, 0222, 0223, 0224, 0227, 0230, 0233, 0236, 0237, 0238, 0241, 0244, 0245, 0246, 0249, 0252, 0253, 0256
+
+
+(Ian01)
+letting n_upper be 12
+letting n_boats be 5
+letting n_periods be 4
+letting capacity be function(1 --> 6,  2 --> 8, 3 --> 12, 4 --> 12, 5 --> 12)
+letting crew be function(1 --> 2,  2 --> 2, 3 --> 2, 4 --> 2, 5 --> 4)
+
+(Ian02)
+letting n_upper be 12
+letting n_boats be 6
+letting n_periods be 5
+letting capacity be function(1 --> 6,  2 --> 8, 3 --> 12, 4 --> 12, 5 --> 12, 6 --> 12)
+letting crew be function(1 --> 2,  2 --> 2, 3 --> 2, 4 --> 2, 5 --> 4, 6 --> 4)
+
+
+(Ian03)
+$ This instance seems very discriminating.
 letting n_upper be 12
 letting n_boats be 7
 letting n_periods be 6
 letting capacity be function(1 --> 6,  2 --> 8, 3 --> 12, 4 --> 12, 5 --> 12, 6 --> 12, 7 --> 12)
 letting crew be function(1 --> 2,  2 --> 2, 3 --> 2, 4 --> 2, 5 --> 4, 6 --> 4, 7 --> 4)
+
+
+
+
+sql table
+
+.headers on
+.mode column
+.width 11 11 10 13 11 12 1000
+Select * from DiscriminatingParams  Limit 7;
