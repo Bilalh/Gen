@@ -103,7 +103,7 @@ class NSample(method.Method):
                 return u < accept
 
         if accept_point():
-            self.run_param_and_store_quality(x)
+            self.create_run_param_and_store_quality(x)
             self.data_points.append(x)
         else:
             logger.info("REJECTED point %s,  goodness_x: %0.3f goodness_x_prev: %0.3f", x, goodness_x, self.goodness_x_prev)
