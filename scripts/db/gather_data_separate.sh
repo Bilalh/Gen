@@ -36,6 +36,7 @@ Essence_base=${Essence%.essence}
 ${Script_Base}/db/init_db.sh
 
 param_glob=${PARAM_BASE_NAME}
+echo "param_glob ${param_glob}"
 
 param_num="`cat ${stats_dir}/${USE_DATE}.params-used | sort | uniq | wc -l | egrep -o '^ *[0-9]+' | tr -d ' '`"
 eprime_num="`wc -l  $(ls ${stats_dir}/${USE_DATE}.models-used | tail -n1)  | egrep -o '^ *[0-9]+ ' | tr -d ' '`"
@@ -114,13 +115,14 @@ parallel -j1 --tagstring "{/}"  'echo "isDominated:$(isDominated {/.})"'  \
 	|   sqlite3 ${REPOSITORY_BASE}/results.db
 
 
-
+echo "$0 Calcuate total solving time"
 if (ls ${results_dir}/*${param_glob}.sr-time &>/dev/null); then
 parallel "grep ${timing_method} {} | egrep -o '[0-9].*'  " ::: `ls ${results_dir}/*${param_glob}.param-time`  `ls ${results_dir}/*${param_glob}.sr-time` `ls ${results_dir}/*${param_glob}.minion-time` \
    	| ruby -e 'p $stdin.readlines.map(&:to_f).reduce(&:+)' > ${stats_dir}/${USE_DATE}.total_solving_time
 fi
 
 # So we know which minion were created
+echo "$0 Record minions files"
 ls ${results_dir}/*${param_glob}.minion  >> "${stats_dir}/_${Essence_base}.minions"
 echo ""  >> "${stats_dir}/_${Essence_base}.minions"
 
