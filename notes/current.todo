@@ -26,6 +26,8 @@ domains:
 			-  Keep a domain for each mapping, which is reduced when choosing other values
 			-  e.g when picking capacity change the domain of crew
 
+			☐ make generic
+
 
 Where:
 	How to  repr them,  could use essence `where` statements
@@ -52,7 +54,7 @@ Where:
 				crew(i) <= capacity(i)
 
 Results:
-	☐ Make the results from running functions for 4-5 hours
+	✔ Make the results from running functions for 4-5 hours @done (14-01-28 12:01)
 
 
 	There is fractutring
@@ -74,11 +76,11 @@ Misc:
 	✔  tar stats files to reduce the number of files @done (14-01-22 05:27)
 		✔  Wrote script @done (14-01-22 03:33)
 		✔  add to metascript @done (14-01-22 05:25)
-	☐  Use the new EprimeOrdering view to choose which order the eprimes should be done in.
+	✔  Use the new EprimeOrdering view to choose which order the eprimes should be done in. @done (14-01-28 21:01)
 		☐  Improve SQL to use join rather then subqueries
 
 	✔  Fix timeout (need to divide by total number of models) .\chain_lib.py>get_results @done (14-01-27 16:49)
-	☐  Make .\tar_results.sh  work when $NUM_JOBS=1
+	☐  Make .\tar_results.sh:51  work when $NUM_JOBS=1
 
 Ideas:
  Instead of using the domain bounds as given, if we can be 50 point then first pick small n  point of the first 10% since then bounds could be massive

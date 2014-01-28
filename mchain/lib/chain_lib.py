@@ -65,7 +65,7 @@ def get_number_of_models(dirname):
         return len([f for f in os.listdir(dirname) if fnmatch.fnmatch(f, "*.eprime")])
 
 
-def run_models(now, param_path, time_per_model, working_dir, output_dir, mode):
+def run_models(now, param_path, time_per_model, working_dir, output_dir, mode, model_ordering):
     """ Run the toolchain """
 
     models_dir = os.path.join(working_dir, os.path.basename(working_dir) + "-" + mode)
@@ -78,6 +78,7 @@ def run_models(now, param_path, time_per_model, working_dir, output_dir, mode):
         current_env= os.environ.copy()
         current_env["OUT_BASE_DIR"] = output_dir
         current_env["USE_MODE"] = mode
+        current_env["MODELS_TO_USE"]= model_ordering
 
         subprocess.Popen([
             wrappers("run.sh"), now, param_path, str(time_per_model), working_dir

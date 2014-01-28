@@ -89,8 +89,8 @@ class Method(metaclass=ABCMeta):
         self.use_previous_data = True
 
         p_work = Path(self.settings.working_dir)
-        models_dir = p_work / (p_work.name + "-" + self.settings.mode)
-        self.num_models = chain_lib.get_number_of_models( str(models_dir) )
+        self.models_dir = p_work / (p_work.name + "-" + self.settings.mode)
+        self.num_models = chain_lib.get_number_of_models( str(self.models_dir) )
         logger.info(self.num_models)
         self.time_per_model = int(math.ceil(self.settings.models_timeout / self.num_models) )
 
@@ -137,6 +137,10 @@ class Method(metaclass=ABCMeta):
     def run_param_and_store_quality(self, param_string, param_name):
         logger.info((param_string, param_name))
 
+
+        model_ordering = self.get_model_ordering()
+        logger.info("eprime_ordering %s", model_ordering)
+
         check = self.use_previous(param_name)
         if self.use_previous_data and check:
             now = check
@@ -147,7 +151,7 @@ class Method(metaclass=ABCMeta):
             logger.info("Start %s", datee.isoformat())
             now = str(int(datee.timestamp()))
 
-            chain_lib.run_models(now, param_path, self.time_per_model, self.settings.working_dir, self.output_dir, self.settings.mode)
+            chain_lib.run_models(now, param_path, self.time_per_model, self.settings.working_dir, self.output_dir, self.settings.mode, model_ordering)
             logger.info("End %s", calendar.datetime.datetime.now().isoformat()  )
 
 
@@ -159,9 +163,22 @@ class Method(metaclass=ABCMeta):
         logger.info("results: {} quailty: {} for \n{}".format(results, quailty, param_string))
         return quailty
 
+    def get_model_ordering(self):
+        # self.models_dir
+        import sqlite3
+        if (Path(self.output_dir) / "results.db").exists():
+            conn = sqlite3.connect(os.path.join(self.output_dir, 'results.db'))
+            results = [  (self.models_dir / row[0]).with_suffix('.eprime')
+                        for row in conn.execute("SELECT eprime FROM EprimeOrdering") ]
+            results = results[0:2]
+            return "\n".join(map(str, results))
+        else:
+            return ""
+
+
+
     def use_previous(self, param_name):
         import sqlite3
-        from pathlib import Path
         if (Path(self.output_dir) / "results.db").exists():
             conn = sqlite3.connect(os.path.join(self.output_dir, 'results.db'))
             results = list(conn.execute("SELECT timestamp FROM Timeouts WHERE param = ?", (param_name,)))
