@@ -129,8 +129,10 @@ class Method(metaclass=ABCMeta):
 
     def create_run_param_and_store_quality(self, point):
         (param_string, param_name) = chain_lib.create_param_essence(zip(self.info.ordering, point))
-        logger.info((param_string, param_name))
+        return self.run_param_and_store_quality(param_string, param_name)
 
+    def run_param_and_store_quality(self, param_string, param_name):
+        logger.info((param_string, param_name))
 
         check = self.use_previous(param_name)
         if self.use_previous_data and check:
@@ -148,10 +150,10 @@ class Method(metaclass=ABCMeta):
 
         results = chain_lib.get_results(self.settings.working_dir, self.output_dir, param_name, self.time_per_model, now, self.settings.mode)
         quailty = chain_lib.quality(*results)
-        logger.info("results: {} quailty: {} for {}".format(results, quailty, [p.pretty for p in point]))
         chain_lib.save_quality(self.output_dir, param_name, quailty)
 
         self.prev_timestamp = now
+        logger.info("results: {} quailty: {} for \n{}".format(results, quailty, param_string))
         return quailty
 
     def use_previous(self, param_name):
