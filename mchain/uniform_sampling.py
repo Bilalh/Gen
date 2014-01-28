@@ -5,7 +5,7 @@
 """
 Usage:
    uniform (iterations|time|cpu) <limit>
-   ( --essence=<file> --models_timeout=<int>)
+   ( --essence=<file> --models_timeout=<int>  --info=<file>)
    [ --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str>]
    uniform json <file>
 
@@ -20,7 +20,7 @@ Options:
   --output_dir=<dir>        Where to put the results.
   --seed=<int>              Random seed to use.
   --working_dir=<dir>       Where the essence file is [default: .]
-
+  --info=<file>             Files that contains the ordering of the variables
 """
 
 from lib import option_handing
@@ -34,8 +34,8 @@ Settings=namedtuple('Settings', ['seed', 'mode', 'models_timeout', "essence", "w
 
 
 class UniformSampling(method.Method):
-    def __init__(self, options, limiter):
-        super(UniformSampling, self,).__init__(options, limiter, Settings)
+    def __init__(self, options, limiter, info):
+        super(UniformSampling, self,).__init__(options, limiter, Settings, info)
 
     def do_iteration(self):
         picked = self.random_point()
@@ -46,7 +46,7 @@ class UniformSampling(method.Method):
 
 if __name__ == '__main__':
     logging.basicConfig(format='%(name)s:%(lineno)d:%(funcName)s: %(message)s', level=logging.INFO)
-    (options, limiter) = option_handing.parse_arguments(__doc__, version="1.0")
-    UniformSampling(options, limiter).run()
+    (options, limiter, info) = option_handing.parse_arguments(__doc__, version="1.0")
+    UniformSampling(options, limiter, info).run()
     logger.info("<finished>")
 
