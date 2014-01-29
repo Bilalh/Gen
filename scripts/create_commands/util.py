@@ -35,7 +35,8 @@ def create_commands_py(method_name, function_templete, data, commons_grouped, pl
 		par_function = function_templete % (
 			mode,
 			filepath,
-			os.path.dirname(filepath)
+			os.path.dirname(filepath),
+			os.path.join(os.path.dirname(filepath), "info.json")
 		)
 
 		limit_to_models_timeout = {}

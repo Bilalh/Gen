@@ -20,7 +20,8 @@ record_cp \$place/logs/log-{race_no} \\
 		--mode=\$mode \\
 		--essence=%s \\
 		--working_dir=%s \\
-		--output_dir=\$place;
+		--output_dir=\$place \\
+		--info=%s;
 \$PARAM_GEN_SCRIPTS/misc/tar_results.sh \$place \$mode;
 EOF
 )"""

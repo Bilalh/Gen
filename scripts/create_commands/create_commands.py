@@ -120,6 +120,8 @@ def run(fp, place_dir, num_runs):
 		file_util.copy_file(values['filepath'], results_essence)
 		file_util.copy_file(os.path.join(os.path.dirname(values['filepath']), "params.pcs"),
 							os.path.join(essences_dir, essence_name, "params.pcs"))
+		file_util.copy_file(os.path.join(os.path.dirname(values['filepath']), "info.json"),
+							os.path.join(essences_dir, essence_name, "info.json"))
 		dir_util.copy_tree( os.path.join(essence_name, eprimes_dir),
 							os.path.join(essences_dir, essence_name, eprimes_dir))
 
