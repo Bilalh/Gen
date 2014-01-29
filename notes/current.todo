@@ -82,6 +82,10 @@ Misc:
 	✔  Fix timeout (need to divide by total number of models) .\chain_lib.py>get_results @done (14-01-27 16:49)
 	☐  Make .\tar_results.sh:51  work when $NUM_JOBS=1
 
+
+Maybe:
+	☐ use a newer version of sqlite (3.7.13) on ferry since that what python and my mac uses and make interactive use e.g check results while it running 10x faster in some
+
 Ideas:
  Instead of using the domain bounds as given, if we can be 50 point then first pick small n  point of the first 10% since then bounds could be massive
 
