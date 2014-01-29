@@ -84,20 +84,23 @@ function isDominated(){
 	sr_time="${results_dir}/$1.sr-time"
 	minion_time="${results_dir}/$1.minion-time"
 
+	MIN_TOTAL_TIME=${MIN_TOTAL_TIME:-1}
 	if [ ! -f "$fastest_dir/${f:5}.param.fastest" ]; then
 		echo 0
 	elif [ ! -f $results_dir/${f}.zfinished ]; then
 		# Not allways 1
 		# only Dominated if  the timeout is  >  DOMINATION_MULTIPLIER  * fastest
 		(( fastest =  `head -n 1 $fastest_dir/${f:5}.param.fastest` * ${DOMINATION_MULTIPLIER:-2}))
-		(( dominated =  TOTAL_TIMEOUT > fastest  ))
+		(( dominated  =  TOTAL_TIMEOUT > MIN_TOTAL_TIME &&  TOTAL_TIMEOUT > fastest ))
 		echo $dominated
 	else
 		(( fastest =  `head -n 1 $fastest_dir/${f:5}.param.fastest` * ${DOMINATION_MULTIPLIER:-2}))
-		(( time_taken  = `grep "${timing_method}" ${sr_time}     |  ruby -e 'print gets[4..-1].to_f.ceil' ` ))
-		(( time_taken  += `grep "${timing_method}" ${minion_time} |  ruby -e 'print gets[4..-1].to_f.ceil' ` ))
+		(( time_taken  = `grep "${timing_method}" ${sr_time}     |  ruby -e 'print gets[4..-1].to_f.floor' ` ))
+		(( time_taken  += `grep "${timing_method}" ${minion_time} |  ruby -e 'print gets[4..-1].to_f.floor' ` ))
 
-		(( dominated  =  time_taken > $fastest ))
+		#TODO should using floating point comapre
+		# floor was used since it  ceil could make a non-dominated model dominated
+		(( dominated  =  time_taken > MIN_TOTAL_TIME &&  time_taken > $fastest ))
 		echo $dominated
 	fi
 }
