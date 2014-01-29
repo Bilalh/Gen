@@ -34,6 +34,9 @@ class DomainInstance(metaclass=ABCMeta):
                 for key in self.__dict__ if not key.startswith('_'))
                 )
 
+    def __str__(self):
+        return "{}~{}".format(self.__class__.__name__, self.pretty)
+
     def to_json(self):
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
 
@@ -64,8 +67,8 @@ class InstanceFunc(DomainInstance):
         if not isinstance(other_dom, self.__class__):
             raise ValueError("other dom must of %s" % self.__class__.__name__)
 
-        logger.info("self %s other %s", self.pretty, other_dom.pretty)
-        logger.info("self %s other %s", self.point,  other_dom.point)
+        # logger.info("self %s other %s", self.pretty, other_dom.pretty)
+        # logger.info("self %s other %s", self.point,  other_dom.point)
 
         def f(x1, x2):
             if x1 is None or x2 is None:
