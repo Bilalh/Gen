@@ -5,7 +5,7 @@
 """
 Usage:
    ksample (iterations|time|cpu) <limit>
-   ( --num_points=<int>  --influence_radius=<int> --essence=<file> --models_timeout=<int> --point_selector=<first!halving!halving_3_4>)
+   ( --num_points=<int>  --influence_radius=<int> --essence=<file> --models_timeout=<int> --point_selector=<first!halving!halving_3_4> --info=<file>)
    [ --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str> --radius_as_percentage=<bool>]
    ksample json <file>
 
@@ -23,6 +23,7 @@ Options:
   --seed=<int>                                  Random seed to use.
   --working_dir=<dir>                           Where the essence file is [default: .]
   --point_selector=<first!halving!halving_3_4>  Method to pick the next point
+  --info=<file>                    Files that contains the ordering of the variable
 """
 
 from lib import chain_lib
@@ -31,7 +32,7 @@ from lib import option_handing
 
 from collections import namedtuple
 from fractions import Fraction
-from pprint import pprint
+from pprint import pprint, pformat
 import itertools
 import logging
 import random
@@ -41,10 +42,8 @@ Settings=namedtuple('Settings', ['num_points', 'seed', 'mode', 'models_timeout',
 
 
 class KSample(method.Method):
-    def __init__(self, options, limiter):
-        super(KSample, self,).__init__(options, limiter, Settings)
-        # To shown it works
-        # self.data_points = [(1, 3), (1, 7), (1, 8), (1, 9), (1, 10), (1, 12), (1, 13), (1, 15), (1, 16), (1, 17), (1, 18), (1, 20), (1, 23), (1, 24), (1, 25), (1, 26), (1, 28), (1, 29), (2, 3), (2, 4), (2, 5), (2, 6), (2, 7), (2, 8), (2, 11), (3, 3), (3, 4), (3, 5), (3, 6), (3, 7), (3, 8), (3, 9), (3, 11), (4, 1), (4, 3), (4, 4), (4, 5), (4, 6), (4, 7), (4, 8), (4, 9), (4, 10), (5, 1), (5, 2), (5, 4), (5, 5), (5, 6), (5, 7), (5, 8)]
+    def __init__(self, options, limiter, info):
+        super(KSample, self,).__init__(options, limiter, Settings, info)
 
 
     def before_settings(self, options):
@@ -80,7 +79,7 @@ class KSample(method.Method):
             return random.choice(random_points)
 
         def get_quailty(point):
-            name = "-".join( [ ("%03d" % p) for p in point ] )
+            name = "-".join( [ ("%s" % p.safe) for p in point ] )
             return chain_lib.get_quailty(self.output_dir, name)
 
         def avg_quality(rp):
@@ -98,15 +97,14 @@ class KSample(method.Method):
 
 
         with_quailty = [ (avg_quality(rp), rp) for rp in random_points ]
-        for (v, p) in sorted(with_quailty):
-            logger.info("rp (%0.4f,%s)", v, p)
+        logger.info(pformat([ (q, self.point_pretty(x)) for (q, x) in with_quailty ]) )
 
         chosen = self.pick_next_point(with_quailty)
         return chosen
 
     def pick_next_point(self, points_in):
 
-        points = sorted(points_in)
+        points = sorted(points_in,  key=lambda pt: pt[0] )
         # points = sorted([ (random.randint(0, 7), random.randint(0, 10)) for i in range(10) ])
         # points = [ (i, random.randint(0, 10)) for i in range(10) ]
 
@@ -138,7 +136,7 @@ class KSample(method.Method):
 
         logger.debug(grouped[index])
         choices = list(zip(*grouped[index][1]))[1]
-        logger.info(choices)
+        logger.info(pformat([ self.point_pretty(x) for x in choices ]) )
         return random.choice(choices)
 
 
@@ -201,7 +199,7 @@ class KSample(method.Method):
 
 if __name__ == '__main__':
     logging.basicConfig(format='%(name)s:%(lineno)d:%(funcName)s: %(message)s', level=logging.INFO)
-    (options, limiter) = option_handing.parse_arguments(__doc__, version="1.0")
-    KSample(options, limiter).run()
+    (options, limiter, info) = option_handing.parse_arguments(__doc__, version="1.0")
+    KSample(options, limiter, info).run()
     logger.info("<finished>")
 
