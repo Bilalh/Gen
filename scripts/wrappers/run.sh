@@ -25,7 +25,12 @@ export NO_TIMERS=true;
 export NO_VALIDATE=true;
 export NO_TRANSLATE=true
 
-models=${MODELS_TO_USE:-`ls -1 $BASE/$DIR-$USE_MODE/*.eprime`}
+if [ "${LIMIT_MODELS:-}" ]; then
+	models=${MODELS_TO_USE:-`ls -1 $BASE/$DIR-$USE_MODE/*.eprime | head -n ${LIMIT_MODELS}`}
+else
+	models=${MODELS_TO_USE:-`ls -1 $BASE/$DIR-$USE_MODE/*.eprime`}
+fi
+
 export MODELS_TO_USE="${models}";
 if [ "$(uname)" = "Darwin" ] ; then
     export NUM_JOBS=${NUM_JOBS:-4}

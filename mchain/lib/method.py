@@ -170,7 +170,8 @@ class Method(metaclass=ABCMeta):
             conn = sqlite3.connect(os.path.join(self.output_dir, 'results.db'))
             results = [  (self.models_dir / row[0]).with_suffix('.eprime')
                         for row in conn.execute("SELECT eprime FROM EprimeOrdering") ]
-            results = results[0:5]
+            if "LIMIT_MODELS" not in os.environ:
+                results = results[0:int(os.environ['LIMIT_MODELS'])]
             return "\n".join(map(str, results))
         else:
             return ""
