@@ -230,17 +230,17 @@ class DomainFunc(Domain):
         dkeys = set(dall_from)
         ikeys = set(instance.point.keys())
 
-        common_from =  dkeys & ikeys
+        common_from = dkeys & ikeys
         missing = dkeys - ikeys
 
         tos_mapping = {}
         for k in common_from:
-            ki =  instance.point[k]
+            ki = instance.point[k]
             tos_mapping[k] = self.tos[0].within_radius_dom(selected_vals, ki, radius)
 
 
         for k in missing:
-            tos_mapping[k] = self.tos
+            tos_mapping[k] = self.tos[0]
 
         tos = [ tos_mapping[k] for k in sorted(tos_mapping) ]
 

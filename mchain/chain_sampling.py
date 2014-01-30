@@ -5,7 +5,7 @@
 """
 Usage:
    chain (iterations|time|cpu) <limit>
-   ( --chain_length=<int>  --select_radius=<int>  --influence_radius=<int> --essence=<file> --models_timeout=<int>)
+   ( --chain_length=<int>  --select_radius=<int>  --influence_radius=<int> --essence=<file> --models_timeout=<int> --info=<file>)
    [ --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str> --radius_as_percentage=<bool>]
    chain json <file>
 
@@ -24,6 +24,7 @@ Options:
   --seed=<int>                     Random seed to use.
   --select_radius=<int>            Radius for picking next point.
   --working_dir=<dir>              Where the essence file is [default: .]
+  --info=<file>                    Files that contains the ordering of the variable
 """
 
 from lib import chain_lib
@@ -35,6 +36,7 @@ import json
 import logging
 import os
 import random
+from pprint import pprint, pformat
 
 logger = logging.getLogger(__name__)
 Settings=namedtuple('Settings', ['chain_length', 'select_radius', 'influence_radius', 'seed', 'mode',
@@ -42,27 +44,25 @@ Settings=namedtuple('Settings', ['chain_length', 'select_radius', 'influence_rad
 
 
 class Chain(method.Method):
-    def __init__(self, options, limiter):
-        super(Chain, self,).__init__(options, limiter, Settings)
+    def __init__(self, options, limiter, info):
+        super(Chain, self,).__init__(options, limiter, Settings, info)
 
         for fp in ["chain"]:
             os.makedirs(os.path.join(self.output_dir, fp), exist_ok=True)
-
-        self.dim = len(self.data)
-
 
     def before_settings(self, options):
         return self.do_radius_as_percentage(options)
 
 
-    def acceptance(self, previous_point, candidate_point, data, local_data):
+    def acceptance(self, previous_point, candidate_point):
         """ Return True if the  candidate_point should be added to the chain """
 
-        logger.debug(("acceptance", previous_point, candidate_point, data, local_data))
-        # Bound check
-        if previous_point == candidate_point or any( (p < l or p > u) for (p, (l, u)) in zip(candidate_point, data)):
-            logger.debug(("rejected", candidate_point))
+        logger.debug(("acceptance", previous_point, candidate_point))
+
+        # Bound check not needed?
+        if previous_point == candidate_point:
             return False
+
 
         # Get points that effect
         points = [ p for p in self.data_points if self.shape.is_in_inside(self.settings.influence_radius, candidate_point, p) ]
@@ -72,7 +72,7 @@ class Chain(method.Method):
             return random.choice([True, False])
 
         def get_quailty(point):
-            name = "-".join( [ ("%03d" % p) for p in point ] )
+            name = "-".join( [ p.safe for p in point ] )
             return chain_lib.get_quailty(self.output_dir, name)
 
         # Get the quailties of these points
@@ -87,26 +87,22 @@ class Chain(method.Method):
 
 
     def make_chain(self):
-        def first_point(data):
-            return self.random_point()
 
-        current_chain = [first_point(self.data)]
+        current_chain = [self.random_point()]
         for i in range(self.settings.chain_length):
             candidate_point = self.next_point(current_chain)
-            if self.acceptance(current_chain[-1], candidate_point, self.data, None):
+            if self.acceptance(current_chain[-1], candidate_point):
                 current_chain.append(candidate_point)
 
-        logger.debug("Chain:")
-        logger.debug([ [int(v) for v in vs] for vs in current_chain])
 
         with open(os.path.join(self.output_dir, "chain", "iter-{:03}-chain.json".format(self._current_iteration)), "w") as f:
-            f.write(json.dumps(current_chain))
+            f.write(json.dumps([  self.point_pretty(p) for p in current_chain ]))
 
         return current_chain[-1]
 
 
     def next_point(self, current_chain):
-        return [int(x) for x in self.shape.pick_inside(self.settings.select_radius, current_chain[-1])]
+        return self.shape.pick_inside(self, self.settings.select_radius, current_chain[-1])
 
 
     def do_iteration(self):
@@ -117,8 +113,8 @@ class Chain(method.Method):
 
 if __name__ == '__main__':
     logging.basicConfig(format='%(name)s:%(lineno)d:%(funcName)s: %(message)s', level=logging.INFO)
-    (options, limiter) = option_handing.parse_arguments(__doc__, version="1.0")
-    Chain(options, limiter).run()
+    (options, limiter, info) = option_handing.parse_arguments(__doc__, version="1.0")
+    Chain(options, limiter, info).run()
     logger.info("<finished>")
 
 
