@@ -89,10 +89,6 @@ conjure                                                            \
     --out-eprime-param $EPRIME_PARAM;
 
 RESULTOF_REFINEPARAM=$?
-if (( $RESULTOF_REFINEPARAM != 0 || $TOTAL_TIMEOUT <= 0 )) ; then
-    echo "$MSG_REFINEPARAM" >> "$FAIL_FILE"
-    exit 1
-fi
 
 if [ ! -f $EPRIME_PARAM ]; then
     echo "$MSG_REFINEPARAM" >> "$FAIL_FILE"
@@ -100,6 +96,12 @@ if [ ! -f $EPRIME_PARAM ]; then
 fi
 
 update_total_time ${TOTAL_TIMEOUT} ${REFINE_TIME}
+
+if (( $RESULTOF_REFINEPARAM != 0 || $TOTAL_TIMEOUT <= 0 )) ; then
+    echo "$MSG_REFINEPARAM" >> "$FAIL_FILE"
+    exit 1
+fi
+
 echo "TOTAL_TIMEOUT is $TOTAL_TIMEOUT now"
 echo "PREVIOUS_USED is $PREVIOUS_USED now"
 
@@ -129,17 +131,18 @@ savilerow $TOTAL_TIMEOUT -mode Normal \
 
 RESULTOF_SAVILEROW=$?
 
-if (( $RESULTOF_SAVILEROW != 0 || $TOTAL_TIMEOUT <= 0 )) ; then
-    echo "$MSG_SAVILEROW" >> "$FAIL_FILE"
-    exit 1
-fi
-
 if [ ! -f $MINION ]; then
     echo "$MSG_SAVILEROW" >> "$FAIL_FILE"
     exit 1
 fi
 
 update_total_time ${TOTAL_TIMEOUT} ${SAVILEROW_TIME}
+
+if (( $RESULTOF_SAVILEROW != 0 || $TOTAL_TIMEOUT <= 0 )) ; then
+    echo "$MSG_SAVILEROW" >> "$FAIL_FILE"
+    exit 1
+fi
+
 echo "TOTAL_TIMEOUT is $TOTAL_TIMEOUT now"
 echo "PREVIOUS_USED is $PREVIOUS_USED now"
 
