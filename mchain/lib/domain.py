@@ -40,6 +40,11 @@ class DomainInstance(metaclass=ABCMeta):
     def to_json(self):
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
 
+    def __eq__(self, other):
+        self.pretty == other.pretty
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     @abstractmethod
     def distance(self, other_dom):
@@ -240,9 +245,6 @@ class DomainFunc(Domain):
         tos = [ tos_mapping[k] for k in sorted(tos_mapping) ]
 
         return DomainFunc(self.fromm, tos)
-
-        raise NotImplementedError()
-
 
 
 class Ref():
