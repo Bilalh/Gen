@@ -14,8 +14,8 @@ import random
 import logging
 
 import itertools as it
+import copy
 
-# DomainInstance = namedtuple("DomainInstance", ["point", "pretty", "safe"])
 logger = logging.getLogger(__name__)
 
 
@@ -106,8 +106,13 @@ class Domain(metaclass=ABCMeta):
         """selected_vals is previous selected points"""
         pass
 
+    @abstractmethod
     def all_values(self, selected_vals):
         raise NotImplemented("All values not done yet")
+
+    @abstractmethod
+    def within_radius_dom(self, selected_vals, instance, radius):
+        pass
 
 
 class DomainInt(Domain):
@@ -134,6 +139,29 @@ class DomainInt(Domain):
         pretty = "{}".format(u)
         return InstanceInt(point=u,  pretty=pretty, safe=pretty )
 
+    def within_radius_dom(self, selected_vals, instance, radius):
+        (dlow, dhigh) = [ self.resolve(v, selected_vals).point for v in self.low_high ]
+
+        (ilow, ihigh) = (instance.point - radius, instance.point + radius)
+
+        low = max([ilow, dlow])
+        high = min([ihigh, dhigh])
+
+        return DomainInt((low, high))
+
+    def within_radius(self, selected_vals, instance, radius):
+        (dlow, dhigh) = [ self.resolve(v, selected_vals).point for v in self.low_high ]
+
+        (ilow, ihigh) = (instance.point - radius, instance.point + radius)
+
+        low = max([ilow, dlow])
+        high = min([ihigh, dhigh])
+
+        u = chain_lib.uniform_int(low, high)
+        pretty = "{}".format(u)
+        return InstanceInt(point=u,  pretty=pretty, safe=pretty )
+
+
     def all_values(self, selected_vals):
         low_high = [ self.resolve(v, selected_vals).point for v in self.low_high ]
 
@@ -143,28 +171,35 @@ class DomainInt(Domain):
 
 class DomainFunc(Domain):
     """Function Domain"""
-    def __init__(self, fromm, to, total=False):
+    def __init__(self, fromm, tos, total=False):
         super(DomainFunc, self).__init__()
         self.total = total
         self.fromm = fromm
-        self.to = to
+        self.tos = tos
 
     def random_value(self, selected_vals):
         # TODO  assumes total from ints at the momment
-        all_from = self.fromm.all_values(selected_vals)
+        assert len(self.fromm) == 1
+        all_from = self.fromm[0].all_values(selected_vals)
 
-        import copy
-        tos_domains = [ copy.deepcopy(self.to) for i in range(len(all_from)) ]
+        if len(self.tos) == 1:
+            tos_domains = [ copy.deepcopy(self.tos[0]) for i in range(len(all_from)) ]
+        else:
+            assert len(all_from) == len(self.tos)
+            tos_domains = [ copy.deepcopy(to) for to in self.tos ]
 
+        return self.random_values_with_doms(selected_vals, all_from, tos_domains)
+
+    def random_values_with_doms(self, selected_vals, froms, tos):
         for c in self.constraints:
-            tos_domains = c.process(selected_vals, self, (all_from, tos_domains) )
+            tos = c.process(selected_vals, self, (froms, tos) )
 
-        logger.info("func(total) doms %s", list(zip(all_from, [t.low_high for t in tos_domains ] )) )
+        logger.info("func(total) doms %s", list(zip(froms, [t.low_high for t in tos ] )) )
 
-        tos = [ to_dom.random_value(selected_vals) for to_dom in tos_domains ]
-        res = dict(zip(all_from, tos))
+        tos = [ to_dom.random_value(selected_vals) for to_dom in tos ]
+        res = dict(zip(froms, tos))
 
-        logger.debug("rv %s", (all_from, tos, res))
+        logger.debug("rv %s", (froms, tos, res))
 
         kv = [ "{} --> {}".format(k, v.pretty) for (k, v) in sorted(res.items()) ]
         pretty = "function( {} )".format( ", ".join(kv) )
@@ -177,7 +212,38 @@ class DomainFunc(Domain):
         return di
 
 
-    # Use a domain for each mapping  since this would allow placing a constaint it
+    def all_values(self, selected_vals):
+        raise NotImplementedError("All values not done yet")
+
+    def within_radius_dom(self, selected_vals, instance, radius):
+        # TODO  assumes total from ints at the momment
+
+        assert len(self.fromm) == 1
+        assert len(self.tos) == 1
+        dall_from = self.fromm[0].all_values(selected_vals)
+
+        dkeys = set(dall_from)
+        ikeys = set(instance.point.keys())
+
+        common_from =  dkeys & ikeys
+        missing = dkeys - ikeys
+
+        tos_mapping = {}
+        for k in common_from:
+            ki =  instance.point[k]
+            tos_mapping[k] = self.tos[0].within_radius_dom(selected_vals, ki, radius)
+
+
+        for k in missing:
+            tos_mapping[k] = self.tos
+
+        tos = [ tos_mapping[k] for k in sorted(tos_mapping) ]
+
+        return DomainFunc(self.fromm, tos)
+
+        raise NotImplementedError()
+
+
 
 class Ref():
     """Refences to another var"""
@@ -315,7 +381,7 @@ def get_function_domain(data):
     # Assume int domains
     [fromm, to] = [ get_int_domain(next_ele(next_ele(ele)[1])[1]) for ele in top[1:] ]
 
-    f = DomainFunc(fromm=fromm, to=to, **as_bools)
+    f = DomainFunc(fromm=[fromm], tos=[to], **as_bools)
 
     return f
 
