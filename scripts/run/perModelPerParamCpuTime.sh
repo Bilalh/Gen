@@ -49,6 +49,7 @@ TIME_TEMPLATE="${EPRIMEBASE}-${PARAMBASE}.time"
 
 FAIL_FILE="${EPRIMEBASE}.fails"
 
+echo "TIMEOUT5_FILE is ${TIMEOUT5_FILE}"
 CPUTIMEOUT="${SCRIPT_DIR}/../tools/cputimeout/cputimeout --timeout-file $TIMEOUT5_FILE --interval 1 -k1"
 
 PREVIOUS_USED=0
@@ -172,5 +173,6 @@ if [  ! -f ${MINION_TABLE} ]; then
     exit 1
 fi
 
+echo "YFINISHED ${EPRIMEBASE}-${PARAMBASE}"
 touch $END_FILE
 
