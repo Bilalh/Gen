@@ -31,6 +31,7 @@ bool update_our_processes(Processes *our_starting, Processes *our_current, pid_t
 
 	char *cmd;
 	asprintf(&cmd, "ps -o pid,pgid -ax | grep %ld | cut -d ' ' -f 1 ", (long) monitored_pid );
+	printf("ps cmd: %s\n", cmd);
 
     FILE *ps_out;
 	if (!(ps_out = popen(cmd, "r" ))){
@@ -44,14 +45,32 @@ bool update_our_processes(Processes *our_starting, Processes *our_current, pid_t
 	size_t linecap = 0;
 	ssize_t linelen;
 
+	bool processed_added = false;
    	while ((linelen = getline(&line, &linecap, ps_out)) > 0){
+   		if (line){
+   			puts("apple cputimeout line is:");
+   			puts(line);
+   		}else{
+   			puts("apple cputimeout line is null");
+   		}
+   		errno=0;
 		int pid = atoi(line);
+		if (errno != 0){
+			perror("failed to parse:::");
+			fprintf(stderr, "apple cputimeout  failed to parse:%s\n", line);
+			continue;
+		}else if (pid == 0){
+			fprintf(stderr, "apple cputimeout pid is zero for :%s\n", line);
+			continue;
+		}
+
 		store_process(our_starting, pid, false);
 		store_process(our_current, pid, true);
+		processed_added=true;
    	}
 
-	llprintf("%s for %d\n", "Finished updating our processes\n", monitored_pid);
-	return true;
+   	llprintf("%s for %d\n", "Finished updating our processes\n", monitored_pid);
+	return processed_added;
 }
 
 bool update_process_stats(struct ProcessStats *p){
@@ -59,7 +78,8 @@ bool update_process_stats(struct ProcessStats *p){
 	static struct proc_taskallinfo ti;
 
 	if (! get_process_pti(p->pid, &ti) ) {
-		perror("get_process_pti failed");
+		perror("get_process_pti failed for");
+		fprintf(stderr, "get_process_pti failed for %d\n", p->pid);
 		return false;
 	}
 

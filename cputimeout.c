@@ -356,7 +356,21 @@ int main (int argc, char **argv){
 			llprintf("inside wait\n");
 			continue;
 		}
+
+
+		// block any signals how since the child has finished
+		sigset_t to_block;
+		sigemptyset(&to_block);
+		sigaddset (&to_block, SIGALRM);
+		sigaddset (&to_block, SIGINT);
+		sigaddset (&to_block, SIGQUIT);
+		sigaddset (&to_block, SIGTERM);
+		sigaddset (&to_block, SIGHUP);
+
+		sigprocmask(SIG_BLOCK, &to_block, NULL);
+
 		llprintf("after wait\n");
+
 
 		struct timeval end_time = {};
 		gettimeofday(&end_time, NULL);
