@@ -2,7 +2,8 @@ from lib import chain_lib
 from lib import ncube
 from lib import ncuboid
 from lib import euclidean
-from lib import domain
+from lib import domains
+from lib import constraints
 
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
@@ -63,9 +64,9 @@ class Method(metaclass=ABCMeta):
             del options['limiter']
             del options['info']
 
-        self.param_info = domain.gather_param_info(options['essence'], self.output_dir)
+        self.param_info = domains.gather_param_info(options['essence'], self.output_dir)
         logger.info(pformat(self.param_info, width=80))
-        self.param_info['crew'].constraints.append(domain.FuncForallLessThenEq('capacity'))
+        self.param_info['crew'].constraints.append(constraints.FuncForallLessThenEq('capacity'))
 
         if len(self.info.ordering) != len(self.param_info):
             print("Ordering size:{} != params size:{}".format(len(self.info.ordering), len(self.param_info)))

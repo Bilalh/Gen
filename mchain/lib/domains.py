@@ -1,4 +1,5 @@
 from lib import chain_lib
+from lib import instances
 
 from abc import ABCMeta, abstractmethod
 from pprint import pprint
@@ -17,75 +18,6 @@ import itertools as it
 import copy
 
 logger = logging.getLogger(__name__)
-
-
-class DomainInstance(metaclass=ABCMeta):
-
-    """Instantiation of a domain"""
-    def __init__(self, point, pretty, safe):
-        super(DomainInstance, self).__init__()
-        self.point = point
-        self.pretty = pretty
-        self.safe = safe
-
-    def __repr__(self):
-        return "{}({})".format(self.__class__.__name__,
-            ', '.join( key + "=" + str(getattr(self, key))
-                for key in self.__dict__ if not key.startswith('_'))
-                )
-
-    def __str__(self):
-        return "{}~{}".format(self.__class__.__name__, self.pretty)
-
-    def to_json(self):
-        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
-
-    def __eq__(self, other):
-        self.pretty == other.pretty
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-    @abstractmethod
-    def distance(self, other_dom):
-        raise NotImplemented("distance not done yet")
-
-
-class InstanceInt(DomainInstance):
-    def __init__(self, point, pretty, safe):
-        super(InstanceInt, self).__init__(point, pretty, safe)
-
-    def distance(self, other_dom):
-        "  distance squared between the two domains, for use in euclidean "
-        if not isinstance(other_dom, self.__class__):
-            raise ValueError("other dom must of %s" % self.__class__.__name__)
-
-        return (other_dom.point - self.point) ** 2
-
-
-class InstanceFunc(DomainInstance):
-    def __init__(self, point, pretty, safe):
-        super(InstanceFunc, self).__init__(point, pretty, safe)
-
-    def distance(self, other_dom):
-        "  distance between the two domains, for use in euclidean "
-        if not isinstance(other_dom, self.__class__):
-            raise ValueError("other dom must of %s" % self.__class__.__name__)
-
-        # logger.info("self %s other %s", self.pretty, other_dom.pretty)
-        # logger.info("self %s other %s", self.point,  other_dom.point)
-
-        def f(x1, x2):
-            if x1 is None or x2 is None:
-                return 0
-            else:
-                return (x1 - x2) ** 2
-
-
-        parts = [ f(x1, x2) for (x1, x2) in it.zip_longest(self.point, other_dom.point) ]
-        logger.debug("functin dist parts %s", parts)
-
-        return sum(parts)
 
 
 
@@ -120,10 +52,10 @@ class Domain(metaclass=ABCMeta):
         pass
 
 
-class DomainInt(Domain):
+class Int(Domain):
     """Int domain in (low,high) inclusive """
     def __init__(self, low_high):
-        super(DomainInt, self).__init__()
+        super(Int, self).__init__()
         self.low_high = low_high
 
     def resolve(self, v, selected_vals):
@@ -131,7 +63,7 @@ class DomainInt(Domain):
             return v.resolve(selected_vals)
         else:
             pretty = "{}".format(v)
-            return InstanceInt(point=v, pretty=pretty, safe=pretty )
+            return instances.Int(point=v, pretty=pretty, safe=pretty )
 
 
     def random_value(self, selected_vals):
@@ -142,7 +74,7 @@ class DomainInt(Domain):
 
         u = chain_lib.uniform_int(*vs)
         pretty = "{}".format(u)
-        return InstanceInt(point=u,  pretty=pretty, safe=pretty )
+        return instances.Int(point=u,  pretty=pretty, safe=pretty )
 
     def within_radius_dom(self, selected_vals, instance, radius):
         (dlow, dhigh) = [ self.resolve(v, selected_vals).point for v in self.low_high ]
@@ -152,7 +84,7 @@ class DomainInt(Domain):
         low = max([ilow, dlow])
         high = min([ihigh, dhigh])
 
-        return DomainInt((low, high))
+        return Int((low, high))
 
     def within_radius(self, selected_vals, instance, radius):
         (dlow, dhigh) = [ self.resolve(v, selected_vals).point for v in self.low_high ]
@@ -164,7 +96,7 @@ class DomainInt(Domain):
 
         u = chain_lib.uniform_int(low, high)
         pretty = "{}".format(u)
-        return InstanceInt(point=u,  pretty=pretty, safe=pretty )
+        return instance.Int(point=u,  pretty=pretty, safe=pretty )
 
 
     def all_values(self, selected_vals):
@@ -174,10 +106,10 @@ class DomainInt(Domain):
         return vs
 
 
-class DomainFunc(Domain):
+class Func(Domain):
     """Function Domain"""
     def __init__(self, fromm, tos, total=False):
-        super(DomainFunc, self).__init__()
+        super(Func, self).__init__()
         self.total = total
         self.fromm = fromm
         self.tos = tos
@@ -212,7 +144,7 @@ class DomainFunc(Domain):
         kv_safe = [ "{}_{}".format(k, v.safe) for (k, v) in sorted(res.items()) ]
         safe = "F__{}__".format( ",".join(kv_safe) )
 
-        di = InstanceFunc(point=res, pretty=pretty, safe=safe)
+        di = instances.Func(point=res, pretty=pretty, safe=safe)
         # logger.info("point Part %s", pretty)
         return di
 
@@ -244,7 +176,7 @@ class DomainFunc(Domain):
 
         tos = [ tos_mapping[k] for k in sorted(tos_mapping) ]
 
-        return DomainFunc(self.fromm, tos)
+        return Func(self.fromm, tos)
 
 
 class Ref():
@@ -270,50 +202,6 @@ class NoValuesInDomainException(Exception):
 class UninitialisedVal(Exception):
     """Thrown when a reference is unresolved"""
     pass
-
-
-class Constraint(metaclass=ABCMeta):
-    def __init__(self):
-        super(Constraint, self).__init__()
-
-    @abstractmethod
-    def process(self, selected_vals, domain, extra=None):
-        pass
-
-
-class FuncForallLessThenEq(Constraint):
-    def __init__(self, target):
-        super(FuncForallLessThenEq, self).__init__()
-        self.target = target
-
-    def process(self, selected_vals, domain, from_to):
-        if not isinstance(domain, DomainFunc):
-            raise ValueError("not Function Domain %s" % domain)
-
-        (from_vals, tos_doms) = from_to
-        target_instance = selected_vals[self.target]
-
-        if not isinstance(target_instance, InstanceFunc):
-            raise ValueError("target %s not a function %s" % (self.target, target_instance) )
-
-        if len(target_instance.point) != len(from_vals):
-            raise ValueError('Functions not same length')
-
-        # assumming int function
-        def process(target_val, to_domain):
-            if not isinstance(target_val, InstanceInt):
-                raise ValueError("target_val not a int instance %s" % (target_val) )
-
-            [low, high] = [to_domain.resolve(d, selected_vals).point for d in to_domain.low_high]
-
-            if target_val.point < high:
-                high = target_val.point
-            to_domain.low_high = (low, high)
-
-            return to_domain
-
-        return [ process(target_instance.point[f], t) for (f, t) in zip(from_vals, tos_doms)  ]
-
 
 
 def next_ele(ele):
@@ -367,7 +255,7 @@ def get_int_domain(data):
             bs.append(b['int'])
 
 
-    return DomainInt(tuple(bs))
+    return Int(tuple(bs))
 
 
 def get_function_domain(data):
@@ -383,7 +271,7 @@ def get_function_domain(data):
     # Assume int domains
     [fromm, to] = [ get_int_domain(next_ele(next_ele(ele)[1])[1]) for ele in top[1:] ]
 
-    f = DomainFunc(fromm=[fromm], tos=[to], **as_bools)
+    f = Func(fromm=[fromm], tos=[to], **as_bools)
 
     return f
 
