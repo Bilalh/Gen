@@ -1,0 +1,58 @@
+
+domains:
+  ✔ Make hs program to output json for givens @done
+  ✔ ints @done
+  ✔  References @done
+  ✔  all values for ints @done (14-01-21)
+  ✔  return a wrapper (named tuple?) for random_point (since we are not just using int any more), @done (14-01-26 00:14)
+       including; (make sure to sort dict before creating it)
+     - pretty printed form (could also be a method) but can't use named tuple then
+     -  the val
+
+  ✔  radius calculation  say r=10 e.g for PPP, how should these be compared? @done (14-01-26 00:12)
+       [84, 93, 68, {1: 73, 2: 47}, {1: 48, 2: 28}]
+       [73, 96, 38, {1: 1, 2: 71, 3:12}, {1: 58, 2: 9, 3:42}]
+    -  how to compare the functions (assuming total):
+      ✔ as extra dims.
+      ✘ compare dom and range as pairs
+    - for `missing` mapping  treat the distance between the two parts  as zero
+
+
+  PPP:
+    ✔ Variable references @done
+    ✔ the size of the crew is less then it's capacity @done
+      for i in Boat .
+        crew(i) <= capacity(i)
+
+Results:
+  ✔ Make the results from running functions for 4-5 hours @done (14-01-28 12:01)
+
+
+  There is fractutring
+    -  Using a timeout of 60 seconds
+    -  0013 is the fastest most of the time
+    -  for 7-1-2-F__1_2__-F__1_2__   0013  timeoutout
+    -  25 models which could not solve anything
+
+
+Algorithms:
+  method.py:
+    ✔ Update .\method.py>random_point to use new classes @done
+    ✔ Update .\method.py>run_param_and_store_quality to use new classes @done
+
+
+Misc:
+  ✔  Show cpu time at the end @done (14-01-21 00:28)
+  ✔  Ordering option parsing @done (14-01-22 16:09)
+  ✔  tar stats files to reduce the number of files @done (14-01-22 05:27)
+    ✔  Wrote script @done (14-01-22 03:33)
+    ✔  add to metascript @done (14-01-22 05:25)
+  ✔  Fix timeout (need to divide by total number of models) .\chain_lib.py>get_results @done (14-01-27 16:49)
+
+Ideas:
+ Instead of using the domain bounds as given, if we can be 50 point then first pick small n  point of the first 10% since then bounds could be massive
+
+ Try only only the first n  models  for the first k%.
+ e.g use the first 16 from 256 for the first 5% and use the most discriminating on the rest of the models
+
+
