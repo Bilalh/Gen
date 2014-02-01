@@ -31,7 +31,7 @@ bool update_our_processes(Processes *our_starting, Processes *our_current, pid_t
 
 	char *cmd;
 	asprintf(&cmd, "ps -o pid,pgid -ax | grep %ld | cut -d ' ' -f 1 ", (long) monitored_pid );
-	printf("ps cmd: %s\n", cmd);
+	// printf("ps cmd: %s\n", cmd);
 
     FILE *ps_out;
 	if (!(ps_out = popen(cmd, "r" ))){
@@ -47,11 +47,9 @@ bool update_our_processes(Processes *our_starting, Processes *our_current, pid_t
 
 	bool processed_added = false;
    	while ((linelen = getline(&line, &linecap, ps_out)) > 0){
-   		if (line){
-   			puts("apple cputimeout line is:");
-   			puts(line);
-   		}else{
-   			puts("apple cputimeout line is null");
+   		if (!line){
+   			fprintf(stderr, "apple cputimeout line is null");
+   			continue;
    		}
    		errno=0;
 		int pid = atoi(line);
@@ -60,7 +58,7 @@ bool update_our_processes(Processes *our_starting, Processes *our_current, pid_t
 			fprintf(stderr, "apple cputimeout  failed to parse:%s\n", line);
 			continue;
 		}else if (pid == 0){
-			fprintf(stderr, "apple cputimeout pid is zero for :%s\n", line);
+			fprintf(stderr, "apple cputimeout tried to add  pid zero for :%s\n", line);
 			continue;
 		}
 

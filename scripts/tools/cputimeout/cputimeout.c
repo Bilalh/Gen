@@ -335,13 +335,21 @@ int main (int argc, char **argv){
 
 		gettimeofday(&start_time, NULL);
 		printf("cputimeout: monitored_pid:%ld,  our_pid:%ld\n", (long) monitored_pid, (long) getpid()  );
-		bool res = update_our_processes(&our_starting, &our_current, monitored_pid);
-		if (!res){
+		// 0.1 seconds
+		struct timespec tss = {.tv_sec =0, .tv_nsec=100000000 };
+		bool res =false;
+
+		// Get starting processes
+		int tries = 0;
+		while (!res && tries < 10){
+			res = update_our_processes(&our_starting, &our_current, monitored_pid);
+			if (res) break;
+
 			fprintf(stderr, "Failed to get stats of pid:%d and it's children\n",monitored_pid );
-			exit(EXIT_FAILURE);
+			nanosleep(&tss, NULL);
+			tries++;
 		}
 		assert(&our_current != &our_starting);
-		// FIXME improve
 
 		llprintf("Starting to wait\n");
 
