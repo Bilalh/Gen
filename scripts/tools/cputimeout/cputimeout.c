@@ -22,6 +22,7 @@
 #include <sys/time.h>
 #include <assert.h>
 #include <sys/resource.h>
+#include <time.h>
 
 void usage (int status){
 char help[] =
