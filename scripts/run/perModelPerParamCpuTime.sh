@@ -80,6 +80,8 @@ function update_total_time(){
     (( PREVIOUS_USED += taken ))
 }
 
+date +'StartP %a %d %b %Y %k:%M:%S %z%nStartP(timestamp) %s' >&2
+
 echoer \
 ${CPUTIMEOUT} --write-time ${REFINE_TIME} --previous-used $PREVIOUS_USED $TOTAL_TIMEOUT  \
 conjure                                                            \
@@ -90,6 +92,8 @@ conjure                                                            \
     --out-eprime-param $EPRIME_PARAM;
 
 RESULTOF_REFINEPARAM=$?
+
+date +'finP %a %d %b %Y %k:%M:%S %z%nfinP(timestamp) %s' >&2
 
 if [ ! -f $EPRIME_PARAM ]; then
     echo "$MSG_REFINEPARAM" >> "$FAIL_FILE"
@@ -124,11 +128,15 @@ function savilerow(){
     java -XX:ParallelGCThreads=1 -Xmx${JAVA_MEMORY:-4G}  -server -ea -jar $sr_dir/savilerow.jar $@
 }
 
+date +'StartSR %a %d %b %Y %k:%M:%S %z%nStartSR(timestamp) %s' >&2
 savilerow $TOTAL_TIMEOUT -mode Normal \
     -in-eprime    $EPRIME       \
     -in-param     $EPRIME_PARAM \
     -out-minion   $MINION       \
     -boundvars;
+
+date +'finSR %a %d %b %Y %k:%M:%S %z%nfinSR(timestamp) %s' >&2
+
 
 RESULTOF_SAVILEROW=$?
 
@@ -153,6 +161,7 @@ MSG_MINION="{minion}             $MSG_TEMPLATE"
 echo "$MSG_MINION"
 
 
+date +'StartMINION %a %d %b %Y %k:%M:%S %z%nStartMINION(timestamp) %s' >&2
 echoer \
 ${CPUTIMEOUT} --write-time $MINION_TIME --previous-used $PREVIOUS_USED $TOTAL_TIMEOUT \
 minion $MINION  \
@@ -160,6 +169,7 @@ minion $MINION  \
     -preprocess SACBounds \
     -tableout $MINION_TABLE \
     -solsout  $MINION_SOLUTION
+date +'finMINION %a %d %b %Y %k:%M:%S %z%nfinMINION(timestamp) %s' >&2
 
 
 RESULTOF_MINION=$?
