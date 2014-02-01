@@ -28,10 +28,11 @@ class TimeLimit(Limit):
 
 	def start(self):
 		self.start_time = time.time()
+		self.cputime_start = time.process_time()
 
 	@copydoc(Limit.continue_running)
 	def continue_running(self, method):
-		return ( time.time() - self.start_time < self.seconds )
+		return (time.time() - self.start_time + time.process_time() - self.cputime_start ) < self.seconds
 
 
 class IterationsLimit(Limit):
