@@ -26,7 +26,7 @@ Options:
 
 """
 
-from lib import domain
+from lib import domains
 from lib import chain_lib
 from lib import method
 from lib import option_handing
@@ -75,7 +75,7 @@ class NSample(method.Method):
     def do_iteration(self):
         try:
             x = self.random_point()
-        except domain.NoValuesInDomainException:
+        except domains.NoValuesInDomainException:
             logger.info("Domain empty")
             return
 
