@@ -10,7 +10,7 @@ import re
 
 
 logger = logging.getLogger(__name__)
-Info=namedtuple("Info", ['ordering'])
+Info=namedtuple("Info", ['ordering', 'givens'])
 
 
 def parse_arguments(doc, *, version):
