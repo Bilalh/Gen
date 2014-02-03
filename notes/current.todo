@@ -63,8 +63,14 @@ use random ordering  in minion to genrate a asignment
 compare with my methods
 
 
+not as simple because the constraint depends on the find then
 
+	such that
+	    forAll v__0 : int(1..n_boats)
+	        . crew_Function1D[v__0] <= capacity_Function1D[v__0]
 
+	ERROR: In statement : find capacity_Function1D: matrix indexed by [int(1..n_boats)] of int(1..n_upper)
+	ERROR: Right-hand side contains an identifier that is not a constant or parameter.
 
-
+Idea  do ints first then funcs
 
