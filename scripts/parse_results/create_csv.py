@@ -76,8 +76,8 @@ def collect_data_as_dicts(base_str, num_proc, all_results_dir, start_num=0):
             row_data['num_models'] = num_models[row['essence']]
             row_data['index'] = indexes[i]
 
-            if base.name == 'div_cores':
-                row_data['output_dir'] = str(Path("div_cores") / row_data['output_dir'])
+            if base.name != 'Experiment':
+                row_data['output_dir'] = str(Path(base.name) / row_data['output_dir'])
 
 
             results_conn.row_factory = sqlite3.Row
