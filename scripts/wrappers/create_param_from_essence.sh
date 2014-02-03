@@ -14,6 +14,7 @@ EPRIME="$2"
 PARAM="$3"
 MINION_TIMEOUT=${4}  # not used anymore
 TOTAL_TIMEOUT=${5}
+RANDOM_SEED=${6}
 
 DIR=$(dirname $ESSENCE)
 EPRIMEBASE=${EPRIME%.eprime}
@@ -174,7 +175,10 @@ minion $MINION  \
     -printsolsonly \
     -preprocess SACBounds \
     -tableout $MINION_TABLE \
-    -solsout  $MINION_SOLUTION
+    -solsout  $MINION_SOLUTION \
+    -randomiseorder \
+    -randomseed ${RANDOM_SEED}
+
 date +'finMINION %a %d %b %Y %k:%M:%S %z%nfinMINION(timestamp) %s' >&2
 
 
@@ -253,7 +257,6 @@ fi
 
 fi
 
-touch $END_FILE
 
 cat ${OUTPUT_BASE}/*.*-time \
     | grep cpu \
@@ -261,3 +264,4 @@ cat ${OUTPUT_BASE}/*.*-time \
     > ${OUTPUT_BASE}/total.time
 
 echo "TOTAL CPU TIME `cat ${OUTPUT_BASE}/total.time`"
+touch $END_FILE

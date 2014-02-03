@@ -113,6 +113,8 @@ def create_param_from_essence(output_dir):
     current_env["GENERATED_OUTPUT_DIR"] = str(out)
     current_env["TIMEOUT5_FILE"] = str(out / "timeout_file")
 
+    random_seed = chain_lib.uniform_int(1, (2 ** 32) - 1)
+
     essence = str(base_path / 'essence_param_find.essence')
     eprime = str(base_path / 'essence_param_find.eprime')
     param = str(base_path / 'first.param')
@@ -120,7 +122,7 @@ def create_param_from_essence(output_dir):
 
     subprocess.Popen([
         chain_lib.wrappers("create_param_from_essence.sh"),
-        essence, eprime, param, timeout, timeout
+        essence, eprime, param, timeout, timeout, str(random_seed)
     ], env=current_env ).communicate()
 
 
