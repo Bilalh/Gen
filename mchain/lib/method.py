@@ -4,6 +4,7 @@ from lib import ncuboid
 from lib import euclidean
 from lib import domains
 from lib import constraints
+from lib import instances
 
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
@@ -51,7 +52,7 @@ class Method(metaclass=ABCMeta):
 
         os.makedirs(self.output_dir, exist_ok=True)
 
-        for fp in ["info", "params"]:
+        for fp in ["info", "params", 'param_gen']:
             os.makedirs(os.path.join(self.output_dir, fp), exist_ok=True)
 
         if not options['seed']:
@@ -94,6 +95,9 @@ class Method(metaclass=ABCMeta):
         self.num_models = chain_lib.get_number_of_models( str(self.models_dir) )
         logger.info(self.num_models)
         self.time_per_model = int(math.ceil(self.settings.models_timeout / self.num_models) )
+
+        instances.create_param_essence(options['essence'], self.output_dir)
+        instances.create_param_from_essence(self.output_dir)
 
     def run(self):
         date_start = datetime.utcnow()

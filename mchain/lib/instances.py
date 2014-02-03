@@ -2,11 +2,15 @@ from lib import chain_lib
 
 from abc import ABCMeta, abstractmethod
 from pprint import pprint
+from pathlib import Path
 
 import json
 import logging
 import itertools as it
-
+import subprocess
+import sys
+import os
+import calendar
 
 logger = logging.getLogger(__name__)
 
@@ -78,5 +82,45 @@ class Func(Instance):
         logger.debug("functin dist parts %s", parts)
 
         return sum(parts)
+
+
+
+def create_param_essence(essence_file, output_dir):
+    """ Create a essence spec of the params then refine it """
+
+    out = Path(output_dir) / "param_gen"
+
+    sys.stdout.flush()
+    sys.stderr.flush()
+
+    subprocess.Popen([
+        chain_lib.wrappers("create_param_essence.sh"), essence_file, str(out)
+    ]).communicate()
+
+
+def create_param_from_essence(output_dir):
+    base_path = Path(output_dir) / 'param_gen'
+
+    datee = calendar.datetime.datetime.now()
+    logger.info("Make param %s", datee.isoformat())
+    now = str(int(datee.timestamp()))
+
+    out = base_path / now
+    if not out.exists():
+        out.mkdir()
+
+    current_env= os.environ.copy()
+    current_env["GENERATED_OUTPUT_DIR"] = str(out)
+    current_env["TIMEOUT5_FILE"] = str(out / "timeout_file")
+
+    essence = str(base_path / 'essence_param_find.essence')
+    eprime = str(base_path / 'essence_param_find.eprime')
+    param = str(base_path / 'first.param')
+    timeout = str(60)
+
+    subprocess.Popen([
+        chain_lib.wrappers("create_param_from_essence.sh"),
+        essence, eprime, param, timeout, timeout
+    ], env=current_env ).communicate()
 
 
