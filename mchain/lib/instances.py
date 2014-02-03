@@ -98,6 +98,11 @@ def create_param_essence(essence_file, output_dir):
     ]).communicate()
 
 
+
+def json_to_param_instance(dict):
+    return dict
+
+
 def create_param_from_essence(output_dir):
     base_path = Path(output_dir) / 'param_gen'
 
@@ -115,14 +120,44 @@ def create_param_from_essence(output_dir):
 
     random_seed = chain_lib.uniform_int(1, (2 ** 32) - 1)
 
-    essence = str(base_path / 'essence_param_find.essence')
-    eprime = str(base_path / 'essence_param_find.eprime')
-    param = str(base_path / 'first.param')
+    essence = base_path / 'essence_param_find.essence'
+    eprime = base_path / 'essence_param_find.eprime'
+    param = base_path / 'first.param'
     timeout = str(60)
+    solution = (out / (essence.stem + "-" + param.stem) ).with_suffix('.solution')
+    solution_json = solution.with_suffix('.json')
 
     subprocess.Popen([
         chain_lib.wrappers("create_param_from_essence.sh"),
-        essence, eprime, param, timeout, timeout, str(random_seed)
+        str(essence), str(eprime), str(param), timeout, timeout, str(random_seed)
     ], env=current_env ).communicate()
 
+    try:
+        with ( out / "total.time" ).open() as f:
+            time_taken=float(f.read().rstrip())
 
+        # with (out / essence.name + "-" + param.name ).with_suffix('solution').open() as f:
+
+    except Exception:
+        raise FailedToGenerateParamExeception()
+
+    subprocess.Popen([
+        chain_lib.wrappers("essenceLettingsToJson.sh"),
+        str(solution), str(solution_json)
+    ], env=current_env ).communicate()
+
+    try:
+        with solution_json.open() as f:
+            raw_json = json.loads(f.read())
+
+    except Exception:
+        raise FailedToGenerateParamExeception()
+
+    param_data = json_to_param_instance(raw_json)
+
+    raise ValueError()
+    return (None, time_taken)
+
+
+class FailedToGenerateParamExeception(Exception):
+    pass
