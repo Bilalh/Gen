@@ -11,7 +11,7 @@ import subprocess
 import sys
 import os
 import calendar
-
+from pprint import pformat, pprint
 logger = logging.getLogger(__name__)
 
 
@@ -44,7 +44,12 @@ class Instance(metaclass=ABCMeta):
 
     @abstractmethod
     def distance(self, other_dom):
-        raise NotImplemented("distance not done yet")
+        raise NotImplementedError("distance not done yet")
+
+    @classmethod
+    def from_json_dict(cls, d):
+        """ toplevel should be  {tag: type } """
+        raise NotImplementedError()
 
 
 class Int(Instance):
@@ -57,6 +62,10 @@ class Int(Instance):
             raise ValueError("other dom must of %s" % self.__class__.__name__)
 
         return (other_dom.point - self.point) ** 2
+
+    @classmethod
+    def from_json_dict(cls, d):
+        raise NotImplementedError()
 
 
 class Func(Instance):
@@ -83,6 +92,28 @@ class Func(Instance):
 
         return sum(parts)
 
+    @classmethod
+    def from_json_dict(cls, dom):
+        mappings = jmatch(dom, "function", "values" )
+
+        def f(mapping):
+
+            [come, to] = [ process_primitive(jmatch(lit, "literal")[0]) for lit in jmatch(mapping, "mapping", "value") ]
+            return (come.point, to)
+
+        res = dict([ f(m) for m in mappings ])
+
+        return cls.construct(res)
+
+    @staticmethod
+    def construct(func):
+        kv = [ "{} --> {}".format(k, v.pretty) for (k, v) in sorted(func.items()) ]
+        pretty = "function( {} )".format( ", ".join(kv) )
+
+        kv_safe = [ "{}_{}".format(k, v.safe) for (k, v) in sorted(func.items()) ]
+        safe = "F__{}__".format( ",".join(kv_safe) )
+        return Func(point=func, pretty=pretty, safe=safe)
+
 
 
 def create_param_essence(essence_file, output_dir):
@@ -96,11 +127,6 @@ def create_param_essence(essence_file, output_dir):
     subprocess.Popen([
         chain_lib.wrappers("create_param_essence.sh"), essence_file, str(out)
     ]).communicate()
-
-
-
-def json_to_param_instance(dict):
-    return dict
 
 
 def create_param_from_essence(output_dir):
@@ -153,11 +179,54 @@ def create_param_from_essence(output_dir):
     except Exception:
         raise FailedToGenerateParamExeception()
 
-    param_data = json_to_param_instance(raw_json)
+    param_map = dict([ json_to_param_instance(letting) for letting in raw_json['lettings'] ])
 
-    raise ValueError()
-    return (None, time_taken)
+    raise ValueError("Not done")
+    return (param_data, time_taken)
 
 
 class FailedToGenerateParamExeception(Exception):
     pass
+
+
+def json_to_param_instance(data):
+    name = data['name']
+    logger.info("name:%s", name)
+
+    kind = jmatch(data['domain'][0], 'value')[0]
+
+    dispatch ={
+    "function": Func
+    }
+
+    instance = dispatch[kind['tag']].from_json_dict(kind)
+
+    logger.info("name:%s, instance:%s", name, instance)
+
+    return (name, instance)
+
+
+def jmatch(d, *names):
+    """ Similar to xmatch """
+    lnames = len(names)
+    for (i, tagname) in enumerate(names):
+        if i == lnames - 1 and isinstance(d, list):
+            return [ jmatch(v, tagname)[0] for v in d ]
+
+        if d['tag'] != tagname:
+            raise ValueError("{} not a tag of {}".format(tagname, pformat(d)))
+        d = d['children']
+
+        if i != lnames - 1 and len(d) == 1:
+            d = d[0]
+
+    return d
+
+
+def process_primitive(prim):
+    lit = prim['primitive']
+    assert len(lit) == 1
+    u = lit['int']
+    pretty = "{}".format(u)
+    return Int(point=u,  pretty=pretty, safe=pretty )
+

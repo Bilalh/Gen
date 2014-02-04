@@ -106,6 +106,7 @@ class Int(Domain):
         return vs
 
 
+# FIXME  use the form  1:instance at the moment
 class Func(Domain):
     """Function Domain"""
     def __init__(self, fromm, tos, total=False):
