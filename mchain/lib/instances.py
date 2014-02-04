@@ -98,7 +98,7 @@ class Func(Instance):
 
         def f(mapping):
 
-            [come, to] = [ process_primitive(jmatch(lit, "literal")[0]) for lit in jmatch(mapping, "mapping", "value") ]
+            [come, to] = [ process_literal(lit) for lit in jmatch(mapping, "mapping", "value") ]
             return (come.point, to)
 
         res = dict([ f(m) for m in mappings ])
@@ -196,10 +196,11 @@ def json_to_param_instance(data):
     kind = jmatch(data['domain'][0], 'value')[0]
 
     dispatch ={
-    "function": Func
+    "function": Func.from_json_dict,
+    "literal": process_literal
     }
 
-    instance = dispatch[kind['tag']].from_json_dict(kind)
+    instance = dispatch[kind['tag']](kind)
 
     logger.info("name:%s, instance:%s", name, instance)
 
@@ -223,10 +224,10 @@ def jmatch(d, *names):
     return d
 
 
-def process_primitive(prim):
-    lit = prim['primitive']
-    assert len(lit) == 1
-    u = lit['int']
+def process_literal(lit):
+    prim = jmatch(lit, 'literal')[0]['primitive']
+    assert len(prim) == 1
+    u = prim['int']
     pretty = "{}".format(u)
     return Int(point=u,  pretty=pretty, safe=pretty )
 
