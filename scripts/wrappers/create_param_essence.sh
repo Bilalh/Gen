@@ -13,11 +13,5 @@ out_eprime="${OUT_BASE_DIR}/essence_param_find.eprime"
 essenceGivensToFinds "${essence}" "${out_essence}" "`dirname ${essence}`/info.json"
 conjure --mode compact  --in-essence "${out_essence}" --out-eprime "${out_eprime}"
 
-cat > "${OUT_BASE_DIR}/first.param" <<EOF
-language ESSENCE 1.0
-letting n_upper be 12
-letting n_boats be 6
-EOF
-
 echo "`date`"
 set +x

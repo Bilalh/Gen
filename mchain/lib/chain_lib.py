@@ -42,7 +42,7 @@ def create_param_essence(params):
 
 def write_param(output_dir, contents, param_name):
     """ Write the param at dirname with param_name """
-    param_path = os.path.join(output_dir, "params", "{}.param".format(param_name) )
+    param_path = os.path.join(output_dir, "{}.param".format(param_name) )
     logger.info("%s\n" % param_path)
     with open(param_path, "w") as f:
         f.write(contents)

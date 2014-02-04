@@ -150,7 +150,7 @@ class Method(metaclass=ABCMeta):
         if self.use_previous_data and check:
             now = check
         else:
-            param_path = chain_lib.write_param(self.output_dir, param_string, param_name)
+            param_path = chain_lib.write_param(self.output_dir + "/params", param_string, param_name)
 
             datee = calendar.datetime.datetime.now()
             logger.info("Start %s", datee.isoformat())
@@ -205,8 +205,9 @@ class Method(metaclass=ABCMeta):
             selected_vals[name] = v
             logger.info("Assigning %s=%s", name, v.pretty)
 
+        givens = [  (name, selected_vals[name]) for name in self.info.givens ]
         # TODO add cpu_taken to total
-        (generated, cpu_taken) = instances.create_param_from_essence(self.output_dir)
+        (generated, cpu_taken) = instances.create_param_from_essence(self.output_dir, givens)
 
         selected_vals.update(generated)
 

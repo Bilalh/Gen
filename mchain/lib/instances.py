@@ -129,7 +129,7 @@ def create_param_essence(essence_file, output_dir):
     ]).communicate()
 
 
-def create_param_from_essence(output_dir):
+def create_param_from_essence(output_dir, givens):
     base_path = Path(output_dir) / 'param_gen'
 
     datee = calendar.datetime.datetime.now()
@@ -146,9 +146,13 @@ def create_param_from_essence(output_dir):
 
     random_seed = chain_lib.uniform_int(1, (2 ** 32) - 1)
 
+    (param_string, param_name) = chain_lib.create_param_essence(givens)
+    param = (out / param_name).with_suffix('.param')
+
+    chain_lib.write_param(str(out), param_string, param_name)
+
     essence = base_path / 'essence_param_find.essence'
     eprime = base_path / 'essence_param_find.eprime'
-    param = base_path / 'first.param'
     timeout = str(60)
     solution = (out / (essence.stem + "-" + param.stem) ).with_suffix('.solution')
     solution_json = solution.with_suffix('.json')
