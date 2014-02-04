@@ -53,12 +53,12 @@ Ideas:
 
 Using minion to genrate assigments.
 
-Convert the where to constraints
-Convert the givens to finds
+	✔ Convert the where to constraints @done (14-02-04 05:10)
+	✔ Convert the givens to finds @done (14-02-04 05:10)
+	✔ use random ordering  in minion to genrate a asignment @done (14-02-04 05:10)
+	✔ Setup scripts timings etc @done (14-02-04 05:18)
 
-Paramisse   the problem so it only needs to be refined once by --compact
-
-use random ordering  in minion to genrate a asignment
+Paramisse  the problem so it only needs to be refined once by --compact
 
 compare with my methods
 

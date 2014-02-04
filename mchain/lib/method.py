@@ -97,7 +97,7 @@ class Method(metaclass=ABCMeta):
         self.time_per_model = int(math.ceil(self.settings.models_timeout / self.num_models) )
 
         instances.create_param_essence(options['essence'], self.output_dir)
-        instances.create_param_from_essence(self.output_dir)
+
 
     def run(self):
         date_start = datetime.utcnow()
@@ -195,6 +195,24 @@ class Method(metaclass=ABCMeta):
             return None
 
     def random_point(self):
+        return self.random_point_minion()
+
+    def random_point_minion(self):
+        selected_vals = {}
+
+        for name in self.info.givens:
+            v=self.param_info[name].random_value(selected_vals)
+            selected_vals[name] = v
+            logger.info("Assigning %s=%s", name, v.pretty)
+
+        # TODO add cpu_taken to total
+        (generated, cpu_taken) = instances.create_param_from_essence(self.output_dir)
+
+        selected_vals.update(generated)
+
+        return [  selected_vals[name] for name in self.info.ordering ]
+
+    def random_point_genrated(self):
         selected_vals = {}
 
         for name in self.info.ordering:
