@@ -98,6 +98,7 @@ class Method(metaclass=ABCMeta):
 
         instances.create_param_essence(options['essence'], self.output_dir)
 
+        self.random_point = self.random_point_minion
 
     def run(self):
         date_start = datetime.utcnow()
@@ -193,9 +194,6 @@ class Method(metaclass=ABCMeta):
             return results[0][0]
         else:
             return None
-
-    def random_point(self):
-        return self.random_point_minion()
 
     def random_point_minion(self):
         selected_vals = {}
