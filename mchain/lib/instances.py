@@ -181,8 +181,7 @@ def create_param_from_essence(output_dir):
 
     param_map = dict([ json_to_param_instance(letting) for letting in raw_json['lettings'] ])
 
-    raise ValueError("Not done")
-    return (param_data, time_taken)
+    return (param_map, time_taken)
 
 
 class FailedToGenerateParamExeception(Exception):
