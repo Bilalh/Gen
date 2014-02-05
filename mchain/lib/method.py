@@ -5,9 +5,10 @@ from lib import euclidean
 from lib import domains
 from lib import constraints
 from lib import instances
+from lib import limit
 
 from abc import ABCMeta, abstractmethod
-from datetime import datetime
+from datetime import datetime, timedelta
 from pprint import pprint, pformat
 
 import time
@@ -123,15 +124,39 @@ class Method(metaclass=ABCMeta):
 
         cpu_time_end = time.process_time()
         date_end = datetime.utcnow()
-        logger.info("Ω Start %s", date_start.strftime("%a, %e %b %Y %H:%M:%S %s"))
-        logger.info("Ω End %s", date_end.strftime("%a, %e %b %Y %H:%M:%S %s"))
+
 
         diff = datetime.utcnow() - date_start
-        logger.info("Ω Total real time %s", diff)
-        logger.info("Ω Total real time(seconds) %s", diff.total_seconds())
-        logger.info("Ω Our cpu time %0.4f",  cpu_time_end- cpu_time_start )
-        logger.info("Ω Our extra time %0.4f", self.extra_time )
 
+        times = {
+            "date_start": date_start.strftime("%a, %e %b %Y %H:%M:%S"),
+            "date_end":   date_end.strftime("%a, %e %b %Y %H:%M:%S"),
+            'time_stamp_start': date_start.timestamp(),
+            'time_stamp_end': date_end.timestamp(),
+            "real_time_formatted": str(diff),
+            "real_time": diff.total_seconds(),
+            "method_cpu_time": cpu_time_end- cpu_time_start,
+            "method_extra_time": self.extra_time,
+            "iterations_done": self._current_iteration
+        }
+
+
+        if isinstance(self.limiter, limit.CpuLimit):
+            times['cpu_time'] = self.limiter.taken
+            times['cpu_time_given'] = self.settings.limit
+
+        if isinstance(self.limiter, limit.TimeLimit):
+            times['real_time_given'] = self.settings.limit
+
+        for e in ['method_cpu_time', 'method_extra_time', 'cpu_time', 'cpu_time_given', 'real_time_given']:
+            if e in times:
+                td = timedelta(seconds=times[e])
+                times[e +'_formatted'] = str(td)
+
+        logger.info("Ω times %s", pformat(times))
+
+        with (Path(self.output_dir) / 'times.json').open('w') as f:
+            f.write(json.dumps(times))
 
     @abstractmethod
     def do_iteration():
