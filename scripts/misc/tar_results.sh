@@ -69,6 +69,9 @@ pushd "${place}"
 find  . -path '*/logs/*' -name 'log-*.log' | parallel  -j${NUM_JOBS} --tagstring "{/.}" "tar -cvzf  {}.tar.gz -C {//} {/}"
 find  . -path '*/logs/*' -name 'log-*.log' -delete
 
+find results/ -name 'stats-df-no-channelling-better' | parallel -j${NUM_JOBS} --tagstring "{/.}" "tar -czf  {}.tar.gz -C {//} {/}"
+find results/ -name 'stats-df-no-channelling-better' -type d -exec rm -r {} \;
+
 tar -c param_gen | pigz -c -p${NUM_JOBS_M} > param_gen.tar.gz
 rm -rf param_gen
 
