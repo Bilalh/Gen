@@ -30,6 +30,8 @@ from lib import chain_lib
 from lib import method
 from lib import option_handing
 
+from lib import domains, instances
+
 from collections import namedtuple
 from fractions import Fraction
 from pprint import pprint, pformat
@@ -72,7 +74,16 @@ class KSample(method.Method):
 
 
     def pick_point(self):
-        random_points = [ self.random_point() for i in range(self.settings.num_points) ]
+
+        def rnd_point():
+            self.random_point()
+            try:
+                return self.random_point
+            except (domains.NoValuesInDomainException, instances.FailedToGenerateParamExeception):
+                raise None
+
+        random_points = [ p for p in (self.rnd_point() for i in range(self.settings.num_points)) if p ]
+        assert len(random_points) > 0
 
         # If we have no data then pick a random point
         if len(self.data_points) == 0:
@@ -202,4 +213,5 @@ if __name__ == '__main__':
     (options, limiter, info) = option_handing.parse_arguments(__doc__, version="1.0")
     KSample(options, limiter, info).run()
     logger.info("<finished>")
+
 

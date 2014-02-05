@@ -25,6 +25,7 @@ Options:
 
 from lib import option_handing
 from lib import method
+from lib import domains, instances
 
 from collections import namedtuple
 import logging
@@ -38,7 +39,11 @@ class UniformSampling(method.Method):
         super(UniformSampling, self,).__init__(options, limiter, Settings, info)
 
     def do_iteration(self):
-        picked = self.random_point()
+        try:
+            picked = self.random_point()
+        except (domains.NoValuesInDomainException, instances.FailedToGenerateParamExeception):
+            logger.info("Domain empty/failed to generate")
+            return
         # picked = (4, 1)
         logger.info("Picked %s", picked)
         self.create_run_param_and_store_quality(picked)

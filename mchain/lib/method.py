@@ -101,6 +101,7 @@ class Method(metaclass=ABCMeta):
         instances.create_param_essence(options['essence'], self.output_dir)
 
         self.random_point = self.random_point_minion
+        # self.random_point = self.random_point_genrated
         # for creating params with minion for example
         self.extra_time = 0
 

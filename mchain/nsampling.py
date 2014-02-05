@@ -27,6 +27,7 @@ Options:
 """
 
 from lib import domains
+from lib import instances
 from lib import chain_lib
 from lib import method
 from lib import option_handing
@@ -75,8 +76,8 @@ class NSample(method.Method):
     def do_iteration(self):
         try:
             x = self.random_point()
-        except domains.NoValuesInDomainException:
-            logger.info("Domain empty")
+        except (domains.NoValuesInDomainException, instances.FailedToGenerateParamExeception):
+            logger.info("Domain empty/failed to generate")
             return
 
         for pp in self.data_points:
