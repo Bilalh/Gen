@@ -24,14 +24,14 @@ export NUM_JOBS_M
 Params=$( cat <<EOF
 echo "taring eprime-param" &&
 tar -czf ${Tar_dir}/{/.}.params.tar.gz \
-	\$(ls *{/.}* | egrep  "eprime-param$")  
+	\$(ls *{/.}* | egrep  "eprime-param$")
 EOF
 )
 
 Stats=$( cat <<EOF
 echo "taring stats" &&
 tar -czf ${Tar_dir}/{/.}.stats.tar.gz \
-	\$(ls *{/.}* | egrep -v "minion$|minion.aux$|eprime-param$")  
+	\$(ls *{/.}* | egrep -v "minion$|minion.aux$|eprime-param$")
 EOF
 )
 
@@ -43,7 +43,7 @@ EOF
 
 Remove=$( cat <<EOF
 echo "removing" &&
-	rm \$(ls *{/.}* | egrep -v "^p-*{/.}")  
+	rm \$(ls *{/.}* | egrep -v "^p-*{/.}")
 EOF
 )
 
@@ -63,8 +63,13 @@ parallel -j1 --tagstring "{/.}" $Remove ::: ../params/*
 
 popd
 
+
 # vim can read compressed text files
 pushd "${place}"
-find  . -path '*/logs/*' -name 'log-*.log' | parallel  -j${NUM_JOBS} --tagstring "{/.}" "tar -cvzf  {}.tar.gz -C {//} {/}" 
-find  . -path '*/logs/*' -name 'log-*.log' -delete 
+find  . -path '*/logs/*' -name 'log-*.log' | parallel  -j${NUM_JOBS} --tagstring "{/.}" "tar -cvzf  {}.tar.gz -C {//} {/}"
+find  . -path '*/logs/*' -name 'log-*.log' -delete
+
+tar -c param_gen | pigz -c -p${NUM_JOBS_M} > param_gen.tar.gz
+rm -rf param_gen
+
 popd
