@@ -229,7 +229,6 @@ if ! [ -f $EPRIME_SOLUTION ] ; then
 fi
 
 
-if [ !  -n "${NO_TRANSLATE:-}" ]; then
 
 RESULTOF_TRANSLATESOLN=0
 MSG_TRANSLATESOLN="{translateSolution}  $MSG_TEMPLATE"
@@ -253,8 +252,6 @@ RESULTOF_TRANSLATESOLN=$?
 if (( $RESULTOF_TRANSLATESOLN != 0 )) ; then
     echo "$MSG_TRANSLATESOLN" >> "$FAIL_FILE"
     exit 1
-fi
-
 fi
 
 
