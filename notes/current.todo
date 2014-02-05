@@ -35,6 +35,8 @@ Results:
 
 
 Algorithms:
+ ☐ Handle FailedToGenerateParamExeception and  NoValuesInDomainException.
+ 	 start in .\nsampling.py>do_iteration
 
 
 Misc:
@@ -48,8 +50,7 @@ Misc:
 Maybe:
 	☐ use a newer version of sqlite (3.7.13) on ferry since that what python and my mac uses and make interactive use e.g check results while it running 10x faster in some
 
-Ideas:
-
+MinionParams:
 
 Using minion to genrate assigments.
 
@@ -65,11 +66,7 @@ Paramisse  the problem so it only needs to be refined once by --compact
 compare with my methods
 
 
-not as simple because the constraint depends on the find then
-
-	such that
-	    forAll v__0 : int(1..n_boats)
-	        . crew_Function1D[v__0] <= capacity_Function1D[v__0]
+not as simple because the dependency on the find then
 
 	ERROR: In statement : find capacity_Function1D: matrix indexed by [int(1..n_boats)] of int(1..n_upper)
 	ERROR: Right-hand side contains an identifier that is not a constant or parameter.

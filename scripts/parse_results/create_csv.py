@@ -14,26 +14,18 @@ import itertools as it
 from pprint import pprint
 
 param_eprime_results_sql="""
-Select count(param) as 'param#',eprimes_num as 'eprime#',  eprimes, group_concat(param, ", ") as params
-From (
-    Select P.param, count(D.eprime) as eprimes_num  , group_concat(D.eprime, ", ") as eprimes, quality
-    From ParamQuality P
-    Join TimingsDomination D on P.param = D.param
-    Where P.Quality < 1 and isDominated = 0
-    Group by P.param
-
-    Union
-
-    Select Q.param, 0 as eprimes_num, "" as eprimes, 100 as quality
-    From ParamQuality Q
-    Where Q.param not in (Select D.param From DiscriminatingParams D)
-
-    Order by quality
-
+Select * From
+(
+Select count(param) as paramC, eprimes_count as eprimeC,
+CASE When quality == 1 Then "" Else eprimes END as eprimes,
+num_models, quality, satisfiable, maxSolutions as max_solutions, min(ordering) as min_ordering,
+group_concat(param, ", ") as params
+From ParamsData P Join (Select count(*) as num_models from EprimeOrdering)
+Group by eprimes
 )
 
-Group by eprimes
-Order by eprimes_num,count(param), eprimes;
+
+Order by paramC Desc, eprimeC, eprimes
 """
 
 
@@ -70,9 +62,14 @@ def collect_data_as_dicts(base_str, num_proc, all_results_dir, start_num=0):
             discriminating_count_row = results_conn.execute("SELECT count(quality) FROM  DiscriminatingParams")
             discriminating_count = list(discriminating_count_row)[0][0]
 
+
+            param_count_row = results_conn.execute("SELECT count(*) FROM  ParamQuality")
+            param_count = list(param_count_row)[0][0]
+
             row_data = dict(row)
-            row_data['quality'] = quality
-            row_data['discriminating'] = discriminating_count
+            row_data['best_quality'] = quality
+            row_data['max_discriminating'] = discriminating_count
+            row_data['param_count'] = param_count
             row_data['num_models'] = num_models[row['essence']]
             row_data['index'] = indexes[i]
 
@@ -128,7 +125,13 @@ def collect_data_as_dicts(base_str, num_proc, all_results_dir, start_num=0):
 def write_dicts_as_csv(fp, rows):
     with ( Path(fp) ).open("w") as f:
         keys = sorted(rows[0].keys())
-        csv_writer = csv.DictWriter(f, delimiter=',', fieldnames=sorted(keys))
+
+        for e in ['eprimes', 'params', 'output_dir']:
+            if e in keys:
+                keys.remove(e)
+                keys.append(e)
+
+        csv_writer = csv.DictWriter(f, delimiter=',', fieldnames=keys)
         csv_writer.writeheader()
         for r in rows:
             csv_writer.writerow(r)
