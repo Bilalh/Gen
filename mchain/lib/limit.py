@@ -19,7 +19,14 @@ class Limit(metaclass=ABCMeta):
 	def continue_running(self, method):
 		""" Return true if the Algorithm should continue running"""
 
+	def __repr__(self):
+		return "{}({})".format(self.__class__.__name__,
+			', '.join( key + "=" + str(getattr(self, key))
+				for key in self.__dict__ if not key.startswith('_'))
+				)
 
+
+# cpu times are still reported in the stats
 class TimeLimit(Limit):
 	""" Limit total wall time """
 	def __init__(self, seconds):
@@ -29,10 +36,16 @@ class TimeLimit(Limit):
 	def start(self):
 		self.start_time = time.time()
 		self.cputime_start = time.process_time()
+		self.taken = 0
 
 	@copydoc(Limit.continue_running)
 	def continue_running(self, method):
-		return (time.time() - self.start_time + time.process_time() - self.cputime_start ) < self.seconds
+
+		self.taken = (time.time() - self.start_time
+				+ time.process_time() - self.cputime_start
+				+ method.extra_time )
+		logger.info("%f second left, total:%f",  self.seconds - self.taken, self.seconds)
+		return self.taken < self.seconds
 
 
 class IterationsLimit(Limit):
@@ -56,19 +69,24 @@ class CpuLimit(Limit):
 	def __init__(self, seconds):
 		super(CpuLimit, self).__init__()
 		self.seconds = seconds
+		self.cputime_start = time.process_time()
 
 	def start(self):
 		self.current = 0
+		self.taken = 0
 
 	@copydoc(Limit.continue_running)
 	def continue_running(self, method):
 		if method.prev_timestamp:
-			# Assumes only param is run on each iteration
+			# TODO Assumes only param is run on each iteration
 			timefile = os.path.join(method.settings.output_dir, "stats-" + method.settings.mode,
 				method.prev_timestamp + ".total_solving_time")
 			with open(timefile) as f:
 				self.current += float(f.readline())
 
-		logger.info("%f second left, total:%f",  self.seconds - self.current, self.seconds)
-		return self.current < self.seconds
+		self.taken = (self.current
+				+ time.process_time() - self.cputime_start
+				+ method.extra_time)
+		logger.info("%f second left, total:%f",  self.seconds - self.taken, self.seconds)
+		return self.taken < self.seconds
 

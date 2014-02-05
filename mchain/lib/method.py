@@ -96,9 +96,12 @@ class Method(metaclass=ABCMeta):
         logger.info(self.num_models)
         self.time_per_model = int(math.ceil(self.settings.models_timeout / self.num_models) )
 
+        # FIXME this should be create once for ALL methods
         instances.create_param_essence(options['essence'], self.output_dir)
 
         self.random_point = self.random_point_minion
+        # for creating params with minion for example
+        self.extra_time = 0
 
     def run(self):
         date_start = datetime.utcnow()
@@ -127,6 +130,7 @@ class Method(metaclass=ABCMeta):
         logger.info("Ω Total real time %s", diff)
         logger.info("Ω Total real time(seconds) %s", diff.total_seconds())
         logger.info("Ω Our cpu time %0.4f",  cpu_time_end- cpu_time_start )
+        logger.info("Ω Our extra time %0.4f", self.extra_time )
 
 
     @abstractmethod
@@ -204,11 +208,10 @@ class Method(metaclass=ABCMeta):
             logger.info("Assigning %s=%s", name, v.pretty)
 
         givens = [  (name, selected_vals[name]) for name in self.info.givens ]
-        # TODO add cpu_taken to total
-        (generated, cpu_taken) = instances.create_param_from_essence(self.output_dir, givens)
+        (generated, cputime_taken) = instances.create_param_from_essence(self.output_dir, givens)
+        self.extra_time += cputime_taken
 
         selected_vals.update(generated)
-
         return [  selected_vals[name] for name in self.info.ordering ]
 
     def random_point_genrated(self):
