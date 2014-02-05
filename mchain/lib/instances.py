@@ -166,15 +166,8 @@ def create_param_from_essence(output_dir, givens):
         with ( out / "total.time" ).open() as f:
             time_taken=float(f.read().rstrip())
 
-        # with (out / essence.name + "-" + param.name ).with_suffix('solution').open() as f:
-
     except Exception:
         raise FailedToGenerateParamExeception()
-
-    subprocess.Popen([
-        chain_lib.wrappers("essenceLettingsToJson.sh"),
-        str(solution), str(solution_json)
-    ], env=current_env ).communicate()
 
     try:
         with solution_json.open() as f:
@@ -182,6 +175,7 @@ def create_param_from_essence(output_dir, givens):
 
     except Exception:
         raise FailedToGenerateParamExeception()
+
 
     param_map = dict([ json_to_param_instance(letting) for letting in raw_json['lettings'] ])
 

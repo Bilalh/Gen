@@ -46,6 +46,10 @@ SAVILEROW_TIME="${EPRIMEBASE}-${PARAMBASE}.sr-time"
 SAVILEROW_TIME_UP="${EPRIMEBASE}-${PARAMBASE}.sr2-time"
 TRANSLATESOLN_TIME="${EPRIMEBASE}-${PARAMBASE}.up-time"
 
+JSON_TIME="${EPRIMEBASE}-${PARAMBASE}.json-time"
+ESSENCE_JSON="${EPRIMEBASE}-${PARAMBASE}.json"
+
+
 touch $START_FILE
 
 
@@ -254,11 +258,17 @@ if (( $RESULTOF_TRANSLATESOLN != 0 )) ; then
     exit 1
 fi
 
+/usr/bin/time -p  essenceLettingsToJson $ESSENCE_SOLUTION $ESSENCE_JSON  3>&1 1>&2 2>&3 \
+    |  egrep 'real|usr' \
+    |  egrep -o '[0-9].*' \
+    |  ruby -e 'puts "cpu #{$stdin.readlines.map(&:to_f).reduce(:+)}"' \
+    > "${JSON_TIME}"
 
 cat ${OUTPUT_BASE}/*.*-time \
     | grep cpu \
     | ruby -e 'p $stdin.readlines.map{|n| n[4..-1].to_f }.reduce(:+)' \
     > ${OUTPUT_BASE}/total.time
+
 
 echo "TOTAL CPU TIME `cat ${OUTPUT_BASE}/total.time`"
 touch $END_FILE
