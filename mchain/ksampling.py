@@ -76,13 +76,12 @@ class KSample(method.Method):
     def pick_point(self):
 
         def rnd_point():
-            self.random_point()
             try:
-                return self.random_point
+                return self.random_point()
             except (domains.NoValuesInDomainException, instances.FailedToGenerateParamExeception):
                 raise None
 
-        random_points = [ p for p in (self.rnd_point() for i in range(self.settings.num_points)) if p ]
+        random_points = [ p for p in (rnd_point() for i in range(self.settings.num_points)) if p ]
         assert len(random_points) > 0
 
         # If we have no data then pick a random point
