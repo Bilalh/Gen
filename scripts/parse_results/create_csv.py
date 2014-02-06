@@ -28,6 +28,10 @@ Group by eprimes
 Order by paramC Desc, eprimeC, eprimes
 """
 
+every_param_sql ="""
+Select * from ParamsData
+"""
+
 
 def collect_data_as_dicts(base_str, num_proc, all_results_dir, start_num=0):
 
@@ -81,7 +85,14 @@ def collect_data_as_dicts(base_str, num_proc, all_results_dir, start_num=0):
             param_eprime_info_rows = results_conn.execute(param_eprime_results_sql)
             param_eprime_info_rows = list(param_eprime_info_rows)
 
-            rows.append((row_data, [ ff(cr, row_data['index']) for cr in param_eprime_info_rows ]))
+            every_param_rows = results_conn.execute(every_param_sql)
+            every_param_rows = list(every_param_rows)
+
+
+            rows.append((
+                row_data,
+                [ ff(cr, row_data['index']) for cr in param_eprime_info_rows ],
+                [ ff(cr, row_data['index']) for cr in every_param_rows ] ))
 
         out_q.put(rows )
 
@@ -100,7 +111,6 @@ def collect_data_as_dicts(base_str, num_proc, all_results_dir, start_num=0):
         procs.append(p)
         p.start()
 
-    # maybe too many stars to  join the rows then unzip them
     results_rows = list( q_out.get() for i in range(num_proc) )
     # print(len(results_rows))
     # for (i, rs) in enumerate(results_rows):
@@ -110,15 +120,15 @@ def collect_data_as_dicts(base_str, num_proc, all_results_dir, start_num=0):
     #     print("~~~")
     #     print("")
 
-    (results, params_info) = zip(*[ list(zip(*rs)) for rs in results_rows ])
-    # print(len(results), len(params_info))
+    # too many stars to just join the rows then unzip them
+
+    (results, params_info, all_params) = zip(*[ list(zip(*rs)) for rs in results_rows ])
 
     results = list(it.chain(*results))
     params_info = list(it.chain(*it.chain(*params_info)))
-    # print(len(results), len(params_info))
+    all_params = list(it.chain(*it.chain(*all_params)))
 
-
-    return (results, params_info)
+    return (results, params_info, all_params)
 
 
 # I don't really need the keys since I can get them from the dict
@@ -126,7 +136,7 @@ def write_dicts_as_csv(fp, rows):
     with ( Path(fp) ).open("w") as f:
         keys = sorted(rows[0].keys())
 
-        for e in ['eprimes', 'params', 'output_dir']:
+        for e in ['param', 'eprimes', 'params', 'output_dir']:
             if e in keys:
                 keys.remove(e)
                 keys.append(e)
@@ -146,6 +156,7 @@ if __name__ == "__main__":
     pprint(args)
     all_rows = []
     all_param_info = []
+    every_param_data =[]
     start_num = 0
     all_results_dir = Path(args.all_results_fp).parent / 'extra_data'
 
@@ -153,7 +164,7 @@ if __name__ == "__main__":
     os.makedirs(str(all_results_dir), exist_ok=True)
 
     for base_dir in args.base_dirs:
-        (rows, param_info) = collect_data_as_dicts(base_dir, args.num_proc, all_results_dir, start_num)
+        (rows, param_info, every_param) = collect_data_as_dicts(base_dir, args.num_proc, all_results_dir, start_num)
 
         print("____", len(rows), len(param_info) )
         csv_fp = Path(base_dir) / "results" / "info.csv"
@@ -162,7 +173,8 @@ if __name__ == "__main__":
 
         start_num += len(rows)
         all_param_info += param_info
+        every_param_data += every_param
 
     write_dicts_as_csv(args.all_results_fp, all_rows)
     write_dicts_as_csv(all_results_dir / 'param_eprime_info.csv', all_param_info)
-
+    write_dicts_as_csv(all_results_dir / 'every_param.csv', every_param_data)
