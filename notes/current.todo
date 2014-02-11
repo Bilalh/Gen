@@ -35,8 +35,10 @@ Results:
 
 
 Algorithms:
- ☐ Handle FailedToGenerateParamExeception and  NoValuesInDomainException.
+ ✔ Handle FailedToGenerateParamExeception and  NoValuesInDomainException. @done (14-02-05 18:52)
  	 start in .\nsampling.py>do_iteration
+
+ ☐ Make the genrated function partial for use with minino
 
 
 Misc:
