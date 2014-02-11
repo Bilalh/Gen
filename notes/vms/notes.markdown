@@ -117,6 +117,10 @@ install repos
 	PATH=\$PATH:\$HOME/.cabal/bin
 	PATH=\$PATH:\$HOME/repos/conjure/dist/tools/ghc-7.6.3-build/bin
 	export PATH
+
+	if [ -f ~/.bashrc ]; then
+	        source ~/.bashrc
+	fi
 	EOF
 
 
