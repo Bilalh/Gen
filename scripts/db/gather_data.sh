@@ -93,6 +93,7 @@ export  results_dir
 export  fastest_dir
 export TOTAL_TIMEOUT
 
+# requires cabal install spilt
 parallel   --tagstring "{/}"  'echo "isDominated:$(isDominated {/.})"'  \
 	::: `ls ${results_dir}/*${param_glob}.zstarted` \
 	|   runhaskell ${Script_Base}/db/gather_data.hs  ${Essence_base} \

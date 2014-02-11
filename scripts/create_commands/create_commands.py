@@ -41,7 +41,7 @@ def write_with_header(fp, lines):
 	header =[
 		"#!/bin/bash",
 		"# Assumes python3 is on the $PATH ",
-		"# and docopt is installed (i.e pip install docopt) ",
+		"# and docopt / pathlib is installed (i.e pip install docopt pathlib) ",
 		""
 	]
 
@@ -67,30 +67,21 @@ def create_essence_metadata(place_dir):
 	conn.close()
 
 
-def create_everything_table(place_dir):
-	query = """
-CREATE VIEW  IF NOT EXISTS everything as
+def create_everything_table(place_dir, method_names):
 
-SELECT method, essence, total_timeout, models_timeout, races, NULL as chain_length , radius_as_percentage, influence_radius, num_points, point_selector, run_no, output_dir
+	parts = {
+	"ksample": "SELECT method, essence, total_timeout, models_timeout, races, NULL as chain_length , radius_as_percentage, influence_radius, num_points, point_selector, run_no, output_dir FROM ksample",
+	"markov": "SELECT method, essence, total_timeout, models_timeout, races, chain_length, radius_as_percentage, influence_radius, NULL as num_points, NULL as point_selector, run_no, output_dir FROM markov",
+	"smac": "SELECT method, essence, total_timeout, models_timeout, races, NULL as chain_length, NULL as radius_as_percentage, NULL as influence_radius, NULL as num_points, NULL as point_selector, run_no, output_dir FROM smac",
+	"nsample": "SELECT method, essence, total_timeout, models_timeout, races, NULL as chain_length, radius_as_percentage, influence_radius, NULL as num_points, NULL as point_selector, run_no, output_dir FROM nsample",
+	"uniform": "SELECT method, essence, total_timeout, models_timeout, races, NULL as chain_length, NULL as radius_as_percentage, NULL as influence_radius, NULL as num_points, NULL as point_selector, run_no, output_dir FROM uniform",
+	}
 
-FROM ksample UNION
+	names = parts.keys() & method_names
 
-SELECT method, essence, total_timeout, models_timeout, races, chain_length, radius_as_percentage, influence_radius, NULL, NULL, run_no, output_dir
+	sql_parts = "\nUNION\n".join( parts[k] for k in names )
 
-FROM markov UNION
-
-SELECT method, essence, total_timeout, models_timeout, races, NULL, radius_as_percentage, influence_radius, NULL, NULL, run_no, output_dir
-
-From nsample UNION
-
-SELECT method, essence, total_timeout, models_timeout, races, NULL, NULL, NULL, NULL, NULL, run_no, output_dir
-
-FROM smac UNION
-
-SELECT method, essence, total_timeout, models_timeout, races, NULL, NULL, NULL, NULL, NULL, run_no, output_dir
-
-FROM uniform
-	"""
+	query = "CREATE VIEW IF NOT EXISTS everything as\n" + sql_parts
 	conn = sqlite3.connect(os.path.join(place_dir, "results", "Info.db"))
 	conn.execute(query)
 	conn.commit()
@@ -149,7 +140,7 @@ def run(fp, place_dir, num_runs):
 
 	# Get lines for each method
 	results = { f.__name__: f.create_commands(data, commons_grouped, place_dir, init_source, num_runs)
-					for f in methods }
+					for f in methods if f.__name__ in data }
 	# pprint(results)
 
 	def write_race(essence, races, lines):
@@ -168,7 +159,7 @@ def run(fp, place_dir, num_runs):
 	write_with_header(os.path.join(place_dir, "results", "run_all.sh"), ["#Run from ../instancegen-models"] + sorted(scripts))
 	write_with_header(init_path, [bash.record_funcs, "export JAVA_MEMORY="+ data['JAVA_MEMORY'] ])
 
-	create_everything_table(place_dir)
+	create_everything_table(place_dir,  set(data.keys()) & set(m.__name__ for m in methods) )
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
