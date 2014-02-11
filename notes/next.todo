@@ -1,0 +1,36 @@
+ smac:
+   Since smac only does ints and categorical vars we need to flatten
+   the essence into something smac understands.
+   ALso the only dependencies that smac can do are  of the form
+   if a then use b and if b=3  then c!= 5
+
+   for each function (e.g capacity) make
+   capacity#1 ...  capacity#20   for the domain
+   capacity@1 ...  capacity@20   for the range
+
+   then depending on the value n_
+
+
+   essence:
+      given n_upper : int(1..20)
+      given n_boats, n_periods : int(1..20)
+
+      letting Boat be domain int(1..n_boats)
+
+      given capacity, crew : function (total) Boat --> int(1..n_upper)
+
+
+
+.\gather_data_separate.sh:115  get rid gather_data.hs since it requires `cabal install split`
+
+cputimeout makefile:
+ diff --git a/scripts/tools/cputimeout/makefile b/scripts/tools/cputimeout/makefile
+index af4de17..5767185 100644
+--- a/scripts/tools/cputimeout/makefile
++++ b/scripts/tools/cputimeout/makefile
+@@ -18,7 +18,7 @@ endif
+ all : ${TARGETS}
+
+ cputimeout: $(OBJS)
+-       ${CC} ${CFLAGS} ${LIBS} $^ -o $@
++       ${CC} ${CFLAGS} -o $@ $^ ${LIBS}
