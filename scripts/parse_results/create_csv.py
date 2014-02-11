@@ -80,6 +80,8 @@ def collect_data_as_dicts(base_str, num_proc, all_results_dir, start_num=0):
             if base.name != 'Experiment':
                 row_data['output_dir'] = str(Path(base.name) / row_data['output_dir'])
 
+            if 'use_minion' not in row_data['output_dir']:
+                row_data['use_minion'] = int(bool(base.name.endswith('minion')))
 
             results_conn.row_factory = sqlite3.Row
             param_eprime_info_rows = results_conn.execute(param_eprime_results_sql)
@@ -122,7 +124,7 @@ def collect_data_as_dicts(base_str, num_proc, all_results_dir, start_num=0):
 
     # too many stars to just join the rows then unzip them
 
-    (results, params_info, all_params) = zip(*[ list(zip(*rs)) for rs in results_rows ])
+    (results, params_info, all_params) = zip(*[ list(zip(*rs)) for rs in results_rows if rs])
 
     results = list(it.chain(*results))
     params_info = list(it.chain(*it.chain(*params_info)))

@@ -57,7 +57,7 @@ def load_data_frame():
     base_str = Base_Path
     df = pd.read_csv(str(base_str / "all.csv"))
 
-    df['resulting_models'] = df['num_models'] * df['quality']
+    df['resulting_models'] = df['num_models'] * df['best_quality']
     df['resulting_models_filled'] = df['resulting_models'].fillna(df['num_models'])
     df['total_timeout_h'] = df['total_timeout'] /60/ 60
     df['output_dir'] = df['output_dir'].apply(func=lambda p:  base_str / p  )
