@@ -336,8 +336,8 @@ int main (int argc, char **argv){
 
 		gettimeofday(&start_time, NULL);
 		printf("cputimeout: monitored_pid:%ld,  our_pid:%ld\n", (long) monitored_pid, (long) getpid()  );
-		// 0.1 seconds
-		struct timespec tss = {.tv_sec =0, .tv_nsec=100000000 };
+		// 0.01 seconds
+		struct timespec tss = {.tv_sec =0, .tv_nsec=10000000 };
 		bool res =false;
 
 		// Get starting processes
