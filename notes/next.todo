@@ -8,7 +8,11 @@
    capacity#1 ...  capacity#20   for the domain
    capacity@1 ...  capacity@20   for the range
 
-   then depending on the value n_
+   then depending on the value n_boats and n_upper, only use the need values.
+
+   Two ways of checking if this is of checking is the param is to either
+      ☐ pass the param to conjure and use the full evaluator (more work)
+      ☐ just run the param  (SR will complain if it invaild), not sure if it is fair
 
 
    essence:
@@ -18,8 +22,6 @@
       letting Boat be domain int(1..n_boats)
 
       given capacity, crew : function (total) Boat --> int(1..n_upper)
-
-
 
 .\gather_data_separate.sh:115  get rid gather_data.hs since it requires `cabal install split`
 

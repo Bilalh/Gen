@@ -164,3 +164,10 @@ Getting results from azure
 
 	rsync -av --compress ig1:repos/instancegen/mchain/__/__uniform/  __uniform
 
+
+When logging in again
+
+	#9 packages can be updated.
+	#7 updates are security updates
+	# so I ran
+	sudo apt-get upgrade
