@@ -18,7 +18,7 @@ endif
 all : ${TARGETS}
 
 cputimeout: $(OBJS)
-	${CC} ${CFLAGS} ${LIBS} $^ -o $@
+	${CC} ${CFLAGS} -o $@ $^ ${LIBS}
 
 
 clean:
