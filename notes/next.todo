@@ -14,6 +14,13 @@
       ☐ pass the param to conjure and use the full evaluator (more work)
       ☐ just run the param  (SR will complain if it invaild), not sure if it is fair
 
+   Other idea is generate the params on the eprime level since it is all ready not nested.
+      ☐ use --mode compact to genrate a model C.
+      ☐ Genrate a eprime-param to C
+      ☐ convert the eprime-param to essence
+      ☐ refine for all the other models
+
+
 
    essence:
       given n_upper : int(1..20)
@@ -25,14 +32,3 @@
 
 .\gather_data_separate.sh:115  get rid gather_data.hs since it requires `cabal install split`
 
-cputimeout makefile:
- diff --git a/scripts/tools/cputimeout/makefile b/scripts/tools/cputimeout/makefile
-index af4de17..5767185 100644
---- a/scripts/tools/cputimeout/makefile
-+++ b/scripts/tools/cputimeout/makefile
-@@ -18,7 +18,7 @@ endif
- all : ${TARGETS}
-
- cputimeout: $(OBJS)
--       ${CC} ${CFLAGS} ${LIBS} $^ -o $@
-+       ${CC} ${CFLAGS} -o $@ $^ ${LIBS}

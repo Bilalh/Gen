@@ -8,6 +8,7 @@
 				"__f",
 				"__pycache__"
 			],
+            "file_exclude_patterns": [".gitignore", ".rlwrap_history", "_mchain.sublime-project"],
 			"follow_symlinks": true,
 			"path": "/Users/bilalh/CS/instancegen/mchain"
 		},
