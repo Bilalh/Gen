@@ -58,8 +58,12 @@ print("---------------------")
 datee = calendar.datetime.datetime.now()
 print("<toolchain_wrapper.py> Start", datee.isoformat())
 now = str(int(datee.timestamp()))
+
 output_dir_s = calculate_outputdir()
 output_dir = Path(output_dir_s)
+working_dir_s = "../prob013-PPP"
+mode = "df-no-channelling-better"
+
 params_dir = output_dir / "params"
 if not params_dir.exists():
 	params_dir.mkdir()
@@ -92,15 +96,52 @@ def create_param_values():
 	return param_values
 
 
+
+ordering = ""  # no eprime ordering specifed
 param_values = create_param_values()
 
-(param_string, basename) = chain_lib.create_param_essence(sorted(param_values.items()))
-param_path = chain_lib.write_param(  str(params_dir), param_string, basename)
-chain_lib.run_models(now, param_path, cutoff_time, "../prob013-PPP", output_dir_s, "df-no-channelling-better", "")
+(param_string, param_name) = chain_lib.create_param_essence(sorted(param_values.items()))
+param_path = chain_lib.write_param(  str(params_dir), param_string, param_name)
+chain_lib.run_models(now, param_path, cutoff_time, working_dir_s, output_dir_s, "df-no-channelling-better", "")
+
+results = chain_lib.get_results(working_dir_s, output_dir_s, param_name, cutoff_time, now, mode)
+
+timefile = (output_dir / ("stats-" + mode) / str(now)).with_suffix(".total_solving_time")
+
+print("timefile %s" % (timefile))
+with timefile.open() as f:
+	runtime = float(f.readline())
+
+
+if len(results) != 6:
+	quality = 500  # for example SR where statement
+	our_quality = 1
+	result_kind ="UNSAT"
+else:
+	our_quality = chain_lib.quality(*results)
+	quality = our_quality * 100
+
+	def result_type(count, minionTimeout, minionSatisfiable, minionSolutionsFound, isOptimum, isDominated):
+		if count == minionTimeout:
+			return "TIMEOUT"
+		else:
+			return "SAT"
+
+	result_kind = result_type(*results)
+
+chain_lib.save_quality(output_dir_s, param_name, our_quality)
+
 
 
 cpu_time_end = time.process_time()
-print("cpu_time_end {}".format(cpu_time_end))
+our_cpu_time = cpu_time_end - cpu_time_start
+print("smac_process cpu_time {}".format(our_cpu_time))
+runtime += our_cpu_time
+
+runlength=0
+print("Final Result for ParamILS: {}, {}, {}, {}, {}\n".format(
+	result_kind, runtime, runlength, quality, seed))
+
 raise NotImplementedError("not done yet")
 
 

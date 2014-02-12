@@ -136,7 +136,6 @@ def quality(count, minionTimeout, minionSatisfiable, minionSolutionsFound, isOpt
     if minionTimeout == 0:
         return 1
     elif minionTimeout == count:
-
         return 1
     else:
         return 1 - (isDominated / count)

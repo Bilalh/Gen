@@ -32,3 +32,6 @@
 
 .\gather_data_separate.sh:115  get rid gather_data.hs since it requires `cabal install split`
 
+misc:
+ ☐  .\chain_lib.py>quality # should only be 1 -  (isDominated/ count)
+ ☐
