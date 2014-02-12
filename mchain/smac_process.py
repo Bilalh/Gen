@@ -58,7 +58,8 @@ print("---------------------")
 datee = calendar.datetime.datetime.now()
 print("<toolchain_wrapper.py> Start", datee.isoformat())
 now = str(int(datee.timestamp()))
-output_dir = Path(calculate_outputdir())
+output_dir_s = calculate_outputdir()
+output_dir = Path(output_dir_s)
 params_dir = output_dir / "params"
 if not params_dir.exists():
 	params_dir.mkdir()
@@ -69,7 +70,7 @@ def create_param_values():
 	raw_params = [ (re_kind.findall(name[1:]), int(val[1:-1])) for name, val in iter_many(params_arr, len(params_arr), 2) ]
 	pprint(raw_params)
 
-	param_info = domains.gather_param_info(essence, str(output_dir))
+	param_info = domains.gather_param_info(essence, output_dir_s)
 
 
 	param_values={}
@@ -93,8 +94,9 @@ def create_param_values():
 
 param_values = create_param_values()
 
-(param_string, basename) = chain_lib.create_param_essence(list(param_values.items()))
-chain_lib.write_param(  str(params_dir), param_string, basename)
+(param_string, basename) = chain_lib.create_param_essence(sorted(param_values.items()))
+param_path = chain_lib.write_param(  str(params_dir), param_string, basename)
+chain_lib.run_models(now, param_path, cutoff_time, "../prob013-PPP", output_dir_s, "df-no-channelling-better", "")
 
 
 cpu_time_end = time.process_time()
