@@ -11,7 +11,6 @@ import time
 import math
 from pprint import pprint
 
-from lib import chain_lib
 
 from lib import domains
 import re
@@ -59,26 +58,29 @@ datee = calendar.datetime.datetime.now()
 print("<toolchain_wrapper.py> Start", datee.isoformat())
 now = str(int(datee.timestamp()))
 
-re_kind = re.compile(r"^(\w+)(%(\w+)%)?")  # patten to match type of variable
+re_kind = re.compile(r"^(\w+)(%(\w+)%(\d+))?")  # patten to match type of variable
 raw_params = [ (re_kind.findall(name[1:]), int(val[1:-1])) for name, val in iter_many(params_arr, len(params_arr), 2) ]
 pprint(raw_params)
 
+output_dir = calculate_outputdir()
+param_info = domains.gather_param_info(essence, output_dir)
 
+param_values={}
 raw_params = sorted(raw_params, key=lambda k: k[0][0][0])
 for k, g in itertools.groupby(raw_params, key=lambda k: k[0][0][0]):
 	print(k)
 	parts = list(g)
-	if len(parts) ==1:
-		kv = (parts[0][0][0][0], parts[0][1], None)
-		pprint(kv)
+	pprint(parts)
+	# merge
+	if len(parts) == 1:
+		kv = [(parts[0][0][0][0], parts[0][1], None, None)]
 	else:
-		kv=[ (p[0][0][0], p[1], p[0][0][2]) for p in parts ]
-		pprint(kv)
+		kv=[ (p[0][0][0], p[1], p[0][0][2], p[0][0][3]) for p in parts ]
 
-	print()
+	pprint(kv)
+	param_values[k] = param_info[k].reconstruct_for_smac(kv)
+	pprint(param_values[k])
 
-output_dir = calculate_outputdir()
-param_info = domains.gather_param_info(essence, output_dir)
 
 
 

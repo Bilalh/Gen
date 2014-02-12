@@ -16,6 +16,7 @@ import logging
 
 import itertools as it
 import copy
+import itertools
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +50,14 @@ class Domain(metaclass=ABCMeta):
 
     @abstractmethod
     def within_radius_dom(self, selected_vals, instance, radius):
+        pass
+
+
+    @abstractmethod
+    def reconstruct_for_smac(self, kv):
+        """ SMAC only works with ints, no nesting or matrixes or sets
+            recreate the essence params from the flattened input
+        """
         pass
 
 
@@ -106,6 +115,16 @@ class Int(Domain):
         return vs
 
 
+    def reconstruct_for_smac(self, kv):
+        [(_, val, _, _)] = kv
+        return self.from_int(val)
+
+    @staticmethod
+    def from_int(val):
+        pretty = "{}".format(val)
+        return instances.Int(point=val, pretty=pretty, safe=pretty)
+
+
 # FIXME  use the form  1:instance at the moment
 class Func(Domain):
     """Function Domain"""
@@ -149,6 +168,15 @@ class Func(Domain):
         # logger.info("point Part %s", pretty)
         return di
 
+        #merge
+    def instance_from_dict(self, res):
+        kv = [ "{} --> {}".format(k, v.pretty) for (k, v) in sorted(res.items()) ]
+        pretty = "function( {} )".format( ", ".join(kv) )
+
+        kv_safe = [ "{}_{}".format(k, v.safe) for (k, v) in sorted(res.items()) ]
+        safe = "F__{}__".format( ",".join(kv_safe) )
+
+        return instances.Func(point=res, pretty=pretty, safe=safe)
 
     def all_values(self, selected_vals):
         raise NotImplementedError("All values not done yet")
@@ -178,6 +206,25 @@ class Func(Domain):
         tos = [ tos_mapping[k] for k in sorted(tos_mapping) ]
 
         return Func(self.fromm, tos)
+
+    def reconstruct_for_smac(self, kv):
+        # assume total function from ints
+
+        froms = []
+        tos = []
+        s_kv = sorted(kv, key=lambda k: k[3])
+
+        for _, val, kind, index in s_kv:
+            ival = Int.from_int(val)
+            if kind == 'F1':
+                froms.append(val)
+            elif kind == 'F2':
+                tos.append(ival)
+            else:
+                raise ValueError("Invaild tag " + kind)
+
+        return self.instance_from_dict( dict(zip(froms, tos)) )
+
 
 
 class Ref():
@@ -285,9 +332,9 @@ def gather_param_info(essence_file, output_dir):
     sys.stdout.flush()
     sys.stderr.flush()
 
-    subprocess.Popen([
-        chain_lib.wrappers("essenceGivensToJson2.sh"), essence_file, json_path, "100"
-    ]).communicate()
+    # subprocess.Popen([
+    #     chain_lib.wrappers("essenceGivensToJson2.sh"), essence_file, json_path, "100"
+    # ]).communicate()
 
 
     with open( json_path ) as f:
