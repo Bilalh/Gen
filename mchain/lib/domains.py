@@ -54,7 +54,7 @@ class Domain(metaclass=ABCMeta):
 
 
     @abstractmethod
-    def reconstruct_for_smac(self, kv):
+    def reconstruct_for_smac(self, selected_vals, kv):
         """ SMAC only works with ints, no nesting or matrixes or sets
             recreate the essence params from the flattened input
         """
@@ -115,7 +115,7 @@ class Int(Domain):
         return vs
 
 
-    def reconstruct_for_smac(self, kv):
+    def reconstruct_for_smac(self, selected_vals, kv):
         [(_, val, _, _)] = kv
         return self.from_int(val)
 
@@ -207,12 +207,13 @@ class Func(Domain):
 
         return Func(self.fromm, tos)
 
-    def reconstruct_for_smac(self, kv):
+    def reconstruct_for_smac(self, selected_vals, kv):
         # assume total function from ints
 
         froms = []
         tos = []
-        s_kv = sorted(kv, key=lambda k: k[3])
+        # sort by var num then var type
+        s_kv = sorted(kv, key=lambda k: (k[3], k[2]) )
 
         for _, val, kind, index in s_kv:
             ival = Int.from_int(val)
@@ -220,9 +221,13 @@ class Func(Domain):
                 froms.append(val)
             elif kind == 'F2':
                 tos.append(ival)
+            elif kind == 'FT':
+                froms.append(index)
+                tos.append(ival)
             else:
                 raise ValueError("Invaild tag " + kind)
 
+        raise NotImplementedError("DDD")
         return self.instance_from_dict( dict(zip(froms, tos)) )
 
 
@@ -332,9 +337,9 @@ def gather_param_info(essence_file, output_dir):
     sys.stdout.flush()
     sys.stderr.flush()
 
-    # subprocess.Popen([
-    #     chain_lib.wrappers("essenceGivensToJson2.sh"), essence_file, json_path, "100"
-    # ]).communicate()
+    subprocess.Popen([
+        chain_lib.wrappers("essenceGivensToJson2.sh"), essence_file, json_path, "100"
+    ]).communicate()
 
 
     with open( json_path ) as f:

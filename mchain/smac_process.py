@@ -17,6 +17,9 @@ import re
 import itertools
 
 from pathlib import Path
+from lib.option_handing import Info
+import json
+
 
 def iter_many(it, length, num):
 	for i in range(0, length, num):
@@ -40,14 +43,18 @@ print("---------------------")
 print(sys.argv)
 
 essence = sys.argv[1]
-num_models = int(sys.argv[2])
-argv = sys.argv[3:]
+info_path = sys.argv[2]
+num_models = int(sys.argv[3])
+argv = sys.argv[4:]
 
 [eprime, instance_specific] = argv[0:2]
 [cutoff_time, cutoff_length] = map(float, argv[2:4])
 seed = argv[4]
 
 params_arr = argv[5:]
+
+with open(info_path) as fp:
+		info = Info(**json.load(fp))
 
 
 print("args: eprime:{} instance_specific:{} cutoff_time:{} cutoff_length:{} seed:{} ".format(
@@ -79,9 +86,14 @@ def create_param_values():
 
 	param_values={}
 	raw_params = sorted(raw_params, key=lambda k: k[0][0][0])
+	grouped = {}
+
 	for k, g in itertools.groupby(raw_params, key=lambda k: k[0][0][0]):
-		print(k)
-		parts = list(g)
+		grouped[k] = list(g)
+
+	for k in info.ordering:
+
+		parts = grouped[k]
 		pprint(parts)
 		# merge
 		if len(parts) == 1:
@@ -90,11 +102,10 @@ def create_param_values():
 			kv=[ (p[0][0][0], p[1], p[0][0][2], p[0][0][3]) for p in parts ]
 
 		pprint(kv)
-		param_values[k] = param_info[k].reconstruct_for_smac(kv)
+		param_values[k] = param_info[k].reconstruct_for_smac(param_values, kv)
 	pprint(param_values[k])
 
 	return param_values
-
 
 
 ordering = ""  # no eprime ordering specifed
@@ -102,12 +113,12 @@ param_values = create_param_values()
 
 (param_string, param_name) = chain_lib.create_param_essence(sorted(param_values.items()))
 param_path = chain_lib.write_param(  str(params_dir), param_string, param_name)
+raise NotImplementedError("fixme")
 chain_lib.run_models(now, param_path, cutoff_time, working_dir_s, output_dir_s, "df-no-channelling-better", "")
 
 results = chain_lib.get_results(working_dir_s, output_dir_s, param_name, cutoff_time, now, mode)
 
 timefile = (output_dir / ("stats-" + mode) / str(now)).with_suffix(".total_solving_time")
-
 print("timefile %s" % (timefile))
 with timefile.open() as f:
 	runtime = float(f.readline())
@@ -141,7 +152,3 @@ runtime += our_cpu_time
 runlength=0
 print("Final Result for ParamILS: {}, {}, {}, {}, {}\n".format(
 	result_kind, runtime, runlength, quality, seed))
-
-raise NotImplementedError("not done yet")
-
-

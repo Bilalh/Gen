@@ -5,7 +5,7 @@ import random
 
 #Assumes a pcs file is next to the essence
 smac_scenario = """
-algo = ./../../../../instancegen/mchain/smac_process.py {essence_base}.essence {num_models}
+algo = ./../../../../instancegen/mchain/smac_process.py {essence_base}.essence info.json {num_models}
 execdir = ../../essences/{essence_base}
 deterministic = 1
 run_obj = quality
