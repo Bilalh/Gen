@@ -92,7 +92,6 @@ def create_param_values():
 		grouped[k] = list(g)
 
 	for k in info.ordering:
-
 		parts = grouped[k]
 		pprint(parts)
 		# merge
@@ -113,7 +112,6 @@ param_values = create_param_values()
 
 (param_string, param_name) = chain_lib.create_param_essence(sorted(param_values.items()))
 param_path = chain_lib.write_param(  str(params_dir), param_string, param_name)
-raise NotImplementedError("fixme")
 chain_lib.run_models(now, param_path, cutoff_time, working_dir_s, output_dir_s, "df-no-channelling-better", "")
 
 results = chain_lib.get_results(working_dir_s, output_dir_s, param_name, cutoff_time, now, mode)

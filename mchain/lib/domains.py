@@ -75,6 +75,13 @@ class Int(Domain):
             return instances.Int(point=v, pretty=pretty, safe=pretty )
 
 
+    def resolve_dom(self, selected_vals):
+        vs = [ self.resolve(v, selected_vals).point for v in self.low_high ]
+        if vs[0] > vs[1] or vs[1] < vs[0]:
+            raise NoValuesInDomainException("low_high: ", vs)
+
+        return Int(vs)
+
     def random_value(self, selected_vals):
         vs = [ self.resolve(v, selected_vals).point for v in self.low_high ]
 
@@ -215,20 +222,30 @@ class Func(Domain):
         # sort by var num then var type
         s_kv = sorted(kv, key=lambda k: (k[3], k[2]) )
 
+        total = False
         for _, val, kind, index in s_kv:
             ival = Int.from_int(val)
             if kind == 'F1':
+                assert not total, "should be total?"
                 froms.append(val)
             elif kind == 'F2':
+                assert not total, "should be total?"
                 tos.append(ival)
             elif kind == 'FT':
                 froms.append(index)
                 tos.append(ival)
+                total =True
             else:
                 raise ValueError("Invaild tag " + kind)
 
-        raise NotImplementedError("DDD")
-        return self.instance_from_dict( dict(zip(froms, tos)) )
+        to_doms = [ to_dom.resolve_dom(selected_vals) for to_dom in self.tos]
+        # Assume total from ints
+        assert len(to_doms) == 1
+        num_elems = len(range(to_doms[0].low_high[0], to_doms[0].low_high[1] + 1))
+
+        elems_needed = list(zip(froms, tos))[0:num_elems]
+
+        return self.instance_from_dict( dict(elems_needed) )
 
 
 
