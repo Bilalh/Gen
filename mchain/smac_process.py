@@ -49,6 +49,8 @@ argv = sys.argv[4:]
 
 [eprime, instance_specific] = argv[0:2]
 [cutoff_time, cutoff_length] = map(float, argv[2:4])
+cutoff_time = int(math.ceil(cutoff_time))
+
 seed = argv[4]
 
 params_arr = argv[5:]
