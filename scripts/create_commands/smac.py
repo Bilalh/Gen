@@ -58,10 +58,10 @@ record_cp smac-output/\$prefix/logs/log-{race_no} ../../../../instancegen/smac-v
 	--rungroup \$prefix/smac-output    \\
 	--seed     \$(seed_for_limit {limit} {race_no});
 popd;
-\$PARAM_GEN_SCRIPTS/db/parse_smac_output.py --essence={essence_path} --output_dir=\$place && \
-printf ".timeout 5000\\nINSERT OR REPLACE INTO smac('method', 'essence', 'total_timeout', 'models_timeout', 'races', 'run_no', 'output_dir') \
-	VALUES('smac', '{essence_base}', '\$(total_normalised {limit})', '\$(models_timeout_normalised {limit})', '{races}', '{race_no}', '\$place');" \
-		| sqlite3 results/Info.db && \
+\$PARAM_GEN_SCRIPTS/db/parse_smac_output.py --essence={essence_path} --output_dir=\$place && \\
+printf ".timeout 5000\\nINSERT OR REPLACE INTO smac('method', 'essence', 'total_timeout', 'models_timeout', 'races', 'run_no', 'output_dir') \\
+	VALUES('smac', '{essence_base}', '\$(total_normalised {limit})', '\$(models_timeout_normalised {limit})', '{races}', '{race_no}', '\$place');" \\
+		| sqlite3 results/Info.db && \\
 \$PARAM_GEN_SCRIPTS/misc/tar_results.sh \$place {mode};
 EOF
 )
@@ -88,7 +88,7 @@ EOF
 		line += ' \\\n ::: base_path  %s' % (os.path.join(place_dir, "results", "smac", name))
 		line += ' \\\n ::: cores %d' % (jobs)
 		line += ' \\\n ::: essence_base %s' % (essence_base)
-		line += ' \\\n ::: essence_path %s \\' % (filepath)
+		line += ' \\\n ::: essence_path %s' % (filepath)
 		line += ' \\\n ::: mode %s \\' % (mode)
 
 

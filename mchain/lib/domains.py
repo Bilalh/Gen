@@ -238,10 +238,10 @@ class Func(Domain):
             else:
                 raise ValueError("Invaild tag " + kind)
 
-        to_doms = [ to_dom.resolve_dom(selected_vals) for to_dom in self.tos]
+        from_doms = [ from_dom.resolve_dom(selected_vals) for from_dom in self.fromm]
         # Assume total from ints
-        assert len(to_doms) == 1
-        num_elems = len(range(to_doms[0].low_high[0], to_doms[0].low_high[1] + 1))
+        assert len(from_doms) == 1
+        num_elems = len(range(from_doms[0].low_high[0], from_doms[0].low_high[1] + 1))
 
         elems_needed = list(zip(froms, tos))[0:num_elems]
 
