@@ -49,7 +49,8 @@ argv = sys.argv[4:]
 
 [eprime, instance_specific] = argv[0:2]
 [cutoff_time, cutoff_length] = map(float, argv[2:4])
-cutoff_time = int(math.ceil(cutoff_time))
+
+per_model_time = int(math.ceil(cutoff_time / num_models ))
 
 seed = argv[4]
 
@@ -114,9 +115,10 @@ param_values = create_param_values()
 
 (param_string, param_name) = chain_lib.create_param_essence(sorted(param_values.items()))
 param_path = chain_lib.write_param(  str(params_dir), param_string, param_name)
-chain_lib.run_models(now, param_path, cutoff_time, working_dir_s, output_dir_s, "df-no-channelling-better", "")
+#FIXME allow specifying mode
+chain_lib.run_models(now, param_path, per_model_time, working_dir_s, output_dir_s, "df-no-channelling-better", ordering)
 
-results = chain_lib.get_results(working_dir_s, output_dir_s, param_name, cutoff_time, now, mode)
+results = chain_lib.get_results(working_dir_s, output_dir_s, param_name, per_model_time, now, mode)
 
 timefile = (output_dir / ("stats-" + mode) / str(now)).with_suffix(".total_solving_time")
 print("timefile %s" % (timefile))

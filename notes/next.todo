@@ -34,4 +34,4 @@
 
 misc:
  ☐  .\chain_lib.py>quality # should only be 1 -  (isDominated/ count)
- ☐
+ ☐ stop iteration when the time taken excess the total timelimit by say 10%
