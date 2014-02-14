@@ -33,12 +33,6 @@ sqlite3 ${REPOSITORY_BASE}/results.db <<SQL
 	);
 
 
-	CREATE TABLE IF NOT EXISTS "ParamIndexes" (
-	"param" TEXT NOT NULL,
-	"paramPartNo" INTEGER NOT NULL,
-	"paramIndex" INTEGER NOT NULL,
-	PRIMARY KEY ("param", "paramPartNo", "paramIndex")
-	);
 
 	CREATE VIEW IF NOT EXISTS Attributes as
 	Select DISTINCT attribute

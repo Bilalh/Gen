@@ -123,6 +123,7 @@ if (ls ${results_dir}/*${param_glob}.param-time &>/dev/null); then
 parallel "grep ${timing_method} {} | egrep -o '[0-9].*'  " ::: `ls ${results_dir}/*${param_glob}.param-time`  `ls ${results_dir}/*${param_glob}.sr-time` `ls ${results_dir}/*${param_glob}.minion-time` \
    	| ruby -e 'p $stdin.readlines.map(&:to_f).reduce(&:+)' > ${stats_dir}/${USE_DATE}.total_solving_time
 else
+	# i.e  param refinement timed out
 	echo 0 > ${stats_dir}/${USE_DATE}.total_solving_time
 fi
 

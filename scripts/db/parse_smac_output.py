@@ -119,6 +119,7 @@ pprint(ordering)
 
 for (param_hash, quality) in zip(param_values, results_values):
 	quality_normalised = quality / 100
+	# Have to parse the smac variables into the param name
 	param_name = "-".join( ["{%s:03}" % p for p in ordering] ).format(**param_hash)
 	pprint((param_name, quality_normalised))
 	save_quality(args.output_dir, param_name, quality_normalised)
