@@ -131,11 +131,7 @@ def quality(count, minionTimeout, minionSatisfiable, minionSolutionsFound, isOpt
     """
     logger.info("quality %s", (count, minionTimeout, minionSatisfiable, minionSolutionsFound, isOptimum, isDominated))
 
-    # should only be 1 -  (isDominated/ count)
-
-    if minionTimeout == 0:
-        return 1
-    elif minionTimeout == count:
+    if minionTimeout == count:
         return 1
     else:
         return 1 - (isDominated / count)
