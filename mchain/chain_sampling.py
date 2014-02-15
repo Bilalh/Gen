@@ -73,7 +73,8 @@ class Chain(method.Method):
 
         def get_quailty(point):
             name = "-".join( [ p.safe for p in point ] )
-            return chain_lib.get_quailty(self.output_dir, name)
+            name_hash = chain_lib.hash(name)
+            return chain_lib.get_quailty(self.output_dir, name_hash)
 
         # Get the quailties of these points
         quailties = [get_quailty(p) for p in points]
