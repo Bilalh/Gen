@@ -54,7 +54,8 @@ class NSample(method.Method):
 
         def get_quailty(x):
             name = "-".join( [ ("%s" % p.safe) for p in x ] )
-            return chain_lib.get_quailty(self.output_dir, name)
+            name_hash = chain_lib.hash(name)
+            return chain_lib.get_quailty(self.output_dir, name_hash)
 
         def avg_quality(rp):
             # TODO can made more efficient
