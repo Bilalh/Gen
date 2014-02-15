@@ -171,3 +171,40 @@ When logging in again
 	#7 updates are security updates
 	# so I ran
 	sudo apt-get upgrade
+
+
+
+To save the vm to a  vhd image, so that it can be reused
+
+** THIS WILL DELETE THE VM **
+
+run this command to prepare the vm for reuse
+
+	sudo waagent -deprovision
+
+	WARNING! The waagent service will be stopped.
+	WARNING! All SSH host key pairs will be deleted.
+	WARNING! Nameserver configuration in /etc/resolvconf/resolv.conf.d/{tail,originial} will be deleted.
+	WARNING! Cached DHCP leases will be deleted.
+	Do you want to proceed (y/n)? y
+
+Click `SHUT DOWN`
+Click `CAPTURE`
+
+![screen](Screen%20Shot%202014-02-15%20at%2004.11.02.png)
+
+
+Make a vm from a vhd
+
+Create the New button 
+
+	Compute -> Virtual machine -> from gallery 
+	
+then
+ 
+	my images  -> instancegen1v2
+
+
+if recreating the vhd to the some host  then use have the remove the rsa key from `know_hosts` or you will get
+a `WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!` error when using ssh
+
