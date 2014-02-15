@@ -66,7 +66,7 @@ bool update_our_processes(Processes *our_starting, Processes *our_current, pid_t
 		store_process(our_current, pid, true);
 		processed_added=true;
    	}
-
+   	pclose(ps_out);
    	llprintf("%s for %d\n", "Finished updating our processes\n", monitored_pid);
 	return processed_added;
 }
