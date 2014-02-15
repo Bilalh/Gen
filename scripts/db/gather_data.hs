@@ -34,7 +34,7 @@ parse line = case splitOn ":" blah of
 
 toSQL conjure_repo essence xs
     = id
-    $ ("INSERT OR REPLACE INTO Experiment ( eprime, param, attribute, value) VALUES " ++)
+    $ ("INSERT OR REPLACE INTO Experiment ( eprime, paramHash, attribute, value) VALUES " ++)
     $ (\ i -> "(" ++ i ++ ");" )
     $ intercalate "," $ map show (xs)
 

@@ -24,10 +24,10 @@ with sqlite3.connect(args.db, timeout=10) as conn:
 			del row['#"CommandLineArguments"']
 			if "" in row: del row[""]
 			for (k, v) in row.items():
-				conn.execute('INSERT OR REPLACE INTO Experiment ( eprime, param, attribute, value) VALUES(?,?,?,?)',
+				conn.execute('INSERT OR REPLACE INTO Experiment ( eprime, paramHash, attribute, value) VALUES(?,?,?,?)',
 					(eprime, param, "Minion" + k, v) )
 
-	conn.execute('INSERT OR REPLACE INTO Experiment ( eprime, param, attribute, value) VALUES(?,?,?,?)',
+	conn.execute('INSERT OR REPLACE INTO Experiment ( eprime, paramHash, attribute, value) VALUES(?,?,?,?)',
 					(eprime, param, "SavileRowTotalTime", args.savileRowTime) )
 
 print("Finished parsing", os.path.basename(args.minionTableout) )

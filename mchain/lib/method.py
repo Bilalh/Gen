@@ -172,16 +172,16 @@ class Method(metaclass=ABCMeta):
 
     def run_param_and_store_quality(self, param_string, param_name):
         logger.info((param_string, param_name))
-
+        param_hash = chain_lib.hash(param_name)
 
         model_ordering = self.get_model_ordering()
         logger.info("eprime_ordering %s", model_ordering)
 
-        check = self.use_previous(param_name)
+        check = self.use_previous(param_hash)
         if self.use_previous_data and check:
             now = check
         else:
-            param_path = chain_lib.write_param(self.output_dir + "/params", param_string, param_name)
+            param_path = chain_lib.write_param(self.output_dir + "/params", param_string, param_hash)
 
             datee = calendar.datetime.datetime.now()
             logger.info("Start %s", datee.isoformat())
@@ -191,9 +191,9 @@ class Method(metaclass=ABCMeta):
             logger.info("End %s", calendar.datetime.datetime.now().isoformat()  )
 
 
-        results = chain_lib.get_results(self.settings.working_dir, self.output_dir, param_name, self.time_per_model, now, self.settings.mode)
+        results = chain_lib.get_results(self.settings.working_dir, self.output_dir, param_hash, self.time_per_model, now, self.settings.mode)
         quailty = chain_lib.quality(*results)
-        chain_lib.save_quality(self.output_dir, param_name, quailty)
+        chain_lib.save_quality(self.output_dir, param_name, param_hash, quailty)
 
         self.prev_timestamp = now
         logger.info("results: {} quailty: {} for \n{}".format(results, quailty, param_string))
@@ -214,11 +214,11 @@ class Method(metaclass=ABCMeta):
 
 
 
-    def use_previous(self, param_name):
+    def use_previous(self, param_hash):
         import sqlite3
         if (Path(self.output_dir) / "results.db").exists():
             conn = sqlite3.connect(os.path.join(self.output_dir, 'results.db'))
-            results = list(conn.execute("SELECT timestamp FROM Timeouts WHERE param = ?", (param_name,)))
+            results = list(conn.execute("SELECT timestamp FROM Timeouts WHERE paramHash = ?", (param_hash,)))
             if len(results) == 0:
                 return None
             return results[0][0]

@@ -45,7 +45,7 @@ echo "param_num: $param_num"
 echo "eprime_num $eprime_num"
 
 while read minion_timeout total_timeout; do
-	echo "INSERT OR REPLACE into Timeouts('param', 'MinionTimeout','TotalTimeout', 'timestamp')
+	echo "INSERT OR REPLACE into Timeouts('paramHash', 'MinionTimeout','TotalTimeout', 'timestamp')
 				  Values('${PARAM_BASE_NAME}', ${minion_timeout}, ${total_timeout}, '$USE_DATE' );" \
 	|  sqlite3 ${REPOSITORY_BASE}/results.db
 done < `ls ${stats_dir}/${USE_DATE}.timeout-used | tail -n1`

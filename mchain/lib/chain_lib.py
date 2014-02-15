@@ -8,6 +8,7 @@ import sqlite3
 import subprocess
 import sys
 import time
+import hashlib
 
 from pprint import pprint
 
@@ -39,9 +40,9 @@ def create_param_essence(params):
     return ("\n".join(essence), "-".join(name))
 
 
-def write_param(output_dir, contents, param_name):
-    """ Write the param at dirname with param_name """
-    param_path = os.path.join(output_dir, "{}.param".format(param_name) )
+def write_param(output_dir, contents, param_hash):
+    """ Write the param at dirname with param_hash """
+    param_path = os.path.join(output_dir, "{}.param".format(param_hash) )
     logger.info("%s\n" % param_path)
     with open(param_path, "w") as f:
         f.write(contents)
@@ -86,7 +87,7 @@ def run_models(now, param_path, time_per_model, working_dir, output_dir, mode, m
     return runner()
 
 
-def get_results(working_dir, output_dir, param_name, time_per_model, then, mode):
+def get_results(working_dir, output_dir, param_hash, time_per_model, then, mode):
     """ Get the results of running the toolchain """
 
 
@@ -99,7 +100,7 @@ def get_results(working_dir, output_dir, param_name, time_per_model, then, mode)
     sys.stdout.flush()
     sys.stderr.flush()
 
-    subprocess.Popen([wrappers("run_gather.sh"), param_name, working_dir], env=current_env).communicate()
+    subprocess.Popen([wrappers("run_gather.sh"), param_hash, working_dir], env=current_env).communicate()
     conn = sqlite3.connect(os.path.join(output_dir, 'results.db'))
     # conn.row_factory = sqlite3.Row
 
@@ -107,21 +108,21 @@ def get_results(working_dir, output_dir, param_name, time_per_model, then, mode)
         sum(x) for x in zip(*conn.execute(
         """SELECT  1, MinionTimeout, MinionSatisfiable,MinionSolutionsFound, IsOptimum, isDominated
             FROM TimingsDomination
-            Where param = ?""",
-            (param_name,)
+            Where paramHash = ?""",
+            (param_hash,)
     ))]
     return results
 
 
-def save_quality(output_dir, param_name, quality):
+def save_quality(output_dir, param_name, param_hash, quality):
     conn = sqlite3.connect(os.path.join(output_dir, 'results.db'))
-    conn.execute('INSERT OR REPLACE INTO ParamQuality(param, quality) Values(?, ?)', (param_name, quality))
+    conn.execute('INSERT OR REPLACE INTO ParamQuality(param, paramHash, quality) Values(?, ?, ?)', (param_name, param_hash, quality))
     conn.commit()
 
 
-def get_quailty(output_dir, param_name,):
+def get_quailty(output_dir, param_hash,):
     conn = sqlite3.connect(os.path.join(output_dir, 'results.db'))
-    results = conn.execute("SELECT quality FROM ParamQuality WHERE param = ?", (param_name,))
+    results = conn.execute("SELECT quality FROM ParamQuality WHERE paramHash = ?", (param_hash,))
     return list(results)[0][0]
 
 
@@ -135,6 +136,13 @@ def quality(count, minionTimeout, minionSatisfiable, minionSolutionsFound, isOpt
         return 1
     else:
         return 1 - (isDominated / count)
+
+
+def hash(name):
+    "Return a hash of the name"
+    as_bytes = name.encode("utf-8")
+    # using sha512 since I don't want to deal with collisions maybe a uuid would be better?
+    return hashlib.sha512(as_bytes).hexdigest()
 
 
 def copydoc(fromfunc, sep="\n"):
