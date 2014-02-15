@@ -61,7 +61,6 @@ popd;
 printf ".timeout 5000\\nINSERT OR REPLACE INTO smac('method', 'essence', 'total_timeout', 'models_timeout', 'races', 'run_no', 'output_dir') \\
 	VALUES('smac', '{essence_base}', '\$(total_normalised {limit})', '\$(models_timeout_normalised {limit})', '{races}', '{race_no}', '\$place');" \\
 		| sqlite3 results/Info.db && \\
-\$PARAM_GEN_SCRIPTS/db/parse_smac_output.py --essence={essence_path} --output_dir=\$place && \\
 \$PARAM_GEN_SCRIPTS/misc/tar_results.sh \$place {mode};
 EOF
 )

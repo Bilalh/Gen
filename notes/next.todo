@@ -43,7 +43,6 @@ misc:
       idea is sha1 the param name
 
 ☐ cputimeout on mac uses ps since I am lazy, if there basisly no memory left it won't work
-   ☐ could posibly be a file lea
 
 
 param:
