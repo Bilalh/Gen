@@ -11,7 +11,7 @@ import time
 import hashlib
 
 from pprint import pprint
-
+import shutil
 
 logger = logging.getLogger(__name__)
 Settings=namedtuple('Settings', ['chain_length', 'select_radius', 'influence_radius', 'seed', 'mode',
@@ -63,6 +63,39 @@ def timeme(method):
 
 def get_number_of_models(dirname):
         return len([f for f in os.listdir(dirname) if fnmatch.fnmatch(f, "*.eprime")])
+
+
+def vaildate_param_for_essence(givens_essence, param_path, timeout):
+    """Return True if the param is vaild"""
+
+    conjure = shutil.which("conjure")
+    assert conjure,  "conjure should be in the path"
+
+
+    cputimeout = os.path.join(os.path.expandvars("${PARAM_GEN_SCRIPTS}/"), "tools", "cputimeout", "cputimeout")
+    logger.info("cputimeout %s", cputimeout)
+    assert cputimeout, "cputimeout not found"
+
+    timefile = param_path + ".vaild-time"
+
+    def time_taken():
+        with open(timefile) as f:
+            return float(f.readlines()[-1][3:])
+
+    try:
+        code = subprocess.check_call([
+            cputimeout,
+            "--interval", "1", "-k1", "--write-time", timefile, str(timeout),
+            conjure,
+            "--mode", "validateSolution",
+            "--in-essence", givens_essence,
+            "--in-solution", param_path ])
+        assert code == 0,  "Failed to run conjure"
+        return (True, time_taken())
+    except subprocess.CalledProcessError as e:
+        assert e.returncode == 1, "Failed to run conjure/ conjure failure"
+        return (False, time_taken())
+
 
 
 def run_models(now, param_path, time_per_model, working_dir, output_dir, mode, model_ordering):

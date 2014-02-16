@@ -80,6 +80,13 @@ if [ -d "smac-output" ]; then
 	rm -rf "smac-output"
 fi
 
+if [ -d "params/tmp" ]; then
+	pushd params
+	tar -c "tmp" | pigz -c -p"${NUM_JOBS}" > tmp.tar.gz
+	rm -rf "tmp"
+	popd
+fi
+
 tar -c "stats-${mode}" | pigz -c -p"${NUM_JOBS}" > "stats-${mode}.tar.gz"
 rm -rf "stats-${mode}"
 

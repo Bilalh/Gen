@@ -109,6 +109,10 @@ def run(fp, place_dir, num_runs):
 		results_essence = os.path.join(essences_dir, values['filepath'])
 
 		file_util.copy_file(values['filepath'], results_essence)
+		# generate the givens file
+		file_util.copy_file(values['filepath'] + ".givens", results_essence + ".givens")
+
+
 		file_util.copy_file(os.path.join(os.path.dirname(values['filepath']), "params.pcs"),
 							os.path.join(essences_dir, essence_name, "params.pcs"))
 		file_util.copy_file(os.path.join(os.path.dirname(values['filepath']), "info.json"),

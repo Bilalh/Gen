@@ -1,24 +1,27 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import calendar
-import os
-import os.path as path
-import sqlite3
-import subprocess
-import sys
-import time
-import math
-from pprint import pprint
-
 from lib import chain_lib
 from lib import domains
-import re
-import itertools
+from lib.option_handing import Info
 
 from pathlib import Path
-from lib.option_handing import Info
+from pprint import pprint
+
+import calendar
+import itertools
 import json
+import math
+import os
+import os.path as path
+import re
+import sys
+import time
+import logging
+
+cpu_time_start = time.process_time()
+logger = logging.getLogger(__name__)
+logging.basicConfig(format='%(name)s:%(lineno)d:%(funcName)s: %(message)s', level=logging.INFO)
 
 
 def iter_many(it, length, num):
@@ -30,7 +33,6 @@ def calculate_outputdir(*fps):
 	return os.path.join(os.path.expandvars("${OUT_BASE_DIR}"), *fps)
 
 
-cpu_time_start = time.process_time()
 
 #Where we are
 prog_name = path.dirname(sys.argv[0])
@@ -75,8 +77,12 @@ working_dir_s = "../prob013-PPP"
 mode = "df-no-channelling-better"
 
 params_dir = output_dir / "params"
+params_dir_tmp_dir = params_dir / "tmp"
 if not params_dir.exists():
 	params_dir.mkdir()
+
+if not params_dir_tmp_dir.exists():
+	params_dir_tmp_dir.mkdir()
 
 
 def create_param_values():
@@ -112,11 +118,38 @@ def create_param_values():
 
 ordering = ""  # no eprime ordering specifed
 param_values = create_param_values()
+runtime = 0
 
 (param_string, param_name) = chain_lib.create_param_essence(sorted(param_values.items()))
 param_hash = chain_lib.hash(param_name)
 
-param_path = chain_lib.write_param(  str(params_dir), param_string, param_hash)
+param_path = chain_lib.write_param(  str(params_dir_tmp_dir), param_string, param_hash)
+
+(vaild, vaild_time) = chain_lib.vaildate_param_for_essence(essence + ".givens", param_path, cutoff_time)
+logger.info((vaild, vaild_time))
+
+runtime += vaild_time
+
+
+if not vaild:
+	result_kind ="UNSAT"
+	runlength=0
+	quality = 500  # invaild
+
+	cpu_time_end = time.process_time()
+	our_cpu_time = cpu_time_end - cpu_time_start
+	print("smac_process cpu_time {}".format(our_cpu_time))
+	runtime += our_cpu_time
+
+	print("Final Result for ParamILS: {}, {}, {}, {}, {}\n".format(
+		result_kind, runtime, runlength, quality, seed))
+	sys.exit(0)
+
+path_param = Path(param_path)
+new_param_path = params_dir / path_param.name
+path_param.rename(new_param_path)
+param_path = str(new_param_path)
+
 #FIXME allow specifying mode
 chain_lib.run_models(now, param_path, per_model_time, working_dir_s, output_dir_s, "df-no-channelling-better", ordering)
 
@@ -125,7 +158,7 @@ results = chain_lib.get_results(working_dir_s, output_dir_s, param_hash, per_mod
 timefile = (output_dir / ("stats-" + mode) / str(now)).with_suffix(".total_solving_time")
 print("timefile %s" % (timefile))
 with timefile.open() as f:
-	runtime = float(f.readline())
+	runtime += float(f.readline())
 
 
 if len(results) != 6:
