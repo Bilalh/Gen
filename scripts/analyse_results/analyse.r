@@ -2,13 +2,18 @@
 require(reshape)
 require(tables)
 
-setwd("~/Desktop/Experiments")
+setwd("~/CS/instancegen/scripts/analyse_results")
 source("tabular.cast_df.r")
 
+base <- paste("~/Desktop/Experiments" , "azure", sep='/')
+f_all = paste(base, "all.csv",  sep='/')
+f_param_info = paste(base, "extra_data/param_eprime_info.csv",  sep='/')
+f_every_param = paste(base, "extra_data/every_param.csv",  sep='/')
+
 # Load data
-all <- read.csv("all.csv")                                 # All configs of the algorithms
-param_info <- read.csv("extra_data/param_eprime_info.csv") # param/eprime summary 
-every_param <- read.csv("extra_data/every_param.csv")      # every param
+all <- read.csv(f_all)                  # All configs of the algorithms
+param_info <- read.csv(f_param_info)    # param/eprime summary 
+every_param <- read.csv(f_every_param)  # every param
 
 # quality is in the range (0, 1.0 ], if an algorithms found nothing call it 1 
 all$best_quality[is.na(all$best_quality)] <- 1
@@ -56,15 +61,16 @@ m<- melt(sall,id.vars=c('essence', 'method', 'total_timeout', 'races'), measure.
 sum <- tabular(cast(m, races ~ method, c(mean,sd,min, max), margins=TRUE))
 
 
-ksample = sall[sall$method == 'ksample', ]
-k <- melt(ksample, 
-          id.vars=c('essence', 'method', 'total_timeout', 'races', 'point_selector', 'num_points', 'influence_radius' ),
-          measure.vars=c("min_models"))
-ksum <- tabular(cast(k, races ~ point_selector  , c(mean,sd,min, max), margins=TRUE))
 
 m2<- melt(sall[sall$use_minion==0,],id.vars=c('essence', 'method', 'method_opts2', 'total_timeout', 'races'), measure.vars=c("min_models") )
-tabular(cast(m2, races ~ method_opts2, c(mean,sd,min, max), margins=TRUE))
+stats <- tabular(cast(m2, races ~ method_opts2, c(mean,sd,min, max), margins=TRUE))
 
+
+# ksample = sall[sall$method == 'ksample', ]
+# k <- melt(ksample, 
+#           id.vars=c('essence', 'method', 'total_timeout', 'races', 'point_selector', 'num_points', 'influence_radius' ),
+#           measure.vars=c("min_models"))
+# ksum <- tabular(cast(k, races ~ point_selector  , c(mean,sd,min, max), margins=TRUE))
 
 library(ggplot2) 
 attach(all)
@@ -79,8 +85,4 @@ p <- qplot(races, min_models, data=all, shape=method, color=method,
 p + ggtitle("Using Minion to genrate params/run_no") + ylim(0,100)
 
 
-View(all[which(method =='nsample' & use_minion==0 & influence_radius ==10 & races == 1),])
-
-
-sd(c(0, 28.688, 4.163) )
-mean(c(16, 47, 29.67))
+#View(all[which(method =='nsample' & use_minion==0 & influence_radius ==10 & races == 1),])

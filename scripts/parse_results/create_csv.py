@@ -138,7 +138,7 @@ def write_dicts_as_csv(fp, rows):
     with ( Path(fp) ).open("w") as f:
         keys = sorted(rows[0].keys())
 
-        for e in ['param', 'eprimes', 'params', 'output_dir']:
+        for e in ['param', 'eprimes', 'params', 'output_dir', 'param_hash']:
             if e in keys:
                 keys.remove(e)
                 keys.append(e)
