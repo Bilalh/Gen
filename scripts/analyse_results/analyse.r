@@ -75,9 +75,9 @@ stats <- tabular(cast(m2, races ~ method_opts2, c(mean,sd,min, max), margins=TRU
 library(ggplot2) 
 attach(all)
 
-qplot(races, min_models, data=all[all$method == 'ksample',], shape=method, color=method, 
-      facets=point_selector~essence, size=I(3),
-      ylab="Number of models left" ) + ylim(0, 100)
+# qplot(races, min_models, data=all[all$method == 'ksample',], shape=method, color=method, 
+#       facets=point_selector~essence, size=I(3),
+#       ylab="Number of models left" ) + ylim(0, 100)
 
 p <- qplot(races, min_models, data=all, shape=method, color=method, 
       facets=run_no~use_minion, size=I(3),

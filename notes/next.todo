@@ -21,27 +21,26 @@
       ☐ refine for all the other models
 
 
+  ☐  fix .\smac_process.py:122  #FIXME allow specifying mode
 
-   essence:
-      given n_upper : int(1..20)
-      given n_boats, n_periods : int(1..20)
+   best param found:
+      did not meet dependencies
 
-      letting Boat be domain int(1..n_boats)
+      /Users/bilalh/Desktop/Experiments/12h-PPP-smac-azure/results/smac/prob013-PPP/smac-output/out-43200-1-8__1/params/c801599382082f80ee84824ed6aec2ab7aab379f5d29c85c5ada8b90e18fa87a179ae523bdebe46d4949b1e91861fad9d042c5c7e31435d67c81fb2cd2ec9d7d.param
 
-      given capacity, crew : function (total) Boat --> int(1..n_upper)
+      language Essence 1.3
+      letting capacity be function( 01 --> 15, 02 --> 19, 03 --> 10, 04 --> 12, 05 --> 8, 06 --> 6, 07 --> 5, 08 --> 18, 09 --> 18, 10 --> 9, 11 --> 13, 12 --> 16, 13 --> 8, 14 --> 10, 15 --> 19, 16 --> 7, 17 --> 19 )
+      letting crew be function( 01 --> 17, 02 --> 8, 03 --> 13, 04 --> 19, 05 --> 12, 06 --> 13, 07 --> 5, 08 --> 19, 09 --> 5, 10 --> 5, 11 --> 14, 12 --> 12, 13 --> 7, 14 --> 8, 15 --> 3, 16 --> 14, 17 --> 7 )
+      letting n_boats be 17
+      letting n_periods be 17
+      letting n_upper be 2
 
-.\gather_data_separate.sh:115  get rid gather_data.hs since it requires `cabal install split`
+
 
 misc:
+ ☐ .\gather_data_separate.sh:115  get rid gather_data.hs since it requires `cabal install split`
  ☐  .\chain_lib.py>quality # should only be 1 -  (isDominated/ count)
  ☐ stop iteration when the time taken excess the total timelimit by say 10%
- ✔ filenames too long e.g @done (14-02-15 03:07)
-      touch: cannot touch `/home/azureuser/repos/instancegen-models/results/smac/prob013-PPP/smac-output/out-43200-5-8__1/results-df-no-channelling-better/0001-F__01_2,02_14,03_13,04_3,05_9,06_13,07_17,08_2,09_11,10_15,11_9,12_5,13_9,14_12,15_17,16_15,17_11,18_2,19_14,20_17__-F__01_6,02_11,03_17,04_5,05_17,06_6,07_17,08_19,09_9,10_3,11_20,12_2,13_10,14_2,15_17,16_16,17_11,18_20,19_16,20_10__-20-13-5.zstarted': File name too long
-
-      conjure: /home/azureuser/repos/instancegen-models/results/smac/prob013-PPP/smac-output/out-43200-5-8__1/results-df-no-channelling-better/0020-F__01_2,02_14,03_13,04_3,05_9,06_13,07_17,08_2,09_11,10_15,11_9,12_5,13_9,14_12,15_17,16_15,17_11,18_2,19_14,20_17__-F__01_6,02_11,03_17,04_5,05_17,06_6,07_17,08_19,09_9,10_3,11_20,12_2,13_10,14_2,15_17,16_16,17_11,18_20,19_16,20_10__-20-13-5.eprime-param: openFile: invalid argument (File name too long)
-
-      idea is sha1 the param name
-
 ☐ cputimeout on mac uses ps since I am lazy, if there basisly no memory left it won't work
 
 
