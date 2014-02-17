@@ -180,6 +180,7 @@ class Method(metaclass=ABCMeta):
         check = self.use_previous(param_hash)
         if self.use_previous_data and check:
             now = check
+            logger.info("using previous data timestamp %s", check)
         else:
             param_path = chain_lib.write_param(self.output_dir + "/params", param_string, param_hash)
 

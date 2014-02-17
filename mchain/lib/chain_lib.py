@@ -154,6 +154,7 @@ def save_quality(output_dir, param_name, param_hash, quality):
 
 
 def get_quailty(output_dir, param_hash,):
+    logger.info("get_quailty  hash %s output_dir %s", output_dir, param_hash)
     conn = sqlite3.connect(os.path.join(output_dir, 'results.db'))
     results = conn.execute("SELECT quality FROM ParamQuality WHERE paramHash = ?", (param_hash,))
     return list(results)[0][0]
