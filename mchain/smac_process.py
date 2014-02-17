@@ -132,7 +132,7 @@ runtime += vaild_time
 
 
 if not vaild:
-	result_kind ="UNSAT"
+	result_kind ="SAT"
 	runlength=0
 	quality = 500  # invaild
 
@@ -164,7 +164,7 @@ with timefile.open() as f:
 if len(results) != 6:
 	quality = 500  # for example SR where statement
 	our_quality = 1
-	result_kind ="UNSAT"
+	result_kind ="SAT"
 else:
 	our_quality = chain_lib.quality(*results)
 	quality = our_quality * 100
