@@ -1,0 +1,7 @@
+type strengthening:
+if we have
+
+  given n : int(1..100)
+  given weights : function (size n) int(1..n) --> int(1..100)
+
+we can infer that the function is total
