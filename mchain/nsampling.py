@@ -55,6 +55,7 @@ class NSample(method.Method):
         def get_quailty(x):
             name = "-".join( [ ("%s" % p.safe) for p in x ] )
             name_hash = chain_lib.hash(name)
+            logger.info("name %s for hash %s", name, name_hash)
             return chain_lib.get_quailty(self.output_dir, name_hash)
 
         def avg_quality(rp):
