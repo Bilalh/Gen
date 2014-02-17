@@ -136,44 +136,56 @@ def create_param_from_essence(output_dir, givens):
     logger.info("Make param %s", datee.isoformat())
     now = str(int(datee.timestamp()))
 
-    out = base_path / now
-    if not out.exists():
-        out.mkdir()
-
-    current_env= os.environ.copy()
-    current_env["GENERATED_OUTPUT_DIR"] = str(out)
-    current_env["TIMEOUT5_FILE"] = str(out / "timeout_file")
-
-    random_seed = chain_lib.uniform_int(1, (2 ** 32) - 1)
-
     (param_string, param_name) = chain_lib.create_param_essence(givens)
-    param = (out / param_name).with_suffix('.param')
-
-    chain_lib.write_param(str(out), param_string, param_name)
+    random_seed = chain_lib.uniform_int(1, (2 ** 32) - 1)
 
     essence = base_path / 'essence_param_find.essence'
     eprime = base_path / 'essence_param_find.eprime'
-    timeout = str(60)
-    solution = (out / (essence.stem + "-" + param.stem) ).with_suffix('.solution')
-    solution_json = solution.with_suffix('.json')
+    timeout = str(60)  # fixme improve
 
-    subprocess.Popen([
-        chain_lib.wrappers("create_param_from_essence.sh"),
-        str(essence), str(eprime), str(param), timeout, timeout, str(random_seed)
-    ], env=current_env ).communicate()
+
+    # reuse previous data
+    # glob_test = list(base_path.glob("**/" + param_name + ".param"))
+    glob_test = []
+
+    if glob_test:
+        out = glob_test[0].parent
+        logger.info("Using previous used param created in %s", out)
+        solution = (out / (essence.stem + "-" + param_name) ).with_suffix('.solution')
+        solution_json = solution.with_suffix('.json')
+    else:
+        out = base_path / now
+        if not out.exists():
+            out.mkdir()
+
+        current_env= os.environ.copy()
+        current_env["GENERATED_OUTPUT_DIR"] = str(out)
+        current_env["TIMEOUT5_FILE"] = str(out / "timeout_file")
+
+
+        param = (out / param_name).with_suffix('.param')
+
+        chain_lib.write_param(str(out), param_string, param_name)
+        solution = (out / (essence.stem + "-" + param.stem) ).with_suffix('.solution')
+        solution_json = solution.with_suffix('.json')
+
+        subprocess.Popen([
+            chain_lib.wrappers("create_param_from_essence.sh"),
+            str(essence), str(eprime), str(param), timeout, timeout, str(random_seed)
+        ], env=current_env ).communicate()
 
     try:
         with ( out / "total.time" ).open() as f:
             time_taken=float(f.read().rstrip())
 
-    except Exception:
+    except IOError:
         raise FailedToGenerateParamExeception()
 
     try:
         with solution_json.open() as f:
             raw_json = json.loads(f.read())
 
-    except Exception:
+    except IOError:
         raise FailedToGenerateParamExeception()
 
 
