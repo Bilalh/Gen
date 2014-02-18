@@ -33,7 +33,7 @@ Select * from ParamsData
 """
 
 
-def collect_data_as_dicts(base_str, num_proc, all_results_dir, start_num=0):
+def collect_data_as_dicts(base_str, num_proc, all_results_dir, exp_dir, start_num=0):
 
     base = Path(base_str)
     info_db = base / "results" / "Info.db"
@@ -43,7 +43,7 @@ def collect_data_as_dicts(base_str, num_proc, all_results_dir, start_num=0):
 
     num_models = { row['essence']: row['num_models'] for row in conn.execute("Select * from essences")  }
 
-    def worker(rows_in, indexes, out_q):
+    def worker(exp_dir, rows_in, indexes, out_q):
         indexes = list(indexes)
         rows = []
 
@@ -77,8 +77,9 @@ def collect_data_as_dicts(base_str, num_proc, all_results_dir, start_num=0):
             row_data['num_models'] = num_models[row['essence']]
             row_data['index'] = indexes[i]
 
-            if base.name != 'Experiment':
-                row_data['output_dir'] = str(Path(base.name) / row_data['output_dir'])
+            rel = base.relative_to(exp_dir)
+            if rel.name != '':
+                row_data['output_dir'] = str(rel / row_data['output_dir'])
 
             if 'use_minion' not in row_data['output_dir']:
                 row_data['use_minion'] = int(bool(base.name.endswith('minion')))
@@ -107,7 +108,7 @@ def collect_data_as_dicts(base_str, num_proc, all_results_dir, start_num=0):
     for i in range(num_proc):
         p = multiprocessing.Process(
                 target=worker,
-                args=(q_rows[chunksize * i:chunksize * (i + 1)],
+                args=(exp_dir, q_rows[chunksize * i:chunksize * (i + 1)],
                       range(start_num + chunksize * i, start_num + chunksize * (i + 1)),
                       q_out))
         procs.append(p)
@@ -153,7 +154,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("num_proc", type=int)
     parser.add_argument("all_results_fp")
-    parser.add_argument("base_dirs", nargs='+')
+    parser.add_argument("exp_dir")
+    parser.add_argument("output_dirs", nargs='+')
     args = parser.parse_args()
     pprint(args)
     all_rows = []
@@ -165,8 +167,8 @@ if __name__ == "__main__":
     import os
     os.makedirs(str(all_results_dir), exist_ok=True)
 
-    for base_dir in args.base_dirs:
-        (rows, param_info, every_param) = collect_data_as_dicts(base_dir, args.num_proc, all_results_dir, start_num)
+    for base_dir in args.output_dirs:
+        (rows, param_info, every_param) = collect_data_as_dicts(base_dir, args.num_proc, all_results_dir, args.exp_dir, start_num)
 
         print("____", len(rows), len(param_info) )
         csv_fp = Path(base_dir) / "results" / "info.csv"
