@@ -73,7 +73,8 @@ now = str(int(datee.timestamp()))
 
 output_dir_s = calculate_outputdir()
 output_dir = Path(output_dir_s)
-working_dir_s = "../prob013-PPP"
+#FIXME hardcoded working_dir
+working_dir_s = "../prob133-knapsack3"
 mode = "df-no-channelling-better"
 
 params_dir = output_dir / "params"
