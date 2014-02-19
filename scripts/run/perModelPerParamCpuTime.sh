@@ -125,7 +125,7 @@ function savilerow(){
 
     echoer \
     ${CPUTIMEOUT} --write-time ${SAVILEROW_TIME} --previous-used $PREVIOUS_USED $timeout \
-    java -XX:ParallelGCThreads=1 -Xmx${JAVA_MEMORY:-4G}  -server -ea -jar $sr_dir/savilerow.jar $@
+    java -XX:ParallelGCThreads=1 -Xmx${JAVA_MEMORY:-4G}  -server -ea -jar $sr_dir/savilerow.jar "$@"
 }
 
 date +'StartSR %a %d %b %Y %k:%M:%S %z%nStartSR(timestamp) %s' >&2
