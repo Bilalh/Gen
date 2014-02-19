@@ -3,7 +3,6 @@
 set -o nounset
 
 Dir="$( cd "$( dirname "$0" )" && pwd )";
-TIMEOUT5="$Dir/../tools/timeout5"
 Time="/usr/bin/time -p"
 
 MINION_TIMEOUT=${1:-${MINION_TIMEOUT}}
