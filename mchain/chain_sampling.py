@@ -6,7 +6,7 @@
 Usage:
    chain (iterations|time|cpu) <limit>
    ( --chain_length=<int>  --select_radius=<int>  --influence_radius=<int> --essence=<file> --models_timeout=<int> --info=<file>)
-   [ --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str> --radius_as_percentage=<bool>]
+   [ --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str> --radius_as_percentage=<bool> --use_minion=<bool>]
    chain json <file>
 
 `time <limit>` is the total time,  cpu <limit> is the total cputime.
@@ -25,6 +25,7 @@ Options:
   --select_radius=<int>            Radius for picking next point.
   --working_dir=<dir>              Where the essence file is [default: .]
   --info=<file>                    Files that contains the ordering of the variable
+  --use_minion=<bool>              Uses Minion to generate params [default: false]
 """
 
 from lib import chain_lib

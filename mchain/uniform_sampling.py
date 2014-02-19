@@ -6,7 +6,7 @@
 Usage:
    uniform (iterations|time|cpu) <limit>
    ( --essence=<file> --models_timeout=<int>  --info=<file>)
-   [ --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str>]
+   [ --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str> --use_minion=<bool>]
    uniform json <file>
 
 `time <limit>` is the total time the program can take.
@@ -21,6 +21,7 @@ Options:
   --seed=<int>              Random seed to use.
   --working_dir=<dir>       Where the essence file is [default: .]
   --info=<file>             Files that contains the ordering of the variables
+  --use_minion=<bool>       Uses Minion to generate params [default: false]
 """
 
 from lib import option_handing
@@ -31,7 +32,7 @@ from collections import namedtuple
 import logging
 
 logger = logging.getLogger(__name__)
-Settings=namedtuple('Settings', ['seed', 'mode', 'models_timeout', "essence", "working_dir", "output_dir", "limit"])
+Settings=namedtuple('Settings', ['seed', 'mode', 'models_timeout', "essence", "working_dir", "output_dir", "limit", "use_minion"])
 
 
 class UniformSampling(method.Method):

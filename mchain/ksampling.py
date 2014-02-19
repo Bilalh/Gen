@@ -6,7 +6,7 @@
 Usage:
    ksample (iterations|time|cpu) <limit>
    ( --num_points=<int>  --influence_radius=<int> --essence=<file> --models_timeout=<int> --point_selector=<first!halving!halving_3_4> --info=<file>)
-   [ --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str> --radius_as_percentage=<bool>]
+   [ --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str> --radius_as_percentage=<bool> --use_minion=<bool>]
    ksample json <file>
 
 `time <limit>` is the total time the program can take.
@@ -23,7 +23,8 @@ Options:
   --seed=<int>                                  Random seed to use.
   --working_dir=<dir>                           Where the essence file is [default: .]
   --point_selector=<first!halving!halving_3_4>  Method to pick the next point
-  --info=<file>                    Files that contains the ordering of the variable
+  --info=<file>                                 Files that contains the ordering of the variable
+  --use_minion=<bool>                           Uses Minion to generate params [default: false]
 """
 
 from lib import chain_lib

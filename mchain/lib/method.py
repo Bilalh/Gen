@@ -97,12 +97,16 @@ class Method(metaclass=ABCMeta):
         logger.info(self.num_models)
         self.time_per_model = int(math.ceil(self.settings.models_timeout / self.num_models) )
 
-        # FIXME this should be create once for ALL methods
-        instances.create_param_essence(options['essence'], self.output_dir)
+        if self.settings.use_minion:
+            # FIXME this should be create once for ALL methods
+            instances.create_param_essence(options['essence'], self.output_dir)
+            # Uses minion to generate random points
+            self.random_point = self.random_point_minion
+        else:
+            # Generate the params ourselves
+            self.random_point = self.random_point_generated
 
-        self.random_point = self.random_point_minion
         # self.random_point = self.random_point_genrated
-        # for creating params with minion for example
         self.extra_time = 0
 
     def run(self):
@@ -242,7 +246,7 @@ class Method(metaclass=ABCMeta):
         selected_vals.update(generated)
         return [  selected_vals[name] for name in self.info.ordering ]
 
-    def random_point_genrated(self):
+    def random_point_generated(self):
         selected_vals = {}
 
         for name in self.info.ordering:

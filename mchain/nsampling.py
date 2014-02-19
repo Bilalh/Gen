@@ -6,7 +6,7 @@
 Usage:
    nsample (iterations|time|cpu) <limit>
    ( --essence=<file> --models_timeout=<int> --influence_radius=<int> --info=<file> )
-   [ --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str> --radius_as_percentage=<bool>]
+   [ --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str> --radius_as_percentage=<bool> --use_minion=<bool>]
    nsample json <file>
 
 `time <limit>` is the total time the program can take.
@@ -23,6 +23,7 @@ Options:
   --seed=<int>                     Random seed to use.
   --working_dir=<dir>              Where the essence file is [default: .]
   --info=<file>                    Files that contains the ordering of the variable
+  --use_minion=<bool>              Uses Minion to generate params [default: false]
 
 """
 
@@ -37,7 +38,8 @@ import logging
 import random
 
 logger = logging.getLogger(__name__)
-Settings=namedtuple('Settings', ['seed', 'mode', 'models_timeout', "essence", "working_dir", "output_dir", "limit", "influence_radius", "radius_as_percentage"])
+Settings=namedtuple('Settings', ['seed', 'mode', 'models_timeout', "essence", "working_dir", "output_dir", "limit",
+                                 "influence_radius", "radius_as_percentage", "use_minion"])
 
 
 class NSample(method.Method):
