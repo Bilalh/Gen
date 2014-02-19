@@ -5,7 +5,7 @@ require(tables)
 setwd("~/CS/instancegen/scripts/analyse_results")
 source("tabular.cast_df.r")
 
-base <- paste("~/Desktop/Experiments" , "azure", sep='/')
+base <- paste("~/Desktop/Experiment" , "azure", sep='/')
 f_all = paste(base, "all.csv",  sep='/')
 f_param_info = paste(base, "extra_data/param_eprime_info.csv",  sep='/')
 f_every_param = paste(base, "extra_data/every_param.csv",  sep='/')
@@ -62,7 +62,7 @@ sum <- tabular(cast(m, races ~ method, c(mean,sd,min, max), margins=TRUE))
 
 
 
-m2<- melt(sall[sall$use_minion==0,],id.vars=c('essence', 'method', 'method_opts2', 'total_timeout', 'races'), measure.vars=c("min_models") )
+m2<- melt(sall,id.vars=c('essence', 'method', 'method_opts2', 'total_timeout', 'races'), measure.vars=c("min_models") )
 stats <- tabular(cast(m2, races ~ method_opts2, c(mean,sd,min, max), margins=TRUE))
 
 
