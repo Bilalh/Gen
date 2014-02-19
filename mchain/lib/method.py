@@ -68,7 +68,6 @@ class Method(metaclass=ABCMeta):
 
         self.param_info = domains.gather_param_info(options['essence'], self.output_dir)
         logger.info(pformat(self.param_info, width=80))
-        self.param_info['crew'].constraints.append(constraints.FuncForallLessThenEq('capacity'))
 
         if len(self.info.ordering) != len(self.param_info):
             print("Ordering size:{} != params size:{}".format(len(self.info.ordering), len(self.param_info)))
@@ -82,6 +81,9 @@ class Method(metaclass=ABCMeta):
         logger.info(settings)
         self.settings = settings
 
+        #FIXME hard coded
+        if self.settings.essence.endswith("prob013-PPP.essence"):
+            self.param_info['crew'].constraints.append(constraints.FuncForallLessThenEq('capacity'))
 
         logger.info("Using Seed {}".format(settings.seed))
         random.seed(settings.seed)
