@@ -5,7 +5,7 @@ require(tables)
 setwd("~/CS/instancegen/scripts/analyse_results")
 source("tabular.cast_df.r")
 
-base <- paste("~/Desktop/Experiment" , "azure", sep='/')
+base <- paste("~/Desktop/Experiment" , "_data_azure", sep='/')
 f_all = paste(base, "all.csv",  sep='/')
 f_param_info = paste(base, "extra_data/param_eprime_info.csv",  sep='/')
 f_every_param = paste(base, "extra_data/every_param.csv",  sep='/')
@@ -60,25 +60,23 @@ aggregate(sall$best_quality ~ sall$races + sall$influence_radius + sall$method  
 m<- melt(sall,id.vars=c('essence', 'method', 'total_timeout', 'races'), measure.vars=c("min_models") )
 sum <- tabular(cast(m, races ~ method, c(mean,sd,min, max), margins=TRUE))
 
-
-
+# Produce a summary of the results per method
 m2<- melt(sall,id.vars=c('essence', 'method', 'method_opts2', 'total_timeout', 'races'), measure.vars=c("min_models") )
-stats <- tabular(cast(m2, races ~ method_opts2, c(mean,sd,min, max), margins=TRUE))
+#stats <- tabular(cast(m2, races ~ method_opts2, c(mean,sd,min, max), margins=TRUE))
 
-
-# ksample = sall[sall$method == 'ksample', ]
-# k <- melt(ksample, 
-#           id.vars=c('essence', 'method', 'total_timeout', 'races', 'point_selector', 'num_points', 'influence_radius' ),
-#           measure.vars=c("min_models"))
-# ksum <- tabular(cast(k, races ~ point_selector  , c(mean,sd,min, max), margins=TRUE))
+per_method <- function (method_name){
+  temp <- m2[ m2$method == method_name,   ]
+  tabular(cast(temp, essence + races ~ method_opts2 , c(mean,sd,min, max), margins=TRUE, fill=NA))
+}
+stats <- lapply( unique(m2$method), per_method)
 
 library(ggplot2) 
-attach(all)
 
 # qplot(races, min_models, data=all[all$method == 'ksample',], shape=method, color=method, 
 #       facets=point_selector~essence, size=I(3),
 #       ylab="Number of models left" ) + ylim(0, 100)
 
+# Plots
 p <- qplot(races, min_models, data=all, shape=method, color=method, 
       facets=run_no~use_minion, size=I(3),
       xlab="Races", ylab="Number of models left") 
@@ -86,3 +84,7 @@ p + ggtitle("Using Minion to genrate params/run_no") + ylim(0,100)
 
 
 #View(all[which(method =='nsample' & use_minion==0 & influence_radius ==10 & races == 1),])
+
+#require("data.table")
+#dt = data.table(sall)
+#dt[, list(best_quality, mean=mean(dt) ), by=c('races', 'total_timeout')]
