@@ -44,7 +44,7 @@ class Domain(metaclass=ABCMeta):
         """selected_vals is previous selected points"""
         pass
 
-    @abstractmethod
+
     def all_values(self, selected_vals):
         raise NotImplemented("All values not done yet")
 
@@ -59,6 +59,30 @@ class Domain(metaclass=ABCMeta):
             recreate the essence params from the flattened input
         """
         pass
+
+
+class TypeInt(Domain):
+    """TypeInt domain with allowed domain (low,high) inclusive """
+    def __init__(self, low_high):
+        super(TypeInt, self).__init__()
+        self.low_high = low_high
+
+    def random_value(self, selected_vals):
+
+        d_low = chain_lib.uniform_int(*self.low_high)
+        d_high = chain_lib.uniform_int(d_low, self.low_high[1])
+
+        pretty = "domain int({}..{})".format(d_low, d_high)
+        safe = "typeInt__{}_{}__".format(d_low, d_high)
+
+        return instances.TypeInt(point=(d_low, d_low),  pretty=pretty, safe=safe )
+
+    def within_radius_dom(self, selected_vals, instance, radius):
+        raise NotImplementedError()
+
+
+    def reconstruct_for_smac(self, selected_vals, kv):
+        raise NotImplementedError()
 
 
 class Int(Domain):
@@ -185,8 +209,6 @@ class Func(Domain):
 
         return instances.Func(point=res, pretty=pretty, safe=safe)
 
-    def all_values(self, selected_vals):
-        raise NotImplementedError("All values not done yet")
 
     def within_radius_dom(self, selected_vals, instance, radius):
         # TODO  assumes total from ints at the momment
@@ -281,20 +303,27 @@ def next_ele(ele):
 
 def transform_json_domain_to_domain(data):
     dom = data[0]
+
+
     assert dom['tag'] == 'domain'
 
     (kind, kind_ele) = next_ele(dom)
 
     dispach = {
         "int": get_int_domain,
-        "function": get_function_domain
+        "function": get_function_domain,
+        "typeInt": get_typeInt_domain
     }
 
     if kind not in dispach:
-        print(" not Implemented {}".format(kind), file=sys.stderr)
-        sys.exit(4)
+        raise NotImplementedError(kind)
 
     return dispach[kind](kind_ele)
+
+
+def get_typeInt_domain(data):
+    # FIXME how to specify more data
+    return TypeInt( (1, 20))
 
 
 def get_int_domain(data):

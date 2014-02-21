@@ -72,7 +72,7 @@ class Method(metaclass=ABCMeta):
         if len(self.info.ordering) != len(self.param_info):
             print("Ordering size:{} != params size:{}".format(len(self.info.ordering), len(self.param_info)))
             print("ordering:{}\nparam_info:§§{}".format(self.info.ordering, self.param_info))
-            sys.exit(8)
+            raise ValueError()
 
         self.limiter = limiter
 

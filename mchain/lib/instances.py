@@ -68,6 +68,24 @@ class Int(Instance):
         raise NotImplementedError()
 
 
+class TypeInt(Instance):
+    def __init__(self, point, pretty, safe):
+        super(TypeInt, self).__init__(point, pretty, safe)
+
+    def distance(self, other_dom):
+        "  distance squared between the two domains, for use in euclidean "
+        if not isinstance(other_dom, self.__class__):
+            raise ValueError("other dom must of %s" % self.__class__.__name__)
+
+        raise NotImplementedError("distance of typeInt")
+        # return (other_dom.point - self.point) ** 2
+
+    @classmethod
+    def from_json_dict(cls, d):
+        raise NotImplementedError()
+
+
+
 class Func(Instance):
     def __init__(self, point, pretty, safe):
         super(Func, self).__init__(point, pretty, safe)
