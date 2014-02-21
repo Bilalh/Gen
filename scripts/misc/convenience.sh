@@ -1,7 +1,7 @@
 #!/bin/bash
 # Bilal Syed Hussain
 
-# file path to our self souce this file
+# file path to ourself, to allow sourcing
 __convenience_fp=$0
 
 # print the command the run it
@@ -13,12 +13,12 @@ function echoing(){
 function refine_run(){
 	if [ $# -lt 3 ]; then
 		echo "$0 essence eprime param+ "
-	fi 
-	
+	fi
+
 	local essence=$1
     local eprime=$2
 	shift; shift
-	
+
 	parallel -j${NUM_JOBS:-4} "source ${__convenience_fp}; __refine_par_func {} ${eprime} ${essence}" ::: "$@"
 }
 
@@ -27,7 +27,7 @@ function __refine_par_func(){
 	local param=$1
 	local eprime=$2
 	local essence=$3
-	
+
 	local eprime_base=`basename ${eprime}`
 	local param_base=`basename ${param}`
 	local out_eparam="${eprime_base%.*}-${param_base%.*}.eprime-param"
@@ -45,25 +45,25 @@ function refine_param(){
     local param=$1
 	local eprime=$2
 	local essence=$3
-	
+
 	local param_base=`basename ${param}`
 	local eprime_base=`basename ${eprime}`
 	local out_param="${eprime_base%.*}-${param_base%.*}.eprime-param"
-	
+
 	echoing conjure --mode refineParam --in-eprime ${eprime} --in-essence-param ${param} --in-essence ${essence} --out-eprime-param ${out_param}
-	
+
 }
 
 function solve_eprime_param(){
 	local eprime=$1
 	local eparam=$2
-	
+
 	local param_base=`basename ${eparam}`
 	local out_minion="${param_base%.*}.minion"
-	local out_solution="${param_base%.*}.eprime-solution"	
-	
+	local out_solution="${param_base%.*}.eprime-solution"
+
 	rm ${out_solution}
-	
+
 	echoing savilerow -in-eprime ${eprime} -in-param ${eparam} -run-minion minion -out-minion ${out_minion} -out-solution ${out_solution}
 
 }
@@ -80,9 +80,9 @@ function up_eprime(){
 
 	local eprime="${eprime_part}.eprime"
 	local parm="${eprime_solution_base%.*}.eprime-param"
-	
+
 	rm -f ${solution}
-	
+
 	echoing conjure \
 		--mode translateSolution \
 		--in-eprime ${eprime} \
@@ -92,18 +92,18 @@ function up_eprime(){
 		--in-essence-param ${param} \
 		--out-solution ${solution} \
 	&& head -n 10 ${solution}
-	
+
 }
 
 
 if [ $ZSH_VERSION ]; then
-	
+
 function _solve_eprime_param(){
 	_arguments \
 		"1:eprimes:_files -g \*.eprime" \
 		"2:params:_files -g \*.eprime-param"
 }
-	
+
 compdef _solve_eprime_param solve_eprime_param
 
 
