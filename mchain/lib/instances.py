@@ -77,8 +77,8 @@ class TypeInt(Instance):
         if not isinstance(other_dom, self.__class__):
             raise ValueError("other dom must of %s" % self.__class__.__name__)
 
-        raise NotImplementedError("distance of typeInt")
-        # return (other_dom.point - self.point) ** 2
+        ## FIXME check if this calculation is want I want
+        return sum(  ( t - o) ** 2 for (t, o) in zip( self.point, other_dom.point) )
 
     @classmethod
     def from_json_dict(cls, d):
