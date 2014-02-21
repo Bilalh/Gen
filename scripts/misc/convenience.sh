@@ -13,6 +13,7 @@ function echoing(){
 function refine_run(){
 	if [ $# -lt 3 ]; then
 		echo "$0 essence eprime param+ "
+		return
 	fi
 
 	local essence=$1
