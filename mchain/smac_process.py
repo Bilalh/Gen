@@ -47,7 +47,8 @@ print(sys.argv)
 essence = sys.argv[1]
 info_path = sys.argv[2]
 num_models = int(sys.argv[3])
-argv = sys.argv[4:]
+mode = sys.argv[4]
+argv = sys.argv[5:]
 
 [eprime, instance_specific] = argv[0:2]
 [cutoff_time, cutoff_length] = map(float, argv[2:4])
@@ -159,7 +160,6 @@ new_param_path = params_dir / path_param.name
 path_param.rename(new_param_path)
 param_path = str(new_param_path)
 
-#FIXME allow specifying mode
 chain_lib.run_models(now, param_path, per_model_time, working_dir_s, output_dir_s, mode, ordering)
 
 results = chain_lib.get_results(working_dir_s, output_dir_s, param_hash, per_model_time, now, mode)
