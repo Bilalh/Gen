@@ -24,6 +24,14 @@
   ☐  fix .\smac_process.py:122  #FIXME allow specifying mode
   ☐  fix .\smac_process.py:77  #FIXME hardcoded working_dir
 
+  python to generate total functions
+      for e in [ "ordsize", "ordcol" ]:
+         for i in range(1,121):
+            print("{}%FT%{:03d} [1, 120] [60] ".format(e,i))
+         print()
+
+
+
    best param found:
       did not meet dependencies
 

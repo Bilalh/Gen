@@ -73,9 +73,17 @@ now = str(int(datee.timestamp()))
 
 output_dir_s = calculate_outputdir()
 output_dir = Path(output_dir_s)
-#FIXME hardcoded working_dir
-working_dir_s = "../prob133-knapsack3"
+
+
+# we are in the essence directory but os.curdir is .
+# we need the essence's directory in the path
+# so we hack around is this by doing
+# ../<essence_dir>
+working_dir_s = "../" + Path(essence).stem
+print(working_dir_s)
+
 mode = "df-no-channelling-better"
+
 
 params_dir = output_dir / "params"
 params_dir_tmp_dir = params_dir / "tmp"
@@ -152,7 +160,7 @@ path_param.rename(new_param_path)
 param_path = str(new_param_path)
 
 #FIXME allow specifying mode
-chain_lib.run_models(now, param_path, per_model_time, working_dir_s, output_dir_s, "df-no-channelling-better", ordering)
+chain_lib.run_models(now, param_path, per_model_time, working_dir_s, output_dir_s, mode, ordering)
 
 results = chain_lib.get_results(working_dir_s, output_dir_s, param_hash, per_model_time, now, mode)
 
