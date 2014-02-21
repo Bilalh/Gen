@@ -10,6 +10,37 @@ function echoing(){
     "$@"
 }
 
+function refine_run(){
+	if [ $# -lt 3 ]; then
+		echo "$0 essence eprime param+ "
+	fi 
+	
+	local essence=$1
+    local eprime=$2
+	shift; shift
+	
+	parallel -j${NUM_JOBS:-4} "source ${__convenience_fp}; __refine_par_func {} ${eprime} ${essence}" ::: "$@"
+}
+
+
+function __refine_par_func(){
+	local param=$1
+	local eprime=$2
+	local essence=$3
+	
+	local eprime_base=`basename ${eprime}`
+	local param_base=`basename ${param}`
+	local out_eparam="${eprime_base%.*}-${param_base%.*}.eprime-param"
+	local eprime_solution="${eprime_base%.*}-${param_base%.*}.eprime-solution"
+
+	refine_param "$@" && \
+	[ -f ${out_eparam} ] && \
+	solve_eprime_param ${eprime} ${out_eparam} && \
+	[ -f ${eprime_solution} ] && \
+	up_eprime ${eprime_solution}  ${param}  ${essence}
+}
+
+
 function refine_param(){
     local param=$1
 	local eprime=$2
@@ -64,36 +95,6 @@ function up_eprime(){
 	
 }
 
-function __refine_par_func(){
-	local param=$1
-	local eprime=$2
-	local essence=$3
-	
-	local eprime_base=`basename ${eprime}`
-	local param_base=`basename ${param}`
-	local out_eparam="${eprime_base%.*}-${param_base%.*}.eprime-param"
-	local eprime_solution="${eprime_base%.*}-${param_base%.*}.eprime-solution"
-
-	refine_param "$@" && \
-	[ -f ${out_eparam} ] && \
-	solve_eprime_param ${eprime} ${out_eparam} && \
-	[ -f ${eprime_solution} ] && \
-	up_eprime ${eprime_solution}  ${param}  ${essence}
-}
-
-
-function refine_run(){
-	
-	if [ $# -lt 3 ]; then
-		echo "$0 essence eprime param+ "
-	fi 
-	
-	local essence=$1
-    local eprime=$2
-	shift; shift
-	
-	parallel -j${NUM_JOBS:-4} "source ${__convenience_fp}; __refine_par_func {} ${eprime} ${essence}" ::: "$@"
-}
 
 if [ $ZSH_VERSION ]; then
 	
