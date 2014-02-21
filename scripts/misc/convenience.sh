@@ -1,6 +1,9 @@
 #!/bin/bash
 # Bilal Syed Hussain
 
+# file path to our self souce this file
+__convenience_fp=$0
+
 # print the command the run it
 function echoing(){
     echo "$@"
@@ -61,21 +64,35 @@ function up_eprime(){
 	
 }
 
-function refine_run(){
-    local param=$1
+function __refine_par_func(){
+	local param=$1
 	local eprime=$2
 	local essence=$3
-
-	local param_base=`basename ${param}`
+	
 	local eprime_base=`basename ${eprime}`
+	local param_base=`basename ${param}`
 	local out_eparam="${eprime_base%.*}-${param_base%.*}.eprime-param"
 	local eprime_solution="${eprime_base%.*}-${param_base%.*}.eprime-solution"
-	
-	refine_param $@ && \
+
+	refine_param "$@" && \
 	[ -f ${out_eparam} ] && \
 	solve_eprime_param ${eprime} ${out_eparam} && \
 	[ -f ${eprime_solution} ] && \
 	up_eprime ${eprime_solution}  ${param}  ${essence}
+}
+
+
+function refine_run(){
+	
+	if [ $# -lt 3 ]; then
+		echo "$0 essence eprime param+ "
+	fi 
+	
+	local essence=$1
+    local eprime=$2
+	shift; shift
+	
+	parallel -j${NUM_JOBS:-4} "source ${__convenience_fp}; __refine_par_func {} ${eprime} ${essence}" ::: "$@"
 }
 
 if [ $ZSH_VERSION ]; then
@@ -97,7 +114,15 @@ function _refine_param(){
 }
 
 compdef _refine_param refine_param
-compdef _refine_param refine_run
+
+function _refine_run(){
+	_arguments \
+		"1:essence:_files -g \*.essence"\
+		"2:eprime:_files -g \*.eprime" \
+		"*:essence param:_files -g \*.param"
+}
+
+compdef _refine_run refine_run
 
 
 function _up_eprime(){
@@ -106,6 +131,7 @@ function _up_eprime(){
 		"2:essence param:_files -g \*.param" \
 		"3:essence:_files -g \*.essence"
 }
+
 
 compdef _up_eprime up_eprime
 
