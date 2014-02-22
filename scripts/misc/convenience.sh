@@ -12,13 +12,13 @@ function echoing(){
 
 function refine_run(){
 	if [ $# -lt 3 ]; then
-		echo "$0 essence eprime param+ "
+		echo "$0 essence ::: eprime+ ::: param+ "
 	else
 		local essence=$1
-	    local eprime=$2
-		shift; shift
+		shift;
 
-		parallel -j${NUM_JOBS:-4} "source ${__convenience_fp}; __refine_par_func {} ${eprime} ${essence}" ::: "$@"
+		parallel --tagstring  "{2/.} {1/.}" -j${NUM_JOBS:-4} \
+			"source ${__convenience_fp}; __refine_par_func {2} {1} ${essence}" "$@"
 	fi
 }
 
