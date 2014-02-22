@@ -24,7 +24,7 @@ all$min_models <- all$best_quality * all$num_models
 all$point_selector[all$point_selector==""] <- NA
 
 # method with options
-method_specific= c("method", 'chain_length', "num_points", "point_selector", "influence_radius", "radius_as_percentage")
+method_specific= c("method", 'chain_length', "num_points", "point_selector", "influence_radius", "radius_as_percentage", "use_minion")
 all$method_opts <-apply(all[method_specific], 1, paste, collapse=",")
 all$method_opts2 <- gsub(",NA", "", all$method_opts, perl=TRUE)
 
