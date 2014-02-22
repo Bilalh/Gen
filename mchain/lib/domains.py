@@ -82,7 +82,17 @@ class TypeInt(Domain):
 
 
     def reconstruct_for_smac(self, selected_vals, kv):
-        raise NotImplementedError()
+        assert len(kv) == 2
+        [(name, d_low, _, _), (_, d_high, _, _)] = sorted(kv)
+        logger.info("{} low:{} high:{}".format(name, d_low, d_high))
+        if d_low > d_high:
+            raise InvaildValueException("{} low:{} high:{}".format(name, d_low, d_high))
+
+        pretty = "domain int({}..{})".format(d_low, d_high)
+        safe = "typeInt__{}_{}__".format(d_low, d_high)
+
+        return instances.TypeInt(point=(d_low, d_low),  pretty=pretty, safe=safe)
+
 
 
 class Int(Domain):
@@ -285,6 +295,10 @@ class Ref():
 
     def __repr__(self):
         return "Ref(name={})".format(self.name)
+
+
+class InvaildValueException(Exception):
+    pass
 
 
 class NoValuesInDomainException(Exception):

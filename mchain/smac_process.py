@@ -20,6 +20,7 @@ import time
 import logging
 
 cpu_time_start = time.process_time()
+runtime = 0
 logger = logging.getLogger(__name__)
 logging.basicConfig(format='%(name)s:%(lineno)d:%(funcName)s: %(message)s', level=logging.INFO)
 
@@ -95,6 +96,22 @@ if not params_dir_tmp_dir.exists():
 	params_dir_tmp_dir.mkdir()
 
 
+def invaild_param(cpu_time_start, runtime):
+	""" output when the param is invaild """
+	result_kind ="SAT"
+	runlength=0
+	quality = 500  # invaild
+
+	cpu_time_end = time.process_time()
+	our_cpu_time = cpu_time_end - cpu_time_start
+	logger.info("smac_process cpu_time {}".format(our_cpu_time))
+	runtime += our_cpu_time
+
+	logger.info("Final Result for ParamILS: {}, {}, {}, {}, {}\n".format(
+		result_kind, runtime, runlength, quality, seed))
+	sys.exit(0)
+
+
 def create_param_values():
 	re_kind = re.compile(r"^(\w+)(%(\w+)%(\d+))?")  # patten to match type of variable
 	raw_params = [ (re_kind.findall(name[1:]), int(val[1:-1])) for name, val in iter_many(params_arr, len(params_arr), 2) ]
@@ -127,8 +144,13 @@ def create_param_values():
 
 
 ordering = ""  # no eprime ordering specifed
-param_values = create_param_values()
-runtime = 0
+
+try:
+	param_values = create_param_values()
+except domains.InvaildValueException as e:
+	logger.info("Invaild param")
+	invaild_param(cpu_time_start, runtime)
+
 
 (param_string, param_name) = chain_lib.create_param_essence(sorted(param_values.items()))
 param_hash = chain_lib.hash(param_name)
@@ -142,18 +164,7 @@ runtime += vaild_time
 
 
 if not vaild:
-	result_kind ="SAT"
-	runlength=0
-	quality = 500  # invaild
-
-	cpu_time_end = time.process_time()
-	our_cpu_time = cpu_time_end - cpu_time_start
-	logger.info("smac_process cpu_time {}".format(our_cpu_time))
-	runtime += our_cpu_time
-
-	logger.info("Final Result for ParamILS: {}, {}, {}, {}, {}\n".format(
-		result_kind, runtime, runlength, quality, seed))
-	sys.exit(0)
+	invaild_param(cpu_time_start, runtime)
 
 path_param = Path(param_path)
 new_param_path = params_dir / path_param.name
