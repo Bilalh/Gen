@@ -41,7 +41,7 @@ import logging
 import random
 
 logger = logging.getLogger(__name__)
-Settings=namedtuple('Settings', ['num_points', 'seed', 'mode', 'models_timeout', "essence", "working_dir", "output_dir", "limit", "influence_radius", "radius_as_percentage"])
+Settings=namedtuple('Settings', ['num_points', 'seed', 'mode', 'models_timeout', "essence", "working_dir", "output_dir", "limit", "influence_radius", "radius_as_percentage", "use_minion"])
 
 
 class KSample(method.Method):
