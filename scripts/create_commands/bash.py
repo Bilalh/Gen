@@ -45,8 +45,10 @@ function record_cp(){
 
 		local sr="$(dirname `which savilerow`)"
 		if [ -d "${sr}/.hg" ]; then
-			hg log -r . --template "{latesttag}-{latesttagdistance}-{node|short}
-" "${sr}" >> "${fp}.cmds"
+			pushd "${sr}"
+			hg log -r . --template "{latesttag}-{latesttagdistance}-{node|short}" >> "${fp}.cmds"
+			echo "" >> "${fp}.cmds"
+			popd
 		fi
 
 		if [ -d "../instancegen/.git" ]; then
@@ -59,9 +61,10 @@ function record_cp(){
 
 		echo "Command:"  >> "${fp}.cmds"
 		echo "$@"        >> "${fp}.cmds"
-		$@ 2>&1 | tee "${fp}.log"
+		"$@" 2>&1 | tee "${fp}.log"
 	fi
 }
+
 # only "True" is true
 function to_bool(){
 	if [ "$1" == "True" ]; then

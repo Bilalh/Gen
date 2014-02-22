@@ -2,15 +2,20 @@
 	"folders":
 	[
 		{
+			"file_exclude_patterns":
+			[
+				".gitignore",
+				".rlwrap_history",
+				"_mchain.sublime-project"
+			],
 			"folder_exclude_patterns":
 			[
 				"__",
 				"__f",
 				"__pycache__"
 			],
-            "file_exclude_patterns": [".gitignore", ".rlwrap_history", "_mchain.sublime-project"],
 			"follow_symlinks": true,
-			"path": "/Users/bilalh/CS/instancegen/mchain"
+			"path": "."
 		},
 		{
 			"follow_symlinks": true,
@@ -19,6 +24,10 @@
 		{
 			"follow_symlinks": true,
 			"path": "/Users/bilalh/CS/instancegen/notes"
+		},
+		{
+			"follow_symlinks": true,
+			"path": "/Users/bilalh/CS/instancegen-models"
 		}
 	],
 	"settings":
