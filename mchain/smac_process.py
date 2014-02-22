@@ -6,7 +6,7 @@ from lib import domains
 from lib.option_handing import Info
 
 from pathlib import Path
-from pprint import pprint
+from pprint import pprint, pformat
 
 import calendar
 import itertools
@@ -37,12 +37,12 @@ def calculate_outputdir(*fps):
 #Where we are
 prog_name = path.dirname(sys.argv[0])
 abs_prog_dir = path.abspath(prog_name)
-print(abs_prog_dir)
+logger.info(abs_prog_dir)
 
 
-print("---------------------")
+logger.info("---------------------")
 
-print(sys.argv)
+logger.info(sys.argv)
 
 essence = sys.argv[1]
 info_path = sys.argv[2]
@@ -63,13 +63,13 @@ with open(info_path) as fp:
 		info = Info(**json.load(fp))
 
 
-print("args: eprime:{} instance_specific:{} cutoff_time:{} cutoff_length:{} seed:{} ".format(
+logger.info("args: eprime:{} instance_specific:{} cutoff_time:{} cutoff_length:{} seed:{} ".format(
 	eprime, instance_specific, cutoff_time, cutoff_length, seed))
 
-print("---------------------")
+logger.info("---------------------")
 
 datee = calendar.datetime.datetime.now()
-print("<toolchain_wrapper.py> Start", datee.isoformat())
+logger.info("<toolchain_wrapper.py> Start %s", datee.isoformat())
 now = str(int(datee.timestamp()))
 
 output_dir_s = calculate_outputdir()
@@ -81,7 +81,7 @@ output_dir = Path(output_dir_s)
 # so we hack around is this by doing
 # ../<essence_dir>
 working_dir_s = "../" + Path(essence).stem
-print(working_dir_s)
+logger.info(working_dir_s)
 
 mode = "df-no-channelling-better"
 
@@ -98,7 +98,7 @@ if not params_dir_tmp_dir.exists():
 def create_param_values():
 	re_kind = re.compile(r"^(\w+)(%(\w+)%(\d+))?")  # patten to match type of variable
 	raw_params = [ (re_kind.findall(name[1:]), int(val[1:-1])) for name, val in iter_many(params_arr, len(params_arr), 2) ]
-	pprint(raw_params)
+	logger.info(pformat(raw_params))
 
 	param_info = domains.gather_param_info(essence, output_dir_s)
 
@@ -112,16 +112,16 @@ def create_param_values():
 
 	for k in info.ordering:
 		parts = grouped[k]
-		pprint(parts)
+		logger.info(pformat(parts))
 		# merge
 		if len(parts) == 1:
 			kv = [(parts[0][0][0][0], parts[0][1], None, None)]
 		else:
 			kv=[ (p[0][0][0], p[1], p[0][0][2], p[0][0][3]) for p in parts ]
 
-		pprint(kv)
+		logger.info(pformat(kv))
 		param_values[k] = param_info[k].reconstruct_for_smac(param_values, kv)
-	pprint(param_values[k])
+	logger.info(pformat(param_values[k]))
 
 	return param_values
 
@@ -148,10 +148,10 @@ if not vaild:
 
 	cpu_time_end = time.process_time()
 	our_cpu_time = cpu_time_end - cpu_time_start
-	print("smac_process cpu_time {}".format(our_cpu_time))
+	logger.info("smac_process cpu_time {}".format(our_cpu_time))
 	runtime += our_cpu_time
 
-	print("Final Result for ParamILS: {}, {}, {}, {}, {}\n".format(
+	logger.info("Final Result for ParamILS: {}, {}, {}, {}, {}\n".format(
 		result_kind, runtime, runlength, quality, seed))
 	sys.exit(0)
 
@@ -165,7 +165,7 @@ chain_lib.run_models(now, param_path, per_model_time, working_dir_s, output_dir_
 results = chain_lib.get_results(working_dir_s, output_dir_s, param_hash, per_model_time, now, mode)
 
 timefile = (output_dir / ("stats-" + mode) / str(now)).with_suffix(".total_solving_time")
-print("timefile %s" % (timefile))
+logger.info("timefile %s" % (timefile))
 with timefile.open() as f:
 	runtime += float(f.readline())
 
@@ -193,7 +193,7 @@ chain_lib.save_quality(output_dir_s, param_name, param_hash, our_quality)
 
 cpu_time_end = time.process_time()
 our_cpu_time = cpu_time_end - cpu_time_start
-print("smac_process cpu_time {}".format(our_cpu_time))
+logger.info("smac_process cpu_time {}".format(our_cpu_time))
 runtime += our_cpu_time
 
 runlength=0
