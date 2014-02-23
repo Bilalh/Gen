@@ -242,13 +242,17 @@ def jmatch(d, *names):
             return [ jmatch(v, tagname)[0] for v in d ]
 
         if d['tag'] != tagname:
-            raise ValueError("{} not a tag of {}".format(tagname, pformat(d)))
+            raise NotTagFoundExeception("{} not a tag of {}".format(tagname, pformat(d)))
         d = d['children']
 
         if i != lnames - 1 and len(d) == 1:
             d = d[0]
 
     return d
+
+
+class NotTagFoundExeception(Exception):
+    pass
 
 
 def process_literal(lit):

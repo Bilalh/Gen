@@ -1,5 +1,6 @@
 from lib import chain_lib
 from lib import instances
+from lib.instances import jmatch
 
 from abc import ABCMeta, abstractmethod
 from pprint import pprint
@@ -323,16 +324,22 @@ def transform_json_domain_to_domain(data):
 
     (kind, kind_ele) = next_ele(dom)
 
+    return domain_dispacher(kind, kind_ele)
+
+
+def domain_dispacher(kind, kind_ele):
     dispach = {
         "int": get_int_domain,
         "function": get_function_domain,
-        "typeInt": get_typeInt_domain
+        "typeInt": get_typeInt_domain,
+        "set": get_set_domain
     }
 
     if kind not in dispach:
         raise NotImplementedError(kind)
 
     return dispach[kind](kind_ele)
+
 
 
 def get_typeInt_domain(data):
@@ -387,6 +394,55 @@ def get_function_domain(data):
     f = Func(fromm=[fromm], tos=[to], **as_bools)
 
     return f
+
+
+def handle_set_attribute(attr_dom):
+    pair = jmatch(attr_dom, 'attribute', 'nameValue')
+    assert len(pair) == 2
+
+    value_index = 1;
+
+    try:
+        ref_dom =jmatch(pair[0], 'name', 'reference')
+    except instances.NotTagFoundExeception:
+        logger.info("attr[0] is not name")
+        ref_dom =jmatch(pair[1], 'name', 'reference')
+        value_index =0
+
+    name = ref_dom[0]['primitive']['string']
+
+    value_dom = jmatch(pair[value_index], "value", "value", "literal" )
+    value = value_dom[0]['primitive']['int']
+
+    return (name, value)
+
+
+def get_set_domain(data):
+    top = data['children']
+
+    assert len(top) == 2, "set has attr and child doms"
+
+    dom_index = 1
+    try:
+        attrs_dom = jmatch(top[0], 'attributes', 'attrCollection' )
+    except instances.NotTagFoundExeception:
+        logger.info("top[0] is not the attrs")
+        attrs_dom = jmatch(top[1], 'attributes', 'attrCollection' )
+        dom_index = 0
+
+    attrs = dict( handle_set_attribute(atrr) for atrr in attrs_dom )
+
+    dom_top = top[dom_index]
+
+    dom_outer = jmatch(dom_top, "inner", "domain")
+    assert len(dom_outer) == 1
+
+    inner_kind = dom_outer[0]['tag']
+    inner_ele = dom_outer[0]
+
+    inner_dom = domain_dispacher(inner_kind, inner_ele)
+
+    raise NotImplementedError()
 
 
 def gather_param_info(essence_file, output_dir):
