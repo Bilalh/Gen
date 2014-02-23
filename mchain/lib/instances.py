@@ -51,6 +51,7 @@ class Instance(metaclass=ABCMeta):
 
     @abstractmethod
     def distance(self, other_dom):
+        "  distance squared between the two domains, for use in euclidean "
         raise NotImplementedError("distance not done yet")
 
     @classmethod
@@ -152,8 +153,18 @@ class Set(Instance):
         super(Set, self).__init__(point, pretty, safe)
 
     def distance(self, other_dom):
-        """ Like function ignore values in the larger one"""
-        raise NotImplemented()
+        "  distance between the two domains, for use in euclidean "
+        #Like function ignore values in the larger one
+
+        def f(x1, x2):
+            if x1 is None or x2 is None:
+                return 0
+            else:
+                return x1.distance(x2) ** 2
+
+
+        parts = [ f(x1, x2) for (x1, x2) in it.zip_longest(self.point, other_dom.point) ]
+        return sum(parts)
 
     @classmethod
     def from_json_dict(cls, d):
@@ -162,13 +173,16 @@ class Set(Instance):
 
         values = [ json_instance_dispatcher(v_dom) for v_dom in values_dom ]
 
-        (pretty, safe) = list(zip(*[ (v.pretty, v.safe) for v in values ]))
+        resulting=[ (v.pretty, v.safe) for v in values ]
+        if resulting:
+            (pretty, safe) = zip(*resulting)
+        else:
+            (pretty, safe) = ("", "")
+
         pretty = "{%s}" % ", ".join(pretty)
         safe = "S__{}__".format(",".join(safe) )
 
         return Set(values, pretty, safe)
-
-        raise NotImplementedError()
 
 
 def create_param_essence(essence_file, output_dir):
