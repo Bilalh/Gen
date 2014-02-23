@@ -148,6 +148,12 @@ class Set(Instance):
 
         values = [ json_instance_dispatcher(v_dom) for v_dom in values_dom ]
 
+        (pretty, safe) = list(zip(*[ (v.pretty, v.safe) for v in values ]))
+        pretty = "{%s}" % ", ".join(pretty)
+        safe = "S__{}__".format(",".join(safe) )
+
+        return Set(values, pretty, safe)
+
         raise NotImplementedError()
 
 
