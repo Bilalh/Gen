@@ -210,12 +210,12 @@ def create_param_from_essence(output_dir, givens):
 
     essence = base_path / 'essence_param_find.essence'
     eprime = base_path / 'essence_param_find.eprime'
-    timeout = str(60)  # fixme improve
+    timeout = str(180)  # FIXME choose better timeout
 
 
     # reuse previous data
-    glob_test = list(base_path.glob("**/" + param_name + ".param"))
-    # glob_test = []
+    # glob_test = list(base_path.glob("**/" + param_name + ".param"))
+    glob_test = []
 
     if glob_test:
         out = glob_test[0].parent
