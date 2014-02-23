@@ -17,7 +17,7 @@ function refine_run(){
 		local essence=$1
 		shift;
 
-		parallel --tagstring  "{2/.} {1/.}" -j${NUM_JOBS:-4} \
+		parallel --keep-order --tagstring  "{2/.} {1/.}" -j${NUM_JOBS:-4} \
 			"source ${__convenience_fp}; __refine_par_func {2} {1} ${essence}" "$@"
 	fi
 }
