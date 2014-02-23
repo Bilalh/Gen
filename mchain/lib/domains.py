@@ -281,6 +281,22 @@ class Func(Domain):
         return self.instance_from_dict( dict(elems_needed) )
 
 
+class Set(Domain):
+    """Domain for set, which maybe nested"""
+    def __init__(self, inner_dom, *, size=None):
+        super(Set, self).__init__()
+        self.inner_dom = inner_dom
+        self.size = size
+
+    def random_value(self, selected_vals):
+        raise NotImplementedError()
+
+    def within_radius_dom(self, selected_vals, instance, radius):
+        raise NotImplementedError()
+
+    def reconstruct_for_smac(self, selected_vals, kv):
+        raise NotImplementedError()
+
 
 class Ref():
     """Refences to another var"""
@@ -442,7 +458,7 @@ def get_set_domain(data):
 
     inner_dom = domain_dispacher(inner_kind, inner_ele)
 
-    raise NotImplementedError()
+    return Set(inner_dom, **attrs)
 
 
 def gather_param_info(essence_file, output_dir):

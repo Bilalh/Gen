@@ -134,6 +134,23 @@ class Func(Instance):
 
 
 
+class Set(Instance):
+    def __init__(self, point, pretty, safe):
+        super(Set, self).__init__(point, pretty, safe)
+
+    def distance(self, other_dom):
+        raise NotImplemented
+
+    @classmethod
+    def from_json_dict(cls, d):
+
+        values_dom = jmatch(d, 'set', 'values', 'value')
+
+        values = [ json_instance_dispatcher(v_dom) for v_dom in values_dom ]
+
+        raise NotImplementedError()
+
+
 def create_param_essence(essence_file, output_dir):
     """ Create a essence spec of the params then refine it """
 
@@ -163,8 +180,8 @@ def create_param_from_essence(output_dir, givens):
 
 
     # reuse previous data
-    # glob_test = list(base_path.glob("**/" + param_name + ".param"))
-    glob_test = []
+    glob_test = list(base_path.glob("**/" + param_name + ".param"))
+    # glob_test = []
 
     if glob_test:
         out = glob_test[0].parent
@@ -221,17 +238,22 @@ def json_to_param_instance(data):
     logger.info("name:%s", name)
 
     kind = jmatch(data['domain'][0], 'value')[0]
-
-    dispatch ={
-    "function": Func.from_json_dict,
-    "literal": process_literal
-    }
-
-    instance = dispatch[kind['tag']](kind)
+    instance = json_instance_dispatcher(kind)
 
     logger.info("name:%s, instance:%s", name, instance)
 
     return (name, instance)
+
+
+def json_instance_dispatcher(kind):
+    dispatch ={
+    "function": Func.from_json_dict,
+    "literal": process_literal,
+    "set": Set.from_json_dict
+    }
+
+    instance = dispatch[kind['tag']](kind)
+    return instance
 
 
 def jmatch(d, *names):
