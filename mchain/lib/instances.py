@@ -12,9 +12,13 @@ import sys
 import os
 import calendar
 from pprint import pformat, pprint
+
+import functools
+
 logger = logging.getLogger(__name__)
 
 
+@functools.total_ordering
 class Instance(metaclass=ABCMeta):
 
     """Instantiation of a domain"""
@@ -42,6 +46,9 @@ class Instance(metaclass=ABCMeta):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def __lt__(self, other):
+        return self.point.__lt__(other.point)
+
     @abstractmethod
     def distance(self, other_dom):
         raise NotImplementedError("distance not done yet")
@@ -52,6 +59,7 @@ class Instance(metaclass=ABCMeta):
         raise NotImplementedError()
 
 
+@functools.total_ordering
 class Int(Instance):
     def __init__(self, point, pretty, safe):
         super(Int, self).__init__(point, pretty, safe)
@@ -68,6 +76,7 @@ class Int(Instance):
         raise NotImplementedError()
 
 
+@functools.total_ordering
 class TypeInt(Instance):
     def __init__(self, point, pretty, safe):
         super(TypeInt, self).__init__(point, pretty, safe)
@@ -85,7 +94,7 @@ class TypeInt(Instance):
         raise NotImplementedError()
 
 
-
+@functools.total_ordering
 class Func(Instance):
     def __init__(self, point, pretty, safe):
         super(Func, self).__init__(point, pretty, safe)
@@ -109,6 +118,9 @@ class Func(Instance):
         logger.debug("functin dist parts %s", parts)
 
         return sum(parts)
+
+    def __lt__(self, other):
+        return self.point.items().__lt__(other.point.items())
 
     @classmethod
     def from_json_dict(cls, dom):
@@ -134,12 +146,14 @@ class Func(Instance):
 
 
 
+@functools.total_ordering
 class Set(Instance):
     def __init__(self, point, pretty, safe):
         super(Set, self).__init__(point, pretty, safe)
 
     def distance(self, other_dom):
-        raise NotImplemented
+        """ Like function ignore values in the larger one"""
+        raise NotImplemented()
 
     @classmethod
     def from_json_dict(cls, d):
