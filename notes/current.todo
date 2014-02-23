@@ -1,8 +1,8 @@
 
 domains:
-	☐  functions
+	✔  functions @done (14-02-23 18:35)
 		✔ Generate total function @done (14-01-21)
-		☐ Dependencies such as forall as in PPP
+		✔ Dependencies such as forall as in PPP @done (14-02-23 18:35)
 			-  Easy way would be generate and test (using conjure's full evaluator)
 			-  could take a long time
 			-

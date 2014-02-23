@@ -21,29 +21,14 @@
       ☐ refine for all the other models
 
 
-  ☐  fix .\smac_process.py:122  #FIXME allow specifying mode
-  ☐  fix .\smac_process.py:77  #FIXME hardcoded working_dir
+  ✔  fix .\smac_process.py:122  #FIXME allow specifying mode @done (14-02-23 18:35)
+  ✔  fix .\smac_process.py:77  #FIXME hardcoded working_dir @done (14-02-23 18:35)
 
   python to generate total functions
       for e in [ "ordsize", "ordcol" ]:
          for i in range(1,121):
-            print("{}%FT%{:03d} [1, 120] [60] ".format(e,i))
+            print("{}%FT%{:03d} [1, 120] [60]i ".format(e,i))
          print()
-
-
-
-   best param found:
-      did not meet dependencies
-
-      /Users/bilalh/Desktop/Experiments/12h-PPP-smac-azure/results/smac/prob013-PPP/smac-output/out-43200-1-8__1/params/c801599382082f80ee84824ed6aec2ab7aab379f5d29c85c5ada8b90e18fa87a179ae523bdebe46d4949b1e91861fad9d042c5c7e31435d67c81fb2cd2ec9d7d.param
-
-      language Essence 1.3
-      letting capacity be function( 01 --> 15, 02 --> 19, 03 --> 10, 04 --> 12, 05 --> 8, 06 --> 6, 07 --> 5, 08 --> 18, 09 --> 18, 10 --> 9, 11 --> 13, 12 --> 16, 13 --> 8, 14 --> 10, 15 --> 19, 16 --> 7, 17 --> 19 )
-      letting crew be function( 01 --> 17, 02 --> 8, 03 --> 13, 04 --> 19, 05 --> 12, 06 --> 13, 07 --> 5, 08 --> 19, 09 --> 5, 10 --> 5, 11 --> 14, 12 --> 12, 13 --> 7, 14 --> 8, 15 --> 3, 16 --> 14, 17 --> 7 )
-      letting n_boats be 17
-      letting n_periods be 17
-      letting n_upper be 2
-
 
 
 misc:
@@ -52,16 +37,5 @@ misc:
  ☐ stop iteration when the time taken excess the total timelimit by say 10%
  ☐ cputimeout on mac uses ps since I am lazy, if there basisly no memory left it won't work
  ☐  minion random seed,  does not made it always give the same result
-
-param PPP:
-
- ☐ this takes 159 seconds to solve on my laptop
-   language Essence 1.3
-   letting n_upper be 9
-   letting n_boats be 12
-   letting n_periods be 5
-   letting capacity be function( 1 --> 7, 2 --> 8, 3 --> 8, 4 --> 7, 5 --> 2, 6 --> 7, 7 --> 8, 8 --> 7, 9 --> 7, 10 --> 6, 11 --> 3, 12 --> 6 )
-   letting crew be function( 1 --> 1, 2 --> 5, 3 --> 3, 4 --> 3, 5 --> 1, 6 --> 1, 7 --> 3, 8 --> 7, 9 --> 3, 10 --> 4, 11 --> 2, 12 --> 4 )
-
 
 
