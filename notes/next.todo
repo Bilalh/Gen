@@ -1,3 +1,7 @@
+fixeme:
+  ☐ using minion to genrate param broken if givens of info.json is empty
+
+
  smac:
    Since smac only does ints and categorical vars we need to flatten
    the essence into something smac understands.
@@ -37,5 +41,6 @@ misc:
  ☐ stop iteration when the time taken excess the total timelimit by say 10%
  ☐ cputimeout on mac uses ps since I am lazy, if there basisly no memory left it won't work
  ☐  minion random seed,  does not made it always give the same result
+
 
 
