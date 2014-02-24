@@ -56,6 +56,7 @@ ey_sorted <- ey[order(ey$quality), ]
 aggregate(sall$best_quality ~ sall$races + sall$influence_radius + sall$method  , data=sall, FUN=mean, na.action=na.pass) 
 
 
+
 # Produce a summary of the results 
 m<- melt(sall,id.vars=c('essence', 'method', 'total_timeout', 'races'), measure.vars=c("min_models") )
 sum <- tabular(cast(m, races ~ method, c(mean,sd,min, max), margins=TRUE))
@@ -64,9 +65,14 @@ sum <- tabular(cast(m, races ~ method, c(mean,sd,min, max), margins=TRUE))
 m2<- melt(sall,id.vars=c('essence', 'method', 'method_opts2', 'total_timeout', 'races'), measure.vars=c("min_models") )
 #stats <- tabular(cast(m2, races ~ method_opts2, c(mean,sd,min, max), margins=TRUE))
 
+
+# to make output prettier
+longNamedFuncbl <- function (x){ NA }
+sp <- function(x){ NA }
+
 per_method <- function (method_name){
   temp <- m2[ m2$method == method_name,   ]
-  tabular(cast(temp, essence + races ~ method_opts2 , c(mean,sd,min, max), margins=TRUE, fill=NA))
+  tabular(cast(temp, essence + races ~ method_opts2 , c(longNamedFuncbl, mean,sd,min, max), margins=TRUE, fill=NA))
 }
 stats <- lapply( unique(m2$method), per_method)
 
