@@ -41,7 +41,7 @@ from pprint import pprint, pformat
 
 logger = logging.getLogger(__name__)
 Settings=namedtuple('Settings', ['chain_length', 'select_radius', 'influence_radius', 'seed', 'mode',
-                                'models_timeout', "essence", "working_dir", "output_dir", "limit", "radius_as_percentage"])
+                                'models_timeout', "essence", "working_dir", "output_dir", "limit", "radius_as_percentage", "use_minion"])
 
 
 class Chain(method.Method):

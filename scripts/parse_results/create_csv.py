@@ -82,7 +82,7 @@ def collect_data_as_dicts(base_str, num_proc, all_results_dir, exp_dir, start_nu
                 row_data['output_dir'] = str(rel / row_data['output_dir'])
 
             if 'use_minion' not in row_data['output_dir']:
-                row_data['use_minion'] = int(bool(base.name.endswith('minion')))
+                row_data['use_minion'] = int("_minion/" in row_data['output_dir'])
 
             results_conn.row_factory = sqlite3.Row
             param_eprime_info_rows = results_conn.execute(param_eprime_results_sql)
