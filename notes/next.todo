@@ -1,5 +1,6 @@
 fixeme:
-  ☐ using minion to genrate param broken if givens of info.json is empty
+  ✔ using minion to genrate param broken if givens of info.json is empty @done (14-02-25 17:08)
+  ☐ add option to translate solution to not add lettings
 
 
  smac:

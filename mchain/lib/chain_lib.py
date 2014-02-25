@@ -37,6 +37,10 @@ def create_param_file(params):
     for (k, v) in params:
         essence.append( "letting {} be {}".format(k, v.pretty)  )
         name.append("%s" % v.safe)
+
+    if not name:
+        name = ['empty']
+
     return ("\n".join(essence), "-".join(name))
 
 
