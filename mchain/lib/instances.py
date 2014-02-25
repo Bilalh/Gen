@@ -205,7 +205,7 @@ def create_param_from_essence(output_dir, givens):
     logger.info("Make param %s", datee.isoformat())
     now = str(int(datee.timestamp()))
 
-    (param_string, param_name) = chain_lib.create_param_essence(givens)
+    (param_string, param_name) = chain_lib.create_param_file(givens)
     random_seed = chain_lib.uniform_int(1, (2 ** 32) - 1)
 
     essence = base_path / 'essence_param_find.essence'

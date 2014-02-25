@@ -30,7 +30,7 @@ def wrappers(script_name):
 
 
 
-def create_param_essence(params):
+def create_param_file(params):
     """Create a essence param form (name,values) pairs"""
     essence = ["language Essence 1.3"]
     name = []

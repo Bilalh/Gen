@@ -152,7 +152,7 @@ except domains.InvaildValueException as e:
 	invaild_param(cpu_time_start, runtime)
 
 
-(param_string, param_name) = chain_lib.create_param_essence(sorted(param_values.items()))
+(param_string, param_name) = chain_lib.create_param_file(sorted(param_values.items()))
 param_hash = chain_lib.hash(param_name)
 
 param_path = chain_lib.write_param(  str(params_dir_tmp_dir), param_string, param_hash)

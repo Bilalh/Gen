@@ -174,7 +174,7 @@ class Method(metaclass=ABCMeta):
 
 
     def create_run_param_and_store_quality(self, point):
-        (param_string, param_name) = chain_lib.create_param_essence(zip(self.info.ordering, point))
+        (param_string, param_name) = chain_lib.create_param_file(zip(self.info.ordering, point))
         return self.run_param_and_store_quality(param_string, param_name)
 
     def run_param_and_store_quality(self, param_string, param_name):
