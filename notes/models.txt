@@ -1,0 +1,148 @@
+efpa:
+    cmd:           conjure --mode df --better
+    models:        45
+    refine_time:   ?
+    givens:        4 ints
+
+prob013-PPP:
+    cmd:           conjure --mode df-no-channelling --better
+    models:        256 models 
+    refine_time:   at lest 1 day
+    givens:        3 ints,  2 function (total) int --> int
+
+prob006-GR:
+    cmd:           conjure --mode df --
+    models:        8 
+    refine_time:   ?
+    givens:        1 int
+
+prob010-SCP :
+    cmd:           conjure --mode df --better       
+    models:        4
+    refine_time:   ?
+    givens:        3 ints
+
+prob024-Langford:
+    cmd:           conjure --mode df
+    models:        154
+    refine_time:   ?
+    givens:        2 ints
+
+prob028-Bibd:
+    cmd:           conjure -mode df
+    models:        141
+    refine_time:   ?
+    givens:        2 ints
+
+prob030-Bacp:
+    cmd:           conjure --mode df-no-channelling --better
+    models:        48
+    refine_time:   3:13:49
+    givens:        6  ints,  relation  int * int,    function (total) int --> int
+    errors:
+        refine param
+        https://bitbucket.org/stacs_cp/conjure/issue/243/prob030-bacp-refine-param-error
+
+
+    cmd:           conjure --mode df-compact-param --better
+    models done:   976
+    killed at:     7 days, 4:51:13
+  
+
+prob038-steel:     
+    cmd:           conjure --mode df-no-channelling --better
+    models:        512
+    refine_time:   4 days, 1:55:23
+    givens:        3 ints,  domain int, 2 function int --> int
+    errors:
+        refine param
+        https://bitbucket.org/stacs_cp/conjure/issue/240/steel-mill-errors-using-refined-param
+
+
+prob045-cover:
+    cmd:           conjure --mode df
+    models:        6
+    refine_time:   ?
+    givens:        4 ints
+
+prob129-Sonet:
+    cmd:           conjure --mode df-no-channelling --better
+    models:        16
+    refine_time:   a few hours
+    cmd:           conjure --mode df-compact-param --better
+    models:        64
+    refine_time:   11:45:31
+    givens:        3 ints, set of set(size 2) of int
+
+    `best` model:   0064,   which is also produced by compact 
+
+prob133-knapsack3: 
+    cmd:           conjure --mode df-no-channelling --better
+    models:        64
+    refine_time:   0:32:27
+    cmd:           conjure --mode df-compact-param --better
+    models:        16
+    refine_time:   1:24:49
+    givens:        2 ints, 2 function (total) int --> int
+
+    `best model`  0002.eprime (df-no-channelling), not found by compact
+
+prob034-Warehouse:
+    cmd:           conjure --mode df-no-channelling --better
+    models:        128
+    refine_time:   6:02:34
+    givens:        3 ints, 2 functions(total) int --> int, function(total) (int, int) --> int
+    errors:
+    refine param
+    https://bitbucket.org/stacs_cp/conjure/issue/242/prob034-warehouse-error-item-0-is-not
+    
+
+prob115-tail:
+    cmd:           conjure --mode df-no-channelling --better
+    models:        at lest 13
+    error at:      1:57:08
+    givens:        3 ints,  2 relation int * int,  function(total) int --> int, set of int
+    error:         
+        refinement
+        https://bitbucket.org/stacs_cp/conjure/issue/244/prob115-tail-type-error-in-v__16-2-2
+
+prob128-Cross:
+    cmd:           conjure --mode df-no-channelling --better
+    models:        at lest 7
+    error at:      0:35:36
+    givens:        3 ints, function(total) int --> int,  function (int, int) --> (int, int), 
+                   function(total) int --> function int -> int
+    error:         
+        refinement
+        https://bitbucket.org/stacs_cp/conjure/issue/241/type-error-in-v__25-2-1-prob128-cross
+
+prob001-CarSeq:
+    cmd:           conjure --mode df-no-channelling --better
+    models done:   434
+    killed at:     1 day, 2:18:13
+    givens:        4 ints, 3 function(total) int --> int,  relation int * int
+
+
+prob031-Rack:
+    cmd:           conjure --mode df-no-channelling --better
+    models done:   929
+    killed at:     8 days, 2:06:49
+    givens:        4 ints, 5  function(total) int --> int
+
+prob008-vessel:
+    cmd:           conjure --mode df-no-channelling --better
+    models done:   632
+    killed at:     7 days, 19:39:00
+    givens:        4 ints, 3 function(total) int --> int,  function set(size 2) of int --> int
+
+
+Fail to refine the essence spec:
+prob018-Water
+prob022-Bus
+prob037
+prob116-Vellino
+prob131-pls
+prob132-Layout
+
+Param refinement errors:
+prob002-TemDes
