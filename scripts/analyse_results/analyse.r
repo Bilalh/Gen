@@ -94,3 +94,34 @@ p + ggtitle("Using Minion to genrate params/run_no") + ylim(0,100)
 #require("data.table")
 #dt = data.table(sall)
 #dt[, list(best_quality, mean=mean(dt) ), by=c('races', 'total_timeout')]
+
+
+#  all knapsack params group by sat/unsat
+ks.idx <- sall[sall$essence=="prob133-knapsack3", ]$index
+ks.params         <- every_param[every_param$index %in% ks.idx, ]
+ks.sat            <- ks.params[ks.params$MaxSolutions >= 1,  ]
+ks.unsat          <- ks.params[ks.params$MaxSolutions == 0,  ]
+
+
+A <- 10 * (1:5)
+b <- c(13, 17, 20)
+sapply(b,function(x)which.min(abs(x - A)))
+
+
+# Make powers of two,  then convert it in the range 0:1  
+# then add few extra values to the end 
+# then reserve them
+qualities <-  2 ^ (1:6) / 100
+(qualities <- c(qualities, 0.8, 0.9, 1.0))
+(qualities <- 1 - qualities)
+
+get_picked <- function(qs, vals){
+  ( vals.picked.idx <- sapply(qs,function(x)which.min(abs(x - vals$quality )))  )
+  (vals.picked.idx  <-  unique(vals.picked.idx))
+  vals.picked <- vals[vals.picked.idx, ]
+  vals.picked
+}
+
+ks.sat.picked <-  get_picked(qualities, ks.sat)
+ks.unsat.picked <-  get_picked(qualities, ks.unsat)
+
