@@ -122,6 +122,7 @@ get_picked <- function(qs, vals){
   vals.pickedM <- merge(by='index', x=vals.picked, 
     y=sall[c('index', 'output_dir', 'method_opts', 'method_opts2', 'models_timeout', 'method', 'num_models', 'essence') ])
   
+  vals.pickedM$model_timeout <- vals.pickedM$models_timeout / vals.pickedM$num_models
   vals.pickedM
 }
 
@@ -130,13 +131,13 @@ ks.unsat.picked <-  get_picked(qualities, ks.unsat)
 
 ks.sat_csv   <-  paste(base, "ks_sat.csv",  sep='/')
 ks.unsat_csv <-  paste(base, "ks_unsat.csv",  sep='/')
-ks.sat_csv1   <-  paste(base, "ks_sat_names.csv",  sep='/')
-ks.unsat_csv1 <-  paste(base, "ks_unsat_names.csv",  sep='/')
+ks.sat_names   <-  paste(base, "ks_sat_names.txt",  sep='/')
+ks.unsat_names <-  paste(base, "ks_unsat_names.txt",  sep='/')
 
 write.csv(ks.sat.picked, file=ks.sat_csv)
 write.csv(ks.unsat.picked, file=ks.unsat_csv)
 
-write.table(ks.sat.picked$paramHash,   file=ks.sat_csv1,   quote=FALSE, col.names=FALSE, row.names=FALSE)
-write.table(ks.unsat.picked$paramHash, file=ks.unsat_csv1, quote=FALSE, col.names=FALSE, row.names=FALSE)
+write.table(ks.sat.picked$paramHash,   file=ks.sat_names,   quote=FALSE, col.names=FALSE, row.names=FALSE)
+write.table(ks.unsat.picked$paramHash, file=ks.unsat_names, quote=FALSE, col.names=FALSE, row.names=FALSE)
 
 
