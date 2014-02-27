@@ -22,7 +22,7 @@ def plot_chain_2d(current_chain, data_points):
     plt.axis("equal")
 
     fig, ax = plt.subplots()
-    
+
 
     ax.scatter(*current_chain[0], c='b')
 
@@ -95,6 +95,3 @@ if __name__ == "__main__":
     print([chain_fp, data_fp, limit])
     plot_json_ouput(chain_fp, data_fp, int(limit))
     print("fin")
-
-
-

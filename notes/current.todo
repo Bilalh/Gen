@@ -4,6 +4,7 @@ domains:
 		✔ Generate total function @done (14-01-21)
 		✔ Dependencies such as forall as in PPP @done (14-02-23 18:35)
 			-  Easy way would be generate and test (using conjure's full evaluator)
+				  done
 			-  could take a long time
 			-
 			-  Keep a domain for each mapping, which is reduced when choosing other values
@@ -17,7 +18,7 @@ Where:
 
  ☐ What to do when a constaint empties a domain,
  	  - either keep on picking
- 	  - start next iteration.
+ 	  ✔ start next iteration. @done (14-02-25 17:22)
 
 	simple:
 		☐ prob006-GR				n >= 0

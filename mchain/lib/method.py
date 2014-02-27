@@ -262,6 +262,7 @@ class Method(metaclass=ABCMeta):
     # FIXME
     def do_radius_as_percentage(self, options):
         if options['radius_as_percentage']:
+            raise NotImplementedError("only works for int")
             self.shape = ncuboid
             for s in ['select_radius', 'influence_radius']:
                 if s in options:
