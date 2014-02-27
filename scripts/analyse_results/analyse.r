@@ -130,6 +130,13 @@ ks.unsat.picked <-  get_picked(qualities, ks.unsat)
 
 ks.sat_csv   <-  paste(base, "ks_sat.csv",  sep='/')
 ks.unsat_csv <-  paste(base, "ks_unsat.csv",  sep='/')
+ks.sat_csv1   <-  paste(base, "ks_sat_names.csv",  sep='/')
+ks.unsat_csv1 <-  paste(base, "ks_unsat_names.csv",  sep='/')
+
 write.csv(ks.sat.picked, file=ks.sat_csv)
 write.csv(ks.unsat.picked, file=ks.unsat_csv)
+
+write.table(ks.sat.picked$paramHash,   file=ks.sat_csv1,   quote=FALSE, col.names=FALSE, row.names=FALSE)
+write.table(ks.unsat.picked$paramHash, file=ks.unsat_csv1, quote=FALSE, col.names=FALSE, row.names=FALSE)
+
 
