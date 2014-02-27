@@ -119,9 +119,17 @@ get_picked <- function(qs, vals){
   ( vals.picked.idx <- sapply(qs,function(x)which.min(abs(x - vals$quality )))  )
   (vals.picked.idx  <-  unique(vals.picked.idx))
   vals.picked <- vals[vals.picked.idx, ]
-  vals.picked
+  vals.pickedM <- merge(by='index', x=vals.picked, 
+    y=sall[c('index', 'output_dir', 'method_opts', 'method_opts2', 'models_timeout', 'method', 'num_models', 'essence') ])
+  
+  vals.pickedM
 }
 
 ks.sat.picked <-  get_picked(qualities, ks.sat)
 ks.unsat.picked <-  get_picked(qualities, ks.unsat)
+
+ks.sat_csv   <-  paste(base, "ks_sat.csv",  sep='/')
+ks.unsat_csv <-  paste(base, "ks_unsat.csv",  sep='/')
+write.csv(ks.sat.picked, file=ks.sat_csv)
+write.csv(ks.unsat.picked, file=ks.unsat_csv)
 
