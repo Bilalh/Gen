@@ -55,7 +55,13 @@ per_method <- function (method_name){
 
 }
 
+old_width <- getOption("width")
+options(width=500)
 
+sink(paste(base, "stats_out.txt", sep='/'),split=TRUE)
 lapply( unique(m2$method), per_method)
+
+sink(NULL)
+options(width=old_width)
 
 
