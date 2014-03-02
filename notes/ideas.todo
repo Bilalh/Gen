@@ -5,3 +5,7 @@ if we have
   given weights : function (size n) int(1..n) --> int(1..100)
 
 we can infer that the function is total
+
+
+sonet:
+  try to rel int matrix  eprime form essence
