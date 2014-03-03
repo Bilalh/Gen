@@ -51,17 +51,48 @@ sp <- function(x){ NA }
 
 per_method <- function (method_name){
   temp <- m2[ m2$method == method_name,   ]
-  tabular(cast(temp, essence + races ~ method_opts2 , c(longNamedFuncbl, mean,sd,min, max), margins=TRUE, fill=NA))
+  tabular(cast(temp, essence + races ~ method_opts2 , 
+              c(longNamedFuncbl, mean,sd,min, max), 
+         margins=TRUE, fill=NA))
+  
+}
 
+per_essence <- function (essence_name){
+  temp <- m2[ m2$essence == essence_name,   ]
+  cols = cast(temp, method_opts2 + races ~  essence, 
+              c(longNamedFuncbl, mean,sd,min, max), 
+              margins=TRUE, fill=NA)
+  tabular(cols[, -grep("^\\(all", colnames(cols))])
+  
 }
 
 old_width <- getOption("width")
 options(width=500)
 
-sink(paste(base, "stats_out.txt", sep='/'),split=TRUE)
+sink(paste(base, "stats_by_method.txt", sep='/'),split=TRUE)
 lapply( unique(m2$method), per_method)
-
 sink(NULL)
+
+sink(paste(base, "stats_by_essence.txt", sep='/'),split=TRUE)
+lapply( unique(m2$essence), per_eseence)
+sink(NULL)
+
 options(width=old_width)
 
 
+
+temp <- m2[ m2$essence == "prob024-Langford",   ]
+cols = cast(temp, method_opts2 + races ~  essence, 
+            c(longNamedFuncbl, mean,sd,min, max), 
+            margins=c('ksample,100,halving_3_4, 4, 0,0  '), fill=NA)
+cols2<- cols[, -grep("^\\(all", colnames(cols))]
+cols2 <- cols2[-nrow(cols2),]
+tabular(cols)
+
+
+df <- data.frame(ID = 1:10,
+                 A1 = rnorm(10),
+                 A2 = rnorm(10),
+                 B1 = letters[1:10],
+                 B2 = letters[11:20])
+df[, -grep("A", colnames(df))]
