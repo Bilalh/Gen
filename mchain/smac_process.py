@@ -43,7 +43,9 @@ logger.info(abs_prog_dir)
 
 logger.info("---------------------")
 
-logger.info(sys.argv)
+logger.info("export PARAM_GEN_SCRIPTS=%s", os.path.expandvars("${PARAM_GEN_SCRIPTS}"))
+logger.info("export OUT_BASE_DIR=%s", os.path.expandvars("${OUT_BASE_DIR}"))
+logger.info(str(sys.argv).replace(',', ' ').replace('[', ' ').replace(']', ' ') )
 
 essence = sys.argv[1]
 info_path = sys.argv[2]

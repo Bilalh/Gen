@@ -10,6 +10,7 @@ function echoing(){
     "$@"
 }
 
+# refine params then solve them on all eprimes
 function refine_run(){
 	if [ $# -lt 3 ]; then
 		echo "$0 essence ::: eprime+ ::: param+ "
