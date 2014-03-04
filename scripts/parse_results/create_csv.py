@@ -42,6 +42,7 @@ def collect_data_as_dicts(base_str, num_proc, all_results_dir, exp_dir, start_nu
     conn.row_factory = sqlite3.Row
 
     num_models = { row['essence']: row['num_models'] for row in conn.execute("Select * from essences")  }
+    modes = { row['essence']: row['mode'] for row in conn.execute("Select * from essences")  }
 
     def worker(exp_dir, rows_in, indexes, out_q):
         indexes = list(indexes)
@@ -74,8 +75,13 @@ def collect_data_as_dicts(base_str, num_proc, all_results_dir, exp_dir, start_nu
             row_data['best_quality'] = quality
             row_data['max_discriminating'] = discriminating_count
             row_data['param_count'] = param_count
-            row_data['num_models'] = num_models[row['essence']]
             row_data['index'] = indexes[i]
+
+            if "num_models" not in row_data:
+                row_data['num_models'] = num_models[row['essence']]
+
+            if "mode" not in row_data:
+                row_data['mode'] = modes[row['essence']]
 
             rel = base.relative_to(exp_dir)
             if rel.name != '':
