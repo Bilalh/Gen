@@ -86,8 +86,6 @@ output_dir = Path(output_dir_s)
 working_dir_s = "../" + Path(essence).stem
 logger.info(working_dir_s)
 
-mode = "df-no-channelling-better"
-
 
 params_dir = output_dir / "params"
 params_dir_tmp_dir = params_dir / "tmp"
