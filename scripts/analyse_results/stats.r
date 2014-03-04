@@ -74,7 +74,7 @@ lapply( unique(m2$method), per_method)
 sink(NULL)
 
 sink(paste(base, "stats_by_essence.txt", sep='/'),split=TRUE)
-lapply( unique(m2$essence), per_eseence)
+lapply( unique(m2$essence), per_essence)
 sink(NULL)
 
 options(width=old_width)
