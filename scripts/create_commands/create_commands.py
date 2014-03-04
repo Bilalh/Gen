@@ -81,7 +81,16 @@ def create_everything_table(place_dir, method_names):
 
 	sql_parts = "\nUNION\n".join( parts[k] for k in names )
 
-	query = "CREATE VIEW IF NOT EXISTS everything as\n" + sql_parts
+	query_ft = """
+CREATE VIEW IF NOT EXISTS everything as
+Select V.*, E.mode, E.num_models From
+(
+{}
+) V
+Join Essences E On E.essence = V.essence
+	"""
+
+	query = query_ft.format(sql_parts)
 	conn = sqlite3.connect(os.path.join(place_dir, "results", "Info.db"))
 	conn.execute(query)
 	conn.commit()
