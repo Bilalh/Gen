@@ -1,6 +1,6 @@
 steel mill:
   ☐ check if params work
-     ✔ trival.param works on first 5 @done (14-03-06 14:46)
+     ✔ trival.param works on first 5 eprimes of df-no-channelling @done (14-03-06 14:46)
      ☐ Convert example param to new format
      ☐ update info.json
      ☐ update/check smac's .pcs file
@@ -16,8 +16,9 @@ instangen as a CSP:
 
 
 type strengthening:
-  ☐ add to conjure's wiki
-  ☐  function  know size of  1 to n  is total
+  ✔ add to conjure's wiki @done (14-03-06 15:32)
+  ✔  function  know size of  1 to n  is total @done (14-03-06 15:32)
+  ☐  add examples
 
 
 
@@ -35,6 +36,4 @@ misc:
  ☐ stop iteration when the time taken excess the total timelimit by say 10%
  ☐ cputimeout on mac uses ps since I am lazy, if there basisly no memory left it won't work
  ☐  minion random seed,  does not made it always give the same result on different computers
-
-
 
