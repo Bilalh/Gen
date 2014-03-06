@@ -1,32 +1,58 @@
 steel mill:
-  ☐ check if params work
-     ✔ trival.param works on first 5 eprimes of df-no-channelling @done (14-03-06 14:46)
-     ☐ Convert example param to new format
-     ☐ update info.json
-     ☐ update/check smac's .pcs file
-  ☐ refine using df-no-channalling
-  ☐ run methods
+	☐ check if params work
+		 ✔ trival.param works on first 5 eprimes of df-no-channelling @done (14-03-06 14:46)
+		 ✔ Convert example param to new format @done (14-03-06 20:34)
+	☐ update info.json
+	☐ update/check smac's .pcs file
+	☐ refine using df-no-channalling @started
+		☐  rename .refine   to  -better.refine
+	☐ run methods
+
+prob034-Warehouse:
+	☐ check if params work
+		✔ easy.param works on first 20 eprimes of df-no-channelling @done (14-03-06 20:38)
+	☐ update info.json
+	☐ update/check smac's .pcs file
+	☐ refine using df-no-channalling @started
+	☐ run methods
 
 
 instangen as a CSP:
-   ☐ Use minion to genrate all solutions
-      use SR directly or  make minion file then convert back when necessary
-   ☐ Implement picking uniformly from all solutions
-   ☐ Make it work when picking within range
+	genrate param in a specifed range by changing domain/ adding constraints. Use old value as given
+
+ ☐ Always adds constraints instead of changing domain?
+
+
+	types:
+		☐ ints -  change domain
+		☐ functions - add constraint on each element
+
+
+
+
+	all_solutions:
+		☐ Use minion to genrate all solutions
+			use SR directly or  make minion file then convert back when necessary
+		☐ Implement picking uniformly from all solutions
+		☐ Make it work when picking within range
+
+		~/Desktop/param_gen_ppp/1393953320
+		minion essence_param_find-20-4.minion -findallsols -solsout a
+
+		savilerow -mode ReadSolution -in-eprime ../essence_param_find.eprime -minion-sol-file a -out-minion essence_param_find-20-4.minion -out-solution essence_param_find-20-4.minion-solution
+
 
 
 type strengthening:
-  ✔ add to conjure's wiki @done (14-03-06 15:32)
-  ✔  function  know size of  1 to n  is total @done (14-03-06 15:32)
-  ☐  add examples
-
-
+	✔ add to conjure's wiki @done (14-03-06 15:32)
+	✔  function  know size of  1 to n  is total @done (14-03-06 15:32)
+	☐  add more examples
 
 
 other:
-  ✔ using minion to genrate param broken if givens of info.json is empty @done (14-02-25 17:08)
-  ☐ add option to translate solution to not add lettings
-  ✔ smac on langfords @done (14-03-04 02:14)
+	✔ using minion to genrate param broken if givens of info.json is empty @done (14-02-25 17:08)
+	☐ add option to translate solution to not add lettings
+	✔ smac on langfords @done (14-03-04 02:14)
 
 
 
@@ -36,4 +62,3 @@ misc:
  ☐ stop iteration when the time taken excess the total timelimit by say 10%
  ☐ cputimeout on mac uses ps since I am lazy, if there basisly no memory left it won't work
  ☐  minion random seed,  does not made it always give the same result on different computers
-
