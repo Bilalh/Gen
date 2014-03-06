@@ -38,7 +38,7 @@ function __refine_par_func(){
 	[ -f ${out_eparam} ] && \
 	solve_eprime_param ${eprime} ${out_eparam} && \
 	[ -f ${eprime_solution} ] && \
-	up_eprime ${eprime_solution}  ${param}  ${essence}
+	up_eprime ${eprime_solution}  ${param}  ${essence} ${eprime}
 }
 
 
@@ -73,14 +73,10 @@ function up_eprime(){
 	local eprime_solution=$1
 	local param=$2
 	local essence=$3
+	local eprime=$4
 
 	local eprime_solution_base=`basename ${eprime_solution}`
 	local solution="${eprime_solution_base%.*}.solution"
-
-	local eprime_part="$( cut -d '-' -f 1 <<< "${eprime_solution_base%.*}" )"
-
-	local eprime="${eprime_part}.eprime"
-	local parm="${eprime_solution_base%.*}.eprime-param"
 
 	rm -f ${solution}
 
