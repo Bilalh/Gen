@@ -1,0 +1,32 @@
+ smac:
+   Since smac only does ints and categorical vars we need to flatten
+   the essence into something smac understands.
+   ALso the only dependencies that smac can do are  of the form
+   if a then use b and if b=3  then c!= 5
+
+   for each function (e.g capacity) make
+   capacity#1 ...  capacity#20   for the domain
+   capacity@1 ...  capacity@20   for the range
+
+   then depending on the value n_boats and n_upper, only use the need values.
+
+   Two ways of checking if this is of checking is the param is to either
+      ✔ pass the param to conjure and use the full evaluator (more work) @done (14-02-19 03:16)
+      ✘ just run the param  (SR will complain if it invaild), not sure if it is fair @cancelled (14-02-19 03:16)
+
+   ✘ Other idea is generate the params on the eprime level since it is all ready not nested.
+      ☐ use --mode compact to genrate a model C.
+      ☐ Genrate a eprime-param to C
+      ☐ convert the eprime-param to essence
+      ☐ refine for all the other models
+
+
+  ✔  fix .\smac_process.py:122  #FIXME allow specifying mode @done (14-02-23 18:35)
+  ✔  fix .\smac_process.py:77  #FIXME hardcoded working_dir @done (14-02-23 18:35)
+
+  python to generate total functions
+      for e in [ "ordsize", "ordcol" ]:
+         for i in range(1,121):
+            print("{}%FT%{:03d} [1, 120] [60]i ".format(e,i))
+         print()
+
