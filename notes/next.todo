@@ -42,7 +42,7 @@ Essences:
 
 
 instangen as a CSP:
-	genrate param in a specifed range by changing domain/ adding constraints. Use old value as given
+	genrate param in a specifed range by changing domain/ adding constraints. Use old value as givens
 
  ☐ Always adds constraints instead of changing domain?
 

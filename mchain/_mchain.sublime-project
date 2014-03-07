@@ -12,14 +12,22 @@
 			[
 				"__",
 				"__f",
-				"__pycache__"
+				"__pycache__",
+				".ipynb_checkpoints"
 			],
 			"follow_symlinks": true,
 			"path": "."
 		},
 		{
 			"follow_symlinks": true,
-			"path": "/Users/bilalh/CS/instancegen/scripts"
+			"path": "/Users/bilalh/CS/instancegen/scripts",
+			"folder_exclude_patterns":
+			[
+				"__",
+				"__f",
+				"__pycache__",
+				".ipynb_checkpoints"
+			]
 		},
 		{
 			"follow_symlinks": true,
@@ -27,7 +35,24 @@
 		},
 		{
 			"follow_symlinks": true,
-			"path": "/Users/bilalh/CS/instancegen-models"
+			"path": "/Users/bilalh/CS/instancegen-models",
+			"file_exclude_patterns":
+			[
+				".gitignore",
+				".rlwrap_history",
+				"*.refine"
+			],
+			"folder_exclude_patterns":
+			[
+				"__",
+				"__f",
+				"__pycache__",
+				"run",
+				"*df*",
+				"*-random*",
+				"*-compact*",
+				".shelly"
+			]
 		}
 	],
 	"settings":
