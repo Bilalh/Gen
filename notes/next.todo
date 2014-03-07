@@ -1,20 +1,32 @@
-steel mill:
-	☐ check if params work
-		 ✔ trival.param works on first 5 eprimes of df-no-channelling @done (14-03-06 14:46)
-		 ✔ Convert example param to new format @done (14-03-06 20:34)
-	☐ update info.json
-	☐ update/check smac's .pcs file
-	☐ refine using df-no-channalling @started
-		☐  rename .refine   to  -better.refine
-	☐ run methods
+Essences:
 
-prob034-Warehouse:
-	☐ check if params work
-		✔ easy.param works on first 20 eprimes of df-no-channelling @done (14-03-06 20:38)
-	☐ update info.json
-	☐ update/check smac's .pcs file
-	☐ refine using df-no-channalling @started
-	☐ run methods
+	steel mill:
+		☐ check if params work
+			 ✔ trival.param works on first 5 eprimes of df-no-channelling @done (14-03-06 14:46)
+			 ✔ Convert example param to new format @done (14-03-06 20:34)
+		☐ update info.json
+		☐ update/check smac's .pcs file
+		☐ refine using df-no-channalling @started
+			☐  rename .refine   to  -better.refine
+		☐ run methods
+
+	prob034-Warehouse:
+		☐ check if params work
+			✔ easy.param works on first 20 eprimes of df-no-channelling @done (14-03-06 20:38)
+			✔ easy.param works all 128 eprimes of f df-no-channelling @done (14-03-07 11:44)
+		☐ update info.json
+		☐ update/check smac's .pcs file
+		✔ refine using df-no-channalling  @done (14-03-07 11:43)
+		☐ run methods
+
+
+	✔ prob010-SCP @done (14-03-07 14:22)
+	✔ prob024-Langford @done (14-03-07 14:23)
+	✔ prob028-Bibd @done (14-03-07 14:23)
+	✔ prob133-knapsack3 @done (14-03-07 14:23)
+	☐ prob129-Sonet  - check
+	☐ prob006-GR @started
+	☐ efpa @started
 
 
 instangen as a CSP:
@@ -22,12 +34,9 @@ instangen as a CSP:
 
  ☐ Always adds constraints instead of changing domain?
 
-
 	types:
 		☐ ints -  change domain
 		☐ functions - add constraint on each element
-
-
 
 
 	all_solutions:
