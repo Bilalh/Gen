@@ -14,9 +14,21 @@ Essences:
 		☐ check if params work
 			✔ easy.param works on first 20 eprimes of df-no-channelling @done (14-03-06 20:38)
 			✔ easy.param works all 128 eprimes of f df-no-channelling @done (14-03-07 11:44)
-		☐ update info.json
-		☐ update/check smac's .pcs file
+		☐ create info.json
+		☐ support total function from tuples
+			 function (total) tuple (int, int) --> int(1..n_upper)
+		☐ create smac's .pcs file
 		✔ refine using df-no-channalling  @done (14-03-07 11:43)
+		☐ run methods
+
+  prob030-Bacp:
+		☐ check if params work
+			✔ 	test.param works all 48 eprimes of df-no-channelling @done (14-03-07 20:36)
+		✔ refine using df-no-channalling @done (14-03-07 20:36)
+		☐ create info.json
+		☐ support  given relation
+				 given prereq : relation of (int*int),
+		☐ create smac's .pcs file
 		☐ run methods
 
 
