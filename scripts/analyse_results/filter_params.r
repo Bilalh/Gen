@@ -26,11 +26,11 @@ save_names <- function(essence, st.params){
     
     write.csv(pickedM , file=paste0(filepath, ".csv" ) )
 #     write.table(pickedM$paramHash, file=paste0(filepath, "_names.txt" ),   quote=FALSE, col.names=FALSE, row.names=FALSE)
-    a<-pickedM[ c('paramHash', 'eprimes', 'output_dir', 'mode') ]
+    a<-pickedM[ c('paramHash', 'eprimes', 'output_dir', 'mode', 'method') ]
     a$e2 <-  sapply( a$eprimes ,function(x)  gsub(", ", ",", x)   ) 
     View(a)
     
-    write.table(a[ c('paramHash', 'output_dir', 'mode', 'e2') ] , file=paste0(filepath, "_names2.txt" ), quote=FALSE, col.names=FALSE, row.names=FALSE)
+    write.table(a[ c('paramHash', 'output_dir', 'mode', 'method', 'e2') ] , file=paste0(filepath, "_names2.txt" ), quote=FALSE, col.names=FALSE, row.names=FALSE)
     
     
   }

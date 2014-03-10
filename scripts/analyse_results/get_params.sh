@@ -2,8 +2,10 @@
 set -o nounset
 
 base_dir="${1}"
-base_dir="/Users/bilalh/Desktop/Experiment"
 from_dir="${base_dir}/${2}/params"
+
+export base_dir
+export from_dir
 
 cd "${base_dir}"
 
@@ -16,7 +18,7 @@ local out_dir="${3}"
 
 mkdir -p "${out_dir}"
 
-while read line line_outdir mode eprimes ; do
+while read line line_outdir mode method eprimes ; do
 	echo "Getting param $line"
 
 	local data_dir="${out_dir}/${line}-data"
@@ -32,6 +34,7 @@ while read line line_outdir mode eprimes ; do
 
 	cp "${essence_dir}/${essence_name}.essence" "${out_dir}/${essence_name}.essence"
 
+	echo "${line}" >> "${out_dir}/${method}.txt"
 
 	local stat_tar="$(find "${line_outdir}" -type f -path "*${essence_name}*"  -name "${line}.stats.tar.gz")"
 	local param_tar="$(find "${line_outdir}" -type f -path "*${essence_name}*"  -name "${line}.params.tar.gz")"
@@ -39,7 +42,7 @@ while read line line_outdir mode eprimes ; do
 
 	function process(){
 		eprime="$1"
-		echo "doing ${eprime}"
+		echo "staring"
 		tar --extract -C "${data_dir}" --file="$stat_tar" "./${eprime}*.minion-solution"
 		tar --extract -C "${data_dir}" --file="$minion_tar" "./${eprime}*.minion.aux"
 		# tar --extract -C "${data_dir}" --file="$stat_tar" "./${eprime}*.minion.aux"
@@ -59,7 +62,7 @@ while read line line_outdir mode eprimes ; do
 
 	export -f process
 
- 	parallel -j"${NUM_JOBS:-6}" "process {}; " ::: $(IFS=,; for i in $eprimes; do echo $i; done)
+ 	parallel  --tag -j"${NUM_JOBS:-6}" "process {}; " ::: $(IFS=,; for i in $eprimes; do echo $i; done)
 
 
 	find "${data_dir}" -size 0 -delete
@@ -76,5 +79,5 @@ export -f gather_params
 # gather_params "prob038-steel" "${from_dir}/prob038-steel/sat_names2.txt"  "${from_dir}/prob038-steel/sat"
 # gather_params "prob038-steel" "${from_dir}/prob038-steel/unsat_names2.txt"  "${from_dir}/prob038-steel/unsat"
 
-parallel -j1 "gather_params {/.} {}/sat_names2.txt {}/sat; gather_params {/.} {}/unsat_names2.txt {}/unsat" \
+parallel --tagstring "{/.}" -j1 "gather_params {/.} {}/sat_names2.txt {}/sat; gather_params {/.} {}/unsat_names2.txt {}/unsat" \
 	  ::: "${from_dir}"/*
