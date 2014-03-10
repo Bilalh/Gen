@@ -37,9 +37,8 @@ while read line line_outdir mode eprimes ; do
 	local param_tar="$(find "${line_outdir}" -type f -path "*${essence_name}*"  -name "${line}.params.tar.gz")"
 	local minion_tar="$(find "${line_outdir}" -type f -path "*${essence_name}*"  -name "${line}.minions.tar.gz")"
 
-	echo "dasdsd ${mode} $eprimes"
-	IFS=,
-	for eprime in ${eprimes}; do
+	function process(){
+		eprime="$1"
 		echo "doing ${eprime}"
 		tar --extract -C "${data_dir}" --file="$stat_tar" "./${eprime}*.minion-solution"
 		tar --extract -C "${data_dir}" --file="$minion_tar" "./${eprime}*.minion.aux"
@@ -48,10 +47,20 @@ while read line line_outdir mode eprimes ; do
 
 		cp "${essence_dir}/${essence_name}-${mode}/${eprime}.eprime" "${data_dir}/${eprime}.eprime"
 		cp "${essence_dir}/${essence_name}-${mode}/${eprime}.eprime.logs" "${data_dir}/${eprime}.eprime.logs"
+	}
+	export essence_name
+	export essence_dir
+	export mode
 
+	export data_dir
+	export stat_tar
+	export minion_tar
+	export param_tar
 
-	done
-	unset IFS
+	export -f process
+
+ 	parallel -j"${NUM_JOBS:-6}" "process {}; " ::: $(IFS=,; for i in $eprimes; do echo $i; done)
+
 
 	find "${data_dir}" -size 0 -delete
 
@@ -64,5 +73,8 @@ export -f gather_params
 
 
 
-gather_params "prob038-steel" "${from_dir}/prob038-steel/sat_names2.txt"  "${from_dir}/prob038-steel/sat"
-gather_params "prob038-steel" "${from_dir}/prob038-steel/unsat_names2.txt"  "${from_dir}/prob038-steel/unsat"
+# gather_params "prob038-steel" "${from_dir}/prob038-steel/sat_names2.txt"  "${from_dir}/prob038-steel/sat"
+# gather_params "prob038-steel" "${from_dir}/prob038-steel/unsat_names2.txt"  "${from_dir}/prob038-steel/unsat"
+
+parallel -j1 "gather_params {/.} {}/sat_names2.txt {}/sat; gather_params {/.} {}/unsat_names2.txt {}/unsat" \
+	  ::: "${from_dir}"/*
