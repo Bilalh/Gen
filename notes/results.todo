@@ -1,0 +1,18 @@
+steelmil:
+  smac wins but on  2 out 3 runs it found nothing.
+  on 25 races it was sat
+  on 5 races it  was unsat
+
+  both times it was the last param that was tried that discriminating
+
+                            prob038-steel
+   method_opts2    races mean  sd    min max
+   nsample, 4, 0,0 1     160.0  0.00 160 160
+                   5     160.0  0.00 160 160
+                   25    160.0  0.00 160 160
+   smac,0          1     160.0  0.00 160 160
+                   5     117.3 73.90  32 160
+                   25    117.3 73.90  32 160
+   uniform,0       1     160.0  0.00 160 160
+                   5     152.3 13.28 137 160
+                   25    160.0  0.00 160 160

@@ -61,13 +61,13 @@ per_essence <- function (essence_name){
   temp <- m2[ m2$essence == essence_name,   ]
   cols = cast(temp, method_opts2 + races ~  essence, 
               c(longNamedFuncbl, mean,sd,min, max), 
-              margins=TRUE, fill=NA)
+              margins=FALSE, fill=NA)
   tabular(cols)
   
 }
 
 old_width <- getOption("width")
-options(width=500)
+options(width=2000)
 
 sink(paste(base, "stats_by_method.txt", sep='/'),split=TRUE)
 lapply( unique(m2$method), per_method)
