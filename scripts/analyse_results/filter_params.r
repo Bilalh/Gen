@@ -40,7 +40,7 @@ save_names <- function(essence, st.params, suffix="", dirname='params', limit=3)
     
     write.csv(pickedU , file=paste0(filepath,suffix, ".csv" ) )
 #     write.table(pickedM$paramHash, file=paste0(filepath, "_names.txt" ),   quote=FALSE, col.names=FALSE, row.names=FALSE)
-    a<-pickedM[ c('paramHash', 'eprimes', 'output_dir', 'mode', 'method') ]
+    a<-pickedU[ c('paramHash', 'eprimes', 'output_dir', 'mode', 'method') ]
     a$e2 <-  sapply( a$eprimes ,function(x)  gsub(", ", ",", x)   ) 
     
     write.table(a[ c('paramHash', 'output_dir', 'mode', 'method', 'e2') ] , file=paste0(filepath, suffix, "_names2.txt" ),
