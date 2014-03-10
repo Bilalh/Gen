@@ -16,7 +16,7 @@ save_names <- function(essence, st.params){
   process <- function(picked, filename){
     pickedM <- merge(by='index', x=picked, 
                      y=sall[c('index', 'output_dir', 'method_opts', 'method_opts2', 
-                              'models_timeout', 'method', 'num_models', 'essence') ])
+                              'models_timeout', 'method', 'num_models', 'essence', 'mode') ])
     
     pickedM$model_timeout <- pickedM$models_timeout / pickedM$num_models
     
@@ -25,7 +25,12 @@ save_names <- function(essence, st.params){
     dir.create(filedir, recursive=TRUE)
     
     write.csv(pickedM , file=paste0(filepath, ".csv" ) )
-    write.table(pickedM$paramHash, file=paste0(filepath, "_names.txt" ),   quote=FALSE, col.names=FALSE, row.names=FALSE)
+#     write.table(pickedM$paramHash, file=paste0(filepath, "_names.txt" ),   quote=FALSE, col.names=FALSE, row.names=FALSE)
+    a<-pickedM[ c('paramHash', 'eprimes', 'output_dir', 'mode') ]
+    a$e2 <-  sapply( a$eprimes ,function(x)  gsub(", ", ",", x)   ) 
+    View(a)
+    
+    write.table(a[ c('paramHash', 'output_dir', 'mode', 'e2') ] , file=paste0(filepath, "_names2.txt" ), quote=FALSE, col.names=FALSE, row.names=FALSE)
     
     
   }
@@ -37,3 +42,6 @@ save_names <- function(essence, st.params){
   
 discm <- get_discriminating_params('prob038-steel')
 save_names('prob038-steel', discm)
+
+
+
