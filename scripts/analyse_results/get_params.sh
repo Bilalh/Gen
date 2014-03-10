@@ -2,7 +2,7 @@
 set -o nounset
 
 base_dir="${1}"
-from_dir="${base_dir}/${2}/params"
+from_dir="${base_dir}/${2}"
 
 export base_dir
 export from_dir
@@ -22,7 +22,7 @@ while read line line_outdir mode method eprimes ; do
 	echo "Getting param $line"
 
 	local data_dir="${out_dir}/${line}-data"
-	mkdir "${data_dir}"
+	mkdir -p "${data_dir}"
 
 	local essence_param="$(find "${line_outdir}" -type f  -path "*${essence_name}*" -name "${line}.param")"
 	cp "${essence_param}" "${out_dir}/${line}.essence-param"
@@ -42,6 +42,7 @@ while read line line_outdir mode method eprimes ; do
 
 	function process(){
 		eprime="$1"
+		job_id="$2"
 		echo "staring"
 		tar --extract -C "${data_dir}" --file="$stat_tar" "./${eprime}*.minion-solution"
 		tar --extract -C "${data_dir}" --file="$minion_tar" "./${eprime}*.minion.aux"
@@ -55,7 +56,8 @@ while read line line_outdir mode method eprimes ; do
 
 		pushd "${data_dir}"
 
-		if [[  -z "${NO_UP:-}" &&  -f "${eprime}-${line}".minion-solution ]]; then
+		if [[  -z "${NO_UP:-}" && ${job_id} -lt 10 &&  -f "${eprime}-${line}".minion-solution ]]; then
+			echo "up "
 			savilerow -mode ReadSolution -in-eprime "${eprime}".eprime -minion-sol-file "${eprime}-${line}".minion-solution \
 				 -in-param "${eprime}-${line}".eprime-param -out-solution "${eprime}-${line}".eprime-solution \
 				 -out-minion "${eprime}-${line}".minion
@@ -71,7 +73,7 @@ while read line line_outdir mode method eprimes ; do
 		fi
 
 		popd
-
+		exit 4
 	}
 	export essence_name
 	export essence_dir
@@ -85,7 +87,7 @@ while read line line_outdir mode method eprimes ; do
 
 	export -f process
 
- 	parallel  --tag -j"${NUM_JOBS:-6}" "process {}; " ::: $(IFS=,; for i in $eprimes; do echo $i; done)
+ 	parallel  --tagstring "{} {#}" -j"${NUM_JOBS:-4}" "process {} {#}; " ::: $(IFS=,; for i in $eprimes; do echo $i; done)
 
 
 done < "${names}"
@@ -94,5 +96,7 @@ done < "${names}"
 
 export -f gather_params
 
-parallel --tagstring "{/.}" -j1 "gather_params {/.} {}/sat_names2.txt {}/sat; gather_params {/.} {}/unsat_names2.txt {}/unsat" \
-	  ::: "${from_dir}"/*
+
+parallel --tagstring "{/.}" -j3 "gather_params  \$( basename {//} ) {}  {//}/{/.}  " \
+	:::  `ls "${from_dir}"/*/*names2.txt`
+

@@ -9,7 +9,17 @@ get_discriminating_params <- function(essence_name){
   st.params
 }
 
-save_names <- function(essence, st.params){
+get_discriminating_params_by_method <- function(essence_name, method){
+  st.idx <- sall[sall$essence==essence_name, ]
+  st.idx <- st.idx[st.idx$method==method, ]
+  
+  st.params <- every_param[every_param$index %in% st.idx$index, ]
+  st.params <- st.params[ st.params$quality != 1,  ]
+  
+  st.params
+}
+
+save_names <- function(essence, st.params, suffix="", dirname='params', limit=3){
   st.sat   <- st.params[st.params$MaxSolutions >= 1,  ]
   st.unsat <- st.params[st.params$MaxSolutions == 0,  ]
   
@@ -20,28 +30,40 @@ save_names <- function(essence, st.params){
     
     pickedM$model_timeout <- pickedM$models_timeout / pickedM$num_models
     
-    filedir <- paste(base, "params", essence, sep='/' )
+    pickedU <- pickedM[!duplicated(pickedM[,c('essence', 'method', 'eprimes_count')]),]
+    pickedU <- pickedU[order(pickedU$quality, decreasing=FALSE), ]
+    pickedU <- head(pickedU, n=limit)
+    
+    filedir <- paste(base, dirname, essence, sep='/' )
     filepath <- paste(filedir, filename , sep='/' )
     dir.create(filedir, recursive=TRUE)
     
-    write.csv(pickedM , file=paste0(filepath, ".csv" ) )
+    write.csv(pickedU , file=paste0(filepath,suffix, ".csv" ) )
 #     write.table(pickedM$paramHash, file=paste0(filepath, "_names.txt" ),   quote=FALSE, col.names=FALSE, row.names=FALSE)
     a<-pickedM[ c('paramHash', 'eprimes', 'output_dir', 'mode', 'method') ]
     a$e2 <-  sapply( a$eprimes ,function(x)  gsub(", ", ",", x)   ) 
-    View(a)
     
-    write.table(a[ c('paramHash', 'output_dir', 'mode', 'method', 'e2') ] , file=paste0(filepath, "_names2.txt" ), quote=FALSE, col.names=FALSE, row.names=FALSE)
+    write.table(a[ c('paramHash', 'output_dir', 'mode', 'method', 'e2') ] , file=paste0(filepath, suffix, "_names2.txt" ),
+                quote=FALSE, col.names=FALSE, row.names=FALSE)
     
     
   }
   
-  process(st.sat, "sat")
+  
+
+  process(st.sat, "sat" )
   process(st.unsat, "unsat")
   
 }
-  
-discm <- get_discriminating_params('prob038-steel')
-save_names('prob038-steel', discm)
+        
+ems <- unique( sall[ c('essence', 'method') ] )
+ 
+for (i  in 1:length(ems$essence) ){
+  save_names( ems[i,]$essence, get_discriminating_params_by_method(ems[i,]$essence,  ems[i,]$method ), 
+              paste0("-",ems[i,]$method))
+}
 
-
+for (u  in  unique(sall$essence) ){
+  save_names(u, get_discriminating_params(u), dirname="params_all_methods", limit=10 )
+}
 
