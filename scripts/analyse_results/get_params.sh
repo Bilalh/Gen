@@ -50,10 +50,33 @@ while read line line_outdir mode method eprimes ; do
 
 		cp "${essence_dir}/${essence_name}-${mode}/${eprime}.eprime" "${data_dir}/${eprime}.eprime"
 		cp "${essence_dir}/${essence_name}-${mode}/${eprime}.eprime.logs" "${data_dir}/${eprime}.eprime.logs"
+
+		find "${data_dir}" -size 0 -delete
+
+		pushd "${data_dir}"
+
+		if [[  -z "${NO_UP:-}" &&  -f "${eprime}-${line}".minion-solution ]]; then
+			savilerow -mode ReadSolution -in-eprime "${eprime}".eprime -minion-sol-file "${eprime}-${line}".minion-solution \
+				 -in-param "${eprime}-${line}".eprime-param -out-solution "${eprime}-${line}".eprime-solution \
+				 -out-minion "${eprime}-${line}".minion
+
+			conjure                                                             \
+			    --mode translateSolution                                        \
+			    --in-essence            ../"${essence_name}".essence            \
+			    --in-essence-param      ../"${line}".essence-param              \
+			    --in-eprime             "${eprime}".eprime                      \
+			    --in-eprime-param       "${eprime}-${line}".eprime-param        \
+			    --in-eprime-solution    "${eprime}-${line}".eprime-solution     \
+			    --out-essence-solution   "${eprime}-${line}".solution
+		fi
+
+		popd
+
 	}
 	export essence_name
 	export essence_dir
 	export mode
+	export line
 
 	export data_dir
 	export stat_tar
@@ -65,19 +88,11 @@ while read line line_outdir mode method eprimes ; do
  	parallel  --tag -j"${NUM_JOBS:-6}" "process {}; " ::: $(IFS=,; for i in $eprimes; do echo $i; done)
 
 
-	find "${data_dir}" -size 0 -delete
-
-
 done < "${names}"
 
 }
 
 export -f gather_params
-
-
-
-# gather_params "prob038-steel" "${from_dir}/prob038-steel/sat_names2.txt"  "${from_dir}/prob038-steel/sat"
-# gather_params "prob038-steel" "${from_dir}/prob038-steel/unsat_names2.txt"  "${from_dir}/prob038-steel/unsat"
 
 parallel --tagstring "{/.}" -j1 "gather_params {/.} {}/sat_names2.txt {}/sat; gather_params {/.} {}/unsat_names2.txt {}/unsat" \
 	  ::: "${from_dir}"/*
