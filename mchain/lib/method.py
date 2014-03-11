@@ -53,6 +53,8 @@ class Method(metaclass=ABCMeta):
 
         os.makedirs(self.output_dir, exist_ok=True)
 
+        domains.setup_domain(use_minion=options['use_minion'])
+
         for fp in ["info", "params", 'param_gen']:
             os.makedirs(os.path.join(self.output_dir, fp), exist_ok=True)
 

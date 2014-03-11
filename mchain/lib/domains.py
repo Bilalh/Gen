@@ -167,11 +167,45 @@ class Int(Domain):
         return instances.Int(point=val, pretty=pretty, safe=pretty)
 
 
+class FuncMinion(Domain):
+    """ Any kind of Function  """
+    def __init__(self, fromm, tos,):
+        super(FuncMinion, self).__init__()
+        self.fromm = fromm
+        self.tos = tos
+
+    def random_value(self, selected_vals):
+        raise NotImplementedError()
+
+    def within_radius_dom(self, selected_vals, instance, radius):
+        raise NotImplementedError()
+
+    def reconstruct_for_smac(self, selected_vals, kv):
+        raise NotImplementedError()
+
+
+class Tuple(Domain):
+    """Tuple"""
+    def __init__(self, elems):
+        super(Tuple, self).__init__()
+        self.elems = elems
+
+    def random_value(self, selected_vals):
+        raise NotImplementedError()
+
+    def within_radius_dom(self, selected_vals, instance, radius):
+        raise NotImplementedError()
+
+    def reconstruct_for_smac(self, selected_vals, kv):
+        raise NotImplementedError()
+
+
+
 # FIXME  use the form  1:instance at the moment
-class Func(Domain):
-    """Function Domain"""
+class FuncTotalIntToInt(Domain):
+    """Total Function Domain"""
     def __init__(self, fromm, tos, total=False):
-        super(Func, self).__init__()
+        super(FuncTotalIntToInt, self).__init__()
         self.total = total
         self.fromm = fromm
         self.tos = tos
@@ -327,6 +361,17 @@ class UninitialisedVal(Exception):
     pass
 
 
+Func = None
+
+
+def setup_domain(use_minion):
+    global Func
+    if use_minion:
+        Func = FuncMinion
+    else:
+        Func = FuncTotalIntToInt
+
+
 def next_ele(ele):
     next_ele = ele['children'][0]
     return (next_ele['tag'], next_ele)
@@ -348,7 +393,8 @@ def domain_dispacher(kind, kind_ele):
         "int": get_int_domain,
         "function": get_function_domain,
         "typeInt": get_typeInt_domain,
-        "set": get_set_domain
+        "set": get_set_domain,
+        "tuple": get_tuple_domain
     }
 
     if kind not in dispach:
@@ -356,6 +402,13 @@ def domain_dispacher(kind, kind_ele):
 
     return dispach[kind](kind_ele)
 
+
+def get_tuple_domain(data):
+
+    doms_data = jmatch(data, 'tuple', 'inners', 'domain')
+
+    inner_doms = [ domain_dispacher(dom['tag'], dom) for dom in doms_data ]
+    return Tuple(inner_doms)
 
 
 def get_typeInt_domain(data):
@@ -369,8 +422,7 @@ def get_int_domain(data):
     rs = rs_ele['children']
 
     if len(rs) != 1:
-        print(" only len 1 ranges Implemented", file=sys.stderr)
-        sys.exit(5)
+        raise NotImplementedError('only len 1 ranges Implemented')
 
     rr = rs[0]
     (_, fromto_ele) = next_ele(rr)
@@ -404,10 +456,21 @@ def get_function_domain(data):
     # make the attrs into a dict so that they can be passed to __init__ of Func
     as_bools = dict(zip(atts_names, it.repeat(True) ))
 
-    # Assume int domains
-    [fromm, to] = [ get_int_domain(next_ele(next_ele(ele)[1])[1]) for ele in top[1:] ]
+    if Func == FuncTotalIntToInt:
+        # Assume int domains
+        [fromm, to] = [ get_int_domain(next_ele(next_ele(ele)[1])[1]) for ele in top[1:] ]
 
-    f = Func(fromm=[fromm], tos=[to], **as_bools)
+        f = FuncTotalIntToInt(fromm=[fromm], tos=[to], **as_bools)
+    else:
+
+        def handle(ele):
+            kind_ele= jmatch(ele, "*", "domain")
+            assert len(kind_ele) == 1
+            kind_ele = kind_ele[0]
+            return domain_dispacher(kind_ele['tag'], kind_ele)
+
+        [fromm, tos] = [  handle(ele) for ele in top[1:] ]
+        f = FuncMinion(fromm, tos)
 
     return f
 
@@ -416,7 +479,7 @@ def handle_set_attribute(attr_dom):
     pair = jmatch(attr_dom, 'attribute', 'nameValue')
     assert len(pair) == 2
 
-    value_index = 1;
+    value_index = 1
 
     try:
         ref_dom =jmatch(pair[0], 'name', 'reference')

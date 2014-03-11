@@ -10,6 +10,13 @@ mkdir -p "$OUT_BASE_DIR"
 out_essence="${OUT_BASE_DIR}/essence_param_find.essence"
 out_eprime="${OUT_BASE_DIR}/essence_param_find.eprime"
 
+if [ -f "${out_eprime}" ]; then
+	echo "<$0> NOT running since ${out_eprime} exists"
+	echo "`date`"
+	set +x
+	exit 0
+fi
+
 essenceGivensToFinds "${essence}" "${out_essence}" "`dirname ${essence}`/info.json"
 conjure --mode compact  --in-essence "${out_essence}" --out-eprime "${out_eprime}"
 

@@ -297,7 +297,7 @@ def jmatch(d, *names):
         if i == lnames - 1 and isinstance(d, list):
             return [ jmatch(v, tagname)[0] for v in d ]
 
-        if d['tag'] != tagname:
+        if tagname != '*' and d['tag'] != tagname:
             raise NotTagFoundExeception("{} not a tag of {}".format(tagname, pformat(d)))
         d = d['children']
 
