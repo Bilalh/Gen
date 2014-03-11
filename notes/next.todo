@@ -4,11 +4,12 @@ Essences:
 		☐ check if params work
 			 ✔ trival.param works on first 5 eprimes of df-no-channelling @done (14-03-06 14:46)
 			 ✔ Convert example param to new format @done (14-03-06 20:34)
-		☐ update info.json
-		☐ update/check smac's .pcs file
+		✔ update info.json @done (14-03-10 23:05)
+		✔ update/check smac's .pcs file @done (14-03-10 23:05)
 		☐ refine using df-no-channalling @started
-			☐  rename .refine   to  -better.refine
+			☐  rename .refine  to  -better.refine
 		☐ run methods
+			✔  on first 160 @done (14-03-10 23:06)
 
 	prob034-Warehouse:
 		☐ check if params work
