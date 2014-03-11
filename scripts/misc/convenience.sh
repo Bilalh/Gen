@@ -13,10 +13,17 @@ function echoing(){
 # refine params then solve them on all eprimes
 function refine_run(){
 	if [ $# -lt 3 ]; then
-		echo "$0 essence ::: eprime+ ::: param+ "
+		echo "$0 [all] essence ::: eprime+ ::: param+ "
 	else
+		local __all_solution=0
+		if [ "$1" = "all" ]; then
+			__all_solution=1
+			shift
+		fi
+		export __all_solution
+
 		local essence=$1
-		shift;
+		shift
 
 		parallel --keep-order --tagstring  "{2/.} {1/.}" -j${NUM_JOBS:-4} \
 			"source ${__convenience_fp}; __refine_par_func {2} {1} ${essence}" "$@"
@@ -37,7 +44,7 @@ function __refine_par_func(){
 	refine_param "$@" && \
 	[ -f ${out_eparam} ] && \
 	solve_eprime_param ${eprime} ${out_eparam} && \
-	[ -f ${eprime_solution} ] && \
+	[ -f $( ls ${eprime_solution}* | head -n 1 ) ]
 	up_eprime ${eprime_solution}  ${param}  ${essence} ${eprime}
 }
 
@@ -63,9 +70,14 @@ function solve_eprime_param(){
 	local out_minion="${param_base%.*}.minion"
 	local out_solution="${param_base%.*}.eprime-solution"
 
-	rm ${out_solution}
+	rm ${out_solution}*
 
-	echoing savilerow -in-eprime ${eprime} -in-param ${eparam} -run-minion minion -out-minion ${out_minion} -out-solution ${out_solution}
+	extra=""
+	if [ ${__all_solution} -eq 1 ]; then
+		extra='-all-solutions'
+	fi
+
+	echoing savilerow -in-eprime ${eprime} -in-param ${eparam} -run-minion minion -out-minion ${out_minion} -out-solution ${out_solution} ${extra}
 
 }
 
@@ -78,17 +90,36 @@ function up_eprime(){
 	local eprime_solution_base=`basename ${eprime_solution}`
 	local solution="${eprime_solution_base%.*}.solution"
 
-	rm -f ${solution}
+	rm -f ${solution}*
 
-	echoing conjure \
-		--mode translateSolution \
-		--in-eprime ${eprime} \
-		--in-eprime-param ${param} \
-		--in-essence ${essence} \
-		--in-eprime-solution ${eprime_solution} \
-		--in-essence-param ${param} \
-		--out-solution ${solution} \
-	&& head -n 10 ${solution}
+	if [ ${__all_solution} -eq 1 ]; then
+		cmd="
+		sol=\$( echo '{}' | sed -e 's/eprime-solution/solution/g'  );
+		conjure
+			--mode translateSolution
+			--in-eprime ${eprime}
+			--in-eprime-param ${param}
+			--in-essence ${essence}
+			--in-eprime-solution {} \
+			--in-essence-param ${param}
+			--out-solution \${sol}
+		&& head -n 10 \${sol}  | sed '1d' "
+
+		echo $cmd
+		parallel -j${NUM_JOBS_ALL_SOLS:-1} $cmd ::: ${eprime_solution}.*
+
+	else
+
+		echoing conjure \
+			--mode translateSolution \
+			--in-eprime ${eprime} \
+			--in-eprime-param ${param} \
+			--in-essence ${essence} \
+			--in-eprime-solution ${eprime_solution} \
+			--in-essence-param ${param} \
+			--out-solution ${solution} \
+		&& head -n 10 ${solution} | sed '1d'
+	fi
 
 }
 

@@ -40,5 +40,36 @@ with solution
 
 letting network be mset({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {})
 
+wherehouse:
+  after 5 mins  minion was not able to produce the param  (tried 10 times)
+
+  /Users/bilalh/CS/instancegen/mchain/__/ns/param_gen
+
+  Probably because the eprime has domains like this   (max 900 elements each with 30 values )
+      matrix indexed by [int(1..n_stores * n_warehouses * n_upper)] of int(1..n_warehouses)
+
+  look for better rules for
+  cost : function (total) tuple (Int1, Int2) --> int(1..n_upper)
+
+  what about?
+
+  cost_tuple1 : function (total) Int1 --> int(1..n_upper)
+  cost_tuple2 : function (total) Int2 --> int(1..n_upper)
+
+  with some extra constrsints
+
+  a b    1 2 3
+
+  a  1
+  a  2
+  a  3
+  b  1
+  b  2
+  b  3
+
+
+
+
+
 
 
