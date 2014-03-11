@@ -210,7 +210,7 @@ def create_param_from_essence(output_dir, givens):
 
     essence = base_path / 'essence_param_find.essence'
     eprime = base_path / 'essence_param_find.eprime'
-    timeout = str(180)  # FIXME choose better timeout
+    timeout = str(300)  # FIXME choose better timeout
 
 
     # reuse previous data
