@@ -31,7 +31,21 @@ function refine_run(){
 }
 
 function cat_solutions(){
-	parallel --tagstring "{#}" --keep-order -j${NUM_JOBS:-4}  "cat {} | sed '1d'  " ::: ${1:-}*.solution*
+
+	local tagstring="{#}"
+	if [ "$1" = "n" ]; then
+		tagstring=""
+		shift
+	fi
+
+	extra=""
+	if [ "$1" = "o" ]; then
+		tagstring=""
+		shift
+		extra="| tr -d \"\n\"; echo"
+	fi
+
+	parallel --tagstring "${tagstring}" --keep-order -j${NUM_JOBS:-4}  "cat {} | sed '1d' ${extra}  " ::: ${1:-}*.solution*
 	echo
 	echo "Total: $(ls ${1:-}*.solution* | wc -l )  solution"
 }
