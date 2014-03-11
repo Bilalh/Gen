@@ -30,6 +30,12 @@ function refine_run(){
 	fi
 }
 
+function cat_solutions(){
+	parallel --tagstring "{#}" --keep-order -j${NUM_JOBS:-4}  "cat {} | sed '1d'  " ::: ${1:-}*.solution*
+	echo
+	echo "Total: $(ls ${1:-}*.solution* | wc -l )  solution"
+}
+
 
 function __refine_par_func(){
 	local param=$1
@@ -104,9 +110,11 @@ function up_eprime(){
 			--in-essence-param ${param}
 			--out-solution \${sol}
 		&& head -n 10 \${sol}  | sed '1d' "
-
 		echo $cmd
-		parallel -j${NUM_JOBS_ALL_SOLS:-1} $cmd ::: ${eprime_solution}.*
+		parallel --tagstring "{#}" --keep-order -j${NUM_JOBS_ALL_SOLS:-1} $cmd ::: ${eprime_solution}.*
+
+		echo "Total: $(ls ${eprime_solution}.* | wc -l )  solution"
+
 
 	else
 
