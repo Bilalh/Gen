@@ -58,15 +58,58 @@ wherehouse:
 
   with some extra constrsints
 
-  a b    1 2 3
 
-  a  1
-  a  2
-  a  3
-  b  1
-  b  2
-  b  3
 
+
+idea
+
+(1)
+find cost : function (total) tuple (int(1..a), int(1..b)) --> int(1..c)
+
+(2)
+find costt1 : function (total)  int(1..a) --> int(1..c)
+find costt2 : function (total)  int(1..b) --> int(1..c)
+
+
+2-3-3
+
+(1) 729 solution   (2) 243 solutions
+
+cost be function((1, 1) --> 3, (1, 2) --> 3, (1, 3) --> 3, (2, 1) --> 3, (2, 2) --> 3, (2, 3) --> 2)
+
+each solution for 2 encodes  3 solutions   ( domsize(costt2) Choose domsize(costt1) ?)
+costt1 be function(1 --> 3, 2 --> 3) costt2 be function(1 --> 3, 2 --> 3, 3 --> 2)
+
+(1, 1) --> 3, (1, 2) --> 3,  (2, 1) --> 3, (2, 2) --> 3
+
+(1, 3) --> 3 (2, 3) --> 3
+(1, 3) --> 2 (2, 3) --> 3
+(1, 3) --> 2 (2, 3) --> 2
+
+
+1-2-4
+
+(1) 16 solution   (2) 64 solutions
+
+cost be function((1, 1) --> 4, (1, 2) --> 3)
+
+costt1 be function(1 --> 4) costt2 be function(1 --> 4, 2 --> 3)
+
+
+
+
+
+(C) (not sure)
+find cost1_range : set (minsize  domsize(int(1..a)),  maxsize |costt2| ) of int(1..a)
+find costt2 : function (total)  int(1..b) --> int(1..c)
+
+cost be function((1, 1) --> 3, (1, 2) --> 3, (1, 3) --> 3, (2, 1) --> 3, (2, 2) --> 3, (2, 3) --> 3)
+
+cost1_range be {1,2}
+costt2 be function(1 --> 3, 2 --> 3, 3 --> 3)
+
+convert back to (1)
+take all pairs
 
 
 

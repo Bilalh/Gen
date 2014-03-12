@@ -39,14 +39,22 @@ function cat_solutions(){
 	fi
 
 	extra=""
+	end="cat"
 	if [ "$1" = "o" ]; then
 		tagstring=""
 		shift
-		extra="| tr -d \"\n\"; echo"
+		extra='| tr -d "\n"; echo'
 	fi
 
-	parallel --tagstring "${tagstring}" --keep-order -j${NUM_JOBS:-4}  "cat {} | sed '1d' ${extra}  " ::: ${1:-}*.solution*
-	echo
+	if [ "$1" = "s" ]; then
+		tagstring=""
+		shift
+		extra=" | tr -d \"\n\" | sed -e 's/letting//g' | sed -E 's/  */ /g' | tr -d \"\t\" ;"
+		end=sort
+	fi
+
+	parallel --tagstring "${tagstring}" --keep-order -j${NUM_JOBS:-4}  "cat {} | sed '1d' ${extra}  " ::: ${1:-}*.solution* | $end
+ 	echo
 	echo "Total: $(ls ${1:-}*.solution* | wc -l )  solution"
 }
 
