@@ -198,6 +198,51 @@ def create_param_essence(essence_file, output_dir):
     ]).communicate()
 
 
+def pre_create_all_param_solutions_from_essence(output_dir, givens_names, param_info):
+
+    selected_vals = {}
+    for name in givens_names:
+        v=param_info[name].random_value(selected_vals)
+        selected_vals[name] = v
+        logger.info("Assigning %s=%s", name, v.pretty)
+
+    givens = [  (name, selected_vals[name]) for name in givens_names ]
+
+    base_path = Path(output_dir) / 'param_gen'
+
+    datee = calendar.datetime.datetime.now()
+    logger.info("Make param %s", datee.isoformat())
+    now = str(int(datee.timestamp()))
+
+    (param_string, param_name) = chain_lib.create_param_file(givens)
+
+    essence = base_path / 'essence_param_find.essence'
+    eprime = base_path / 'essence_param_find.eprime'
+    timeout = str(300)  # FIXME choose better timeout
+
+
+
+    out = base_path / now
+    if not out.exists():
+        out.mkdir()
+
+    current_env= os.environ.copy()
+    current_env["GENERATED_OUTPUT_DIR"] = str(out)
+    current_env["TIMEOUT5_FILE"] = str(out / "timeout_file")
+
+    param = (out / param_name).with_suffix('.param')
+    chain_lib.write_param(str(out), param_string, param_name)
+    solution = (out / (essence.stem + "-" + param.stem) ).with_suffix('.solution')
+
+    subprocess.Popen([
+            chain_lib.wrappers("pre_create_all_params_from_essence.sh"),
+            str(essence), str(eprime), str(param), timeout, timeout
+    ], env=current_env ).communicate()
+
+
+    raise NotImplementedError("not finished")
+
+
 def create_param_from_essence(output_dir, givens):
     base_path = Path(output_dir) / 'param_gen'
 

@@ -103,7 +103,12 @@ class Method(metaclass=ABCMeta):
 
         if self.settings.use_minion:
             # FIXME this should be create once for ALL methods
-            instances.create_param_essence(options['essence'], self.output_dir)
+            instances.create_param_essence(settings.essence, self.output_dir)
+
+            if settings.pre_generate:
+                logger.info("(pre-)Genrating all solution using minion")
+                instances.pre_create_all_param_solutions_from_essence(self.output_dir, self.info.givens, self.param_info)
+
             # Uses minion to generate random points
             self.random_point = self.random_point_minion
         else:
