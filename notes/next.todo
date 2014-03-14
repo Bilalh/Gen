@@ -15,9 +15,10 @@ Essences:
 		☐ check if params work
 			✔ easy.param works on first 20 eprimes of df-no-channelling @done (14-03-06 20:38)
 			✔ easy.param works all 128 eprimes of f df-no-channelling @done (14-03-07 11:44)
-		☐ create info.json
+		✔ create info.json @done (14-03-12 10:00)
 		☐ support total function from tuples
 			 function (total) tuple (int, int) --> int(1..n_upper)
+			 ☐  get minion to get generate params
 		☐ create smac's .pcs file
 		✔ refine using df-no-channalling  @done (14-03-07 11:43)
 		☐ run methods

@@ -49,7 +49,7 @@ function cat_solutions(){
 	if [ "$1" = "s" ]; then
 		tagstring=""
 		shift
-		extra=" | tr -d \"\n\" | sed -e 's/letting//g' | sed -E 's/  */ /g' | tr -d \"\t\" ;"
+		extra=" | tr -d \"\n\" | sed -e 's/letting//g' | sed -E 's/  */ /g';"
 		end=sort
 	fi
 
