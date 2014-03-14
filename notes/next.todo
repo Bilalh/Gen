@@ -6,8 +6,8 @@ Essences:
 			 ✔ Convert example param to new format @done (14-03-06 20:34)
 		✔ update info.json @done (14-03-10 23:05)
 		✔ update/check smac's .pcs file @done (14-03-10 23:05)
-		☐ refine using df-no-channalling @started
-			☐  rename .refine  to  -better.refine
+		✔ refine using df-no-channalling @started @done (14-03-14 17:17)
+			✔  rename .refine  to  -better.refine @done (14-03-14 17:17)
 		☐ run methods
 			✔  on first 160 @done (14-03-10 23:06)
 
@@ -18,7 +18,10 @@ Essences:
 		✔ create info.json @done (14-03-12 10:00)
 		☐ support total function from tuples
 			 function (total) tuple (int, int) --> int(1..n_upper)
-			 ☐  get minion to get generate params
+
+			 ☐  Add new rules since current refinement is useless @started
+			 ☐ get minion to get generate params
+
 		☐ create smac's .pcs file
 		✔ refine using df-no-channalling  @done (14-03-07 11:43)
 		☐ run methods
@@ -27,8 +30,8 @@ Essences:
 		☐ check if params work
 			✔ 	test.param works all 48 eprimes of df-no-channelling @done (14-03-07 20:36)
 		✔ refine using df-no-channalling @done (14-03-07 20:36)
-		☐ create info.json
-		☐ support  given relation
+		✔ create info.json @done (14-03-14 17:18)
+		☐ support  given relation @started
 				 given prereq : relation of (int*int),
 		☐ create smac's .pcs file
 		☐ run methods
@@ -39,8 +42,8 @@ Essences:
 	✔ prob028-Bibd @done (14-03-07 14:23)
 	✔ prob133-knapsack3 @done (14-03-07 14:23)
 	☐ prob129-Sonet  - check
-	☐ prob006-GR @started
-	☐ efpa @started
+	✔ prob006-GR @started @done (14-03-14 17:19)
+	✔ efpa @started @done (14-03-14 17:19)
 
 
 instangen as a CSP:

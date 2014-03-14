@@ -394,13 +394,26 @@ def domain_dispacher(kind, kind_ele):
         "function": get_function_domain,
         "typeInt": get_typeInt_domain,
         "set": get_set_domain,
-        "tuple": get_tuple_domain
+        "tuple": get_tuple_domain,
+        "relation": get_relation_domain
     }
 
     if kind not in dispach:
         raise NotImplementedError(kind)
 
     return dispach[kind](kind_ele)
+
+
+def get_relation_domain(data):
+    rel = jmatch(data, 'relation')
+
+    (_, attrs) =next_ele(rel[0])
+    atts_names = [ ele['children'][0]['children'][0]['children'][0]['primitive']['string'] for ele in attrs['children'] ]
+
+    doms_data = jmatch(rel[1],    'inners', 'domain')
+
+
+    raise NotImplementedError()
 
 
 def get_tuple_domain(data):
