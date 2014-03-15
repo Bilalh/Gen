@@ -166,7 +166,9 @@ conjure
     --in-essence $ESSENCE
     --in-eprime-solution {} \
     --in-essence-param $PARAM
-    --out-solution ${GENERATED_SOLUTIONS_DIR}/\${sol}"
+    --out-solution ${GENERATED_SOLUTIONS_DIR}/\${sol};
+    cat ${PARAM} | sed '1d' >> ${GENERATED_SOLUTIONS_DIR}/\${sol}
+    "
 echo $cmd
 parallel --tagstring "{#}" --keep-order -j${NUM_JOBS_ALL_SOLS:-1} $cmd ::: ${EPRIME_SOLUTION}.*
 
