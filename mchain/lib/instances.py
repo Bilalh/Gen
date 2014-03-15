@@ -239,7 +239,20 @@ def pre_create_all_param_solutions_from_essence(output_dir, givens_names, param_
     ], env=current_env ).communicate()
 
 
+    # count solutions
+
+    try:
+        with ( data_path / "total.time" ).open() as f:
+            time_taken=float(f.read().rstrip())
+
+        with ( solutions_path / "solutions.count" ).open() as f:
+            solutions_count=float(f.read().rstrip())
+    except IOError:
+        # FIXME readme
+        raise FailedToGenerateParamExeception()
+
     raise NotImplementedError("not finished")
+    return (time_taken, solutions_count)
 
 
 def create_param_from_essence(output_dir, givens):

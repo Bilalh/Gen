@@ -19,3 +19,9 @@ function record_time(){
 
 record_time
 echo "TOTAL CPU TIME `cat ${GENERATED_OUTPUT_DIR}/total.time`"
+
+pushd ${GENERATED_SOLUTIONS_DIR}
+parallel -j${NUM_JOBS}  "mv {}  solution.param.{#}" ::: *.solution.*
+popd
+
+ls -1 ${GENERATED_SOLUTIONS_DIR}/*.param.* | wc -l > ${GENERATED_SOLUTIONS_DIR}/solutions.count
