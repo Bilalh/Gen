@@ -200,43 +200,42 @@ def create_param_essence(essence_file, output_dir):
 
 def pre_create_all_param_solutions_from_essence(output_dir, givens_names, param_info):
 
-    selected_vals = {}
-    for name in givens_names:
-        v=param_info[name].random_value(selected_vals)
-        selected_vals[name] = v
-        logger.info("Assigning %s=%s", name, v.pretty)
-
-    givens = [  (name, selected_vals[name]) for name in givens_names ]
-
     base_path = Path(output_dir) / 'param_gen'
 
-    datee = calendar.datetime.datetime.now()
-    logger.info("Make param %s", datee.isoformat())
-    now = str(int(datee.timestamp()))
-
-    (param_string, param_name) = chain_lib.create_param_file(givens)
 
     essence = base_path / 'essence_param_find.essence'
     eprime = base_path / 'essence_param_find.eprime'
     timeout = str(300)  # FIXME choose better timeout
 
+    data_path = base_path / "all_sols_data"
+    solutions_path = base_path / "all_sols"
+    params_path = base_path / "all_sols_params"
+
+    for e in [data_path, solutions_path, params_path]:
+        if not e.exists():
+            e.mkdir()
+
+    all_givens_vals = [  param_info[name].all_values_({}) for name in givens_names ]
+
+    for givens_vals in it.product(*all_givens_vals):
+        # Givens should be Independent from each other
+        givens = list(zip(givens_names, givens_vals))
+        (param_string, param_name) = chain_lib.create_param_file(givens)
+        chain_lib.write_param(str(params_path), param_string, param_name)
 
 
-    out = base_path / now
-    if not out.exists():
-        out.mkdir()
+
+    (param_string, param_name) = chain_lib.create_param_file(givens)
 
     current_env= os.environ.copy()
-    current_env["GENERATED_OUTPUT_DIR"] = str(out)
-    current_env["TIMEOUT5_FILE"] = str(out / "timeout_file")
+    current_env["GENERATED_OUTPUT_DIR"] = str(data_path)
+    current_env["GENERATED_SOLUTIONS_DIR"] = str(solutions_path)
+    current_env["PARAMS_DIR"] = str(params_path)
 
-    param = (out / param_name).with_suffix('.param')
-    chain_lib.write_param(str(out), param_string, param_name)
-    solution = (out / (essence.stem + "-" + param.stem) ).with_suffix('.solution')
 
     subprocess.Popen([
-            chain_lib.wrappers("pre_create_all_params_from_essence.sh"),
-            str(essence), str(eprime), str(param), timeout, timeout
+            chain_lib.wrappers("pre_create_all_params_from_essence_par.sh"),
+            timeout, str(essence), str(eprime),
     ], env=current_env ).communicate()
 
 

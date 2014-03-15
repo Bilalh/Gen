@@ -156,6 +156,13 @@ class Int(Domain):
         vs = range(low_high[0], low_high[1] + 1)
         return vs
 
+    def all_values_(self, selected_vals):
+        a=[]
+        for u in self.all_values(selected_vals):
+            pretty = "{}".format(u)
+            a.append(instances.Int(point=u,  pretty=pretty, safe=pretty ))
+
+        return a
 
     def reconstruct_for_smac(self, selected_vals, kv):
         [(_, val, _, _)] = kv
