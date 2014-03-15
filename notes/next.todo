@@ -60,8 +60,9 @@ instangen as a CSP:
 
 
 	all_solutions:
-		☐ Use minion to genrate all solutions
-			use SR directly or  make minion file then convert back when necessary
+		✔ Use minion to genrate all solutions @done (14-03-15 00:37)
+			use SR directly
+			☐ should duplicate solution be removed?
 		☐ Implement picking uniformly from all solutions
 		☐ Make it work when picking within range
 

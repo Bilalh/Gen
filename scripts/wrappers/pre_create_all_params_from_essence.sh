@@ -38,7 +38,6 @@ REFINE_TIME="${EPRIMEBASE}-${PARAMBASE}.param-time"
 SAVILEROW_TIME="${EPRIMEBASE}-${PARAMBASE}.sr-time"
 
 
-
 touch $START_FILE
 
 
@@ -63,13 +62,6 @@ echo "$MSG_REFINEPARAM"
 function echoer(){
     echo "$@"
     $Time "$@"
-}
-
-function record_time(){
-    cat ${OUTPUT_BASE}/*.*-time \
-        | grep cpu \
-        | ruby -e 'p $stdin.readlines.map{|n| n[4..-1].to_f }.reduce(:+)' \
-        > ${OUTPUT_BASE}/total.time
 }
 
 function update_total_time(){
@@ -151,7 +143,6 @@ RESULTOF_SAVILEROW=$?
 
 if [ ! -f $MINION ]; then
     echo "$MSG_SAVILEROW" >> "$FAIL_FILE"
-    record_time
     exit 1
 fi
 
@@ -159,7 +150,6 @@ update_total_time ${TOTAL_TIMEOUT} ${SAVILEROW_TIME}
 
 if (( $RESULTOF_SAVILEROW != 0 || $TOTAL_TIMEOUT <= 0 )) ; then
     echo "$MSG_SAVILEROW" >> "$FAIL_FILE"
-    record_time
     exit 1
 fi
 
@@ -167,7 +157,18 @@ echo "TOTAL_TIMEOUT is $TOTAL_TIMEOUT now"
 echo "PREVIOUS_USED is $PREVIOUS_USED now"
 
 
+cmd="
+sol=\$( echo '{/}' | sed -e 's/eprime-solution/solution/g'  );
+conjure
+    --mode translateSolution
+    --in-eprime $EPRIME
+    --in-eprime-param $EPRIME_PARAM
+    --in-essence $ESSENCE
+    --in-eprime-solution {} \
+    --in-essence-param $PARAM
+    --out-solution ${GENERATED_SOLUTIONS_DIR}/\${sol}"
+echo $cmd
+parallel --tagstring "{#}" --keep-order -j${NUM_JOBS_ALL_SOLS:-1} $cmd ::: ${EPRIME_SOLUTION}.*
 
-record_time
-echo "TOTAL CPU TIME `cat ${OUTPUT_BASE}/total.time`"
+
 touch $END_FILE
