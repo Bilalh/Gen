@@ -232,27 +232,31 @@ def pre_create_all_param_solutions_from_essence(output_dir, givens_names, param_
     current_env["GENERATED_SOLUTIONS_DIR"] = str(solutions_path)
     current_env["PARAMS_DIR"] = str(params_path)
 
+    use_previous = True
+    if use_previous and (solutions_path / "solutions.count").exists():
+        pass
+    else:
+        subprocess.Popen([
+                chain_lib.wrappers("pre_create_all_params_from_essence_par.sh"),
+                timeout, str(essence), str(eprime),
+        ], env=current_env ).communicate()
 
-    subprocess.Popen([
-            chain_lib.wrappers("pre_create_all_params_from_essence_par.sh"),
-            timeout, str(essence), str(eprime),
-    ], env=current_env ).communicate()
-
-
-    # count solutions
 
     try:
         with ( data_path / "total.time" ).open() as f:
             time_taken=float(f.read().rstrip())
 
         with ( solutions_path / "solutions.count" ).open() as f:
-            solutions_count=float(f.read().rstrip())
+            solutions_count=int(f.read().rstrip())
     except IOError:
-        # FIXME readme
-        raise FailedToGenerateParamExeception()
+        raise FailedToCreateAllSolutions()
 
-    raise NotImplementedError("not finished")
+    logger.info("Time taken %s, solutions %s", time_taken, solutions_count)
     return (time_taken, solutions_count)
+
+
+class FailedToCreateAllSolutions(Exception):
+    pass
 
 
 def create_param_from_essence(output_dir, givens):

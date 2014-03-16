@@ -63,6 +63,8 @@ instangen as a CSP:
 		✔ Use minion to genrate all solutions @done (14-03-15 00:37)
 			use SR directly
 			☐ should duplicate solution be removed?
+			☐ Should the time generating the solution be count in the total time?
+
 		☐ Implement picking uniformly from all solutions
 		☐ Make it work when picking within range
 

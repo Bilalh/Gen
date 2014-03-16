@@ -107,10 +107,13 @@ class Method(metaclass=ABCMeta):
 
             if settings.pre_generate:
                 logger.info("(pre-)Genrating all solution using minion")
-                instances.pre_create_all_param_solutions_from_essence(self.output_dir, self.info.givens, self.param_info)
+                (time_taken, num_solutions) = instances.pre_create_all_param_solutions_from_essence(self.output_dir, self.info.givens, self.param_info)
+                self.num_solutions = num_solutions
+                self.random_point = self.random_point_from_all_solutions
+            else:
+                # Uses minion to generate random points
+                self.random_point = self.random_point_minion
 
-            # Uses minion to generate random points
-            self.random_point = self.random_point_minion
         else:
             # Generate the params ourselves
             self.random_point = self.random_point_generated
@@ -239,6 +242,25 @@ class Method(metaclass=ABCMeta):
             return results[0][0]
         else:
             return None
+
+    def random_point_from_all_solutions(self):
+        u = chain_lib.uniform_int(1, self.num_solutions)
+        sol_path = Path(self.output_dir) / 'param_gen' / "all_sols" / "solution.param."
+        sol_str_path = str(sol_path) + str(u)
+        solution_json = sol_path.with_suffix('.json' + str('.u'))
+
+        import subprocess
+        subprocess.Popen([
+            'essenceLettingsToJson', sol_str_path, str(solution_json)
+        ]).communicate()
+
+        with solution_json.open() as f:
+            raw_json = json.loads(f.read())
+
+        param_map = dict([ instances.json_to_param_instance(letting) for letting in raw_json['lettings'] ])
+
+        return [  param_map[name] for name in self.info.ordering ]
+
 
     def random_point_minion(self):
         selected_vals = {}
