@@ -7,8 +7,8 @@ TOTAL_TIMEOUT="${1}"
 ESSENCE="${2}"
 EPRIME="${3}"
 
-parallel -j${NUM_JOBS} "${OUR_DIR}/pre_create_all_params_from_essence.sh ${TOTAL_TIMEOUT} ${ESSENCE} ${EPRIME} {}" \
-    ::: ${PARAMS_DIR}/*.param
+# parallel -j${NUM_JOBS} "${OUR_DIR}/pre_create_all_params_from_essence.sh ${TOTAL_TIMEOUT} ${ESSENCE} ${EPRIME} {}" \
+#     ::: ${PARAMS_DIR}/*.param
 
 function record_time(){
     cat ${GENERATED_OUTPUT_DIR}/*.*-time \
@@ -21,7 +21,7 @@ record_time
 echo "TOTAL CPU TIME `cat ${GENERATED_OUTPUT_DIR}/total.time`"
 
 pushd ${GENERATED_SOLUTIONS_DIR}
-parallel -j${NUM_JOBS}  "mv {}  solution.param.{#}" ::: *.solution.*
+find . -name '*.solution.*' | parallel -j${NUM_JOBS} --keep-order  "mv {}  solution.param.{#}"
 popd
 
-ls -1 ${GENERATED_SOLUTIONS_DIR}/*.param.* | wc -l > ${GENERATED_SOLUTIONS_DIR}/solutions.count
+find . -name '*.param.*'  | wc -l > ${GENERATED_SOLUTIONS_DIR}/solutions.count

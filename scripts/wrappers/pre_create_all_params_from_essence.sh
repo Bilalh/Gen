@@ -92,6 +92,7 @@ RESULTOF_REFINEPARAM=$?
 date +'finP %a %d %b %Y %k:%M:%S %z%nfinP(timestamp) %s' >&2
 
 if [ ! -f $EPRIME_PARAM ]; then
+    echo "$MSG_REFINEPARAM"
     echo "$MSG_REFINEPARAM" >> "$FAIL_FILE"
     exit 1
 fi
@@ -99,6 +100,7 @@ fi
 update_total_time ${TOTAL_TIMEOUT} ${REFINE_TIME}
 
 if (( $RESULTOF_REFINEPARAM != 0 || $TOTAL_TIMEOUT <= 0 )) ; then
+    echo "$MSG_REFINEPARAM"
     echo "$MSG_REFINEPARAM" >> "$FAIL_FILE"
     exit 1
 fi
@@ -127,14 +129,14 @@ function savilerow(){
 }
 
 date +'StartSR %a %d %b %Y %k:%M:%S %z%nStartSR(timestamp) %s' >&2
-savilerow $TOTAL_TIMEOUT ${SAVILEROW_TIME} -mode Normal \
-    -in-eprime    $EPRIME       \
-    -in-param     $EPRIME_PARAM \
-    -run-minion minion \
-    -out-minion   $MINION       \
-    -out-solution $EPRIME_SOLUTION \
-    -all-solutions \
-    -boundvars;
+# savilerow $TOTAL_TIMEOUT ${SAVILEROW_TIME} -mode Normal \
+#     -in-eprime    $EPRIME       \
+#     -in-param     $EPRIME_PARAM \
+#     -run-minion minion \
+#     -out-minion   $MINION       \
+#     -out-solution $EPRIME_SOLUTION \
+#     -all-solutions \
+#     -boundvars;
 
 date +'finSR %a %d %b %Y %k:%M:%S %z%nfinSR(timestamp) %s' >&2
 
@@ -142,6 +144,7 @@ date +'finSR %a %d %b %Y %k:%M:%S %z%nfinSR(timestamp) %s' >&2
 RESULTOF_SAVILEROW=$?
 
 if [ ! -f $MINION ]; then
+    echo "$MSG_SAVILEROW"
     echo "$MSG_SAVILEROW" >> "$FAIL_FILE"
     exit 1
 fi
@@ -149,6 +152,7 @@ fi
 update_total_time ${TOTAL_TIMEOUT} ${SAVILEROW_TIME}
 
 if (( $RESULTOF_SAVILEROW != 0 || $TOTAL_TIMEOUT <= 0 )) ; then
+    echo "$MSG_SAVILEROW"
     echo "$MSG_SAVILEROW" >> "$FAIL_FILE"
     exit 1
 fi
@@ -156,8 +160,11 @@ fi
 echo "TOTAL_TIMEOUT is $TOTAL_TIMEOUT now"
 echo "PREVIOUS_USED is $PREVIOUS_USED now"
 
-
+set -x
+echo "Solutions for $EPRIME_SOLUTION $(find ${OUTPUT_BASE} -name "` basename ${EPRIME_SOLUTION}`.*" | wc -l)"
+set +x
 cmd="
+echo 'translating {/}';
 sol=\$( echo '{/}' | sed -e 's/eprime-solution/solution/g'  );
 conjure
     --mode translateSolution
@@ -170,7 +177,7 @@ conjure
     cat ${PARAM} | sed '1d' >> ${GENERATED_SOLUTIONS_DIR}/\${sol}
     "
 echo $cmd
-parallel --tagstring "{#}" --keep-order -j${NUM_JOBS_ALL_SOLS:-1} $cmd ::: ${EPRIME_SOLUTION}.*
+find ${OUTPUT_BASE} -name "` basename ${EPRIME_SOLUTION}`.*" | parallel --tagstring "{#}" -j${NUM_JOBS_ALL_SOLS:-1} $cmd
 
 
 touch $END_FILE

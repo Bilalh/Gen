@@ -109,6 +109,8 @@ class Method(metaclass=ABCMeta):
                 logger.info("(pre-)Genrating all solution using minion")
                 (time_taken, num_solutions) = instances.pre_create_all_param_solutions_from_essence(self.output_dir, self.info.givens, self.param_info)
                 self.num_solutions = num_solutions
+                assert self.num_solutions > 0
+
                 self.random_point = self.random_point_from_all_solutions
             else:
                 # Uses minion to generate random points
