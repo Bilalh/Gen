@@ -245,9 +245,11 @@ class Method(metaclass=ABCMeta):
 
     def random_point_from_all_solutions(self):
         u = chain_lib.uniform_int(1, self.num_solutions)
+        logger.info('picked solution %d', u)
+
         sol_path = Path(self.output_dir) / 'param_gen' / "all_sols" / "solution.param."
         sol_str_path = str(sol_path) + str(u)
-        solution_json = sol_path.with_suffix('.json' + str('.u'))
+        solution_json = sol_path.with_suffix('json.' + str(u))
 
         import subprocess
         subprocess.Popen([
