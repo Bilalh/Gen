@@ -205,7 +205,7 @@ def pre_create_all_param_solutions_from_essence(output_dir, givens_names, param_
 
     essence = base_path / 'essence_param_find.essence'
     eprime = base_path / 'essence_param_find.eprime'
-    timeout = str(300)  # FIXME choose better timeout
+    timeout = str(3600)  # FIXME choose better timeout
 
     data_path = base_path / "all_sols_data"
     solutions_path = base_path / "all_sols"
@@ -251,7 +251,7 @@ def pre_create_all_param_solutions_from_essence(output_dir, givens_names, param_
     except IOError:
         raise FailedToCreateAllSolutions()
 
-    logger.info("Time taken %s, solutions %s", time_taken, solutions_count)
+    logger.info("Time taken to generate all solution %s, count %s", time_taken, solutions_count)
     return (time_taken, solutions_count)
 
 
