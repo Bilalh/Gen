@@ -65,7 +65,7 @@ instangen as a CSP:
 			☐ should duplicate solution be removed?
 			☐ Should the time generating the solution be count in the total time?
 
-		☐ Implement picking uniformly from all solutions
+		✔ Implement picking uniformly from all solutions @done (14-03-16 02:12)
 		☐ Make it work when picking within range
 
 		~/Desktop/param_gen_ppp/1393953320
