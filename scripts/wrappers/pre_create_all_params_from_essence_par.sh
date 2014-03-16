@@ -7,8 +7,8 @@ TOTAL_TIMEOUT="${1}"
 ESSENCE="${2}"
 EPRIME="${3}"
 
-# parallel -j${NUM_JOBS} "${OUR_DIR}/pre_create_all_params_from_essence.sh ${TOTAL_TIMEOUT} ${ESSENCE} ${EPRIME} {}" \
-#     ::: ${PARAMS_DIR}/*.param
+parallel -j${NUM_JOBS} "${OUR_DIR}/pre_create_all_params_from_essence.sh ${TOTAL_TIMEOUT} ${ESSENCE} ${EPRIME} {}" \
+    ::: ${PARAMS_DIR}/*.param
 
 function record_time(){
     cat ${GENERATED_OUTPUT_DIR}/*.*-time \

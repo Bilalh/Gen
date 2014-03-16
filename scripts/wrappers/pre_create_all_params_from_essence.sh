@@ -129,14 +129,14 @@ function savilerow(){
 }
 
 date +'StartSR %a %d %b %Y %k:%M:%S %z%nStartSR(timestamp) %s' >&2
-# savilerow $TOTAL_TIMEOUT ${SAVILEROW_TIME} -mode Normal \
-#     -in-eprime    $EPRIME       \
-#     -in-param     $EPRIME_PARAM \
-#     -run-minion minion \
-#     -out-minion   $MINION       \
-#     -out-solution $EPRIME_SOLUTION \
-#     -all-solutions \
-#     -boundvars;
+savilerow $TOTAL_TIMEOUT ${SAVILEROW_TIME} -mode Normal \
+    -in-eprime    $EPRIME       \
+    -in-param     $EPRIME_PARAM \
+    -run-minion minion \
+    -out-minion   $MINION       \
+    -out-solution $EPRIME_SOLUTION \
+    -all-solutions \
+    -boundvars;
 
 date +'finSR %a %d %b %Y %k:%M:%S %z%nfinSR(timestamp) %s' >&2
 
