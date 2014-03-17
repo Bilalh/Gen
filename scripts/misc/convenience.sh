@@ -73,7 +73,7 @@ function __refine_par_func(){
 	[ -f ${out_eparam} ] && \
 	solve_eprime_param ${eprime} ${out_eparam} && \
 	[ -f $( ls ${eprime_solution}* | head -n 1 ) ]
-	up_eprime ${eprime_solution}  ${param}  ${essence} ${eprime}
+	up_eprime ${eprime_solution}  ${param} ${out_eparam} ${essence} ${eprime}
 }
 
 
@@ -105,15 +105,16 @@ function solve_eprime_param(){
 		extra='-all-solutions'
 	fi
 
-	echoing savilerow -in-eprime ${eprime} -in-param ${eparam} -run-minion minion -out-minion ${out_minion} -out-solution ${out_solution} ${extra}
+	echoing savilerow ${MINION_OPTIONS:--minion-options '-sollimit 10'} -in-eprime ${eprime} -in-param ${eparam} -run-minion minion -out-minion ${out_minion} -out-solution ${out_solution} ${extra}
 
 }
 
 function up_eprime(){
 	local eprime_solution=$1
 	local param=$2
-	local essence=$3
-	local eprime=$4
+	local eparam=$3
+	local essence=$4
+	local eprime=$5
 
 	local eprime_solution_base=`basename ${eprime_solution}`
 	local solution="${eprime_solution_base%.*}.solution"
@@ -129,8 +130,12 @@ function up_eprime(){
 			--in-eprime-param ${param}
 			--in-essence ${essence}
 			--in-eprime-solution {} \
-			--in-essence-param ${param}
-			--out-solution \${sol}
+			--in-essence-param ${eparam}
+			--out-solution \${sol};
+		conjure --mode validateSolution \
+			--in-essence ${essence}  \
+			--in-param ${param} \
+			--in-solution \${sol}
 		&& head -n 10 \${sol}  | sed '1d' "
 		echo $cmd
 		parallel --tagstring "{#}" --keep-order -j${NUM_JOBS_ALL_SOLS:-1} $cmd ::: ${eprime_solution}.*
@@ -143,14 +148,26 @@ function up_eprime(){
 		echoing conjure \
 			--mode translateSolution \
 			--in-eprime ${eprime} \
-			--in-eprime-param ${param} \
+			--in-eprime-param ${eparam} \
 			--in-essence ${essence} \
 			--in-eprime-solution ${eprime_solution} \
 			--in-essence-param ${param} \
 			--out-solution ${solution} \
-		&& head -n 10 ${solution} | sed '1d'
+		&& head -n 10 ${solution} | sed '1d' \
+		&& vaildate_solution ${solution} ${param} ${essence}
 	fi
 
+}
+
+function vaildate_solution(){
+	local solution=$1
+	local param=$2
+	local essence=$3
+
+	echoing conjure --mode validateSolution \
+		--in-essence ${essence}  \
+		--in-param ${param} \
+		--in-solution ${solution}
 }
 
 
