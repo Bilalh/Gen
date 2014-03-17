@@ -22,7 +22,7 @@ Essences:
 		☐ support total function from tuples
 			 function (total) tuple (int, int) --> int(1..n_upper)
 
-			 ☐  Add new rules since current refinement is useless @started
+			 ✔  Add new rules since current refinement is useless @started @done (14-03-17 21:12)
 			 ☐ get minion to get generate params
 
 		☐ create smac's .pcs file
