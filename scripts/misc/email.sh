@@ -3,7 +3,7 @@
 function record_experiment_info(){
 	local _fp="$1"
 	local fp="`python -c 'import os,sys; print(os.path.realpath(sys.argv[1]))'  ${_fp}`"
-	echo "" > "${fp}"
+	echo "[Experiments](`hostname`) <`date +%F`>" > "${fp}"
 	pushd /home/azureuser/repos/instancegen-models
 
 	hostname >> "${fp}"
@@ -63,7 +63,7 @@ function notify_experiment_finished(){
 function record_experiment_info2(){
 	local _fp="$1"
 	local fp="`python -c 'import os,sys; print(os.path.realpath(sys.argv[1]))'  ${_fp}`"
-	echo "" > "${fp}"
+	echo "[Experiments](`hostname`) <`date +%F`>" > "${fp}"
 
 	pwd >> "${fp}"
 	tree -L 2 >> "${fp}"
