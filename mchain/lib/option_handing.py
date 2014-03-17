@@ -65,6 +65,7 @@ def parse_arguments(doc, *, version):
 				raise RuntimeError("{} has to be (true|false)".format(key))
 
 
+
 	for (key, str_values) in re.findall(r"  (--[_a-zA-Z]+)=<(\w+\!.*?)>", doc):
 		values = set(str_values.split("!"))
 		if arguments[key] not in values:
@@ -99,6 +100,9 @@ def parse_arguments(doc, *, version):
 		info = Info(**json.load(fp))
 		del options['info']
 
+	if 'pre_generate' in options and options['pre_generate']:
+		logger.warn("Setting use_minion to true since pre_generate was set")
+		options['use_minion'] = True
 
 	return (options, limiter, info)
 
