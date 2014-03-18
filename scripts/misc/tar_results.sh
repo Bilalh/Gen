@@ -70,6 +70,11 @@ find  . -path '*/logs/*' -name 'log-*.log' | parallel  -j"${NUM_JOBS}" --tagstri
 find  . -path '*/logs/*' -name 'log-*.log' -delete
 
 
+if [ -d "generated" ]; then
+	tar -c "generated" | pigz -c -p"${NUM_JOBS}" > generated.tar.gz
+	rm -rf "generated"
+fi
+
 if [ -d "param_gen" ]; then
 	tar -c "param_gen" | pigz -c -p"${NUM_JOBS}" > param_gen.tar.gz
 	rm -rf "param_gen"

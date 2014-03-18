@@ -6,7 +6,7 @@
 Usage:
    nsample (iterations|time|cpu) <limit>
    ( --essence=<file> --models_timeout=<int> --influence_radius=<int> --info=<file> )
-   [ --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str> --radius_as_percentage=<bool> --use_minion=<bool> --pre_generate=<bool>  --all_sols_dir=<dir>]
+   [ --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str> --radius_as_percentage=<bool> --use_minion=<bool> --pre_generate=<bool>  --generated_dir=<dir>]
    nsample json <file>
 
 `time <limit>` is the total time the program can take.
@@ -25,7 +25,8 @@ Options:
   --info=<file>                    Files that contains the ordering of the variable
   --use_minion=<bool>              Uses Minion to generate params [default: false]
   --pre_generate=<bool>            When using minion, genrate all solution once and pick from them [default: false]
-  --all_sols_dir=<dir>             Directory to place all solutions, solutions will be reused if found
+  --generated_dir=<dir>            Directory to place all solutions, specs, which can be reused between runs
+
 
 """
 
@@ -42,7 +43,7 @@ import random
 logger = logging.getLogger(__name__)
 Settings=namedtuple('Settings', ['seed', 'mode', 'models_timeout', "essence", "working_dir", "output_dir",
                                  "limit", "influence_radius", "radius_as_percentage", "use_minion",
-                                 "pre_generate", "all_sols_dir"])
+                                 "generated_dir", "pre_generate"])
 
 
 class NSample(method.Method):

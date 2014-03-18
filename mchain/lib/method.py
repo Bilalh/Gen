@@ -55,7 +55,7 @@ class Method(metaclass=ABCMeta):
 
         domains.setup_domain(use_minion=options['use_minion'])
 
-        for fp in ["info", "params", 'param_gen']:
+        for fp in ["info", "params"]:
             os.makedirs(os.path.join(self.output_dir, fp), exist_ok=True)
 
         if not options['seed']:
@@ -103,20 +103,24 @@ class Method(metaclass=ABCMeta):
 
 
         if self.settings.use_minion:
-            # FIXME this should be create once for ALL methods
-            instances.create_param_essence(settings.essence, self.output_dir)
+            # TODO this should be create once for ALL methods
+            self.generated_dir = os.path.join(self.output_dir, "generated")
+
+            if settings.generated_dir:
+                self.generated_dir = settings.generated_dir
+                os.makedirs(self.generated_dir, exist_ok=True)
+
+            os.makedirs(self.generated_dir, exist_ok=True)
+            instances.create_param_essence(settings.essence, self.generated_dir)
+
+            self.specific_dir = os.path.join(self.output_dir, "param_gen")
+            os.makedirs(self.specific_dir, exist_ok=True)
 
             if settings.pre_generate:
 
-                self.all_sols_dir = os.path.join(self.output_dir, "param_gen")
-
-                if settings.all_sols_dir:
-                    self.all_sols_dir = settings.all_sols_dir
-                    os.makedirs(self.all_sols_dir, exist_ok=True)
-
                 logger.info("(pre-)Genrating all solution using minion")
                 (time_taken, num_solutions) = instances.pre_create_all_param_solutions_from_essence(
-                    self.output_dir, self.all_sols_dir,  self.info.givens, self.param_info)
+                    self.generated_dir,  self.info.givens, self.param_info)
                 self.num_solutions = num_solutions
                 assert self.num_solutions > 0
 
@@ -258,7 +262,7 @@ class Method(metaclass=ABCMeta):
         u = chain_lib.uniform_int(1, self.num_solutions)
         logger.info('picked solution %d', u)
 
-        sol_path = Path(self.all_sols_dir) / "all_sols" / "solution.param."
+        sol_path = Path(self.generated_dir) / "all_sols" / "solution.param."
         sol_str_path = str(sol_path) + str(u)
         solution_json = sol_path.with_suffix('json.' + str(u))
 
@@ -284,7 +288,7 @@ class Method(metaclass=ABCMeta):
             logger.info("Assigning %s=%s", name, v.pretty)
 
         givens = [  (name, selected_vals[name]) for name in self.info.givens ]
-        (generated, cputime_taken) = instances.create_param_from_essence(self.output_dir, givens)
+        (generated, cputime_taken) = instances.create_param_from_essence(self.specific_dir, givens)
         self.extra_time += cputime_taken
 
         selected_vals.update(generated)

@@ -188,7 +188,7 @@ class Set(Instance):
 def create_param_essence(essence_file, output_dir):
     """ Create a essence spec of the params then refine it """
 
-    out = Path(output_dir) / "param_gen"
+    out = Path(output_dir)
 
     sys.stdout.flush()
     sys.stderr.flush()
@@ -198,13 +198,12 @@ def create_param_essence(essence_file, output_dir):
     ]).communicate()
 
 
-def pre_create_all_param_solutions_from_essence(output_dir, all_sols_dir, givens_names, param_info):
+def pre_create_all_param_solutions_from_essence(generated_dir, givens_names, param_info):
 
-    essence_dir = Path(output_dir) / 'param_gen'
-    base_path = Path(all_sols_dir)
+    base_path = Path(generated_dir)
 
-    essence = essence_dir / 'essence_param_find.essence'
-    eprime = essence_dir / 'essence_param_find.eprime'
+    essence = base_path / 'essence_param_find.essence'
+    eprime = base_path / 'essence_param_find.eprime'
     timeout = str(3600)  # FIXME choose better timeout
 
     data_path = base_path / "all_sols_data"
