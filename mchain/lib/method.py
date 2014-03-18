@@ -101,13 +101,21 @@ class Method(metaclass=ABCMeta):
         logger.info(self.num_models)
         self.time_per_model = int(math.ceil(self.settings.models_timeout / self.num_models) )
 
+
         if self.settings.use_minion:
             # FIXME this should be create once for ALL methods
             instances.create_param_essence(settings.essence, self.output_dir)
 
             if settings.pre_generate:
+
+                self.all_sols_dir = os.path.join(self.output_dir, "param_gen")
+
+                if settings.all_sols_dir:
+                    self.all_sols_dir = settings.all_sols_dir
+
                 logger.info("(pre-)Genrating all solution using minion")
-                (time_taken, num_solutions) = instances.pre_create_all_param_solutions_from_essence(self.output_dir, self.info.givens, self.param_info)
+                (time_taken, num_solutions) = instances.pre_create_all_param_solutions_from_essence(
+                    self.output_dir, self.all_sols_dir,  self.info.givens, self.param_info)
                 self.num_solutions = num_solutions
                 assert self.num_solutions > 0
 
@@ -249,7 +257,7 @@ class Method(metaclass=ABCMeta):
         u = chain_lib.uniform_int(1, self.num_solutions)
         logger.info('picked solution %d', u)
 
-        sol_path = Path(self.output_dir) / 'param_gen' / "all_sols" / "solution.param."
+        sol_path = Path(self.all_sols_dir) / "all_sols" / "solution.param."
         sol_str_path = str(sol_path) + str(u)
         solution_json = sol_path.with_suffix('json.' + str(u))
 

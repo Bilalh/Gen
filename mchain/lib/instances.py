@@ -198,13 +198,13 @@ def create_param_essence(essence_file, output_dir):
     ]).communicate()
 
 
-def pre_create_all_param_solutions_from_essence(output_dir, givens_names, param_info):
+def pre_create_all_param_solutions_from_essence(output_dir, all_sols_dir, givens_names, param_info):
 
-    base_path = Path(output_dir) / 'param_gen'
+    essence_dir = Path(output_dir) / 'param_gen'
+    base_path = Path(all_sols_dir)
 
-
-    essence = base_path / 'essence_param_find.essence'
-    eprime = base_path / 'essence_param_find.eprime'
+    essence = essence_dir / 'essence_param_find.essence'
+    eprime = essence_dir / 'essence_param_find.eprime'
     timeout = str(3600)  # FIXME choose better timeout
 
     data_path = base_path / "all_sols_data"
