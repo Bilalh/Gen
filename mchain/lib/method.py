@@ -112,6 +112,7 @@ class Method(metaclass=ABCMeta):
 
                 if settings.all_sols_dir:
                     self.all_sols_dir = settings.all_sols_dir
+                    os.makedirs(self.all_sols_dir, exist_ok=True)
 
                 logger.info("(pre-)Genrating all solution using minion")
                 (time_taken, num_solutions) = instances.pre_create_all_param_solutions_from_essence(
