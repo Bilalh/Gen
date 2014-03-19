@@ -204,7 +204,7 @@ def pre_create_all_param_solutions_from_essence(generated_dir, givens_names, par
 
     essence = base_path / 'essence_param_find.essence'
     eprime = base_path / 'essence_param_find.eprime'
-    timeout = str(3600)  # FIXME choose better timeout
+    timeout = str(86400)  # FIXME choose better timeout
 
     data_path = base_path / "all_sols_data"
     solutions_path = base_path / "all_sols"
@@ -229,14 +229,15 @@ def pre_create_all_param_solutions_from_essence(generated_dir, givens_names, par
     current_env= os.environ.copy()
     current_env["GENERATED_OUTPUT_DIR"] = str(data_path)
     current_env["GENERATED_SOLUTIONS_DIR"] = str(solutions_path)
+
     current_env["PARAMS_DIR"] = str(params_path)
 
-    use_previous = True
+    use_previous = False
     if use_previous and (solutions_path / "solutions.count").exists():
         pass
     else:
         subprocess.Popen([
-                chain_lib.wrappers("pre_create_all_params_from_essence_par.sh"),
+                chain_lib.wrappers("pre_create_all_params_from_essence_par_no_up.sh"),
                 timeout, str(essence), str(eprime),
         ], env=current_env ).communicate()
 
@@ -245,13 +246,21 @@ def pre_create_all_param_solutions_from_essence(generated_dir, givens_names, par
         with ( data_path / "total.time" ).open() as f:
             time_taken=float(f.read().rstrip())
 
-        with ( solutions_path / "solutions.count" ).open() as f:
-            solutions_count=int(f.read().rstrip())
+        with ( solutions_path / "solutions.counts" ).open() as f:
+            parts = [ line.strip().split(' ') for line in f.readlines() ]
+            solutions_count = 0
+            for (i, (v, _)) in enumerate(parts):
+                j = int(v)
+                parts[i][0] = j + solutions_count
+                solutions_count += j
+
+            pprint(parts)
+
     except IOError:
         raise FailedToCreateAllSolutions()
 
     logger.info("Time taken to generate all solution %s, count %s", time_taken, solutions_count)
-    return (time_taken, solutions_count)
+    return (time_taken, parts)
 
 
 class FailedToCreateAllSolutions(Exception):

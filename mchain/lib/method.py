@@ -102,6 +102,7 @@ class Method(metaclass=ABCMeta):
         self.time_per_model = int(math.ceil(self.settings.models_timeout / self.num_models) )
 
 
+        self.extra_time = 0
         if self.settings.use_minion:
             # TODO this should be create once for ALL methods
             self.generated_dir = os.path.join(self.output_dir, "generated")
@@ -134,7 +135,8 @@ class Method(metaclass=ABCMeta):
             self.random_point = self.random_point_generated
 
         # self.random_point = self.random_point_genrated
-        self.extra_time = 0
+
+        raise NotImplemented("s")
 
     def run(self):
         date_start = datetime.utcnow()
