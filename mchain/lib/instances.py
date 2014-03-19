@@ -232,8 +232,8 @@ def pre_create_all_param_solutions_from_essence(generated_dir, givens_names, par
 
     current_env["PARAMS_DIR"] = str(params_path)
 
-    use_previous = False
-    if use_previous and (solutions_path / "solutions.count").exists():
+    use_previous = True
+    if use_previous and (solutions_path / "solutions.counts").exists():
         pass
     else:
         subprocess.Popen([
@@ -250,10 +250,11 @@ def pre_create_all_param_solutions_from_essence(generated_dir, givens_names, par
             parts = [ line.strip().split(' ') for line in f.readlines() ]
             solutions_count = 0
             for (i, (v, _)) in enumerate(parts):
-                j = int(v)
-                parts[i][0] = j + solutions_count
-                solutions_count += j
+                parts[i][0] = solutions_count
+                solutions_count += int(v)
 
+
+            parts.append([solutions_count, parts[-1][1]])
             pprint(parts)
 
     except IOError:

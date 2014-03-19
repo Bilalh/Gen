@@ -120,12 +120,12 @@ class Method(metaclass=ABCMeta):
             if settings.pre_generate:
 
                 logger.info("(pre-)Genrating all solution using minion")
-                (time_taken, num_solutions) = instances.pre_create_all_param_solutions_from_essence(
+                (time_taken, solutions_counts) = instances.pre_create_all_param_solutions_from_essence(
                     self.generated_dir,  self.info.givens, self.param_info)
-                self.num_solutions = num_solutions
-                assert self.num_solutions > 0
+                self.solutions_counts = solutions_counts
+                assert self.solutions_counts
 
-                self.random_point = self.random_point_from_all_solutions
+                self.random_point = self.random_point_from_all_solutions_files
             else:
                 # Uses minion to generate random points
                 self.random_point = self.random_point_minion
@@ -135,8 +135,6 @@ class Method(metaclass=ABCMeta):
             self.random_point = self.random_point_generated
 
         # self.random_point = self.random_point_genrated
-
-        raise NotImplemented("s")
 
     def run(self):
         date_start = datetime.utcnow()
@@ -280,6 +278,36 @@ class Method(metaclass=ABCMeta):
 
         return [  param_map[name] for name in self.info.ordering ]
 
+
+    def random_point_from_all_solutions_files(self):
+        num_solutions = self.solutions_counts[-1][0]
+        u = chain_lib.uniform_int(1, num_solutions)
+        logger.info('picked solution %d', u)
+
+        # calcuate the file  and line number that the solution is in
+        for (i, (index, _) ) in enumerate(self.solutions_counts):
+            if index > u:
+                solution_path = self.solutions_counts[i - 1][1]
+                line_index = u - self.solutions_counts[i - 1][0]
+                break
+
+        all_sol_path = os.path.join("all_sols", solution_path)
+        import subprocess
+        sol_line = subprocess.check_output(["sed", "{}q;d".format(line_index), all_sol_path ],
+            universal_newlines=True, cwd=self.generated_dir)
+
+        sol_path = Path(self.specific_dir) / solution_path
+        sol_path = sol_path.with_suffix(".solution.%d" % line_index)
+        with sol_path.open('w') as f:
+            f.write(sol_line)
+
+        subprocess.check_call(cwd=self.generated_dir, args=[
+            'savilerow', '-mode', 'ReadSolution', '-in-eprime', 'essence_param_find.eprime',
+            '-out-minion', str((Path('all_sols') / solution_path).with_suffix('.minion')),
+            '-minion-sol-file', str(sol_path),
+            '-out-solution', str(sol_path.with_suffix(".eprime-solution.%d" % line_index)) ])
+
+        raise NotImplementedError("")
 
     def random_point_minion(self):
         selected_vals = {}
