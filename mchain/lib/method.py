@@ -260,26 +260,6 @@ class Method(metaclass=ABCMeta):
         else:
             return None
 
-    def random_point_from_all_solutions(self):
-        u = chain_lib.uniform_int(1, self.num_solutions)
-        logger.info('picked solution %d', u)
-
-        sol_path = Path(self.generated_dir) / "all_sols" / "solution.param."
-        sol_str_path = str(sol_path) + str(u)
-        solution_json = sol_path.with_suffix('json.' + str(u))
-
-        import subprocess
-        subprocess.Popen([
-            'essenceLettingsToJson', sol_str_path, str(solution_json)
-        ]).communicate()
-
-        with solution_json.open() as f:
-            raw_json = json.loads(f.read())
-
-        param_map = dict([ instances.json_to_param_instance(letting) for letting in raw_json['lettings'] ])
-
-        return [  param_map[name] for name in self.info.ordering ]
-
 
     def random_point_from_all_solutions_files(self):
         num_solutions = self.solutions_counts[-1][0]
