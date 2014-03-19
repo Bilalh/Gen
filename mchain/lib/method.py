@@ -326,16 +326,15 @@ class Method(metaclass=ABCMeta):
             '--in-eprime-param', eprime_param,
             '--out-solution', solution ])
 
+        # add the param to the solution param
         subprocess.check_call(cwd=self.generated_dir, shell=True,
             args="cat '{}' | sed '1d' >> '{}'".format(
-                ( Path(self.generated_dir) / 'all_sols_params' / p.stem).with_suffix('.param'), solution
+                (Path(self.generated_dir) / 'all_sols_params' / p.stem).with_suffix('.param'), solution
         ))
 
         subprocess.check_call([
             'essenceLettingsToJson', solution, str(solution_json)
         ])
-
-        raise NotImplementedError("")
 
         with solution_json.open() as f:
             raw_json = json.loads(f.read())
