@@ -19,7 +19,9 @@ import os
 import random
 import math
 import sys
+import subprocess
 from pathlib import Path
+
 
 logger = logging.getLogger(__name__)
 
@@ -292,22 +294,55 @@ class Method(metaclass=ABCMeta):
                 break
 
         all_sol_path = os.path.join("all_sols", solution_path)
-        import subprocess
         sol_line = subprocess.check_output(["sed", "{}q;d".format(line_index), all_sol_path ],
             universal_newlines=True, cwd=self.generated_dir)
 
-        sol_path = Path(self.specific_dir) / solution_path
-        sol_path = sol_path.with_suffix(".solution.%d" % line_index)
+        # todo use line_index or u at the end?
+
+        p = Path(self.specific_dir) / solution_path
+        sol_path = p.with_suffix(".solution.%d" % line_index)
         with sol_path.open('w') as f:
             f.write(sol_line)
 
+        minion=str((Path('all_sols') / solution_path).with_suffix('.minion'))
+        eprime_param=str((Path('all_sols') / solution_path).with_suffix('.eprime-param'))
+
+        eprime_solution=str(p.with_suffix(".eprime-solution.%d" % line_index))
+        solution=str(p.with_suffix(".solution.%d" % line_index))
+        solution_json=p.with_suffix(".json.%d" % line_index)
+
         subprocess.check_call(cwd=self.generated_dir, args=[
-            'savilerow', '-mode', 'ReadSolution', '-in-eprime', 'essence_param_find.eprime',
-            '-out-minion', str((Path('all_sols') / solution_path).with_suffix('.minion')),
+            'savilerow', '-mode', 'ReadSolution',
+            '-in-eprime', 'essence_param_find.eprime',
+            '-out-minion', minion,
             '-minion-sol-file', str(sol_path),
-            '-out-solution', str(sol_path.with_suffix(".eprime-solution.%d" % line_index)) ])
+            '-out-solution', eprime_solution ])
+
+        subprocess.check_call(cwd=self.generated_dir, args=[
+            "conjure", "--mode", "translateSolution",
+            "--in-eprime", 'essence_param_find.eprime',
+            "--in-essence", 'essence_param_find.essence',
+            '--in-eprime-solution', eprime_solution,
+            '--in-eprime-param', eprime_param,
+            '--out-solution', solution ])
+
+        subprocess.check_call(cwd=self.generated_dir, shell=True,
+            args="cat '{}' | sed '1d' >> '{}'".format(
+                ( Path(self.generated_dir) / 'all_sols_params' / p.stem).with_suffix('.param'), solution
+        ))
+
+        subprocess.check_call([
+            'essenceLettingsToJson', solution, str(solution_json)
+        ])
 
         raise NotImplementedError("")
+
+        with solution_json.open() as f:
+            raw_json = json.loads(f.read())
+
+        param_map = dict([ instances.json_to_param_instance(letting) for letting in raw_json['lettings'] ])
+
+        return [  param_map[name] for name in self.info.ordering ]
 
     def random_point_minion(self):
         selected_vals = {}
