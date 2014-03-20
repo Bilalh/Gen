@@ -69,6 +69,9 @@ function record_experiment_info2(){
 	tree -L 2 >> "${fp}"
 	echo "" >> "${fp}"
 
+	df -h >> "${fp}"
+	echo "" >> "${fp}"
+
 	if ( git rev-parse --is-inside-work-tree ); then
 		echo "repo(git) version" >> "${fp}"
 		git log -1 --format="%H" >> "${fp}"

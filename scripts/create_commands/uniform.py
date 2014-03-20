@@ -18,7 +18,8 @@ record_cp \$place/logs/log-{race_no} \\
 		--essence=%s \\
 		--working_dir=%s \\
 		--output_dir=\$place \\
-		--info=%s && \
+		--generated_dir={working_dir}/generated \\
+		--info=%s && \\
 printf ".timeout 5000\\nINSERT OR REPLACE INTO uniform('method', 'essence', 'total_timeout', 'models_timeout', 'races',  'run_no', 'output_dir') \
 	VALUES('uniform', '{essence}', '\$(total_normalised {limit})', '\$(models_timeout_normalised {limit})', '{races}', '{race_no}', '\$place');" \
 		| sqlite3 results/Info.db && \

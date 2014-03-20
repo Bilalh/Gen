@@ -114,7 +114,12 @@ class Method(metaclass=ABCMeta):
                 os.makedirs(self.generated_dir, exist_ok=True)
 
             os.makedirs(self.generated_dir, exist_ok=True)
-            instances.create_param_essence(settings.essence, self.generated_dir)
+
+            if Path(self.generated_dir, "essence_param_find.eprime").exists():
+                logger.info("Not make essence of param, it exists")
+            else:
+                instances.create_param_essence(settings.essence, self.generated_dir)
+
 
             self.specific_dir = os.path.join(self.output_dir, "param_gen")
             os.makedirs(self.specific_dir, exist_ok=True)
@@ -291,6 +296,9 @@ class Method(metaclass=ABCMeta):
         solution=str(p.with_suffix(".solution.%d" % line_index))
         solution_json=p.with_suffix(".json.%d" % line_index)
 
+        start_usr = os.times().children_user
+        start_sys = os.times().children_system
+
         subprocess.check_call(cwd=self.generated_dir, args=[
             'savilerow', '-mode', 'ReadSolution',
             '-in-eprime', 'essence_param_find.eprime',
@@ -316,6 +324,15 @@ class Method(metaclass=ABCMeta):
             'essenceLettingsToJson', solution, str(solution_json)
         ])
 
+        end_usr = os.times().children_user
+        end_sys = os.times().children_system
+
+        # reports 0 on windows
+        cputime_taken = (end_usr - start_usr) + (end_sys - start_sys)
+
+        self.extra_time += cputime_taken
+        logger.info("Took %0.2f to get a solution (total %0.2f)", cputime_taken, self.extra_time )
+
         with solution_json.open() as f:
             raw_json = json.loads(f.read())
 
@@ -332,7 +349,7 @@ class Method(metaclass=ABCMeta):
             logger.info("Assigning %s=%s", name, v.pretty)
 
         givens = [  (name, selected_vals[name]) for name in self.info.givens ]
-        (generated, cputime_taken) = instances.create_param_from_essence(self.specific_dir, givens)
+        (generated, cputime_taken) = instances.create_param_from_essence(self.specific_dir, self.generated_dir, givens)
         self.extra_time += cputime_taken
 
         selected_vals.update(generated)

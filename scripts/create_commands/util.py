@@ -32,10 +32,11 @@ def create_commands_py(method_name, function_templete, data, commons_grouped, pl
 			"#-- {} --#".format(filepath),
 		]
 
+		working_dir =os.path.dirname(filepath)
 		par_function = function_templete % (
 			mode,
 			filepath,
-			os.path.dirname(filepath),
+			working_dir,
 			os.path.join(os.path.dirname(filepath), "info.json")
 		)
 
@@ -54,6 +55,7 @@ def create_commands_py(method_name, function_templete, data, commons_grouped, pl
 		line += ' \\\n ::: race_no `seq 1 %d`' % (num_runs)
 		line += ' \\\n ::: base_path  %s' % (os.path.join(place_dir, "results", method_name, name))
 		line += ' \\\n ::: cores %d' % (jobs)
+		line += ' \\\n ::: working_dir %s' % (working_dir)
 		line += ' \\\n ::: essence %s \\' % (os.path.basename((os.path.dirname(filepath))))
 
 		def build_dict(common):
@@ -68,10 +70,19 @@ def create_commands_py(method_name, function_templete, data, commons_grouped, pl
 			_models_timeout = calc_models_timeout(common, jobs)
 			limit_to_models_timeout[settings["limit"]] = _models_timeout
 
+			if 'use_minion' not in settings:
+				settings['use_minion'] = False
+
+			if 'pre_generate' not in settings:
+				settings['pre_generate'] = False
+
 			settings.update(cur)
 			return settings
 
 		settings_list = [ build_dict(common).items() for common in commons ]
+
+
+
 
 		lookuplines = "\n".join( "		{}) echo {} ;; ".format(k, v) for (k, v) in limit_to_models_timeout.items() )
 

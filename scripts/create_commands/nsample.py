@@ -20,6 +20,9 @@ record_cp \$place/logs/log-{race_no} \\
 		--essence=%s \\
 		--working_dir=%s \\
 		--output_dir=\$place \\
+		--generated_dir={working_dir}/generated \\
+		--use_minion={use_minion} \\
+		--pre_generate={pre_generate} \\
 		--info=%s && \
 printf ".timeout 5000\\nINSERT OR REPLACE INTO nsample('method', 'essence', 'total_timeout', 'models_timeout', 'races', 'influence_radius', 'radius_as_percentage', 'run_no', 'output_dir') \
 	VALUES('nsample', '{essence}', '\$(total_normalised {limit})', '\$(models_timeout_normalised {limit})', '{races}', '{influence_radius}', '\$(to_bool {radius_as_percentage})', '{race_no}', '\$place');" \

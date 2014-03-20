@@ -22,6 +22,10 @@ echo "TOTAL CPU TIME `cat ${GENERATED_OUTPUT_DIR}/total.time`"
 
 pushd ${GENERATED_SOLUTIONS_DIR}
 find . -name '*.solution.*' | parallel -j${NUM_JOBS} --keep-order  "mv {}  solution.param.{#}"
+
+tar -c "all_sols_data" | pigz -c -p"${NUM_JOBS}" > all_sols_data.tar.gz
 popd
+
+
 
 find . -name '*.param.*'  | wc -l > ${GENERATED_SOLUTIONS_DIR}/solutions.count

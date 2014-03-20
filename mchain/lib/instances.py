@@ -268,8 +268,9 @@ class FailedToCreateAllSolutions(Exception):
     pass
 
 
-def create_param_from_essence(output_dir, givens):
-    base_path = Path(output_dir) / 'param_gen'
+def create_param_from_essence(specific_dir, generated_dir, givens):
+    base_path = Path(specific_dir)
+    gen_path = Path(generated_dir)
 
     datee = calendar.datetime.datetime.now()
     logger.info("Make param %s", datee.isoformat())
@@ -278,8 +279,8 @@ def create_param_from_essence(output_dir, givens):
     (param_string, param_name) = chain_lib.create_param_file(givens)
     random_seed = chain_lib.uniform_int(1, (2 ** 32) - 1)
 
-    essence = base_path / 'essence_param_find.essence'
-    eprime = base_path / 'essence_param_find.eprime'
+    essence = gen_path / 'essence_param_find.essence'
+    eprime = gen_path / 'essence_param_find.eprime'
     timeout = str(300)  # FIXME choose better timeout
 
 
