@@ -269,20 +269,24 @@ class Method(metaclass=ABCMeta):
     def random_point_from_all_solutions_files(self):
         num_solutions = self.solutions_counts[-1][0]
         u = chain_lib.uniform_int(1, num_solutions)
+        logger.info( pformat(self.solutions_counts) )
         logger.info('picked solution %d', u)
-
         # calcuate the file  and line number that the solution is in
+
         for (i, (index, _) ) in enumerate(self.solutions_counts):
-            if index > u:
+            if index >= u:
                 solution_path = self.solutions_counts[i - 1][1]
                 line_index = u - self.solutions_counts[i - 1][0]
                 break
+
+        logger.info('solution_path %s line_index %d', solution_path, line_index)
 
         all_sol_path = os.path.join("all_sols", solution_path)
         sol_line = subprocess.check_output(["sed", "{}q;d".format(line_index), all_sol_path ],
             universal_newlines=True, cwd=self.generated_dir)
 
         # todo use line_index or u at the end?
+
 
         p = Path(self.specific_dir) / solution_path
         sol_path = p.with_suffix(".solution.%d" % line_index)
@@ -299,20 +303,26 @@ class Method(metaclass=ABCMeta):
         start_usr = os.times().children_user
         start_sys = os.times().children_system
 
-        subprocess.check_call(cwd=self.generated_dir, args=[
+        arr=[
             'savilerow', '-mode', 'ReadSolution',
             '-in-eprime', 'essence_param_find.eprime',
             '-out-minion', minion,
             '-minion-sol-file', str(sol_path),
-            '-out-solution', eprime_solution ])
+            '-out-solution', eprime_solution ]
+        print(" ".join(arr) )
 
-        subprocess.check_call(cwd=self.generated_dir, args=[
+        subprocess.check_call(cwd=self.generated_dir, args=arr)
+
+        arr=[
             "conjure", "--mode", "translateSolution",
             "--in-eprime", 'essence_param_find.eprime',
             "--in-essence", 'essence_param_find.essence',
             '--in-eprime-solution', eprime_solution,
             '--in-eprime-param', eprime_param,
-            '--out-solution', solution ])
+            '--out-solution', solution ]
+        print(" ".join(arr) )
+
+        subprocess.check_call(cwd=self.generated_dir, args=arr)
 
         # add the param to the solution param
         subprocess.check_call(cwd=self.generated_dir, shell=True,
