@@ -70,12 +70,6 @@ def create_commands_py(method_name, function_templete, data, commons_grouped, pl
 			_models_timeout = calc_models_timeout(common, jobs)
 			limit_to_models_timeout[settings["limit"]] = _models_timeout
 
-			if 'use_minion' not in settings:
-				settings['use_minion'] = False
-
-			if 'pre_generate' not in settings:
-				settings['pre_generate'] = False
-
 			settings.update(cur)
 			return settings
 

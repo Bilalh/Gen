@@ -5,7 +5,7 @@ def create_commands(data, commons_grouped, place_dir, init_source, num_runs):
 
 	par_function = """
 Command=$( cat <<EOF
-place="{base_path}/out-{limit}-{races}-{cores}__{race_no}___{influence_radius}_{radius_as_percentage}";
+place="{base_path}/out-{limit}-{races}-{cores}__{race_no}___{influence_radius}_{radius_as_percentage}_{use_minion}_{pre_generate}";
 mode=%s;
 [ -d \$place ] \
 	&& echo "Not writing to \$place, it exists"
@@ -23,9 +23,9 @@ record_cp \$place/logs/log-{race_no} \\
 		--generated_dir={working_dir}/generated \\
 		--use_minion={use_minion} \\
 		--pre_generate={pre_generate} \\
-		--info=%s && \
-printf ".timeout 5000\\nINSERT OR REPLACE INTO nsample('method', 'essence', 'total_timeout', 'models_timeout', 'races', 'influence_radius', 'radius_as_percentage', 'run_no', 'output_dir') \
-	VALUES('nsample', '{essence}', '\$(total_normalised {limit})', '\$(models_timeout_normalised {limit})', '{races}', '{influence_radius}', '\$(to_bool {radius_as_percentage})', '{race_no}', '\$place');" \
+		--info=%s && \\
+printf ".timeout 5000\\nINSERT OR REPLACE INTO nsample('method', 'essence', 'total_timeout', 'models_timeout', 'races', 'influence_radius', 'radius_as_percentage', 'run_no', 'output_dir', 'use_minion', 'pre_generate') \
+	VALUES('nsample', '{essence}', '\$(total_normalised {limit})', '\$(models_timeout_normalised {limit})', '{races}', '{influence_radius}', '\$(to_bool {radius_as_percentage})', '{race_no}', '\$place', '\$(to_bool {use_minion})', '\$(to_bool {pre_generate})');" \
 		| sqlite3 results/Info.db  && \
 \$PARAM_GEN_SCRIPTS/misc/tar_results.sh \$place \$mode;
 EOF
