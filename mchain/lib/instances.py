@@ -243,7 +243,7 @@ def pre_create_all_param_solutions_from_essence(generated_dir, givens_names, par
 
 
     try:
-        with ( data_path / "total.time" ).open() as f:
+        with ( base_path / "total.time" ).open() as f:
             time_taken=float(f.read().rstrip())
 
         with ( solutions_path / "solutions.counts" ).open() as f:
@@ -315,7 +315,7 @@ def create_param_from_essence(specific_dir, generated_dir, givens):
         ], env=current_env ).communicate()
 
     try:
-        with ( out / "total.time" ).open() as f:
+        with ( gen_path / "total.time" ).open() as f:
             time_taken=float(f.read().rstrip())
 
     except IOError:

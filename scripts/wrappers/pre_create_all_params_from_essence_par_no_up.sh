@@ -21,11 +21,19 @@ record_time
 echo "TOTAL CPU TIME `cat ${GENERATED_OUTPUT_DIR}/total.time`"
 
 
+
+
 mv ${GENERATED_OUTPUT_DIR}/*.minion-solution \
 	 ${GENERATED_OUTPUT_DIR}/*.minion.aux \
 	 ${GENERATED_OUTPUT_DIR}/*.eprime-param \
 ${GENERATED_SOLUTIONS_DIR}
 
+mv 	 ${GENERATED_OUTPUT_DIR}/total.time ${GENERATED_OUTPUT_DIR}/../total.time
+
+pushd ${GENERATED_OUTPUT_DIR}/..
+tar -c "all_sols_data" | pigz -c -p"${NUM_JOBS}" > all_sols_data.tar.gz
+rm -rf all_sols_data
+popd
 
 pushd ${GENERATED_SOLUTIONS_DIR}
 wc -l *.minion-solution | sed '$ d' > solutions.counts
