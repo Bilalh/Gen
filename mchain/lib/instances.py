@@ -315,7 +315,7 @@ def create_param_from_essence(specific_dir, generated_dir, givens):
         ], env=current_env ).communicate()
 
     try:
-        with ( gen_path / "total.time" ).open() as f:
+        with ( out / "total.time" ).open() as f:
             time_taken=float(f.read().rstrip())
 
     except IOError:

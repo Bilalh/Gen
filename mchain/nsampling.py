@@ -84,8 +84,11 @@ class NSample(method.Method):
     def do_iteration(self):
         try:
             x = self.random_point()
-        except (domains.NoValuesInDomainException, instances.FailedToGenerateParamExeception):
-            logger.info("Domain empty/failed to generate")
+        except (domains.NoValuesInDomainException):
+            logger.info("NoValuesInDomainException")
+            return
+        except (instances.FailedToGenerateParamExeception):
+            logger.info("FailedToGenerateParamExeception")
             return
 
         for pp in self.data_points:
