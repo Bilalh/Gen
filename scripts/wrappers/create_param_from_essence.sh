@@ -176,7 +176,7 @@ date +'StartMINION %a %d %b %Y %k:%M:%S %z%nStartMINION(timestamp) %s' >&2
 echoer \
 ${CPUTIMEOUT} --write-time $MINION_TIME --previous-used $PREVIOUS_USED $TOTAL_TIMEOUT \
 minion $MINION  \
-    -printsolsonly \
+    -noprintsols \
     -preprocess SACBounds \
     -tableout $MINION_TABLE \
     -solsout  $MINION_SOLUTION \
