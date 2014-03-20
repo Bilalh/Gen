@@ -19,6 +19,8 @@ record_cp \$place/logs/log-{race_no} \\
 		--working_dir=%s \\
 		--output_dir=\$place \\
 		--generated_dir={working_dir}/generated \\
+		--use_minion={use_minion} \\
+		--pre_generate={pre_generate} \\
 		--info=%s && \\
 printf ".timeout 5000\\nINSERT OR REPLACE INTO uniform('method', 'essence', 'total_timeout', 'models_timeout', 'races',  'run_no', 'output_dir', 'use_minion', 'pre_generate') \
 	VALUES('uniform', '{essence}', '\$(total_normalised {limit})', '\$(models_timeout_normalised {limit})', '{races}', '{race_no}', '\$place', '\$(to_bool {use_minion})', '\$(to_bool {pre_generate})');" \
