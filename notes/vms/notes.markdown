@@ -196,15 +196,37 @@ Click `CAPTURE`
 
 Make a vm from a vhd
 
-Create the New button 
+Create the New button
 
-	Compute -> Virtual machine -> from gallery 
-	
+	Compute -> Virtual machine -> from gallery
+
 then
- 
+
 	my images  -> instancegen1v2
 
 
 if recreating the vhd to the some host  then use have the remove the rsa key from `know_hosts` or you will get
 a `WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!` error when using ssh
+
+
+
+# attaching a empty disk
+
+
+http://www.windowsazure.com/en-us/documentation/articles/virtual-machines-linux-how-to-attach-disk/#attachempty
+
+To get the disk id use   (Documention is wrong)
+
+	sudo grep SCSI /var/log/syslog
+	Mar 21 15:33:48 instancegen1 kernel: [131915.512158] sd 5:0:0:0: [sdc] Attached SCSI disk
+
+[sdc] is the id of the disk
+
+
+
+
+
+
+
+
 
