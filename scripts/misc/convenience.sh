@@ -20,6 +20,14 @@ function refine_run(){
 			__all_solution=1
 			shift
 		fi
+		if [ "$1" = "c" ]; then
+			__all_solution=2
+			shift
+		fi
+		if [ "$1" = "d" ]; then
+			__all_solution=3
+			shift
+		fi
 		export __all_solution
 
 		local essence=$1
@@ -69,11 +77,17 @@ function __refine_par_func(){
 	local out_eparam="${eprime_base%.*}-${param_base%.*}.eprime-param"
 	local eprime_solution="${eprime_base%.*}-${param_base%.*}.eprime-solution"
 
-	refine_param "$@" && \
-	[ -f ${out_eparam} ] && \
-	solve_eprime_param ${eprime} ${out_eparam} && \
-	[ -f $( ls ${eprime_solution}* | head -n 1 ) ]
-	up_eprime ${eprime_solution}  ${param} ${out_eparam} ${essence} ${eprime}
+	if [  $__all_solution -ge 2 ]; then
+		refine_param "$@" && \
+		[ -f ${out_eparam} ] && \
+		minion_count_solutions ${eprime} ${out_eparam}
+	else
+		refine_param "$@" && \
+		[ -f ${out_eparam} ] && \
+		solve_eprime_param ${eprime} ${out_eparam} && \
+		[ -f $( ls ${eprime_solution}* | head -n 1 ) ]
+		up_eprime ${eprime_solution}  ${param} ${out_eparam} ${essence} ${eprime}
+	fi
 }
 
 
@@ -101,13 +115,31 @@ function solve_eprime_param(){
 	rm ${out_solution}*
 
 	extra=""
-	if [ ${__all_solution} -eq 1 ]; then
+	if [ ${__all_solution} -ge 1 ]; then
 		extra='-all-solutions'
 	fi
 
 	echoing savilerow ${MINION_OPTIONS:--minion-options '-sollimit 10'} -in-eprime ${eprime} -in-param ${eparam} -run-minion minion -out-minion ${out_minion} -out-solution ${out_solution} ${extra}
 
 }
+
+
+function minion_count_solutions(){
+	local eprime=$1
+	local eparam=$2
+
+	local param_base=`basename ${eparam}`
+	local out_minion="${param_base%.*}.minion"
+
+	filter='Nodes|solvable|Solutions|Total|RSS'
+	if [ $__all_solution -eq 3 ]; then
+		filter='Solutions'
+	fi
+	echoing savilerow -in-eprime ${eprime} -in-param ${eparam} -out-minion ${out_minion} -all-solutions
+	echoing minion ${out_minion} -noprintsols -findallsols -preprocess SACBounds \
+		| grep -v '#' | egrep $filter
+}
+
 
 function up_eprime(){
 	local eprime_solution=$1
@@ -121,7 +153,7 @@ function up_eprime(){
 
 	rm -f ${solution}*
 
-	if [ ${__all_solution} -eq 1 ]; then
+	if [ ${__all_solution} -ge 1 ]; then
 		cmd="
 		sol=\$( echo '{}' | sed -e 's/eprime-solution/solution/g'  );
 		conjure

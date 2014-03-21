@@ -1,0 +1,32 @@
+✔ Write basic abstract @done (14-03-20 16:25)
+
+☐ Make sections
+☐
+
+
+Running ppps:
+
+  Try various sizes for ppp
+  5^10
+
+  <method> iterations 0  -pre_generate=true
+  <method> cpu 0  -pre_generate=true
+  only finds all solutions
+
+
+
+ ppps-5-4-14:
+   nsample i4:
+     ✔ all-sols @done (14-03-20 16:29)
+     ☐ minion random @started
+   uniform:
+     ☐ all-sols @started
+     ☐ minion random
+
+  ppps_small:
+    ✔ nsample i4 @done (14-03-20 16:27)
+    ✔ nsample i10 @done (14-03-20 16:27)
+    ✔ uniform @done (14-03-20 16:28)
+    directly @done (14-03-20 16:28)
+      nsample_i4
+      uniform
