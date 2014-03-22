@@ -117,6 +117,7 @@ def create_param_values():
 	raw_params = [ (re_kind.findall(name[1:]), int(val[1:-1])) for name, val in iter_many(params_arr, len(params_arr), 2) ]
 	logger.info(pformat(raw_params))
 
+	domains.setup_domain(False)
 	param_info = domains.gather_param_info(essence, output_dir_s)
 
 

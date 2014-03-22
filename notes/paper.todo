@@ -13,7 +13,7 @@ Running ppps:
  prob013-PPP-8-5-12:
    (n_upper, n_boats, n_periods)
 
-   23GB for all solutions  5,595,553,260 in total
+   23GB for all solutions  1,023,171,216 in total
 
    using 12h @ 5 races gives a maximum of 30s to each of the 256 models
 
