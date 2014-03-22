@@ -40,14 +40,16 @@ function refine_run(){
 
 function cat_solutions(){
 
+	local file_ext=${file_ext:-solution}
+
 	local tagstring="{#}"
 	if [ "$1" = "n" ]; then
 		tagstring=""
 		shift
 	fi
 
-	extra=""
-	end="cat"
+	local extra=""
+	local end="cat"
 	if [ "$1" = "o" ]; then
 		tagstring=""
 		shift
@@ -57,13 +59,14 @@ function cat_solutions(){
 	if [ "$1" = "s" ]; then
 		tagstring=""
 		shift
-		extra=" | tr -d \"\n\" | sed -e 's/letting//g' | sed -E 's/  */ /g';"
+		extra=" | tr -d \"\n\" | sed -e 's/letting//g' | sed -E 's/  */ /g'"
 		end=sort
 	fi
 
-	parallel --tagstring "${tagstring}" --keep-order -j${NUM_JOBS:-4}  "cat {} | sed '1d' ${extra}  " ::: ${1:-}*.solution* | $end
+
+	parallel --tagstring "${tagstring}" --keep-order -j${NUM_JOBS:-4}  "cat {} | sed '1d' ${line_func:-} ${extra}  " ::: ${1:-}*.${file_ext}* | ${end}
  	echo
-	echo "Total: $(ls ${1:-}*.solution* | wc -l )  solution"
+	echo "Total: $(ls ${1:-}*.${file_ext}* | wc -l )  ${file_ext}"
 }
 
 
@@ -222,15 +225,6 @@ function _refine_param(){
 }
 
 compdef _refine_param refine_param
-
-function _refine_run(){
-	_arguments \
-		"1:essence:_files -g \*.essence"\
-		"2:eprime:_files -g \*.eprime" \
-		"*:essence param:_files -g \*.param"
-}
-
-compdef _refine_run refine_run
 
 
 function _up_eprime(){
