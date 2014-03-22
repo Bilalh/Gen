@@ -12,7 +12,7 @@ mode=%s;
 	&& exit;
 echo "output_dir is \$place \$(models_timeout {limit})";
 record_cp \$place/logs/log-{race_no} \\
-		../instancegen/mchain/nsampling.py cpu {limit} \\
+		../instancegen/mchain/nsampling.py {way} {limit} \\
 		--models_timeout=\$(models_timeout {limit}) \
 		--influence_radius={influence_radius} \\
 		--radius_as_percentage={radius_as_percentage} \\

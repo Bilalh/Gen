@@ -12,7 +12,7 @@ mode=%s;
 	&& exit;
 echo "output_dir is \$place";
 record_cp \$place/logs/log-{race_no} \\
-		../instancegen/mchain/uniform_sampling.py cpu {limit} \\
+		../instancegen/mchain/uniform_sampling.py {way} {limit} \\
 		--models_timeout=\$(models_timeout {limit}) \
 		--mode=\$mode \\
 		--essence=%s \\

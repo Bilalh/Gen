@@ -6,12 +6,32 @@
 
 Running ppps:
 
-  Try various sizes for ppp
-  5^10
-
   <method> iterations 0  -pre_generate=true
   <method> cpu 0  -pre_generate=true
   only finds all solutions
+
+ prob013-PPP-8-5-12:
+   (n_upper, n_boats, n_periods)
+
+   23GB for all solutions  5,595,553,260 in total
+
+   using 12h @ 5 races gives a maximum of 30s to each of the 256 models
+
+   Compare:
+
+     Would like  20 iterations of at alest a minute
+     take ~ 15h (12 *2 * 5  / 8 cores)
+
+     ☐ all-solutions on uniform
+     ☐ minion random on uniform
+     ☐ approx idea on uniform
+
+
+ bias:
+   % error of uniformity by using various techniques
+                  mean     stdev  variance       min       max
+   even         3.0909    5.4891   30.1305    0.3264   34.8236
+   approx       0.4766    1.5224    2.3177    0.0000    7.9604
 
 
 

@@ -68,7 +68,16 @@ def create_commands_py(method_name, function_templete, data, commons_grouped, pl
 			lines.append("# {}h -- {limit}s on {jobs} cores".format(hours, jobs=jobs, **settings))
 
 			_models_timeout = calc_models_timeout(common, jobs)
+
+			if 'iterations' in common:
+				settings['limit'] = common['iterations']
+				common['limit'] = settings['limit']
+				settings['way'] = 'iterations'
+			else:
+				settings['way'] = 'cpu'
+
 			limit_to_models_timeout[settings["limit"]] = _models_timeout
+
 
 			settings.update(cur)
 			return settings
