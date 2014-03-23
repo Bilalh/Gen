@@ -175,7 +175,6 @@ param_path = str(new_param_path)
 chain_lib.run_models(now, param_path, per_model_time, working_dir_s, output_dir_s, mode, ordering)
 
 try:
-	pass
 	results = chain_lib.get_results(working_dir_s, output_dir_s, param_hash, per_model_time, now, mode)
 except Exception as e:
 	logger.error("Failed to get results %s", e)
@@ -186,9 +185,16 @@ logger.info("timefile %s" % (timefile))
 with timefile.open() as f:
 	runtime += float(f.readline())
 
-
-if len(results) != 6:
-	logger.error("Failed to get results tuple %s", e)
+logger.info("new_param_path %s\n", new_param_path)
+err_path=(output_dir / "results-{}".format(mode) / "p-{}".format(new_param_path.stem) ).with_suffix(".errors")
+logger.info("Checking param error file %s", err_path)
+if err_path.exists():
+	logger.error("param invaild %s", new_param_path.stem)
+	quality = 500
+	our_quality = 3
+	result_kind ="SAT"
+elif len(results) != 6:
+	logger.error("Failed to get results %s", new_param_path.stem)
 	quality = 500  # for example SR where statement
 	our_quality = 2
 	result_kind ="SAT"
@@ -217,3 +223,4 @@ runtime += our_cpu_time
 runlength=0
 print("Final Result for ParamILS: {}, {}, {}, {}, {}\n".format(
 	result_kind, runtime, runlength, quality, seed))
+

@@ -136,6 +136,18 @@ echo "<update_timeout> end removing ${LOCKDIR} at end  for $1"
 rmdir "${LOCKDIR}"
 }
 
+function check_errors(){
+	out_dir=$1
+	param=$2
+	if  ( ls "${out_dir}/p-${2}.errors" ); then
+		echo "Found errors for ${param}"
+		return 1
+	else
+		echo "No errors for ${param}"
+		return 0
+	fi
+}
+
 Command=$( cat <<EOF
 TIMEOUT5_FILE="${TIMEOUT5_FILE_BASE}-{2/.}";
 echo "tfff \${TIMEOUT5_FILE}";
@@ -148,12 +160,15 @@ $Time \
 	bash "${Dir}/perModelPerParamCpuTime.sh"  ${Essence} {1} {2} ${MINION_TIMEOUT} ${TOTAL_TIMEOUT} ${Mode}  \
 ) 3>&1 1>&2 2>&3  | tee "${Output_dir}/{1/.}-{2/.}.stderr";
 echo "";
-update_timeout  "${Output_dir}/{1/.}-{2/.}" {1/} {2/}
+update_timeout  "${Output_dir}/{1/.}-{2/.}" {1/} {2/};
+check_errors ${Output_dir} {2/.};
 EOF
 )
 
 export -f update_timeout
+export -f check_errors
 export TOTAL_TIMEOUT
 export TIMEOUT5_FILE_BASE
 
-parallel --tagstring "{1/.} {2/.}" -j${NUM_JOBS:-6}  $Command ::: ${Eprimes} ::: ${Params};
+parallel --tagstring "{1/.} {2/.}" --halt 1 -j${NUM_JOBS:-6}  $Command ::: ${Eprimes} ::: ${Params};
+
