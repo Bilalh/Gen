@@ -10,8 +10,14 @@ import multiprocessing
 from multiprocessing import Queue
 import math
 import itertools as it
+import re
 
-from pprint import pprint
+from pprint import pprint, pformat
+
+import logging
+logger = logging.getLogger(__name__)
+logging.basicConfig(format='%(name)s:%(lineno)d:%(funcName)s: %(message)s', level=logging.INFO)
+
 
 param_eprime_results_sql="""
 Select * From
@@ -60,6 +66,7 @@ def collect_data_as_dicts(base_str, num_proc, all_results_dir, exp_dir, start_nu
             if row['method'] != 'smac' and not (base / row['output_dir'] / "info" / "data-points.json").exists():
                 continue
 
+            logger.info("results_db is %s", results_db)
             results_conn = sqlite3.connect(str(results_db))
             quality_row = results_conn.execute("SELECT min(quality) FROM  DiscriminatingParams Limit 1")
 
@@ -87,8 +94,23 @@ def collect_data_as_dicts(base_str, num_proc, all_results_dir, exp_dir, start_nu
             if rel.name != '':
                 row_data['output_dir'] = str(rel / row_data['output_dir'])
 
-            if 'use_minion' not in row_data['output_dir']:
-                row_data['use_minion'] = int("_minion/" in row_data['output_dir'])
+
+            if 'use_minion' not in row_data:
+                row_data['use_minion'] = int(
+                    "_minion/" in row_data['output_dir'] or "_minion_" in row_data['output_dir'])
+
+            if 'pre_generate' not in row_data:
+                row_data['pre_generate'] = int(
+                    "_all/" in row_data['output_dir'] or "_all_" in row_data['output_dir'])
+                if row_data['pre_generate'] == 1:
+                    row_data['use_minion'] = 1
+
+            if 'iterations' not in row_data:
+                if "_iter" in row_data['output_dir']:
+                    match = re.search("iter(\d+)", row_data['output_dir'])
+                    row_data['iterations'] = int(match.groups()[0])
+                else:
+                    row_data['iterations'] = None
 
             results_conn.row_factory = sqlite3.Row
             param_eprime_info_rows = results_conn.execute(param_eprime_results_sql)

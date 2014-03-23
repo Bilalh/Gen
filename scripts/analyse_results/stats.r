@@ -53,7 +53,7 @@ per_method <- function (method_name){
   temp <- m2[ m2$method == method_name,   ]
   tabular(cast(temp, essence + races ~ method_opts2 , 
               c(longNamedFuncbl, mean,sd,min, max), 
-         margins=TRUE, fill=NA))
+         margins=FALSE, fill=NA))
   
 }
 

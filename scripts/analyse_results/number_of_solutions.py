@@ -70,7 +70,7 @@ with open(fp) as f:
 		pcount, scount, acount))
 
 
-	print("% differences using various techniques")
+	print("% error using various techniques")
 	methods=[statistics.mean, statistics.stdev, statistics.variance, min, max]
 	print(("{:>9} " * (len(methods) + 1)).format("", *[m.__name__ for m in methods] ))
 
