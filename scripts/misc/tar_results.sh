@@ -30,7 +30,7 @@ EOF
 
 Stats=$( cat <<EOF
 echo "taring stats" &&
-find . -maxdepth 1 -name '*{/.}*' ! \( -name "*.minion" -o -name "*.eprime-param" \) \
+find . -maxdepth 1 -name '*{/.}*' ! \( -name "*.minion" -o -name "*.eprime-param" -o -name "*.errors" \) \
 	|  tar -czf ${Tar_dir}/{/.}.stats.tar.gz --files-from -
 EOF
 )
@@ -45,13 +45,13 @@ EOF
 
 Remove=$( cat <<EOF
 echo "removing" &&
-	find . -maxdepth 1 -name '*{/.}*' ! \( -name 'p-{/.}*.finished' \) -delete
+	find . -maxdepth 1 -name '*{/.}*' ! \( -name '*.finished' -o -name "*.errors" \) -delete
 EOF
 )
 
 
-parallel -j"${NUM_JOBS}" --tagstring "finding finished {/.}" 'find . -maxdepth 1 -name "*{/.}*.zfinished " > p-{/.}.finished' ::: ../params/*
-find . -name 'p-*.finished' -empty -delete
+parallel -j"${NUM_JOBS}" --tagstring "finding finished {/.}" 'find . -maxdepth 1 -name "*{/.}*.zfinished " > p{/.}.finished' ::: ../params/*
+find . -name '*.finished' -empty -delete
 
 parallel -j"${NUM_JOBS}" --tagstring "{/.}" "$Params" ::: ../params/*
 
