@@ -48,9 +48,11 @@ MSG_TEMPLATE="$ESSENCE `basename ${EPRIME}` $PARAM_NAME"
 TIME_TEMPLATE="${EPRIMEBASE}-${PARAMBASE}.time"
 
 FAIL_FILE="${EPRIMEBASE}.fails"
+PARAM_ERROR_FILE="`dirname ${EPRIMEBASE}`/p-${PARAMBASE}.errors"
+echo "PARAM_ERROR_FILE is $PARAM_ERROR_FILE"
 
 echo "TIMEOUT5_FILE is ${TIMEOUT5_FILE}"
-CPUTIMEOUT="${SCRIPT_DIR}/../tools/cputimeout/cputimeout --timeout-file $TIMEOUT5_FILE --interval 1 -k1"
+CPUTIMEOUT="${SCRIPT_DIR}/../tools/cputimeout/cputimeout --timeout-file $TIMEOUT5_FILE --interval 1 -k1 --preserve-status"
 
 PREVIOUS_USED=0
 
@@ -92,8 +94,20 @@ conjure                                                            \
     --out-eprime-param $EPRIME_PARAM;
 
 RESULTOF_REFINEPARAM=$?
+echo "~~~ RESULTOF_REFINEPARAM ${RESULTOF_REFINEPARAM}"
 
 date +'finP %a %d %b %Y %k:%M:%S %z%nfinP(timestamp) %s' >&2
+
+# if result > 128, it was killed by sig (result - 128)
+if (( RESULTOF_REFINEPARAM != 0 )) ; then
+    echo "$MSG_REFINEPARAM" >> "$FAIL_FILE"
+
+    if (( RESULTOF_REFINEPARAM < 128  )); then
+        echo "$MSG_REFINEPARAM" >> "$PARAM_ERROR_FILE"
+    fi
+
+    exit 1
+fi
 
 if [ ! -f $EPRIME_PARAM ]; then
     echo "$MSG_REFINEPARAM" >> "$FAIL_FILE"
@@ -102,7 +116,7 @@ fi
 
 update_total_time ${TOTAL_TIMEOUT} ${REFINE_TIME}
 
-if (( $RESULTOF_REFINEPARAM != 0 || $TOTAL_TIMEOUT <= 0 )) ; then
+if (( TOTAL_TIMEOUT <= 0 )) ; then
     echo "$MSG_REFINEPARAM" >> "$FAIL_FILE"
     exit 1
 fi
@@ -135,10 +149,22 @@ savilerow $TOTAL_TIMEOUT -mode Normal \
     -out-minion   $MINION       \
     -boundvars;
 
+RESULTOF_SAVILEROW=$?
+echo "~~~ RESULTOF_SAVILEROW ${RESULTOF_SAVILEROW}"
+
+
 date +'finSR %a %d %b %Y %k:%M:%S %z%nfinSR(timestamp) %s' >&2
 
 
-RESULTOF_SAVILEROW=$?
+if (( RESULTOF_SAVILEROW != 0 )) ; then
+    echo "$MSG_SAVILEROW" >> "$FAIL_FILE"
+
+    if (( RESULTOF_SAVILEROW < 128  )); then
+        echo "$MSG_SAVILEROW" >> "$PARAM_ERROR_FILE"
+    fi
+
+    exit 1
+fi
 
 if [ ! -f $MINION ]; then
     echo "$MSG_SAVILEROW" >> "$FAIL_FILE"
@@ -147,7 +173,7 @@ fi
 
 update_total_time ${TOTAL_TIMEOUT} ${SAVILEROW_TIME}
 
-if (( $RESULTOF_SAVILEROW != 0 || $TOTAL_TIMEOUT <= 0 )) ; then
+if (( $TOTAL_TIMEOUT <= 0 )) ; then
     echo "$MSG_SAVILEROW" >> "$FAIL_FILE"
     exit 1
 fi
@@ -169,12 +195,16 @@ minion $MINION  \
     -preprocess SACBounds \
     -tableout $MINION_TABLE \
     -solsout  $MINION_SOLUTION
+RESULTOF_MINION=$?
+echo "~~~ RESULTOF_MINION ${RESULTOF_MINION}"
 date +'finMINION %a %d %b %Y %k:%M:%S %z%nfinMINION(timestamp) %s' >&2
 
 
-RESULTOF_MINION=$?
+
 if (( $RESULTOF_MINION != 0 )) ; then
     echo "$MSG_MINION" >> "$FAIL_FILE"
+    #FIXME can param be invaild at this point?
+    # echo "$MSG_MINION" >> "$PARAM_ERROR_FILE"
     exit 1
 fi
 

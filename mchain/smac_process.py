@@ -174,7 +174,12 @@ param_path = str(new_param_path)
 
 chain_lib.run_models(now, param_path, per_model_time, working_dir_s, output_dir_s, mode, ordering)
 
-results = chain_lib.get_results(working_dir_s, output_dir_s, param_hash, per_model_time, now, mode)
+try:
+	pass
+	results = chain_lib.get_results(working_dir_s, output_dir_s, param_hash, per_model_time, now, mode)
+except Exception as e:
+	logger.error("Failed to get results %s", e)
+	results = []
 
 timefile = (output_dir / ("stats-" + mode) / str(now)).with_suffix(".total_solving_time")
 logger.info("timefile %s" % (timefile))
@@ -183,8 +188,9 @@ with timefile.open() as f:
 
 
 if len(results) != 6:
+	logger.error("Failed to get results tuple %s", e)
 	quality = 500  # for example SR where statement
-	our_quality = 1
+	our_quality = 2
 	result_kind ="SAT"
 else:
 	our_quality = chain_lib.quality(*results)
