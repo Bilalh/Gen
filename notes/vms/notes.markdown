@@ -7,7 +7,9 @@ img {
 </style>
 
 
-password:instancegen1#
+old password:instancegen1#
+password:instancegen1#models$CP!2014
+
 ![setup](Screen%20Shot%202014-02-10%20at%2020.18.52.png)
 takes at lest 10 minutes to create a vm
 
@@ -25,7 +27,7 @@ https://manage.windowsazure.com
 ssh into vm
 
 	ssh azureuser@instancegen1.cloudapp.net
-	azureuser@instancegen1.cloudapp.net's password:instancegen1#
+	azureuser@instancegen1.cloudapp.net's password:
 
 	azureuser@instancegen:~$ pwd
 	/home/azureuser
@@ -226,6 +228,47 @@ To get the disk id use   (Documention is wrong)
 sudo chown azureuser
 
 
+
+# only allowing access by ssh key
+
+sudo vim  /etc/ssh/sshd_config
+
+change `PasswordAuthentication`  to `PasswordAuthentication no`
+
+reload ssh
+	service ssh reload
+
+
+
+# block hosts from bute forcing password
+
+This will allow at most 3 connections per minute per host, and will block the host for another minute if this rate is exceeded.
+
+	iptables -A INPUT -p tcp --dport 22 -m state --state NEW -m recent --set --name SSH -j ACCEPT
+	iptables -A INPUT -p tcp --dport 22 -m recent --update --seconds 60 --hitcount 4 --rttl  --name SSH -j LOG --log-prefix "SSH_brute_force "
+	iptables -A INPUT -p tcp --dport 22 -m recent --update --seconds 60  --hitcount 4 --rttl --name SSH -j DROP
+
+
+
+# mount an pre-existing disk
+
+run `sudo grep SCSI /var/log/syslog` to the disk id  `sdd` in this case
+
+	azureuser@instancegen4:~$ sudo grep SCSI /var/log/syslog
+	Mar 24 19:47:52 instancegen4 kernel: [406903.746536] sd 5:0:0:1: [sdd] Attached SCSI disk
+
+
+make a directory for the disk
+
+	sudo mkdir /minionsdrive
+
+mount the disk
+
+sudo mount /dev/sdd1 /minionsdrive
+
+to unmount the disk later
+
+	sudo umount /minionsdrive
 
 
 
