@@ -10,6 +10,9 @@ Running ppps:
   <method> cpu 0  -pre_generate=true
   only finds all solutions
 
+  should time to get the solution from the minion file be counted
+  this can take up to a minute on 30GB+ minion solution file
+
  prob013-PPP-8-5-12:
    (n_upper, n_boats, n_periods)
 
@@ -22,8 +25,10 @@ Running ppps:
      Would like  20 iterations of at alest a minute
      take ~ 15h (12 *2 * 5  / 8 cores)
 
-     ☐ all-solutions on uniform
-     ☐ minion random on uniform
+     ✔ all-solutions on uniform @done (14-03-23 22:22)
+     ✔ minion random on uniform @done (14-03-23 22:22)
+     ✔ smac @done (14-03-23 22:22)
+     ✔  all-solutions  nsample @done (14-03-23 22:22)
      ☐ approx idea on uniform
 
 

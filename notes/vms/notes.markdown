@@ -223,7 +223,7 @@ To get the disk id use   (Documention is wrong)
 [sdc] is the id of the disk
 
 
-
+sudo chown azureuser
 
 
 
