@@ -36,6 +36,10 @@ while read line line_outdir mode method eprimes ; do
 
 	echo "${line}" >> "${out_dir}/${method}.txt"
 
+	if [ -n "${ESSENCE_PARAM_ONLY:-}"  ]; then
+	 continue
+	fi
+
 	local stat_tar="$(find "${line_outdir}" -type f -path "*${essence_name}*"  -name "${line}.stats.tar.gz")"
 	local param_tar="$(find "${line_outdir}" -type f -path "*${essence_name}*"  -name "${line}.params.tar.gz")"
 	local minion_tar="$(find "${line_outdir}" -type f -path "*${essence_name}*"  -name "${line}.minions.tar.gz")"
@@ -73,7 +77,6 @@ while read line line_outdir mode method eprimes ; do
 		fi
 
 		popd
-		exit 4
 	}
 	export essence_name
 	export essence_dir

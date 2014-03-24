@@ -2,7 +2,9 @@ our_path <- "~/CS/instancegen/scripts/analyse_results"
 source( paste(our_path, "setup.r", sep='/'), chdir=TRUE)
 
 get_discriminating_params <- function(essence_name){
-  st.idx <- sall[sall$essence==essence_name, ]$index
+  a<-sall[sall$essence==essence_name, ]
+#   a<-a[a$method!='smac', ]
+  st.idx <- a$index
   st.params <- every_param[every_param$index %in% st.idx, ]
   st.params <- st.params[ st.params$quality != 1,  ]
   
@@ -57,13 +59,13 @@ save_names <- function(essence, st.params, suffix="", dirname='params', limit=3)
 }
         
 ems <- unique( sall[ c('essence', 'method') ] )
- 
+
 for (i  in 1:length(ems$essence) ){
   save_names( ems[i,]$essence, get_discriminating_params_by_method(ems[i,]$essence,  ems[i,]$method ), 
               paste0("-",ems[i,]$method))
 }
 
 for (u  in  unique(sall$essence) ){
-  save_names(u, get_discriminating_params(u), dirname="params_all_methods", limit=10 )
+  save_names(u, get_discriminating_params(u), dirname="params_all_methods", limit=30 )
 }
 
