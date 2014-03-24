@@ -6,7 +6,7 @@
 Usage:
    ksample (iterations|time|cpu) <limit>
    ( --num_points=<int>  --influence_radius=<int> --essence=<file> --models_timeout=<int> --point_selector=<first!halving!halving_3_4> --info=<file>)
-   [ --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str> --radius_as_percentage=<bool> --use_minion=<bool>]
+   [ --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str> --radius_as_percentage=<bool> --use_minion=<bool> --pre_generate=<bool> --generated_dir=<dir>]
    ksample json <file>
 
 `time <limit>` is the total time the program can take.
@@ -25,6 +25,9 @@ Options:
   --point_selector=<first!halving!halving_3_4>  Method to pick the next point
   --info=<file>                                 Files that contains the ordering of the variable
   --use_minion=<bool>                           Uses Minion to generate params [default: false]
+  --pre_generate=<bool>                         When using minion, genrate all solution once and pick from them [default: false]
+  --generated_dir=<dir>                         Directory to place all solutions, specs, which can be reused between runs
+
 """
 
 from lib import chain_lib
@@ -41,7 +44,9 @@ import logging
 import random
 
 logger = logging.getLogger(__name__)
-Settings=namedtuple('Settings', ['num_points', 'seed', 'mode', 'models_timeout', "essence", "working_dir", "output_dir", "limit", "influence_radius", "radius_as_percentage", "use_minion"])
+Settings=namedtuple('Settings', ['num_points', 'seed', 'mode', 'models_timeout', "essence", "working_dir", "output_dir",
+                                 "limit", "influence_radius", "radius_as_percentage", "use_minion",
+                                 "generated_dir", "pre_generate"])
 
 
 class KSample(method.Method):
