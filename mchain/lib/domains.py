@@ -339,6 +339,23 @@ class Set(Domain):
         raise NotImplementedError()
 
 
+class Rel(Domain):
+    """Domain for relation, which maybe nested"""
+    def __init__(self, inner_dom, *, size=None):
+        super(Rel, self).__init__()
+        self.inner_dom = inner_dom
+        self.size = size
+
+    def random_value(self, selected_vals):
+        raise NotImplementedError()
+
+    def within_radius_dom(self, selected_vals, instance, radius):
+        raise NotImplementedError()
+
+    def reconstruct_for_smac(self, selected_vals, kv):
+        raise NotImplementedError()
+
+
 class Ref():
     """Refences to another var"""
     def __init__(self, name):
@@ -353,6 +370,7 @@ class Ref():
 
     def __repr__(self):
         return "Ref(name={})".format(self.name)
+
 
 
 class InvaildValueException(Exception):
@@ -419,8 +437,11 @@ def get_relation_domain(data):
 
     doms_data = jmatch(rel[1],    'inners', 'domain')
 
+    inner_dom = [ domain_dispacher(dom['tag'], dom) for dom in doms_data ]
 
-    raise NotImplementedError()
+    # FIXME relation attrs
+    assert len(atts_names) == 0
+    return Rel(inner_dom)
 
 
 def get_tuple_domain(data):

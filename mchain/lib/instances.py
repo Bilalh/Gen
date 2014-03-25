@@ -185,6 +185,85 @@ class Set(Instance):
         return Set(values, pretty, safe)
 
 
+@functools.total_ordering
+class Tuple(Instance):
+    def __init__(self, point, pretty, safe):
+        super(Tuple, self).__init__(point, pretty, safe)
+
+    def distance(self, other_dom):
+        "  distance between the two domains, for use in euclidean "
+
+        def f(x1, x2):
+            if x1 is None or x2 is None:
+                return 0
+            else:
+                return x1.distance(x2) ** 2
+
+
+        parts = [ f(x1, x2) for (x1, x2) in it.zip_longest(self.point, other_dom.point) ]
+        return sum(parts)
+
+    @classmethod
+    def from_json_dict(cls, d):
+
+
+        values_dom = jmatch(d, 'tuple', 'values', 'value')
+
+        values = [ json_instance_dispatcher(v_dom) for v_dom in values_dom ]
+
+        resulting=[ (v.pretty, v.safe) for v in values ]
+        if resulting:
+            (pretty, safe) = zip(*resulting)
+        else:
+            (pretty, safe) = ("", "")
+
+        pretty = "tuple(%s)" % ", ".join(pretty)
+        safe = "T__{}__".format(",".join(safe) )
+
+        return Tuple(values, pretty, safe)
+
+
+@functools.total_ordering
+class Rel(Instance):
+    def __init__(self, point, pretty, safe):
+        super(Rel, self).__init__(point, pretty, safe)
+
+    def distance(self, other_dom):
+        "  distance between the two domains, for use in euclidean "
+        #Like function ignore values in the larger one
+
+        def f(x1, x2):
+            if x1 is None or x2 is None:
+                return 0
+            else:
+                return x1.distance(x2) ** 2
+
+
+        parts = [ f(x1, x2) for (x1, x2) in it.zip_longest(self.point, other_dom.point) ]
+        return sum(parts)
+
+    @classmethod
+    def from_json_dict(cls, d):
+
+
+        values_dom = jmatch(d, 'relation', 'values', 'value')
+
+        values = [ json_instance_dispatcher(v_dom) for v_dom in values_dom ]
+
+        resulting=[ (v.pretty, v.safe) for v in values ]
+        if resulting:
+            (pretty, safe) = zip(*resulting)
+        else:
+            (pretty, safe) = ("", "")
+
+        pretty = "relation(%s)" % ", ".join(pretty)
+        safe = "R__{}__".format(",".join(safe) )
+
+
+        return Rel(values, pretty, safe)
+
+
+
 def create_param_essence(essence_file, output_dir):
     """ Create a essence spec of the params then refine it """
 
@@ -354,7 +433,9 @@ def json_instance_dispatcher(kind):
     dispatch ={
     "function": Func.from_json_dict,
     "literal": process_literal,
-    "set": Set.from_json_dict
+    "set": Set.from_json_dict,
+    "relation": Rel.from_json_dict,
+    "tuple": Tuple.from_json_dict
     }
 
     instance = dispatch[kind['tag']](kind)
