@@ -282,10 +282,26 @@ class Method(metaclass=ABCMeta):
         logger.info('solution_path %s line_index %d', solution_path, line_index)
 
         all_sol_path = os.path.join("all_sols", solution_path)
+
+
+        if os.path.exists(all_sol_path + "0" * 10):
+            logger.info("Using split files for %d %s", line_index, solution_path)
+            # command used split them (need gsplit on mac)
+            # parallel -j8  "split -d -a10 -l 1000000 {} {}. " ::: *.minion-solution
+            # numbed from 0000000000
+
+            # since there are 1000000 lines in the file
+            file_index = (line_index -1) // 1000000
+            if line_index == 1000000:
+                line_index = 0
+            else:
+                line_index = line_index % 1000000
+
+            all_sol_path += ".%010d" % file_index
+
+
         sol_line = subprocess.check_output(["sed", "{}q;d".format(line_index), all_sol_path ],
             universal_newlines=True, cwd=self.generated_dir)
-
-        # todo use line_index or u at the end?
 
 
         p = Path(self.specific_dir) / solution_path
