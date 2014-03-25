@@ -107,7 +107,9 @@ def invaild_param(cpu_time_start, runtime):
 	logger.info("smac_process cpu_time {}".format(our_cpu_time))
 	runtime += our_cpu_time
 
-	logger.info("Final Result for ParamILS: {}, {}, {}, {}, {}\n".format(
+	logger.info("Returning Final Result for ParamILS: {}, {}, {}, {}, {}\n".format(
+		result_kind, runtime, runlength, quality, seed))
+	print("Final Result for ParamILS: {}, {}, {}, {}, {}\n".format(
 		result_kind, runtime, runlength, quality, seed))
 	sys.exit(0)
 
@@ -159,7 +161,7 @@ param_hash = chain_lib.hash(param_name)
 param_path = chain_lib.write_param(  str(params_dir_tmp_dir), param_string, param_hash)
 
 (vaild, vaild_time) = chain_lib.vaildate_param_for_essence(essence + ".givens", param_path, cutoff_time)
-logger.info((vaild, vaild_time))
+logger.info("vaild:%s, vaildation_time:%s ", vaild, vaild_time)
 
 runtime += vaild_time
 
@@ -221,6 +223,8 @@ logger.info("smac_process cpu_time {}".format(our_cpu_time))
 runtime += our_cpu_time
 
 runlength=0
+logger.info("Returning Final Result for ParamILS: {}, {}, {}, {}, {}\n".format(
+		result_kind, runtime, runlength, quality, seed))
 print("Final Result for ParamILS: {}, {}, {}, {}, {}\n".format(
 	result_kind, runtime, runlength, quality, seed))
 

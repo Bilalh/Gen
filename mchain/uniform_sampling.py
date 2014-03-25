@@ -54,6 +54,7 @@ class UniformSampling(method.Method):
             return
         # picked = (4, 1)
         logger.info("Picked %s", picked)
+        self.data_points.append(picked)
         self.create_run_param_and_store_quality(picked)
 
 
