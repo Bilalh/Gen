@@ -10,6 +10,7 @@ import sys
 import time
 import hashlib
 
+from pathlib import Path
 from pprint import pprint
 import shutil
 
@@ -140,6 +141,20 @@ def get_results(working_dir, output_dir, param_hash, time_per_model, then, mode)
     subprocess.Popen([wrappers("run_gather.sh"), param_hash, working_dir], env=current_env).communicate()
     conn = sqlite3.connect(os.path.join(output_dir, 'results.db'))
     # conn.row_factory = sqlite3.Row
+
+    sys.stdout.flush()
+    sys.stderr.flush()
+
+    err_path=list(Path(output_dir).glob("results*/p-%s.errors" % param_hash))
+    if err_path:
+        err_path=err_path[0]
+        logger.error("ERRORS for %s", param_hash)
+
+        with err_path.open() as f:
+            logger.error(f.read())
+
+        logger.error("ERRORS for %s", param_hash)
+        sys.exit(47)
 
     results = [
         sum(x) for x in zip(*conn.execute(

@@ -285,7 +285,7 @@ class Method(metaclass=ABCMeta):
         all_sol_path = os.path.join("all_sols", solution_path)
 
 
-        if os.path.exists(all_sol_path + "0" * 10):
+        if os.path.exists("{}.{:010d}".format(all_sol_path, 0)):
             logger.info("Using split files for %d %s", line_index, solution_path)
             # command used split them (need gsplit on mac)
             # parallel -j8  "split -d -a10 -l 1000000 {} {}. " ::: *.minion-solution
@@ -300,7 +300,8 @@ class Method(metaclass=ABCMeta):
 
             all_sol_path += ".%010d" % file_index
             logger.info('new solution_path line_index %d @ %s', line_index, all_sol_path)
-
+        else:
+            logger.warning('%s, is not split', solution_path)
 
         sol_line = subprocess.check_output(["sed", "{}q;d".format(line_index), all_sol_path ],
             universal_newlines=True, cwd=self.generated_dir)
