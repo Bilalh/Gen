@@ -3,6 +3,7 @@
 
 from lib import chain_lib
 from lib import domains
+from lib import instances
 from lib.option_handing import Info
 
 from pathlib import Path
@@ -120,6 +121,7 @@ def create_param_values():
 	logger.info(pformat(raw_params))
 
 	domains.setup_domain(False)
+	instances.setup_instances(False)
 	param_info = domains.gather_param_info(essence, output_dir_s)
 
 

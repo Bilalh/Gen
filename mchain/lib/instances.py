@@ -41,7 +41,10 @@ class Instance(metaclass=ABCMeta):
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
 
     def __eq__(self, other):
-        self.pretty == other.pretty
+        return self.pretty == other.pretty
+
+    def __hash__(self):
+        return hash(self.pretty)
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -96,9 +99,57 @@ class TypeInt(Instance):
 
 
 @functools.total_ordering
-class Func(Instance):
+class FuncMinion(Instance):
     def __init__(self, point, pretty, safe):
-        super(Func, self).__init__(point, pretty, safe)
+        super(FuncMinion, self).__init__(point, pretty, safe)
+
+    def distance(self, other_dom):
+        "  distance between the two domains, for use in euclidean "
+        if not isinstance(other_dom, self.__class__):
+            raise ValueError("other dom must of %s" % self.__class__.__name__)
+
+        logger.info("self %s other %s", self.pretty, other_dom.pretty)
+        logger.info("self %s other %s", self.point,  other_dom.point)
+
+        def f(x1, x2):
+            if x1 is None or x2 is None:
+                return 0
+            else:
+                res = x1[1].distance(x2[1])  # FIXME distance
+                logger.info("Finding distance btween %s, %s  res:%s", x1[1].pretty, x2[1].pretty, res)
+                return res
+
+        parts = [ f(x1, x2) for (x1, x2) in it.zip_longest( sorted(self.point.items()), sorted(other_dom.point.items())) ]
+        logger.debug("functin dist parts %s", parts)
+
+        return sum(parts)
+
+    def __lt__(self, other):
+        return self.point.items().__lt__(other.point.items())
+
+    @classmethod
+    def from_json_dict(cls, dom):
+        mappings = jmatch(dom, "function", "values" )
+
+        def f(mapping):
+            [a, b] = [ json_instance_dispatcher(v) for v in jmatch(mapping, "mapping", "value") ]
+            return (a, b)
+
+        res = dict([ f(m) for m in mappings ])
+
+        kv = [ "{} --> {}".format(k.pretty, v.pretty) for (k, v) in sorted(res.items()) ]
+        pretty = "function( {} )".format( ", ".join(kv) )
+
+        kv_safe = [ "{}_{}".format(k, v.safe) for (k, v) in sorted(res.items()) ]
+        safe = "F__{}__".format( ",".join(kv_safe) )
+
+        return FuncMinion(res, pretty, safe)
+
+
+@functools.total_ordering
+class FuncTotalIntToInt(Instance):
+    def __init__(self, point, pretty, safe):
+        super(FuncTotalIntToInt, self).__init__(point, pretty, safe)
 
     def distance(self, other_dom):
         "  distance between the two domains, for use in euclidean "
@@ -143,7 +194,7 @@ class Func(Instance):
 
         kv_safe = [ "{}_{}".format(k, v.safe) for (k, v) in sorted(func.items()) ]
         safe = "F__{}__".format( ",".join(kv_safe) )
-        return Func(point=func, pretty=pretty, safe=safe)
+        return FuncTotalIntToInt(point=func, pretty=pretty, safe=safe)
 
 
 
@@ -262,6 +313,16 @@ class Rel(Instance):
 
         return Rel(values, pretty, safe)
 
+
+Func = None
+
+
+def setup_instances(use_minion):
+    global Func
+    if use_minion:
+        Func = FuncMinion
+    else:
+        Func = FuncTotalIntToInt
 
 
 def create_param_essence(essence_file, output_dir):

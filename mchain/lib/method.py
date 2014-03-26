@@ -56,6 +56,7 @@ class Method(metaclass=ABCMeta):
         os.makedirs(self.output_dir, exist_ok=True)
 
         domains.setup_domain(use_minion=options['use_minion'])
+        instances.setup_instances(use_minion=options['use_minion'])
 
         for fp in ["info", "params"]:
             os.makedirs(os.path.join(self.output_dir, fp), exist_ok=True)
@@ -298,6 +299,7 @@ class Method(metaclass=ABCMeta):
                 line_index = line_index % 1000000
 
             all_sol_path += ".%010d" % file_index
+            logger.info('new solution_path line_index %d @ %s', line_index, all_sol_path)
 
 
         sol_line = subprocess.check_output(["sed", "{}q;d".format(line_index), all_sol_path ],
