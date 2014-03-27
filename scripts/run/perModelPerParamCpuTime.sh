@@ -102,7 +102,8 @@ date +'finP %a %d %b %Y %k:%M:%S %z%nfinP(timestamp) %s' >&2
 if (( RESULTOF_REFINEPARAM != 0 )) ; then
     echo "$MSG_REFINEPARAM" >> "$FAIL_FILE"
 
-    if (( RESULTOF_REFINEPARAM < 128  )); then
+    # exit code 2 seem to be stack overflow
+    if (( RESULTOF_REFINEPARAM < 128 && RESULTOF_REFINEPARAM != 2  )); then
         echo "$MSG_REFINEPARAM" >> "$PARAM_ERROR_FILE"
     fi
 
