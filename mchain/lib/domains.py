@@ -454,7 +454,7 @@ def get_tuple_domain(data):
 
 def get_typeInt_domain(data):
     # FIXME how to specify more data
-    return TypeInt( (1, 20))
+    return TypeInt( (1, 5))
 
 
 def get_int_domain(data):

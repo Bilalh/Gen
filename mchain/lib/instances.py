@@ -211,7 +211,7 @@ class Set(Instance):
             if x1 is None or x2 is None:
                 return 0
             else:
-                return x1.distance(x2) ** 2
+                return x1.distance(x2)
 
 
         parts = [ f(x1, x2) for (x1, x2) in it.zip_longest(self.point, other_dom.point) ]

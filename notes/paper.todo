@@ -1,57 +1,103 @@
 ✔ Write basic abstract @done (14-03-20 16:25)
+ ☐ copy ppp-3-10-20 from ig4 or hardive of c1
+    happen becasue doing rm -rf goes into sym links dirs
 
-☐ Make sections
-☐
+PPP:
+prob013-PPP-3-10-20
+
+  ✔ uniform  all @done (14-03-27 02:59)
+  ✔ smac @done (14-03-27 02:59)
+  ☐ uniform minion
+  ☐ nsample minion
+  ☐ nsample all
+  ☐ ksample all
+  ☐ ksample minion
+
+  uniform found  these param with only 16/256 models left
+
+  $ unsat
+  language Essence 1.3
+
+  letting n_upper be 3
+  letting n_boats be 10
+  letting n_periods be 17
+  letting capacity be
+          function(1 --> 3, 2 --> 3, 3 --> 3, 4 --> 3, 5 --> 3, 6 --> 3, 7 --> 3, 8 --> 2,
+                   9 --> 2, 10 --> 3)
+  letting crew be
+          function(1 --> 1, 2 --> 3, 3 --> 1, 4 --> 2, 5 --> 1, 6 --> 3, 7 --> 2, 8 --> 1,
+                   9 --> 1, 10 --> 1)
+
+    /Users/bilalh/Desktop/Experiment/all_sols/prob013-PPP-3-10-20/uniform_all_iter30/results/uniform/prob013-PPP-3-10-20/out-30-0-8__2_True_True/params/889c868f30c788c567681b08aa050bf48d1f51124fe15957f4f7a47b49628876dca924783838a7a8e8209aa318913b66a39fcf0428480bffbceffda7366bb156.param
+
+  and
+
+  $ sat
+  language Essence 1.3
+
+  letting n_upper be 3
+  letting n_boats be 10
+  letting n_periods be 9
+  letting capacity be
+          function(1 --> 3, 2 --> 3, 3 --> 2, 4 --> 3, 5 --> 3, 6 --> 2, 7 --> 3, 8 --> 3,
+                   9 --> 2, 10 --> 2)
+  letting crew be
+          function(1 --> 2, 2 --> 2, 3 --> 1, 4 --> 2, 5 --> 1, 6 --> 1, 7 --> 2, 8 --> 1,
+                   9 --> 1, 10 --> 1)
+
+  /Users/bilalh/Desktop/Experiment/all_sols/prob013-PPP-3-10-20/uniform_all_iter30/results/uniform/prob013-PPP-3-10-20/out-30-0-8__2_True_True/params/fd4a490b586b627c9ba5875a831b5790b8b43dec4f9f5d82380da82972432eef702418d64f5eb632315a17d5e0cddb25f2f555b924fa0aa626fb5e5973ca6922.param
 
 
-Running ppps:
+Old:
 
-  <method> iterations 0  -pre_generate=true
-  <method> cpu 0  -pre_generate=true
-  only finds all solutions
+  Running ppps:
 
-  should time to get the solution from the minion file be counted
-  this can take up to a minute on 30GB+ minion solution file
+    <method> iterations 0  -pre_generate=true
+    <method> cpu 0  -pre_generate=true
+    only finds all solutions
 
- prob013-PPP-8-5-12:
-   (n_upper, n_boats, n_periods)
+    should time to get the solution from the minion file be counted
+    this can take up to a minute on 30GB+ minion solution file
 
-   23GB for all solutions  1,023,171,216 in total
+   prob013-PPP-8-5-12:
+     (n_upper, n_boats, n_periods)
 
-   using 12h @ 5 races gives a maximum of 30s to each of the 256 models
+     23GB for all solutions  1,023,171,216 in total
 
-   Compare:
+     using 12h @ 5 races gives a maximum of 30s to each of the 256 models
 
-     Would like  20 iterations of at alest a minute
-     take ~ 15h (12 *2 * 5  / 8 cores)
+     Compare:
 
-     ✔ all-solutions on uniform @done (14-03-23 22:22)
-     ✔ minion random on uniform @done (14-03-23 22:22)
-     ✔ smac @done (14-03-23 22:22)
-     ✔  all-solutions  nsample @done (14-03-23 22:22)
-     ☐ approx idea on uniform
+       Would like  20 iterations of at alest a minute
+       take ~ 15h (12 *2 * 5  / 8 cores)
 
-
- bias:
-   % error of uniformity by using various techniques
-                  mean     stdev  variance       min       max
-   even         3.0909    5.4891   30.1305    0.3264   34.8236
-   approx       0.4766    1.5224    2.3177    0.0000    7.9604
+       ✔ all-solutions on uniform @done (14-03-23 22:22)
+       ✔ minion random on uniform @done (14-03-23 22:22)
+       ✔ smac @done (14-03-23 22:22)
+       ✔  all-solutions  nsample @done (14-03-23 22:22)
+       ☐ approx idea on uniform
 
 
+   bias:
+     % error of uniformity by using various techniques
+                    mean     stdev  variance       min       max
+     even         3.0909    5.4891   30.1305    0.3264   34.8236
+     approx       0.4766    1.5224    2.3177    0.0000    7.9604
 
- ppps-5-4-14:
-   nsample i4:
-     ✔ all-sols @done (14-03-20 16:29)
-     ☐ minion random @started
-   uniform:
-     ☐ all-sols @started
-     ☐ minion random
 
-  ppps_small:
-    ✔ nsample i4 @done (14-03-20 16:27)
-    ✔ nsample i10 @done (14-03-20 16:27)
-    ✔ uniform @done (14-03-20 16:28)
-    directly @done (14-03-20 16:28)
-      nsample_i4
-      uniform
+
+   ppps-5-4-14:
+     nsample i4:
+       ✔ all-sols @done (14-03-20 16:29)
+       ☐ minion random @started
+     uniform:
+       ☐ all-sols @started
+       ☐ minion random
+
+    ppps_small:
+      ✔ nsample i4 @done (14-03-20 16:27)
+      ✔ nsample i10 @done (14-03-20 16:27)
+      ✔ uniform @done (14-03-20 16:28)
+      directly @done (14-03-20 16:28)
+        nsample_i4
+        uniform
