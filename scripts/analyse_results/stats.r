@@ -70,11 +70,11 @@ old_width <- getOption("width")
 options(width=2000)
 
 sink(paste(base, "stats_by_method.txt", sep='/'),split=TRUE)
-lapply( unique(m2$method), per_method)
+lapply( sort(unique(m2$method)), per_method)
 sink(NULL)
 
 sink(paste(base, "stats_by_essence.txt", sep='/'),split=TRUE)
-lapply( unique(m2$essence), per_essence)
+lapply( sort(unique(m2$essence)), per_essence)
 sink(NULL)
 
 options(width=old_width)
