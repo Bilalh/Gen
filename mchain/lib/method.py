@@ -284,9 +284,9 @@ class Method(metaclass=ABCMeta):
 
         all_sol_path = os.path.join("all_sols", solution_path)
 
-        logger.info("all_sol_path", all_sol_path)
+        logger.info("all_sol_path %s", all_sol_path)
         split_test="{}.{:010d}".format(all_sol_path, 0)
-        logger.info("all_sol_path split_test ", split_test)
+        logger.info("all_sol_path split_test %s", split_test)
         if os.path.exists(split_test):
             logger.info("Using split files for %d %s", line_index, solution_path)
             # command used split them (need gsplit on mac)
