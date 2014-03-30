@@ -287,7 +287,7 @@ class Method(metaclass=ABCMeta):
         logger.info("all_sol_path %s", all_sol_path)
         split_test="{}.{:010d}".format(all_sol_path, 0)
         logger.info("all_sol_path split_test %s", split_test)
-        if (Path(self.generated_dir) / all_sol_path).exists():
+        if (Path(self.generated_dir) / split_test).exists():
             logger.info("Using split files for %d %s", line_index, solution_path)
             # command used split them (need gsplit on mac)
             # parallel -j8  "split -d -a10 -l 1000000 {} {}. " ::: *.minion-solution
