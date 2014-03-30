@@ -13,11 +13,11 @@ function count_lines(){
 	if [ "$(uname)" == "Darwin" ]; then
 		statf='-f %z'
 	else
-		statf='--printf "%s'
+		statf='--printf %s'
 	fi
 	head -n1 ${sol} > ${head_file}
-	oneline="`stat ${statf} ${head_file} `"
-	alllines="`stat ${statf} ${sol} `"
+	oneline="`stat ${statf} ${head_file}`"
+	alllines="`stat ${statf} ${sol}`"
 	#echo ${oneline} ${alllines}
 
 	printf "%15d %s\n" $((alllines/oneline)) ${sol}
