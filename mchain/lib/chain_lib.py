@@ -154,7 +154,7 @@ def get_results(working_dir, output_dir, param_hash, time_per_model, then, mode)
             logger.error(f.read())
 
         logger.error("ERRORS for %s", param_hash)
-        sys.exit(47)
+        raise ParamInvaildExeception("invaild param {}".format(param_hash))
 
     results = [
         sum(x) for x in zip(*conn.execute(
@@ -164,6 +164,10 @@ def get_results(working_dir, output_dir, param_hash, time_per_model, then, mode)
             (param_hash,)
     ))]
     return results
+
+
+class ParamInvaildExeception(Exception):
+    pass
 
 
 def save_quality(output_dir, param_name, param_hash, quality):
