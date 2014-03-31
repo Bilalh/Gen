@@ -11,12 +11,13 @@ parser.add_argument("csvfile", help='With a column for each find & `solution`: t
 # args = parser.parse_args()
 # fp = args.csvfile
 
-fp="/Users/bilalh/Desktop/counts.csv"
+# fp="/Users/bilalh/Desktop/counts.csv"
 # fp="/Users/bilalh/Desktop/counts_no_where.csv"
+fp="/Users/bilalh/Desktop/aaa.csv"
 
 
 def approx_calucation(d):
-	res =(d['n_upper'] ** d['n_boats']) ** 2 * d['n_periods_max']
+	res = (d['n_warehouses'] ** d['n_upper']) ** 2 * (  (d['n_warehouses'] * d['n_stores']) ** d['n_upper']  ) ** 2
 	return res
 
 
@@ -55,14 +56,14 @@ with open(fp) as f:
 	print((fmt_str +
 			" {solutions:>13} {sols_p:>9}"
 			" {even_p:>9} {even_p_diff:>9}"
-			" {approx_p:>9} {approx_p_diff:>15}")
+			" {approx_p:>9} {approx_p_diff:>15} approx")
 		.format(**{k: k for k in results[0].keys()}))
 
 	for result in results:
 		print( (fmt_str +
 				" {solutions:13} {sols_p:9.4f}"
 				" {even_p:9.4f} {even_p_diff:9.4f}"
-				" {approx_p:9.4f} {approx_p_diff:9.4f}")
+				" {approx_p:9.4f} {approx_p_diff:9.4f} {approx:13}")
 			.format(**result) )
 
 

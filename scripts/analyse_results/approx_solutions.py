@@ -11,11 +11,12 @@ parser.add_argument("csvfile", help='With a column for each relevant find')
 # args = parser.parse_args()
 # fp = args.csvfile
 
-fp="/Users/bilalh/Desktop/pppa.csv"
+# fp="/Users/bilalh/Desktop/pppa.csv"
+fp="/Users/bilalh/Desktop/aa.csv"
 
 
 def approx_calucation(d):
-	res =(d['n_upper'] ** d['n_boats']) ** 2 * d['n_periods_max']
+	res = ((d['n_upper'] ** d['n_warehouses']) ** 2) * (  d['n_upper'] ** (d['n_stores'] * d['n_warehouses']) )
 	return res
 
 
