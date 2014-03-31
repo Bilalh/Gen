@@ -120,8 +120,8 @@ def create_param_values():
 	raw_params = [ (re_kind.findall(name[1:]), int(val[1:-1])) for name, val in iter_many(params_arr, len(params_arr), 2) ]
 	logger.info(pformat(raw_params))
 
-	domains.setup_domain(False)
-	instances.setup_instances(False)
+	domains.setup_domain(True)
+	instances.setup_instances(True)
 	param_info = domains.gather_param_info(essence, output_dir_s)
 
 
@@ -134,7 +134,7 @@ def create_param_values():
 
 	for k in info.ordering:
 		parts = grouped[k]
-		logger.info(pformat(parts))
+		# logger.info(pformat(parts))
 		# merge
 		if len(parts) == 1:
 			kv = [(parts[0][0][0][0], parts[0][1], None, None)]

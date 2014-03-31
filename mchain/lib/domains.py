@@ -18,6 +18,8 @@ import logging
 import itertools as it
 import copy
 import itertools
+import operator
+import functools
 
 logger = logging.getLogger(__name__)
 
@@ -187,8 +189,78 @@ class FuncMinion(Domain):
     def within_radius_dom(self, selected_vals, instance, radius):
         raise NotImplementedError()
 
+    def instance_from_dict_total_func_int_int(self, res):
+        kv = [ "{} --> {}".format(k, v.pretty) for (k, v) in sorted(res.items()) ]
+        pretty = "function( {} )".format( ", ".join(kv) )
+
+        kv_safe = [ "{}_{}".format(k, v.safe) for (k, v) in sorted(res.items()) ]
+        safe = "F__{}__".format( ",".join(kv_safe) )
+
+        return instances.Func(point=res, pretty=pretty, safe=safe)
+
+
+    def instance_from_dict(self, res):
+        kv = [ "{} --> {}".format(k.pretty, v.pretty) for (k, v) in sorted(res.items()) ]
+        pretty = "function( {} )".format( ", ".join(kv) )
+
+        kv_safe = [ "{}_{}".format(k.safe, v.safe) for (k, v) in sorted(res.items()) ]
+        safe = "F__{}__".format( ",".join(kv_safe) )
+
+        return instances.Func(point=res, pretty=pretty, safe=safe)
+
     def reconstruct_for_smac(self, selected_vals, kv):
-        raise NotImplementedError()
+
+        froms = []
+        tos = []
+        tags = { kind for (_, _, kind, _) in kv  }
+        # sort by var num then var type
+
+        if "FT" in tags:
+            s_kv = sorted(kv, key=lambda k: (k[3], k[2]) )
+            for _, val, kind, index in s_kv:
+                ival = Int.from_int(val)
+                if kind == 'FT':
+                    froms.append(index)
+                    tos.append(ival)
+                else:
+                    raise ValueError("Invaild tag " + kind)
+
+            from_doms = [ from_dom.resolve_dom(selected_vals) for from_dom in [self.fromm] ]
+            # Assume total from ints
+            assert len(from_doms) == 1
+            num_elems = len(range(from_doms[0].low_high[0], from_doms[0].low_high[1] + 1))
+
+            elems_needed = list(zip(froms, tos))[0:num_elems]
+
+            return self.instance_from_dict_total_func_int_int( dict(elems_needed) )
+        elif "FT_T1" in tags:
+            s_kv = sorted(kv, key=lambda k: (int(k[3]), k[2]) )
+
+            from_doms = [ from_dom.resolve_dom( selected_vals) for from_dom in [self.fromm] ]
+            from_size = sum(  prod(len(i.all_values(selected_vals)) for i in f) for f in from_doms )
+
+            assert len(s_kv) % 3 == 0
+            for (_, v1, k1, i1), (_, v2, k2, i2), (_, v3, k3, i3), in iter_many(s_kv, len(s_kv), 3):
+                assert k1 < k2 < k3
+                assert i1 == i2 == i3
+
+                vv = [ Int.from_int(int(v1)), Int.from_int(int(v2)) ]
+                t = instances.Tuple.from_values(vv)
+                froms.append(t)
+                tos.append(Int.from_int(v3))
+
+            elems_needed = list(zip(froms, tos))[0:from_size]
+            return self.instance_from_dict( dict(elems_needed) )
+
+
+
+def prod(iterable):
+    return functools.reduce(operator.mul, iterable, 1)
+
+
+def iter_many(it, length, num):
+    for i in range(0, length, num):
+        yield (it[i:i + num])
 
 
 class Tuple(Domain):
@@ -206,6 +278,18 @@ class Tuple(Domain):
     def reconstruct_for_smac(self, selected_vals, kv):
         raise NotImplementedError()
 
+
+    def resolve_dom(self, selected_vals):
+        def f(v):
+            if isinstance(v, Ref):
+                return v.resolve(selected_vals)
+            else:
+                return v.resolve_dom(selected_vals)
+
+        return [ f(v) for v in self.elems ]
+
+    def size(self):
+        return sum(  len(e.all_values()) for e in self.elems )
 
 
 # FIXME  use the form  1:instance at the moment
@@ -289,37 +373,7 @@ class FuncTotalIntToInt(Domain):
         return Func(self.fromm, tos)
 
     def reconstruct_for_smac(self, selected_vals, kv):
-        # assume total function from ints
-
-        froms = []
-        tos = []
-        # sort by var num then var type
-        s_kv = sorted(kv, key=lambda k: (k[3], k[2]) )
-
-        total = False
-        for _, val, kind, index in s_kv:
-            ival = Int.from_int(val)
-            if kind == 'F1':
-                assert not total, "should be total?"
-                froms.append(val)
-            elif kind == 'F2':
-                assert not total, "should be total?"
-                tos.append(ival)
-            elif kind == 'FT':
-                froms.append(index)
-                tos.append(ival)
-                total =True
-            else:
-                raise ValueError("Invaild tag " + kind)
-
-        from_doms = [ from_dom.resolve_dom(selected_vals) for from_dom in self.fromm]
-        # Assume total from ints
-        assert len(from_doms) == 1
-        num_elems = len(range(from_doms[0].low_high[0], from_doms[0].low_high[1] + 1))
-
-        elems_needed = list(zip(froms, tos))[0:num_elems]
-
-        return self.instance_from_dict( dict(elems_needed) )
+        raise NotImplementedError("use other Func")
 
 
 class Set(Domain):
@@ -585,6 +639,8 @@ def gather_param_info(essence_file, output_dir):
 
 
     param_data = {  data['name']: transform_json_domain_to_domain(data['domain']) for data in raw_data['givens'] }
+
+    pprint(param_data)
 
     return param_data
 

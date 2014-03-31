@@ -255,6 +255,20 @@ class Tuple(Instance):
         return sum(parts)
 
     @classmethod
+    def from_values(cls, values):
+
+        resulting=[ (v.pretty, v.safe) for v in values ]
+        if resulting:
+            (pretty, safe) = zip(*resulting)
+        else:
+            (pretty, safe) = ("", "")
+
+        pretty = "tuple(%s)" % ", ".join(pretty)
+        safe = "T__{}__".format(",".join(safe) )
+
+        return Tuple(values, pretty, safe)
+
+    @classmethod
     def from_json_dict(cls, d):
 
 
