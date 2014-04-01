@@ -152,10 +152,12 @@ def create_param_values():
 
 def get_model_ordering():
 	# self.models_dir
-	w=Path(output_dir_s)
+	w=Path(working_dir_s) / (Path(essence).stem + "-" + mode)
+	logger.info("OrderING eprime PATH %s", w)
+
 	if (  w / "results.db").exists():
 		conn = sqlite3.connect(os.path.join(output_dir_s, 'results.db'))
-		results = [  (w / (os.path.basename(essence) + "-" + mode) / row[0]).with_suffix('.eprime')
+		results = [  (w / row[0]).with_suffix('.eprime')
 					for row in conn.execute("SELECT eprime FROM EprimeOrdering") ]
 		if "LIMIT_MODELS" in os.environ:
 			results = results[0:int(os.environ['LIMIT_MODELS'])]
