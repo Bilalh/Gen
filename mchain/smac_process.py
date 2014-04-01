@@ -19,6 +19,8 @@ import re
 import sys
 import time
 import logging
+import sqlite3
+
 
 cpu_time_start = time.process_time()
 runtime = 0
@@ -148,7 +150,30 @@ def create_param_values():
 	return param_values
 
 
-ordering = ""  # no eprime ordering specifed
+def get_model_ordering():
+	# self.models_dir
+	w=Path(output_dir_s)
+	if (  w / "results.db").exists():
+		conn = sqlite3.connect(os.path.join(output_dir_s, 'results.db'))
+		results = [  (w / (os.path.basename(essence) + "-" + mode) / row[0]).with_suffix('.eprime')
+					for row in conn.execute("SELECT eprime FROM EprimeOrdering") ]
+		if "LIMIT_MODELS" in os.environ:
+			results = results[0:int(os.environ['LIMIT_MODELS'])]
+
+		if len(results) > 5:
+			_res = results[0:5]
+		else:
+			_res = results
+		logger.info("ORDERING USED (first 5 out of %s models) %s", len(results), "\n".join(map(str, _res)))
+
+		return "\n".join(map(str, results))
+	else:
+		logger.info("NO ORDERING")
+		return ""
+
+
+ordering = get_model_ordering()
+
 
 try:
 	param_values = create_param_values()
