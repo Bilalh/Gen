@@ -26,7 +26,7 @@ aggregate(sall$best_quality ~ sall$races + sall$influence_radius + sall$method  
 
 # Produce a summary of the results 
 m<- melt(sall,id.vars=c('essence', 'method', 'total_timeout', 'races'), measure.vars=c("min_models") )
-sum <- tabular(cast(m, races ~ method, c(mean,sd,min, max), margins=TRUE))
+#sum <- tabular(cast(m, races ~ method, c(mean,sd,min, max), margins=TRUE))
 
 # Produce a summary of the results per method
 m2<- melt(sall,id.vars=c('essence', 'method', 'method_opts2', 'total_timeout', 'races'), measure.vars=c("min_models") )
