@@ -258,7 +258,11 @@ if (( $RESULTOF_TRANSLATESOLN != 0 )) ; then
     exit 1
 fi
 
-/usr/bin/time -p  essenceLettingsToJson $ESSENCE_SOLUTION $ESSENCE_JSON  3>&1 1>&2 2>&3 \
+
+grep -v 'new type of' $ESSENCE_SOLUTION > $ESSENCE_SOLUTION.tmp
+mv $ESSENCE_SOLUTION.tmp $ESSENCE_SOLUTION
+
+echoer /usr/bin/time -p  essenceLettingsToJson $ESSENCE_SOLUTION $ESSENCE_JSON  3>&1 1>&2 2>&3 \
     |  egrep 'real|usr' \
     |  egrep -o '[0-9].*' \
     |  ruby -e 'puts "cpu #{$stdin.readlines.map(&:to_f).reduce(:+)}"' \
