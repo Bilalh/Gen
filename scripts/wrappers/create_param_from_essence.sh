@@ -258,7 +258,7 @@ if (( $RESULTOF_TRANSLATESOLN != 0 )) ; then
     exit 1
 fi
 
-
+# work around
 grep -v 'new type of' $ESSENCE_SOLUTION > $ESSENCE_SOLUTION.tmp
 mv $ESSENCE_SOLUTION.tmp $ESSENCE_SOLUTION
 
