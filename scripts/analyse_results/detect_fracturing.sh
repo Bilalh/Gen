@@ -16,7 +16,7 @@ EOF
 function process(){
 	db=$1
 	sql -s ',' sqlite3:///$db "Select *, '$(dirname $(dirname $db))' as base_dir from everything;" \
-		| parallel -j1 --tagstring "{2}%{1}"  --header , --colsep , "$Command"
+		| parallel -j1 --tagstring "{2}%{1}" --keep-order  --header , --colsep , "$Command"
 }
 export -f process
 

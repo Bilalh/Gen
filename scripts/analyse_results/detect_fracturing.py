@@ -31,4 +31,4 @@ for e in ['asc ', 'desc']:
 			print("{} {} ({:3d} eprimes)  before_empty(size {}):{}".format(e, name[1:8], len(eprimes), len(old_resulting), old_resulting) )
 
 
-print("Result(size {}) {}".format(len(resulting), list(resulting)) )
+print("Result(size {}) {}".format(len(resulting), sorted(resulting)) )

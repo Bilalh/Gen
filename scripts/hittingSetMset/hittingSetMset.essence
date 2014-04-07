@@ -1,0 +1,14 @@
+language Essence 1.3
+
+given numModels: int(1..1024)
+given numSets:   int(1..64)
+given sets:      mset (maxSize numSets) of set (maxSize numModels) of int(1..numModels)
+
+find hittingSet : set (maxSize 1024) of int(1..numModels)
+
+
+such that
+
+forAll s in sets .
+    exists v in s . v in hittingSet
+
