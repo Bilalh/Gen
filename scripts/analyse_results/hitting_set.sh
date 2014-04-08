@@ -22,10 +22,11 @@ EOF
 export Command=$( cat <<EOF
 	echo "~~~";
 	put={output_dir};
-	put="$res/{essence}~{method}~\$(basename \$put )";
+	put="$res/{essence}~{method}~{run_no}~\$(date +%H-%M-%S)";
 	echo \$put;
 	mkdir \$put;
 
+	echo \$put/sets.param;
 	echo "language Essence 1.3" > \$put/sets.param;
 
 	printf "letting numSets be "  >> \$put/sets.param;
@@ -39,6 +40,8 @@ export Command=$( cat <<EOF
 
 	printf "letting sets be "  >> \$put/sets.param;
 	sql --no-headers -s ',' sqlite3:///{base_dir}/{output_dir}/results.db "$selector" >> \$put/sets.param;
+
+	cat \$put/sets.param;
 
 	pushd \$put;
 	mkdir run;
