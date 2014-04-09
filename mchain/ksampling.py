@@ -85,7 +85,7 @@ class KSample(method.Method):
             try:
                 return self.random_point()
             except (domains.NoValuesInDomainException, instances.FailedToGenerateParamExeception):
-                raise None
+                return None
 
         random_points = [ p for p in (rnd_point() for i in range(self.settings.num_points)) if p ]
         assert len(random_points) > 0
