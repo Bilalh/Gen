@@ -18,6 +18,12 @@ export selector=$( cat <<EOF
 EOF
 )
 
+export smallest_query=$( cat <<EOF
+Select DISTINCT eprimes From  ParamsData
+Where eprimes_count = (Select min(eprimes_count) From ParamsData);
+EOF
+)
+
 
 export Command=$( cat <<EOF
 	echo "~~~";
@@ -25,6 +31,8 @@ export Command=$( cat <<EOF
 	put="$res/{essence}-{method}-{run_no}";
 	echo \$put;
 	mkdir -p \$put;
+
+	sql --no-headers -s ',' sqlite3:///{base_dir}/{output_dir}/results.db "${smallest_query}" > \$put/smallest
 
 	# echo \$put/sets.param;
 	echo "language Essence 1.3" > \$put/sets.param;
@@ -62,10 +70,10 @@ function do_gent(){
 	db=$1
 	if [ -f ../hittingSet.solution ]; then
 		egrep -o "\{.*\}" ../hittingSet.solution > ../hittingSet;
-		${our_dir}/gent_idea.py "$db" "$(cat ../hittingSet)" > ../gentSet
+		${our_dir}/gent_idea.py "$db" "$(cat ../hittingSet)" | sed -e "s/'//g" > ../gentSet
 	else
-		touch ../hittingSet;
-		touch ../gentSet;
+		echo "NOTHING" >  ../hittingSet;
+		echo "NOTHING" > ../gentSet;
 	fi
 }
 
@@ -84,6 +92,7 @@ export -f process
 find "$dir" -type f -name 'Info.db'  |   parallel --keep-order  process
 
 pushd ${res}
-parallel --tagstring "{/.}" 'cat {}/hittingSet' ::: */ > _hittingSet_all.txt
-parallel --tagstring "{/.}" 'cat {}/gentSet' ::: */ > _gentSet_all.txt
+parallel --keep-order  --tagstring "{/.}" 'cat {}/hittingSet' ::: */ > _hittingSet_all.txt
+parallel --keep-order  --tagstring "{/.}" 'cat {}/gentSet' ::: */ > _gentSet_all.txt
+parallel --keep-order  --tagstring "{/.}" 'cat {}/smallest' ::: */ > _smallest_all.txt
 popd

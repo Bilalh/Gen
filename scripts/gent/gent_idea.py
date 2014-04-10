@@ -44,4 +44,4 @@ with sqlite3.connect(args.db) as conn:
 		insection_mapping[e] = intersection
 
 for intersection in insection_mapping.values():
-	print(intersection)
+	print(sorted(intersection))
