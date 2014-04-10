@@ -1,0 +1,37 @@
+
+So suppose you have a minimal hitting set {x,y,z…}  I know in all our
+cases the size is at most 2 but the idea is general.
+
+Take the first element x.   Now find all winning sets containing x.   Take
+the intersection of these sets.   Call this set X = {x,x1,x2…}.  It is
+guaranteed that X is non empty because x in X.
+
+Then do the same for y, and z etc...
+
+Report the set {X,Y,Z,…} or if you prefer the set X Union Y Union Z …
+
+Note that for all xi in X, it is guaranteed that xi not in Y.  Because
+otherwise {xi,z,…} would be a smaller hitting set.
+
+(Now I get less sure)
+
+I think there is a nice characterisation of what this produces.
+
+Note that for all xi,xj in X, there is no instance where model xi
+dominates xj
+
+While for xi in X, yj in Y, there IS an instance where xi dominates yj,
+and a second instance where yj dominates xi.
+
+So I think the set S = X U Y U Z … has the properties that
+
++ For all a,b in S, either there is no instance where either a dominates b
+or b dominates a, or there are instances where a dominates b and b
+dominates a.
+
++ For all c not in S, there is a model a such that there is an instance
+where a dominates c, and no instance where c dominates a.
+
+I¹m not 100% sure about this characterisation but either way I think the
+hitting set thing until I said "Now I get less sure" is good.  But as IanM
+said, if we do not have time to do this we can still submit the paper

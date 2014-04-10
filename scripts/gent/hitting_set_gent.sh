@@ -8,7 +8,7 @@ echo $our_dir
 
 dir=${1}
 res=${2}
-mkdir ${res}
+mkdir -p ${res}
 
 export selector=$( cat <<EOF
 	Select distinct 'mset(
@@ -24,9 +24,9 @@ export Command=$( cat <<EOF
 	put={output_dir};
 	put="$res/{essence}~{method}~{run_no}";
 	echo \$put;
-	mkdir \$put;
+	mkdir -p \$put;
 
-	echo \$put/sets.param;
+	# echo \$put/sets.param;
 	echo "language Essence 1.3" > \$put/sets.param;
 
 	printf "letting numSets be "  >> \$put/sets.param;
@@ -41,20 +41,34 @@ export Command=$( cat <<EOF
 	printf "letting sets be "  >> \$put/sets.param;
 	sql --no-headers -s ',' sqlite3:///{base_dir}/{output_dir}/results.db "$selector" >> \$put/sets.param;
 
-	cat \$put/sets.param;
+	pushd \$put > /dev/null;
 
-	pushd \$put;
-	mkdir run;
+	mkdir -p run;
 	cd run;
 	export __convenience_fp=$our_dir/../misc/convenience.sh;
 	source $our_dir/../misc/convenience.sh;
 	export NUM_JOBS=1;
-	refine_run  $our_dir/../hittingSetMsetOpt/*.essence ::: $our_dir/../hittingSetMsetOpt/*/*.eprime ::: ../*.param;
-	cp *.solution ../hittingSet.solution
-	popd;
+	refine_run  $our_dir/hittingSetMsetOpt/*.essence ::: $our_dir/hittingSetMsetOpt/*/*.eprime ::: ../*.param &> refine_run.out;
+	cp *.solution ../hittingSet.solution;
+
+	do_gent;
+
+	popd > /dev/null;
 	echo "~---~";
 EOF
 )
+
+function do_gent(){
+	if [ -f ../hittingSet.solution ]; then
+		egrep -o "\{.*\}" ../hittingSet.solution > ../hittingSet;
+
+	else
+		touch ../hittingSet;
+	fi
+}
+
+export -f do_gent
+
 
 function process(){
 	export db=$1
@@ -68,5 +82,5 @@ export -f process
 find "$dir" -type f -name 'Info.db'  |   parallel --keep-order  process
 
 pushd ${res}
-parallel --tagstring "{/.}" 'egrep  -o "\{.*\}" {}/hittingSet.solution' ::: */ > _hittingSet_all.txt
+parallel --tagstring "{/.}" 'cat {}/hittingSet' ::: */ > _hittingSet_all.txt
 popd

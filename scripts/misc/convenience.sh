@@ -2,7 +2,7 @@
 # Bilal Syed Hussain
 
 # file path to ourself, to allow sourcing
-__convenience_fp=$0
+__convenience_fp=${__convenience_fp:-$0}
 
 # print the command the run it
 function echoing(){
