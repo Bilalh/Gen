@@ -389,8 +389,22 @@ class Set(Domain):
     def within_radius_dom(self, selected_vals, instance, radius):
         raise NotImplementedError()
 
+    # set of set(size 2) of 1..capacity
     def reconstruct_for_smac(self, selected_vals, kv):
-        raise NotImplementedError()
+        s_kv = sorted(kv, key=lambda k: (int(k[3]), k[2]) )
+
+        size = s_kv[0][1]
+        logger.info("Size ,, %s", size)
+        assert (len(s_kv) - 1) % 2 == 0
+        ss=[]
+        for (_, v1, k1, i1), (_, v2, k2, i2) in iter_many(s_kv[1:], min(len(s_kv) - 1, size), 2):
+            assert k1 < k2
+            assert i1 == i2
+
+            vv = sorted([ Int.from_int(int(v1)), Int.from_int(int(v2)) ])
+            ss.append(instances.Set.from_values(vv))
+
+        return instances.Set.from_values(ss)
 
 
 class Rel(Domain):

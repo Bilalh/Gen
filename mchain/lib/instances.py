@@ -218,6 +218,21 @@ class Set(Instance):
         return sum(parts)
 
     @classmethod
+    def from_values(cls, values):
+
+        resulting=[ (v.pretty, v.safe) for v in values ]
+        if resulting:
+            (pretty, safe) = zip(*resulting)
+        else:
+            (pretty, safe) = ("", "")
+
+        pretty = "{%s}" % ", ".join(pretty)
+        safe = "S__{}__".format(",".join(safe) )
+
+        return Set(values, pretty, safe)
+
+
+    @classmethod
     def from_json_dict(cls, d):
 
         values_dom = jmatch(d, 'set', 'values', 'value')
