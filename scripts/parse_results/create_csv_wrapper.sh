@@ -12,5 +12,5 @@ out=$2
 results=$3
 
 
-./create_csv.py "${NUM_JOBS:-8}" "${exp_dir}/${out}/all.csv" "${exp_dir}"  \
-	`find "${results}" -type d -name results -print | parallel -j"${NUM_JOBS:-8}" "echo {}/.."`
+./create_csv.py "${NUM_JOBS:-4}" "${exp_dir}/${out}/all.csv" "${exp_dir}"  \
+	`find "${results}" -type d -name results -print | parallel -j"${NUM_JOBS:-4}" "echo {}/.."`
