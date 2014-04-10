@@ -23,6 +23,7 @@ dominates xj
 While for xi in X, yj in Y, there IS an instance where xi dominates yj,
 and a second instance where yj dominates xi.
 
+(not true)
 So I think the set S = X U Y U Z … has the properties that
 
 + For all a,b in S, either there is no instance where either a dominates b

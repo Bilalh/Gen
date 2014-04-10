@@ -3,7 +3,7 @@
 # and place the results in ${2}
 
 set -o nounset
-our_dir="$( cd "$( dirname "$0" )" && pwd )";
+export our_dir="$( cd "$( dirname "$0" )" && pwd )";
 echo $our_dir
 
 dir=${1}
@@ -22,7 +22,7 @@ EOF
 export Command=$( cat <<EOF
 	echo "~~~";
 	put={output_dir};
-	put="$res/{essence}~{method}~{run_no}";
+	put="$res/{essence}-{method}-{run_no}";
 	echo \$put;
 	mkdir -p \$put;
 
@@ -51,7 +51,7 @@ export Command=$( cat <<EOF
 	refine_run  $our_dir/hittingSetMsetOpt/*.essence ::: $our_dir/hittingSetMsetOpt/*/*.eprime ::: ../*.param &> refine_run.out;
 	cp *.solution ../hittingSet.solution;
 
-	do_gent;
+	do_gent "{base_dir}/{output_dir}/results.db";
 
 	popd > /dev/null;
 	echo "~---~";
@@ -59,11 +59,13 @@ EOF
 )
 
 function do_gent(){
+	db=$1
 	if [ -f ../hittingSet.solution ]; then
 		egrep -o "\{.*\}" ../hittingSet.solution > ../hittingSet;
-
+		${our_dir}/gent_idea.py "$db" "$(cat ../hittingSet)" > ../gentSet
 	else
 		touch ../hittingSet;
+		touch ../gentSet;
 	fi
 }
 
@@ -83,4 +85,5 @@ find "$dir" -type f -name 'Info.db'  |   parallel --keep-order  process
 
 pushd ${res}
 parallel --tagstring "{/.}" 'cat {}/hittingSet' ::: */ > _hittingSet_all.txt
+parallel --tagstring "{/.}" 'cat {}/gentSet' ::: */ > _gentSet_all.txt
 popd
