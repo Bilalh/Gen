@@ -1,10 +1,13 @@
-# for rename
+    # for rename
 require(reshape)
 require(tables)
 
 # filepaths
+base <- paste("~/Desktop/Experiment" , "__minion_random", sep='/')
+#base <- paste("~/Desktop/Experiment" , "__minion_all_sols", sep='/')
+#base <- paste("~/Desktop/Experiment" , "__hd_all_sols", sep='/')
 #base <- paste("~/Desktop/Experiment" , "_data_azure", sep='/')
-base <- paste("~/Desktop/Experiment" , "_all_sols", sep='/')
+#base <- paste("~/Desktop/Experiment" , "_all_sols", sep='/')
 f_all = paste(base, "all.csv",  sep='/')
 f_param_info = paste(base, "extra_data/param_eprime_info.csv",  sep='/')
 f_every_param = paste(base, "extra_data/every_param.csv",  sep='/')
@@ -25,7 +28,7 @@ read_configs <- function(){
   
   # method with options
   method_specific= c("method", 'chain_length', "num_points", "point_selector", "influence_radius", "radius_as_percentage", "use_minion", "pre_generate", "iterations")
-#   method_specific= c("method", 'chain_length', "num_points", "point_selector", "influence_radius", "radius_as_percentage", "use_minion")  
+  #method_specific= c("method", 'chain_length', "num_points", "point_selector", "influence_radius", "radius_as_percentage", "use_minion")  
   all$method_opts <-apply(all[method_specific], 1, paste, collapse=",")
   all$method_opts2 <- gsub(",NA", "", all$method_opts, perl=TRUE)
   

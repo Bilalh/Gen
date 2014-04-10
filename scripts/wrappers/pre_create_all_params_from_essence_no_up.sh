@@ -35,6 +35,11 @@ REFINE_TIME="${BASE}/${PARAMBASE}.param-time"
 SAVILEROW_TIME="${BASE}/${PARAMBASE}.sr-time"
 
 
+if [ -f "${END_FILE}" ]; then
+echo "NOT RUNNING `basename $END_FILE` exists *** `basename $ESSENCE` - `basename $EPRIME` - `basename $PARAM` ***"
+exit 0
+fi
+
 touch $START_FILE
 
 
