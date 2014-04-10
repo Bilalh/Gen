@@ -343,6 +343,20 @@ class Rel(Instance):
         return Rel(values, pretty, safe)
 
 
+    @classmethod
+    def from_values(cls, values):
+
+        resulting=[ (v.pretty, v.safe) for v in values ]
+        if resulting:
+            (pretty, safe) = zip(*resulting)
+        else:
+            (pretty, safe) = ("", "")
+
+        pretty = "relation(%s)" % ", ".join(pretty)
+        safe = "R__{}__".format(",".join(safe) )
+
+        return Rel(values, pretty, safe)
+
 Func = None
 
 

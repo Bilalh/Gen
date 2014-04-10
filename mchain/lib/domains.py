@@ -420,8 +420,24 @@ class Rel(Domain):
     def within_radius_dom(self, selected_vals, instance, radius):
         raise NotImplementedError()
 
+
+    # relation of (int*int)
     def reconstruct_for_smac(self, selected_vals, kv):
-        raise NotImplementedError()
+        s_kv = sorted(kv, key=lambda k: (int(k[3]), k[2]) )
+
+        # FIXME it is allways 50 in current specs, should be got from n_courses
+        size = 50
+        logger.info("Size ,, %s", size)
+        assert len(s_kv) % 2 == 0
+        ss=[]
+        for (_, v1, k1, i1), (_, v2, k2, i2) in iter_many(s_kv, len(s_kv), 2):
+            assert k1 < k2
+            assert i1 == i2
+
+            vv = sorted([ Int.from_int(int(v1)), Int.from_int(int(v2)) ])
+            ss.append(instances.Tuple.from_values(vv))
+
+        return instances.Rel.from_values(ss)
 
 
 class Ref():
