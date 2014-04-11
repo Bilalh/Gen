@@ -26,4 +26,6 @@ def is_in_inside(radius, centre, point):
 	""" True if the ecuidean distance from the centre is less then the specified radius """
 	summed =sum(  (c.distance(p)) for (p, c) in zip(point, centre) )
 	# might be faster to do summed <= radius ** 2
+	logger.info("distance between %s  (radius %s ) %s  %s", math.sqrt(summed), radius,
+		[p.pretty for p in point], [p.pretty for p in centre]   )
 	return math.sqrt(summed) <= radius
