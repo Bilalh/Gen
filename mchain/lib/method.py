@@ -151,11 +151,22 @@ class Method(metaclass=ABCMeta):
 
         self.limiter.start()
         try:
-            while self.limiter.continue_running(self):
-                logger.info("Started iteration %d", self._current_iteration + 1)
-                self.do_iteration()
+            count_iter=True
+            while self.limiter.continue_running(self, count_iter):
+                count_iter = True
+                logger.info("Started (real) iteration %d", self._current_iteration + 1)
+
+                try:
+                    self.do_iteration()
+                except (domains.NoValuesInDomainException,
+                        instances.FailedToGenerateParamExeception,
+                        domains.DontCountIterationException) as e:
+                    logger.info("Not counting this iter %d %s ", self._current_iteration, e)
+                    count_iter=False
+
                 self._current_iteration+=1
-                logger.info("finished %d iterations", self._current_iteration)
+                logger.info("finished %d  on (real) iterations", self._current_iteration)
+
         except StopIteration:
             logger.info("StopIteration after/on iteration %d ", self._current_iteration)
 
@@ -177,7 +188,7 @@ class Method(metaclass=ABCMeta):
             "real_time": diff.total_seconds(),
             "method_cpu_time": cpu_time_end- cpu_time_start,
             "method_extra_time": self.extra_time,
-            "iterations_done": self._current_iteration
+            "iterations_done_including_failed": self._current_iteration
         }
 
 

@@ -82,14 +82,7 @@ class NSample(method.Method):
 
 
     def do_iteration(self):
-        try:
-            x = self.random_point()
-        except (domains.NoValuesInDomainException):
-            logger.info("NoValuesInDomainException")
-            return
-        except (instances.FailedToGenerateParamExeception):
-            logger.info("FailedToGenerateParamExeception")
-            return
+        x = self.random_point()
 
         for pp in self.data_points:
             logger.info("dp %s", self.point_pretty(pp))
@@ -114,13 +107,14 @@ class NSample(method.Method):
                 logger.info("accept:%0.3f,  u:%0.3f, %s ", accept, u, u < accept)
                 return u < accept
 
+        self.goodness_x_prev = goodness_x
         if accept_point():
             self.create_run_param_and_store_quality(x)
             self.data_points.append(x)
         else:
             logger.info("REJECTED point %s,  goodness_x: %0.3f goodness_x_prev: %0.3f", x, goodness_x, self.goodness_x_prev)
+            raise domains.DontCountIterationException()
 
-        self.goodness_x_prev = goodness_x
         logger.info("do_iteration end")
 
 

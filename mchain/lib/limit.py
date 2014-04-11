@@ -39,7 +39,7 @@ class TimeLimit(Limit):
 		self.taken = 0
 
 	@copydoc(Limit.continue_running)
-	def continue_running(self, method):
+	def continue_running(self, method, count_iter):
 
 		self.taken = (time.time() - self.start_time
 				+ time.process_time() - self.cputime_start
@@ -58,9 +58,12 @@ class IterationsLimit(Limit):
 		self.current_iteration = 0
 
 	@copydoc(Limit.continue_running)
-	def continue_running(self, method):
-		res = self.current_iteration < self.iterations
-		self.current_iteration += 1
+	def continue_running(self, method, count_iter):
+		res = self.current_iteration <= self.iterations
+		logger.info("limit curr iter finished %s", self.current_iteration)
+		if count_iter:
+			self.current_iteration += 1
+			logger.info("limit  iter incmented %s", self.current_iteration)
 		return res
 
 
@@ -76,7 +79,7 @@ class CpuLimit(Limit):
 		self.taken = 0
 
 	@copydoc(Limit.continue_running)
-	def continue_running(self, method):
+	def continue_running(self, method, count_iter):
 		if method.prev_timestamp:
 			# TODO Assumes only param is run on each iteration
 			timefile = os.path.join(method.settings.output_dir, "stats-" + method.settings.mode,

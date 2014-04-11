@@ -465,6 +465,10 @@ class NoValuesInDomainException(Exception):
     pass
 
 
+class DontCountIterationException(Exception):
+    pass
+
+
 class UninitialisedVal(Exception):
     """Thrown when a reference is unresolved"""
     pass

@@ -44,15 +44,7 @@ class UniformSampling(method.Method):
         super(UniformSampling, self,).__init__(options, limiter, Settings, info)
 
     def do_iteration(self):
-        try:
-            picked = self.random_point()
-        except (domains.NoValuesInDomainException):
-            logger.info("NoValuesInDomainException")
-            return
-        except (instances.FailedToGenerateParamExeception):
-            logger.info("FailedToGenerateParamExeception")
-            return
-        # picked = (4, 1)
+        picked = self.random_point()
         logger.info("Picked %s", picked)
         self.data_points.append(picked)
         self.create_run_param_and_store_quality(picked)
