@@ -84,6 +84,8 @@ class NSample(method.Method):
     def do_iteration(self):
         x = self.random_point()
 
+        logger.info("made point x %s", x)
+
         for pp in self.data_points:
             logger.info("dp %s", self.point_pretty(pp))
         logger.info("X %s", self.point_pretty(x))
