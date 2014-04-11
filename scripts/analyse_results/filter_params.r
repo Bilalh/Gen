@@ -3,10 +3,9 @@ source( paste(our_path, "setup.r", sep='/'), chdir=TRUE)
 
 get_discriminating_params <- function(essence_name){
   a<-sall[sall$essence==essence_name, ]
-#   a<-a[a$method!='smac', ]
   st.idx <- a$index
   st.params <- every_param[every_param$index %in% st.idx, ]
-  st.params <- st.params[ st.params$quality != 1,  ]
+  st.params <- st.params[ st.params$quality < 1,  ]
   
   st.params
 }
@@ -16,7 +15,7 @@ get_discriminating_params_by_method <- function(essence_name, method){
   st.idx <- st.idx[st.idx$method==method, ]
   
   st.params <- every_param[every_param$index %in% st.idx$index, ]
-  st.params <- st.params[ st.params$quality != 1,  ]
+  st.params <- st.params[ st.params$quality < 1,  ]
   
   st.params
 }
@@ -28,11 +27,12 @@ save_names <- function(essence, st.params, suffix="", dirname='params', limit=3)
   process <- function(picked, filename){
     pickedM <- merge(by='index', x=picked, 
                      y=sall[c('index', 'output_dir', 'method_opts', 'method_opts2', 
-                              'models_timeout', 'method', 'num_models', 'essence', 'mode') ])
+                              'models_timeout', 'method', 'num_models', 'essence', 'mode', 'run_no') ])
     
     pickedM$model_timeout <- pickedM$models_timeout / pickedM$num_models
     
-    pickedU <- pickedM[!duplicated(pickedM[,c('essence', 'method', 'eprimes_count')]),]
+    #pickedU <- pickedM[!duplicated(pickedM[,c('essence', 'method', 'eprimes_count')]),]
+    pickedU <- pickedM
     pickedU <- pickedU[order(pickedU$quality, decreasing=FALSE), ]
     pickedU <- head(pickedU, n=limit)
     
@@ -41,6 +41,9 @@ save_names <- function(essence, st.params, suffix="", dirname='params', limit=3)
     dir.create(filedir, recursive=TRUE)
     
     write.csv(pickedU , file=paste0(filepath,suffix, ".csv" ) )
+    write.csv(pickedU[, c('essence', 'num_models', 'Satisfiable', 'method',  'run_no',  'eprimes_count', 'eprimes',  'quality', 
+                          'ordering',  'MaxSolutions', 'mode', 'paramHash') ] , file=paste0(filepath,suffix, "-short.csv" ) )
+    
 #     write.table(pickedM$paramHash, file=paste0(filepath, "_names.txt" ),   quote=FALSE, col.names=FALSE, row.names=FALSE)
     a<-pickedU[ c('paramHash', 'eprimes', 'output_dir', 'mode', 'method') ]
     a$e2 <-  sapply( a$eprimes ,function(x)  gsub(", ", ",", x)   ) 
@@ -66,6 +69,6 @@ for (i  in 1:length(ems$essence) ){
 }
 
 for (u  in  unique(sall$essence) ){
-  save_names(u, get_discriminating_params(u), dirname="params_all_methods", limit=30 )
+  save_names(u, get_discriminating_params(u), dirname="params_all_methods", limit=50 )
 }
 
