@@ -87,6 +87,7 @@ class TypeInt(Instance):
 
     def distance(self, other_dom):
         "  distance squared between the two domains, for use in euclidean "
+        raise NotImplemented("FIX THIS BEFORE USE")
         if not isinstance(other_dom, self.__class__):
             raise ValueError("other dom must of %s" % self.__class__.__name__)
 
@@ -115,7 +116,7 @@ class FuncMinion(Instance):
             if x1 is None or x2 is None:
                 return 0
             else:
-                res = x1[1].distance(x2[1])  # FIXME distance
+                res = x1[1].distance(x2[1])
                 logger.info("Finding distance btween %s, %s  res:%s", x1[1].pretty, x2[1].pretty, res)
                 return res
 
@@ -152,6 +153,7 @@ class FuncTotalIntToInt(Instance):
         super(FuncTotalIntToInt, self).__init__(point, pretty, safe)
 
     def distance(self, other_dom):
+        raise NotImplemented("OlD FUNC")
         "  distance between the two domains, for use in euclidean "
         if not isinstance(other_dom, self.__class__):
             raise ValueError("other dom must of %s" % self.__class__.__name__)
@@ -203,19 +205,11 @@ class Set(Instance):
     def __init__(self, point, pretty, safe):
         super(Set, self).__init__(point, pretty, safe)
 
+
     def distance(self, other_dom):
         "  distance between the two domains, for use in euclidean "
-        #Like function ignore values in the larger one
+        return len(set(self.point) - set(other_dom.point)) + len(set(other_dom.point) - set(self.point))
 
-        def f(x1, x2):
-            if x1 is None or x2 is None:
-                return 0
-            else:
-                return x1.distance(x2)
-
-
-        parts = [ f(x1, x2) for (x1, x2) in it.zip_longest(self.point, other_dom.point) ]
-        return sum(parts)
 
     @classmethod
     def from_values(cls, values):
@@ -263,7 +257,7 @@ class Tuple(Instance):
             if x1 is None or x2 is None:
                 return 0
             else:
-                return x1.distance(x2) ** 2
+                return x1.distance(x2)
 
 
         parts = [ f(x1, x2) for (x1, x2) in it.zip_longest(self.point, other_dom.point) ]
@@ -311,16 +305,9 @@ class Rel(Instance):
     def distance(self, other_dom):
         "  distance between the two domains, for use in euclidean "
         #Like function ignore values in the larger one
-
-        def f(x1, x2):
-            if x1 is None or x2 is None:
-                return 0
-            else:
-                return x1.distance(x2) ** 2
-
-
-        parts = [ f(x1, x2) for (x1, x2) in it.zip_longest(self.point, other_dom.point) ]
-        return sum(parts)
+        res = len(set(self.point) - set(other_dom.point)) + len(set(self.point) - set(other_dom.point))
+        logger.info("AAA res:%s %s %s", res, self.pretty, other_dom.pretty)
+        return res
 
     @classmethod
     def from_json_dict(cls, d):
