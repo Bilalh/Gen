@@ -109,7 +109,6 @@ class NSample(method.Method):
                 logger.info("accept:%0.3f,  u:%0.3f, %s ", accept, u, u < accept)
                 return u < accept
 
-        self.goodness_x_prev = goodness_x
         if accept_point():
             self.create_run_param_and_store_quality(x)
             self.data_points.append(x)
@@ -117,6 +116,7 @@ class NSample(method.Method):
             logger.info("REJECTED point %s,  goodness_x: %0.3f goodness_x_prev: %0.3f", x, goodness_x, self.goodness_x_prev)
             raise domains.DontCountIterationException()
 
+        self.goodness_x_prev = goodness_x
         logger.info("do_iteration end")
 
 
