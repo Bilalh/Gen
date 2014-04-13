@@ -49,20 +49,19 @@ Settings=namedtuple('Settings', ['seed', 'mode', 'models_timeout', "essence", "w
 class NSample(method.Method):
     def __init__(self, options, limiter, info):
         super(NSample, self,).__init__(options, limiter, Settings, info)
-        self.goodness_x_prev = 1
 
 
     def before_settings(self, options):
         return self.do_radius_as_percentage(options)
 
 
-    def goodness(self, point):
+    def get_quailty(self, x):
+        name = "-".join( [ ("%s" % p.safe) for p in x ] )
+        name_hash = chain_lib.hash(name)
+        logger.info("name %s for hash %s", name, name_hash)
+        return chain_lib.get_quailty(self.output_dir, name_hash)
 
-        def get_quailty(x):
-            name = "-".join( [ ("%s" % p.safe) for p in x ] )
-            name_hash = chain_lib.hash(name)
-            logger.info("name %s for hash %s", name, name_hash)
-            return chain_lib.get_quailty(self.output_dir, name_hash)
+    def goodness(self, point):
 
         def avg_quality(rp):
             # TODO can made more efficient
@@ -72,7 +71,7 @@ class NSample(method.Method):
             if (len(influence_points) == 0):
                 return 0.5
 
-            quailties = [get_quailty(p) for p in influence_points]
+            quailties = [self.get_quailty(p) for p in influence_points]
 
             mean = sum(quailties) / len(quailties)
             return mean
@@ -92,15 +91,22 @@ class NSample(method.Method):
 
 
         goodness_x = self.goodness(x)
-        logger.info("point %s,  goodness_x: %0.3f goodness_x_prev: %0.3f", [y.pretty for y in x ], goodness_x, self.goodness_x_prev)
+
+        if len(self.data_points) > 1:
+            goodness_x_prev = 1 - self.get_quailty(self.data_points[-1])
+        else:
+            goodness_x_prev = 1
+
+        logger.info("point %s,  goodness_x: %0.3f goodness_x_prev: %0.3f", [y.pretty for y in x ], goodness_x, goodness_x_prev)
+
 
         def accept_point():
             #  if goodness_x and goodness_x_prev are both zero should we reject it?
-            if self.goodness_x_prev == 0:
+            if goodness_x_prev == 0:
                 logger.info("Unconditionally accepting since goodness_x_prev is 0")
                 return True
 
-            accept = goodness_x / self.goodness_x_prev
+            accept = goodness_x / goodness_x_prev
             if accept >= 1:
                 logger.info("Unconditionally accepting %0.3f", accept)
                 return True
@@ -113,10 +119,10 @@ class NSample(method.Method):
             self.create_run_param_and_store_quality(x)
             self.data_points.append(x)
         else:
-            logger.info("REJECTED point %s,  goodness_x: %0.3f goodness_x_prev: %0.3f", x, goodness_x, self.goodness_x_prev)
+            logger.info("REJECTED point %s,  goodness_x: %0.3f goodness_x_prev: %0.3f", x, goodness_x, goodness_x_prev)
             raise domains.DontCountIterationException()
 
-        self.goodness_x_prev = goodness_x
+
         logger.info("do_iteration end")
 
 
