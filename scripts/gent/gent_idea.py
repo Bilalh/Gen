@@ -26,22 +26,35 @@ hset = eval(str_set)
 
 insection_mapping = {}
 
+highest_ordering_needed=None
+
 with sqlite3.connect(args.db) as conn:
 	for e in hset:
 		logging.info("processing %s", e)
-		sets_with_e =[ set(eprimes.split(", ")) for (eprimes,) in
-			conn.execute("Select eprimes From ParamsData Where eprimes like '%{:04d}%' ".format(e))]
+		sets_with_e =[ (set(eprimes.split(", ")), ordering) for (eprimes, ordering) in
+			conn.execute("Select eprimes, ordering From ParamsData Where eprimes like '%{:04d}%' Order By ordering".format(e))]
 
-		assert len(sets_with_e) > 0
 		logger.info(len(sets_with_e))
-		intersection = sets_with_e[0]
+		assert len(sets_with_e) > 0
+		intersection = sets_with_e[0][0]
+		highest_ordering_needed = sets_with_e[0][1]
+		logger.info("ordering start %s", highest_ordering_needed)
+
 
 		if len(sets_with_e) > 1:
-			for set_e in sets_with_e[1:]:
-				intersection &= set_e
+			for (set_e, ordering) in sets_with_e[1:]:
+				new_set = intersection & set_e
+				logger.info("new_set %s intersection %s, ordering %s", len(new_set), len(intersection), ordering)
+				if len(new_set) < len(intersection):
+					highest_ordering_needed = ordering
+				intersection = new_set
 
 		logger.info("intersection: %s", intersection)
 		insection_mapping[e] = intersection
 
+logger.info("ordering end %s", highest_ordering_needed)
+
 for intersection in insection_mapping.values():
 	print(len(intersection), sorted(intersection))
+
+print("highest_ordering_needed: {}".format(highest_ordering_needed))
