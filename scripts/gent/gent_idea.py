@@ -26,7 +26,7 @@ hset = eval(str_set)
 
 insection_mapping = {}
 
-highest_ordering_needed=None
+highest_ordering_needed=-1
 
 with sqlite3.connect(args.db) as conn:
 	for e in hset:
@@ -37,7 +37,8 @@ with sqlite3.connect(args.db) as conn:
 		logger.info(len(sets_with_e))
 		assert len(sets_with_e) > 0
 		intersection = sets_with_e[0][0]
-		highest_ordering_needed = sets_with_e[0][1]
+		if sets_with_e[0][1] > highest_ordering_needed:
+			highest_ordering_needed = sets_with_e[0][1]
 		logger.info("ordering start %s", highest_ordering_needed)
 
 
