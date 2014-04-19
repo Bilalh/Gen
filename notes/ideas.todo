@@ -1,0 +1,20 @@
+
+Method improvements:
+  Assume models total for a race T_m
+
+  Since trivial instances can be discriminating, instead of generating the first instance using T_M seconds, use T_m to genrate 10 instances by using T_m/10 seconds  each
+
+  Use T_m as the maximum limit.
+
+  Start at T_m / 100 and `race` for instances. After either finding discriminating instances or we done a set number of instances, increases the timeout  by some factor e.g doubling , exp. Should help give  instances of various difficulties.
+
+
+Racing with model generation:
+
+  Start with compact (C)
+  Generate R random models
+  Generate K instances  using the method
+    with some prop of trivial, medium and hard instance (in terms of solving time)
+
+  Backpropage how good the instances were on the models as well as rules that were applied. The vary rules used in some way (e.g genetic algorithms) or MCTS like ideas, plus some random solvers.  Run the new models on some the instances generated (the discriminating onces + a few trival + few timed out)
+
