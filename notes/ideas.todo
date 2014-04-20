@@ -18,3 +18,50 @@ Racing with model generation:
 
   Backpropage how good the instances were on the models as well as rules that were applied. The vary rules used in some way (e.g genetic algorithms) or MCTS like ideas, plus some random solvers.  Run the new models on some the instances generated (the discriminating onces + a few trival + few timed out)
 
+influance radius:
+How to choose it?
+  ☐ As a % of the maximum (eclin) distance. Does not take account of dimensionaity. e.g
+      if we have
+      bool
+      int (1..100)
+      func total  1..100 --> 1..100
+
+      the bool is under rep
+  ☐  Use a different radius for each param,  could work but more complex
+
+
+Chain:
+
+
+Idea is to pick the next point inside the radius of previous point. Problem with this are
+  ☐ Bias at the edges  (but do we still care about the bias?)
+  ☐ how large to we make the radius
+
+  process for generated essence for instance generation to work with an radius
+    ☐ for each find F (since we have dependent params we can't make every given to find)
+    ☐ add a new given F~org with same domain and a new constrain
+      ☐  Need to account for new vars have different number of elements and nested types
+      ☐  int   |F - F~org| <=  radius
+      ☐  total int --> int
+        forAll i : Boat .
+          |crew(i) -  crew~org(i)| <= radius,
+      ☐  tuples
+          forAll i : tupleDom .
+            |tup[i]  - tup~org[i]| <= radius
+      ☐  sets, best I could think of was
+
+        forAll i in s1.
+           exists j in s2 .
+              |i - j| <= radius
+         has the problem of not specifing all the radii
+
+         want something like  toMatrix so I can compare the sets based on some ordering.
+
+       ☐ relation
+          ?
+
+
+
+
+
+
