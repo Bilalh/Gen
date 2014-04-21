@@ -1,0 +1,39 @@
+language Essence 1.3
+
+given n_upper: int(1..20)
+given n_boats: int(1..20)
+letting Boat be domain int(1..n_boats)
+
+find n_periods: int(1..20)
+find capacity: function (total) Boat --> int(1..n_upper)
+find crew: function (total) Boat --> int(1..n_upper)
+
+given n_upper~org: int(1..20)
+given n_boats~org: int(1..20)
+
+given n_periods~org: int(1..20)
+given capacity~org: function (total) int(1..n_boats~org) --> int(1..n_upper~org)
+given crew~org: function (total) int(1..n_boats~org) --> int(1..n_upper~org)
+
+given n_periods~radius : int(1..1000)
+given capacity~radius : int(1..8000)
+given crew~radius : int(1..8000)
+
+find n_periodsdist : int(1..1000)
+find capacitydist : int(1..8000)
+find crewdist : int(1..8000)
+
+maximising (capacitydist +  crewdist + n_periodsdist)
+
+such that
+    n_periodsdist = ( n_periods - n_periods~org ) ** 2,
+    capacitydist = (sum  i1 : int(1..n_boats) .
+        (capacity(i1) - capacity~org(i1)) ** 2
+    ),
+    crewdist = (sum  i1 : int(1..n_boats) .
+        (crew(i1) - crew~org(i1)) ** 2
+    ),
+    crewdist < crew~radius,
+    capacitydist < capacity~radius,
+    n_periodsdist < n_periods~radius
+
