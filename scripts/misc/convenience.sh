@@ -30,6 +30,10 @@ function refine_run(){
 			__all_solution=3
 			shift
 		fi
+		if [ "$1" = "rnd"  ]; then
+			export MINION_OPTIONS="-minion-options -randomiseorder"
+			shift
+		fi
 		export __all_solution
 
 		local essence=$1
@@ -45,10 +49,14 @@ function csolve(){
 		echo "$0  param+ "
 	else
 		local base=`basename $PWD`
+		__models_dir="${base}-compact/"
 		cr
-		pushd ${base}-compact >/dev/null
-		refine_run ../${base}.essence ::: 0001.eprime ::: "$@" 
-		popd > /dev/null
+		if [ -f ${base}-compact/0001.eprime  ]; then
+			pushd ${base}-compact >/dev/null
+			export LINES_TO_SHOW=${LINES_TO_SHOW:-20}
+			refine_run ${EXTRA:-} ../${base}.essence ::: 0001.eprime ::: "$@" 
+			popd > /dev/null
+		fi
 	fi
 }
 
@@ -196,7 +204,7 @@ function up_eprime(){
 			--in-essence ${essence}  \
 			--in-param ${param} \
 			--in-solution \${sol}
-		&& head -n 10 \${sol}  | sed '1d' "
+		&& head -n ${LINES_TO_SHOW:-10} \${sol}  | sed '1d' "
 		echo $cmd
 		parallel --tagstring "{#}" --keep-order -j${NUM_JOBS_ALL_SOLS:-1} $cmd ::: ${eprime_solution}.*
 
@@ -213,7 +221,7 @@ function up_eprime(){
 			--in-eprime-solution ${eprime_solution} \
 			--in-essence-param ${param} \
 			--out-solution ${solution} \
-		&& head -n 10 ${solution} | sed '1d' \
+		&& head -n ${LINES_TO_SHOW:-10} ${solution} | sed '1d' \
 		&& vaildate_solution ${solution} ${param} ${essence}
 	fi
 
