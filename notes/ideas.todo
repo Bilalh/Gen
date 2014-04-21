@@ -37,7 +37,14 @@ Idea is to pick the next point inside the radius of previous point. Problem with
   ☐ Bias at the edges  (but do we still care about the bias?)
   ☐ how large to we make the radius
 
-  process for generated essence for instance generation to work with an radius
+ Process for generated essence for instance generation to work with an radius
+
+  eclid distance:
+   as in the above example, the bool does not count for much.
+
+  use a radius for each param as follows:
+    not sure how to express in essence
+
     ☐ for each find F (since we have dependent params we can't make every given to find)
     ☐ add a new given F~org with same domain and a new constrain
       ☐  Need to account for new vars have different number of elements and nested types
