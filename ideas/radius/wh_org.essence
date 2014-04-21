@@ -1,0 +1,10 @@
+language ESSENCE 1.2.0
+
+given n_upper: int(1..30)
+given n_stores: int(1..30)
+given n_warehouses: int(1..30)
+letting Store be domain int(1..n_stores)
+letting WHouse be domain int(1..n_warehouses)
+find capacity: function (total) WHouse --> int(1..n_upper)
+find opencost: function (total) WHouse --> int(1..n_upper)
+find cost: function (total) (Store, WHouse) --> int(1..n_upper)

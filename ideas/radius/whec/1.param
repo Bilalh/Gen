@@ -1,0 +1,12 @@
+language Essence 1.3
+letting n_upper be 12
+letting n_stores be 11
+letting n_warehouses be 1
+
+letting n_upper~org be 14
+letting n_stores~org be 11
+letting n_warehouses~org be 1
+
+letting capacity~org be function( 1 --> 6 )
+letting opencost~org be function( 1 --> 11 )
+letting cost~org be function( tuple(1, 1) --> 10, tuple(2, 1) --> 3, tuple(3, 1) --> 3, tuple(4, 1) --> 11, tuple(5, 1) --> 5, tuple(6, 1) --> 13, tuple(7, 1) --> 13, tuple(8, 1) --> 11, tuple(9, 1) --> 12, tuple(10, 1) --> 5, tuple(11, 1) --> 2 )

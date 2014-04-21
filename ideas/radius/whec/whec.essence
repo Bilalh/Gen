@@ -1,0 +1,44 @@
+language Essence 1.3
+
+given n_upper: int(1..30)
+given n_stores: int(1..30)
+given n_warehouses: int(1..30)
+
+letting Store be domain int(1..n_stores)
+letting WHouse be domain int(1..n_warehouses)
+
+find capacity: function (total) WHouse --> int(1..n_upper)
+find opencost: function (total) WHouse --> int(1..n_upper)
+find cost: function (total) (Store, WHouse) --> int(1..n_upper)
+
+
+given n_upper~org: int(1..30)
+given n_stores~org: int(1..30)
+given n_warehouses~org: int(1..30)
+
+letting Store_org be domain int(1..n_stores~org)
+letting WHouse_org be domain int(1..n_warehouses~org)
+
+given capacity~org: function (total) WHouse_org --> int(1..n_upper~org)
+given opencost~org: function (total) WHouse_org --> int(1..n_upper~org)
+given cost~org: function (total) (Store_org, WHouse_org) --> int(1..n_upper~org)
+
+
+$given n_upper~radius : int(1..1000)
+$given n_stores~radius : int(1..1000)
+$given n_warehouses~radius : int(1..1000)
+
+
+find n_upperdist : int(0..10000)
+find n_storesdist : int(0..10000)
+find n_warehousesdist : int(0..10000)
+
+maximising (n_upperdist + n_storesdist + n_warehousesdist)
+
+such that 
+
+n_upperdist = (n_upper - n_upper~org ) ** 2,
+n_storesdist = (n_stores - n_stores~org ) ** 2,
+n_warehousesdist = (n_warehouses - n_warehouses~org ) ** 2
+
+
