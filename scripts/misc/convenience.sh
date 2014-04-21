@@ -10,6 +10,8 @@ function echoing(){
     "$@"
 }
 
+
+
 # refine params then solve them on all eprimes
 function refine_run(){
 	if [ $# -lt 3 ]; then
@@ -37,6 +39,29 @@ function refine_run(){
 			"source ${__convenience_fp}; __refine_par_func {2} {1} ${essence}" "$@"
 	fi
 }
+
+function csolve(){
+	if [ $# -lt 1 ]; then
+		echo "$0  param+ "
+	else
+		local base=`basename $PWD`
+		cr
+		pushd ${base}-compact >/dev/null
+		refine_run ../${base}.essence ::: 0001.eprime ::: "$@" 
+		popd > /dev/null
+	fi
+}
+
+
+function cr(){
+	local base=`basename $PWD`
+	mkdir -p  ${base}-compact; 
+	echoing conjure \
+	--mode compact \
+	--out-eprime ${base}-compact/0001.eprime \
+	--in-essence ${base}.essence +RTS -M16G
+}
+
 
 function cat_solutions(){
 
