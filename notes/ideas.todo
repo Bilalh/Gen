@@ -8,6 +8,8 @@ Method improvements:
 
   Start at T_m / 100 and `race` for instances. After either finding discriminating instances or we done a set number of instances, increases the timeout  by some factor e.g doubling , exp. Should help give  instances of various difficulties.
 
+  The effect of points in the radius of influence should be based on how close the point is.
+
 
 Racing with model generation:
 
@@ -40,7 +42,7 @@ Idea is to pick the next point inside the radius of previous point. Problem with
  Process for generated essence for instance generation to work with an radius
 
   eclid distance:
-   as in the above example, the bool does not count for much.
+   as in the above example, the bool does not count for much. so use a  radius for each param
 
   use a radius for each param as follows:
     not sure how to express in essence
@@ -68,6 +70,12 @@ Idea is to pick the next point inside the radius of previous point. Problem with
           ?
 
 
+
+Model portfolios:
+   Currently using the hitting set idea.
+
+   Once we have the final set of models to use which model should be used to solve an unseen instances E?
+   ☐  Nearest Neighbor, find the instance that is closest to the E, and pick the model(s) which have the best expected runtime performance.  Kind of like `Algorithm Selection and Scheduling` in CP2011
 
 
 
