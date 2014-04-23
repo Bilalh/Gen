@@ -10,6 +10,7 @@ Method improvements:
 
   The effect of points in the radius of influence should be based on how close the point is.
 
+  Restarts like idea when using minion, if a instance takes too long to generate?
 
 Racing with model generation:
 
@@ -70,12 +71,13 @@ Idea is to pick the next point inside the radius of previous point. Problem with
           ?
 
 
-
 Model portfolios:
    Currently using the hitting set idea.
 
    Once we have the final set of models to use which model should be used to solve an unseen instances E?
-   ☐  Nearest Neighbor, find the instance that is closest to the E, and pick the model(s) which have the best expected runtime performance.  Kind of like `Algorithm Selection and Scheduling` in CP2011
+     ☐ Nearest Neighbor, find the instance that is closest to the E, and pick the model(s) which have the best expected runtime performance.  Kind of like `Algorithm Selection and Scheduling` in CP2011
+
+
 
 
 

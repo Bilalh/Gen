@@ -28,17 +28,25 @@ $given n_upper~radius : int(1..1000)
 $given n_stores~radius : int(1..1000)
 $given n_warehouses~radius : int(1..1000)
 
-
+$Theses are preset so why find the dist?
 find n_upperdist : int(0..10000)
 find n_storesdist : int(0..10000)
 find n_warehousesdist : int(0..10000)
+find costdist : int(0..10000)
 
-maximising (n_upperdist + n_storesdist + n_warehousesdist)
+maximising (n_upperdist + n_storesdist + n_warehousesdist + costdist)
 
 such that 
 
 n_upperdist = (n_upper - n_upper~org ) ** 2,
 n_storesdist = (n_stores - n_stores~org ) ** 2,
-n_warehousesdist = (n_warehouses - n_warehouses~org ) ** 2
+n_warehousesdist = (n_warehouses - n_warehouses~org ) ** 2,
+
+costdist = 
+    (sum  i1 : Store . 
+         sum i2 : WHouse .  
+             ( cost(  (i1,i2) ) - cost~org(  (i1, i2 )  )) ** 2  
+    )
+
 
 
