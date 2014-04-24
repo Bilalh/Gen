@@ -1,6 +1,6 @@
 language Essence 1.3
-letting n_upper be 2
-letting n_stores be 2
+letting n_upper be 14
+letting n_stores be 11
 letting n_warehouses be 1
 
 letting n_upper~org be 14
@@ -14,3 +14,6 @@ letting cost~org be
                  (6, 1) --> 13, (7, 1) --> 13, (8, 1) --> 11, (9, 1) --> 12, (10, 1) --> 5,
                  (11, 1) --> 2)
 
+letting capacity~radius be 10000
+letting opencost~radius be 10000
+letting cost~radius be 10000
