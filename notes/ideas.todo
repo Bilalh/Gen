@@ -58,16 +58,13 @@ Idea is to pick the next point inside the radius of previous point. Problem with
       ☐  tuples
           forAll i : tupleDom .
             |tup[i]  - tup~org[i]| <= radius
-      ☐  sets, best I could think of was
+      ☐  sets
+          |S - S~org| + |S~org - S| <= radius
+          What to do with nested sets?
 
-        forAll i in s1.
-           exists j in s2 .
-              |i - j| <= radius
-         has the problem of not specifing all the radii
-
-         want something like  toMatrix so I can compare the sets based on some ordering.
-
-       ☐ relation
+      ☐ relation
+          ?
+      ☐ partition
           ?
 
 
