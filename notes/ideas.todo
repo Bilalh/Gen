@@ -19,7 +19,7 @@ Racing with model generation:
   Generate K instances  using the method
     with some prop of trivial, medium and hard instance (in terms of solving time)
 
-  Backpropage how good the instances were on the models as well as rules that were applied. The vary rules used in some way (e.g genetic algorithms) or MCTS like ideas, plus some random solvers.  Run the new models on some the instances generated (the discriminating onces + a few trival + few timed out)
+  Backpropage how good the instances were on the models as well as rules that were applied. The vary rules used in some way (e.g genetic algorithms) or MCTS like ideas, plus some random solvers.  Run the new models on some the instances generated (the discriminating onces + a few trival + few timed out) for each factures, + L new instances on all current models
 
 influance radius:
 How to choose it?
