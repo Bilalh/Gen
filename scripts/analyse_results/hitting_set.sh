@@ -49,7 +49,7 @@ export Command=$( cat <<EOF
 	export __convenience_fp=$our_dir/../misc/convenience.sh;
 	source $our_dir/../misc/convenience.sh;
 	export NUM_JOBS=1;
-	refine_run  $our_dir/../hittingSetMsetOpt/*.essence ::: $our_dir/../hittingSetMsetOpt/*/*.eprime ::: ../*.param;
+	refine_run  $our_dir/../gent/hittingSetMsetOpt/*.essence ::: $our_dir/../gent/hittingSetMsetOpt/*/*.eprime ::: ../*.param;
 	cp *.solution ../hittingSet.solution
 	popd;
 	echo "~---~";
