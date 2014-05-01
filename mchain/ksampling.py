@@ -24,7 +24,7 @@ Options:
   --working_dir=<dir>                           Where the essence file is [default: .]
   --point_selector=<first!halving!halving_3_4>  Method to pick the next point
   --info=<file>                                 Files that contains the ordering of the variable
-  --use_minion=<bool>                           Uses Minion to generate params [default: false]
+  --use_minion=<bool>                           Uses Minion to generate params [default: true]
   --pre_generate=<bool>                         When using minion, genrate all solution once and pick from them [default: false]
   --generated_dir=<dir>                         Directory to place all solutions, specs, which can be reused between runs
 
