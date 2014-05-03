@@ -5,9 +5,6 @@ from lib.instances import jmatch
 from abc import ABCMeta, abstractmethod
 from pprint import pprint
 
-from collections import namedtuple
-
-import itertools as it
 import json
 import subprocess
 import sys
@@ -15,14 +12,10 @@ import os
 import random
 import logging
 
-import itertools as it
-import copy
-import itertools
 import operator
 import functools
 
 logger = logging.getLogger(__name__)
-
 
 
 class Domain(metaclass=ABCMeta):
