@@ -54,18 +54,6 @@ def write_param(output_dir, contents, param_hash):
     return param_path
 
 
-def timeme(method):
-    """ @timeme annotation which returns the time taken in ms as well as the result"""
-    def wrapper(*args, **kw):
-        startTime = int(round(time.time() * 1000))
-        result = method(*args, **kw)
-        endTime = int(round(time.time() * 1000))
-
-        return (endTime - startTime, result)
-
-    return wrapper
-
-
 def get_number_of_models(dirname):
         return len([f for f in os.listdir(dirname) if fnmatch.fnmatch(f, "*.eprime")])
 
@@ -214,23 +202,3 @@ def copydoc(fromfunc, sep="\n"):
             func.__doc__ = sep.join([sourcedoc, func.__doc__])
         return func
     return _decorator
-
-
-def relfect(ranges, point):
-    [lowers, uppers] = zip(*ranges)
-
-    def f_upper(upper, v):
-        if v > upper:
-            return upper + (upper - v)
-        else:
-            return v
-
-    def f_lower(lower, v):
-        if v < lower:
-            return lower + (lower - v)
-        else:
-            return v
-
-    point = [f_lower(lower, (f_upper(upper, v))) for(upper, lower, v) in zip(uppers, lowers, point)]
-
-    return point

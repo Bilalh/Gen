@@ -71,7 +71,8 @@ else
 	while [ -d "${LOCKDIR}" ]; do
 		sleep 1
 		(( total++ ))
-		if [[ total -gt 32 ]]; then
+		# This has never happen yet
+		if [[ $total -gt 80 ]]; then
 			echo "<update_timeout>  ignoring lock after ${total} seconds for $1"
 			break
 		fi

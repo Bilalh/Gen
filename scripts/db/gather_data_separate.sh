@@ -98,8 +98,7 @@ function isDominated(){
 		(( time_taken  = `grep "${timing_method}" ${sr_time}     |  ruby -e 'print gets[4..-1].to_f.floor' ` ))
 		(( time_taken  += `grep "${timing_method}" ${minion_time} |  ruby -e 'print gets[4..-1].to_f.floor' ` ))
 
-		#TODO should using floating point comapre
-		# floor was used since it  ceil could make a non-dominated model dominated
+		# floor was used since ceil could make a non-dominated model dominated
 		(( dominated  =  time_taken > MIN_TOTAL_TIME &&  time_taken > $fastest ))
 		echo $dominated
 	fi

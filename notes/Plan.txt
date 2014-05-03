@@ -1,0 +1,39 @@
+
+
+* Does the models chosen, generalise to different bounds?
+	i.e.  if we run a method on PPP  1..20,  would same models be chosen for 1..100.
+	Also have we missed any fractures?
+
+	The same question applies to give a larger timeout for the `race`
+
+	PPP Results
+	-----------
+
+
+* Uses smaller timeouts for races at start:
+	We have no information about how good the models are so use the small time for a `race` might information for a little cost.
+
+	If we have say 1024 models and good models are `823` `935`  and `984` and a lot of instances  timeout or are trivial. If we run a races for 24 hours with no previous information, then we waste a lot of time since most of the models timeout.  If run some smaller races  with say 1 hour,  we might find some of the good models. This would significantly reduced the time need in other `races` since a `good` model would be run at the start because of the higher possibility of the other models being \rho-dominated.
+
+
+* Timings
+	Models M
+
+	Current: number of iterations I,  Time per race R,   each model gets R/|M|
+
+	Number of races:
+		 Total time T,  Number of races A,  each races gets  T/A,  hence each model gets T/A/|M|
+
+	Per model time:
+		Time per model Y,  Total Time / number of iterations.
+
+
+* Experiments to run, vary
+	Radius size
+	How timeouts are done
+	methods
+	bounds
+
+
+ksample
+	when generating k instances do it in parallel. e.g by appending the point id to the timestamp/seed
