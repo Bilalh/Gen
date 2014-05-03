@@ -148,59 +148,6 @@ class FuncMinion(Instance):
 
 
 @functools.total_ordering
-class FuncTotalIntToInt(Instance):
-    def __init__(self, point, pretty, safe):
-        super(FuncTotalIntToInt, self).__init__(point, pretty, safe)
-
-    def distance(self, other_dom):
-        raise NotImplemented("OlD FUNC")
-        "  distance between the two domains, for use in euclidean "
-        if not isinstance(other_dom, self.__class__):
-            raise ValueError("other dom must of %s" % self.__class__.__name__)
-
-        # logger.info("self %s other %s", self.pretty, other_dom.pretty)
-        # logger.info("self %s other %s", self.point,  other_dom.point)
-
-        def f(x1, x2):
-            if x1 is None or x2 is None:
-                return 0
-            else:
-                return (x1 - x2) ** 2
-
-
-        parts = [ f(x1, x2) for (x1, x2) in it.zip_longest(self.point, other_dom.point) ]
-        logger.debug("functin dist parts %s", parts)
-
-        return sum(parts)
-
-    def __lt__(self, other):
-        return self.point.items().__lt__(other.point.items())
-
-    @classmethod
-    def from_json_dict(cls, dom):
-        mappings = jmatch(dom, "function", "values" )
-
-        def f(mapping):
-
-            [come, to] = [ process_literal(lit) for lit in jmatch(mapping, "mapping", "value") ]
-            return (come.point, to)
-
-        res = dict([ f(m) for m in mappings ])
-
-        return cls.construct(res)
-
-    @staticmethod
-    def construct(func):
-        kv = [ "{} --> {}".format(k, v.pretty) for (k, v) in sorted(func.items()) ]
-        pretty = "function( {} )".format( ", ".join(kv) )
-
-        kv_safe = [ "{}_{}".format(k, v.safe) for (k, v) in sorted(func.items()) ]
-        safe = "F__{}__".format( ",".join(kv_safe) )
-        return FuncTotalIntToInt(point=func, pretty=pretty, safe=safe)
-
-
-
-@functools.total_ordering
 class Set(Instance):
     def __init__(self, point, pretty, safe):
         super(Set, self).__init__(point, pretty, safe)
@@ -352,7 +299,7 @@ def setup_instances(use_minion):
     if use_minion:
         Func = FuncMinion
     else:
-        Func = FuncTotalIntToInt
+        raise NotImplementedError("use_minion should be specifed")
 
 
 def create_param_essence(essence_file, output_dir):

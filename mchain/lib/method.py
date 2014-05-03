@@ -1,9 +1,6 @@
 from lib import chain_lib
-from lib import ncube
-from lib import ncuboid
 from lib import euclidean
 from lib import domains
-from lib import constraints
 from lib import instances
 from lib import limit
 
@@ -86,10 +83,6 @@ class Method(metaclass=ABCMeta):
         logger.info(settings)
         self.settings = settings
 
-        #FIXME hard coded
-        if self.settings.essence.endswith("prob013-PPP.essence"):
-            self.param_info['crew'].constraints.append(constraints.FuncForallLessThenEq('capacity'))
-
         logger.info("Using Seed {}".format(settings.seed))
         random.seed(settings.seed)
 
@@ -139,10 +132,7 @@ class Method(metaclass=ABCMeta):
                 self.random_point = self.random_point_minion
 
         else:
-            # Generate the params ourselves
-            self.random_point = self.random_point_generated
-
-        # self.random_point = self.random_point_genrated
+            raise NotImplementedError("use_minion should be specifed")
 
     def run(self):
         date_start = datetime.utcnow()
@@ -412,12 +402,6 @@ class Method(metaclass=ABCMeta):
     def do_radius_as_percentage(self, options):
         if options['radius_as_percentage']:
             raise NotImplementedError("only works for int")
-            self.shape = ncuboid
-            for s in ['select_radius', 'influence_radius']:
-                if s in options:
-                    per = options[s]
-                    radii = [ math.ceil((u - l) * (per / 100)) for (l, u) in self.data ]
-                    options[s] = radii
         else:
             self.shape = euclidean
 

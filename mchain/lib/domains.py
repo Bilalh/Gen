@@ -292,90 +292,6 @@ class Tuple(Domain):
         return sum(  len(e.all_values()) for e in self.elems )
 
 
-# FIXME  use the form  1:instance at the moment
-class FuncTotalIntToInt(Domain):
-    """Total Function Domain"""
-    def __init__(self, fromm, tos, total=False):
-        super(FuncTotalIntToInt, self).__init__()
-        self.total = total
-        self.fromm = fromm
-        self.tos = tos
-
-    def random_value(self, selected_vals):
-        # TODO  assumes total from ints at the momment
-        assert len(self.fromm) == 1
-        all_from = self.fromm[0].all_values(selected_vals)
-
-        if len(self.tos) == 1:
-            tos_domains = [ copy.deepcopy(self.tos[0]) for i in range(len(all_from)) ]
-        else:
-            assert len(all_from) == len(self.tos)
-            tos_domains = [ copy.deepcopy(to) for to in self.tos ]
-
-        return self.random_values_with_doms(selected_vals, all_from, tos_domains)
-
-    def random_values_with_doms(self, selected_vals, froms, tos):
-        for c in self.constraints:
-            tos = c.process(selected_vals, self, (froms, tos) )
-
-        logger.info("func(total) doms %s", list(zip(froms, [t.low_high for t in tos ] )) )
-
-        tos = [ to_dom.random_value(selected_vals) for to_dom in tos ]
-        res = dict(zip(froms, tos))
-
-        logger.debug("rv %s", (froms, tos, res))
-
-        kv = [ "{} --> {}".format(k, v.pretty) for (k, v) in sorted(res.items()) ]
-        pretty = "function( {} )".format( ", ".join(kv) )
-
-        kv_safe = [ "{}_{}".format(k, v.safe) for (k, v) in sorted(res.items()) ]
-        safe = "F__{}__".format( ",".join(kv_safe) )
-
-        di = instances.Func(point=res, pretty=pretty, safe=safe)
-        # logger.info("point Part %s", pretty)
-        return di
-
-        #merge
-    def instance_from_dict(self, res):
-        kv = [ "{} --> {}".format(k, v.pretty) for (k, v) in sorted(res.items()) ]
-        pretty = "function( {} )".format( ", ".join(kv) )
-
-        kv_safe = [ "{}_{}".format(k, v.safe) for (k, v) in sorted(res.items()) ]
-        safe = "F__{}__".format( ",".join(kv_safe) )
-
-        return instances.Func(point=res, pretty=pretty, safe=safe)
-
-
-    def within_radius_dom(self, selected_vals, instance, radius):
-        # TODO  assumes total from ints at the momment
-
-        assert len(self.fromm) == 1
-        assert len(self.tos) == 1
-        dall_from = self.fromm[0].all_values(selected_vals)
-
-        dkeys = set(dall_from)
-        ikeys = set(instance.point.keys())
-
-        common_from = dkeys & ikeys
-        missing = dkeys - ikeys
-
-        tos_mapping = {}
-        for k in common_from:
-            ki = instance.point[k]
-            tos_mapping[k] = self.tos[0].within_radius_dom(selected_vals, ki, radius)
-
-
-        for k in missing:
-            tos_mapping[k] = self.tos[0]
-
-        tos = [ tos_mapping[k] for k in sorted(tos_mapping) ]
-
-        return Func(self.fromm, tos)
-
-    def reconstruct_for_smac(self, selected_vals, kv):
-        raise NotImplementedError("use other Func")
-
-
 class Set(Domain):
     """Domain for set, which maybe nested"""
     def __init__(self, inner_dom, *, size=None):
@@ -482,7 +398,7 @@ def setup_domain(use_minion):
     if use_minion:
         Func = FuncMinion
     else:
-        Func = FuncTotalIntToInt
+        raise NotImplementedError("use_minion should be specifed")
 
 
 def next_ele(ele):
@@ -579,27 +495,14 @@ def get_function_domain(data):
 
     top = data['children']
 
-    (_, attrs) =next_ele(top[0])
-    atts_names = [ ele['children'][0]['children'][0]['children'][0]['primitive']['string'] for ele in attrs['children'] ]
+    def handle(ele):
+        kind_ele= jmatch(ele, "*", "domain")
+        assert len(kind_ele) == 1
+        kind_ele = kind_ele[0]
+        return domain_dispacher(kind_ele['tag'], kind_ele)
 
-    # make the attrs into a dict so that they can be passed to __init__ of Func
-    as_bools = dict(zip(atts_names, it.repeat(True) ))
-
-    if Func == FuncTotalIntToInt:
-        # Assume int domains
-        [fromm, to] = [ get_int_domain(next_ele(next_ele(ele)[1])[1]) for ele in top[1:] ]
-
-        f = FuncTotalIntToInt(fromm=[fromm], tos=[to], **as_bools)
-    else:
-
-        def handle(ele):
-            kind_ele= jmatch(ele, "*", "domain")
-            assert len(kind_ele) == 1
-            kind_ele = kind_ele[0]
-            return domain_dispacher(kind_ele['tag'], kind_ele)
-
-        [fromm, tos] = [  handle(ele) for ele in top[1:] ]
-        f = FuncMinion(fromm, tos)
+    [fromm, tos] = [  handle(ele) for ele in top[1:] ]
+    f = FuncMinion(fromm, tos)
 
     return f
 
