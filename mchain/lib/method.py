@@ -15,7 +15,6 @@ import logging
 import os
 import random
 import math
-import sys
 import subprocess
 from pathlib import Path
 
@@ -38,10 +37,6 @@ class Method(metaclass=ABCMeta):
         if not os.path.isfile(os.path.join(tools, "cputimeout", "cputimeout" )):
             logger.error("Compile cputimeout in %s", os.path.join(tools, "cputimeout") )
             exit(4)
-
-        if not os.path.isfile(os.path.join(tools, "timeout5")):
-            logger.error("Compile timeout5 in %s", tools )
-            exit(5)
 
         self.info = info
 
@@ -74,7 +69,7 @@ class Method(metaclass=ABCMeta):
         if len(self.info.ordering) != len(self.param_info):
             print("Ordering size:{} != params size:{}".format(len(self.info.ordering), len(self.param_info)))
             print("ordering:{}\nparam_info:§§{}".format(self.info.ordering, self.param_info))
-            raise ValueError()
+            raise ValueError("invaild ordering")
 
         self.limiter = limiter
 
@@ -100,7 +95,7 @@ class Method(metaclass=ABCMeta):
 
         self.extra_time = 0
         if self.settings.use_minion:
-            # TODO this should be create once for ALL methods
+            # TODO Should this be done before any script is run?
             self.generated_dir = os.path.join(self.output_dir, "generated")
 
             if settings.generated_dir:
@@ -385,16 +380,6 @@ class Method(metaclass=ABCMeta):
         self.extra_time += cputime_taken
 
         selected_vals.update(generated)
-        return [  selected_vals[name] for name in self.info.ordering ]
-
-    def random_point_generated(self):
-        selected_vals = {}
-
-        for name in self.info.ordering:
-            v=self.param_info[name].random_value(selected_vals)
-            selected_vals[name] = v
-            logger.info("Assigning %s=%s", name, v.pretty)
-
         return [  selected_vals[name] for name in self.info.ordering ]
 
 
