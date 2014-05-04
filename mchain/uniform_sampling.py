@@ -46,8 +46,8 @@ class UniformSampling(method.Method):
     def do_iteration(self):
         picked = self.random_point()
         logger.info("Picked %s", picked)
-        self.data_points.append(picked)
         self.create_run_param_and_store_quality(picked)
+        self.data_points.append(picked)
 
 
 if __name__ == '__main__':
