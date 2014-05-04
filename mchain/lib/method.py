@@ -3,6 +3,7 @@ from lib import euclidean
 from lib import domains
 from lib import instances
 from lib import limit
+from lib import timeout
 
 from abc import ABCMeta, abstractmethod
 from datetime import datetime, timedelta
@@ -90,8 +91,7 @@ class Method(metaclass=ABCMeta):
         self.models_dir = p_work / (p_work.name + "-" + self.settings.mode)
         self.num_models = chain_lib.get_number_of_models( str(self.models_dir) )
         logger.info(self.num_models)
-        self.time_per_model = int(math.ceil(self.settings.models_timeout / self.num_models) )
-
+        self.timeout = timeout.SimpleTimeout(self.settings.models_timeout, self.num_models, self)
 
         self.extra_time = 0
         if self.settings.use_minion:
@@ -214,6 +214,7 @@ class Method(metaclass=ABCMeta):
         logger.info("eprime_ordering %s", model_ordering)
 
         check = self.use_previous(param_hash)
+        time_per_model = self.timeout.time_per_model()
         if self.use_previous_data and check:
             now = check
             logger.info("using previous data timestamp %s", check)
@@ -224,17 +225,27 @@ class Method(metaclass=ABCMeta):
             logger.info("Start %s", datee.isoformat())
             now = str(int(datee.timestamp()))
 
-            chain_lib.run_models(now, param_path, self.time_per_model, self.settings.working_dir, self.output_dir, self.settings.mode, model_ordering)
+            chain_lib.run_models(now, param_path, time_per_model, self.settings.working_dir,
+                self.output_dir, self.settings.mode, model_ordering)
             logger.info("End %s", calendar.datetime.datetime.now().isoformat()  )
 
 
-        results = chain_lib.get_results(self.settings.working_dir, self.output_dir, param_hash, self.time_per_model, now, self.settings.mode)
+        results = chain_lib.get_results(self.settings.working_dir, self.output_dir, param_hash,
+            time_per_model, now, self.settings.mode)
         quailty = chain_lib.quality(*results)
         chain_lib.save_quality(self.output_dir, param_name, param_hash, quailty)
 
         self.prev_timestamp = now
         logger.info("results: {} quailty: {} for \n{}".format(results, quailty, param_string))
         return quailty
+
+
+    def get_quailty(self, x):
+        name = "-".join( [ ("%s" % p.safe) for p in x ] )
+        name_hash = chain_lib.hash(name)
+        logger.info("name %s for hash %s", name, name_hash)
+        return chain_lib.get_quailty(self.output_dir, name_hash)
+
 
     def get_model_ordering(self):
         # self.models_dir
@@ -248,7 +259,6 @@ class Method(metaclass=ABCMeta):
             return "\n".join(map(str, results))
         else:
             return ""
-
 
 
     def use_previous(self, param_hash):
