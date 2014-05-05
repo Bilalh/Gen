@@ -1,3 +1,31 @@
+invaild instances:
+some instances are not vaild e.g  for ppp
+
+ language Essence 1.3
+letting n_upper be 1
+letting n_boats be 1
+letting n_periods be 4
+letting capacity be function( 1 --> 1 )
+letting crew be function( 1 --> 1 )
+
+not vaild beacuse the eprimes of 0001.eprime says
+forAll v__0 : int(1..n_boats - 1)
+
+gives warnings and errors
+WARNING: interval 1..0 is out of order. Rewriting to empty interval.
+0002 0d9b17  aux80
+0002 0d9b17  [(minimising hosts_SetExplicitVarSize_tuple1_00000
+0002 0d9b17  <-tv>aux80)]
+
+0001 0d9b17  Exception in thread "Thread-0" java.lang.AssertionError
+0001 0d9b17    at savilerow.treetransformer.TreeTransformerBottomUp.transform.TreeTransformerBottomUp.java:99)
+0001 0d9b17    at savilerow.model.Model.transform(Model.java:151)
+0001 0d9b17    at savilerow.model.ModelContainer.instanceFlattening(ModelContainer.java:661)
+0001 0d9b17    at savilerow.model.ModelContainer.process(ModelContainer.java:65)
+0001 0d9b17    at savilerow.SRWorkThread.run(SRWorkThread.java:74)
+
+
+Also java or SR has weird behaviour of return 0 on asserts
 
 Method improvements:
   Assume models total for a race T_m

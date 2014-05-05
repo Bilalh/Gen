@@ -16,6 +16,7 @@ class Timeout(metaclass=ABCMeta):
 
 	@abstractmethod
 	def time_per_model(self):
+		"""Should only be called once per race"""
 		pass
 
 	def __repr__(self):
@@ -29,3 +30,42 @@ class SimpleTimeout(Timeout):
 	"""Always uses the same timeout"""
 	def time_per_model(self):
 		return self.max_time_per_model
+
+
+class DynamicTimeout(Timeout):
+	""" Starts off with a small timeout and increases from there """
+
+	def __init__(self, secs_per_race, num_models, method):
+		super(DynamicTimeout, self).__init__(secs_per_race, num_models, method)
+		self.previous_times = []
+		self.useless_count = 0
+
+	def time_per_model(self):
+		if self.previous_times ==[]:
+			self.previous_times.append(1)
+			logger.info("First run using 1 second")
+			return self.previous_times[-1]
+
+
+		prev_quality = self.method.get_quailty(self.method.data_points[-1])
+		if prev_quality ==1:
+			self.useless_count+=1
+			mult=(1 + 0.5 * self.useless_count )
+			new_timeout = math.ceil(self.previous_times[-1] * mult)
+		else:
+			self.useless_count=0
+			mult = (1 + 1 * prev_quality )
+			new_timeout = math.ceil(self.previous_times[-1] * mult)
+
+		if new_timeout > self.max_time_per_model:
+			new_timeout = self.max_time_per_model
+		self.previous_times.append(new_timeout)
+
+		logger.info("Using %s as time per model (mult used %s) (Limit %s) (useless_count %s) (prev_quality %0.03f",
+			self.previous_times[-1], mult, self.max_time_per_model, self.useless_count, prev_quality)
+		return self.previous_times[-1]
+
+
+
+
+
