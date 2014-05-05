@@ -557,9 +557,9 @@ def gather_param_info(essence_file, output_dir):
     sys.stdout.flush()
     sys.stderr.flush()
 
-    subprocess.Popen([
+    chain_lib.run_subprocess(args=[
         chain_lib.wrappers("essenceGivensToJson2.sh"), essence_file, json_path, "100"
-    ]).communicate()
+    ])
 
 
     with open( json_path ) as f:

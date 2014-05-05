@@ -30,6 +30,12 @@ def wrappers(script_name):
     return os.path.join(os.path.expandvars("${PARAM_GEN_SCRIPTS}/"), "wrappers", script_name)
 
 
+def run_subprocess(*, quiet=False, **kargs):
+    if (quiet):
+        kargs['stdout']= subprocess.DEVNULL
+        kargs['stderr']= subprocess.DEVNULL
+    return subprocess.Popen(**kargs).communicate()
+
 
 def create_param_file(params):
     """Create a essence param form (name,values) pairs"""
@@ -106,9 +112,9 @@ def run_models(now, param_path, time_per_model, working_dir, output_dir, mode, m
         current_env["USE_MODE"] = mode
         current_env["MODELS_TO_USE"]= model_ordering
 
-        subprocess.Popen([
+        run_subprocess(args=[
             wrappers("run.sh"), now, param_path, str(time_per_model), working_dir
-        ], env=current_env).communicate()
+        ], env=current_env)
 
     return runner()
 
@@ -126,7 +132,7 @@ def get_results(working_dir, output_dir, param_hash, time_per_model, then, mode)
     sys.stdout.flush()
     sys.stderr.flush()
 
-    subprocess.Popen([wrappers("run_gather.sh"), param_hash, working_dir], env=current_env).communicate()
+    run_subprocess(args=[wrappers("run_gather.sh"), param_hash, working_dir], env=current_env)
     conn = sqlite3.connect(os.path.join(output_dir, 'results.db'))
     # conn.row_factory = sqlite3.Row
 

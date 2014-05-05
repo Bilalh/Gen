@@ -310,9 +310,9 @@ def create_param_essence(essence_file, output_dir):
     sys.stdout.flush()
     sys.stderr.flush()
 
-    subprocess.Popen([
+    chain_lib.run_subprocess(args=[
         chain_lib.wrappers("create_param_essence.sh"), essence_file, str(out)
-    ]).communicate()
+    ])
 
 
 def pre_create_all_param_solutions_from_essence(generated_dir, givens_names, param_info):
@@ -353,10 +353,10 @@ def pre_create_all_param_solutions_from_essence(generated_dir, givens_names, par
     if use_previous and (solutions_path / "solutions.counts").exists():
         pass
     else:
-        subprocess.Popen([
+        chain_lib.run_subprocess([
                 chain_lib.wrappers("pre_create_all_params_from_essence_par_no_up.sh"),
                 timeout, str(essence), str(eprime),
-        ], env=current_env ).communicate()
+        ], env=current_env )
 
 
     try:
@@ -426,10 +426,10 @@ def create_param_from_essence(specific_dir, generated_dir, givens):
         solution = (out / (essence.stem + "-" + param.stem) ).with_suffix('.solution')
         solution_json = solution.with_suffix('.json')
 
-        subprocess.Popen([
+        chain_lib.run_subprocess(args=[
             chain_lib.wrappers("create_param_from_essence.sh"),
             str(essence), str(eprime), str(param), timeout, timeout, str(random_seed)
-        ], env=current_env ).communicate()
+        ], env=current_env)
 
     try:
         with ( out / "total.time" ).open() as f:
