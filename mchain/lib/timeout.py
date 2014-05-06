@@ -39,22 +39,32 @@ class DynamicTimeout(Timeout):
 		super(DynamicTimeout, self).__init__(secs_per_race, num_models, method)
 		self.previous_times = []
 		self.useless_count = 0
+		self.first_time=True
 
 	def time_per_model(self):
+		"""
+		Each time is used twice
+		if the instance gives us no new infomation then
+		"""
 		if self.previous_times ==[]:
 			self.previous_times.append(1)
 			logger.info("First run using 1 second")
 			return self.previous_times[-1]
 
+		if self.first_time:
+			new_timeout = self.previous_times[-1]
+			self.previous_times.append(new_timeout)
+			self.first_time=False
+			return self.previous_times[-1]
 
 		prev_quality = self.method.get_quailty(self.method.data_points[-1])
 		if prev_quality ==1:
 			self.useless_count+=1
-			mult=(1 + 0.5 * self.useless_count )
+			mult=min(1 + 0.3 * self.useless_count, 10)
 			new_timeout = math.ceil(self.previous_times[-1] * mult)
 		else:
 			self.useless_count=0
-			mult = (1 + 1 * prev_quality )
+			mult = (1.1 + 1 * prev_quality )
 			new_timeout = math.ceil(self.previous_times[-1] * mult)
 
 		if new_timeout > self.max_time_per_model:
@@ -63,6 +73,8 @@ class DynamicTimeout(Timeout):
 
 		logger.info("Using %s as time per model (mult used %s) (Limit %s) (useless_count %s) (prev_quality %0.03f",
 			self.previous_times[-1], mult, self.max_time_per_model, self.useless_count, prev_quality)
+
+		self.first_time = True
 		return self.previous_times[-1]
 
 

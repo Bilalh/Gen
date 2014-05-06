@@ -226,7 +226,7 @@ class Method(metaclass=ABCMeta):
             now = str(int(datee.timestamp()))
 
             chain_lib.run_models(now, param_path, time_per_model, self.settings.working_dir,
-                self.output_dir, self.settings.mode, model_ordering)
+                self.output_dir, self.settings.mode, "\n".join(model_ordering))
             logger.info("End %s", calendar.datetime.datetime.now().isoformat()  )
 
 
@@ -256,9 +256,9 @@ class Method(metaclass=ABCMeta):
                         for row in conn.execute("SELECT eprime FROM EprimeOrdering") ]
             if "LIMIT_MODELS" in os.environ:
                 results = results[0:int(os.environ['LIMIT_MODELS'])]
-            return "\n".join(map(str, results))
+            return [str(r) for r in results]
         else:
-            return ""
+            return []
 
 
     def use_previous(self, param_hash):
