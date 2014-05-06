@@ -211,7 +211,7 @@ class Method(metaclass=ABCMeta):
         param_hash = chain_lib.hash(param_name)
 
         model_ordering = self.get_model_ordering()
-        logger.info("eprime_ordering %s", model_ordering)
+        logger.info("eprime_ordering (first 5 eprimes) %s", model_ordering[0:5] )
 
         check = self.use_previous(param_hash)
         time_per_model = self.timeout.time_per_model()

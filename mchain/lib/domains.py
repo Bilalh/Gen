@@ -22,7 +22,6 @@ class Domain(metaclass=ABCMeta):
     """Domain e.g int or function"""
     def __init__(self):
         super(Domain, self).__init__()
-        self.constraints = []
 
     def __repr__(self):
         return "{}({})".format(self.__class__.__name__,
