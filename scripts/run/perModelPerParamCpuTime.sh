@@ -148,7 +148,6 @@ savilerow $TOTAL_TIMEOUT -mode Normal \
     -in-eprime    $EPRIME       \
     -in-param     $EPRIME_PARAM \
     -out-minion   $MINION       \
-    -boundvars;
 
 RESULTOF_SAVILEROW=$?
 echo "~~~ RESULTOF_SAVILEROW ${RESULTOF_SAVILEROW}"

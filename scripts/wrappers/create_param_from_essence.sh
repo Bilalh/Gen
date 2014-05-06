@@ -144,7 +144,6 @@ savilerow $TOTAL_TIMEOUT ${SAVILEROW_TIME} -mode Normal \
     -in-eprime    $EPRIME       \
     -in-param     $EPRIME_PARAM \
     -out-minion   $MINION       \
-    -boundvars;
 
 date +'finSR %a %d %b %Y %k:%M:%S %z%nfinSR(timestamp) %s' >&2
 
