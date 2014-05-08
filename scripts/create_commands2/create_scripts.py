@@ -2,8 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import argparse
+import calendar
 import itertools
 import json
+import logging
 import os
 import sqlite3
 
@@ -12,6 +14,8 @@ from distutils import file_util
 from itertools import groupby
 from pathlib import Path
 from pprint import pprint
+
+logger = logging.getLogger(__name__)
 
 
 def run(fp, place_dir, num_runs):
@@ -22,8 +26,12 @@ def run(fp, place_dir, num_runs):
     essences_dir = place_dir / "results" / "specs"
     essences_dir.mkdir(parents=True)
 
-    create_essence_metadata(place_dir)
+    datee = calendar.datetime.datetime.now()
+    now = str(int(datee.timestamp()))
+    ffp=Path(fp)
+    copy_file(ffp, place_dir / "results" / ("settings-" + now + ".json") )
 
+    create_essence_metadata(place_dir)
     # Create own own copy of the essence and the files we need
     for values in data['essences']:
         essence_dir = essences_dir / values['directory'].name
@@ -57,7 +65,7 @@ def run(fp, place_dir, num_runs):
 
 
         results = for_methods(data, values, place_dir, num_runs)
-        [  [  make_script_from_data(k,v)  for v in vv ] for (k, vv) in results.items() ]
+        [  [  make_script_from_data(k, v) for v in vv ] for (k, vv) in results.items() ]
 
 
 
@@ -111,6 +119,7 @@ def process_args(args):
         if d in args: del args[d]
 
     return args
+
 
 def producter(common):
     def arr(vs):
