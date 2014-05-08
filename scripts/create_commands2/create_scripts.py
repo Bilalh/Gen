@@ -7,6 +7,7 @@ import itertools
 import json
 import logging
 import os
+import sys
 import sqlite3
 
 from distutils import dir_util
@@ -16,6 +17,8 @@ from pathlib import Path
 from pprint import pprint
 
 logger = logging.getLogger(__name__)
+prog_name = os.path.dirname(sys.argv[0])
+prog_dir = os.path.abspath(prog_name)
 
 
 def run(fp, place_dir, num_runs):
@@ -30,6 +33,7 @@ def run(fp, place_dir, num_runs):
     now = str(int(datee.timestamp()))
     ffp=Path(fp)
     copy_file(ffp, place_dir / "results" / ("settings-" + now + ".json") )
+
 
     create_essence_metadata(place_dir)
     # Create own own copy of the essence and the files we need
@@ -65,8 +69,37 @@ def run(fp, place_dir, num_runs):
 
 
         results = for_methods(data, values, place_dir, num_runs)
-        [  [  make_script_from_data(k, v) for v in vv ] for (k, vv) in results.items() ]
+        end=[  [  make_script_from_data(k, v) for v in vv ] for (k, vv) in results.items() ]
 
+        with (place_dir / "results" / values['directory'].name / "commands.sh").open("w") as f:
+            f.write("\n".join(end[0]))
+
+        (place_dir / "results" / values['directory'].name / "commands.sh").chmod(0o755)
+
+
+        if values['num_models'] < data['cores']:
+            jobs = values['num_models']
+        else:
+            jobs = data['cores']
+
+        with (place_dir / "results" / values['directory'].name / "run.sh").open("w") as f:
+            lines = [
+                "#!/bin/bash",
+                "# requires python3.3+",
+                "export PARAM_GEN_SCRIPTS=`pwd`/../instancegen/scripts/",
+                "export NUM_JOBS={}".format(jobs),
+                "",
+                ". " + str(place_dir / "results" / "init.sh"),
+                str(place_dir / "results" / essence_name /  "commands.sh"),
+                ""
+            ]
+            f.write("\n".join(lines))
+    (place_dir / "results" / values['directory'].name / "run.sh").chmod(0o755)
+
+    copy_file(Path(prog_dir) / "init.sh", place_dir / "results" / "init.sh" )
+    (place_dir / "results" / "init.sh" ).chmod(0o755)
+    with (place_dir / "results" / "init.sh").open("a") as f:
+        f.write("\nexport JAVA_MEMORY=%s\n" % data['JAVA_MEMORY'])
 
 
 def for_methods(data, es, place_dir, num_runs):
@@ -97,12 +130,13 @@ def for_methods(data, es, place_dir, num_runs):
 
     return results
 
-def make_script_from_data(name, data):
-    output="record_cp {output_dir}/log \\\
-    \n../instancegen/mchain/nsampling.py {way} {limit} \\\n  ".format(**data)
-    output += " \\\n  ".join( "--{}={}".format(k, v) for (k, v) in process_args(data).items() )
 
-    raise NotImplementedError()
+def make_script_from_data(name, data):
+    output="""record_cp {output_dir}/log ../instancegen/mchain/nsampling.py {way} {limit} """.format(**data)
+    output += "    ".join( "--{}={}".format(k, v) for (k, v) in process_args(data).items() )
+
+
+    return output
 
 # Keep only the needed fields for the method
 def process_args(args):
@@ -118,7 +152,7 @@ def process_args(args):
               'run_no', 'filepath', 'way', 'limit', 'iterations']:
         if d in args: del args[d]
 
-    return args
+    return { k:str(v) for (k, v) in args.items()}
 
 
 def producter(common):
@@ -156,6 +190,8 @@ def read_json(fp):
     return json.loads(json_in)
 
 
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("json_settings")
@@ -165,5 +201,4 @@ if __name__ == "__main__":
     run(args.json_settings,
         Path(args.output_dir),
         args.num_runs)
-
 
