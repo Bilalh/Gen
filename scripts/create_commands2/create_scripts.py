@@ -23,7 +23,7 @@ prog_dir = os.path.abspath(prog_name)
 Fields = {'filepath', 'mode', 'num_models', 'per_race_time',
         'radius_as_percentage', 'use_minion', 'pre_generate', 'output_dir',
         'iterations', 'run_no', 'per_model_time', 'method',
-         'influence_radius', 'way'}
+         'influence_radius', 'way','essence'}
 
 def run(fp, place_dir, num_runs):
     data = read_json(fp)
@@ -70,7 +70,7 @@ def run(fp, place_dir, num_runs):
 
         values['directory'] = Path("results") / "specs" / values['directory'].name
         values['filepath'] = (values['directory'] / essence_name).with_suffix('.essence')
-
+        values['essence'] = essence_name
 
         results = for_methods(data, values, place_dir, num_runs)
         end=[  [  make_script_from_data(k, v) for v in vv ] for (k, vv) in results.items() ]
@@ -143,10 +143,11 @@ def make_script_from_data(name, data):
     keys = sorted(data.keys())
 
     not_storing = {'limit', 'directory'}
-    output += " && printf .timeout 5000 INSERT INTO everything({}) VALUES({})".format(
+    output += " && printf \".timeout 5000\\nINSERT INTO everything({}) VALUES({});\"".format(
             ", ".join("'{}'".format(k) for k in keys if k not in not_storing ),
             ", ".join("'{}'".format(data[k]) for k in keys if k not in not_storing),
         )
+    output += " | sqlite3 results/Info.db"
     output += ";"
     return output
 
@@ -162,7 +163,7 @@ def process_args(args1):
 
 
     for d in ['per_model_time', 'per_race_time', 'directory', 'num_models',
-              'run_no', 'filepath', 'way', 'limit', 'iterations']:
+              'run_no', 'filepath', 'way', 'limit', 'iterations', 'method']:
         if d in args: del args[d]
 
     return { k:str(v) for (k, v) in args.items()}
