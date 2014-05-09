@@ -77,35 +77,50 @@ def run(fp, place_dir, num_runs):
         results = for_methods(data, values, place_dir, num_runs)
         end=[  [  make_script_from_data(k, v) for v in vv ] for (k, vv) in results.items() ]
 
-        with (place_dir / "results" / values['directory'].name / "commands.sh").open("w") as f:
+        cmd_file = place_dir / "results" / values['directory'].name / "run_commands.sh"
+        with cmd_file.open("w") as f:
             f.write("\n".join(end[0]))
 
-        (place_dir / "results" / values['directory'].name / "commands.sh").chmod(0o755)
+        cmd_file.chmod(0o755)
 
+        init_file = place_dir / "results" / "init.sh"
+        copy_file(Path(prog_dir) / "init.sh", init_file )
+        init_file.chmod(0o755)
+        with init_file.open("a") as f:
+            f.write("\nexport JAVA_MEMORY=%s\n" % data['JAVA_MEMORY'])
 
         if values['num_models'] < data['cores']:
             jobs = values['num_models']
         else:
             jobs = data['cores']
 
-        with (place_dir / "results" / values['directory'].name / "run.sh").open("w") as f:
+        run_file = place_dir / "results" / values['directory'].name / "run.sh"
+        with run_file.open("w") as f:
             lines = [
                 "#!/bin/bash",
                 "# requires python3.3+",
                 "export PARAM_GEN_SCRIPTS=`pwd`/../instancegen/scripts/",
                 "export NUM_JOBS={}".format(jobs),
                 "",
-                ". " + str(place_dir / "results" / "init.sh"),
-                str(place_dir / "results" / essence_name /  "commands.sh"),
+                ". " + str(init_file),
+                str(cmd_file),
                 ""
             ]
             f.write("\n".join(lines))
-    (place_dir / "results" / values['directory'].name / "run.sh").chmod(0o755)
+    run_file.chmod(0o755)
 
-    copy_file(Path(prog_dir) / "init.sh", place_dir / "results" / "init.sh" )
-    (place_dir / "results" / "init.sh" ).chmod(0o755)
-    with (place_dir / "results" / "init.sh").open("a") as f:
-        f.write("\nexport JAVA_MEMORY=%s\n" % data['JAVA_MEMORY'])
+    run_all_file = place_dir / "results" / "run_all.sh"
+    with run_all_file.open("w") as f:
+        f.write("#!/bin/bash\n")
+        f.write("_start=`date` \n")
+        f.write("\n".join(
+            "./%s" % s.relative_to(place_dir) for s in
+                sorted(place_dir.glob('results/*/run.sh')  )))
+
+        f.write("\n_end=`date`; echo $_start  $_end | tee %s\n"
+            % (place_dir / "results" / "total_time") )
+
+    run_all_file.chmod(0o755)
 
 
 def for_methods(data, es, place_dir, num_runs):
@@ -141,7 +156,7 @@ def for_methods(data, es, place_dir, num_runs):
 
 def make_script_from_data(name, data):
     output="""record_cp {output_dir}/logs/log ../instancegen/mchain/nsampling.py {way} {limit} """.format(**data)
-    output += "    ".join( "--{}={:5}".format(k, v) for (k, v) in process_args(data).items() )
+    output += " ".join( "--{}={:6}".format(k, v) for (k, v) in process_args(data).items() )
 
 
     ndata = data.copy()
@@ -151,9 +166,17 @@ def make_script_from_data(name, data):
     keys = sorted(ndata.keys())
     not_storing = {'limit', 'directory', 'filepath'}
 
+    def t(v):
+        if isinstance(v, bool):
+            return int(v)
+        elif isinstance(v, int):
+            return v
+        else:
+            return "'%s'" % v
+
     output += " && printf \".timeout 5000\\nINSERT INTO everything({}) VALUES({});\"".format(
             ", ".join("'{}'".format(k) for k in keys if k not in not_storing ),
-            ", ".join("'{}'".format(ndata[k]) for k in keys if k not in not_storing),
+            ", ".join("{:5}".format(t(ndata[k])) for k in keys if k not in not_storing),
         )
     output += " | sqlite3 results/Info.db"
     output += ";"
