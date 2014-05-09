@@ -140,7 +140,7 @@ class Method(metaclass=ABCMeta):
             count_iter=True
             while self.limiter.continue_running(self, count_iter):
                 count_iter = True
-                logger.info("Started (real) iteration %d", self._current_iteration + 1)
+                logger.info("\n~~~~~~~~~~~~~\nStarted (real) iteration %d\n", self._current_iteration + 1)
 
                 try:
                     self.do_iteration()
@@ -244,8 +244,9 @@ class Method(metaclass=ABCMeta):
     def get_quailty(self, x):
         name = "-".join( [ ("%s" % p.safe) for p in x ] )
         name_hash = chain_lib.hash(name)
-        logger.info("name %s for hash %s", name, name_hash)
-        return chain_lib.get_quailty(self.output_dir, name_hash)
+        q=chain_lib.get_quailty(self.output_dir, name_hash)
+        logger.info("qu: %s  for name %s,  hash %s",q, name, name_hash)
+        return q
 
 
     def get_model_ordering(self):
