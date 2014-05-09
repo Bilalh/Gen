@@ -20,11 +20,12 @@ logger = logging.getLogger(__name__)
 prog_name = os.path.dirname(sys.argv[0])
 prog_dir = os.path.abspath(prog_name)
 
-Fields = {'filepath', 'mode', 'num_models', 'per_race_time',
+Fields = sorted({'essence', 'mode', 'num_models', 'per_race_time',
         'radius_as_percentage', 'use_minion', 'pre_generate', 'output_dir',
         'iterations', 'run_no', 'per_model_time', 'method', 'influence_radius',
-        'way','essence', 'point_selector', 'num_points', 'chain_length',
-        'select_radius', 'working_dir', 'dynamic_timeout'}
+        'way', 'essence', 'point_selector', 'num_points', 'chain_length',
+        'select_radius', 'working_dir', 'dynamic_timeout', 'races'})
+
 
 def run(fp, place_dir, num_runs):
     data = read_json(fp)
@@ -113,7 +114,6 @@ def for_methods(data, es, place_dir, num_runs):
 
     def f(method_name):
         args = data['iterations'].copy()
-        args['per_race_time'] = [ a * es['num_models']  for a in args['per_model_time'] ]
         args['run_no'] = list(range(1, num_runs + 1))
 
         args.update(es)
@@ -122,8 +122,10 @@ def for_methods(data, es, place_dir, num_runs):
         all_combs=producter(args)
         for a in all_combs:
             extra = "out_{mode}_{per_model_time}_{iterations}__{run_no}__".format(**a)
-            extra += "_".join( str(v) for (k,v) in a.items() if k in data['nsample'].keys() )
-            a['output_dir'] = Path('results') / a['directory'].name  / extra
+            extra += "_".join( str(v) for (k, v) in a.items() if k in data['nsample'].keys() )
+            a['output_dir'] = Path('results') / a['directory'].name / extra
+
+            a['per_race_time'] = a['num_models'] *  a['per_model_time']
 
             a['method']  = method_name
             if 'iterations' in args:
@@ -141,12 +143,17 @@ def make_script_from_data(name, data):
     output="""record_cp {output_dir}/logs/log ../instancegen/mchain/nsampling.py {way} {limit} """.format(**data)
     output += "    ".join( "--{}={:5}".format(k, v) for (k, v) in process_args(data).items() )
 
-    keys = sorted(data.keys())
 
-    not_storing = {'limit', 'directory'}
+    ndata = data.copy()
+    ndata['essence'] = ndata['filepath']
+    ndata['working_dir'] = ndata['directory']
+
+    keys = sorted(ndata.keys())
+    not_storing = {'limit', 'directory', 'filepath'}
+
     output += " && printf \".timeout 5000\\nINSERT INTO everything({}) VALUES({});\"".format(
             ", ".join("'{}'".format(k) for k in keys if k not in not_storing ),
-            ", ".join("'{}'".format(data[k]) for k in keys if k not in not_storing),
+            ", ".join("'{}'".format(ndata[k]) for k in keys if k not in not_storing),
         )
     output += " | sqlite3 results/Info.db"
     output += ";"

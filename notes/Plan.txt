@@ -11,9 +11,9 @@
 
 
 * Uses smaller timeouts for races at start:
-	We have no information about how good the models are so use the small time for a `race` might information for a little cost.
+		We have no information about how good the models are so use the small time for a `race` might information for a little cost.
 
-	If we have say 1024 models and good models are `823` `935`  and `984` and a lot of instances  timeout or are trivial. If we run a races for 24 hours with no previous information, then we waste a lot of time since most of the models timeout.  If run some smaller races  with say 1 hour,  we might find some of the good models. This would significantly reduced the time need in other `races` since a `good` model would be run at the start because of the higher possibility of the other models being \rho-dominated.
+		If we have say 1024 models and good models are `823` `935`  and `984` and a lot of instances  timeout or are trivial. If we run a races for 24 hours with no previous information, then we waste a lot of time since most of the models timeout.  If run some smaller races  with say 1 hour,  we might find some of the good models. This would significantly reduced the time need in other `races` since a `good` model would be run at the start because of the higher possibility of the other models being \rho-dominated.
 
 
 	Two sensible?  ways:
