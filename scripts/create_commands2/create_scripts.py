@@ -45,7 +45,8 @@ def run(fp, place_dir, num_runs):
     # Create own own copy of the essence and the files we need
     for values in data['essences']:
         essence_dir = essences_dir / values['directory'].name
-        essence_dir.mkdir(parents=True)
+        if not essence_dir.exists():
+            essence_dir.mkdir(parents=True)
         essence_name = essence_dir.name
 
         eprimes_dirname = essence_dir.name + "-" + values['mode']
@@ -80,7 +81,6 @@ def run(fp, place_dir, num_runs):
         cmd_file = place_dir / "results" / values['directory'].name / "run_commands.sh"
         with cmd_file.open("w") as f:
             f.write("\n".join(end[0]))
-
         cmd_file.chmod(0o755)
 
         init_file = place_dir / "results" / "init.sh"
@@ -107,7 +107,8 @@ def run(fp, place_dir, num_runs):
                 ""
             ]
             f.write("\n".join(lines))
-    run_file.chmod(0o755)
+        run_file.chmod(0o755)
+
 
     run_all_file = place_dir / "results" / "run_all.sh"
     with run_all_file.open("w") as f:
@@ -125,7 +126,7 @@ def run(fp, place_dir, num_runs):
 
 def for_methods(data, es, place_dir, num_runs):
     essence_results = place_dir / "results" / es['directory'].name
-    essence_results.mkdir(parents=True)
+    if not essence_results.exists(): essence_results.mkdir(parents=True)
 
     def f(method_name):
         args = data['iterations'].copy()
@@ -161,9 +162,9 @@ def make_script_from_data(name, data):
         "ksample" : "../instancegen/mchain/ksample.py"
     }
 
-    output="record_cp {output_dir}/logs/log {script} {way} {limit}".format(
+    output="record_cp {output_dir}/logs/log {script} {way} {limit} ".format(
         script=scripts[name], **data)
-    output += " ".join( "--{}={:6}".format(k, v) for (k, v) in process_args(data).items() )
+    output += " ".join( " --{}={:6}".format(k, v) for (k, v) in process_args(data).items() )
 
 
     ndata = data.copy()
@@ -220,10 +221,11 @@ def producter(common):
 def create_essence_metadata(place_dir):
     query = """
     CREATE TABLE IF NOT EXISTS  "essences" (
-        essence TEXT PRIMARY KEY,
+        essence TEXT,
         mode TEXT,
         num_models INTEGER,
-        filepath TEXT
+        filepath TEXT,
+        PRIMARY KEY(essence, mode)
     );
     """
     conn = sqlite3.connect(str(place_dir /  "results" /  "Info.db"))
