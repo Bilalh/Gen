@@ -20,6 +20,10 @@ logger = logging.getLogger(__name__)
 prog_name = os.path.dirname(sys.argv[0])
 prog_dir = os.path.abspath(prog_name)
 
+Fields = {'filepath', 'mode', 'num_models', 'per_race_time',
+        'radius_as_percentage', 'use_minion', 'pre_generate', 'output_dir',
+        'iterations', 'run_no', 'per_model_time', 'method',
+         'influence_radius', 'way'}
 
 def run(fp, place_dir, num_runs):
     data = read_json(fp)
@@ -120,6 +124,7 @@ def for_methods(data, es, place_dir, num_runs):
             extra += "_".join( str(v) for (k,v) in a.items() if k in data['nsample'].keys() )
             a['output_dir'] = Path('results') / a['directory'].name  / extra
 
+            a['method']  = method_name
             if 'iterations' in args:
                 a['limit'] = a['iterations']
                 a['way'] = "iterations"
@@ -132,15 +137,23 @@ def for_methods(data, es, place_dir, num_runs):
 
 
 def make_script_from_data(name, data):
-    output="""record_cp {output_dir}/log ../instancegen/mchain/nsampling.py {way} {limit} """.format(**data)
-    output += "    ".join( "--{}={}".format(k, v) for (k, v) in process_args(data).items() )
+    output="""record_cp {output_dir}/logs/log ../instancegen/mchain/nsampling.py {way} {limit} """.format(**data)
+    output += "    ".join( "--{}={:5}".format(k, v) for (k, v) in process_args(data).items() )
 
+    keys = sorted(data.keys())
 
+    not_storing = {'limit', 'directory'}
+    output += " && printf .timeout 5000 INSERT INTO everything({}) VALUES({})".format(
+            ", ".join("'{}'".format(k) for k in keys if k not in not_storing ),
+            ", ".join("'{}'".format(data[k]) for k in keys if k not in not_storing),
+        )
+    output += ";"
     return output
 
+
 # Keep only the needed fields for the method
-def process_args(args):
-    args.copy()
+def process_args(args1):
+    args = args1.copy()
     args['models_timeout'] = args['per_race_time']
     args['working_dir'] = args['directory']
     args['generated_dir'] = args['working_dir'] / "generated"
@@ -170,12 +183,22 @@ def create_essence_metadata(place_dir):
     CREATE TABLE IF NOT EXISTS  "essences" (
         essence TEXT PRIMARY KEY,
         mode TEXT,
-        num_models TEXT,
+        num_models INTEGER,
         filepath TEXT
     );
     """
     conn = sqlite3.connect(str(place_dir /  "results" /  "Info.db"))
     conn.execute(query)
+
+    everything="""
+        CREATE TABLE IF NOT EXISTS  "everything" (%s ,PRIMARY KEY(%s) );
+    """ % (
+        ",".join("{}".format(f)  for f in Fields ),
+        ",".join(map(str, Fields))
+    )
+    conn.execute(everything)
+
+
     conn.commit()
     conn.close()
 
@@ -188,8 +211,6 @@ def read_json(fp):
     with open( fp ) as f:
         json_in = f.read()
     return json.loads(json_in)
-
-
 
 
 if __name__ == "__main__":
