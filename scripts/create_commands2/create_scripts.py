@@ -76,11 +76,11 @@ def run(fp, place_dir, num_runs):
         values['essence'] = essence_name
 
         results = for_methods(data, values, place_dir, num_runs)
-        end=[  [  make_script_from_data(k, v) for v in vv ] for (k, vv) in results.items() ]
+        end={  k: [  make_script_from_data(k, v) for v in vv ] for (k, vv) in results.items()  }
 
         cmd_file = place_dir / "results" / values['directory'].name / "run_commands.sh"
         with cmd_file.open("w") as f:
-            f.write("\n".join(end[0]))
+            f.write("\n".join( itertools.chain(*end.values()) ))
         cmd_file.chmod(0o755)
 
         init_file = place_dir / "results" / "init.sh"
@@ -137,13 +137,14 @@ def for_methods(data, es, place_dir, num_runs):
 
         all_combs=producter(args)
         for a in all_combs:
-            extra = "out_{mode}_{per_model_time}_{iterations}__{run_no}__".format(**a)
+            a['method']  = method_name
+
+            extra = "out_{method}_{mode}_{per_model_time}_{iterations}__{run_no}__".format(**a)
             extra += "_".join( str(v) for (k, v) in a.items() if k in data['nsample'].keys() )
             a['output_dir'] = Path('results') / a['directory'].name / extra
 
             a['per_race_time'] = a['num_models'] *  a['per_model_time']
 
-            a['method']  = method_name
             if 'iterations' in args:
                 a['limit'] = a['iterations']
                 a['way'] = "iterations"
