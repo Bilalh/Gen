@@ -90,7 +90,7 @@ class NSample(method.Method):
         else:
             goodness_x_prev = 1
 
-        logger.info("point %s,  goodness_x: %0.3f goodness_x_prev: %0.3f", [y.pretty for y in x ], goodness_x, goodness_x_prev)
+        logger.info("point: goodness_x: %0.3f goodness_x_prev: %0.3f pretty %s", goodness_x, goodness_x_prev, [y.pretty for y in x ])
 
 
         def accept_point():
