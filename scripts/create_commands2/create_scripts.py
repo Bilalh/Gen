@@ -22,8 +22,9 @@ prog_dir = os.path.abspath(prog_name)
 
 Fields = {'filepath', 'mode', 'num_models', 'per_race_time',
         'radius_as_percentage', 'use_minion', 'pre_generate', 'output_dir',
-        'iterations', 'run_no', 'per_model_time', 'method',
-         'influence_radius', 'way','essence'}
+        'iterations', 'run_no', 'per_model_time', 'method', 'influence_radius',
+        'way','essence', 'point_selector', 'num_points', 'chain_length',
+        'select_radius', 'working_dir'}
 
 def run(fp, place_dir, num_runs):
     data = read_json(fp)
