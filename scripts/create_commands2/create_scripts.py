@@ -63,7 +63,7 @@ def run(fp, place_dir, num_runs):
 
         # parallel --header : --colsep '\t' echo a={a} b={b} c={c} :::: a.tsv
 
-        insert = "INSERT OR REPLACE INTO essences(essence, mode, num_models, filepath) VALUES(?, ?, ?, ?)"
+        insert = "INSERT INTO essences(essence, mode, num_models, filepath) VALUES(?, ?, ?, ?)"
         with sqlite3.connect(str(place_dir / "results" / "Info.db")) as conn:
             conn.execute(insert,
                 (essence_name, values['mode'], values['num_models'], str(essence_path)))
@@ -155,7 +155,14 @@ def for_methods(data, es, place_dir, num_runs):
 
 
 def make_script_from_data(name, data):
-    output="""record_cp {output_dir}/logs/log ../instancegen/mchain/nsampling.py {way} {limit} """.format(**data)
+    scripts ={
+        "nsample" : "../instancegen/mchain/nsampling.py",
+        "uniform" : "../instancegen/mchain/uniform_sampling.py",
+        "ksample" : "../instancegen/mchain/ksample.py"
+    }
+
+    output="record_cp {output_dir}/logs/log {script} {way} {limit}".format(
+        script=scripts[name], **data)
     output += " ".join( "--{}={:6}".format(k, v) for (k, v) in process_args(data).items() )
 
 
