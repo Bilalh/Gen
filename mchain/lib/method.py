@@ -18,7 +18,7 @@ import random
 import math
 import subprocess
 from pathlib import Path
-
+from textwrap import indent
 
 logger = logging.getLogger(__name__)
 
@@ -208,7 +208,7 @@ class Method(metaclass=ABCMeta):
         return self.run_param_and_store_quality(param_string, param_name)
 
     def run_param_and_store_quality(self, param_string, param_name):
-        logger.info((param_string, param_name))
+        logger.info("Essence for name %s \n%s ", param_name, indent(param_string,"\t"))
         param_hash = chain_lib.hash(param_name)
 
         model_ordering = self.get_model_ordering()
@@ -237,7 +237,7 @@ class Method(metaclass=ABCMeta):
         chain_lib.save_quality(self.output_dir, param_name, param_hash, quailty)
 
         self.prev_timestamp = now
-        logger.info("results: {} quailty: {} for \n{}".format(results, quailty, param_string))
+        logger.info("results: %s quailty: %s for \n%s", results, quailty,  indent(param_string,"\t") )
         return quailty
 
 

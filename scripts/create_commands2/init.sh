@@ -60,9 +60,13 @@ function record_cp(){
 
 		echo "Command:"  >> "${fp}.cmds"
 		echo "$@"        >> "${fp}.cmds"
+		echo
 		echo "<RUNNING> $@"
+		echo
 		"$@" 2>&1 | tee "${fp}.log"
+		echo
 		echo "<FINISHED> $@"
+		echo
 	fi
 }
 
