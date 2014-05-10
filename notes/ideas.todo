@@ -1,3 +1,7 @@
+radius:
+  If the radius is too high then a instance could say all other instances are useless
+
+
 invaild instances:
 some instances are not vaild e.g  for ppp
 
