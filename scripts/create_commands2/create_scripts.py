@@ -33,7 +33,8 @@ def run(fp, place_dir, num_runs):
         p['directory'] = Path(p['directory'])
 
     essences_dir = place_dir / "results" / "specs"
-    essences_dir.mkdir(parents=True)
+    if not essences_dir.exists():
+        essences_dir.mkdir(parents=True)
 
     datee = calendar.datetime.datetime.now()
     now = str(int(datee.timestamp()))
