@@ -49,7 +49,7 @@ Settings=namedtuple('Settings', ['seed', 'mode', 'models_timeout', "essence", "w
 class NSample(method.Method):
     def __init__(self, options, limiter, info):
         super(NSample, self,).__init__(options, limiter, Settings, info)
-
+        self.rejected_series=0
 
     def before_settings(self, options):
         return self.do_radius_as_percentage(options)
@@ -62,13 +62,19 @@ class NSample(method.Method):
                 if self.shape.is_in_inside(self.settings.influence_radius, rp, p) ]
 
             if (len(influence_points) == 0):
+                logger.info("no influence_points")
                 return 0.5
 
+            logger.info("len(influence_points) %s len(data_points) %s ",
+                len(influence_points), len(self.data_points))
+
             quailties = [self.get_quailty(p) for p in influence_points]
+            logger.info(quailties)
 
             mean = sum(quailties) / len(quailties)
             return mean
 
+        # Should base the the influence based on how far the point is
         quailty = avg_quality(point)
         return 1 - quailty
 
@@ -77,18 +83,16 @@ class NSample(method.Method):
         x = self.random_point()
 
         logger.info("made point x %s", x)
-
-        for pp in self.data_points:
-            logger.info("dp %s", self.point_pretty(pp))
         logger.info("X %s", self.point_pretty(x))
-
 
         goodness_x = self.goodness(x)
 
         if len(self.data_points) > 1:
             goodness_x_prev = 1 - self.get_quailty(self.data_points[-1])
+            logger.info("Using previous data point")
         else:
             goodness_x_prev = 1
+            logger.info("No previous data point")
 
         logger.info("point: goodness_x: %0.3f goodness_x_prev: %0.3f pretty %s", goodness_x, goodness_x_prev, [y.pretty for y in x ])
 
@@ -102,15 +106,21 @@ class NSample(method.Method):
             if accept >= 1:
                 logger.info("Unconditionally accepting %0.3f", accept)
                 return True
+            elif self.rejected_series > 100:
+                # To account the radius being too large and influence points saying everything is useless
+                return random.choice([True,False])
             else:
                 u = random.uniform(0, 1)
-                logger.info("accept:%0.3f,  u:%0.3f, %s ", accept, u, u < accept)
-                return u < accept
+                logger.info("accept:%0.3f,  u:%0.3f, %s ", accept, u, u <= accept)
+                # To account for case accept=0
+                return u <= (accept + 1e-5)
 
         if accept_point():
+            self.rejected_series=0
             self.create_run_param_and_store_quality(x)
             self.data_points.append(x)
         else:
+            self.rejected_series+=1
             logger.info("REJECTED point %s,  goodness_x: %0.3f goodness_x_prev: %0.3f", x, goodness_x, goodness_x_prev)
             raise domains.DontCountIterationException()
 
