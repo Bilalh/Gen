@@ -39,7 +39,6 @@ def run(fp, place_dir, num_runs):
     datee = calendar.datetime.datetime.now()
     now = str(int(datee.timestamp()))
     ffp=Path(fp)
-    copy_file(ffp, place_dir / "results" / ("settings-" + now + ".json") )
 
 
     create_essence_metadata(place_dir)
@@ -123,6 +122,8 @@ def run(fp, place_dir, num_runs):
             % (place_dir / "results" / "total_time") )
 
     run_all_file.chmod(0o755)
+
+    copy_file(ffp, place_dir / "results" / ("settings-" + now + ".json") )
 
 
 def for_methods(data, es, place_dir, num_runs):
