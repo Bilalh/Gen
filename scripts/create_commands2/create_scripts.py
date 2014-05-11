@@ -62,18 +62,17 @@ def run(fp, place_dir, num_runs):
         dir_util.copy_tree( str(values['directory'] / eprimes_dirname), str(eprimes_dir))
         values['num_models'] = len(list(eprimes_dir.glob('*.eprime')))
 
-        # parallel --header : --colsep '\t' echo a={a} b={b} c={c} :::: a.tsv
+        values['directory'] = Path("results") / "specs" / values['directory'].name
+        values['filepath'] = (values['directory'] / essence_name).with_suffix('.essence')
+        values['essence'] = essence_name
 
         insert = "INSERT INTO essences(essence, mode, num_models, filepath) VALUES(?, ?, ?, ?)"
         with sqlite3.connect(str(place_dir / "results" / "Info.db")) as conn:
             conn.execute(insert,
-                (essence_name, values['mode'], values['num_models'], str(essence_path)))
+                (essence_name, values['mode'], values['num_models'], str(values['filepath'])))
             conn.commit()
         conn.close()
 
-        values['directory'] = Path("results") / "specs" / values['directory'].name
-        values['filepath'] = (values['directory'] / essence_name).with_suffix('.essence')
-        values['essence'] = essence_name
 
         results = for_methods(data, values, place_dir, num_runs)
         end={  k: [  make_script_from_data(k, v) for v in vv ] for (k, vv) in results.items()  }
@@ -93,6 +92,12 @@ def run(fp, place_dir, num_runs):
             jobs = values['num_models']
         else:
             jobs = data['cores']
+
+        # If uses lots of cores could use
+        # cat cmd_file | parallel -j{cores/num_models}
+
+        # parallel from a csv file
+        # parallel --header : --colsep '\t' echo a={a} b={b} c={c} :::: a.tsv
 
         run_file = place_dir / "results" / values['directory'].name / "run.sh"
         with run_file.open("w") as f:
@@ -171,7 +176,6 @@ def make_script_from_data(name, data):
 
 
     ndata = data.copy()
-    ndata['essence'] = ndata['filepath']
     ndata['working_dir'] = ndata['directory']
 
     keys = sorted(ndata.keys())
