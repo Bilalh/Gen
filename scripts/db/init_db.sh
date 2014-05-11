@@ -159,7 +159,7 @@ sqlite3 "${REPOSITORY_BASE}/results.db" <<SQL
         ;
 
 	CREATE VIEW IF NOT EXISTS ParamsData as
-	    Select P.paramHash, P.param, T.TotalTimeout as modelTimeout, T.timestamp ,  P.quality, P.ordering,
+	    Select P.paramHash, P.param, Cast(T.TotalTimeout as Integer) as modelTimeout, T.timestamp ,  P.quality, P.ordering,
     	Cast(count(eprime) as Integer) as eprimes_count, Cast(max(D.MinionSatisfiable) as Integer) as Satisfiable, Cast(max(MinionSolutionsFound) as Integer) as MaxSolutions,
     	group_concat(D.eprime, ", ") as eprimes
     From ParamQuality P
