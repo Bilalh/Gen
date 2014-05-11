@@ -121,13 +121,15 @@ def run(fp, place_dir, num_runs):
     run_all_file = place_dir / "results" / "run_all.sh"
     with run_all_file.open("w") as f:
         f.write("#!/bin/bash\n")
-        f.write("_start=`date` \n")
+        f.write("_start=`date`;\n")
         f.write("\n".join(
-            "./%s" % s.relative_to(place_dir) for s in
+            "./%s;" % s.relative_to(place_dir) for s in
                 sorted(place_dir.glob('results/*/run.sh')  )))
 
-        f.write("\n_end=`date`; echo $_start  $_end | tee %s\n"
+        f.write("\n_end=`date`; echo $_start  $_end | tee %s;\n"
             % (place_dir / "results" / "total_time") )
+        f.write("$PARAM_GEN_SCRIPTS/gent/hitting_set_gent.sh {0} {0}/__gent;\n"
+            .format(place_dir / "results"))
 
     run_all_file.chmod(0o755)
 
@@ -201,7 +203,7 @@ def make_script_from_data(name, data):
             ", ".join("{:5}".format(t(ndata[k])) for k in keys if k not in not_storing),
         )
     output += " | sqlite3 results/Info.db "
-    output += " && $PARAM_GEN_SCRIPTS/misc/tar_results.sh {output_dir} {mode}".format(**ndata)
+    output += " && $PARAM_GEN_SCRIPTS/misc/tar_results.sh {output_dir} {mode} ".format(**ndata)
     output += ";"
     return output
 

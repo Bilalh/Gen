@@ -27,8 +27,8 @@ EOF
 
 export Command=$( cat <<EOF
 	echo "~~~";
-	put={output_dir};
-	put="$res/{essence}-{method}-{run_no}";
+	# put="$res/{method}_{mode}_{per_model_time}_{iterations}__{run_no}__";
+	put="$res/{id}";
 	echo \$put;
 	mkdir -p \$put;
 
@@ -42,12 +42,19 @@ export Command=$( cat <<EOF
 		"Select distinct count(eprimes) From ParamsData Where quality < 1;"\
 			>> \$put/sets.param;
 
+	export put=\$put;
+	num="\$(tail -n1 \$put/sets.param | egrep -o '[0-9]+\$')"
+	if [ 0 -eq \$num ]; then
+		printf "letting sets be { }\n"  >> \$put/sets.param;
+	else
+		printf "letting sets be "  >> \$put/sets.param;
+		sql --no-headers -s ',' sqlite3:///{base_dir}/{output_dir}/results.db "$selector" >> \$put/sets.param;
+	fi
+
+
 	printf "letting numModels be "  >> \$put/sets.param;
 	sql --no-headers -s ',' sqlite3:///\$db \
 		"Select num_models From essences Where essence='{essence}';"  >> \$put/sets.param;
-
-	printf "letting sets be "  >> \$put/sets.param;
-	sql --no-headers -s ',' sqlite3:///{base_dir}/{output_dir}/results.db "$selector" >> \$put/sets.param;
 
 	pushd \$put > /dev/null;
 

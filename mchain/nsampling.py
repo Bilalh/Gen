@@ -108,6 +108,7 @@ class NSample(method.Method):
                 return True
             elif self.rejected_series > 100:
                 # To account the radius being too large and influence points saying everything is useless
+                logger.warn("Rejected 100 points in a rows, accepting Unconditionally")
                 return random.choice([True,False])
             else:
                 u = random.uniform(0, 1)
