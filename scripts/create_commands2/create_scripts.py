@@ -9,6 +9,7 @@ import logging
 import os
 import sys
 import sqlite3
+import uuid
 
 from distutils import dir_util
 from distutils import file_util
@@ -20,11 +21,13 @@ logger = logging.getLogger(__name__)
 prog_name = os.path.dirname(sys.argv[0])
 prog_dir = os.path.abspath(prog_name)
 
+# id should be unique, uuid is unique
 Fields = sorted({'essence', 'mode', 'num_models', 'per_race_time',
         'radius_as_percentage', 'use_minion', 'pre_generate', 'output_dir',
         'iterations', 'run_no', 'per_model_time', 'method', 'influence_radius',
         'way', 'essence', 'point_selector', 'num_points', 'chain_length',
-        'select_radius', 'working_dir', 'dynamic_timeout', 'races'})
+        'select_radius', 'working_dir', 'dynamic_timeout', 'races', 'id', 'uuid'})
+
 
 
 def run(fp, place_dir, num_runs):
@@ -146,10 +149,13 @@ def for_methods(data, es, place_dir, num_runs):
         for a in all_combs:
             a['method']  = method_name
 
-            extra = "out_{method}_{mode}_{per_model_time}_{iterations}__{run_no}__".format(**a)
+            extra = "{method}_{mode}_{per_model_time}_{iterations}__{run_no}__".format(**a)
             extra += "_".join( str(a[k]) for k in sorted(a.keys())
                 if k in data[method_name].keys() )
-            a['output_dir'] = Path('results') / a['directory'].name / extra
+            a['id'] = "{}_{}".format(a['essence'], extra)
+            a['uuid'] = uuid.uuid4().hex
+
+            a['output_dir'] = Path('results') / a['directory'].name / ("out_" + extra)
 
             a['per_race_time'] = a['num_models'] *  a['per_model_time']
 
@@ -211,7 +217,8 @@ def process_args(args1):
 
 
     for d in ['per_model_time', 'per_race_time', 'directory', 'num_models',
-              'run_no', 'filepath', 'way', 'limit', 'iterations', 'method']:
+              'run_no', 'filepath', 'way', 'limit', 'iterations', 'method',
+              "uuid", "id"]:
         if d in args: del args[d]
 
     return { k:str(v) for (k, v) in args.items()}
