@@ -147,7 +147,8 @@ def for_methods(data, es, place_dir, num_runs):
             a['method']  = method_name
 
             extra = "out_{method}_{mode}_{per_model_time}_{iterations}__{run_no}__".format(**a)
-            extra += "_".join( str(v) for (k, v) in a.items() if k in data['nsample'].keys() )
+            extra += "_".join( str(a[k]) for k in sorted(a.keys())
+                if k in data[method_name].keys() )
             a['output_dir'] = Path('results') / a['directory'].name / extra
 
             a['per_race_time'] = a['num_models'] *  a['per_model_time']
@@ -193,7 +194,8 @@ def make_script_from_data(name, data):
             ", ".join("'{}'".format(k) for k in keys if k not in not_storing ),
             ", ".join("{:5}".format(t(ndata[k])) for k in keys if k not in not_storing),
         )
-    output += " | sqlite3 results/Info.db"
+    output += " | sqlite3 results/Info.db "
+    output += " && $PARAM_GEN_SCRIPTS/misc/tar_results.sh {output_dir} {mode}".format(**ndata)
     output += ";"
     return output
 
