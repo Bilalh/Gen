@@ -22,13 +22,19 @@ logger = logging.getLogger(__name__)
 prog_name = os.path.dirname(sys.argv[0])
 prog_dir = os.path.abspath(prog_name)
 
+# Arguments which are not passed to the methods as --flags
+MetaFields = {'per_model_time', 'per_race_time', 'num_models',
+              'run_no', 'filepath', 'way',  'iterations', 'method',
+              "uuid", "id", 'gid', 'guuid'}
+
+Fields = sorted({'chain_length', 'essence', 'influence_radius', 'mode',
+                'num_points', 'output_dir', 'point_selector', 'pre_generate', 'races',
+                'radius_as_percentage', 'select_radius', 'timeout', 'use_minion',
+                'working_dir'} | MetaFields)
+
+ToRemove = { 'limit', 'directory', 'filepath' }
+
 # id should be unique, uuid is unique
-Fields = sorted({'essence', 'mode', 'num_models', 'per_race_time',
-        'radius_as_percentage', 'use_minion', 'pre_generate', 'output_dir',
-        'iterations', 'run_no', 'per_model_time', 'method', 'influence_radius',
-        'way', 'essence', 'point_selector', 'num_points', 'chain_length',
-        'select_radius', 'working_dir', 'dynamic_timeout', 'races',
-        'id', 'uuid', 'gid', 'guuid'})
 
 
 
@@ -229,9 +235,7 @@ def process_args(args1):
     args['essence'] =args['filepath']
 
 
-    for d in ['per_model_time', 'per_race_time', 'directory', 'num_models',
-              'run_no', 'filepath', 'way', 'limit', 'iterations', 'method',
-              "uuid", "id", 'gid', 'guuid']:
+    for d in MetaFields | ToRemove:
         if d in args: del args[d]
 
     return { k:str(v) for (k, v) in args.items()}
@@ -263,7 +267,7 @@ def create_essence_metadata(place_dir):
     everything="""
         CREATE TABLE IF NOT EXISTS  "everything" (%s ,PRIMARY KEY(%s) );
     """ % (
-        ",".join("{}".format(f)  for f in Fields ),
+        ",".join("{}".format(f)  for f in Fields ) ,
         ",".join(map(str, Fields))
     )
     conn.execute(everything)
