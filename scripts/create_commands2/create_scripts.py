@@ -264,11 +264,20 @@ def create_essence_metadata(place_dir):
     conn = sqlite3.connect(str(place_dir /  "results" /  "Info.db"))
     conn.execute(query)
 
+    fields_to_use = set(Fields) - ToRemove
+
+
+    order_first =[ 'method', 'essence', 'mode', 'num_models', 'way', 'run_no', 'per_model_time', 'per_race_time']
+
+    if set(order_first) <= fields_to_use:
+        fields_to_use = fields_to_use - set(order_first)
+        fields_to_use = order_first + sorted(fields_to_use)
+
     everything="""
         CREATE TABLE IF NOT EXISTS  "everything" (%s ,PRIMARY KEY(%s) );
     """ % (
-        ",".join("{}".format(f)  for f in Fields ) ,
-        ",".join(map(str, Fields))
+        ",".join("{}".format(f)  for f in fields_to_use ) ,
+        ",".join(map(str, fields_to_use))
     )
     conn.execute(everything)
 
