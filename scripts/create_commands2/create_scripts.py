@@ -7,8 +7,9 @@ import itertools
 import json
 import logging
 import os
-import sys
+import re
 import sqlite3
+import sys
 import uuid
 
 from distutils import dir_util
@@ -26,7 +27,8 @@ Fields = sorted({'essence', 'mode', 'num_models', 'per_race_time',
         'radius_as_percentage', 'use_minion', 'pre_generate', 'output_dir',
         'iterations', 'run_no', 'per_model_time', 'method', 'influence_radius',
         'way', 'essence', 'point_selector', 'num_points', 'chain_length',
-        'select_radius', 'working_dir', 'dynamic_timeout', 'races', 'id', 'uuid'})
+        'select_radius', 'working_dir', 'dynamic_timeout', 'races',
+        'id', 'uuid', 'gid', 'guuid'})
 
 
 
@@ -140,6 +142,10 @@ def for_methods(data, es, place_dir, num_runs):
     essence_results = place_dir / "results" / es['directory'].name
     if not essence_results.exists(): essence_results.mkdir(parents=True)
 
+    remove_run_no=re.compile(r"__\d+__")
+
+    gids = {}
+
     def f(method_name):
         args = data['iterations'].copy()
         args['run_no'] = list(range(1, num_runs + 1))
@@ -156,6 +162,11 @@ def for_methods(data, es, place_dir, num_runs):
                 if k in data[method_name].keys() )
             a['id'] = "{}_{}".format(a['essence'], extra)
             a['uuid'] = uuid.uuid4().hex
+
+            a['gid'] = remove_run_no.sub("_", a['id'])
+            if a['gid'] not in gids:
+                gids[ a['gid'] ] = uuid.uuid4().hex
+            a['guuid'] = gids[ a['gid'] ]
 
             a['output_dir'] = Path('results') / a['directory'].name / ("out_" + extra)
 
@@ -220,7 +231,7 @@ def process_args(args1):
 
     for d in ['per_model_time', 'per_race_time', 'directory', 'num_models',
               'run_no', 'filepath', 'way', 'limit', 'iterations', 'method',
-              "uuid", "id"]:
+              "uuid", "id", 'gid', 'guuid']:
         if d in args: del args[d]
 
     return { k:str(v) for (k, v) in args.items()}
