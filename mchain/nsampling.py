@@ -6,7 +6,7 @@
 Usage:
    nsample (iterations|time|cpu) <limit>
    ( --essence=<file> --models_timeout=<int> --influence_radius=<int> --info=<file> )
-   [ --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str> --radius_as_percentage=<bool> --use_minion=<bool> --pre_generate=<bool>  --generated_dir=<dir>]
+   [ --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str> --radius_as_percentage=<bool> --use_minion=<bool> --pre_generate=<bool>  --generated_dir=<dir>  --timeout=<simple!dynamic!exponential> ]
    nsample json <file>
 
 `time <limit>` is the total time the program can take.
@@ -26,6 +26,7 @@ Options:
   --use_minion=<bool>              Uses Minion to generate params [default: true]
   --pre_generate=<bool>            When using minion, genrate all solution once and pick from them [default: false]
   --generated_dir=<dir>            Directory to place all solutions, specs, which can be reused between runs
+  --timeout=<simple!dynamic!exponential>       Timeout method to use [default: simple]
 
 
 """
@@ -35,6 +36,7 @@ from lib import instances
 from lib import chain_lib
 from lib import method
 from lib import option_handing
+from lib import timeout
 
 from collections import namedtuple
 import logging
@@ -52,6 +54,15 @@ class NSample(method.Method):
         self.rejected_series=0
 
     def before_settings(self, options):
+        timeout_methods = {
+            "simple": timeout.SimpleTimeout,
+            "dynamic": timeout.DynamicTimeout,
+            "exponential": timeout.ExponentialTimeout
+        }
+
+        self.timeout_class = timeout_methods[options['timeout']]
+        del options['timeout']
+
         return self.do_radius_as_percentage(options)
 
     def goodness(self, point):

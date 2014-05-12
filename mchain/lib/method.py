@@ -91,8 +91,7 @@ class Method(metaclass=ABCMeta):
         self.models_dir = p_work / (p_work.name + "-" + self.settings.mode)
         self.num_models = chain_lib.get_number_of_models( str(self.models_dir) )
         logger.info(self.num_models)
-        # self.timeout = timeout.DynamicTimeout(self.settings.models_timeout, self.num_models, self)
-        self.timeout = timeout.SimpleTimeout(self.settings.models_timeout, self.num_models, self)
+        self.timeout = self.timeout_class(self.settings.models_timeout, self.num_models, self)
 
         self.extra_time = 0
         if self.settings.use_minion:
