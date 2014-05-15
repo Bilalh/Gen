@@ -130,6 +130,7 @@ def run(fp, place_dir, num_runs):
     with run_all_file.open("w") as f:
         f.write("#!/bin/bash\n")
         f.write("_start=`date`;\n")
+        f.write("export PARAM_GEN_SCRIPTS=`pwd`/../instancegen/scripts/;\n")
         f.write("\n".join(
             "./%s;" % s.relative_to(place_dir) for s in
                 sorted(place_dir.glob('results/*/run.sh')  )))
