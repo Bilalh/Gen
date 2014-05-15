@@ -93,6 +93,7 @@ def run(fp, place_dir, num_runs):
             f.write("\n".join( itertools.chain(*end.values()) ))
         cmd_file.chmod(0o755)
 
+
         init_file = place_dir / "results" / "init.sh"
         copy_file(Path(prog_dir) / "init.sh", init_file )
         init_file.chmod(0o755)
@@ -110,6 +111,7 @@ def run(fp, place_dir, num_runs):
         # parallel from a csv file
         # parallel --header : --colsep '\t' echo a={a} b={b} c={c} :::: a.tsv
 
+        log_file = place_dir / "results" / values['directory'].name / "_logfile"
         run_file = place_dir / "results" / values['directory'].name / "run.sh"
         with run_file.open("w") as f:
             lines = [
@@ -119,7 +121,7 @@ def run(fp, place_dir, num_runs):
                 "export NUM_JOBS={}".format(jobs),
                 "",
                 ". " + str(init_file),
-                str(cmd_file),
+                "cat %s | parallel -j${CONCURRENT_RUNS:-1}  --joblog %s" % (cmd_file, log_file),
                 ""
             ]
             f.write("\n".join(lines))
