@@ -84,6 +84,7 @@ class Method(metaclass=ABCMeta):
 
         self.data_points = []
         self._current_iteration = 0
+        self._current_iteration_no_fail = 0
         self.prev_timestamp = None
         self.use_previous_data = True
 
@@ -150,7 +151,9 @@ class Method(metaclass=ABCMeta):
                     count_iter=False
 
                 self._current_iteration+=1
-                logger.info("finished %d  on (real) iterations", self._current_iteration)
+                if count_iter:
+                     self._current_iteration_no_fail +=1
+                logger.info("finished %d real iterations  (%d complete)", self._current_iteration, self._current_iteration_no_fail)
 
         except StopIteration:
             logger.info("StopIteration after/on iteration %d ", self._current_iteration)
@@ -173,13 +176,16 @@ class Method(metaclass=ABCMeta):
             "real_time": diff.total_seconds(),
             "method_cpu_time": cpu_time_end- cpu_time_start,
             "method_extra_time": self.extra_time,
-            "iterations_done_including_failed": self._current_iteration
+            "iterations_done_including_failed": self._current_iteration,
+            "iterations_done": self._current_iteration_no_fail
         }
 
 
         if isinstance(self.limiter, limit.CpuLimit):
             times['cpu_time'] = self.limiter.taken
             times['cpu_time_given'] = self.settings.limit
+        else:
+            times['cpu_time'] = self.calcuate_total_cputime()
 
         if isinstance(self.limiter, limit.TimeLimit):
             times['real_time_given'] = self.settings.limit
@@ -194,8 +200,18 @@ class Method(metaclass=ABCMeta):
         with (Path(self.output_dir) / 'times.json').open('w') as f:
             f.write(json.dumps(times))
 
+    def calcuate_total_cputime(self):
+        stats_dir = Path(self.settings.output_dir) / ("stats-" + self.settings.mode)
+
+        def get_time(fp):
+            with fp.open() as f:
+                return float(f.readline())
+
+        total =  sum( get_time(fp) for fp in stats_dir.glob('*.total_solving_time')  )
+
+        return total
+
     @abstractmethod
-    def do_iteration():
     def do_iteration(self):
         pass
 
