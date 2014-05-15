@@ -196,6 +196,7 @@ class Method(metaclass=ABCMeta):
 
     @abstractmethod
     def do_iteration():
+    def do_iteration(self):
         pass
 
     def before_settings(self, options):
