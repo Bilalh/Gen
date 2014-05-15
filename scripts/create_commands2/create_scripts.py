@@ -100,15 +100,15 @@ def run(fp, place_dir, num_runs):
         with init_file.open("a") as f:
             f.write("\nexport JAVA_MEMORY=%s\n" % data['JAVA_MEMORY'])
 
+
+        copy_file(Path(prog_dir) / "show_unfinished.py", place_dir / "results" / "show_unfinished.py" )
+        (Path(prog_dir) / "show_unfinished.py").chmod(0o755)
+
         if values['num_models'] < data['cores']:
             jobs = values['num_models']
         else:
             jobs = data['cores']
 
-        # If uses lots of cores could use
-        # cat cmd_file | parallel -j{cores/num_models}
-
-        # parallel from a csv file
         # parallel --header : --colsep '\t' echo a={a} b={b} c={c} :::: a.tsv
 
         log_file = place_dir / "results" / values['directory'].name / "_logfile"
@@ -121,30 +121,46 @@ def run(fp, place_dir, num_runs):
                 "export NUM_JOBS={}".format(jobs),
                 "",
                 ". " + str(init_file),
-                "cat %s | parallel -j${CONCURRENT_RUNS:-1}  --joblog %s" % (cmd_file, log_file),
+                "cat %s | parallel -j${CONCURRENT_RUNS:-1}  --halt 2 --joblog %s ${MAIN_PARALLEL_ARGS} " % (cmd_file, log_file),
                 ""
             ]
             f.write("\n".join(lines))
         run_file.chmod(0o755)
 
+    def write_run_all(path, resume=False):
+        with path.open("w") as f:
+            f.write("#!/bin/bash\n")
+            if resume:
+                f.write("export MAIN_PARALLEL_ARGS=--resume;\n")
+            f.write("""
+                _start=`date`;
+                export PARAM_GEN_SCRIPTS=`pwd`/../instancegen/scripts/;
+            """)
+            f.write("\n".join(
+                "    ./%s;" % s.relative_to(place_dir) for s in
+                    sorted(place_dir.glob('results/*/run.sh')  )))
+            f.write("""
+                return_code=$?;
+                _end=`date`; echo $_start  $_end | tee {total_time};
+                if [ $return_code == 0 ]; then
+                     $PARAM_GEN_SCRIPTS/gent/hitting_set_gent.sh {results} {results}/__gent;
+                fi
+            """.format(
+                total_time=(place_dir / "results" / "total_time"),
+                results=place_dir / "results"
+                ))
+
+        path.chmod(0o755)
+
 
     run_all_file = place_dir / "results" / "run_all.sh"
-    with run_all_file.open("w") as f:
-        f.write("#!/bin/bash\n")
-        f.write("_start=`date`;\n")
-        f.write("export PARAM_GEN_SCRIPTS=`pwd`/../instancegen/scripts/;\n")
-        f.write("\n".join(
-            "./%s;" % s.relative_to(place_dir) for s in
-                sorted(place_dir.glob('results/*/run.sh')  )))
-
-        f.write("\n_end=`date`; echo $_start  $_end | tee %s;\n"
-            % (place_dir / "results" / "total_time") )
-        f.write("$PARAM_GEN_SCRIPTS/gent/hitting_set_gent.sh {0} {0}/__gent;\n"
-            .format(place_dir / "results"))
-
-    run_all_file.chmod(0o755)
+    run_all_resume_file = place_dir / "results" / "run_all_resume.sh"
+    write_run_all(run_all_file)
+    write_run_all(run_all_resume_file, resume=True)
 
     copy_file(ffp, place_dir / "results" / ("settings-" + now + ".json") )
+
+
 
 
 def for_methods(data, es, place_dir, num_runs):
@@ -218,9 +234,10 @@ def make_script_from_data(name, data):
         else:
             return "'%s'" % v
 
-    output += " && printf \".timeout 5000\\nINSERT INTO everything({}) VALUES({});\"".format(
+    output += " && [ -f '{output_dir}/times.json' ] && printf \".timeout 5000\\nINSERT INTO everything({}) VALUES({});\"".format(
             ", ".join("'{}'".format(k) for k in keys if k not in not_storing ),
             ", ".join("{:5}".format(t(ndata[k])) for k in keys if k not in not_storing),
+            **data
         )
     output += " | sqlite3 results/Info.db "
     output += " && $PARAM_GEN_SCRIPTS/misc/tar_results.sh {output_dir} {mode} ".format(**ndata)

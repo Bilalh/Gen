@@ -33,7 +33,6 @@ class SimpleTimeout(Timeout):
 
 
 # What to do on failed iterartion?
-
 class ExponentialTimeout(Timeout):
 
 	def __init__(self, secs_per_race, num_models, method):
