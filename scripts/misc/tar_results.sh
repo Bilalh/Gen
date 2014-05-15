@@ -69,6 +69,8 @@ pushd "${place}"
 find  . -path '*/logs/*' -name 'log-*.log' | parallel  -j"${NUM_JOBS}" --tagstring "{/.}" "tar -czf  {}.tar.gz -C {//} {/}"
 find  . -path '*/logs/*' -name 'log-*.log' -delete
 
+find  . -path '*/logs/*' -name 'pylog-*.log' | parallel  -j"${NUM_JOBS}" --tagstring "{/.}" "tar -czf  {}.tar.gz -C {//} {/}"
+find  . -path '*/logs/*' -name 'pylog-*.log' -delete
 
 if [ -d "generated" ]; then
 	tar -c "generated" | pigz -c -p"${NUM_JOBS}" > generated.tar.gz

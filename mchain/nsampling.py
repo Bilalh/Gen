@@ -141,8 +141,8 @@ class NSample(method.Method):
 
 
 if __name__ == '__main__':
-    logging.basicConfig(format='%(name)s:%(lineno)d:%(funcName)s: %(message)s', level=logging.INFO)
     (options, limiter, info) = option_handing.parse_arguments(__doc__, version="1.0")
+    chain_lib.setup_logging( options )
     NSample(options, limiter, info).run()
     logger.info("<finished>")
 

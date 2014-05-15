@@ -208,3 +208,18 @@ def copydoc(fromfunc, sep="\n"):
             func.__doc__ = sep.join([sourcedoc, func.__doc__])
         return func
     return _decorator
+
+
+def setup_logging(options):
+    p=Path(options['output_dir'])  / "logs" / time.strftime("pylog-%F_%H-%M_%s.log")
+    logging.basicConfig(level=logging.INFO)
+    logFormatter = logging.Formatter('%(name)s:%(lineno)d:%(funcName)s: %(message)s')
+    rootLogger = logging.getLogger()
+
+    fileHandler = logging.FileHandler(str(p))
+    fileHandler.setFormatter(logFormatter)
+    logging.getLogger().addHandler(fileHandler)
+
+    consoleHandler = logging.StreamHandler()
+    consoleHandler.setFormatter(logFormatter)
+    rootLogger.addHandler(consoleHandler)

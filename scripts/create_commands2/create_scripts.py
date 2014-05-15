@@ -11,6 +11,8 @@ import re
 import sqlite3
 import sys
 import uuid
+import random
+import math
 
 from distutils import dir_util
 from distutils import file_util
@@ -30,7 +32,7 @@ MetaFields = {'per_model_time', 'per_race_time', 'num_models',
 Fields = sorted({'chain_length', 'essence', 'influence_radius', 'mode',
                 'num_points', 'output_dir', 'point_selector', 'pre_generate', 'races',
                 'radius_as_percentage', 'select_radius', 'timeout', 'use_minion',
-                'working_dir'} | MetaFields)
+                'working_dir', 'seed'} | MetaFields)
 
 ToRemove = { 'limit', 'directory', 'filepath' }
 
@@ -196,6 +198,8 @@ def for_methods(data, es, place_dir, num_runs):
             a['output_dir'] = Path('results') / a['directory'].name / ("out_" + extra)
 
             a['per_race_time'] = a['num_models'] *  a['per_model_time']
+
+            a['seed'] = math.ceil(random.uniform(-1, 2**24))
 
             if 'iterations' in args:
                 a['limit'] = a['iterations']
