@@ -143,7 +143,7 @@ def run(fp, place_dir, num_runs):
                     sorted(place_dir.glob('results/*/run.sh')  )))
             f.write("""
                 return_code=$?;
-                _end=`date`; echo $_start  $_end | tee {total_time_file};
+                _end=`date`; echo $_start  $_end | tee "{total_time_file}_`date +_%s`";
                 if [ $return_code == 0 ]; then
                      $PARAM_GEN_SCRIPTS/gent/hitting_set_gent.sh {results} {results}/__gent;
                 fi
@@ -223,7 +223,7 @@ def for_methods(data, es, place_dir, num_runs):
 
         return all_combs
 
-    results = { k : f(k) for k in ['nsample', 'uniform'] if k in data }
+    results = { k : f(k) for k in ['nsample', 'ksample', 'uniform'] if k in data }
 
     return results
 
@@ -232,7 +232,7 @@ def make_script_from_data(name, data):
     scripts ={
         "nsample" : "../instancegen/mchain/nsampling.py",
         "uniform" : "../instancegen/mchain/uniform_sampling.py",
-        "ksample" : "../instancegen/mchain/ksample.py"
+        "ksample" : "../instancegen/mchain/ksampling.py"
     }
 
     output="record_cp {output_dir}/logs/log {script} {way} {limit} ".format(
