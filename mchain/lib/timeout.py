@@ -32,33 +32,20 @@ class SimpleTimeout(Timeout):
 		return self.max_time_per_model
 
 
-# What to do on failed iterartion?
 class ExponentialTimeout(Timeout):
 
-	def __init__(self, secs_per_race, num_models, method):
+	def __init__(self, total, secs_per_race, num_models, method):
 		super(ExponentialTimeout, self).__init__(secs_per_race, num_models, method)
-		self.count = 1
-
-	def time_per_model(self):
-		new_timeout = math.exp(self.count)
-		if new_timeout > self.max_time_per_model:
-			new_timeout = self.max_time_per_model
-		self.count+=1
-		return new_timeout
-
-
-class DivideTimeout(Timeout):
-
-	def __init__(self, secs_per_race, num_models, method):
-		super(DivideTimeout, self).__init__(secs_per_race, num_models, method)
-		self.total=5+1
+		self.total=total
 
 	def time_per_model(self):
 		finished = self.method._current_iteration_no_fail + 1
-		if finished < self.total:
-			return  self.max_time_per_model / self.total * self.finished
+		if finished <= self.total:
+			return  self.max_time_per_model / ( 2 ** (self.total - finished) )
 		else:
 			return self.max_time_per_model
+
+
 
 
 class DynamicTimeout(Timeout):
