@@ -6,7 +6,7 @@
 Usage:
    ksample (iterations|time|cpu) <limit>
    ( --num_points=<int>  --influence_radius=<int> --essence=<file> --models_timeout=<int> --point_selector=<first!halving!halving_3_4> --info=<file>)
-   [ --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str> --radius_as_percentage=<bool> --use_minion=<bool> --pre_generate=<bool> --generated_dir=<dir>]
+   [ --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str> --radius_as_percentage=<bool> --use_minion=<bool> --pre_generate=<bool> --generated_dir=<dir> --timeout=<simple!dynamic!exponential>]
    ksample json <file>
 
 `time <limit>` is the total time the program can take.
@@ -27,6 +27,7 @@ Options:
   --use_minion=<bool>                           Uses Minion to generate params [default: true]
   --pre_generate=<bool>                         When using minion, genrate all solution once and pick from them [default: false]
   --generated_dir=<dir>                         Directory to place all solutions, specs, which can be reused between runs
+  --timeout=<simple!dynamic!exponential>       Timeout method to use [default: simple]
 
 """
 
@@ -64,7 +65,7 @@ class KSample(method.Method):
         self.point_selector = point_selectors[options['point_selector']]
         del options['point_selector']
 
-        return self.do_radius_as_percentage(options)
+        return self.do_timeout_way(self.do_radius_as_percentage(options))
 
 
     def do_iteration(self):
