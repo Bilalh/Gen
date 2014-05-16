@@ -30,7 +30,7 @@ MetaFields = {'per_model_time', 'per_race_time', 'num_models',
               "uuid", "id", 'gid', 'guuid', 'total_time'}
 
 Fields = sorted({'chain_length', 'essence', 'influence_radius', 'mode',
-                'num_points', 'output_dir', 'point_selector', 'pre_generate', 'races',
+                'num_points', 'output_dir', 'point_selector', 'pre_generate',
                 'radius_as_percentage', 'select_radius', 'timeout', 'use_minion',
                 'working_dir', 'seed'} | MetaFields)
 
