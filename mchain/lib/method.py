@@ -140,7 +140,7 @@ class Method(metaclass=ABCMeta):
             count_iter=True
             while self.limiter.continue_running(self, count_iter):
                 count_iter = True
-                logger.info("\n~~~~~~~~~~~~~\nStarted (real) iteration %d\n", self._current_iteration + 1)
+                logger.info("\n~~~~~~~~~~~~~\nStarted (real) iteration %d  (%d complete) \n", self._current_iteration + 1, self._current_iteration_no_fail)
 
                 try:
                     self.do_iteration()

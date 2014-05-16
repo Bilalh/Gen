@@ -212,9 +212,9 @@ def copydoc(fromfunc, sep="\n"):
 
 def setup_logging(options):
     p=Path(options['output_dir'])  / "logs" / time.strftime("pylog-%F_%H-%M_%s.log")
-    logging.basicConfig(level=logging.INFO)
     logFormatter = logging.Formatter('%(name)s:%(lineno)d:%(funcName)s: %(message)s')
     rootLogger = logging.getLogger()
+    rootLogger.setLevel(logging.INFO)
 
     fileHandler = logging.FileHandler(str(p))
     fileHandler.setFormatter(logFormatter)
