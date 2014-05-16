@@ -27,7 +27,7 @@ prog_dir = os.path.abspath(prog_name)
 # Arguments which are not passed to the methods as --flags
 MetaFields = {'per_model_time', 'per_race_time', 'num_models',
               'run_no', 'filepath', 'way',  'iterations', 'method',
-              "uuid", "id", 'gid', 'guuid'}
+              "uuid", "id", 'gid', 'guuid', 'total_time'}
 
 Fields = sorted({'chain_length', 'essence', 'influence_radius', 'mode',
                 'num_points', 'output_dir', 'point_selector', 'pre_generate', 'races',
@@ -143,12 +143,12 @@ def run(fp, place_dir, num_runs):
                     sorted(place_dir.glob('results/*/run.sh')  )))
             f.write("""
                 return_code=$?;
-                _end=`date`; echo $_start  $_end | tee {total_time};
+                _end=`date`; echo $_start  $_end | tee {total_time_file};
                 if [ $return_code == 0 ]; then
                      $PARAM_GEN_SCRIPTS/gent/hitting_set_gent.sh {results} {results}/__gent;
                 fi
             """.format(
-                total_time=(place_dir / "results" / "total_time"),
+                total_time_file=(place_dir / "results" / "total_time"),
                 results=place_dir / "results"
                 ))
 
@@ -174,7 +174,16 @@ def for_methods(data, es, place_dir, num_runs):
     gids = {}
 
     def f(method_name):
-        args = data['iterations'].copy()
+        if 'iterations' in data:
+            args = data['iterations'].copy()
+            extra_fmt="{method}_{mode}_{per_model_time}_i{iterations}__{run_no}__"
+        elif 'cpu' in data:
+            args = data['cpu'].copy()
+            extra_fmt="{method}_{mode}_{per_model_time}_t{total_time}__{run_no}__"
+        else:
+            logger.error("need iterations or cpu")
+            sys.exit(3)
+
         args['run_no'] = list(range(1, num_runs + 1))
 
         args.update(es)
@@ -184,7 +193,7 @@ def for_methods(data, es, place_dir, num_runs):
         for a in all_combs:
             a['method']  = method_name
 
-            extra = "{method}_{mode}_{per_model_time}_{iterations}__{run_no}__".format(**a)
+            extra = extra_fmt.format(**a)
             extra += "_".join( str(a[k]) for k in sorted(a.keys())
                 if k in data[method_name].keys() )
             a['id'] = "{}_{}".format(a['essence'], extra)
@@ -204,6 +213,9 @@ def for_methods(data, es, place_dir, num_runs):
             if 'iterations' in args:
                 a['limit'] = a['iterations']
                 a['way'] = "iterations"
+            else:
+                a['limit'] = a['total_time']
+                a['way'] = "cpu"
 
         return all_combs
 
@@ -291,7 +303,7 @@ def create_essence_metadata(place_dir):
     fields_to_use = set(Fields) - ToRemove
 
 
-    order_first =[ 'method', 'essence', 'mode', 'num_models', 'way', 'run_no', 'per_model_time', 'per_race_time']
+    order_first =[ 'method', 'essence', 'mode', 'num_models', 'way', 'run_no', 'per_model_time', 'per_race_time', 'total_time']
 
     if set(order_first) <= fields_to_use:
         fields_to_use = fields_to_use - set(order_first)
