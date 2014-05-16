@@ -58,6 +58,24 @@ function record_cp(){
 			popd
 		fi
 
+		echo "" >> "${fp}.cmds"
+		echo "" >> "${fp}.cmds"
+		echo "##VERSIONS##"  >> "${fp}.cmds"
+		echo "" >> "${fp}.cmds"
+		for prog in ghc python sqlite3 git hg perl parallel pigz; do
+			echo "$prog version:" >> "${fp}.cmds"
+			$prog --version  2>&1 | cat >> "${fp}.cmds"
+			echo "" >> "${fp}.cmds"
+		done
+
+		# Java just had to be different
+		echo "java version:" >> "${fp}.cmds"
+		java -version  2>&1 | cat >> "${fp}.cmds"
+
+		echo "###" >> "${fp}.cmds"
+		echo "" >> "${fp}.cmds"
+		echo "" >> "${fp}.cmds"
+
 		echo "Command:"  >> "${fp}.cmds"
 		echo "$@"        >> "${fp}.cmds"
 		echo
