@@ -6,7 +6,7 @@
 Usage:
    uniform (iterations|time|cpu) <limit>
    ( --essence=<file> --models_timeout=<int>  --info=<file>)
-   [ --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str> --use_minion=<bool> --pre_generate=<bool> --generated_dir=<dir>]
+   [ --working_dir=<dir> --seed=<int> --output_dir=<dir> --mode=<str> --use_minion=<bool> --pre_generate=<bool> --generated_dir=<dir>   --timeout=<simple!dynamic!exponential> ]
    uniform json <file>
 
 `time <limit>` is the total time the program can take.
@@ -24,9 +24,11 @@ Options:
   --use_minion=<bool>       Uses Minion to generate params [default: true]
   --pre_generate=<bool>     When using minion, genrate all solution once and pick from them [default: false]
   --generated_dir=<dir>     Directory to place all solutions, specs, which can be reused between runs
+  --timeout=<simple!dynamic!exponential>       Timeout method to use [default: simple]
 
 """
 
+from lib import chain_lib
 from lib import option_handing
 from lib import method
 from lib import domains, instances
@@ -43,6 +45,9 @@ class UniformSampling(method.Method):
     def __init__(self, options, limiter, info):
         super(UniformSampling, self,).__init__(options, limiter, Settings, info)
 
+    def before_settings(self, options):
+        return self.do_timeout_way(options)
+
     def do_iteration(self):
         picked = self.random_point()
         logger.info("Picked %s", picked)
@@ -51,8 +56,8 @@ class UniformSampling(method.Method):
 
 
 if __name__ == '__main__':
-    logging.basicConfig(format='%(name)s:%(lineno)d:%(funcName)s: %(message)s', level=logging.INFO)
     (options, limiter, info) = option_handing.parse_arguments(__doc__, version="1.0")
+    chain_lib.setup_logging( options )
     UniformSampling(options, limiter, info).run()
     logger.info("<finished>")
 

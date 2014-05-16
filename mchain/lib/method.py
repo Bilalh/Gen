@@ -420,6 +420,17 @@ class Method(metaclass=ABCMeta):
 
         return options
 
+    def do_timeout_way(self, options):
+        timeout_methods = {
+            "simple": timeout.SimpleTimeout,
+            "dynamic": timeout.DynamicTimeout,
+            "exponential": timeout.ExponentialTimeout
+        }
+
+        self.timeout_class = timeout_methods[options['timeout']]
+        del options['timeout']
+
+        return options
 
     def point_pretty(self, x):
         return [(n, y.pretty) for (n, y) in zip(self.info.ordering, x) ]

@@ -54,16 +54,7 @@ class NSample(method.Method):
         self.rejected_series=0
 
     def before_settings(self, options):
-        timeout_methods = {
-            "simple": timeout.SimpleTimeout,
-            "dynamic": timeout.DynamicTimeout,
-            "exponential": timeout.ExponentialTimeout
-        }
-
-        self.timeout_class = timeout_methods[options['timeout']]
-        del options['timeout']
-
-        return self.do_radius_as_percentage(options)
+        return self.do_timeout_way(self.do_radius_as_percentage(options))
 
     def goodness(self, point):
 
