@@ -174,6 +174,10 @@ def for_methods(data, es, place_dir, num_runs):
     gids = {}
 
     def f(method_name):
+
+        if 'iterations' in data and 'cpu' in data:
+            logger.error("Can only have on of {iterations, cpu}")
+            sys.exit(9)
         if 'iterations' in data:
             args = data['iterations'].copy()
             extra_fmt="{method}_{mode}_{per_model_time}_i{iterations}__{run_no}__"
