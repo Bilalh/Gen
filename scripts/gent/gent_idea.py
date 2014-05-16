@@ -58,4 +58,5 @@ logger.info("ordering end %s", highest_ordering_needed)
 for intersection in insection_mapping.values():
 	print(len(intersection), sorted(intersection))
 
+
 print("highest_ordering_needed: {}".format(highest_ordering_needed))
