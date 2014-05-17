@@ -46,8 +46,6 @@ class ExponentialTimeout(Timeout):
 			return self.max_time_per_model
 
 
-
-
 class DynamicTimeout(Timeout):
 	""" Starts off with a small timeout and increases from there """
 

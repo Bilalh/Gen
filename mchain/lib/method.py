@@ -11,12 +11,14 @@ from pprint import pprint, pformat
 
 import time
 import calendar
+import functools
 import json
 import logging
 import os
 import random
 import math
 import subprocess
+
 from pathlib import Path
 from textwrap import indent
 
@@ -424,7 +426,7 @@ class Method(metaclass=ABCMeta):
         timeout_methods = {
             "simple": timeout.SimpleTimeout,
             "dynamic": timeout.DynamicTimeout,
-            "exponential": timeout.ExponentialTimeout
+            "exponential": functools.partial(timeout.ExponentialTimeout,5)
         }
 
         self.timeout_class = timeout_methods[options['timeout']]
