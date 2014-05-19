@@ -430,6 +430,7 @@ class Method(metaclass=ABCMeta):
         }
 
         self.timeout_class = timeout_methods[options['timeout']]
+        logger.info(self.timeout_class)
         del options['timeout']
 
         return options
