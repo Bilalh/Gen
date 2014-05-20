@@ -161,19 +161,26 @@ sqlite3 "${REPOSITORY_BASE}/results.db" <<SQL
 	CREATE VIEW IF NOT EXISTS ParamsData as
 	    Select P.paramHash, P.param, Cast(T.TotalTimeout as  Integer) as modelTimeoutUsed, T.timestamp ,
 		 P.quality, P.ordering, Cast(count(D.eprime) as Integer) as eprimes_count,
-		Cast(max(D.MinionSatisfiable) as Integer) as Satisfiable, Cast(max(MinionSolutionsFound) as Integer) as MaxSolutions,
-		F.minTime, F.maxTime, F.avgTime,
+		Cast(max(D.MinionSatisfiable) as Integer) as Satisfiable, Cast(max(D.MinionSolutionsFound) as Integer) as MaxSolutions,
+		F.minTime, F.maxTime, F.avgTime, numFinished,
     	group_concat(D.eprime, ", ") as eprimes
     From ParamQuality P
 
 	Join TimingsDomination D on P.paramHash = D.paramHash
 	Join Timeouts T on T.paramHash = D.paramHash
+
 	Left Join (Select paramHash,
 			min(TotalTime) as minTime, max(TotalTime) as maxTime, avg(TotalTime) as avgTime
 		From TimingsRecorded Group by paramHash) F
 	  on F.paramHash = D.paramHash
 
-    Where isDominated = 0
+	Join ( Select paramHash,
+           count() as numFinished
+           From TimingsRecorded TR
+           Group By paramHash) TR
+         on TR.paramHash = D.paramHash
+
+    Where D.isDominated = 0
     Group by P.paramHash
     Order by P.quality
     	;
