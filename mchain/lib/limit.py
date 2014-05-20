@@ -59,10 +59,10 @@ class IterationsLimit(Limit):
 
 	@copydoc(Limit.continue_running)
 	def continue_running(self, method, count_iter):
-		logger.info("limit curr iter finished %s", self.current_iteration)
+		logger.info("Limit current iteration finished %s", self.current_iteration)
 		if count_iter:
 			self.current_iteration += 1
-			logger.info("limit  iter incmented %s", self.current_iteration)
+			logger.info("Limit iteration ++ %s", self.current_iteration)
 		res = self.current_iteration <= self.iterations
 		return res
 
