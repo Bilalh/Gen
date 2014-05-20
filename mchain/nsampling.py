@@ -108,13 +108,13 @@ class NSample(method.Method):
             if accept >= 1:
                 logger.info("Unconditionally accepting %0.3f", accept)
                 return True
-            elif self.rejected_series > 100:
+            elif self.rejected_series > 10000:
                 # To account the radius being too large and influence points saying everything is useless
-                logger.warn("Rejected 100 points in a rows, accepting Unconditionally")
+                logger.warn("Rejected 10000 points in a rows, accepting with 50% Probability")
                 return random.choice([True,False])
             else:
                 u = random.uniform(0, 1)
-                logger.info("accept:%0.3f,  u:%0.3f, %s ", accept, u, u <= accept)
+                logger.info("accept:%0.3f,  u:%0.3f, u<accept %s ", accept, u, u <= accept)
                 # To account for case accept=0
                 return u <= (accept + 1e-5)
 
