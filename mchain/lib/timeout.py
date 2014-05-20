@@ -41,10 +41,19 @@ class ExponentialTimeout(Timeout):
 	def time_per_model(self):
 		finished = self.method._current_iteration_no_fail + 1
 		if finished <= self.total:
-			return  self.max_time_per_model / ( 2 ** (self.total - finished) )
+			time_per_model = self.max_time_per_model / ( 2 ** (self.total - finished) )
 		else:
-			return self.max_time_per_model
+			time_per_model = self.max_time_per_model
 
+		logger.info("ExponentialTimeout: time_per_model: %s finished_iters: %s  total_to_be_used:%s",
+			time_per_model, finished, self.total)
+		if time_per_model < 1:
+			raise RuntimeError("""
+				time_per model has to be greater then 1, is:{}.
+				Using {} iterations, current:{}
+				""".format(time_per_model, self.total, finished) )
+		else:
+			return time_per_model
 
 class DynamicTimeout(Timeout):
 	""" Starts off with a small timeout and increases from there """
