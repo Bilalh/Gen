@@ -65,7 +65,7 @@ function doMinionTable(){
 	sr_time="${results_dir}/$2.sr-time"
 
 
-	${Script_Base}/db/parse_minion_tableout.py "$fp" ${REPOSITORY_BASE}/results.db `grep ${timing_method} ${sr_time} | egrep -o '[0-9]+(.[0-9]+)?'`
+	${Script_Base}/db/parse_minion_tableout_sql.py "$fp" ${REPOSITORY_BASE}/results.db `grep ${timing_method} ${sr_time} | egrep -o '[0-9]+(.[0-9]+)?'`
 	set +x
 }
 
