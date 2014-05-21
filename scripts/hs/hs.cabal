@@ -10,7 +10,7 @@ maintainer:          bh246@st-andrews.ac.uk
 -- category:            
 build-type:          Simple
 -- extra-source-files:  
-cabal-version:       >=1.18
+cabal-version:       >=1.20
 
 
 Executable essenceGivensToJson2
