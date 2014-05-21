@@ -235,7 +235,6 @@ else:
 
 	result_kind = result_type(*results)
 
-#FIXME Seems to give the same result as store the result later
 chain_lib.save_quality(output_dir_s, param_name, param_hash, our_quality)
 
 

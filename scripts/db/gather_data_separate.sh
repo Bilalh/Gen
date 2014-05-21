@@ -111,10 +111,11 @@ export  results_dir
 export  fastest_dir
 export TOTAL_TIMEOUT
 
-parallel -j1 --tagstring "{/}"  'echo "isDominated:$(isDominated {/.})"'  \
+parallel --tagstring "{/}"  'echo "isDominated:$(isDominated {/.})"'  \
 	::: `ls ${results_dir}/*${param_glob}.zstarted` \
 	|   runhaskell ${Script_Base}/db/gather_data.hs  ${Essence_base} \
 	|   sqlite3 ${REPOSITORY_BASE}/results.db
+
 
 
 echo "$0 Calcuate total solving time"
@@ -125,6 +126,7 @@ else
 	# i.e  param refinement timed out
 	echo 0 > ${stats_dir}/${USE_DATE}.total_solving_time
 fi
+
 
 # So we know which minion were created
 echo "$0 Record minions files"

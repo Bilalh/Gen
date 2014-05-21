@@ -31,7 +31,5 @@ with open(args.minionTableout, "r") as f:
 query = 'INSERT OR REPLACE INTO Experiment ( eprime, paramHash, attribute, value) VALUES(?,?,?,?)'
 with sqlite3.connect(args.db) as conn:
 	conn.executemany(query, vs)
-	conn.commit()
-	conn.close()
 
 print("Finished parsing", os.path.basename(args.minionTableout))

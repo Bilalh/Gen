@@ -19,6 +19,7 @@ sqlite3 "${REPOSITORY_BASE}/results.db" <<SQL
 	"param" TEXT NOT NULL UNIQUE,
 	"quality" REAL NOT NULL,
 	"ordering" INTEGER PRIMARY KEY NOT NULL UNIQUE,
+	"paramCpuTime" REAL NOT NULL,
 	"paramHash" TEXT NOT NULL UNIQUE
 	);
 
@@ -162,7 +163,7 @@ sqlite3 "${REPOSITORY_BASE}/results.db" <<SQL
 	    Select P.paramHash, P.param, Cast(T.TotalTimeout as  Integer) as modelTimeoutUsed, T.timestamp ,
 		 P.quality, P.ordering, Cast(count(D.eprime) as Integer) as eprimes_count,
 		Cast(max(D.MinionSatisfiable) as Integer) as Satisfiable, Cast(max(D.MinionSolutionsFound) as Integer) as MaxSolutions,
-		F.minTime, F.maxTime, F.avgTime, numFinished,
+		F.minTime, F.maxTime, F.avgTime, paramCpuTime, numFinished,
     	group_concat(D.eprime, ", ") as eprimes
     From ParamQuality P
 

@@ -164,9 +164,10 @@ class ParamInvaildExeception(Exception):
     pass
 
 
-def save_quality(output_dir, param_name, param_hash, quality):
+def save_quality(output_dir, param_name, param_hash, quality, cputime):
     conn = sqlite3.connect(os.path.join(output_dir, 'results.db'))
-    conn.execute('INSERT OR REPLACE INTO ParamQuality(param, paramHash, quality) Values(?, ?, ?)', (param_name, param_hash, quality))
+    conn.execute('INSERT OR REPLACE INTO ParamQuality(param, paramHash, quality, paramCpuTime) Values(?, ?, ?, ?)',
+        (param_name, param_hash, quality, cputime))
     conn.commit()
 
 

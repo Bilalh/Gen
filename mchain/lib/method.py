@@ -213,6 +213,14 @@ class Method(metaclass=ABCMeta):
 
         return total
 
+    def param_cputime(self, timestamp):
+        stats_dir = Path(self.settings.output_dir) / ("stats-" + self.settings.mode)
+        def get_time(fp):
+            with fp.open() as f:
+                return float(f.readline())
+
+        return get_time(  (stats_dir / timestamp).with_suffix('.total_solving_time') )
+
     @abstractmethod
     def do_iteration(self):
         pass
@@ -252,7 +260,7 @@ class Method(metaclass=ABCMeta):
         results = chain_lib.get_results(self.settings.working_dir, self.output_dir, param_hash,
             time_per_model, now, self.settings.mode)
         quailty = chain_lib.quality(*results)
-        chain_lib.save_quality(self.output_dir, param_name, param_hash, quailty)
+        chain_lib.save_quality(self.output_dir, param_name, param_hash, quailty, self.param_cputime(now))
 
         self.prev_timestamp = now
         logger.info("results: %s quailty: %s for \n%s", results, quailty,  indent(param_string,"\t") )
