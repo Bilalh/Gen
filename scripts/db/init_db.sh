@@ -150,7 +150,7 @@ sqlite3 "${REPOSITORY_BASE}/results.db" <<SQL
 
 	CREATE VIEW IF NOT EXISTS DiscriminatingParams as
     Select P.paramHash, P.quality, P.ordering,
-    	Cast(count(eprime) as Integer) as eprimes_count, Cast(max(D.MinionSatisfiable) as Integer) as Satisfiable, Cast(max(MinionSolutionsFound) as Integer) as MaxSolutions,
+    	Cast(count(eprime) as Integer) as eprimesLeft, Cast(max(D.MinionSatisfiable) as Integer) as Satisfiable, Cast(max(MinionSolutionsFound) as Integer) as MaxSolutions,
     	group_concat(D.eprime, ", ") as eprimes
     From ParamQuality P
     Join TimingsDomination D on P.paramHash = D.paramHash
@@ -161,7 +161,7 @@ sqlite3 "${REPOSITORY_BASE}/results.db" <<SQL
 
 	CREATE VIEW IF NOT EXISTS ParamsData as
 	    Select P.paramHash, P.param, Cast(T.TotalTimeout as  Integer) as modelTimeoutUsed, T.timestamp ,
-		 P.quality, P.ordering, Cast(count(D.eprime) as Integer) as eprimes_count,
+		 P.quality, P.ordering, Cast(count(D.eprime) as Integer) as eprimesLeft,
 		Cast(max(D.MinionSatisfiable) as Integer) as Satisfiable, Cast(max(D.MinionSolutionsFound) as Integer) as MaxSolutions,
 		F.minTime, F.maxTime, F.avgTime, paramCpuTime, numFinished,
     	group_concat(D.eprime, ", ") as eprimes

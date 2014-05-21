@@ -22,7 +22,7 @@ logging.basicConfig(format='%(name)s:%(lineno)d:%(funcName)s: %(message)s', leve
 param_eprime_results_sql="""
 Select * From
 (
-Select count(param) as paramC, eprimes_count as eprimeC,
+Select count(param) as paramC, eprimesLeft as eprimeC,
 CASE When quality == 1 Then "" Else eprimes END as eprimes,
 num_models, quality, satisfiable, maxSolutions as max_solutions, min(ordering) as min_ordering,
 group_concat(param, ", ") as params

@@ -20,7 +20,7 @@ EOF
 
 export smallest_query=$( cat <<EOF
 Select DISTINCT eprimes From  ParamsData
-Where eprimes_count = (Select min(eprimes_count) From ParamsData);
+Where eprimesLeft = (Select min(eprimesLeft) From ParamsData);
 EOF
 )
 
