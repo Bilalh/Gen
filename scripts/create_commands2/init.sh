@@ -23,12 +23,12 @@ for prog in $__progs_to_compile; do
 	fi
 done
 
-for prog in $__progs_to_compile2; do
-	if [ !  -f "$PARAM_GEN_SCRIPTS/hs/bin/$prog" ]; then
-		printf "\e[01;31m Compile $PARAM_GEN_SCRIPTS/hs/bin/$prog \e[0m\n"   >&2
-		exit 2
-	fi
-done
+# for prog in $__progs_to_compile2; do
+# 	if [ !  -f "$PARAM_GEN_SCRIPTS/hs/bin/$prog" ]; then
+# 		printf "\e[01;31m Compile $PARAM_GEN_SCRIPTS/hs/bin/$prog \e[0m\n"   >&2
+# 		exit 2
+# 	fi
+# done
 
 
 python3 <<EOF
