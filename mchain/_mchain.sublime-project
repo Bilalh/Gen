@@ -28,7 +28,8 @@
 				"__pycache__",
 				".ipynb_checkpoints",
 				".cabal-sandbox",
-				"hs/dist"
+				"hs/dist",
+				"hs/bin"
 			]
 		},
 		{

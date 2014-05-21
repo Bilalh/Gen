@@ -63,7 +63,7 @@ cabal install                                                       \
     --only-dependencies                                             \
     --disable-library-profiling --disable-executable-profiling      \
     --force-reinstalls                                              \
- 	${LLVM} ${OPTIMISATION} --bindir="${BIN_DIR}" -j"${USE_CORES}"
+ 	${LLVM} ${OPTIMISATION} -j"${USE_CORES}"
 
 cabal configure                                                     \
     --disable-library-profiling --disable-executable-profiling      \
