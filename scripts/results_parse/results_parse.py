@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# Creates CSVs with data on all runs of the experiments
+
 import argparse
 import csv
 import logging
-import shutil
 import sqlite3
 import itertools
 
@@ -15,21 +16,28 @@ from multiprocessing import Pool
 logger = logging.getLogger(__name__)
 parser = argparse.ArgumentParser()
 
-# parser.add_argument("db", help='')
-# parser.add_argument('-f',  action='store_true', dest='delete', help='')
-# parser.add_argument('-p','--plays',  dest='selected', action='store_const', const='plays',   help='')
-
+parser.add_argument("start_dir", help='Top level dir with results folder in it at any level')
+parser.add_argument("output_dir", help='Where to put the csvs')
 args = parser.parse_args()
 
-basedir=Path('/Users/bilalh/Desktop/Experiment/main/knapsack')
-output = basedir / "_output"
+# Get all runs from all subdirectories
+
+start_dir = Path(args.start_dir)
+output = Path(args.output_dir)
+# start_dir=Path('/Users/bilalh/Desktop/Experiment/main')
+# output = Path('/Users/bilalh/Desktop/Experiment/main') / "_output
+
 if not output.exists():
     output.mkdir()
 
-# Get finished runs
-with sqlite3.connect(str(basedir / "results" / "Info.db")) as conn:
-    conn.row_factory = sqlite3.Row
-    q_rows = [ dict(row) for row in conn.execute("SELECT * FROM everything") ]
+q_rows = []
+for basedir in start_dir.glob('**/results'):
+    pbase = basedir.parent
+
+    # Get finished runs
+    with sqlite3.connect(str(basedir / "Info.db")) as conn:
+        conn.row_factory = sqlite3.Row
+        q_rows += [ (pbase, dict(row)) for row in conn.execute("SELECT * FROM everything") ]
 
 
 param_eprime_results_sql="""
@@ -49,7 +57,9 @@ Group by eprimes
 Order by paramC Desc, eprimeC, eprimes;
 """
 
-def process_row(row):
+
+def process_row(basedir_row):
+    (basedir, row) = basedir_row
     run_dir = Path(row['output_dir'])
 
     with sqlite3.connect(str( basedir / run_dir / "results.db")) as conn:
@@ -80,7 +90,6 @@ def process_row(row):
 pool = Pool(processes=4)
 results = (pool.map(process_row, q_rows))
 # results = list(map(process_row, q_rows[1:4] ))
-
 
 [runs, instances, summary] = zip(*results)
 
