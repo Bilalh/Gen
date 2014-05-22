@@ -19,8 +19,6 @@
 			"path": "."
 		},
 		{
-			"follow_symlinks": true,
-			"path": "/Users/bilalh/CS/instancegen/scripts",
 			"folder_exclude_patterns":
 			[
 				"__",
@@ -30,15 +28,11 @@
 				".cabal-sandbox",
 				"hs/dist",
 				"hs/bin"
-			]
+			],
+			"follow_symlinks": true,
+			"path": "/Users/bilalh/CS/instancegen/scripts"
 		},
 		{
-			"follow_symlinks": true,
-			"path": "/Users/bilalh/CS/instancegen/notes"
-		},
-		{
-			"follow_symlinks": true,
-			"path": "/Users/bilalh/CS/instancegen-models",
 			"file_exclude_patterns":
 			[
 				".gitignore",
@@ -56,15 +50,21 @@
 				"*-compact*",
 				".shelly",
 				"results"
-			]
+			],
+			"follow_symlinks": true,
+			"path": "/Users/bilalh/CS/instancegen-models"
+		},
+		{
+			"follow_symlinks": true,
+			"path": "/Users/bilalh/CS/instancegen/notes"
 		}
 	],
 	"settings":
 	{
 		"extra_paths":
 		[
-			"/Users/bilalh/.local/anaconda/lib/python3.3/site-packages"
+			"/Users/bilalh/.local/anaconda/envs/py34/lib"
 		],
-		"python_interpreter_path": "/Users/bilalh/.local/anaconda/envs/py3/bin/python"
+		"python_interpreter_path": "/Users/bilalh/.local/anaconda/envs/py34/bin/python"
 	}
 }
