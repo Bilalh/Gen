@@ -92,7 +92,7 @@ export -f do_gent
 function process(){
 	export db=$1
 	sql -s ',' sqlite3:///$db "Select * from everything;" \
-		| parallel --tagstring "{2}%{1}%{11}"  --tag -j1 --keep-order  --header , --colsep , "$Command"
+		| parallel --tagstring "{2}%{1}%{11}"  --tag  --keep-order  --header , --colsep , "$Command"
 }
 export -f process
 
