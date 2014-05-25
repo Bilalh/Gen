@@ -7,6 +7,7 @@ import csv
 import logging
 import sqlite3
 import itertools
+import json
 
 from pprint import pprint
 from pathlib import Path
@@ -62,6 +63,10 @@ def process_row(basedir_row):
     (basedir, row) = basedir_row
     run_dir = Path(row['output_dir'])
 
+    json_file = basedir / run_dir / "times.json"
+    times = json.load(json_file.open())
+    row.update(times)
+
     with sqlite3.connect(str( basedir / run_dir / "results.db")) as conn:
         conn.row_factory = sqlite3.Row
         p_rows = [ dict(row) for row in conn.execute("SELECT * FROM ParamsData") ]
@@ -98,7 +103,13 @@ def write_dicts_as_csv(fp, rows, keys):
     with ( fp ).open("w") as f:
         keys = list(keys)
 
-        for e in ['paramHash', 'eprimes', 'params', 'output_dir', 'uuid', 'guuid', 'gid', 'id','param']:
+        extra_keys=['paramHash', 'eprimes', 'params', 'output_dir', 'uuid', 'guuid', 'gid', 'id','param']
+        time_keys = ["cpu_time_formatted", "method_cpu_time_formatted", "method_extra_time_formatted",
+        "real_time_formatted", "iterations_done", "iterations_done_including_failed"]
+        time_keys2 = ["cpu_time","method_cpu_time", "method_extra_time", "real_time",
+        "date_end", "date_start", "time_stamp_start", "time_stamp_end"]
+
+        for e in time_keys + extra_keys + time_keys2:
             if e in keys:
                 keys.remove(e)
                 keys.append(e)
