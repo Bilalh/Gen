@@ -88,7 +88,7 @@ function record_cp(){
 
 		echo "conjure">> "${fp}.cmds"
 		conjure 2>&1 | grep Version						  >> "${fp}.cmds"
-		minion 2>&1	 | egrep 'Git version|Minion Version' >> "${fp}.cmds"
+		minion 2>&1	 | egrep 'HG version|Minion Version' >> "${fp}.cmds"
 		savilerow	 | head -n 2 | tail -n 1			  >> "${fp}.cmds"
 
 		local sr="$(dirname `which savilerow`)"
