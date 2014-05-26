@@ -53,6 +53,8 @@ with sqlite3.connect(args.db) as conn:
 		logger.info("intersection: %s", intersection)
 		insection_mapping[e] = intersection
 
+conn.close()
+
 logger.info("ordering end %s", highest_ordering_needed)
 
 for intersection in insection_mapping.values():
