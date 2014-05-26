@@ -41,7 +41,7 @@ class ExponentialTimeout(Timeout):
 	def time_per_model(self):
 		finished = self.method._current_iteration_no_fail + 1
 		if finished <= self.total:
-			time_per_model = self.max_time_per_model / ( 2 ** (self.total - finished) )
+			time_per_model = math.ceil(self.max_time_per_model / ( 2 ** (self.total - finished) ))
 		else:
 			time_per_model = self.max_time_per_model
 
