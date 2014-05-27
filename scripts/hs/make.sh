@@ -7,7 +7,7 @@ OUR_DIR="$( cd "$( dirname "$0" )" && pwd )"
 
 
 export CORES=${CORES:-0}
-export OPTIMISATION=${OPTIMISATION:-"-O2"}
+export OPTIMISATION=${OPTIMISATION:-"-O1"}
 export LLVM=${LLVM:-"llvm-off"}
 export BIN_DIR=${BIN_DIR:-${OUR_DIR}/bin}
 
@@ -57,7 +57,7 @@ else
 fi
 
 
-# install conjure, finally
+# install finally
 
 cabal install                                                       \
     --only-dependencies                                             \
