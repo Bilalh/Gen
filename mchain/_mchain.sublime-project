@@ -63,8 +63,8 @@
 	{
 		"extra_paths":
 		[
-			"/Users/bilalh/.local/anaconda/envs/py34/lib"
+			"/Users/bilalh/.local/miniconda3/lib"
 		],
-		"python_interpreter_path": "/Users/bilalh/.local/anaconda/envs/py34/bin/python"
+		"python_interpreter_path": "/Users/bilalh/.local/miniconda3/envs/py34/bin/python"
 	}
 }
