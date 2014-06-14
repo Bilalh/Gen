@@ -39,6 +39,7 @@ function refine_run(){
 		local essence=$1
 		shift
 
+		export COLUMNS
 		parallel --keep-order --tagstring  "{2/.} {1/.}" -j${NUM_JOBS:-4} \
 			"source ${__convenience_fp}; __refine_par_func {2} {1} ${essence}" "$@"
 	fi
@@ -50,11 +51,11 @@ function csolve(){
 	else
 		local base=`basename $PWD`
 		__models_dir="${base}-compact/"
-		cr
-		if [ -f ${base}-compact/0001.eprime  ]; then
+
+		if ( cr ); then
 			pushd ${base}-compact >/dev/null
 			export LINES_TO_SHOW=${LINES_TO_SHOW:-20}
-			refine_run ${EXTRA:-} ../${base}.essence ::: 0001.eprime ::: "$@" 
+			refine_run ${EXTRA:-} ../${base}.essence ::: 0001.eprime ::: "$@"
 			popd > /dev/null
 		fi
 	fi
@@ -63,7 +64,7 @@ function csolve(){
 
 function cr(){
 	local base=`basename $PWD`
-	mkdir -p  ${base}-compact; 
+	mkdir -p  ${base}-compact;
 	echoing conjure \
 	--mode compact \
 	--out-eprime ${base}-compact/0001.eprime \
@@ -212,7 +213,8 @@ function up_eprime(){
 
 
 	else
-
+		pbase="`basename param`"
+		ebase="`basename eprime`"
 		echoing conjure \
 			--mode translateSolution \
 			--in-eprime ${eprime} \
@@ -221,7 +223,7 @@ function up_eprime(){
 			--in-eprime-solution ${eprime_solution} \
 			--in-essence-param ${param} \
 			--out-solution ${solution} \
-		&& head -n ${LINES_TO_SHOW:-10} ${solution} | sed '1d' \
+		&& head -n ${LINES_TO_SHOW:-10} ${solution} | sed '1d' | fmt -w$((COLUMNS - ${#pbase} - ${#ebase} - 5 )) \
 		&& vaildate_solution ${solution} ${param} ${essence}
 	fi
 
