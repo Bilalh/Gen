@@ -65,6 +65,14 @@
 		[
 			"/Users/bilalh/.local/miniconda3/lib"
 		],
-		"python_interpreter_path": "/Users/bilalh/.local/miniconda3/envs/py34/bin/python"
+		"python_interpreter_path": "/Users/bilalh/.local/miniconda3/envs/py34/bin/python",
+		"python_package_paths": [
+			"/Users/bilalh/.local/miniconda3/envs/py34/lib/python3.4/site-packages",
+			"$project_path"
+		],
+	    "highlight_line": true,
+        "trim_trailing_white_space_on_save": true,
+        "complete_parameters": true,
+        "auto_complete_triggers": [{"selector": "source.python - string - comment - constant.numeric", "characters": "."}]
 	}
 }
