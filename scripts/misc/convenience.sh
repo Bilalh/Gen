@@ -188,7 +188,7 @@ function up_eprime(){
 	local eprime_solution_base=`basename ${eprime_solution}`
 	local solution="${eprime_solution_base%.*}.solution"
 
-	rm -f ${solution}*
+	rm -f "${solution}"* > /dev/null
 
 	if [ ${__all_solution} -ge 1 ]; then
 		cmd="
@@ -224,7 +224,7 @@ function up_eprime(){
 			--in-essence-param ${param} \
 			--out-solution ${solution} \
 		&& head -n ${LINES_TO_SHOW:-10} ${solution} | sed '1d' | fmt -w$((COLUMNS - ${#pbase} - ${#ebase} - 5 )) \
-		&& vaildate_solution ${solution} ${param} ${essence}
+		&& [ -z "${NO_VAILDATE:-}" ] && vaildate_solution ${solution} ${param} ${essence}
 	fi
 
 }
