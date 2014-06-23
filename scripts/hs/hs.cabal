@@ -110,6 +110,8 @@ Executable testGen
                      , base
                      , containers
                      , text
+                     , transformers
+                     , groom
     ghc-prof-options:
         -auto-all
         -caf-all

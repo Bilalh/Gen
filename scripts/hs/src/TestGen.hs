@@ -1,4 +1,5 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module Main where
 
@@ -10,21 +11,48 @@ import Data.Set(Set)
 import qualified Data.Set as S
 import qualified Data.Text as T
 
-
+import Control.Monad.Trans.State.Strict(StateT)
+import Text.Groom(groom)
 
 data GenState = GenState
-        { gfinds :: (Text, E)   -- Domains of finds
-        }
+        { gFinds :: [(Text, E)]   -- Domains of finds
+        -- , gLogs :: !LogTree
 
-makeEs :: Monad m => m [E]
+        } deriving (Show)
+
+class (Monad m,  MonadState GenState m) => MonadGen m where
+    {}
+
+
+
+test :: MonadGen m => m Text
+test = do
+    fs <- gets gFinds
+    modify $ \ st -> st { gFinds = ("a",[dMake| int(1..2) |]) : fs  }
+    return ""
+
+
+chooseFindsDomains = do
+    fs <- gets gFinds
+    modify ( \s-> s{ gFinds = ("f",[dMake| int(4..4) |]) : fs }  )
+    return ""
+
+makeEs :: StateT GenState IO [E]
 makeEs = do
-    let finds = [mkFind  ( mkName "d", [dMake| int(1..2) |] )]
-    return $ finds ++ []
+    a <- chooseFindsDomains
+    fs <- gets gFinds
+    modify ( \s-> s{ gFinds = ("a",[dMake| int(1..2) |]) : fs }  )
+    return [ [eMake| 3 |] ]
 
+run :: IO [E]
+run = do
+    --let finds = [mkFind  ( mkName "d", [dMake| int(1..2) |] )]
+    (res,st) <- runStateT makeEs GenState{gFinds=[]}
+    return $ res
 
 main :: IO ()
 main = do
-    es <-  makeEs
+    es <- run
 
     spec <- mkSpec es
     writeSpec "a.essence" spec
