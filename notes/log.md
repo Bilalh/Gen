@@ -48,3 +48,15 @@ For 32s the progression would be:
 
 We use floor on the values if they are non integers
 
+
+#Wed 28 May 2014
+
+Running compact on ig1 to see if the specs in the essence catalog work and how long these take.
+
+Running the new version of --sample which should much more efficient (this work by shuffling the list instead of picking indexes) on various problem classes (including classes were there were too many models) which seems to work quite well. 
+
+Check the models to seem how biased the sampling is.
+
+Use the models to do the improvements 
+
+

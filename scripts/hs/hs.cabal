@@ -112,6 +112,8 @@ Executable testGen
                      , text
                      , transformers
                      , groom
+                     , QuickCheck
+                     , derive
     ghc-prof-options:
         -auto-all
         -caf-all

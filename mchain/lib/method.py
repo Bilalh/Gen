@@ -233,11 +233,13 @@ class Method(metaclass=ABCMeta):
         (param_string, param_name) = chain_lib.create_param_file(zip(self.info.ordering, point))
         return self.run_param_and_store_quality(param_string, param_name)
 
-    def run_param_and_store_quality(self, param_string, param_name):
+    def run_param_and_store_quality(self, param_string, param_name, model_ordering=None):
         logger.info("Essence for name %s \n%s ", param_name, indent(param_string,"\t"))
         param_hash = chain_lib.hash(param_name)
 
-        model_ordering = self.get_model_ordering()
+        if not model_ordering:
+            model_ordering = self.get_model_ordering()
+
         logger.info("eprime_ordering (first 5 eprimes) %s", model_ordering[0:5] )
 
         check = self.use_previous(param_hash)
@@ -419,6 +421,7 @@ class Method(metaclass=ABCMeta):
 
         selected_vals.update(generated)
         return [  selected_vals[name] for name in self.info.ordering ]
+
 
 
     # FIXME
