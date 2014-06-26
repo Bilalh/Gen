@@ -13,12 +13,11 @@ import shutil
 import subprocess
 import sys
 
-from signal import alarm, signal, SIGALRM, SIGKILL
-from pprint import pprint
-from pathlib import Path
 from collections import namedtuple, OrderedDict
-from textwrap import indent
 from datetime import datetime
+from pathlib import Path
+from pprint import pprint
+from textwrap import indent
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(format='%(lineno)d:%(funcName)s: %(message)s',
@@ -56,7 +55,7 @@ out_json = eprime.with_name("result.json")
 out_log = eprime.with_name("result.output")
 timeout = args.timeout
 
-Results = namedtuple("results", "code cpu_time real_time timeout finished cmd")
+Results = namedtuple("results", "rcode cpu_time real_time timeout finished cmd")
 def run_with_timeout(timeout, cmd):
     code = 0
     finished = True
@@ -82,6 +81,7 @@ def run_with_timeout(timeout, cmd):
     diff = date_end - date_start
     cputime_taken = (end_usr - start_usr) + (end_sys - start_sys)
 
+    # Might be simpler to run SR and minion our self
     if "savilerow" in c:
         with eprime_info.open() as f:
             (m_timeout,m_total,sr_real)  = [float(l.split(":")[1]) for l in f.readlines()
@@ -99,7 +99,7 @@ def run_with_timeout(timeout, cmd):
             cputime_taken, diff.total_seconds(),
             (end_usr - start_usr), (end_sys - start_sys), " ".join(cmd)  )
 
-    return (Results(code=code,
+    return (Results(rcode=code,
                   cpu_time=cputime_taken, real_time= diff.total_seconds(),
                   timeout=timeout, finished=finished,cmd=cmd)
            ,output)
@@ -166,7 +166,7 @@ for (i,cmd) in enumerate(cmds):
 
     outputs.append(" ".join(c))
     outputs.append(output)
-    if res.code != 0:
+    if res.rcode != 0:
         logger.warn("###ERRORS for cmd %s\n%s", c, indent(output," \t") )
         erroed=i
         all_finished=False
