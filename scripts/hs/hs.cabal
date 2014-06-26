@@ -114,6 +114,7 @@ Executable testGen
                      , groom
                      , QuickCheck
                      , derive
+                     , process
     ghc-prof-options:
         -auto-all
         -caf-all

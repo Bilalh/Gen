@@ -6,14 +6,14 @@ Runs the whole toolchain (compact + SR + Minion)
 import argparse
 import json
 import logging
+import math
 import os
 import shlex
 import shutil
 import subprocess
-import math
-import tempfile
-from signal import alarm, signal, SIGALRM, SIGKILL
+import sys
 
+from signal import alarm, signal, SIGALRM, SIGKILL
 from pprint import pprint
 from pathlib import Path
 from collections import namedtuple, OrderedDict
@@ -21,7 +21,7 @@ from textwrap import indent
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(format='%(name)s:%(lineno)d:%(funcName)s: %(message)s',
+logging.basicConfig(format='%(lineno)d:%(funcName)s: %(message)s',
         level=logging.INFO)
 
 parse_args = argparse.ArgumentParser()
@@ -52,8 +52,8 @@ essence_solution = eprime.with_suffix(".solution")
 minion           = eprime.with_suffix(".minion")
 
 
-out_json = eprime.with_name("results.json")
-out_log = eprime.with_name("results.output")
+out_json = eprime.with_name("result.json")
+out_log = eprime.with_name("result.output")
 timeout = args.timeout
 
 Results = namedtuple("results", "code cpu_time real_time timeout finished cmd")
@@ -166,9 +166,11 @@ for (i,cmd) in enumerate(cmds):
     if res.code != 0:
         logger.warn("###ERRORS for cmd %s\n%s", c, indent(output," \t") )
         erroed=i
+        all_finished=False
         break
     elif not res.finished:
         logger.warn("###TIMEDOUT(%s) for cmd %s\n%s",otimeout, c, indent(output," \t") )
+        all_finished=False
         break
     elif timeout <= 0:
         logger.warn("### NO_TIME_LEFT after cmd %s", c)
@@ -179,7 +181,7 @@ with out_json.open("w") as f:
     d= dict(results=results,
             total_cpu_time=total_cpu_time,
             total_real_time=total_real_time,
-            finished=all_finished,
+            all_finished=all_finished,
             erroed=erroed,
             given_time=int(args.timeout))
     f.write(json.dumps(d, indent=True,sort_keys=True))
@@ -188,3 +190,11 @@ with out_log.open("w") as f:
     f.write("\n".join(outputs))
 
 logger.info("total_cpu_time:%0.2f  total_real_time:%0.2f", total_cpu_time, total_real_time)
+
+
+if erroed:
+    sys.exit(1)
+elif not all_finished:
+    sys.exit(2)
+else:
+    sys.exit(0)

@@ -31,8 +31,9 @@ import Data.DeriveTH
 import Helpers
 import Test
 import Data
+import Runner
 
-
+import System.Process(rawSystem)
 
 
 chooseFindsDomains :: Monad m =>  StateT GenState m ()
@@ -67,12 +68,9 @@ main = do
     spec <- mkSpec es
     writeSpec "a.essence" spec
 
-
--- _r pathInp = do
---     inp <- readSpecFromFile pathInp
---     let a = (runCompE "TestGen" $ _ inp)
---     return ()
-
+    let toolchain="/Users/bilalh/CS/instancegen/scripts/run/toolchain.py"
+    code <- rawSystem toolchain ["a.essence", "--outdir", "aa", "--timeout", "5"]
+    print code
 
 mkSpec :: [E] -> IO Spec
 mkSpec es = do
