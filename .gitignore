@@ -53,3 +53,4 @@ scripts/tools/cputimeout/cputimeout
 .RData
 .Rhistory
 cabal.sandbox.config
+result.json
