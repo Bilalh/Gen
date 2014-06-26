@@ -85,12 +85,15 @@ def run_with_timeout(timeout, cmd):
     if "savilerow" in c:
         with eprime_info.open() as f:
             (m_timeout,m_total,sr_real)  = [float(l.split(":")[1]) for l in f.readlines()
-                    if l.split(":")[0] in {"MinionTimeOut", "MinionTotalTime", "SavileRowTotalTime" } ]
+                if l.split(":")[0] in {"MinionTimeOut","MinionTotalTime","SavileRowTotalTime" }]
             if int(m_timeout) == 1:
                 #because some killed processes don't return cputime
                 logger.warn("Adding %2.0f to cputime_taken(%2.0f) because of cpulimit timeout",
                         m_total, cputime_taken)
-                cputime_taken+=m_total + sr_real  # Best we can do at this point
+                if cputime_taken == 0: #Best we can do at this point
+                    cputime_taken +=  sr_real
+                cputime_taken+=m_total
+
 
     logger.info("Took %0.2f (%0.2f real), reported user %0.2f sys %0.2f for\n\t%s",
             cputime_taken, diff.total_seconds(),
@@ -105,7 +108,7 @@ def run_with_timeout(timeout, cmd):
 Conjure = """
 time conjure --mode compact  --in-essence "{essence}" --out-eprime "{eprime}"
 """
-PARAM_REFINE="""
+ParamRefine="""
 conjure
     --mode       refineParam
     --in-essence       {essence}
@@ -142,7 +145,7 @@ time conjure --mode validateSolution
         --in-solution {essence_solution}
 """
 
-cmds = [Conjure, PARAM_REFINE, SR, UP, Vaildate]
+cmds = [Conjure, ParamRefine, SR, UP, Vaildate]
 results=[]
 outputs=[]
 total_cpu_time=0
