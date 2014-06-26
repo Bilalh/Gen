@@ -115,6 +115,7 @@ Executable testGen
                      , QuickCheck
                      , derive
                      , process
+                     , filepath
     ghc-prof-options:
         -auto-all
         -caf-all

@@ -68,9 +68,8 @@ main = do
     spec <- mkSpec es
     writeSpec "a.essence" spec
 
-    let toolchain="/Users/bilalh/CS/instancegen/scripts/run/toolchain.py"
-    code <- rawSystem toolchain ["a.essence", "--outdir", "aa", "--timeout", "5"]
-    print code
+    result <- runToolChain "a.essence" "ab" 6
+    putStrLn . groom $ result
 
 mkSpec :: [E] -> IO Spec
 mkSpec es = do
