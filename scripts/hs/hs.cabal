@@ -119,6 +119,7 @@ Executable testGen
                      , time
                      , old-locale
                      , directory
+                     , random
     ghc-prof-options:
         -auto-all
         -caf-all

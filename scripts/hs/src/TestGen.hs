@@ -26,6 +26,8 @@ import Text.Groom(groom)
 import Test.QuickCheck
 import qualified Test.QuickCheck as Q
 
+import System.Random(randomIO,mkStdGen)
+
 import Data.DeriveTH
 
 import Helpers
@@ -37,8 +39,8 @@ import System.Process(rawSystem)
 import System.FilePath((</>), (<.>))
 import System.Directory(createDirectoryIfMissing)
 
-chooseFindsDomains :: (Monad m, Applicative m, Functor m) =>  StateT GenState m ()
-chooseFindsDomains = do
+chooseFindsDomain :: (Monad m, Applicative m, Functor m) =>  StateT GenState m ()
+chooseFindsDomain = do
     levels <- rangeRandomG (1,2)
     dom :: EssenceDomain  <- pickVal (levels)
 
@@ -53,14 +55,17 @@ makeEs :: (Monad m, Applicative m, Functor m) =>  StateT GenState m  [E]
 makeEs = do
     -- aff <- mapM (\x -> rangeRandomG (1,3)) [1..3]
     -- liftIO $  print aff
-    chooseFindsDomains
+    varsNum <- rangeRandomG (1,3)
+    mapM_ (\_ -> chooseFindsDomain) [1..varsNum]
     gs <- gets gFinds
     return $  fmap (\(n,e) -> mkFind ((mkName n), e) ) gs
 
 
 run :: IO [E]
 run = do
-    seed <- getStdGen
+    seedd :: Int <- randomIO
+    let seed = mkStdGen seedd
+    -- seed <- getStdGen
     putStrLn $ "Using seed:"  ++ show seed
     (res,st) <- runStateT makeEs GenState{gFinds=[], gFindIndex=0, genSeed=seed}
     return $ res
