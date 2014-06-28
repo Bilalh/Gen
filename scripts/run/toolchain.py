@@ -34,7 +34,7 @@ outdir = Path(args.outdir)
 if not outdir.exists():
     outdir.mkdir(parents=True)
 if not args.param:
-    essence_param = outdir.with_name("empty.param")
+    essence_param = outdir / "empty.param"
     with open(str(essence_param),"w") as f:
         f.write("language ESSENCE' 1.0")
         f.write("\n$This Fine is empty")
@@ -59,17 +59,13 @@ Results = namedtuple("results", "rcode cpu_time real_time timeout finished cmd")
 def run_with_timeout(timeout, cmd):
     code = 0
     finished = True
-    py_timeout=False
+    logger.info("%s", " ".join(cmd))
     try:
         date_start = datetime.utcnow()
         start_usr = os.times().children_user
         start_sys = os.times().children_system
-        output = subprocess.check_output(cmd, timeout=timeout,
+        output = subprocess.check_output(cmd,
                 stderr=subprocess.STDOUT, universal_newlines=True)
-    except subprocess.TimeoutExpired as e:
-        output = e.output
-        finished = False
-        py_timeout=True
     except subprocess.CalledProcessError as e:
         output = e.output
         code = e.returncode
@@ -81,23 +77,28 @@ def run_with_timeout(timeout, cmd):
     diff = date_end - date_start
     cputime_taken = (end_usr - start_usr) + (end_sys - start_sys)
 
+
     # Might be simpler to run SR and minion our self
     if "savilerow" in c:
-        with eprime_info.open() as f:
-            (m_timeout,m_total,sr_real)  = [float(l.split(":")[1]) for l in f.readlines()
-                if l.split(":")[0] in {"MinionTimeOut","MinionTotalTime","SavileRowTotalTime" }]
-            if int(m_timeout) == 1:
-                #because some killed processes don't return cputime
-                logger.warn("Adding %2.0f to cputime_taken(%2.0f) because of cpulimit timeout",
-                        m_total, cputime_taken)
-                if cputime_taken == 0: #Best we can do at this point
-                    cputime_taken +=  sr_real
-                cputime_taken+=m_total
+        if "Savile Row timed out" in output:
+            finished = False
+        else:
+            with eprime_info.open() as f:
+                (m_timeout,m_total,sr_real)  = [float(l.split(":")[1]) for l in f.readlines()
+                    if l.split(":")[0] in
+                         {"MinionTimeOut","MinionTotalTime","SavileRowTotalTime"}]
+                if int(m_timeout) == 1:
+                    if cputime_taken == 0: #Best we can do at this point
+                        #because some killed processes don't return cputime
+                        logger.warn("Adding %2.0f to cpu_taken(%2.0f) cpu timeout",
+                            m_total, cputime_taken)
+                        cputime_taken +=  sr_real
+                    cputime_taken+=m_total
 
 
-    logger.info("Took %0.2f (%0.2f real), reported user %0.2f sys %0.2f for\n\t%s",
+    logger.info("Took %0.2f (%0.2f real), reported user %0.2f sys %0.2f",
             cputime_taken, diff.total_seconds(),
-            (end_usr - start_usr), (end_sys - start_sys), " ".join(cmd)  )
+            (end_usr - start_usr), (end_sys - start_sys))
 
     return (Results(rcode=code,
                   cpu_time=cputime_taken, real_time= diff.total_seconds(),
@@ -109,7 +110,7 @@ Conjure = """
 time conjure --mode compact  --in-essence "{essence}" --out-eprime "{eprime}"
 """
 ParamRefine="""
-conjure
+time conjure
     --mode       refineParam
     --in-essence       {essence}
     --in-eprime        {eprime}
@@ -125,6 +126,7 @@ time savilerow  -mode Normal
 -out-solution                {eprime_solution}
 -out-info                    {eprime_info}
 -run-solver
+-timelimit                   {mstimeout}
 -solver-options '-cpulimit {itimeout}'
 """
 
@@ -154,6 +156,7 @@ all_finished=True
 erroed = None
 for (i,cmd) in enumerate(cmds):
     itimeout=int(math.ceil(timeout))
+    mstimeout=itimeout*1000
     c=shlex.split(cmd.format(**locals()))
     (res, output) = run_with_timeout(timeout, c)
 
@@ -167,12 +170,13 @@ for (i,cmd) in enumerate(cmds):
     outputs.append(" ".join(c))
     outputs.append(output)
     if res.rcode != 0:
-        logger.warn("###ERRORS for cmd %s\n%s", c, indent(output," \t") )
+        logger.warn("###ERRORS for cmd \n%s\n%s", " ".join(c), indent(output," \t") )
         erroed=i
         all_finished=False
         break
     elif not res.finished:
-        logger.warn("###TIMEDOUT(%s) for cmd %s\n%s",otimeout, c, indent(output," \t") )
+        logger.warn("###TIMEDOUT(%0.2f) for cmd \n%s\n%s", otimeout,
+                " ".join(c), indent(output," \t") )
         all_finished=False
         break
     elif timeout <= 0:

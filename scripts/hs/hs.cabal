@@ -116,6 +116,9 @@ Executable testGen
                      , derive
                      , process
                      , filepath
+                     , time
+                     , old-locale
+                     , directory
     ghc-prof-options:
         -auto-all
         -caf-all

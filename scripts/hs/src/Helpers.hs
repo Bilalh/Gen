@@ -1,6 +1,8 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
 module Helpers where
 
+import Data.Time(formatTime,getCurrentTime)
+import System.Locale(defaultTimeLocale)
 import Language.E
 import Data.Set(Set)
 import qualified Data.Set as S
@@ -22,12 +24,16 @@ pullGivens es = mapMaybe pullGiven es
 onlyNamesAsText :: [(E,E)] -> Set Text
 onlyNamesAsText = S.fromList . map f
     where f ([xMatch|[Prim (S name)] := reference |], _) = name
+          f (e,_) = error . show $ "onlyNamesAsText*f: not a name" <+> pretty e
 
 appendToName :: Text -> E -> E
-appendToName end [xMatch|[Prim (S name)] := reference |]  = [xMake| reference := [Prim (S $ T.append name end )]  |]
+appendToName end [xMatch|[Prim (S name)] := reference |]  =
+    [xMake| reference := [Prim (S $ T.append name end )]  |]
+appendToName e _ = error . show $ "appendToName: not a name" <+> pretty e
 
 getName :: E -> Text
 getName [xMatch| [Prim (S name)] := reference  |] = name
+getName e = error . show $ "getName: not a name" <+> pretty e
 
 mkName :: Text -> E
 mkName name = [xMake| reference :=  [Prim (S name)]  |]
@@ -47,4 +53,10 @@ mkAttr (n, Nothing) = [xMake| attribute.name.reference := [Prim (S n)] |]
 mkAttr (n, Just v ) = [xMake| attribute.nameValue.name.reference := [Prim (S n)]
                             | attribute.nameValue.value          := [v]
                             |]
+mkInt :: Integer -> E
+mkInt j =  [xMake| value.literal := [Prim (I j)] |]
 
+timestamp :: IO Int
+timestamp = do
+    epochInt <- (read <$> formatTime defaultTimeLocale "%s" <$> getCurrentTime) :: IO Int
+    return epochInt

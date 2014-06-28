@@ -34,42 +34,52 @@ import Data
 import Runner
 
 import System.Process(rawSystem)
+import System.FilePath((</>), (<.>))
+import System.Directory(createDirectoryIfMissing)
 
-
-chooseFindsDomains :: Monad m =>  StateT GenState m ()
+chooseFindsDomains :: (Monad m, Applicative m, Functor m) =>  StateT GenState m ()
 chooseFindsDomains = do
-    lit :: EssenceLiteral <- pickVal 1
+    levels <- rangeRandomG (1,2)
+    dom :: EssenceDomain  <- pickVal (levels)
 
     i <- gets gFindIndex
     let name = T.pack $  "var" ++  (show  i)
     fs <- gets gFinds
     modify ( \s-> s{gFindIndex = i+1
-                   ,gFinds = (name,  fromEssenceLiteral lit) : fs  }  )
+                   ,gFinds = (name,  fromEssenceDomain dom) : fs  }  )
 
-makeEs :: Monad m =>  StateT GenState m  [E]
+makeEs :: (Monad m, Applicative m, Functor m) =>  StateT GenState m  [E]
+-- makeEs :: StateT GenState IO  [E]
 makeEs = do
+    -- aff <- mapM (\x -> rangeRandomG (1,3)) [1..3]
+    -- liftIO $  print aff
     chooseFindsDomains
-
-    let chosenDoms = [ ("AA", [dMake| int(1..4) |]) ]
-
-    return $  fmap (\(n,e) -> mkFind ((mkName n), e) ) chosenDoms
+    gs <- gets gFinds
+    return $  fmap (\(n,e) -> mkFind ((mkName n), e) ) gs
 
 
 run :: IO [E]
 run = do
-    --let finds = [mkFind  ( mkName "d", [dMake| int(1..2) |] )]
-    (res,st) <- runStateT makeEs GenState{gFinds=[], gFindIndex=0}
+    seed <- getStdGen
+    putStrLn $ "Using seed:"  ++ show seed
+    (res,st) <- runStateT makeEs GenState{gFinds=[], gFindIndex=0, genSeed=seed}
     return $ res
 
 main :: IO ()
 main = do
     es <- run
 
-    spec <- mkSpec es
-    writeSpec "a.essence" spec
+    ts <- timestamp >>= return .show
 
-    result <- runToolChain "a.essence" "ab" 6
-    putStrLn . groom $ result
+    createDirectoryIfMissing True $ "__" </> ts
+    let name = ("__" </>  ts </> ts <.> ".essence")
+
+    spec <- mkSpec es
+    writeSpec name spec
+
+    result <- runToolChain name ("__" </> ts)  6
+    -- putStrLn . groom $ result
+    return ()
 
 mkSpec :: [E] -> IO Spec
 mkSpec es = do
