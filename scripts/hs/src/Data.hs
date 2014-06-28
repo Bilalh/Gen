@@ -2,10 +2,11 @@
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}
 {-# OPTIONS_GHC -fno-warn-unused-matches #-}
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
+
 {-# LANGUAGE FlexibleContexts #-}
-
-
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ConstraintKinds #-}
+
 
 module Data where
 -- import Language.E hiding(EssenceLiteral(..))
@@ -17,11 +18,8 @@ import Helpers
 -- import qualified Test.QuickCheck as Q
 -- import Data.DeriveTH
 
--- Since Monad has not been fixed yet
-class  (Monad m, Applicative m, Functor m) => MonadA m where
-    {}
-
-
+--Since Monad has not been fixed yet
+type MonadA m = (Monad m, Applicative m, Functor m)
 
 data GenState = GenState
         {
@@ -30,13 +28,7 @@ data GenState = GenState
         , genSeed :: StdGen
         } deriving (Show)
 
-
-
--- class (Monad m,  MonadState GenState m, RandomM m) => MonadGen m where
-class (MonadState GenState m) => MonadGen m where
-    {}
-
-rangeRandomG :: (Monad m) => (Int, Int) -> StateT GenState m Int
+rangeRandomG :: Monad m => (Int, Int) -> StateT GenState m Int
 rangeRandomG range = do
     gen <- gets genSeed
     let (x, gen') = randomR range gen
@@ -78,7 +70,7 @@ fromEssenceDomain (DMat index dom) = [dMake| matrix indexed by [&indexE] of &dom
           domE   = fromEssenceDomain dom
 
 class ArbitraryLimited a where
-    pickVal :: (Monad m, Applicative m, Functor m) => Int -> StateT GenState m a
+    pickVal :: MonadA m => Int -> StateT GenState m a
     pickVal i = error "no default generator"
 
 instance ArbitraryLimited EssenceDomain where

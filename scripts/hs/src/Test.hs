@@ -38,10 +38,4 @@ dd =  return
     >=> b
      $  4
 
-test :: MonadGen m => m Text
-test = do
-    fs <- gets gFinds
-    modify $ \ st -> st { gFinds = ("a",[dMake| int(1..2) |]) : fs  }
-    return ""
-
 

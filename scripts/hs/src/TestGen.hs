@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fno-warn-unused-binds #-}
+--{-# OPTIONS_GHC -fno-warn-unused-binds #-}
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}
 {-# OPTIONS_GHC -fno-warn-unused-matches #-}
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
@@ -9,37 +9,34 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RecordWildCards #-}
 
+{-# LANGUAGE ConstraintKinds #-}
+
 module Main where
-
--- import Language.E hiding(EssenceLiteral(..))
-import Language.E
--- import Language.E.NormaliseSolution(normaliseSolutionEs)
-import Language.E.Pipeline.ReadIn(writeSpec)
-
-import Data.Set(Set)
-import qualified Data.Set as S
-import qualified Data.Text as T
-
-import Control.Monad.Trans.State.Strict(StateT)
-import Text.Groom(groom)
-
-import Test.QuickCheck
-import qualified Test.QuickCheck as Q
-
-import System.Random(randomIO,mkStdGen)
-
-import Data.DeriveTH
 
 import Helpers
 import Test
 import Data
 import Runner
 
-import System.Process(rawSystem)
-import System.FilePath((</>), (<.>))
-import System.Directory(createDirectoryIfMissing)
+import Language.E
+import Language.E.Pipeline.ReadIn(writeSpec)
 
-chooseFindsDomain :: (Monad m, Applicative m, Functor m) =>  StateT GenState m ()
+import Control.Monad.Trans.State.Strict(StateT)
+
+import Data.Set(Set)
+
+import System.Directory(createDirectoryIfMissing)
+import System.FilePath((</>), (<.>))
+import System.Process(rawSystem)
+import System.Random(randomIO,mkStdGen)
+
+import Text.Groom(groom)
+
+import qualified Data.Set as S
+import qualified Data.Text as T
+import qualified Test.QuickCheck as Q
+
+chooseFindsDomain :: MonadA m =>  StateT GenState m ()
 chooseFindsDomain = do
     levels <- rangeRandomG (1,2)
     dom :: EssenceDomain  <- pickVal (levels)
@@ -50,7 +47,7 @@ chooseFindsDomain = do
     modify ( \s-> s{gFindIndex = i+1
                    ,gFinds = (name,  fromEssenceDomain dom) : fs  }  )
 
-makeEs :: (Monad m, Applicative m, Functor m) =>  StateT GenState m  [E]
+makeEs :: MonadA m =>  StateT GenState m  [E]
 -- makeEs :: StateT GenState IO  [E]
 makeEs = do
     -- aff <- mapM (\x -> rangeRandomG (1,3)) [1..3]
