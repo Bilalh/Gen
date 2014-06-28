@@ -36,7 +36,7 @@ import qualified Data.Set as S
 import qualified Data.Text as T
 import qualified Test.QuickCheck as Q
 
-chooseFindsDomain :: MonadA m =>  StateT GenState m ()
+chooseFindsDomain :: MonadGen m => m ()
 chooseFindsDomain = do
     levels <- rangeRandomG (1,2)
     dom :: EssenceDomain  <- pickVal (levels)
@@ -46,42 +46,38 @@ chooseFindsDomain = do
     fs <- gets gFinds
     modify ( \s-> s{gFindIndex = i+1
                    ,gFinds = (name,  fromEssenceDomain dom) : fs  }  )
+    return ()
 
-makeEs :: MonadA m =>  StateT GenState m  [E]
--- makeEs :: StateT GenState IO  [E]
+makeEs :: MonadGen m => m [E]
 makeEs = do
-    -- aff <- mapM (\x -> rangeRandomG (1,3)) [1..3]
-    -- liftIO $  print aff
     varsNum <- rangeRandomG (1,3)
     mapM_ (\_ -> chooseFindsDomain) [1..varsNum]
     gs <- gets gFinds
     return $  fmap (\(n,e) -> mkFind ((mkName n), e) ) gs
 
 
-run :: IO [E]
-run = do
+run :: StdGen -> Float -> IO ()
+run _ limit | limit <= 0  = return ()
+run seed limit = do
+    putStrLn $ show limit ++ " seconds left"
+    (es,st) <- runStateT makeEs GenState{gFinds=[], gFindIndex=0, genSeed=seed}
+
+    ts <- timestamp >>= return .show
+    createDirectoryIfMissing True $ "__" </> ts
+    let name = ("__" </>  ts </> ts <.> ".essence")
+    spec <- mkSpec es
+    writeSpec name spec
+    result <- runToolChain name ("__" </> ts)  6
+
+    run (genSeed st) (limit - total_cpu_time result)
+
+main :: IO ()
+main = do
     seedd :: Int <- randomIO
     let seed = mkStdGen seedd
     -- seed <- getStdGen
     putStrLn $ "Using seed:"  ++ show seed
-    (res,st) <- runStateT makeEs GenState{gFinds=[], gFindIndex=0, genSeed=seed}
-    return $ res
-
-main :: IO ()
-main = do
-    es <- run
-
-    ts <- timestamp >>= return .show
-
-    createDirectoryIfMissing True $ "__" </> ts
-    let name = ("__" </>  ts </> ts <.> ".essence")
-
-    spec <- mkSpec es
-    writeSpec name spec
-
-    result <- runToolChain name ("__" </> ts)  6
-    -- putStrLn . groom $ result
-    return ()
+    run seed 12
 
 mkSpec :: [E] -> IO Spec
 mkSpec es = do

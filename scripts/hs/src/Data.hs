@@ -1,6 +1,3 @@
-{-# OPTIONS_GHC -fno-warn-unused-binds #-}
-{-# OPTIONS_GHC -fno-warn-unused-imports #-}
-{-# OPTIONS_GHC -fno-warn-unused-matches #-}
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
 
 {-# LANGUAGE FlexibleContexts #-}
@@ -9,10 +6,10 @@
 
 
 module Data where
--- import Language.E hiding(EssenceLiteral(..))
-import Language.E
-import Control.Monad.Trans.State.Strict(StateT)
 import Helpers
+
+import Language.E
+
 
 -- import Test.QuickCheck
 -- import qualified Test.QuickCheck as Q
@@ -20,6 +17,7 @@ import Helpers
 
 --Since Monad has not been fixed yet
 type MonadA m = (Monad m, Applicative m, Functor m)
+type MonadGen m = (Monad m, Applicative m, Functor m, MonadState GenState m)
 
 data GenState = GenState
         {
@@ -28,7 +26,7 @@ data GenState = GenState
         , genSeed :: StdGen
         } deriving (Show)
 
-rangeRandomG :: Monad m => (Int, Int) -> StateT GenState m Int
+rangeRandomG :: MonadGen m => (Int, Int) -> m Int
 rangeRandomG range = do
     gen <- gets genSeed
     let (x, gen') = randomR range gen
@@ -70,8 +68,8 @@ fromEssenceDomain (DMat index dom) = [dMake| matrix indexed by [&indexE] of &dom
           domE   = fromEssenceDomain dom
 
 class ArbitraryLimited a where
-    pickVal :: MonadA m => Int -> StateT GenState m a
-    pickVal i = error "no default generator"
+    pickVal :: MonadGen m  => Int ->  m a
+    pickVal _ = error "no default generator"
 
 instance ArbitraryLimited EssenceDomain where
     -- 0 always gives back a int for things like matrix indexing
