@@ -40,7 +40,7 @@ if not args.param:
         f.write("\n$This Fine is empty")
 
 else:
-    essence_param = args.param
+    essence_param = Path(args.param)
 
 essence          = Path(args.essence)
 eprime           = outdir / "0001-{}.eprime".format(essence_param.stem)
@@ -79,6 +79,10 @@ def run_with_timeout(timeout, cmd):
 
 
     # Might be simpler to run SR and minion our self
+
+    if "conjure" in c and "Timed out" in output:
+        finished=False
+
     if "savilerow" in c:
         if "Savile Row timed out" in output:
             finished = False
@@ -107,7 +111,7 @@ def run_with_timeout(timeout, cmd):
 
 
 Conjure = """
-time conjure --mode compact  --in-essence "{essence}" --out-eprime "{eprime}"
+time conjure --mode compact --in-essence {essence} --out-eprime {eprime} --timelimit {itimeout}
 """
 ParamRefine="""
 time conjure
@@ -116,6 +120,7 @@ time conjure
     --in-eprime        {eprime}
     --in-essence-param {essence_param}
     --out-eprime-param {eprime_param}
+    --timelimit        {itimeout}
 """
 
 SR ="""
@@ -139,12 +144,14 @@ time conjure
     --out-essence-solution  {essence_solution}
     --essence-param         {essence_param}
     --eprime-param          {eprime_param}
+    --timelimit             {itimeout}
 """
 
 Vaildate= """
 time conjure --mode validateSolution
-        --in-essence  {essence}
-        --in-solution {essence_solution}
+             --in-essence  {essence}
+             --in-solution {essence_solution}
+             --timelimit   {itimeout}
 """
 
 cmds = [Conjure, ParamRefine, SR, UP, Vaildate]
@@ -196,7 +203,8 @@ with out_json.open("w") as f:
 with out_log.open("w") as f:
     f.write("\n".join(outputs))
 
-logger.info("total_cpu_time:%0.2f  total_real_time:%0.2f", total_cpu_time, total_real_time)
+logger.info("\033[1;31mtotal_cpu_time:%0.2f  total_real_time:%0.2f\033[1;0m",
+        total_cpu_time, total_real_time)
 
 
 if erroed:
