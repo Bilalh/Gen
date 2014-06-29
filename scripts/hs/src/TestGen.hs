@@ -4,11 +4,7 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}
 
-{-# LANGUAGE TemplateHaskell #-}
-
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE RecordWildCards #-}
-
 {-# LANGUAGE ConstraintKinds #-}
 
 module Main where
@@ -17,11 +13,12 @@ import Helpers
 import Test
 import Data
 import Runner
+import Args(parseArgs)
 
 import Language.E
 import Language.E.Pipeline.ReadIn(writeSpec)
-
-import Control.Monad.Trans.State.Strict(StateT)
+import Language.E.DomainOf
+import Control.Monad.Trans.State.Strict(StateT,execStateT)
 
 import Data.Set(Set)
 
@@ -48,36 +45,47 @@ chooseFindsDomain = do
                    ,gFinds = (name,  fromEssenceDomain dom) : fs  }  )
     return ()
 
-makeEs :: MonadGen m => m [E]
+makeEs :: MonadGen m  => m [E]
 makeEs = do
     varsNum <- rangeRandomG (1,3)
     mapM_ (\_ -> chooseFindsDomain) [1..varsNum]
     gs <- gets gFinds
     return $  fmap (\(n,e) -> mkFind ((mkName n), e) ) gs
 
-
-run :: StdGen -> Float -> IO ()
+run :: (MonadState GenGlobal m, MonadIO m, MonadA m) =>  StdGen -> Float -> m ()
 run _ limit | limit <= 0  = return ()
 run seed limit = do
-    putStrLn $ show limit ++ " seconds left"
+    liftIO $ putStrLn $ show limit ++ " seconds left"
     (es,st) <- runStateT makeEs GenState{gFinds=[], gFindIndex=0, genSeed=seed}
 
-    ts <- timestamp >>= return .show
-    createDirectoryIfMissing True $ "__" </> ts
-    let name = ("__" </>  ts </> ts <.> ".essence")
-    spec <- mkSpec es
-    writeSpec name spec
-    result <- runToolChain name ("__" </> ts)  6
+    ts <- liftIO timestamp >>= return .show
+    dir <- gets gBase >>= \d -> return $ d </> ts
+    liftIO $ createDirectoryIfMissing True  dir
+
+    let name = (dir </> ts <.> ".essence")
+    spec <- liftIO $ mkSpec es
+    liftIO $ writeSpec name spec
+
+    specLim <- gets gSpecTime
+    result <- liftIO $ runToolChain name dir specLim
 
     run (genSeed st) (limit - total_cpu_time result)
 
 main :: IO ()
 main = do
-    seedd :: Int <- randomIO
-    let seed = mkStdGen seedd
-    -- seed <- getStdGen
-    putStrLn $ "Using seed:"  ++ show seed
-    run seed 12
+    globalState <- parseArgs
+    main' globalState
+
+
+main' :: GenGlobal -> IO ()
+main' gs = do
+    print gs
+    -- seedd :: Int <- randomIO
+    -- let seed = mkStdGen seedd
+    let seed = mkStdGen (gSeed gs)
+
+    finalState <- execStateT (run seed (gTotalTime gs) ) gs
+    return ()
 
 mkSpec :: [E] -> IO Spec
 mkSpec es = do
@@ -88,5 +96,4 @@ mkSpec es = do
          $ es
     print .  pretty $ spec
     return spec
-
 

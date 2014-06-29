@@ -10,7 +10,6 @@ import Helpers
 
 import Language.E
 
-
 -- import Test.QuickCheck
 -- import qualified Test.QuickCheck as Q
 -- import Data.DeriveTH
@@ -18,6 +17,7 @@ import Language.E
 --Since Monad has not been fixed yet
 type MonadA m = (Monad m, Applicative m, Functor m)
 type MonadGen m = (Monad m, Applicative m, Functor m, MonadState GenState m)
+type MonadGG  m = (Monad m, Applicative m, Functor m, MonadState GenGlobal m)
 
 data GenState = GenState
         {
@@ -25,6 +25,14 @@ data GenState = GenState
         , gFindIndex :: Int     -- Next index for a name
         , genSeed :: StdGen
         } deriving (Show)
+
+data GenGlobal = GenGlobal
+    {
+         gSeed      :: Int
+        ,gBase      :: FilePath
+        ,gTotalTime :: Float
+        ,gSpecTime  :: Int
+    } deriving (Show)
 
 rangeRandomG :: MonadGen m => (Int, Int) -> m Int
 rangeRandomG range = do

@@ -120,6 +120,7 @@ Executable testGen
                      , old-locale
                      , directory
                      , random
+                     , cmdargs
     ghc-prof-options:
         -auto-all
         -caf-all

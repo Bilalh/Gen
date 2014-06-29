@@ -5,6 +5,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ConstraintKinds #-}
 module Test where
 
 import Language.E hiding(EssenceLiteral(..))
@@ -39,3 +40,19 @@ dd =  return
      $  4
 
 
+
+ss :: MonadGen m => m Int
+ss = do
+    return 4
+
+fff :: MonadState GenGlobal m => m String
+fff = do
+    return "dd"
+
+ttt :: MonadGG m =>  StateT GenState m [Int]
+ttt = do
+    ff <- gets gFindIndex
+    hh <- lift $ gets gSeed
+    aa <- ss
+    f<- lift fff
+    return [2 :: Int]
