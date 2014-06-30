@@ -156,7 +156,7 @@ function solve_eprime_param(){
 		extra='-all-solutions'
 	fi
 
-	echoing savilerow ${MINION_OPTIONS:--minion-options '-sollimit 10'} -in-eprime ${eprime} -in-param ${eparam} -run-minion minion -out-minion ${out_minion} -out-solution ${out_solution} ${extra}
+	echoing savilerow ${MINION_OPTIONS:--solver-options '-sollimit 10'} -in-eprime ${eprime} -in-param ${eparam} -run-solver  -out-minion ${out_minion} -out-solution ${out_solution} ${extra}
 
 }
 
@@ -172,7 +172,7 @@ function minion_count_solutions(){
 	if [ $__all_solution -eq 3 ]; then
 		filter='Solutions'
 	fi
-	echoing savilerow -in-eprime ${eprime} -in-param ${eparam} -out-minion ${out_minion} -all-solutions
+	echoing savilerow -in-eprime ${eprime} -in-param ${eparam} -out-minion ${out_minion} -all-solutions -run-solver
 	echoing minion ${out_minion} -noprintsols -findallsols -preprocess SACBounds \
 		| grep -v '#' | egrep $filter
 }
