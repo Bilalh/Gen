@@ -68,6 +68,7 @@ run seed limit = do
 
     specLim <- gets gSpecTime
     result <- liftIO $ runToolChain name dir specLim
+    liftIO $ print result
 
     run (genSeed st) (limit - total_cpu_time result)
 

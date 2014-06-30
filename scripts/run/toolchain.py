@@ -19,6 +19,8 @@ from pathlib import Path
 from pprint import pprint
 from textwrap import indent
 
+from enum import Enum,IntEnum, unique
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(format='%(lineno)d:%(funcName)s: %(message)s',
         level=logging.INFO)
@@ -52,13 +54,22 @@ minion           = eprime.with_suffix(".minion")
 
 
 out_json = eprime.with_name("result.json")
-out_log = eprime.with_name("result.output")
-timeout = args.timeout
+out_log  = eprime.with_name("result.output")
+timeout  = args.timeout
 
-Results = namedtuple("results", "rcode cpu_time real_time timeout finished cmd")
+@unique
+class Status(Enum):
+    success        = 0,
+    errorUnkown    = 1,
+    timeout        = 2,
+    numbersToLarge = 3
+
+
+Results = namedtuple("results", "rcode cpu_time real_time timeout finished cmd, status_")
 def run_with_timeout(timeout, cmd):
     code = 0
     finished = True
+    status = Status.success
     logger.info("%s", " ".join(cmd))
     try:
         date_start = datetime.utcnow()
@@ -70,6 +81,8 @@ def run_with_timeout(timeout, cmd):
         output = e.output
         code = e.returncode
         finished = False
+        status = Status.unkown_error
+
     end_usr = os.times().children_user
     end_sys = os.times().children_system
     date_end=datetime.utcnow()
@@ -78,14 +91,15 @@ def run_with_timeout(timeout, cmd):
     cputime_taken = (end_usr - start_usr) + (end_sys - start_sys)
 
 
-    # Might be simpler to run SR and minion our self
-
     if "conjure" in c and "Timed out" in output:
+        status=Status.timeout
         finished=False
 
-    if "savilerow" in c:
+    # Might be simpler to run SR and minion our self
+    if code == 0 and "savilerow" in c:
         if "Savile Row timed out" in output:
             finished = False
+            status=Status.timeout
         else:
             with eprime_info.open() as f:
                 (m_timeout,m_total,sr_real)  = [float(l.split(":")[1]) for l in f.readlines()
@@ -98,6 +112,8 @@ def run_with_timeout(timeout, cmd):
                             m_total, cputime_taken)
                         cputime_taken +=  sr_real
                     cputime_taken+=m_total
+                    finished=False
+                    status=Status.timeout
 
 
     logger.info("Took %0.2f (%0.2f real), reported user %0.2f sys %0.2f",
@@ -106,7 +122,7 @@ def run_with_timeout(timeout, cmd):
 
     return (Results(rcode=code,
                   cpu_time=cputime_taken, real_time= diff.total_seconds(),
-                  timeout=timeout, finished=finished,cmd=cmd)
+                  timeout=timeout, finished=finished,cmd=cmd, status_=status)
            ,output)
 
 
@@ -161,6 +177,7 @@ total_cpu_time=0
 total_real_time=0
 all_finished=True
 erroed = None
+last_status=Status.success
 for (i,cmd) in enumerate(cmds):
     itimeout=int(math.ceil(timeout))
     mstimeout=itimeout*1000
@@ -176,20 +193,21 @@ for (i,cmd) in enumerate(cmds):
 
     outputs.append(" ".join(c))
     outputs.append(output)
-    if res.rcode != 0:
-        logger.warn("###ERRORS for cmd \n%s\n%s", " ".join(c), indent(output," \t") )
-        erroed=i
-        all_finished=False
-        break
-    elif not res.finished:
+
+    if res.status_ == Status.timeout:
         logger.warn("###TIMEDOUT(%0.2f) for cmd \n%s\n%s", otimeout,
                 " ".join(c), indent(output," \t") )
         all_finished=False
         break
+    elif res.value > 0:
+        logger.warn("###ERRORS for cmd \n%s\n%s", " ".join(c), indent(output," \t") )
+        erroed=i
+        all_finished=False
+        last_status = res.status_
+        break
     elif timeout <= 0:
         logger.warn("### NO_TIME_LEFT after cmd %s", c)
         break
-
 
 with out_json.open("w") as f:
     d= dict(results=results,
@@ -197,8 +215,10 @@ with out_json.open("w") as f:
             total_real_time=total_real_time,
             all_finished=all_finished,
             erroed=erroed,
+            last_status=last_status,
             given_time=int(args.timeout))
-    f.write(json.dumps(d, indent=True,sort_keys=True))
+
+    f.write(json.dumps(d, indent=True,sort_keys=True,default=lambda o:o.name.title()+"_" ))
 
 with out_log.open("w") as f:
     f.write("\n".join(outputs))
@@ -206,10 +226,5 @@ with out_log.open("w") as f:
 logger.info("\033[1;31mtotal_cpu_time:%0.2f  total_real_time:%0.2f\033[1;0m",
         total_cpu_time, total_real_time)
 
+sys.exit(last_status.value)
 
-if erroed:
-    sys.exit(1)
-elif not all_finished:
-    sys.exit(2)
-else:
-    sys.exit(0)
