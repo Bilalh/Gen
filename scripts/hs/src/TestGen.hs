@@ -6,6 +6,8 @@
 
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE NamedFieldPuns #-}
 
 module Main where
 
@@ -52,11 +54,12 @@ makeEs = do
     gs <- gets gFinds
     return $  fmap (\(n,e) -> mkFind ((mkName n), e) ) gs
 
-run :: (MonadState GenGlobal m, MonadIO m, MonadA m) =>  StdGen -> Float -> m ()
+run :: (MonadIO m, MonadGG m) =>  StdGen -> Float -> m ()
 run _ limit | limit <= 0  = return ()
 run seed limit = do
     liftIO $ putStrLn $ show limit ++ " seconds left"
-    (es,st) <- runStateT makeEs GenState{gFinds=[], gFindIndex=0, genSeed=seed}
+    (es,st) <- runStateT makeEs GenState{
+        gFinds=[], gFindIndex=0, genSeed=seed}
 
     ts <- liftIO timestamp >>= return .show
     dir <- gets gBase >>= \d -> return $ d </> ts
@@ -70,13 +73,36 @@ run seed limit = do
     result <- liftIO $ runToolChain name dir specLim
     liftIO $ putStrLn . groom $  result
 
+    _ <- classifyStatus result
+
     run (genSeed st) (limit - total_cpu_time result)
+
+classifyStatus :: MonadGG m => ResultI -> m ()
+classifyStatus r@ResultI{..} = case last_status of
+        Success_ -> return ()
+        Timeout_ -> do
+            n <- gets gErrors_timeout
+            modify ( \st -> st{ gErrors_timeout=r:n  })
+        NumberToLarge_ -> do
+            n <- gets gErrors_no_use
+            modify ( \st -> st{ gErrors_timeout=r:n  })
+        _ -> do
+            n <- gets gErrors
+            modify ( \st -> st{ gErrors=r:n  })
 
 main :: IO ()
 main = do
     globalState <- parseArgs
     main' globalState
 
+mainG :: IO()
+mainG = do
+    seedd :: Int <- randomIO
+    let globalState = GenGlobal{
+                       gBase = "__", gSeed = seedd
+                     , gTotalTime=5, gSpecTime=2
+                     , gErrors=[],gErrors_no_use=[],gErrors_timeout=[]}
+    main' globalState
 
 main' :: GenGlobal -> IO ()
 main' gs = do
@@ -86,6 +112,8 @@ main' gs = do
     let seed = mkStdGen (gSeed gs)
 
     finalState <- execStateT (run seed (gTotalTime gs) ) gs
+    putStrLn . groom $ finalState
+    saveAsJSON finalState (gBase finalState </> "results.json")
     return ()
 
 mkSpec :: [E] -> IO Spec

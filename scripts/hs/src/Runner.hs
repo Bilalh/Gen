@@ -17,13 +17,12 @@ data StatusI = Success_ | Timeout_  | ErrorUnknown_ | NumberToLarge_
     deriving (Show,Eq,Enum,Generic)
 
 data ResultI = ResultI {
-         all_finished :: Bool
-        ,erroed :: Maybe Int
-        ,given_time :: Float
-        ,total_cpu_time :: Float
+         erroed          :: Maybe Int
+        ,given_time      :: Float
+        ,total_cpu_time  :: Float
         ,total_real_time :: Float
-        ,results :: [CmdI]
-        -- ,last_status :: StatusI
+        ,results         :: [CmdI]
+        ,last_status     :: StatusI
     } deriving(Show, Generic)
 
 data CmdI = CmdI {

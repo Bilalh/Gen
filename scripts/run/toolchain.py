@@ -55,21 +55,21 @@ minion           = eprime.with_suffix(".minion")
 
 out_json = eprime.with_name("result.json")
 out_log  = eprime.with_name("result.output")
-timeout  = args.timeout
+finished  = args.timeout
 
 @unique
-class Status(IntEnum):
+class Status(Enum):
     success        = 0,
     errorUnkown    = 1,
     timeout        = 2,
-    numbersToLarge = 3
+    numberToLarge = 3
 
-errors_not_useful = {Status.numbersToLarge}
+errors_not_useful = {Status.numberToLarge}
 
 def classify_error(c,e):
     if "savilerow" in c:
         if "java.lang.NumberFormatException: For input string: " in e.output:
-            return Status.numbersToLarge
+            return Status.numberToLarge
 
     return Status.errorUnkown
 
@@ -187,15 +187,15 @@ all_finished=True
 erroed = None
 last_status=Status.success
 for (i,cmd) in enumerate(cmds):
-    itimeout=int(math.ceil(timeout))
+    itimeout=int(math.ceil(finished))
     mstimeout=itimeout*1000
     c=shlex.split(cmd.format(**locals()))
-    (res, output) = run_with_timeout(timeout, c)
+    (res, output) = run_with_timeout(finished, c)
 
     dres = res.__dict__
     results.append(dres)
-    otimeout = timeout
-    timeout = timeout - res.cpu_time
+    otimeout = finished
+    timeout = finished - res.cpu_time
     total_cpu_time += res.cpu_time
     total_real_time += res.real_time
 
@@ -207,14 +207,14 @@ for (i,cmd) in enumerate(cmds):
                 " ".join(c), indent(output," \t") )
         all_finished=False
         break
-    elif res.status_.value > 0:
+    elif res.status_ != Status.success:
         logger.warn("###ERROR %s for cmd \n%s\n%s",
                 res.status_, " ".join(c), indent(output," \t") )
         erroed=i
         all_finished=False
         last_status = res.status_
         break
-    elif timeout <= 0:
+    elif finished <= 0:
         logger.warn("### NO_TIME_LEFT after cmd %s", c)
         break
 
@@ -225,9 +225,14 @@ with out_json.open("w") as f:
             all_finished=all_finished,
             erroed=erroed,
             last_status=last_status,
-            given_time=int(args.timeout))
+            given_time=int(args.timeout),
+            result_dir=outdir)
 
-    f.write(json.dumps(d, indent=True,sort_keys=True,default=lambda o:o.name.title()+"_" ))
+    def first_upper(enum):
+        s = enum.name
+        return s[0].upper() + s[1:] + "_"
+
+    f.write(json.dumps(d, indent=True,sort_keys=True,default=first_upper ))
 
 with out_log.open("w") as f:
     f.write("\n".join(outputs))

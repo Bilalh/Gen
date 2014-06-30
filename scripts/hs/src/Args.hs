@@ -32,7 +32,8 @@ parseArgs = do
    let rseed1          = f rseed          "rseed"
 
    return $ GenGlobal{gBase = base_directory1, gSeed = rseed1
-                     , gTotalTime=total_time1, gSpecTime=per_spec_time1}
+                     , gTotalTime=total_time1, gSpecTime=per_spec_time1
+                     , gErrors=[],gErrors_no_use=[],gErrors_timeout=[]}
 
     where
     f Nothing n = error $ "--" ++ n ++ " needs to be specifed"

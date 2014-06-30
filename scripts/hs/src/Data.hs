@@ -4,35 +4,50 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ConstraintKinds #-}
 
+{-# LANGUAGE DeriveGeneric #-}
 
 module Data where
 import Helpers
+import Runner
 
 import Language.E
-
--- import Test.QuickCheck
--- import qualified Test.QuickCheck as Q
--- import Data.DeriveTH
+import GHC.Generics (Generic)
+import Data.Aeson(FromJSON(..),ToJSON(..))
+import qualified Data.Aeson as A
+import qualified Data.ByteString.Lazy as B
 
 --Since Monad has not been fixed yet
-type MonadA m = (Monad m, Applicative m, Functor m)
-type MonadGen m = (Monad m, Applicative m, Functor m, MonadState GenState m)
-type MonadGG  m = (Monad m, Applicative m, Functor m, MonadState GenGlobal m)
+type MonadA   m  = (Monad m , Applicative m , Functor m )
+type MonadGen m  = (Monad m , Applicative m , Functor m , MonadState GenState  m )
+type MonadGG  m  = (Monad m , Applicative m , Functor m , MonadState GenGlobal m )
 
 data GenState = GenState
         {
-          gFinds :: [(Text, E)] -- Domains of finds
-        , gFindIndex :: Int     -- Next index for a name
-        , genSeed :: StdGen
+          gFinds          :: [(Text, E)] -- Domains of finds
+        , gFindIndex      :: Int         -- Next index for a name
+        , genSeed         :: StdGen
         } deriving (Show)
 
 data GenGlobal = GenGlobal
     {
-         gSeed      :: Int
-        ,gBase      :: FilePath
-        ,gTotalTime :: Float
-        ,gSpecTime  :: Int
-    } deriving (Show)
+         gSeed           :: Int
+        ,gBase           :: FilePath
+        ,gTotalTime      :: Float
+        ,gSpecTime       :: Int
+        ,gErrors         :: [ResultI]
+        ,gErrors_timeout :: [ResultI]
+        ,gErrors_no_use  :: [ResultI]
+    } deriving (Show,Generic)
+
+instance FromJSON GenGlobal
+instance ToJSON GenGlobal
+
+
+saveAsJSON :: ToJSON a => a -> FilePath -> IO ()
+saveAsJSON a fp = do
+    let e = A.encode a
+    B.writeFile fp e
+
 
 rangeRandomG :: MonadGen m => (Int, Int) -> m Int
 rangeRandomG range = do
@@ -82,8 +97,8 @@ class ArbitraryLimited a where
 instance ArbitraryLimited EssenceDomain where
     -- 0 always gives back a int for things like matrix indexing
     pickVal 0 = do
-          l <- rangeRandomG (1,10)
-          u <- rangeRandomG (l,10)
+          l <- rangeRandomG (1,5)
+          u <- rangeRandomG (l,5)
           return $ DInt (fromIntegral l) (fromIntegral u)
     pickVal l =do
         r <- rangeRandomG (1,6)
