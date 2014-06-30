@@ -32,8 +32,8 @@ data CmdI = CmdI {
     ,real_time :: Float
     ,finished :: Bool
     ,timeout :: Float
-    ,cmd :: [String]
     ,status_ :: StatusI
+    ,cmd :: [String]
 
 } deriving(Show, Generic)
 

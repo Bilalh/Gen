@@ -58,12 +58,20 @@ out_log  = eprime.with_name("result.output")
 timeout  = args.timeout
 
 @unique
-class Status(Enum):
+class Status(IntEnum):
     success        = 0,
     errorUnkown    = 1,
     timeout        = 2,
     numbersToLarge = 3
 
+errors_not_useful = {Status.numbersToLarge}
+
+def classify_error(c,e):
+    if "savilerow" in c:
+        if "java.lang.NumberFormatException: For input string: " in e.output:
+            return Status.numbersToLarge
+
+    return Status.errorUnkown
 
 Results = namedtuple("results", "rcode cpu_time real_time timeout finished cmd, status_")
 def run_with_timeout(timeout, cmd):
@@ -81,7 +89,7 @@ def run_with_timeout(timeout, cmd):
         output = e.output
         code = e.returncode
         finished = False
-        status = Status.unkown_error
+        status = classify_error(c,e)
 
     end_usr = os.times().children_user
     end_sys = os.times().children_system
@@ -199,8 +207,9 @@ for (i,cmd) in enumerate(cmds):
                 " ".join(c), indent(output," \t") )
         all_finished=False
         break
-    elif res.value > 0:
-        logger.warn("###ERRORS for cmd \n%s\n%s", " ".join(c), indent(output," \t") )
+    elif res.status_.value > 0:
+        logger.warn("###ERROR %s for cmd \n%s\n%s",
+                res.status_, " ".join(c), indent(output," \t") )
         erroed=i
         all_finished=False
         last_status = res.status_
