@@ -1,0 +1,53 @@
+%\documentclass{../llncs} %settings (fold) 
+\documentclass{llncs}
+\usepackage{times}
+\usepackage[british]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{amssymb}
+\usepackage{textcomp}
+\usepackage{listings}
+\usepackage[nameinlink]{cleveref}
+\usepackage[sort]{cite}
+\usepackage{wrapfig,lipsum,booktabs}
+\usepackage{graphicx,subfigure}
+\usepackage{bold-extra}
+\usepackage{hyperref}
+
+\hypersetup{pdftex,colorlinks=true,allcolors=blue}
+\setcounter{tocdepth}{1}
+
+\newcommand{\comment}[1]{}
+\usepackage{amsmath} 
+
+\lstset{
+	tabsize=2,
+	mathescape=true, 
+	escapechar=§,
+	upquote=true,
+	basicstyle=\ttfamily,
+	numberstyle=\tiny,
+	numbersep=5pt,
+	extendedchars=true,
+}
+
+\usepackage{caption}
+\usepackage{color}
+\DeclareCaptionFont{blue}{\color{blue}}
+\DeclareCaptionFont{white}{\color{white}}
+\DeclareCaptionFormat{listing}{\colorbox[cmyk]{0.43, 0.35, 0.35,0.01}{\parbox{\textwidth}{\hspace{15pt}#1#2#3}}}
+\captionsetup[lstlisting]{format=listing,labelfont=white,textfont=white, singlelinecheck=false, margin=0pt, font={bf,footnotesize}}
+
+\lstnewenvironment{lst:essence}[1][]
+	{
+		\lstset{
+		keywords=[1]{language, Essence, given, letting,
+find, such, that, domain, function, total, surjective, be, forAll, exists,
+injective, in, preImage, range, int,set,partition,new, type,intersect,matrix,from,
+size, indexed, by, of, regular, toInt, sum},
+		#1	
+		}
+	}
+	{}
+
+\def\_{\textunderscore}
+%(end)
