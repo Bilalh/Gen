@@ -10,6 +10,7 @@ import System.FilePath.Posix((</>))
 import Data.Maybe(fromMaybe)
 import qualified Data.Aeson as A
 import qualified Data.ByteString.Lazy as B
+import System.Environment(getEnv)
 
 -- For reading json from toolchain.py
 
@@ -23,6 +24,7 @@ data ResultI = ResultI {
         ,total_real_time :: Float
         ,results         :: [CmdI]
         ,last_status     :: StatusI
+        ,result_dir      :: FilePath
     } deriving(Show, Generic)
 
 data CmdI = CmdI {
@@ -51,7 +53,8 @@ getJSONResult fp = fmap A.decode $ B.readFile fp
 
 runToolChain :: FilePath -> FilePath -> Int -> IO ResultI
 runToolChain spec dir timeou = do
-    let toolchain="/Users/bilalh/CS/instancegen/scripts/run/toolchain.py"
+    pg <- getEnv "PARAM_GEN_SCRIPTS"
+    let toolchain= pg </> "run/toolchain.py"
     _ <- rawSystem toolchain [spec, "--outdir", dir , "--timeout", show timeou]
     result <- getJSONResult $ dir </> "result.json"
     return $ fromMaybe (error "no result") result

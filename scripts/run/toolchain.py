@@ -59,9 +59,9 @@ finished  = args.timeout
 
 @unique
 class Status(Enum):
-    success        = 0,
-    errorUnkown    = 1,
-    timeout        = 2,
+    success       = 0,
+    errorUnknown  = 1,
+    timeout       = 2,
     numberToLarge = 3
 
 errors_not_useful = {Status.numberToLarge}
@@ -71,7 +71,7 @@ def classify_error(c,e):
         if "java.lang.NumberFormatException: For input string: " in e.output:
             return Status.numberToLarge
 
-    return Status.errorUnkown
+    return Status.errorUnknown
 
 Results = namedtuple("results", "rcode cpu_time real_time timeout finished cmd, status_")
 def run_with_timeout(timeout, cmd):
