@@ -85,7 +85,7 @@ classifyStatus r@ResultI{..} = case last_status of
             modify ( \st -> st{ gErrors_timeout=r:n  })
         NumberToLarge_ -> do
             n <- gets gErrors_no_use
-            modify ( \st -> st{ gErrors_timeout=r:n  })
+            modify ( \st -> st{ gErrors_no_use =r:n  })
         _ -> do
             n <- gets gErrors
             modify ( \st -> st{ gErrors=r:n  })
@@ -95,8 +95,8 @@ main = do
     globalState <- parseArgs
     main' globalState
 
-mainG :: IO()
-mainG = do
+maing :: IO()
+maing = do
     seedd :: Int <- randomIO
     let globalState = GenGlobal{
                        gBase = "__", gSeed = seedd
