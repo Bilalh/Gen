@@ -13,15 +13,14 @@ import sys
 from pathlib import Path
 from pprint import pprint
 from textwrap import indent
-
-from enum import Enum,IntEnum, unique
-
 from multiprocessing import Pool
+from functools import partial
 
 import args
 import run
 from run import Status
-from commands import Conjure, ParamRefine, SR, UP, Vaildate
+from commands import ParamRefine, SR, UP, Vaildate
+import commands
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(format='%(lineno)d:%(funcName)s: %(message)s',
@@ -29,7 +28,37 @@ logging.basicConfig(format='%(lineno)d:%(funcName)s: %(message)s',
 
 op = args.do_args()
 
-def run_commands(ep):
+# global function because nested function can't be pickled
+def run_refine(mapping,i):
+    eprime = op.outdir / "{:04}-{}.eprime".format(i,op.essence.stem)
+    c=shlex.split(commands.ConjureRandom.format(eprime=eprime, **mapping))
+    logger.warn("running %s", c)      
+    (res, output) = run.run_with_timeout(mapping['itimeout'], c)
+    return (res,output)
+
+
+def run_refine_essence(*,compact=True,random=4):
+    mapping = dict(essence=op.essence)
+    limit = op.timeout
+    
+    eprime = op.outdir / "comp-{}.eprime".format(op.essence.stem)
+    c=shlex.split(commands.ConjureCompact.format(
+        itimeout = int(math.ceil(limit)), eprime=eprime,
+        **mapping))
+    logger.warn("running %s", c)      
+    compact = run.run_with_timeout(limit, c)
+
+    limit -= compact[0].cpu_time
+    mapping['itimeout'] = int(math.ceil(limit))
+
+    rr = partial(run_refine,mapping)
+    pool = Pool()
+    rnds = list(pool.map(rr,range(1,random+1)))
+
+    return [compact] + rnds
+
+
+def run_commands(eprime):
     
     essence          = op.essence
     essence_param    = op.param
@@ -43,7 +72,7 @@ def run_commands(ep):
     out_json = eprime.with_name("result.json")
     out_log  = eprime.with_name("result.output")
     
-    cmds = [Conjure, ParamRefine, SR, UP, Vaildate]
+    cmds = [ParamRefine, SR, UP, Vaildate]
     results=[]
     outputs=[]
     total_cpu_time=0
@@ -91,10 +120,11 @@ def run_commands(ep):
 
 
 
+results = run_refine_essence()
+pprint(results)
 # pool = Pool()
 # results = pool.map(run_commands, [1])
-results = run_commands(1)
-print(results)
+# results = run_commands("")
 
 
 # with out_json.open("w") as f:

@@ -5,9 +5,22 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(format='%(lineno)d:%(funcName)s: %(message)s',
         level=logging.INFO)
 
-Conjure = """
-time conjure --mode compact --in-essence {essence} --out-eprime {eprime} --timelimit {itimeout}
+ConjureCompact = """
+time conjure 
+    --mode compact 
+    --in-essence {essence} 
+    --out-eprime {eprime} 
+    --timelimit  {itimeout}
 """
+
+ConjureRandom = """
+time conjure 
+    --mode random 
+    --in-essence {essence} 
+    --out-eprime {eprime} 
+    --timelimit  {itimeout}
+"""
+
 ParamRefine="""
 time conjure
     --mode       refineParam
