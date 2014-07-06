@@ -13,8 +13,6 @@ import sys
 from pathlib import Path
 from pprint import pprint
 from textwrap import indent
-from multiprocessing import Pool
-from functools import partial
 
 import args
 import run
@@ -27,35 +25,6 @@ logging.basicConfig(format='%(lineno)d:%(funcName)s: %(message)s',
         level=logging.INFO)
 
 op = args.do_args()
-
-# global function because nested function can't be pickled
-def run_refine(mapping,i):
-    eprime = op.outdir / "{:04}-{}.eprime".format(i,op.essence.stem)
-    c=shlex.split(commands.ConjureRandom.format(eprime=eprime, **mapping))
-    logger.warn("running %s", c)      
-    (res, output) = run.run_with_timeout(mapping['itimeout'], c)
-    return (res,output)
-
-
-def run_refine_essence(*,compact=True,random=4):
-    mapping = dict(essence=op.essence)
-    limit = op.timeout
-    
-    eprime = op.outdir / "comp-{}.eprime".format(op.essence.stem)
-    c=shlex.split(commands.ConjureCompact.format(
-        itimeout = int(math.ceil(limit)), eprime=eprime,
-        **mapping))
-    logger.warn("running %s", c)      
-    compact = run.run_with_timeout(limit, c)
-
-    limit -= compact[0].cpu_time
-    mapping['itimeout'] = int(math.ceil(limit))
-
-    rr = partial(run_refine,mapping)
-    pool = Pool()
-    rnds = list(pool.map(rr,range(1,random+1)))
-
-    return [compact] + rnds
 
 
 def run_commands(eprime):
@@ -120,13 +89,13 @@ def run_commands(eprime):
 
 
 
-results = run_refine_essence()
-pprint(results)
+(essence_refine,er_cpu_time) = run.run_refine_essence(op=op)
+pprint(essence_refine)
 # pool = Pool()
 # results = pool.map(run_commands, [1])
 # results = run_commands("")
 
-
+raise
 # with out_json.open("w") as f:
 #     d= dict(results=results,
 #             total_cpu_time=total_cpu_time,

@@ -3,6 +3,9 @@ import math
 import os
 import sys
 import subprocess
+import shlex
+import commands
+
 
 from datetime import datetime
 from pathlib import Path
@@ -10,10 +13,45 @@ from pprint import pprint
 
 from collections import namedtuple
 from enum import Enum,IntEnum, unique
+from functools import partial
+from multiprocessing import Pool
+
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(format='%(lineno)d:%(funcName)s: %(message)s',
         level=logging.INFO)
+
+
+# global function because nested function can't be pickled
+def run_refine(kwargs,i):
+    eprime = kwargs['outdir'] / "{:04}-{}.eprime".format(i,kwargs['essence'].stem)
+    c=shlex.split(commands.ConjureRandom.format(eprime=eprime, **kwargs))
+    logger.warn("running %s", c)      
+    (res, output) = run_with_timeout(kwargs['itimeout'], c)
+    return (res,output)
+
+
+def run_refine_essence(*,op,compact=True,random=4):
+    limit = op.timeout
+    
+    eprime = op.outdir / "comp-{}.eprime".format(op.essence.stem)
+    c=shlex.split(commands.ConjureCompact.format(
+        itimeout = int(math.ceil(limit)), 
+        eprime=eprime, essence=op.essence))
+    logger.warn("running %s", c)      
+    compact = run_with_timeout(limit, c)
+
+    limit -= compact[0].cpu_time
+    mapping = dict(essence=op.essence,outdir=op.outdir)
+    mapping['itimeout'] = int(math.ceil(limit))
+    
+    rr = partial(run_refine,mapping)
+    pool = Pool()
+    rnds = list(pool.map(rr,range(1,random+1)))
+
+    results = [compact] + rnds
+    return (results, sum( data.cpu_time for (data,_) in results  ) )
+
 
 @unique
 class Status(Enum):
