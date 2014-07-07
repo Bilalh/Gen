@@ -24,7 +24,6 @@ data StatusI = Success_ | Timeout_  | ErrorUnknown_ | NumberToLarge_
 
 data ResultI = ResultI {
          erroed          :: Maybe Int
-        ,given_time      :: Float
         ,last_status     :: StatusI
         ,result_dir      :: FilePath
         ,results         :: [CmdI]

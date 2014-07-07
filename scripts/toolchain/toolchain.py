@@ -11,11 +11,13 @@ import shlex
 import sys
 import itertools
 
+
 from functools import partial
 from pathlib import Path
-from pprint import pprint
+from pprint import pprint, pformat
 from textwrap import indent
 from multiprocessing import Pool
+from enum import Enum
 
 import args
 import run
@@ -28,34 +30,64 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(format='%(lineno)d:%(funcName)s: %(message)s',
         level=logging.INFO)
 
+def with_settings(results, *, op, time_taken, successful):
+    return dict(
+        data_       = results,
+        essence_    = op.essence,
+        outdir_     = op.outdir,
+        given_time_ = op.timeout,
+        time_taken_ = time_taken,
+        successful_ = successful
+    )
+
 if __name__ == "__main__":
+
+    def obj_to_json(obj):
+        if isinstance(obj, Enum):
+            s = obj.name
+            return s[0].upper() + s[1:] + "_"
+        else:
+            return str(obj)
+
     op = args.do_args()
-    
+
     # Make the eprimes
     (essence_refine,refine_wall_time) = run.run_refine_essence(op=op)
     # (essence_refine,refine_wall_time) = ({}, 4)
-    pprint(essence_refine)
+    logger.info("essence_refine: %s", pformat(essence_refine))
+
+    successful =  all(  res['status_'] in [Status.success, Status.timeout]
+            for res in essence_refine.values() )
+    settings = with_settings(essence_refine,op=op,
+            time_taken=refine_wall_time,
+            successful=successful)
+    with (op.outdir / "refine_essence.json" ).open("w") as f:
+        f.write(json.dumps(settings, indent=True,sort_keys=True,default=obj_to_json ))
+
+
     limit = op.timeout - refine_wall_time
+    if limit <=0:
+        logger.info("No timeout left after refine")
+        sys.exit(2)
 
     # Run the SR Minion translate and vaildate
     solve_op = partial(run.run_solve, op, limit)
     eprimes = op.outdir.glob('*.eprime')
-    
+
     pool = Pool()
     solve_results = dict(pool.map(solve_op, eprimes))
+    logger.info("solve_results: %s", pformat(essence_refine))
 
-    def first_upper(enum):
-        s = enum.name
-        return s[0].upper() + s[1:] + "_"
-    with (op.outdir / "refine_essence.json" ).open("w") as f:
-        f.write(json.dumps(essence_refine, indent=True,sort_keys=True,default=first_upper ))
-
+    solve_wall_time = sum(  res['total_real_time'] for res in  solve_results.values()  )
+    successful = all(  not res['erroed']  for res in  solve_results.values() )
+    settings = with_settings(solve_results, op=op,
+            time_taken=solve_wall_time, successful=successful)
     with (op.outdir / "solve_eprime.json" ).open("w") as f:
-        f.write(json.dumps(solve_results, 
-            indent=True,sort_keys=True,default=first_upper ))
+        f.write(json.dumps(settings,
+            indent=True,sort_keys=True,default=obj_to_json ))
 
 # logger.info("\033[1;31mtotal_cpu_time:%0.2f  total_real_time:%0.2f\033[1;0m",
 #         total_cpu_time, total_real_time)
-#
-# sys.exit(last_status.value)
-#
+
+    logger.info("completed")
+    sys.exit(0)
