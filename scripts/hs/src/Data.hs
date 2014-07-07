@@ -34,9 +34,9 @@ data GenGlobal = GenGlobal
         ,gBase           :: FilePath
         ,gTotalTime      :: Float
         ,gSpecTime       :: Int
-        ,gErrors         :: [ResultI]
-        ,gErrors_timeout :: [ResultI]
-        ,gErrors_no_use  :: [ResultI]
+        ,gErrors         :: [RefineR]
+        ,gErrors_timeout :: [RefineR]
+        ,gErrors_no_use  :: [RefineR]
     } deriving (Show,Generic)
 
 instance FromJSON GenGlobal

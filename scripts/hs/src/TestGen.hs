@@ -73,22 +73,28 @@ run seed limit = do
     result <- liftIO $ runToolChain name dir specLim
     liftIO $ putStrLn . groom $  result
 
-    _ <- classifyStatus result
+    case result of
+        Right (r, s) -> do
+            run (genSeed st) (limit - time_taken_ s)
+        Left (r) -> do
+            run (genSeed st) (limit - time_taken_ r)
 
-    run (genSeed st) (limit - total_cpu_time result)
 
-classifyStatus :: MonadGG m => ResultI -> m ()
-classifyStatus r@ResultI{..} = case last_status of
-        Success_ -> return ()
-        Timeout_ -> do
-            n <- gets gErrors_timeout
-            modify ( \st -> st{ gErrors_timeout=r:n  })
-        NumberToLarge_ -> do
-            n <- gets gErrors_no_use
-            modify ( \st -> st{ gErrors_no_use =r:n  })
-        _ -> do
-            n <- gets gErrors
-            modify ( \st -> st{ gErrors=r:n  })
+    -- _ <- classifyStatus result
+
+
+-- classifyStatus :: MonadGG m => ResultI -> m ()
+-- classifyStatus r@ResultI{..} = case last_status of
+--         Success_ -> return ()
+--         Timeout_ -> do
+--             n <- gets gErrors_timeout
+--             modify ( \st -> st{ gErrors_timeout=r:n  })
+--         NumberToLarge_ -> do
+--             n <- gets gErrors_no_use
+--             modify ( \st -> st{ gErrors_no_use =r:n  })
+--         _ -> do
+--             n <- gets gErrors
+--             modify ( \st -> st{ gErrors=r:n  })
 
 main :: IO ()
 main = do
@@ -100,7 +106,7 @@ maing = do
     seedd :: Int <- randomIO
     let globalState = GenGlobal{
                        gBase = "__", gSeed = seedd
-                     , gTotalTime=5, gSpecTime=2
+                     , gTotalTime=30, gSpecTime=30
                      , gErrors=[],gErrors_no_use=[],gErrors_timeout=[]}
     main' globalState
 

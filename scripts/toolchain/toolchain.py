@@ -28,7 +28,7 @@ from commands import ParamRefine, SR, UP, Vaildate
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(format='%(lineno)d:%(funcName)s: %(message)s',
-        level=logging.INFO)
+        level=logging.WARN)
 
 def with_settings(results, *, op, time_taken, successful):
     return dict(
@@ -67,7 +67,7 @@ if __name__ == "__main__":
 
     limit = op.timeout - refine_wall_time
     if limit <=0:
-        logger.info("No timeout left after refine")
+        logger.warn("No timeout left after refine")
         sys.exit(2)
 
     # Run the SR Minion translate and vaildate
@@ -89,5 +89,5 @@ if __name__ == "__main__":
 # logger.info("\033[1;31mtotal_cpu_time:%0.2f  total_real_time:%0.2f\033[1;0m",
 #         total_cpu_time, total_real_time)
 
-    logger.info("completed")
+    logger.warn("completed")
     sys.exit(0)

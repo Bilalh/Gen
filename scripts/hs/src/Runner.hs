@@ -88,7 +88,7 @@ getJSON fp = do
 runToolChain :: FilePath -> FilePath -> Int -> IO (Either RefineR (RefineR, SolveR ) )
 runToolChain spec dir timeou = do
     pg <- getEnv "PARAM_GEN_SCRIPTS"
-    let toolchain= pg </> "run/toolchain.py"
+    let toolchain= pg </> "toolchain" </> "toolchain.py"
     _       <- rawSystem toolchain [spec, "--outdir", dir , "--timeout", show timeou]
     refineF <- getJSON $ dir </> "refine_essence.json"
     solveF  <- getJSON $ dir </> "solve_eprime.json"
