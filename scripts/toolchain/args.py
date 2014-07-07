@@ -11,7 +11,7 @@ def do_args():
     parse_args = argparse.ArgumentParser()
     parse_args.add_argument("essence", help='')
     parse_args.add_argument("--outdir", required=True, help='')
-    parse_args.add_argument("--timeout", required=True,type=int, help='CPU time for everything')
+    parse_args.add_argument("--timeout", required=True,type=int, help='Wall time for everything')
     parse_args.add_argument("--param", help='', default=None)
     args = parse_args.parse_args()
 
