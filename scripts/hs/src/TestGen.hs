@@ -8,6 +8,7 @@
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE PatternGuards #-}
 
 module Main where
 
@@ -37,29 +38,38 @@ import qualified Test.QuickCheck as Q
 
 chooseFindsDomain :: MonadGen m => m ()
 chooseFindsDomain = do
-    levels <- rangeRandomG (1,2)
-    dom :: EssenceDomain  <- pickVal (levels)
+    maxN <- gets eMaxNesting
+    levels <-rangeRandomG (1,maxN)
+    dom :: EssenceDomain  <- pickVal levels
 
-    i <- gets gFindIndex
+    i <- gets eFindIndex
     let name = T.pack $  "var" ++  (show  i)
-    fs <- gets gFinds
-    modify ( \s-> s{gFindIndex = i+1
-                   ,gFinds = (name,  fromEssenceDomain dom) : fs  }  )
+    fs <- gets eFinds
+    modify ( \s-> s{eFindIndex = i+1
+                   ,eFinds = (name,  fromEssenceDomain dom) : fs  }  )
     return ()
 
 makeEs :: MonadGen m  => m [E]
 makeEs = do
-    varsNum <- rangeRandomG (1,3)
+    varsNum <-  rangeRandomG (1,3)
     mapM_ (\_ -> chooseFindsDomain) [1..varsNum]
-    gs <- gets gFinds
+    gs <- gets eFinds
     return $  fmap (\(n,e) -> mkFind ((mkName n), e) ) gs
 
 run :: (MonadIO m, MonadGG m) =>  StdGen -> Float -> m ()
 run _ limit | limit <= 0  = return ()
 run seed limit = do
+    this <-get
+    liftIO $ putStrLn . groom $ this
+
     liftIO $ putStrLn $ show limit ++ " seconds left"
+    nestl <- gets gMaxNesting
     (es,st) <- runStateT makeEs GenState{
-        gFinds=[], gFindIndex=0, genSeed=seed}
+        eFinds=[]
+       ,eFindIndex=0
+       ,eGen=seed
+       ,eMaxNesting=nestl
+       }
 
     ts <- liftIO timestamp >>= return .show
     dir <- gets gBase >>= \d -> return $ d </> ts
@@ -75,10 +85,10 @@ run seed limit = do
 
     let
         doRes ( Right (_, SettingI{successful_,time_taken_}) )
-            | successful_ = run (genSeed st) (limit - time_taken_)
+            | successful_ = run (eGen  st) (limit - time_taken_)
         -- Refinement finished without errors, but no time left to solve
         doRes ( Left (SettingI{successful_,time_taken_}) )
-            | successful_ = run (genSeed st) (limit - time_taken_)
+            | successful_ = run (eGen st) (limit - time_taken_)
 
         doRes ( Left r@SettingI{successful_})
             | not successful_ = storeRefineError r
@@ -87,16 +97,36 @@ run seed limit = do
                 storeSolveError s
     doRes result
 
-    where
-       storeRefineError :: MonadGG m => RefineR -> m ()
-       storeRefineError r = do
-           n <- gets gErrorsRefine
-           modify (\st -> st{gErrorsRefine = r:n})
+    nextNesting nestl
 
-       storeSolveError :: MonadGG m => SolveR -> m ()
-       storeSolveError s = do
-           n <- gets gErrorsSolve
-           modify (\st -> st{gErrorsSolve = s:n})
+    where
+    storeRefineError :: MonadGG m => RefineR -> m ()
+    storeRefineError r = do
+       n <- gets gErrorsRefine
+       modify (\st -> st{gErrorsRefine = r:n})
+
+    storeSolveError :: MonadGG m => SolveR -> m ()
+    storeSolveError s = do
+       n <- gets gErrorsSolve
+       modify (\st -> st{gErrorsSolve = s:n})
+
+    nextNesting :: MonadGG m => Int -> m ()
+    nextNesting level = do
+        GenGlobal{gMaxNesting, gCount} <- get
+
+        case (level == gMaxNesting, gCount) of
+            (False ,_)  -> setCount 0
+            (True ,5)   -> setNesting (level + 1) >> setCount 0
+            (True ,i)   -> setCount (i+1)
+
+
+    setCount :: MonadGG m => Int ->  m ()
+    setCount i = do
+        modify (\st -> st {gCount = i })
+
+    setNesting :: MonadGG m => Int ->  m ()
+    setNesting i = do
+        modify (\st -> st {gMaxNesting = i })
 
 -- classifyStatus :: MonadGG m => ResultI -> m ()
 -- classifyStatus r@ResultI{..} = case last_status of
@@ -122,7 +152,8 @@ maing = do
     let globalState = GenGlobal{
                        gBase = "__", gSeed = seedd
                      , gTotalTime=30, gSpecTime=30
-                     , gErrorsRefine=[], gErrorsSolve=[]}
+                     , gErrorsRefine=[], gErrorsSolve=[]
+                     , gCount=0, gMaxNesting =0}
     main' globalState
 
 main' :: GenGlobal -> IO ()
@@ -134,7 +165,7 @@ main' gs = do
 
     finalState <- execStateT (run seed (gTotalTime gs) ) gs
     putStrLn . groom $ finalState
-    saveAsJSON finalState (gBase finalState </> "results.json")
+    saveAsJSON finalState (gBase finalState </> "state.json")
     return ()
 
 mkSpec :: [E] -> IO Spec

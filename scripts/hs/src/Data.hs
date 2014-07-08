@@ -21,21 +21,25 @@ type MonadA   m  = (Monad m , Applicative m , Functor m )
 type MonadGen m  = (Monad m , Applicative m , Functor m , MonadState GenState  m )
 type MonadGG  m  = (Monad m , Applicative m , Functor m , MonadState GenGlobal m )
 
+
 data GenState = GenState
         {
-          gFinds          :: [(Text, E)] -- Domains of finds
-        , gFindIndex      :: Int         -- Next index for a name
-        , genSeed         :: StdGen
+          eFinds          :: [(Text, E)] -- Domains of finds
+        , eFindIndex      :: Int         -- Next index for a name
+        , eGen            :: StdGen      -- random seed
+        , eMaxNesting     :: Int         -- Max level of nesting
         } deriving (Show)
 
 data GenGlobal = GenGlobal
     {
-         gSeed           :: Int
-        ,gBase           :: FilePath
-        ,gTotalTime      :: Float
-        ,gSpecTime       :: Int
-        ,gErrorsRefine   :: [RefineR]
-        ,gErrorsSolve    :: [SolveR]
+         gSeed         :: Int
+        ,gBase         :: FilePath
+        ,gTotalTime    :: Float
+        ,gSpecTime     :: Int
+        ,gErrorsRefine :: [RefineR]
+        ,gErrorsSolve  :: [SolveR]
+        ,gMaxNesting      :: Int
+        ,gCount        :: Int
     } deriving (Show,Generic)
 
 instance FromJSON GenGlobal
@@ -50,9 +54,9 @@ saveAsJSON a fp = do
 
 rangeRandomG :: MonadGen m => (Int, Int) -> m Int
 rangeRandomG range = do
-    gen <- gets genSeed
+    gen <- gets eGen
     let (x, gen') = randomR range gen
-    modify $ \gl -> gl{ genSeed = gen'}
+    modify $ \gl -> gl{ eGen = gen'}
     return $ fromIntegral x
 
 data EssenceDomain =
@@ -120,5 +124,4 @@ instance ArbitraryLimited EssenceDomain where
                   dom   <- pickVal (l-1)
                   return $ DMat index dom
               _ -> error "pickVal EssenceDomain Impossible happen"
-
 

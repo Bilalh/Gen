@@ -51,7 +51,7 @@ fff = do
 
 ttt :: MonadGG m =>  StateT GenState m [Int]
 ttt = do
-    ff <- gets gFindIndex
+    ff <- gets eFindIndex
     hh <- lift $ gets gSeed
     aa <- ss
     f<- lift fff
