@@ -15,7 +15,6 @@ import itertools
 from functools import partial
 from pathlib import Path
 from pprint import pprint, pformat
-from textwrap import indent
 from multiprocessing import Pool
 from enum import Enum
 
@@ -27,8 +26,6 @@ from run import Status
 from commands import ParamRefine, SR, UP, Vaildate
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(format='%(lineno)d:%(funcName)s: %(message)s',
-        level=logging.WARN)
 
 def with_settings(results, *, op, time_taken, successful):
     return dict(
@@ -42,6 +39,30 @@ def with_settings(results, *, op, time_taken, successful):
 
 if __name__ == "__main__":
 
+    op = args.do_args()
+    def setup_logging(outdir):
+        p = outdir / "_toolchain.log"
+        
+        rootLogger = logging.getLogger()
+        rootLogger.setLevel(logging.INFO)
+        
+        consoleHandler = logging.StreamHandler()
+        consoleHandler.setLevel(logging.WARNING)
+        logFormatter = logging.Formatter('%(name)s:%(lineno)d:%(funcName)s:\n    %(message)s')
+        consoleHandler.setFormatter(logFormatter)
+        logging.getLogger().addHandler(consoleHandler)
+    
+        fileHandler = logging.FileHandler(str(p))
+        fileHandler.setLevel(logging.INFO)
+        logFormatter = logging.Formatter('%(asctime)s⦙%(levelname)-10s⦙%(name)-10s⦙%(lineno)-4d⦙%(funcName)-30s⦙\n    %(message)s')
+        fileHandler.setFormatter(logFormatter)
+        logging.getLogger().addHandler(fileHandler)
+    
+    
+    setup_logging(op.outdir)
+    logger.info("info")
+    logger.warn("warn")
+
     def obj_to_json(obj):
         if isinstance(obj, Enum):
             s = obj.name
@@ -49,7 +70,6 @@ if __name__ == "__main__":
         else:
             return str(obj)
 
-    op = args.do_args()
 
     # Make the eprimes
     (essence_refine,refine_wall_time) = run.run_refine_essence(op=op)

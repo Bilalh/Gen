@@ -19,10 +19,7 @@ from multiprocessing import Pool
 from textwrap import indent
 
 
-
 logger = logging.getLogger(__name__)
-logging.basicConfig(format='%(lineno)d:%(funcName)s: %(message)s',
-        level=logging.INFO)
 
 
 # global function for run_refine_essence
@@ -34,7 +31,7 @@ def run_refine(kwargs,i):
     (res, output) = run_with_timeout(kwargs['itimeout'], c)
     return ((eprime.stem,res.__dict__), " ".join(c) + "\n" + output)
 
-def run_refine_essence(*,op,compact=True,random=1):
+def run_refine_essence(*,op,compact=True,random=2):
     limit = op.timeout
 
     eprime = op.outdir / "comp.eprime"

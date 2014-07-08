@@ -4,8 +4,6 @@ import logging
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(format='%(lineno)d:%(funcName)s: %(message)s',
-        level=logging.INFO)
 
 def do_args():
     parse_args = argparse.ArgumentParser()
