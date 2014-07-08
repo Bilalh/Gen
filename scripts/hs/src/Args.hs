@@ -2,6 +2,7 @@
 {-# LANGUAGE RecordWildCards #-}
 module Args(parseArgs) where
 
+import Build_autoversion(buildDateRFC2822,autoVersion)
 import Data
 import System.Console.CmdArgs.Implicit
 
@@ -19,8 +20,11 @@ argsDef  = Args
              , per_spec_time  = def &= help "Total time to spend on each spec"
              , rseed          = def &= help "Seed to Use"
              }
-         &= summary "Generate Essence Spec for testing "
-
+         &= summary (unlines ["TestGen Version 1.0"
+                             , "Git version: " ++ autoVersion
+                             , "Built date: "  ++ buildDateRFC2822
+                             ])
+         &= helpArg [name "h"]
 
 parseArgs :: IO GenGlobal
 parseArgs = do
