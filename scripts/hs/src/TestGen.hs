@@ -73,15 +73,30 @@ run seed limit = do
     result <- liftIO $ runToolChain name dir specLim
     liftIO $ putStrLn . groom $  result
 
-    case result of
-        Right (r, s) -> do
-            run (genSeed st) (limit - time_taken_ s)
-        Left (r) -> do
-            run (genSeed st) (limit - time_taken_ r)
+    let
+        doRes ( Right (_, SettingI{successful_,time_taken_}) )
+            | successful_ = run (genSeed st) (limit - time_taken_)
+        -- Refinement finished without errors, but no time left to solve
+        doRes ( Left (SettingI{successful_,time_taken_}) )
+            | successful_ = run (genSeed st) (limit - time_taken_)
 
+        doRes ( Left r@SettingI{successful_})
+            | not successful_ = storeRefineError r
+        doRes ( Right (_, s@SettingI{successful_}) )
+            | not successful_ =
+                storeSolveError s
+    doRes result
 
-    -- _ <- classifyStatus result
+    where
+       storeRefineError :: MonadGG m => RefineR -> m ()
+       storeRefineError r = do
+           n <- gets gErrorsRefine
+           modify (\st -> st{gErrorsRefine = r:n})
 
+       storeSolveError :: MonadGG m => SolveR -> m ()
+       storeSolveError s = do
+           n <- gets gErrorsSolve
+           modify (\st -> st{gErrorsSolve = s:n})
 
 -- classifyStatus :: MonadGG m => ResultI -> m ()
 -- classifyStatus r@ResultI{..} = case last_status of
@@ -107,7 +122,7 @@ maing = do
     let globalState = GenGlobal{
                        gBase = "__", gSeed = seedd
                      , gTotalTime=30, gSpecTime=30
-                     , gErrors=[],gErrors_no_use=[],gErrors_timeout=[]}
+                     , gErrorsRefine=[], gErrorsSolve=[]}
     main' globalState
 
 main' :: GenGlobal -> IO ()
