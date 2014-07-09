@@ -85,19 +85,23 @@ run seed limit = do
 
     let
         doRes ( Right (_, SettingI{successful_,time_taken_}) )
-            | successful_ = run (eGen  st) (limit - time_taken_)
+            | successful_ = nextNesting nestl >> run (eGen  st) (limit - time_taken_)
         -- Refinement finished without errors, but no time left to solve
         doRes ( Left (SettingI{successful_,time_taken_}) )
-            | successful_ = run (eGen st) (limit - time_taken_)
+            | successful_ = nextNesting nestl >> run (eGen st) (limit - time_taken_)
 
-        doRes ( Left r@SettingI{successful_})
-            | not successful_ = storeRefineError r
-        doRes ( Right (_, s@SettingI{successful_}) )
-            | not successful_ =
+        doRes ( Left r@SettingI{successful_,time_taken_})
+            | not successful_ = do
+                storeRefineError r
+                nextNesting nestl
+                run (eGen  st) (limit - time_taken_)
+        doRes ( Right (_, s@SettingI{successful_,time_taken_}) )
+            | not successful_ = do
                 storeSolveError s
+                nextNesting nestl
+                run (eGen  st) (limit - time_taken_)
     doRes result
 
-    nextNesting nestl
 
     where
     storeRefineError :: MonadGG m => RefineR -> m ()
@@ -114,10 +118,11 @@ run seed limit = do
     nextNesting level = do
         GenGlobal{gMaxNesting, gCount} <- get
 
-        case (level == gMaxNesting, gCount) of
-            (False ,_)  -> setCount 0
-            (True ,5)   -> setNesting (level + 1) >> setCount 0
-            (True ,i)   -> setCount (i+1)
+        case (level == gMaxNesting, gCount, level>5) of
+            (False ,_,_)    -> setCount 0
+            (True ,10,True) -> setNesting (5) >> setCount 0
+            (True ,10,_)    -> setNesting (level + 1) >> setCount 0
+            (True ,i,_)     -> setCount (i+1)
 
 
     setCount :: MonadGG m => Int ->  m ()
@@ -146,14 +151,14 @@ main = do
     globalState <- parseArgs
     main' globalState
 
-maing :: IO()
-maing = do
+maing :: Float -> Int -> IO()
+maing total perSpec = do
     seedd :: Int <- randomIO
     let globalState = GenGlobal{
                        gBase = "__", gSeed = seedd
-                     , gTotalTime=30, gSpecTime=30
+                     , gTotalTime=total, gSpecTime=perSpec
                      , gErrorsRefine=[], gErrorsSolve=[]
-                     , gCount=0, gMaxNesting =0}
+                     , gCount=0, gMaxNesting = 0}
     main' globalState
 
 main' :: GenGlobal -> IO ()
