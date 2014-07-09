@@ -38,7 +38,7 @@ data GenGlobal = GenGlobal
         ,gSpecTime     :: Int
         ,gErrorsRefine :: [RefineR]
         ,gErrorsSolve  :: [SolveR]
-        ,gMaxNesting      :: Int
+        ,gMaxNesting   :: Int
         ,gCount        :: Int
     } deriving (Show,Generic)
 
@@ -69,6 +69,21 @@ data EssenceDomain =
     deriving(Show)
 
 
+data EExpr =
+       EGT EExpr EExpr
+     | EVar Text
+     | ELit EssenceLiteral
+
+
+fromEssenceExpr :: EExpr -> E
+fromEssenceExpr (EGT a b) = [eMake| &aa > &bb |]
+    where
+        aa = fromEssenceExpr a
+        bb = fromEssenceExpr b
+
+fromEssenceExpr (EVar (name) ) = mkName name
+fromEssenceExpr (ELit lit )    = fromEssenceLiteral lit
+
 fromEssenceDomain :: EssenceDomain -> E
 fromEssenceDomain (DInt lower upper) = [dMake| int(&l..&u) |]
     where l = mkInt lower
@@ -97,16 +112,16 @@ class ArbitraryLimited a where
     pickVal :: MonadGen m  => Int ->  m a
     pickVal _ = error "no default generator"
 
+
 instance ArbitraryLimited EssenceDomain where
     -- 0 always gives back a int for things like matrix indexing
-    pickVal 0 = do
+    pickVal 1 = do
           l <- rangeRandomG (1,5)
           u <- rangeRandomG (l,5)
           return $ DInt (fromIntegral l) (fromIntegral u)
-    pickVal l =do
-        r <- rangeRandomG (1,6)
+    pickVal l | l > 0 = do
+        r <- rangeRandomG (2,6)
         case r of
-              1 -> pickVal 0
               2 -> pure DSet <*> pickVal (l-1)
               3 -> do
                   a <- pickVal (l-1)
@@ -120,7 +135,7 @@ instance ArbitraryLimited EssenceDomain where
                  doms <- mapM (\_ -> pickVal (l-1) ) [1..num]
                  return $ DRel doms
               6 -> do
-                  index <- pickVal 0
+                  index <- pickVal 1
                   dom   <- pickVal (l-1)
                   return $ DMat index dom
               _ -> error "pickVal EssenceDomain Impossible happen"

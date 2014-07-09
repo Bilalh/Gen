@@ -38,7 +38,7 @@ parseArgs = do
    return $ GenGlobal{gBase = base_directory1, gSeed = rseed1
                      , gTotalTime=total_time1, gSpecTime=per_spec_time1
                      , gErrorsRefine = [], gErrorsSolve = []
-                     , gMaxNesting =0, gCount =0}
+                     , gMaxNesting =1, gCount =0}
 
     where
     f Nothing n = error $ "--" ++ n ++ " needs to be specifed"

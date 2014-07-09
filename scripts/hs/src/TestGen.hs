@@ -21,9 +21,10 @@ import Args(parseArgs)
 import Language.E
 import Language.E.Pipeline.ReadIn(writeSpec)
 import Language.E.DomainOf
-import Control.Monad.Trans.State.Strict(StateT,execStateT)
 
+import Control.Monad.Trans.State.Strict(StateT,execStateT)
 import Data.Set(Set)
+import Data.Maybe(fromJust)
 
 import System.Directory(createDirectoryIfMissing)
 import System.FilePath((</>), (<.>))
@@ -59,10 +60,10 @@ makeEs = do
 run :: (MonadIO m, MonadGG m) =>  StdGen -> Float -> m ()
 run _ limit | limit <= 0  = return ()
 run seed limit = do
+    liftIO $ putStrLn $ show limit ++ " seconds left"
     this <-get
     liftIO $ putStrLn . groom $ this
 
-    liftIO $ putStrLn $ show limit ++ " seconds left"
     nestl <- gets gMaxNesting
     (es,st) <- runStateT makeEs GenState{
         eFinds=[]
@@ -84,8 +85,9 @@ run seed limit = do
     liftIO $ putStrLn . groom $  result
 
     let
-        doRes ( Right (_, SettingI{successful_,time_taken_}) )
-            | successful_ = nextNesting nestl >> run (eGen  st) (limit - time_taken_)
+        doRes ( Right (r, s@SettingI{successful_}) )
+            | successful_ = nextNesting nestl
+            >> run (eGen  st) (limit - time_taken_ r - time_taken_ s)
         -- Refinement finished without errors, but no time left to solve
         doRes ( Left (SettingI{successful_,time_taken_}) )
             | successful_ = nextNesting nestl >> run (eGen st) (limit - time_taken_)
@@ -95,11 +97,11 @@ run seed limit = do
                 storeRefineError r
                 nextNesting nestl
                 run (eGen  st) (limit - time_taken_)
-        doRes ( Right (_, s@SettingI{successful_,time_taken_}) )
+        doRes ( Right (r, s@SettingI{successful_}) )
             | not successful_ = do
                 storeSolveError s
                 nextNesting nestl
-                run (eGen  st) (limit - time_taken_)
+                run (eGen  st) (limit - time_taken_ r - time_taken_ s )
     doRes result
 
 
@@ -150,6 +152,7 @@ main :: IO ()
 main = do
     globalState <- parseArgs
     main' globalState
+    putStrLn "<<Finished>>"
 
 maing :: Float -> Int -> IO()
 maing total perSpec = do
@@ -158,7 +161,7 @@ maing total perSpec = do
                        gBase = "__", gSeed = seedd
                      , gTotalTime=total, gSpecTime=perSpec
                      , gErrorsRefine=[], gErrorsSolve=[]
-                     , gCount=0, gMaxNesting = 0}
+                     , gCount=0, gMaxNesting = 2}
     main' globalState
 
 main' :: GenGlobal -> IO ()
@@ -172,6 +175,9 @@ main' gs = do
     putStrLn . groom $ finalState
     saveAsJSON finalState (gBase finalState </> "state.json")
     return ()
+
+ll :: E -> EssenceLiteral
+ll = fromJust . toEssenceLiteral
 
 mkSpec :: [E] -> IO Spec
 mkSpec es = do

@@ -48,13 +48,29 @@ mkGiven (name,dom) =[xMake| topLevel.declaration.given.name   := [name]
                           | topLevel.declaration.given.domain := [dom]
                           |]
 
-mkAttr :: (T.Text, Maybe E) -> E
+mkAttr :: (T.Text, Maybe Integer) -> E
 mkAttr (n, Nothing) = [xMake| attribute.name.reference := [Prim (S n)] |]
 mkAttr (n, Just v ) = [xMake| attribute.nameValue.name.reference := [Prim (S n)]
-                            | attribute.nameValue.value          := [v]
+                            | attribute.nameValue.value          := [mkInt v]
                             |]
+
+addAttr :: E -> E -> E
+addAttr a (Tagged "domain" [Tagged tt ( [xMatch| att := attributes.attrCollection |]:rs) ] ) =
+   let att2 = a : att in
+   (Tagged "domain" [Tagged tt ( [xMake| attributes.attrCollection := att2 |]:rs ) ] )
+
+addAttr a b = error . show . vcat $ "addAttr attr dom" : map prettyAsPaths  [a,b]
+
+_attTest :: Doc
+_attTest = do
+    let ee= [dMake| function int --> int |]
+    let f = mkAttr ("size", Just $  4)
+    let res = addAttr f ee
+    pretty res
+    prettyAsPaths  $ res
 mkInt :: Integer -> E
 mkInt j =  [xMake| value.literal := [Prim (I j)] |]
+
 
 timestamp :: IO Int
 timestamp = do
