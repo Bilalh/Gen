@@ -1,7 +1,7 @@
 #!/usr/bin/env python3.4
 # -*- coding: utf-8 -*-
 """
-Runs the whole toolchain (compact + SR + Minion)
+Runs the whole toolchain (compact + rnd models >> SR + Minion)
 """
 import json
 import logging
