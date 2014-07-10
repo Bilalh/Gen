@@ -61,13 +61,14 @@ addAttr a (Tagged "domain" [Tagged tt ( [xMatch| att := attributes.attrCollectio
 
 addAttr a b = error . show . vcat $ "addAttr attr dom" : map prettyAsPaths  [a,b]
 
-_attTest :: Doc
+_attTest :: IO ()
 _attTest = do
     let ee= [dMake| function int --> int |]
     let f = mkAttr ("size", Just $  4)
     let res = addAttr f ee
-    pretty res
-    prettyAsPaths  $ res
+    putStrLn . show . pretty $ res
+    putStrLn . show . prettyAsPaths $ res
+
 mkInt :: Integer -> E
 mkInt j =  [xMake| value.literal := [Prim (I j)] |]
 
