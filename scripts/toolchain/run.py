@@ -31,7 +31,7 @@ def run_refine(kwargs,i):
     (res, output) = run_with_timeout(kwargs['itimeout'], c)
     return ((eprime.stem,res.__dict__), " ".join(c) + "\n" + output)
 
-def run_refine_essence(*,op,compact=True,random=8):
+def run_refine_essence(*,op,compact=True,random=4):
     limit = op.timeout
     date_start = datetime.utcnow()
 

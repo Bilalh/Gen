@@ -48,7 +48,7 @@ chooseFindsDomain = do
     let name = T.pack $  "var" ++  (show  i)
     fs <- gets eFinds
     modify ( \s-> s{eFindIndex = i+1
-                   ,eFinds = (name,  fromEssenceDomain dom) : fs  }  )
+                   ,eFinds = (name,  toEssence dom) : fs  }  )
     return ()
 
 makeEs :: MonadGen m  => m [E]

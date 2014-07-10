@@ -51,13 +51,13 @@ saveAsJSON a fp = do
     let e = A.encode a
     B.writeFile fp e
 
-
 rangeRandomG :: MonadGen m => (Int, Int) -> m Int
 rangeRandomG range = do
     gen <- gets eGen
     let (x, gen') = randomR range gen
     modify $ \gl -> gl{ eGen = gen'}
     return $ fromIntegral x
+
 
 data EssenceDomain =
       DInt  Integer Integer
@@ -68,6 +68,10 @@ data EssenceDomain =
     | DMat  EssenceDomain EssenceDomain -- index domain
     deriving(Show)
 
+data SetAtrr =
+      SSize    Integer
+    | SMaxSize Integer
+    | SMinSize Integer
 
 data EExpr =
        EGT EExpr EExpr
@@ -75,43 +79,49 @@ data EExpr =
      | ELit EssenceLiteral
 
 
-fromEssenceExpr :: EExpr -> E
-fromEssenceExpr (EGT a b) = [eMake| &aa > &bb |]
-    where
-        aa = fromEssenceExpr a
-        bb = fromEssenceExpr b
+class ToEssence a where
+    toEssence :: a -> E
 
-fromEssenceExpr (EVar (name) ) = mkName name
-fromEssenceExpr (ELit lit )    = fromEssenceLiteral lit
+instance ToEssence EssenceLiteral where
+    toEssence lit = fromEssenceLiteral lit
 
-fromEssenceDomain :: EssenceDomain -> E
-fromEssenceDomain (DInt lower upper) = [dMake| int(&l..&u) |]
-    where l = mkInt lower
-          u = mkInt upper
+instance ToEssence EssenceDomain where
+    toEssence (DInt lower upper) = [dMake| int(&l..&u) |]
+        where l = mkInt lower
+              u = mkInt upper
 
-fromEssenceDomain (DSet dom) =  [dMake| set of &domE |]
-    where domE = fromEssenceDomain dom
+    toEssence (DSet dom) =  [dMake| set of &domE |]
+        where domE = toEssence dom
 
-fromEssenceDomain (DFunc a b) =  [dMake| function  &dom1 --> &dom2 |]
-    where dom1 = fromEssenceDomain a
-          dom2 = fromEssenceDomain b
+    toEssence (DFunc a b) =  [dMake| function  &dom1 --> &dom2 |]
+        where dom1 = toEssence a
+              dom2 = toEssence b
 
-fromEssenceDomain (DPart dom) =  [dMake| partition from &domE |]
-    where domE = fromEssenceDomain dom
+    toEssence (DPart dom) =  [dMake| partition from &domE |]
+        where domE = toEssence dom
 
-fromEssenceDomain (DRel doms) =
-    [xMake|domain.relation.inners                    := domsE
-          |domain.relation.attributes.attrCollection := [] |]
-    where domsE = map fromEssenceDomain doms
+    toEssence (DRel doms) =
+        [xMake|domain.relation.inners                    := domsE
+              |domain.relation.attributes.attrCollection := [] |]
+        where domsE = map toEssence doms
 
-fromEssenceDomain (DMat index dom) = [dMake| matrix indexed by [&indexE] of &domE |]
-    where indexE = fromEssenceDomain index
-          domE   = fromEssenceDomain dom
+    toEssence (DMat index dom) = [dMake| matrix indexed by [&indexE] of &domE |]
+        where indexE = toEssence index
+              domE   = toEssence dom
+
+instance ToEssence EExpr where
+    toEssence (EGT a b) = [eMake| &aa > &bb |]
+        where
+            aa = toEssence a
+            bb = toEssence b
+
+    toEssence (EVar (name) ) = mkName name
+    toEssence (ELit lit )    = toEssence lit
+
 
 class ArbitraryLimited a where
     pickVal :: MonadGen m  => Int ->  m a
     pickVal _ = error "no default generator"
-
 
 instance ArbitraryLimited EssenceDomain where
     -- 0 always gives back a int for things like matrix indexing
@@ -139,4 +149,5 @@ instance ArbitraryLimited EssenceDomain where
                   dom   <- pickVal (l-1)
                   return $ DMat index dom
               _ -> error "pickVal EssenceDomain Impossible happen"
+
 
