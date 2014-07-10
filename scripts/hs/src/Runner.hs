@@ -68,13 +68,13 @@ newtype RefineM = RefineM (Map String CmdI) deriving Show
 instance FromJSON RefineM where
   parseJSON val = RefineM <$> parseJSON val
 instance ToJSON RefineM where
-    toJSON val =  toJSON val
+    toJSON (RefineM m) =  toJSON m
 
 newtype SolveM = SolveM (Map String ResultI) deriving Show
 instance FromJSON SolveM where
   parseJSON val = SolveM <$> parseJSON val
 instance ToJSON SolveM where
-    toJSON val =  toJSON val
+    toJSON (SolveM m) = toJSON m
 
 
 getJSON :: FromJSON a => FilePath -> IO (Maybe a)
