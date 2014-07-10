@@ -87,7 +87,7 @@ if __name__ == "__main__":
 
     limit = op.timeout - refine_wall_time
     if limit <=0:
-        logger.warn("No timeout left after refine")
+        logger.warn("No time left after refine")
         sys.exit(2)
 
     # Run the SR Minion translate and vaildate

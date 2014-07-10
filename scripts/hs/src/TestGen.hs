@@ -40,7 +40,8 @@ import qualified Test.QuickCheck as Q
 chooseFindsDomain :: MonadGen m => m ()
 chooseFindsDomain = do
     maxN <- gets eMaxNesting
-    levels <-rangeRandomG (1,maxN)
+    -- levels <-rangeRandomG (1,maxN)
+    levels <-rangeRandomG (maxN,maxN)
     dom :: EssenceDomain  <- pickVal levels
 
     i <- gets eFindIndex
@@ -58,8 +59,11 @@ makeEs = do
     return $  fmap (\(n,e) -> mkFind ((mkName n), e) ) gs
 
 run :: (MonadIO m, MonadGG m) =>  StdGen -> Float -> m ()
-run _ limit | limit <= 0  = return ()
+run _ limit | limit <= 0  = do
+    liftIO $ putStrLn $ "RUN NO TIME LEFT"
+
 run seed limit = do
+    liftIO $ putStrLn $ "RUN"
     liftIO $ putStrLn $ show limit ++ " seconds left"
     this <-get
     liftIO $ putStrLn . groom $ this
@@ -154,11 +158,10 @@ main = do
     main' globalState
     putStrLn "<<Finished>>"
 
-maing :: Float -> Int -> IO()
-maing total perSpec = do
-    seedd :: Int <- randomIO
+maing :: Float -> Int -> Int -> IO()
+maing total perSpec seed = do
     let globalState = GenGlobal{
-                       gBase = "__", gSeed = seedd
+                       gBase = "__", gSeed = seed
                      , gTotalTime=total, gSpecTime=perSpec
                      , gErrorsRefine=[], gErrorsSolve=[]
                      , gCount=0, gMaxNesting = 2}
