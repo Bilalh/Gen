@@ -31,8 +31,9 @@ def run_refine(kwargs,i):
     (res, output) = run_with_timeout(kwargs['itimeout'], c)
     return ((eprime.stem,res.__dict__), " ".join(c) + "\n" + output)
 
-def run_refine_essence(*,op,compact=True,random=5):
+def run_refine_essence(*,op,compact=True,random=8):
     limit = op.timeout
+    date_start = datetime.utcnow()
 
     eprime = op.outdir / "comp.eprime"
     c=shlex.split(commands.ConjureCompact.format(
@@ -56,7 +57,11 @@ def run_refine_essence(*,op,compact=True,random=5):
     with (op.outdir / "_refine.output").open("w") as f:
         f.write("\n".join(outputs))
 
-    return (dict(results), sum( data['cpu_time'] for (_,data) in results  ) )
+    #return (dict(results), sum( data['cpu_time'] for (_,data) in results  ) )
+
+    date_end=datetime.utcnow()
+    diff = date_end - date_start
+    return (dict(results), sum( data['real_time'] for (_,data) in results  ) )
 
 
 def run_solve(op, limit, eprime):
@@ -200,6 +205,6 @@ def run_with_timeout(timeout, cmd):
                 (end_usr - start_usr), (end_sys - start_sys))
 
     return (Results(rcode=code,
-                  cpu_time=cputime_taken, real_time= diff.total_seconds(),
+                  cpu_time=cputime_taken, real_time=diff.total_seconds(),
                   timeout=timeout, finished=finished,cmd=cmd, status_=status)
            ,output)

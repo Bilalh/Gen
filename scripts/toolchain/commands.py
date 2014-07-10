@@ -4,18 +4,18 @@ import logging
 logger = logging.getLogger(__name__)
 
 ConjureCompact = """
-time conjure 
-    --mode compact 
-    --in-essence {essence} 
-    --out-eprime {eprime} 
+time conjure
+    --mode compact
+    --in-essence {essence}
+    --out-eprime {eprime}
     --timelimit  {itimeout}
 """
 
 ConjureRandom = """
-time conjure 
-    --mode random 
-    --in-essence {essence} 
-    --out-eprime {eprime} 
+time conjure
+    --mode random
+    --in-essence {essence}
+    --out-eprime {eprime}
     --timelimit  {itimeout}
 """
 
@@ -38,7 +38,7 @@ time savilerow  -mode Normal
     -out-info                    {eprime_info}
     -run-solver
     -timelimit                   {mstimeout}
-    -solver-options '-cpulimit {itimeout}'
+    -solver-options '-timelimit {itimeout}'
 """
 
 UP = """
