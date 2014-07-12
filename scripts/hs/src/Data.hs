@@ -67,7 +67,7 @@ rangeRandomG range = do
 data EssenceDomain =
       DInt  Integer Integer
     | DSet  [SetAtrr] EssenceDomain
-    | DFunc EssenceDomain EssenceDomain
+    | DFunc [FuncAttr] EssenceDomain EssenceDomain
     | DPart EssenceDomain
     | DRel  [EssenceDomain]
     | DMat  EssenceDomain EssenceDomain -- index domain
@@ -78,6 +78,16 @@ data SetAtrr =
     | SMaxSize Integer
     | SMinSize Integer
     deriving(Show)
+
+data FuncAttr =
+      FSize    Integer
+    | FMaxSize Integer
+    | FMinSize Integer
+    | FInjective
+    | FSurjective
+    | FTotal
+    deriving(Show)
+
 
 data EExpr =
        EGT EExpr EExpr
@@ -93,6 +103,14 @@ instance ToEssence SetAtrr where
     toEssence (SMaxSize i) = mkAttr ("maxSize" , Just i)
     toEssence (SMinSize i) = mkAttr ("minSize" , Just i)
 
+instance ToEssence FuncAttr where
+    toEssence (FSize    i)  = mkAttr ("size"       , Just i)
+    toEssence (FMaxSize i)  = mkAttr ("maxSize"    , Just i)
+    toEssence (FMinSize i)  = mkAttr ("minSize"    , Just i)
+    toEssence (FTotal)      = mkAttr ("total"      , Nothing)
+    toEssence (FInjective)  = mkAttr ("injective"  , Nothing)
+    toEssence (FSurjective) = mkAttr ("surjective" , Nothing)
+
 instance ToEssence EssenceLiteral where
     toEssence lit = fromEssenceLiteral lit
 
@@ -106,7 +124,9 @@ instance ToEssence EssenceDomain where
         addAttrs (map toEssence attrs ) e
         where domE = toEssence dom
 
-    toEssence (DFunc a b) =  [dMake| function  &dom1 --> &dom2 |]
+    toEssence (DFunc attrs a b) =
+        let e = [dMake| function  &dom1 --> &dom2 |] in
+        addAttrs (map toEssence attrs ) e
         where dom1 = toEssence a
               dom2 = toEssence b
 
@@ -150,20 +170,22 @@ instance ArbitraryLimited EssenceDomain where
                 attrs <- getAttrs
                 return $ DSet attrs innerDom
               3 -> do
-                  a <- pickVal (l-1)
-                  b <- pickVal (l-1)
-                  return $ DFunc a b
-                  -- Does not update randomgen when using multiple <*>
-                  -- pure DFunc <*> pickVal (l-1) <*> pickVal (l-1)
+                a <- pickVal (l-1)
+                b <- pickVal (l-1)
+                attrs <- getAttrs
+                return $ DFunc attrs a b
+                -- Does not update randomgen when using multiple <*>
+                -- pure DFunc <*> pickVal (l-1) <*> pickVal (l-1)
+
               4 -> pure DPart <*> pickVal (l-1)
               5 -> do
-                 num <- rangeRandomG (1,3)
-                 doms <- mapM (\_ -> pickVal (l-1) ) [1..num]
-                 return $ DRel doms
+                num <- rangeRandomG (1,3)
+                doms <- mapM (\_ -> pickVal (l-1) ) [1..num]
+                return $ DRel doms
               6 -> do
-                  index <- pickVal 1
-                  dom   <- pickVal (l-1)
-                  return $ DMat index dom
+                index <- pickVal 1
+                dom   <- pickVal (l-1)
+                return $ DMat index dom
               _ -> error "pickVal EssenceDomain Impossible happen"
 
     pickVal i = error . show $  "invaild nesting level " ++ show i
@@ -187,6 +209,23 @@ instance ArbitraryAttr SetAtrr where
         addInt f = do
             r <- rangeRandomG (1,5)
             return $ f (fromIntegral r)
+
+instance ArbitraryAttr FuncAttr where
+    getAttrs = do
+        num <- rangeRandomG (0,6)
+        if num == 0 then
+            return []
+        else do
+            vs <- sample [1..6] num
+            mapM addVal vs
+        where
+        addVal :: MonadGen m => Int -> m FuncAttr
+        addVal 1 = rangeRandomG (0,5) >>= return . FSize    . fromIntegral
+        addVal 2 = rangeRandomG (0,5) >>= return . FMinSize . fromIntegral
+        addVal 3 = rangeRandomG (0,5) >>= return . FMaxSize . fromIntegral
+        addVal 4 = return $ FInjective
+        addVal 5 = return $ FSurjective
+        addVal 6 = return $ FTotal
 
 
 -- because Module imports form a cycle:
