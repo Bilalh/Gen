@@ -68,7 +68,7 @@ data EssenceDomain =
       DInt  Integer Integer
     | DSet  [SetAtrr] EssenceDomain
     | DFunc [FuncAttr] EssenceDomain EssenceDomain
-    | DPart EssenceDomain
+    | DPart [PartAttr] EssenceDomain
     | DRel  [EssenceDomain]
     | DMat  EssenceDomain EssenceDomain -- index domain
     deriving(Show)
@@ -88,6 +88,16 @@ data FuncAttr =
     | FTotal
     deriving(Show)
 
+data PartAttr =
+      PnumParts    Integer
+    | PmaxNumParts Integer
+    | PminNumParts Integer
+    | PpartSize    Integer
+    | PmaxPartSize Integer
+    | PminPartSize Integer
+    | PRegular
+    | PComplete
+    deriving (Show)
 
 data EExpr =
        EGT EExpr EExpr
@@ -111,6 +121,16 @@ instance ToEssence FuncAttr where
     toEssence (FInjective)  = mkAttr ("injective"  , Nothing)
     toEssence (FSurjective) = mkAttr ("surjective" , Nothing)
 
+instance ToEssence PartAttr where
+    toEssence (PnumParts    i  ) = mkAttr ("numParts"    , Just i  )
+    toEssence (PmaxNumParts i  ) = mkAttr ("maxNumParts" , Just i  )
+    toEssence (PminNumParts i  ) = mkAttr ("minNumParts" , Just i  )
+    toEssence (PpartSize    i  ) = mkAttr ("PartSize"    , Just i  )
+    toEssence (PmaxPartSize i  ) = mkAttr ("maxPartSize" , Just i  )
+    toEssence (PminPartSize i  ) = mkAttr ("minPartSize" , Just i  )
+    toEssence (PComplete       ) = mkAttr ("complete"    , Nothing )
+    toEssence (PRegular        ) = mkAttr ("Regular"     , Nothing )
+
 instance ToEssence EssenceLiteral where
     toEssence lit = fromEssenceLiteral lit
 
@@ -130,7 +150,9 @@ instance ToEssence EssenceDomain where
         where dom1 = toEssence a
               dom2 = toEssence b
 
-    toEssence (DPart dom) =  [dMake| partition from &domE |]
+    toEssence (DPart attrs dom) =
+        let e = [dMake| partition from &domE |] in
+        addAttrs (map toEssence attrs ) e
         where domE = toEssence dom
 
     toEssence (DRel doms) =
@@ -177,7 +199,9 @@ instance ArbitraryLimited EssenceDomain where
                 -- Does not update randomgen when using multiple <*>
                 -- pure DFunc <*> pickVal (l-1) <*> pickVal (l-1)
 
-              4 -> pure DPart <*> pickVal (l-1)
+              4 -> do
+                attrs <- getAttrs
+                pickVal (l-1) >>= return . DPart attrs
               5 -> do
                 num <- rangeRandomG (1,3)
                 doms <- mapM (\_ -> pickVal (l-1) ) [1..num]
@@ -226,6 +250,23 @@ instance ArbitraryAttr FuncAttr where
         addVal 4 = return $ FInjective
         addVal 5 = return $ FSurjective
         addVal 6 = return $ FTotal
+
+instance ArbitraryAttr PartAttr where
+    getAttrs = do
+        num <- rangeRandomG (0,8)
+        if num == 0 then
+            return []
+        else do
+            vs <- sample [PnumParts, PmaxNumParts, PminNumParts, PpartSize,
+                          PmaxPartSize, PminPartSize, k PRegular, k PComplete] num
+            mapM addInt vs
+
+        where
+        k  f _ =  f
+        addInt :: MonadGen m => (Integer -> PartAttr) -> m PartAttr
+        addInt f = do
+            r <- rangeRandomG (1,5)
+            return $ f (fromIntegral r)
 
 
 -- because Module imports form a cycle:
