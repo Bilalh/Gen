@@ -17,6 +17,7 @@ import Test
 import Data
 import Runner
 import Args(parseArgs)
+import Sample(sample)
 
 import Language.E
 import Language.E.Pipeline.ReadIn(writeSpec)
@@ -181,6 +182,23 @@ main' gs = do
 
 ll :: E -> EssenceLiteral
 ll = fromJust . toEssenceLiteral
+
+_m :: StateT GenState IO a -> IO (a, GenState)
+_m f = do
+    seedd :: Int <- randomIO
+    let seed = mkStdGen seedd
+    runStateT f GenState{
+            eFinds=[]
+           ,eFindIndex=0
+           ,eGen=seed
+           ,eMaxNesting=2
+           }
+
+
+sr :: MonadGen m => m [Integer]
+sr = do
+    let lst = [1,2,3,4,5,6] :: [Integer]
+    sample lst 2
 
 mkSpec :: [E] -> IO Spec
 mkSpec es = do
