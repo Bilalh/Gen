@@ -69,7 +69,7 @@ data EssenceDomain =
     | DSet  [SetAtrr] EssenceDomain
     | DFunc [FuncAttr] EssenceDomain EssenceDomain
     | DPart [PartAttr] EssenceDomain
-    | DRel  [EssenceDomain]
+    | DRel  [RelAttr]  [EssenceDomain]
     | DMat  EssenceDomain EssenceDomain -- index domain
     deriving(Show)
 
@@ -97,6 +97,11 @@ data PartAttr =
     | PminPartSize Integer
     | PRegular
     | PComplete
+    deriving (Show)
+
+data RelAttr =
+      RTotal
+    | RFunctional
     deriving (Show)
 
 data EExpr =
@@ -131,6 +136,10 @@ instance ToEssence PartAttr where
     toEssence (PComplete       ) = mkAttr ("complete"    , Nothing )
     toEssence (PRegular        ) = mkAttr ("Regular"     , Nothing )
 
+instance ToEssence RelAttr where
+    toEssence RTotal      = mkAttr ("total"      , Nothing )
+    toEssence RFunctional = mkAttr ("functional" , Nothing )
+
 instance ToEssence EssenceLiteral where
     toEssence lit = fromEssenceLiteral lit
 
@@ -155,9 +164,9 @@ instance ToEssence EssenceDomain where
         addAttrs (map toEssence attrs ) e
         where domE = toEssence dom
 
-    toEssence (DRel doms) =
+    toEssence (DRel attrs doms) =
         [xMake|domain.relation.inners                    := domsE
-              |domain.relation.attributes.attrCollection := [] |]
+              |domain.relation.attributes.attrCollection := (map toEssence attrs ) |]
         where domsE = map toEssence doms
 
     toEssence (DMat index dom) = [dMake| matrix indexed by [&indexE] of &domE |]
@@ -205,7 +214,8 @@ instance ArbitraryLimited EssenceDomain where
               5 -> do
                 num <- rangeRandomG (1,3)
                 doms <- mapM (\_ -> pickVal (l-1) ) [1..num]
-                return $ DRel doms
+                attrs <- getAttrs
+                return $ DRel attrs doms
               6 -> do
                 index <- pickVal 1
                 dom   <- pickVal (l-1)
@@ -264,6 +274,22 @@ instance ArbitraryAttr PartAttr where
         where
         k  f _ =  f
         addInt :: MonadGen m => (Integer -> PartAttr) -> m PartAttr
+        addInt f = do
+            r <- rangeRandomG (1,5)
+            return $ f (fromIntegral r)
+
+instance ArbitraryAttr RelAttr where
+    getAttrs = do
+        num <- rangeRandomG (0,2)
+        if num == 0 then
+            return []
+        else do
+            vs <- sample [k RFunctional, k RTotal] num
+            mapM addInt vs
+
+        where
+        k  f _ =  f
+        addInt :: MonadGen m => (Integer -> a) -> m a
         addInt f = do
             r <- rangeRandomG (1,5)
             return $ f (fromIntegral r)
