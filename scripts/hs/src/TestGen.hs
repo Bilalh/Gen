@@ -17,7 +17,6 @@ import Test
 import Data
 import Runner
 import Args(parseArgs)
-import Sample(sample)
 
 import Language.E
 import Language.E.Pipeline.ReadIn(writeSpec)
@@ -40,9 +39,9 @@ import qualified Test.QuickCheck as Q
 
 chooseFindsDomain :: MonadGen m => m ()
 chooseFindsDomain = do
-    maxN <- gets eMaxNesting
+    -- maxN <- gets eMaxNesting
     -- levels <-rangeRandomG (1,maxN)
-    levels <-rangeRandomG (maxN,maxN)
+    levels <- gets eMaxNesting
     dom :: EssenceDomain  <- pickVal levels
 
     i <- gets eFindIndex

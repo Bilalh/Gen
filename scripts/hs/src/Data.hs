@@ -5,6 +5,7 @@
 {-# LANGUAGE ConstraintKinds #-}
 
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE BangPatterns #-}
 
 module Data where
 import Helpers
@@ -13,8 +14,12 @@ import Runner
 import Language.E
 import GHC.Generics (Generic)
 import Data.Aeson(FromJSON(..),ToJSON(..))
+
 import qualified Data.Aeson as A
 import qualified Data.ByteString.Lazy as B
+import qualified Data.Sequence as Seq
+
+
 
 --Since Monad has not been fixed yet
 type MonadA   m  = (Monad m , Applicative m , Functor m )
@@ -61,7 +66,7 @@ rangeRandomG range = do
 
 data EssenceDomain =
       DInt  Integer Integer
-    | DSet  EssenceDomain
+    | DSet  [SetAtrr] EssenceDomain
     | DFunc EssenceDomain EssenceDomain
     | DPart EssenceDomain
     | DRel  [EssenceDomain]
@@ -72,6 +77,7 @@ data SetAtrr =
       SSize    Integer
     | SMaxSize Integer
     | SMinSize Integer
+    deriving(Show)
 
 data EExpr =
        EGT EExpr EExpr
@@ -82,6 +88,11 @@ data EExpr =
 class ToEssence a where
     toEssence :: a -> E
 
+instance ToEssence SetAtrr where
+    toEssence (SSize    i) = mkAttr ("size"    , Just i)
+    toEssence (SMaxSize i) = mkAttr ("maxSize" , Just i)
+    toEssence (SMinSize i) = mkAttr ("minSize" , Just i)
+
 instance ToEssence EssenceLiteral where
     toEssence lit = fromEssenceLiteral lit
 
@@ -90,7 +101,9 @@ instance ToEssence EssenceDomain where
         where l = mkInt lower
               u = mkInt upper
 
-    toEssence (DSet dom) =  [dMake| set of &domE |]
+    toEssence (DSet attrs dom) =
+        let e = [dMake| set of &domE |] in
+        addAttrs (map toEssence attrs ) e
         where domE = toEssence dom
 
     toEssence (DFunc a b) =  [dMake| function  &dom1 --> &dom2 |]
@@ -124,7 +137,7 @@ class ArbitraryLimited a where
     pickVal _ = error "no default generator"
 
 instance ArbitraryLimited EssenceDomain where
-    -- 0 always gives back a int for things like matrix indexing
+    -- 1 always gives back a int for things like matrix indexing
     pickVal 1 = do
           l <- rangeRandomG (1,5)
           u <- rangeRandomG (l,5)
@@ -132,7 +145,10 @@ instance ArbitraryLimited EssenceDomain where
     pickVal l | l > 0 = do
         r <- rangeRandomG (2,6)
         case r of
-              2 -> pure DSet <*> pickVal (l-1)
+              2 -> do
+                innerDom <- pickVal (l-1)
+                attrs <- getAttrs
+                return $ DSet attrs innerDom
               3 -> do
                   a <- pickVal (l-1)
                   b <- pickVal (l-1)
@@ -150,4 +166,40 @@ instance ArbitraryLimited EssenceDomain where
                   return $ DMat index dom
               _ -> error "pickVal EssenceDomain Impossible happen"
 
+    pickVal i = error . show $  "invaild nesting level " ++ show i
 
+
+
+class ArbitraryAttr a where
+    getAttrs :: MonadGen m =>  m [a]
+
+instance ArbitraryAttr SetAtrr where
+    getAttrs = do
+        num <- rangeRandomG (0,3)
+        if num == 0 then
+            return []
+        else do
+            vs <- sample [SSize, SMinSize, SMaxSize] num
+            mapM addInt vs
+
+        where
+        addInt :: MonadGen m => (Integer -> SetAtrr) -> m SetAtrr
+        addInt f = do
+            r <- rangeRandomG (1,5)
+            return $ f (fromIntegral r)
+
+
+-- because Module imports form a cycle:
+sample :: MonadGen m => [a] -> Int -> m [a]
+sample ys num | length ys == num = return ys
+sample ys num =
+   go 0 (l - 1) (Seq.fromList ys)
+   where
+   l =  length ys
+   go !n !i xs | n > num =  return $!  (toList . Seq.drop (l - num)) xs
+               | otherwise = do
+                   j <- rangeRandomG (0, i)
+                   let toI = xs `Seq.index` j
+                       toJ = xs `Seq.index` i
+                       next = (Seq.update i toI . Seq.update j toJ) xs
+                   go (n + 1)  (i - 1) next

@@ -1,10 +1,12 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
 module Helpers where
 
+import Language.E
+
+import Data.Set(Set)
 import Data.Time(formatTime,getCurrentTime)
 import System.Locale(defaultTimeLocale)
-import Language.E
-import Data.Set(Set)
+
 import qualified Data.Set as S
 import qualified Data.Text as T
 
@@ -48,18 +50,27 @@ mkGiven (name,dom) =[xMake| topLevel.declaration.given.name   := [name]
                           | topLevel.declaration.given.domain := [dom]
                           |]
 
-mkAttr :: (T.Text, Maybe Integer) -> E
+type Attr = E
+mkAttr :: (T.Text, Maybe Integer) -> Attr
 mkAttr (n, Nothing) = [xMake| attribute.name.reference := [Prim (S n)] |]
 mkAttr (n, Just v ) = [xMake| attribute.nameValue.name.reference := [Prim (S n)]
                             | attribute.nameValue.value          := [mkInt v]
                             |]
 
-addAttr :: E -> E -> E
+addAttr :: Attr -> E -> E
 addAttr a (Tagged "domain" [Tagged tt ( [xMatch| att := attributes.attrCollection |]:rs) ] ) =
    let att2 = a : att in
    (Tagged "domain" [Tagged tt ( [xMake| attributes.attrCollection := att2 |]:rs ) ] )
 
 addAttr a b = error . show . vcat $ "addAttr attr dom" : map prettyAsPaths  [a,b]
+
+addAttrs :: [Attr] -> E -> E
+addAttrs attrs (Tagged "domain" [Tagged tt ( [xMatch| att := attributes.attrCollection |]:rs) ] ) =
+   let att2 = attrs ++  att in
+   (Tagged "domain" [Tagged tt ( [xMake| attributes.attrCollection := att2 |]:rs ) ] )
+
+addAttrs a b = error . show . vcat $ "addAttrs dom attrs" : map prettyAsPaths  (b : a)
+
 
 _attTest :: IO ()
 _attTest = do
