@@ -27,14 +27,15 @@ from commands import ParamRefine, SR, UP, Vaildate
 
 logger = logging.getLogger(__name__)
 
-def with_settings(results, *, op, time_taken, successful):
+def with_settings(results, *, op, time_taken, successful, consistent):
     return dict(
         data_       = results,
         essence_    = op.essence,
         outdir_     = op.outdir,
         given_time_ = op.timeout,
         time_taken_ = time_taken,
-        successful_ = successful
+        successful_ = successful,
+        consistent_ = consistent
     )
 
 if __name__ == "__main__":
@@ -80,7 +81,7 @@ if __name__ == "__main__":
             for res in essence_refine.values() )
     settings = with_settings(essence_refine,op=op,
             time_taken=refine_wall_time,
-            successful=successful)
+            successful=successful, consistent=True)
     with (op.outdir / "refine_essence.json" ).open("w") as f:
         f.write(json.dumps(settings, indent=True,sort_keys=True,default=obj_to_json ))
 
@@ -100,8 +101,19 @@ if __name__ == "__main__":
 
     solve_wall_time = sum(  res['total_real_time'] for res in  solve_results.values()  )
     successful = all(  not res['erroed']  for res in  solve_results.values() )
+
+
+    # checks that all eprimes that were solved either have a solution
+    # or don't have a solution
+    def is_consistent():
+        fin_names = [ k for (k,v) in solve_results.items() if not v['erroed'] ]
+        sol_exist = [ (op.outdir / name).with_suffix(".solution").exists()
+                        for name in fin_names ]
+        return all(sol_exist) or all( [ not b for b in sol_exist])
+
     settings = with_settings(solve_results, op=op,
-            time_taken=solve_wall_time, successful=successful)
+            time_taken=solve_wall_time, successful=successful,consistent=is_consistent())
+
     with (op.outdir / "solve_eprime.json" ).open("w") as f:
         f.write(json.dumps(settings,
             indent=True,sort_keys=True,default=obj_to_json ))

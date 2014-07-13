@@ -43,6 +43,7 @@ data GenGlobal = GenGlobal
         ,gSpecTime     :: Int
         ,gErrorsRefine :: [RefineR]
         ,gErrorsSolve  :: [SolveR]
+        ,gInconsistent :: [SolveR]
         ,gMaxNesting   :: Int
         ,gCount        :: Int
     } deriving (Show,Generic)

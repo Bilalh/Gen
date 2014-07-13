@@ -37,7 +37,7 @@ parseArgs = do
 
    return $ GenGlobal{gBase = base_directory1, gSeed = rseed1
                      , gTotalTime=total_time1, gSpecTime=per_spec_time1
-                     , gErrorsRefine = [], gErrorsSolve = []
+                     , gErrorsRefine = [], gErrorsSolve = [], gInconsistent=[]
                      , gMaxNesting =1, gCount =0}
 
     where

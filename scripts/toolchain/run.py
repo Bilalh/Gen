@@ -84,6 +84,12 @@ def run_solve(op, limit, eprime):
 
 
     for (i,cmd) in enumerate(cmds):
+
+        if limit <= 0:
+            logger.warn("### NO_TIME_LEFT before cmd %s", c)
+            all_finished=False
+            break
+
         itimeout=int(math.ceil(limit))
         mstimeout=itimeout*1000
 
@@ -114,9 +120,10 @@ def run_solve(op, limit, eprime):
             all_finished=False
             last_status = res.status_
             break
-        elif limit <= 0:
-            logger.warn("### NO_TIME_LEFT after cmd %s", c)
-            break
+
+        if cmd == commands.SR and not eprime_solution.exists():
+            logger.info("No eprime solution")
+            break;
 
     ret = dict(results=results,
                 total_cpu_time=total_cpu_time,
@@ -136,7 +143,8 @@ class Status(Enum):
     success       = 0,
     errorUnknown  = 1,
     timeout       = 2,
-    numberToLarge = 3
+    numberToLarge = 3,
+    heapSpace     = 4
 
 errors_not_useful = {Status.numberToLarge}
 
@@ -144,6 +152,8 @@ def classify_error(c,e):
     if "savilerow" in c:
         if "java.lang.NumberFormatException: For input string: " in e.output:
             return Status.numberToLarge
+    if "conjure" in c and e.returncode == 252:
+        return Status.heapSpace
 
     return Status.errorUnknown
 
@@ -178,26 +188,26 @@ def run_with_timeout(timeout, cmd):
         status=Status.timeout
         finished=False
 
-        # Might be simpler to run SR and minion our self
-        if code == 0 and "savilerow" in cmd:
-            if "Savile Row timed out" in output:
-                finished = False
-                status=Status.timeout
-            else:
-                with eprime_info.open() as f:
-                    (m_timeout,m_total,sr_real)  = [float(l.split(":")[1])
-                            for l in f.readlines()
-                        if l.split(":")[0] in
-                             {"MinionTimeOut","MinionTotalTime","SavileRowTotalTime"}]
-                    if int(m_timeout) == 1:
-                        if cputime_taken == 0: #Best we can do at this point
-                            #because some killed processes don't return cputime
-                            logger.warn("Adding %2.0f to cpu_taken(%2.0f) cpu timeout",
-                                m_total, cputime_taken)
-                            cputime_taken +=  sr_real
-                        cputime_taken+=m_total
-                        finished=False
-                        status=Status.timeout
+    # Might be simpler to run SR and minion our self
+    if code == 0 and "savilerow" in cmd:
+        if "Savile Row timed out" in output:
+            finished = False
+            status=Status.timeout
+        else:
+            with open(cmd[13]) as f:
+                (m_timeout,m_total,sr_real)  = [float(l.split(":")[1])
+                        for l in f.readlines()
+                    if l.split(":")[0] in
+                         {"MinionTimeOut","MinionTotalTime","SavileRowTotalTime"}]
+                if int(m_timeout) == 1:
+                    if cputime_taken == 0: #Best we can do at this point
+                        #because some killed processes don't return cputime
+                        logger.warn("Adding %2.0f to cpu_taken(%2.0f) cpu timeout",
+                            m_total, cputime_taken)
+                        cputime_taken +=  sr_real
+                    cputime_taken+=m_total
+                    finished=False
+                    status=Status.timeout
 
 
         logger.info("Took %0.2f (%0.2f real), reported user %0.2f sys %0.2f",

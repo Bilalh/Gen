@@ -106,10 +106,19 @@ run seed limit = do
                 storeSolveError s
                 nextNesting nestl
                 run (eGen  st) (limit - time_taken_ r - time_taken_ s )
+
+        checkConsistent aa@( Right (_, s@SettingI{consistent_}) )
+            | not consistent_ = do
+                storeInconsistent s
+
+        checkConsistent _ = return ()
+
+    checkConsistent result
     doRes result
 
 
     where
+
     storeRefineError :: MonadGG m => RefineR -> m ()
     storeRefineError r = do
        n <- gets gErrorsRefine
@@ -119,6 +128,11 @@ run seed limit = do
     storeSolveError s = do
        n <- gets gErrorsSolve
        modify (\st -> st{gErrorsSolve = s:n})
+
+    storeInconsistent :: MonadGG m => SolveR -> m ()
+    storeInconsistent s = do
+       n <- gets gInconsistent
+       modify (\st -> st{gInconsistent = s:n})
 
     nextNesting :: MonadGG m => Int -> m ()
     nextNesting level = do
@@ -163,7 +177,7 @@ maing total perSpec seed = do
     let globalState = GenGlobal{
                        gBase = "__", gSeed = seed
                      , gTotalTime=total, gSpecTime=perSpec
-                     , gErrorsRefine=[], gErrorsSolve=[]
+                     , gErrorsRefine=[], gErrorsSolve=[],gInconsistent=[]
                      , gCount=0, gMaxNesting = 2}
     main' globalState
 

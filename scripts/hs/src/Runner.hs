@@ -19,7 +19,12 @@ import qualified Data.ByteString.Lazy as B
 
 -- For reading json from toolchain.py
 
-data StatusI = Success_ | Timeout_  | ErrorUnknown_ | NumberToLarge_
+data StatusI =
+      Success_
+    | Timeout_
+    | ErrorUnknown_
+    | NumberToLarge_
+    | HeapSpace_
     deriving (Show,Eq,Enum,Generic)
 
 data ResultI = ResultI {
@@ -50,6 +55,7 @@ data SettingI a = SettingI {
         ,successful_ :: Bool
         ,time_taken_ :: Float
         ,data_       :: a
+        ,consistent_ :: Bool
     } deriving (Show, Generic)
 
 instance (FromJSON a) => FromJSON (SettingI a)
@@ -96,4 +102,4 @@ runToolChain spec dir timeou = do
     return $ case (refineF, solveF) of
         (Just r, Just s)  -> Right (r,s)
         (Just r, Nothing) -> Left r
-        _                 -> error "Should not happen"
+        (r, s)            -> error . show $ (r,s)
