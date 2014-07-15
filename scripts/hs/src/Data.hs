@@ -7,6 +7,8 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE BangPatterns #-}
 
+{-# LANGUAGE DeriveFunctor #-}
+
 module Data where
 import Helpers
 import Runner
@@ -239,11 +241,6 @@ instance ArbitraryAttr SetAtrr where
             vs <- sample [SSize, SMinSize, SMaxSize] num
             mapM addInt vs
 
-        where
-        addInt :: MonadGen m => (Integer -> SetAtrr) -> m SetAtrr
-        addInt f = do
-            r <- rangeRandomG (1,5)
-            return $ f (fromIntegral r)
 
 instance ArbitraryAttr FuncAttr where
     getAttrs = do
@@ -251,16 +248,11 @@ instance ArbitraryAttr FuncAttr where
         if num == 0 then
             return []
         else do
-            vs <- sample [1..6] num
-            mapM addVal vs
+            vs <- sample [FSize,FMinSize, FMaxSize, k FInjective, k FSurjective, k FTotal ] num
+            mapM addInt vs
         where
-        addVal :: MonadGen m => Int -> m FuncAttr
-        addVal 1 = rangeRandomG (0,5) >>= return . FSize    . fromIntegral
-        addVal 2 = rangeRandomG (0,5) >>= return . FMinSize . fromIntegral
-        addVal 3 = rangeRandomG (0,5) >>= return . FMaxSize . fromIntegral
-        addVal 4 = return $ FInjective
-        addVal 5 = return $ FSurjective
-        addVal 6 = return $ FTotal
+        k  f _ =  f
+
 
 instance ArbitraryAttr PartAttr where
     getAttrs = do
@@ -274,10 +266,7 @@ instance ArbitraryAttr PartAttr where
 
         where
         k  f _ =  f
-        addInt :: MonadGen m => (Integer -> PartAttr) -> m PartAttr
-        addInt f = do
-            r <- rangeRandomG (1,5)
-            return $ f (fromIntegral r)
+
 
 instance ArbitraryAttr RelAttr where
     getAttrs = do
@@ -290,11 +279,12 @@ instance ArbitraryAttr RelAttr where
 
         where
         k  f _ =  f
-        addInt :: MonadGen m => (Integer -> a) -> m a
-        addInt f = do
-            r <- rangeRandomG (1,5)
-            return $ f (fromIntegral r)
 
+
+addInt :: MonadGen m => (Integer -> a) -> m a
+addInt f = do
+    r <- rangeRandomG (1,5)
+    return $ f (fromIntegral r)
 
 -- because Module imports form a cycle:
 sample :: MonadGen m => [a] -> Int -> m [a]
