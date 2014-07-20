@@ -133,11 +133,11 @@ instance ToEssence PartAttr where
     toEssence (PnumParts    i  ) = mkAttr ("numParts"    , Just i  )
     toEssence (PmaxNumParts i  ) = mkAttr ("maxNumParts" , Just i  )
     toEssence (PminNumParts i  ) = mkAttr ("minNumParts" , Just i  )
-    toEssence (PpartSize    i  ) = mkAttr ("PartSize"    , Just i  )
+    toEssence (PpartSize    i  ) = mkAttr ("partSize"    , Just i  )
     toEssence (PmaxPartSize i  ) = mkAttr ("maxPartSize" , Just i  )
     toEssence (PminPartSize i  ) = mkAttr ("minPartSize" , Just i  )
     toEssence (PComplete       ) = mkAttr ("complete"    , Nothing )
-    toEssence (PRegular        ) = mkAttr ("Regular"     , Nothing )
+    toEssence (PRegular        ) = mkAttr ("regular"     , Nothing )
 
 instance ToEssence RelAttr where
     toEssence RTotal      = mkAttr ("total"      , Nothing )
