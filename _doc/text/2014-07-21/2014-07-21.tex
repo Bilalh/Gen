@@ -1,0 +1,142 @@
+\input{../default_settings.tex}
+\usepackage[left=48pt,right=46pt]{geometry}
+
+\title{}
+\author{Bilal Syed Hussain}
+\institute{University of St Andrews}
+\pagestyle{plain}
+
+\begin{document}
+\maketitle
+
+Test Generation by generating essence specifications. Currently only generates domains and their attributes.
+
+Three kinds of errors:
+
+\begin{itemize}
+	\item Refinement errors
+	\item Inconstancies in solutions 
+	\item Errors in SR
+\end{itemize}
+
+\section{Refinement}
+
+Missing refinement rules for 
+
+\begin{itemize}
+	\item partition of matrixes
+	\item partition of some very nested type
+	\item These monstrosites: \begin{lst:essence}
+	matrix indexed by [int(1..4), int(1..5)] of function (surjective,
+				  total,
+				  injective)
+			matrix indexed by [int(5..5)] of int(3..5)
+				--> matrix indexed by [int(3..3)] of int(5..5)
+	\end{lst:essence}
+	
+	\begin{lst:essence}
+    matrix indexed by [int(1..2), int(2..2)] of function (size 1,
+          minSize 3,
+          maxSize 5,
+          injective,
+          surjective,
+          total)
+    set (size 4,
+         minSize 4,
+         maxSize 4) of
+        relation of
+            (int(2..3) *
+             int(5..5) *
+             int(1..4))
+        --> matrix indexed by [int(3..3)] of relation (total) of                          (int(5..5))
+	\end{lst:essence}
+	
+	
+\end{itemize}
+
+
+\section{Inconstancies}
+
+\subsection{testgen/summary1/gInconsistent/1405236473}
+
+\begin{lst:essence}
+find var0:
+        matrix indexed by [int(1..4)] of function (maxSize 0, injective)
+                                             int(2..2) --> int(3..4)
+\end{lst:essence}
+
+Should have the solution \lstinline! [ function(), function(), function(), function() ] !. Of the 3 eprimes generated 2 produce the correct answer and 1 causes an exception in savilerow.
+
+\begin{lst:essence}[caption=0001.eprime]
+language ESSENCE' 1.0
+
+find var0_FunctionAsReln_RelationAsSet_SetExplicitVarSize_tuple1:
+        matrix indexed by [int(1..4), int(1..0)] of bool
+find var0_FunctionAsReln_RelationAsSet_SetExplicitVarSize_tuple2_tuple1:
+        matrix indexed by [int(1..4), int(1..0)] of int(2..2)
+find var0_FunctionAsReln_RelationAsSet_SetExplicitVarSize_tuple2_tuple2:
+        matrix indexed by [int(1..4), int(1..0)] of int(3..4)
+such that true
+\end{lst:essence}
+
+produces the following exception and still returns zero. The eprime has very odd bounds 1..0
+
+\begin{lstlisting}
+WARNING: interval 1..0 is out of order. Rewriting to empty interval.
+WARNING: interval 1..0 is out of order. Rewriting to empty interval.
+WARNING: interval 1..0 is out of order. Rewriting to empty interval.
+Exception in thread "Thread-0" java.lang.AssertionError
+	at savilerow.expression.CompoundMatrix.<init>(CompoundMatrix.java:44)
+	at savilerow.expression.Flatten.simplify(Flatten.java:62)
+	at savilerow.treetransformer.TransformSimplify.processNode(TransformSimplify.java:40)
+	at savilerow.treetransformer.TreeTransformerBottomUpNoWrapper.recursiveSearch(TreeTransformerBottomUpNoWrapper.java:105)
+	at savilerow.treetransformer.TreeTransformerBottomUpNoWrapper.recursiveSearch(TreeTransformerBottomUpNoWrapper.java:91)
+	at savilerow.treetransformer.TreeTransformerBottomUpNoWrapper.transform(TreeTransformerBottomUpNoWrapper.java:63)
+	at savilerow.model.Model.simplify(Model.java:89)
+	at savilerow.model.Model.transform(Model.java:178)
+	at savilerow.model.ModelContainer.destroyMatrices(ModelContainer.java:791)
+	at savilerow.model.ModelContainer.instancePreFlattening1(ModelContainer.java:250)
+	at savilerow.model.ModelContainer.process(ModelContainer.java:52)
+	at savilerow.SRWorkThread.run(SRWorkThread.java:74)
+Savile Row timed out.
+\end{lstlisting}
+
+
+\subsection{testgen/summary1/gInconsistent/1405242962}
+
+\begin{lst:essence}
+find var0:
+	matrix indexed by [int(3..5)] of set (size 2, minSize 4, maxSize 2) of
+		relation of (set (size 1, minSize 4, maxSize 4) of int(3..4))
+\end{lst:essence}
+
+Should have no solutions, but 2 of the five eprime sampled produced solutions.
+\\
+\section{Errors in SR}
+
+\begin{lst:essence}
+# time savilerow -mode Normal -in-eprime 0003.eprime -run-solver
+
+language ESSENCE' 1.0
+
+find var0_SetExplicitVarSize_tuple1: matrix indexed by [int(1..0)] of bool
+find var0_SetExplicitVarSize_tuple2_SetOccurrence:
+        matrix indexed by [int(1..0), int(2..4)] of bool
+such that true
+\end{lst:essence}
+
+Savilerow finds a solution but in the output there are no letting statements.
+
+\begin{lst:essence}[mathescape=False]
+language ESSENCE' 1.0
+$ minion Nodes: 1
+$ minion TotalTime: 0.000291
+$ minion TimeOut: 0
+$ Savile Row TotalTime: 0.145
+\end{lst:essence}
+
+
+
+\bibliography{../extra}
+\bibliographystyle{../splncs03}
+\end{document}

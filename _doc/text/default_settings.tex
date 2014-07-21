@@ -1,5 +1,5 @@
-%\documentclass{../llncs} %settings (fold) 
-\documentclass{llncs}
+\documentclass{../llncs} %settings (fold)
+% \documentclass{llncs}
 \usepackage{times}
 \usepackage[british]{babel}
 \usepackage[T1]{fontenc}
@@ -12,6 +12,7 @@
 \usepackage{graphicx,subfigure}
 \usepackage{bold-extra}
 \usepackage{hyperref}
+\usepackage{enumitem}
 
 \hypersetup{pdftex,colorlinks=true,allcolors=blue}
 \setcounter{tocdepth}{1}
@@ -35,7 +36,7 @@
 \DeclareCaptionFont{blue}{\color{blue}}
 \DeclareCaptionFont{white}{\color{white}}
 \DeclareCaptionFormat{listing}{\colorbox[cmyk]{0.43, 0.35, 0.35,0.01}{\parbox{\textwidth}{\hspace{15pt}#1#2#3}}}
-\captionsetup[lstlisting]{format=listing,labelfont=white,textfont=white, singlelinecheck=false, margin=0pt, font={bf,footnotesize}}
+% \captionsetup[lstlisting]{format=listing,labelfont=white,textfont=white, singlelinecheck=false, margin=0pt, font={bf,footnotesize}}
 
 \lstnewenvironment{lst:essence}[1][]
 	{
@@ -43,7 +44,7 @@
 		keywords=[1]{language, Essence, given, letting,
 find, such, that, domain, function, total, surjective, be, forAll, exists,
 injective, in, preImage, range, int,set,partition,new, type,intersect,matrix,from,
-size, indexed, by, of, regular, toInt, sum},
+size, indexed, by, of, regular, toInt, sum, relation, maxSize, minSize},
 		#1	
 		}
 	}
