@@ -49,7 +49,6 @@ def run_refine_essence(*,op,compact=True,random=4):
     logger.warn("running %s", c)
 
     (cres,cout) = run_with_timeout(limit, c)
-    limit -= cres.real_time
     compact = [(("comp", cres.__dict__), " ".join(c) + "\n" + cout)]
 
     mapping = dict(essence=op.essence,outdir=op.outdir)
