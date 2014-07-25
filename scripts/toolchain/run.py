@@ -5,6 +5,7 @@ import sys
 import subprocess
 import shlex
 import itertools
+import hashlib
 
 import commands
 
@@ -20,6 +21,12 @@ from textwrap import indent
 
 
 logger = logging.getLogger(__name__)
+
+def hash_path(path):
+    sha = hashlib.sha1()
+    with path.open('rb') as f:
+        sha.update(f.read())
+    return sha.hexdigest()
 
 
 # global function for run_refine_essence
@@ -52,16 +59,29 @@ def run_refine_essence(*,op,compact=True,random=4):
     pool = Pool()
     rnds = list(pool.map(rr,range(1,random+1)))
 
-    (results,outputs) =list(zip( *( compact + rnds) ))
+    (results,outputs) =list(zip( *( compact + rnds ) ))
 
     with (op.outdir / "_refine.output").open("w") as f:
         f.write("\n".join(outputs))
 
-    #return (dict(results), sum( data['cpu_time'] for (_,data) in results  ) )
-
     date_end=datetime.utcnow()
     diff = date_end - date_start
-    return (dict(results), sum( data['real_time'] for (_,data) in results  ) )
+
+    results_unique = {}
+    for result in results:
+        (eprime_name,_) = result
+        ep = (op.outdir/ eprime_name).with_suffix(".eprime")
+        hf = hash_path( ep )
+        if hf not in results_unique:
+            results_unique[hf] = result
+        else:
+            logger.warn("Removing eprime %s it a duplicate of %s",
+                    eprime_name, results_unique[hf][0] )
+            ep.unlink()
+            ep.with_suffix(".eprime.logs").unlink()
+
+    return (dict(results_unique.values()), sum( data['real_time']
+                for (_,data) in results_unique.values()  ) )
 
 
 def run_solve(op, limit, eprime):
