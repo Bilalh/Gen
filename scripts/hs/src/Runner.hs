@@ -95,7 +95,9 @@ runToolChain :: FilePath -> FilePath -> Int -> IO (Either RefineR (RefineR, Solv
 runToolChain spec dir timeou = do
     pg <- getEnv "PARAM_GEN_SCRIPTS"
     let toolchain= pg </> "toolchain" </> "toolchain.py"
-    _       <- rawSystem toolchain [spec, "--outdir", dir , "--timeout", show timeou]
+        args = [spec, "--outdir", dir , "--timeout", show timeou]
+    putStrLn $ "cmd: " ++ toolchain ++ " " ++ foldl1 (\a b -> a ++ " " ++ b) args
+    _       <- rawSystem toolchain args
     refineF <- getJSON $ dir </> "refine_essence.json"
     solveF  <- getJSON $ dir </> "solve_eprime.json"
 

@@ -70,6 +70,8 @@ def run_refine_essence(*,op,compact=True,random=4):
     for result in results:
         (eprime_name,_) = result
         ep = (op.outdir/ eprime_name).with_suffix(".eprime")
+        if not ep.exists():
+            continue
         hf = hash_path( ep )
         if hf not in results_unique:
             results_unique[hf] = result
@@ -80,7 +82,7 @@ def run_refine_essence(*,op,compact=True,random=4):
             ep.with_suffix(".eprime.logs").unlink()
 
     return (dict(results_unique.values()), sum( data['real_time']
-                for (_,data) in results_unique.values()  ) )
+                for (_,data) in results  ) )
 
 
 def run_solve(op, limit, eprime):

@@ -56,7 +56,6 @@ else
     cabal sandbox add-source $CONJURE_REPO
 fi
 
-
 # install finally
 
 cabal install                                                       \

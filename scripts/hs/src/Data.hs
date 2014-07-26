@@ -21,7 +21,8 @@ import qualified Data.Aeson as A
 import qualified Data.ByteString.Lazy as B
 import qualified Data.Sequence as Seq
 
-
+import qualified Data.List as L
+import Data.Maybe(fromJust)
 
 --Since Monad has not been fixed yet
 type MonadA   m  = (Monad m , Applicative m , Functor m )
@@ -92,19 +93,23 @@ data FuncAttr =
     deriving(Show)
 
 data PartAttr =
-      PnumParts    Integer
-    | PmaxNumParts Integer
-    | PminNumParts Integer
-    | PpartSize    Integer
-    | PmaxPartSize Integer
-    | PminPartSize Integer
+      PSize        Integer
+    | PMaxSize     Integer
+    | PMinSize     Integer
+    | PNumParts    Integer
+    | PMaxNumParts Integer
+    | PMinNumParts Integer
+    | PPartSize    Integer
+    | PMaxPartSize Integer
+    | PMinPartSize Integer
     | PRegular
     | PComplete
     deriving (Show)
 
 data RelAttr =
-      RTotal
-    | RFunctional
+      RSize        Integer
+    | RMaxSize     Integer
+    | RMinSize     Integer
     deriving (Show)
 
 data EExpr =
@@ -130,18 +135,22 @@ instance ToEssence FuncAttr where
     toEssence (FSurjective) = mkAttr ("surjective" , Nothing)
 
 instance ToEssence PartAttr where
-    toEssence (PnumParts    i  ) = mkAttr ("numParts"    , Just i  )
-    toEssence (PmaxNumParts i  ) = mkAttr ("maxNumParts" , Just i  )
-    toEssence (PminNumParts i  ) = mkAttr ("minNumParts" , Just i  )
-    toEssence (PpartSize    i  ) = mkAttr ("partSize"    , Just i  )
-    toEssence (PmaxPartSize i  ) = mkAttr ("maxPartSize" , Just i  )
-    toEssence (PminPartSize i  ) = mkAttr ("minPartSize" , Just i  )
-    toEssence (PComplete       ) = mkAttr ("complete"    , Nothing )
-    toEssence (PRegular        ) = mkAttr ("regular"     , Nothing )
+    toEssence (PSize    i     ) = mkAttr ("size"        , Just i  )
+    toEssence (PMaxSize i     ) = mkAttr ("maxSize"     , Just i  )
+    toEssence (PMinSize i     ) = mkAttr ("minSize"     , Just i  )
+    toEssence (PNumParts    i ) = mkAttr ("numParts"    , Just i  )
+    toEssence (PMaxNumParts i ) = mkAttr ("maxNumParts" , Just i  )
+    toEssence (PMinNumParts i ) = mkAttr ("minNumParts" , Just i  )
+    toEssence (PPartSize    i ) = mkAttr ("partSize"    , Just i  )
+    toEssence (PMaxPartSize i ) = mkAttr ("maxPartSize" , Just i  )
+    toEssence (PMinPartSize i ) = mkAttr ("minPartSize" , Just i  )
+    toEssence (PComplete      ) = mkAttr ("complete"    , Nothing )
+    toEssence (PRegular       ) = mkAttr ("regular"     , Nothing )
 
 instance ToEssence RelAttr where
-    toEssence RTotal      = mkAttr ("total"      , Nothing )
-    toEssence RFunctional = mkAttr ("functional" , Nothing )
+    toEssence (RSize    i     ) = mkAttr ("size"        , Just i  )
+    toEssence (RMaxSize i     ) = mkAttr ("maxSize"     , Just i  )
+    toEssence (RMinSize i     ) = mkAttr ("minSize"     , Just i  )
 
 instance ToEssence EssenceLiteral where
     toEssence lit = fromEssenceLiteral lit
@@ -229,57 +238,54 @@ instance ArbitraryLimited EssenceDomain where
 
 
 
+-- Returns a value in the range (0,n) with each number 1/2 the chance of being
+-- picked as the last
+weightedRange :: MonadGen m => Int -> m Int
+weightedRange n | n < 0 = error  "weightedRange less then zero"
+weightedRange 0 = return 0
+weightedRange n = do
+    let powers = scanl1 (*) $ replicate (n+1) 2
+        bounds = reverse $ 1 : powers
+    r <- rangeRandomG (1, (head bounds)-1)
+    let val = head $ dropWhile (>r) bounds
+        index = L.elemIndex val bounds
+
+    return $ (fromJust index) - 1
+
+
 class ArbitraryAttr a where
     getAttrs :: MonadGen m =>  m [a]
 
 instance ArbitraryAttr SetAtrr where
-    getAttrs = do
-        num <- rangeRandomG (0,3)
-        if num == 0 then
-            return []
-        else do
-            vs <- sample [SSize, SMinSize, SMaxSize] num
-            mapM addInt vs
-
+    getAttrs =
+        getWeightedAttrs [SSize, SMinSize, SMaxSize]
 
 instance ArbitraryAttr FuncAttr where
-    getAttrs = do
-        num <- rangeRandomG (0,6)
-        if num == 0 then
-            return []
-        else do
-            vs <- sample [FSize,FMinSize, FMaxSize, k FInjective, k FSurjective, k FTotal ] num
-            mapM addInt vs
+    getAttrs =
+        getWeightedAttrs [FSize,FMinSize, FMaxSize,
+                          k FInjective, k FSurjective, k FTotal ]
         where
         k  f _ =  f
-
 
 instance ArbitraryAttr PartAttr where
-    getAttrs = do
-        num <- rangeRandomG (0,8)
-        if num == 0 then
-            return []
-        else do
-            vs <- sample [PnumParts, PmaxNumParts, PminNumParts, PpartSize,
-                          PmaxPartSize, PminPartSize, k PRegular, k PComplete] num
-            mapM addInt vs
-
+    getAttrs =
+        getWeightedAttrs [PNumParts, PMaxNumParts, PMinNumParts, PPartSize,
+                          PMaxPartSize, PMinPartSize, k PRegular, k PComplete,
+                          PSize, PMaxSize, PMinSize]
         where
         k  f _ =  f
-
 
 instance ArbitraryAttr RelAttr where
-    getAttrs = do
-        num <- rangeRandomG (0,2)
+    getAttrs = getWeightedAttrs [RSize, RMaxSize, RMinSize]
+
+getWeightedAttrs :: MonadGen m => [Integer -> a] -> m [a]
+getWeightedAttrs attrs = do
+        num <- weightedRange (length attrs)
         if num == 0 then
             return []
         else do
-            vs <- sample [k RFunctional, k RTotal] num
+            vs <- sample attrs num
             mapM addInt vs
-
-        where
-        k  f _ =  f
-
 
 addInt :: MonadGen m => (Integer -> a) -> m a
 addInt f = do
