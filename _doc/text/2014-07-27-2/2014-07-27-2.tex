@@ -1,0 +1,73 @@
+\input{../default_settings.tex}
+\usepackage[left=48pt,right=46pt]{geometry}
+
+\title{\lstinline!testgen/runs-2014-07-27__04_03_21! \\\vspace{2pt}\small{\rm \today}}
+\begin{document}
+\maketitle
+
+results from \lstinline!testgen/runs-2014-07-27__04_03_21!
+
+\section{Validate Solution}
+
+\begin{itemize}
+	\item size attributes on relations (1406448497.essence), sets (1406448497.essence).
+	
+	\item inner most set not converted to matrix in solution translation.
+	\begin{lst:essence}[breaklines=true,caption=1406468690.essence]
+    Expected: matrix indexed by [int, int] of relation (set of int)
+    Found:    matrix indexed by [int, int] of relation (matrix indexed by [int] of int)
+	\end{lst:essence}
+	
+
+	
+\end{itemize}
+
+\section{Inconsistent}
+\begin{itemize}
+	\item Only 1 of out of the 3 eprimes are satisfiable, when they should all be. 
+	\begin{lst:essence}[breaklines=true,caption=1406438642.essence]
+	language Essence 1.3
+	find var0:
+	        relation of
+	            (relation (size 1) of (int(3..5) * int(4..4)) *
+	             matrix indexed by [int(3..5)] of int(5..5) * function int(2..5) --> int(5..5))
+	\end{lst:essence}
+
+	\item 5 eprimes, 4 are satisfiable, one is not, when they should all be satisfiable
+	\begin{lst:essence}[breaklines=true,caption=1406470083.essence]
+	language Essence 1.3
+
+	find var0:
+	        function (surjective, minSize 4)
+	            set of int(2..3) --> matrix indexed by [int(5..5)] of int(5..5)
+	\end{lst:essence}
+
+	\item  2 eprimes, only 1 satisfiable when they both should be satisfiable.
+	\begin{lst:essence}[breaklines=true,caption=1406470239.essence]
+	language Essence 1.3
+	find var0: set (size 3) of function int(2..3) --> int(4..4)
+	\end{lst:essence}
+	
+	
+\end{itemize}
+
+\section{Solution Translation}
+
+\begin{itemize}
+	\item \texttt{partition from matrix, partition from set} (1406434592.essence)
+	\item \texttt{function set --> function -> int } (1406435421.essence)
+	\item \texttt{relation of  function -> function -> relation } (1406449575.essence)
+\end{itemize} 
+
+
+\section{Misc}
+
+\begin{itemize}
+	\item If one of the eprimes timed out, it shouldnot  used in the inconstant calculations (1406448933.essence).
+	\item Always allow solution translation and solution validation?  solution translation is basically instant. solution validation can take a while if there are lots of constraints.  Same reason as above. 
+
+\end{itemize}
+
+\bibliography{../extra}
+\bibliographystyle{../splncs03}
+\end{document}
