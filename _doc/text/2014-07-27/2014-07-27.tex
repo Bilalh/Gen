@@ -1,0 +1,114 @@
+\input{../default_settings.tex}
+\usepackage[left=48pt,right=46pt]{geometry}
+
+\title{ \lstinline!testgen/runs-2014-07-26__02_24_31! \\\vspace{2pt}\small{\rm \today} \vspace{-0.5cm}}
+\begin{document}
+\maketitle
+
+results from \lstinline!testgen/runs-2014-07-26__02_24_31!
+
+\section{Improvements}
+
+\begin{itemize}
+	\item Removed duplicates models after generating $n$ random models, which saves repeated work.
+	\item Solution validation. Check the solution are consistent with their domains e.g. sets can't have duplicates. Also verify the domain attributes are satisfied.  Solution validation founds some new bugs.
+\end{itemize}
+
+\section{Validate Solution}
+
+\subsection{set attributes}
+
+Using a combination of \texttt{maxSize, minSize and size} causes all 3 \texttt{eprime}s to have a solution when it should not. This was not caught be inconsistent from before since the bug affected all \texttt{epirime}s.
+
+
+\begin{lst:essence}[caption=1406342762.essence]
+summary/gErrorsSolve/validateSolution/1406342762_0001/1406342762.essence
+
+language Essence 1.3
+
+find var1: matrix indexed by [int(4..4), int(3..3)] of int(5..5)
+find var0:
+        set (size 1, minSize 4, maxSize 2) of
+            function (total, surjective, minSize 1) int(1..1) --> int(5..5)
+\end{lst:essence}
+
+\begin{lstlisting}[breaklines=true,caption=Validating the solution]
+Error for
+Value:   {function(1 --> 5)}
+Domain:  set (size 1, minSize 4, maxSize 2) of
+             function (total, surjective, minSize 1) int(1..1) --> int(5..5)
+Details:
+  (minSize 4) not satisfied; Too few elements in set
+      set (maxSize 2, minSize 4, size 1) of
+          function (surjective, total, minSize 1) int(1..1) --> int(5..5)
+      {function(1 --> 5)}
+\end{lstlisting}
+
+
+\ \\ The same problem occurs with relations 
+\begin{lst:essence}[caption=1406343903.essence]
+language Essence 1.3
+
+find var1:
+        set (size 4, minSize 1, maxSize 3) of
+            relation (size 1, maxSize 3, minSize 2) of (int(4..4) * int(2..5))
+find var0: set of matrix indexed by [int(3..5)] of int(2..4)
+
+\end{lst:essence}
+
+\subsection{Functions}
+
+\begin{lst:essence}
+language Essence 1.3
+
+find var1: matrix indexed by [int(3..4)] of function int(5..5) --> int(2..3)
+find var0: matrix indexed by [int(3..4)] of relation of (int(5..5) * int(2..2))
+\end{lst:essence}
+
+finds a bug in solution translation of \texttt{var1} when using \texttt{Function1DPartial}  giving the answer \texttt{[function(); int(3..4)]} instead of \texttt{[function(), function(); int(3..4)]}\\
+
+\section{Inconsistent}
+
+\subsection{ set of function (minSize 3)}
+
+\begin{lst:essence}[caption=1406371130.essence]
+language Essence 1.3
+find var0: set of function (minSize 3) int(1..2) --> int(5..5)
+\end{lst:essence}
+
+3 eprimes,  2 are satisfiable and have solutions, 1 does not 
+
+\ \\\subsection{relations and functions}
+
+\begin{lst:essence}[caption=1406371836.essence]
+language Essence 1.3
+
+find var1:
+        relation of (set of int(2..5) * matrix indexed by [int(2..5)] of int(4..4))
+find var0: set of function int(2..5) --> int(3..3)
+
+\end{lst:essence}
+
+5 eprimes, 4 are satisfiable and have solutions, 1 does not.
+
+\section{Solution Translation}
+
+\begin{itemize}
+	\item \texttt{ matrix indexed by [int(1..1)] of partition (size 2) from int(1..3)} ( 1406342749.essence, 1406375182.essence, 1406377200.essence, 1406378178.essence same)
+	\item \texttt{relation of (function int(3..5) --> int(2..4))}  (comp, 1406345766.essence)
+	\item very nested (1406372004.essence)
+	\item 
+\end{itemize}
+
+\ \\\section{Misc}
+
+\begin{itemize}
+	\item Since we probably don't want errors which are too similar, one idea is to bias the away from area which have know errors.
+	\item Biasing the selection of attributes to favour using less attributes. e.g $1/2$ for no attributes $1/4$ for 1 attributes $1/8$ for 2 attributes and so on. This give better test cases while still getting coverage.
+	\item Random number don't look that random in some cases e.g \texttt{1406343927.essence} for example, check the rnd is being updated. Ironically still gave a good test case.
+	\item Always allow solution translation and solution validation?  solution translation is basically instant. solution validation can take a while if there are lots of constraints.  
+\end{itemize}
+
+\bibliography{../extra}
+\bibliographystyle{../splncs03}
+\end{document}
