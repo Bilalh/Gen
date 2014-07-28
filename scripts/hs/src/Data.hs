@@ -13,7 +13,8 @@ module Data where
 import Helpers
 import Runner
 
-import Language.E
+import Language.E hiding (trace)
+import Debug.Trace ( trace )
 import GHC.Generics (Generic)
 import Data.Aeson(FromJSON(..),ToJSON(..))
 
@@ -65,7 +66,14 @@ rangeRandomG range = do
     gen <- gets eGen
     let (x, gen') = randomR range gen
     modify $ \gl -> gl{ eGen = gen'}
-    return $ fromIntegral x
+
+    trace ("rangeRandomG:"
+        ++ " range  " ++ show range
+        ++ " result " ++ show x
+        ++ " before " ++ show gen
+        ++ " after  " ++ show gen')
+        return $ fromIntegral x
+
 
 
 data EssenceDomain =
