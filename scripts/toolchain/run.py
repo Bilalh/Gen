@@ -38,7 +38,7 @@ def run_refine(kwargs,i):
     (res, output) = run_with_timeout(kwargs['itimeout'], c)
     return ((eprime.stem,res.__dict__), " ".join(c) + "\n" + output)
 
-def run_refine_essence(*,op,compact=True,random=4):
+def run_refine_essence(*,op,compact=True,random=7):
     limit = op.timeout
     date_start = datetime.utcnow()
 
@@ -100,11 +100,16 @@ def run_solve(op, limit, eprime):
     total_cpu_time=0
     total_real_time=0
     all_finished=True
+    solving_finished=False
     erroed = None
     last_status=Status.success
 
 
     for (i,cmd) in enumerate(cmds):
+
+        # always perform solution translation and vaildation
+        if cmd in {commands.UP, commands.Vaildate}:
+            limit = max([limit, 10])
 
         if limit <= 0:
             logger.warn("### NO_TIME_LEFT before cmd %s", c)
@@ -141,15 +146,19 @@ def run_solve(op, limit, eprime):
             all_finished=False
             last_status = res.status_
             break
+        elif cmd == commands.UP:
+            solving_finished=True
 
         if cmd == commands.SR and not eprime_solution.exists():
             logger.info("No eprime solution")
+            solving_finished=True
             break;
 
     ret = dict(results=results,
                 total_cpu_time=total_cpu_time,
                 total_real_time=total_real_time,
                 all_finished=all_finished,
+                solving_finished=solving_finished,
                 erroed=erroed,
                 last_status=last_status)
 

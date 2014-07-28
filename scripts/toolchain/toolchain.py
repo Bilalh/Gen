@@ -74,7 +74,6 @@ if __name__ == "__main__":
 
     # Make the eprimes
     (essence_refine,refine_wall_time) = run.run_refine_essence(op=op)
-    # (essence_refine,refine_wall_time) = ({}, 4)
     logger.info("essence_refine: %s", pformat(essence_refine))
 
     successful =  all(  res['status_'] in [Status.success, Status.timeout]
@@ -106,7 +105,8 @@ if __name__ == "__main__":
     # checks that all eprimes that were solved either have a solution
     # or don't have a solution
     def is_consistent():
-        fin_names = [ k for (k,v) in solve_results.items() if not v['erroed'] ]
+        fin_names = [ k for (k,v) in solve_results.items()
+                        if not v['erroed'] and v['solving_finished'] ]
         sol_exist = [ (op.outdir / name).with_suffix(".solution").exists()
                         for name in fin_names ]
         return all(sol_exist) or all( [ not b for b in sol_exist])
