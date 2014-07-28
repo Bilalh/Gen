@@ -1,6 +1,4 @@
---{-# OPTIONS_GHC -fno-warn-unused-binds #-}
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}
-{-# OPTIONS_GHC -fno-warn-unused-matches #-}
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}
 
@@ -12,11 +10,11 @@
 
 module Main where
 
-import Helpers
--- import Test
-import Data
-import Runner
 import Args(parseArgs)
+import Data
+import Debug
+import Helpers
+import Runner
 
 import Language.E
 import Language.E.Pipeline.ReadIn(writeSpec)
@@ -108,7 +106,7 @@ run seed limit = do
                 nextNesting nestl
                 run (eGen  st) (limit - time_taken_ r - time_taken_ s )
 
-        checkConsistent aa@( Right (_, s@SettingI{consistent_}) )
+        checkConsistent ( Right (_, s@SettingI{consistent_}) )
             | not consistent_ = do
                 storeInconsistent s
 
@@ -203,57 +201,4 @@ mkSpec es = do
          $ es
     print .  pretty $ spec
     return spec
-
-ll :: E -> EssenceLiteral
-ll = fromJust . toEssenceLiteral
-
-
-_m :: StateT GenState IO a -> IO (a, GenState)
-_m f = do
-    seedd :: Int <- randomIO
-    let seed = mkStdGen seedd
-    runStateT f GenState{
-            eFinds=[]
-           ,eFindIndex=0
-           ,eGen=seed
-           ,eMaxNesting=2
-           }
-
-_tm :: (MonadGen m, MonadIO m) => m [[Int]]
-_tm = do
-    a <- mapM ff [1..5 :: Int]
-    return a
-
-    where
-    ff :: (MonadGen m, MonadIO m) => Int ->  m [Int]
-    ff i | i > 50 = return [0 ]
-    ff i = do
-
-        gen1 <- gets eGen
-        liftIO $ putStrLn $ "Before " ++ show i  ++ " " ++ show gen1
-        r <- rangeRandomG (1,100)
-        gen2 <- gets eGen
-        liftIO $ putStrLn $ "After  " ++ show i ++ " " ++ show gen2 ++ " r:" ++ show r
-
-        a <- ff r
-        return $ r : a
-
-myMap :: (MonadGen m, MonadIO m) => (a -> m b) -> [a] -> m [b]
-myMap _ [] = return []
-
-myMap f [a] = do
-    b <- f a
-    return [b]
-
-myMap f (a:aas) = do
-    b <- f a
-    bs <- myMap f aas
-    return $ b : bs
-
-
-sr :: MonadGen m => m [Integer]
-sr = do
-    let lst = [1,2,3,4,5,6] :: [Integer]
-    sample lst 2
-
 
