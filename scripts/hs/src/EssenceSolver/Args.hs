@@ -19,7 +19,7 @@ data Args = Args{  essence     :: FilePath
 
 argsDef :: Args
 argsDef  = Args
-             { essence = def &= help "Essence Spec"
+             { essence =  "" &= argPos 0 &= help "Essence Spec"
              , param   = def &= help "Essence Param"
              , outPath = def &= help "Where to output the solution"
              }
