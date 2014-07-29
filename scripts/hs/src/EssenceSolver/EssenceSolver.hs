@@ -59,7 +59,7 @@ inlineParamAndLettings essence param =
                 >=> explodeStructuralVars   >=> recordSpec "explodeStructuralVars"
                 >=> inlineLettings          >=> recordSpec "inlineLettings"
                 >=> stripDecls              >=> recordSpec "stripDecls"
-                >=> return . atMostOneSuchThat True >=> recordSpec "atMostOneSuchThat"
+                -- >=> return . atMostOneSuchThat True >=> recordSpec "atMostOneSuchThat"
 
         inlined <- pipeline0 essenceCombined
         return $ inlined
