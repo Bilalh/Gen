@@ -4,6 +4,7 @@
 module EssenceSolver.EssenceSolver where
 
 import EssenceSolver.Data
+import EssenceSolver.Solve
 
 import Bug
 import Language.E
@@ -17,14 +18,16 @@ import Language.E.Pipeline.AtMostOneSuchThat(atMostOneSuchThat)
 
 main' :: SolverState -> IO ()
 main' SolverState{..} = do
-   print . pretty $ sEssence
-   let (spec@(Spec _ stmt),specLogTree) = inlineParamAndLettings sEssence sParam
+    print . pretty $ sEssence
+    let (spec@(Spec _ _),specLogTree) = inlineParamAndLettings sEssence sParam
 
-   print . pretty $ specLogTree
-   print . pretty $ spec
-   -- mapM (print . prettyAsPaths) $ statementAsList stmt
+    print . pretty $ specLogTree
+    print . pretty $ spec
 
-   return ()
+    let solution = solveSpec spec
+    print . pretty $ solution
+
+    return ()
 
 
 inlineParamAndLettings :: Spec -> Maybe Spec -> (Spec, LogTree)
