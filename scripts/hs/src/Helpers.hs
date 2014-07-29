@@ -13,15 +13,13 @@ import qualified Data.Set as S
 import qualified Data.Text as T
 
 
-mkSpec :: [E] -> IO Spec
-mkSpec es = do
-
+mkSpec :: [E] -> Spec
+mkSpec es =
     let spec = Spec (LanguageVersion "Essence" [1,3])
          . listAsStatement
          -- . normaliseSolutionEs
          $ es
-    print .  pretty $ spec
-    return spec
+    in spec
 
 pullFinds :: [E] -> [(E,E)]
 pullFinds es = mapMaybe pullFind es

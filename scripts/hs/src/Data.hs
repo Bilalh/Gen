@@ -23,10 +23,12 @@ type MonadGG  m  = (Monad m , Applicative m , Functor m , MonadState GenGlobal m
 data GenState = GenState
         {
           eFinds          :: [(Text, E)] -- Domains of finds
+        , eConstraints    :: [E]         -- Constrints
         , eFindIndex      :: Int         -- Next index for a name
         , eGen            :: StdGen      -- random seed
         , eMaxNesting     :: Int         -- Max level of nesting
         } deriving (Show)
+
 
 data GenGlobal = GenGlobal
     {
@@ -40,6 +42,15 @@ data GenGlobal = GenGlobal
         ,gMaxNesting   :: Int
         ,gCount        :: Int
     } deriving (Show,Generic)
+
+defaultGenGlobal :: GenState
+defaultGenGlobal = GenState{
+        eFinds=[]
+       ,eConstraints=[]
+       ,eFindIndex=0
+       ,eGen=undefined
+       ,eMaxNesting=undefined
+       }
 
 instance FromJSON GenGlobal
 instance ToJSON GenGlobal

@@ -14,13 +14,16 @@ import Language.E
 
 import qualified Data.Text as T
 
-
-makeEs :: MonadGen m  => m [E]
-makeEs = do
+chooseSpec :: MonadGen m  => m Spec
+chooseSpec = do
     varsNum <-  rangeRandomG (1,3)
     mapM_ (\_ -> chooseFindsDomain) [1..varsNum]
+
     gs <- gets eFinds
-    return $  fmap (\(n,e) -> mkFind ((mkName n), e) ) gs
+    let es = fmap (\(n,e) -> mkFind ((mkName n), e) ) gs
+    return . mkSpec $ es
+
+
 
 chooseFindsDomain :: MonadGen m => m ()
 chooseFindsDomain = do

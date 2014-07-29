@@ -5,9 +5,8 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE PatternGuards #-}
 
-module Main where
+module TestGen where
 
-import Args(parseArgs)
 import Data
 import Helpers
 import Runner
@@ -36,19 +35,18 @@ run seed limit = do
     liftIO $ putStrLn . groom $ this
 
     nestl <- gets gMaxNesting
-    (es,st) <- runStateT makeEs GenState{
-        eFinds=[]
-       ,eFindIndex=0
-       ,eGen=seed
+    (spec,st) <- runStateT chooseSpec defaultGenGlobal{
+        eGen=seed
        ,eMaxNesting=nestl
        }
+
+    liftIO $ print . pretty $ spec
 
     ts <- liftIO timestamp >>= return .show
     dir <- gets gBase >>= \d -> return $ d </> ts
     liftIO $ createDirectoryIfMissing True  dir
 
     let name = (dir </> ts <.> ".essence")
-    spec <- liftIO $ mkSpec es
     liftIO $ writeSpec name spec
 
     specLim <- gets gSpecTime
@@ -134,22 +132,6 @@ run seed limit = do
 --             n <- gets gErrors
 --             modify ( \st -> st{ gErrors=r:n  })
 
-main :: IO ()
-main = do
-    globalState <- parseArgs
-    main' globalState
-    putStrLn "<<Finished>>"
-
-maing :: Float -> Int -> Int -> IO()
-maing total perSpec seed = do
-    let globalState = GenGlobal{
-                       gBase = "__", gSeed = seed
-                     , gTotalTime=total, gSpecTime=perSpec
-                     , gErrorsRefine=[], gErrorsSolve=[],gInconsistent=[]
-                     , gCount=0, gMaxNesting = 1}
-    main' globalState
-
-
 main' :: GenGlobal -> IO ()
 main' gs = do
     print gs
@@ -161,4 +143,15 @@ main' gs = do
     putStrLn . groom $ finalState
     saveAsJSON finalState (gBase finalState </> "state.json")
     return ()
+
+
+_main :: Float -> Int -> Int -> IO()
+_main total perSpec seed = do
+    let globalState = GenGlobal{
+                       gBase = "__", gSeed = seed
+                     , gTotalTime=total, gSpecTime=perSpec
+                     , gErrorsRefine=[], gErrorsSolve=[],gInconsistent=[]
+                     , gCount=0, gMaxNesting = 1}
+    main' globalState
+
 
