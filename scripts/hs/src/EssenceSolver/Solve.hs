@@ -11,6 +11,8 @@ import Language.E hiding (trace)
 import Language.E.ValidateSolution
 import Debug.Trace(trace)
 
+import Control.Monad(guard)
+
 import Data.Map(Map)
 import qualified Data.Map as M
 
@@ -24,7 +26,6 @@ data State = State {
     , tConstraints :: [E] -- All constraints from the spec
     , tVars :: Map Text E --  current assigned values
 } deriving Show
-
 
 instance Pretty State where
     pretty State{..} = hang "State" 4 $
@@ -65,3 +66,18 @@ allValues [xMatch| rs := domain.int.ranges |] =
         getIntVals [xMatch| [Prim (I _)] := range.from.value.literal |]  =
             error "int unbounded"
         getIntVals _ = error "getIntVals"
+
+
+-- Simple backtracking
+
+type Choice a = [a]
+choose :: [a] -> Choice a
+choose xs = xs
+
+solveConstraints =  do
+    x <- choose [1,2,3 :: Integer]
+    y <- choose [4,5,6]
+    guard ( x + y > 4 )
+    guard ( y == x +1 )
+    return (x,y)
+
