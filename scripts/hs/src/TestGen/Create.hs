@@ -4,14 +4,14 @@
 {-# LANGUAGE RecordWildCards, NamedFieldPuns #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE PatternGuards #-}
-module Create where
+module TestGen.Create where
 
-import Data
-import EssenceDomain
-import EssenceConstraints
-import ArbitraryDomains
-import ToEssence
-import Helpers
+import TestGen.ArbitraryDomains
+import TestGen.Data
+import TestGen.EssenceConstraints
+import TestGen.EssenceDomain
+import TestGen.Helpers
+import TestGen.ToEssence
 
 import Language.E
 
@@ -30,6 +30,7 @@ chooseSpec = do
     let es = fmap (\(n,e) -> mkFind ((mkName n), toEssence e) ) gs
     return . mkSpec $ es ++ [constraints]
 
+
 chooseFindsDomain :: MonadGen m => m ()
 chooseFindsDomain = do
     levels <- gets eMaxNesting
@@ -42,11 +43,13 @@ chooseFindsDomain = do
                    ,eFinds = (name, dom) : fs  }  )
     return ()
 
+
 chooseAllConstraints :: MonadGen m => m ()
 chooseAllConstraints = do
     finds <- gets eFinds
     constraints <- concatMapM chooseConstraints finds
     modify (\s -> s{eConstraints = Elit (ELB True) : constraints})
+
 
 chooseConstraints :: MonadGen m => (Text,EssenceDomain) -> m [Eexpr]
 chooseConstraints (name,(DInt _ u)) = do
@@ -54,3 +57,12 @@ chooseConstraints (name,(DInt _ u)) = do
     return [expr]
 
 chooseConstraints _ = return []
+
+findsOfType :: MonadGen m => EssenceDomain ->  m [(Text, EssenceDomain)]
+findsOfType edom = do
+    finds <- gets eFinds
+    let ofType =   [  x | x <- finds, isSameType edom (snd x)]
+    return $ finds
+
+isSameType :: EssenceDomain -> EssenceDomain -> Bool
+isSameType (DInt _ _) (DInt _ _) = True

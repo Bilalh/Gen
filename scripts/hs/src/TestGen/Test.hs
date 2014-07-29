@@ -6,26 +6,25 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ConstraintKinds #-}
-module Test where
+module TestGen.Test where
+
+
+import Helpers
+import Data
 
 import Language.E hiding(EssenceLiteral(..))
 -- import Language.E.NormaliseSolution(normaliseSolutionEs)
 import Language.E.Pipeline.ReadIn(writeSpec)
 
-import Data.Set(Set)
-import qualified Data.Set as S
-import qualified Data.Text as T
-
 import Control.Monad.Trans.State.Strict(StateT)
+import Data.DeriveTH
+import Data.Set(Set)
+import Test.QuickCheck
 import Text.Groom(groom)
 
-import Test.QuickCheck
+import qualified Data.Set as S
+import qualified Data.Text as T
 import qualified Test.QuickCheck as Q
-
-import Data.DeriveTH
-
-import Helpers
-import Data
 
 a :: Int -> IO Int
 a f = return 44

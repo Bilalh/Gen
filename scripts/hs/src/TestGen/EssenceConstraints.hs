@@ -1,10 +1,10 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
 {-# LANGUAGE ConstraintKinds, FlexibleContexts #-}
 
-module EssenceConstraints where
+module TestGen.EssenceConstraints where
 
-import Helpers
-import ToEssence
+import TestGen.Helpers
+import TestGen.ToEssence
 
 import Language.E
 

@@ -1,8 +1,9 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE ConstraintKinds, FlexibleContexts #-}
-module Sample(sample,weightedRange) where
+module TestGen.Sample(sample,weightedRange) where
 
-import Data(MonadGen,rangeRandomG)
+import TestGen.Data(MonadGen,rangeRandomG)
+
 import Data.Foldable(toList)
 import Data.Maybe(fromJust)
 

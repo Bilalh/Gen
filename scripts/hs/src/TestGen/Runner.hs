@@ -1,18 +1,20 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
 {-# LANGUAGE DeriveGeneric #-}
-module Runner where
+module TestGen.Runner where
+
 
 
 import Data.Aeson(FromJSON(..),ToJSON(..))
+import Data.Functor((<$>))
 import Data.Map(Map)
 
 import GHC.Generics (Generic)
+import System.Directory(doesFileExist)
 import System.Environment(getEnv)
 import System.FilePath((</>))
-import System.Directory(doesFileExist)
 import System.Process(rawSystem)
 
-import Data.Functor((<$>))
+
 
 import qualified Data.Aeson as A
 import qualified Data.ByteString.Lazy as B

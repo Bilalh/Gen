@@ -1,9 +1,10 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE RecordWildCards #-}
-module Args(parseArgs) where
+module TestGen.Args(parseArgs) where
+
+import TestGen.Data
 
 import Build_autoversion(buildDateRFC2822,autoVersion)
-import Data
 import System.Console.CmdArgs.Implicit
 
 data Args = Args{base_directory  :: Maybe FilePath

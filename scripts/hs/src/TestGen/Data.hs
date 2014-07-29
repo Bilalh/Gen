@@ -3,15 +3,17 @@
 
 {-# LANGUAGE DeriveGeneric #-}
 
-module Data where
-import Runner(RefineR,SolveR)
-import EssenceDomain(EssenceDomain)
-import EssenceConstraints(Eexpr)
+module TestGen.Data where
+
+import TestGen.Runner(RefineR,SolveR)
+import TestGen.EssenceDomain(EssenceDomain)
+import TestGen.EssenceConstraints(Eexpr)
 
 import Language.E hiding (trace)
-import GHC.Generics (Generic)
+
 import Data.Aeson(FromJSON(..),ToJSON(..))
 import Debug.Trace(trace)
+import GHC.Generics (Generic)
 
 import qualified Data.Aeson as A
 import qualified Data.ByteString.Lazy as B

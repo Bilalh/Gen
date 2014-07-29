@@ -5,12 +5,12 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE PatternGuards #-}
 
-module TestGen where
+module TestGen.TestGen where
 
-import Data
-import Helpers
-import Runner
-import Create
+import TestGen.Create
+import TestGen.Data
+import TestGen.Helpers
+import TestGen.Runner
 
 import Language.E
 import Language.E.Pipeline.ReadIn(writeSpec)

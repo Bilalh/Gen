@@ -1,7 +1,7 @@
 module Main where
 
-import TestGen(main')
-import Args(parseArgs)
+import TestGen.TestGen(main')
+import TestGen.Args(parseArgs)
 
 main :: IO ()
 main = do

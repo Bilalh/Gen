@@ -4,9 +4,9 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ConstraintKinds #-}
 
-module Debug where
+module TestGen.Debug where
 
-import Data
+import TestGen.Data
 import Language.E
 
 import Control.Monad.Trans.State.Strict(StateT)

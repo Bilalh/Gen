@@ -1,10 +1,10 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
 {-# LANGUAGE ConstraintKinds, FlexibleContexts #-}
 
-module EssenceDomain where
+module TestGen.EssenceDomain where
 
-import ToEssence
-import Helpers
+import TestGen.ToEssence
+import TestGen.Helpers
 
 import Language.E
 

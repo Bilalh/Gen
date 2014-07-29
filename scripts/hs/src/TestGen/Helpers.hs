@@ -1,5 +1,5 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
-module Helpers where
+module TestGen.Helpers where
 
 -- Helpers function which do depend on anything else
 
