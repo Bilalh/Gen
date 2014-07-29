@@ -8,6 +8,12 @@ import Bug
 import Language.E
 import Language.E.ValidateSolution
 
+-- Start with a Spec with finds and constraints
+-- letting and given have allready been inlined
+
+
 
 solveSpec :: Spec -> Spec
 solveSpec = undefined
+
+

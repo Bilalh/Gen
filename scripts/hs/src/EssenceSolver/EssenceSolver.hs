@@ -15,6 +15,7 @@ import Language.E.Pipeline.InlineLettings ( inlineLettings )
 import Language.E.Pipeline.ReadIn(readSpecFromFile)
 import Language.E.Pipeline.AtMostOneSuchThat(atMostOneSuchThat)
 
+import System.FilePath( (<.>), (</>))
 
 main' :: SolverState -> IO ()
 main' SolverState{..} = do
@@ -73,13 +74,16 @@ stripDecls (Spec language stmt) = return $ Spec language $ listAsStatement
         _ -> True
     ]
 
-_m :: IO ()
-_m =do
-    sp <- readSpecFromFile "/Users/bilalh/Desktop/Results/testgen/zspecs/Solve/1/1.essence"
-    pa <- readSpecFromFile "/Users/bilalh/Desktop/Results/testgen/zspecs/Solve/1/p.param"
+_m :: FilePath -> IO ()
+_m s = do
+    sp <- readSpecFromFile $
+        "/Users/bilalh/Desktop/Results/testgen/zspecs/Solve/"
+        </> s </> s <.> "essence"
+    -- pa <- readSpecFromFile "/Users/bilalh/Desktop/Results/testgen/zspecs/Solve/1/p.param"
     main' $
         SolverState{
          sEssence=sp
-        ,sParam= Just pa
+        -- ,sParam= Just pa
+        ,sParam = Nothing
         ,sOutPath="/Users/bilalh/Desktop/Results/testgen/zspecs/Solve/1/1.solution"
         }
