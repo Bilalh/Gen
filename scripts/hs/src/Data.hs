@@ -5,6 +5,8 @@
 
 module Data where
 import Runner(RefineR,SolveR)
+import EssenceDomain(EssenceDomain)
+import EssenceConstraints(Eexpr)
 
 import Language.E hiding (trace)
 import GHC.Generics (Generic)
@@ -18,12 +20,12 @@ import qualified Data.ByteString.Lazy as B
 type MonadA   m  = (Monad m , Applicative m , Functor m )
 type MonadGen m  = (Monad m , Applicative m , Functor m , MonadState GenState  m )
 type MonadGG  m  = (Monad m , Applicative m , Functor m , MonadState GenGlobal m )
-
+type Dom = E
 
 data GenState = GenState
         {
-          eFinds          :: [(Text, E)] -- Domains of finds
-        , eConstraints    :: [E]         -- Constrints
+          eFinds          :: [(Text, EssenceDomain)] -- Domains of finds
+        , eConstraints    :: [Eexpr]     -- Constrints
         , eFindIndex      :: Int         -- Next index for a name
         , eGen            :: StdGen      -- random seed
         , eMaxNesting     :: Int         -- Max level of nesting
@@ -73,3 +75,4 @@ rangeRandomG range = do
         ++ " before " ++ show gen
         ++ " after  " ++ show gen')
         return $ fromIntegral x
+
