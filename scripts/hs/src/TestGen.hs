@@ -1,60 +1,29 @@
-{-# OPTIONS_GHC -fno-warn-unused-imports #-}
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ConstraintKinds, FlexibleContexts #-}
 
+{-# LANGUAGE RecordWildCards, NamedFieldPuns #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE PatternGuards #-}
 
 module Main where
 
 import Args(parseArgs)
 import Data
-import Debug
 import Helpers
 import Runner
+import Create
 
 import Language.E
 import Language.E.Pipeline.ReadIn(writeSpec)
-import Language.E.DomainOf
 
-import Control.Monad.Trans.State.Strict(StateT,execStateT)
-import Data.Set(Set)
-import Data.Maybe(fromJust)
+import Control.Monad.Trans.State.Strict(execStateT)
 
 import System.Directory(createDirectoryIfMissing)
 import System.FilePath((</>), (<.>))
-import System.Process(rawSystem)
-import System.Random(randomIO,mkStdGen)
+import System.Random(mkStdGen)
 
 import Text.Groom(groom)
 
-import qualified Data.Set as S
-import qualified Data.Text as T
-import qualified Test.QuickCheck as Q
-
-chooseFindsDomain :: MonadGen m => m ()
-chooseFindsDomain = do
-    -- maxN <- gets eMaxNesting
-    -- levels <-rangeRandomG (1,maxN)
-    levels <- gets eMaxNesting
-    dom :: EssenceDomain  <- pickVal levels
-
-    i <- gets eFindIndex
-    let name = T.pack $  "var" ++  (show  i)
-    fs <- gets eFinds
-    modify ( \s-> s{eFindIndex = i+1
-                   ,eFinds = (name,  toEssence dom) : fs  }  )
-    return ()
-
-makeEs :: MonadGen m  => m [E]
-makeEs = do
-    varsNum <-  rangeRandomG (1,3)
-    mapM_ (\_ -> chooseFindsDomain) [1..varsNum]
-    gs <- gets eFinds
-    return $  fmap (\(n,e) -> mkFind ((mkName n), e) ) gs
 
 run :: (MonadIO m, MonadGG m) =>  StdGen -> Float -> m ()
 run _ limit | limit <= 0  = do
@@ -180,6 +149,7 @@ maing total perSpec seed = do
                      , gCount=0, gMaxNesting = 1}
     main' globalState
 
+
 main' :: GenGlobal -> IO ()
 main' gs = do
     print gs
@@ -191,14 +161,4 @@ main' gs = do
     putStrLn . groom $ finalState
     saveAsJSON finalState (gBase finalState </> "state.json")
     return ()
-
-mkSpec :: [E] -> IO Spec
-mkSpec es = do
-
-    let spec = Spec (LanguageVersion "Essence" [1,3])
-         . listAsStatement
-         -- . normaliseSolutionEs
-         $ es
-    print .  pretty $ spec
-    return spec
 

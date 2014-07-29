@@ -1,6 +1,8 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
 module Helpers where
 
+-- Helpers function which do depend on anything else
+
 import Language.E
 
 import Data.Set(Set)
@@ -9,6 +11,17 @@ import System.Locale(defaultTimeLocale)
 
 import qualified Data.Set as S
 import qualified Data.Text as T
+
+
+mkSpec :: [E] -> IO Spec
+mkSpec es = do
+
+    let spec = Spec (LanguageVersion "Essence" [1,3])
+         . listAsStatement
+         -- . normaliseSolutionEs
+         $ es
+    print .  pretty $ spec
+    return spec
 
 pullFinds :: [E] -> [(E,E)]
 pullFinds es = mapMaybe pullFind es
@@ -28,14 +41,15 @@ onlyNamesAsText = S.fromList . map f
     where f ([xMatch|[Prim (S name)] := reference |], _) = name
           f (e,_) = error . show $ "onlyNamesAsText*f: not a name" <+> pretty e
 
+getName :: E -> Text
+getName [xMatch| [Prim (S name)] := reference  |] = name
+getName e = error . show $ "getName: not a name" <+> pretty e
+
 appendToName :: Text -> E -> E
 appendToName end [xMatch|[Prim (S name)] := reference |]  =
     [xMake| reference := [Prim (S $ T.append name end )]  |]
 appendToName e _ = error . show $ "appendToName: not a name" <+> pretty e
 
-getName :: E -> Text
-getName [xMatch| [Prim (S name)] := reference  |] = name
-getName e = error . show $ "getName: not a name" <+> pretty e
 
 mkName :: Text -> E
 mkName name = [xMake| reference :=  [Prim (S name)]  |]
