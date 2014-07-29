@@ -52,3 +52,5 @@ chooseConstraints :: MonadGen m => (Text,EssenceDomain) -> m [Eexpr]
 chooseConstraints (name,(DInt _ u)) = do
     let expr = Eneq (Evar name)  ( Elit (ELI (u-1)) )
     return [expr]
+
+chooseConstraints _ = return []
