@@ -13,7 +13,6 @@ import Language.E.ValidateSolution
 import Language.E.Pipeline.ExplodeStructuralVars ( explodeStructuralVars )
 import Language.E.Pipeline.InlineLettings ( inlineLettings )
 import Language.E.Pipeline.ReadIn(readSpecFromFile)
-import Language.E.Pipeline.AtMostOneSuchThat(atMostOneSuchThat)
 
 import System.FilePath( (<.>), (</>))
 
@@ -22,11 +21,11 @@ main' SolverState{..} = do
     print . pretty $ sEssence
     let (spec@(Spec _ _),specLogTree) = inlineParamAndLettings sEssence sParam
 
-    print . pretty $ specLogTree
+    -- print . pretty $ specLogTree
     print . pretty $ spec
 
     let solution = solveSpec spec
-    print . pretty $ solution
+    -- print . pretty $ solution
 
     return ()
 
