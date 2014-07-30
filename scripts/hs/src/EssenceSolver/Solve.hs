@@ -30,8 +30,8 @@ data State = State {
 instance Pretty State where
     pretty State{..} = hang "State" 4 $
        P.braces . vcat . punctuate "," $ [
-               "tDoms"        <+> "=" <+> (vcat . map pretty $ M.toList tDoms)
-             , "tConstraints" <+> "=" <+> (vcat . map pretty $ tConstraints )
+               -- "tDoms"        <+> "=" <+> (vcat . map pretty $ M.toList tDoms)
+               "tConstraints" <+> "=" <+> (vcat . map pretty $ tConstraints )
              , "tVars"        <+> "=" <+> (vcat . map pretty $ M.toList tVars )
        ]
 
@@ -67,6 +67,19 @@ allValues [xMatch| rs := domain.int.ranges |] =
             error "int unbounded"
         getIntVals _ = error "getIntVals"
 
+eguard :: E -> Bool
+eguard e =
+    let (mresult, _logs) = runCompESingle "eguard" helper
+    in case mresult of
+        Right b -> b
+        Left d  -> error . show .  vcat $ ["eguard", d]
+
+    where
+        helper = do
+            res <- toBool e
+            return $ case res of
+                Right (b,_) -> b
+                Left _  -> False
 
 -- Simple backtracking
 
@@ -74,6 +87,7 @@ type Choice a = [a]
 choose :: [a] -> Choice a
 choose xs = xs
 
+solveConstraints :: [(Integer, Integer)]
 solveConstraints =  do
     x <- choose [1,2,3 :: Integer]
     y <- choose [4,5,6]
