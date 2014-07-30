@@ -52,7 +52,7 @@ solveSpec spec@(Spec _ stmt) =
 pullConstraints :: [E] -> [E]
 pullConstraints = catMaybes . map f
     where f [xMatch| [xs] := topLevel.suchThat |] = Just xs
-          f x = Nothing
+          f _ = Nothing
 
 allValues :: E -> [E]
 allValues [xMatch| rs := domain.int.ranges |] =
@@ -66,6 +66,8 @@ allValues [xMatch| rs := domain.int.ranges |] =
         getIntVals [xMatch| [Prim (I _)] := range.from.value.literal |]  =
             error "int unbounded"
         getIntVals _ = error "getIntVals"
+
+allValues e = error . show . vcat $ [ "Missing case in AllValues", pretty e ]
 
 eguard :: E -> Bool
 eguard e =
@@ -81,17 +83,28 @@ eguard e =
                 Right (b,_) -> b
                 Left _  -> False
 
+firstSolution :: [a] -> Maybe a
+firstSolution (x:_) = Just x
+firstSolution []    = Nothing
+
 -- Simple backtracking
 
 type Choice a = [a]
 choose :: [a] -> Choice a
 choose xs = xs
 
-solveConstraints :: [(Integer, Integer)]
-solveConstraints =  do
+solveInts :: [(Integer, Integer)]
+solveInts =  do
     x <- choose [1,2,3 :: Integer]
     y <- choose [4,5,6]
     guard ( x + y > 4 )
-    guard ( y == x +1 )
+    guard ( y == x + 1 )
     return (x,y)
 
+solveEInts :: [(E,E)]
+solveEInts = do
+    x <- choose $ [ [eMake| 1 |], [eMake| 2 |], [eMake| 3 |] ]
+    y <- choose $ [ [eMake| 4 |], [eMake| 5 |], [eMake| 6 |] ]
+    guard ( eguard [eMake| &x + &y > 4  |] )
+    guard ( eguard [eMake| &y = &x + 1  |] )
+    return (x, y)
