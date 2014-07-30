@@ -16,8 +16,8 @@ import Language.E.Pipeline.ReadIn(readSpecFromFile)
 
 import System.FilePath( (<.>), (</>))
 
-main' :: SolverState -> IO ()
-main' SolverState{..} = do
+main' :: SolverArgs -> IO ()
+main' SolverArgs{..} = do
     print . pretty $ sEssence
     let (spec@(Spec _ _),specLogTree) = inlineParamAndLettings sEssence sParam
 
@@ -80,7 +80,7 @@ _m s = do
         </> s </> s <.> "essence"
     -- pa <- readSpecFromFile "/Users/bilalh/Desktop/Results/testgen/zspecs/Solve/1/p.param"
     main' $
-        SolverState{
+        SolverArgs{
          sEssence=sp
         -- ,sParam= Just pa
         ,sParam = Nothing

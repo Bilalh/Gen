@@ -29,7 +29,7 @@ argsDef  = Args
                              ])
          &= helpArg [name "h"]
 
-parseArgs :: IO SolverState
+parseArgs :: IO SolverArgs
 parseArgs = do
    Args{..} <- cmdArgs argsDef
 
@@ -47,7 +47,7 @@ parseArgs = do
                 sp <- readSpecFromFile s
                 return $ Just sp
 
-   return $ SolverState{..}
+   return $ SolverArgs{..}
 
     where
     _f Nothing n = error $ "--" ++ n ++ " needs to be specifed"

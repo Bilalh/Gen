@@ -3,7 +3,7 @@
 
 module TestGen.EssenceConstraints where
 
-import TestGen.Helpers
+import Common.Helpers
 import TestGen.ToEssence
 
 import Language.E

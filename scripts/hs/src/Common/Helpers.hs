@@ -1,5 +1,5 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
-module TestGen.Helpers where
+module Common.Helpers where
 
 -- Helpers function which do depend on anything else
 
@@ -33,6 +33,11 @@ pullGivens es = mapMaybe pullGiven es
                            | [dom]  := topLevel.declaration.given.domain |] = Just (name,dom)
           pullGiven _ = Nothing
 
+-- assumes each constraint is in a such that
+pullConstraints :: [E] -> [E]
+pullConstraints = catMaybes . map f
+    where f [xMatch| [xs] := topLevel.suchThat |] = Just xs
+          f _ = Nothing
 
 onlyNamesAsText :: [(E,E)] -> Set Text
 onlyNamesAsText = S.fromList . map f

@@ -9,7 +9,7 @@ module TestGen.TestGen where
 
 import TestGen.Create
 import TestGen.Data
-import TestGen.Helpers
+import Common.Helpers
 import TestGen.Runner
 
 import Language.E

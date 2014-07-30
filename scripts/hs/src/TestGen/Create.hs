@@ -10,7 +10,7 @@ import TestGen.ArbitraryDomains
 import TestGen.Data
 import TestGen.EssenceConstraints
 import TestGen.EssenceDomain
-import TestGen.Helpers
+import Common.Helpers
 import TestGen.ToEssence
 
 import Language.E
