@@ -13,6 +13,7 @@ data SolverArgs = SolverArgs {
       sEssence :: Spec
     , sParam   :: Maybe Spec
     , sOutPath :: FilePath
+    , sAllSolutions :: Bool
     }
 
 data SolverState = SolverState {

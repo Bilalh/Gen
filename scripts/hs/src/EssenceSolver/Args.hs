@@ -11,17 +11,19 @@ import Build_autoversion(buildDateRFC2822,autoVersion)
 import System.Console.CmdArgs.Implicit
 import System.FilePath( (<.>), dropExtension )
 
-data Args = Args{  essence     :: FilePath
-                 , param       :: Maybe FilePath
-                 , outPath     :: Maybe FilePath
+data Args = Args{  essence      :: FilePath
+                 , param        :: Maybe FilePath
+                 , outPath      :: Maybe FilePath
+                 , allSolutions :: Bool
                 }  deriving (Show, Data, Typeable)
 
 
 argsDef :: Args
 argsDef  = Args
-             { essence =  "" &= argPos 0
-             , param   = def &= help "Essence Param"
-             , outPath = def &= help "Where to output the solution"
+             { essence      = ""  &= argPos 0
+             , param        = def &= help "Essence Param"
+             , outPath      = def &= help "Where to output the solution"
+             , allSolutions = def &= help "Give all solution"
              }
          &= summary (unlines ["EssenceSolver Version 1.0"
                              , "Git version: " ++ autoVersion
@@ -47,7 +49,7 @@ parseArgs = do
                 sp <- readSpecFromFile s
                 return $ Just sp
 
-   return $ SolverArgs{..}
+   return $ SolverArgs{sAllSolutions =allSolutions, ..}
 
     where
     _f Nothing n = error $ "--" ++ n ++ " needs to be specifed"

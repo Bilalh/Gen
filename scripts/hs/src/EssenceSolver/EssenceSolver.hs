@@ -19,14 +19,23 @@ import System.FilePath( (<.>), (</>))
 main' :: SolverArgs -> IO ()
 main' SolverArgs{..} = do
     print . pretty $ sEssence
-    let (spec@(Spec _ _),specLogTree) = inlineParamAndLettings sEssence sParam
+    let (spec@(Spec _ _),_) = inlineParamAndLettings sEssence sParam
 
     -- print . pretty $ specLogTree
     print . pretty $ spec
 
-    let solution = solveSpec spec
-    putStrLn "\n~~~First Solution~~~"
-    print . fmap (map pretty)  $ solution
+    case sAllSolutions of
+            True -> do
+                let solutions = allSolutions spec
+                putStrLn "\n~~~ All Solutions~~~"
+                mapM_ (print . (map pretty))  $ solutions
+
+            False -> do
+                let solution = firstSolution spec
+                putStrLn "\n~~~First Solution~~~"
+                print . fmap (map pretty)  $ solution
+
+
     return ()
 
 
@@ -85,4 +94,20 @@ _m s = do
         -- ,sParam= Just pa
         ,sParam = Nothing
         ,sOutPath="/Users/bilalh/Desktop/Results/testgen/zspecs/Solve/1/1.solution"
+        ,sAllSolutions=False
+        }
+
+_a :: FilePath -> IO ()
+_a s = do
+    sp <- readSpecFromFile $
+        "/Users/bilalh/Desktop/Results/testgen/zspecs/Solve/"
+        </> s </> s <.> "essence"
+    -- pa <- readSpecFromFile "/Users/bilalh/Desktop/Results/testgen/zspecs/Solve/1/p.param"
+    main' $
+        SolverArgs{
+         sEssence=sp
+        -- ,sParam= Just pa
+        ,sParam = Nothing
+        ,sOutPath="/Users/bilalh/Desktop/Results/testgen/zspecs/Solve/1/1.solution"
+        ,sAllSolutions=True
         }

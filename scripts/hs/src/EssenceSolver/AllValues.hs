@@ -90,7 +90,7 @@ allValues
         valTo    = allValues innerTo
         sFrom    = domSizeC innerFrom
         sTo      = domSizeC innerTo
-        tos      = replicateM  (fromInteger . getInt $ sFrom) valTo
+        tos      = replicateM  (fromInteger . getInt $ sTo) valTo
         -- maps     = map (zip valFrom) tos
         maps     = map (zipWith mkMapping valFrom) tos
         allFuncs = map mkFunction maps

@@ -25,11 +25,14 @@ import Control.Monad.State.Strict(State)
 import qualified Data.Map as M
 import qualified Text.PrettyPrint as P
 
+firstSolution :: Spec -> Maybe [(Ref, E)]
+firstSolution sp = onlyFirstSolution $ allSolutions sp
 
 -- Start with a Spec with finds and constraints
 -- letting and given have allready been inlined
--- solveSpec :: Spec -> Maybe Spec
-solveSpec (Spec _ stmt) =
+-- allSolutions :: Spec -> [Spec]
+allSolutions :: Spec -> [[(Ref, E)]]
+allSolutions (Spec _ stmt) =
 
     let
         es = statementAsList stmt
@@ -39,7 +42,7 @@ solveSpec (Spec _ stmt) =
         tConstraints = pullConstraints $ es
 
         sols = backtrackSolve tDoms tConstraints
-    in firstSolution sols
+    in sols
 
 backtrackSolve :: [(Ref, [E])] -> [E] -> [[(Ref, E)]]
 backtrackSolve domValues constraints = do
@@ -48,10 +51,9 @@ backtrackSolve domValues constraints = do
     return vs
 
 
-firstSolution :: [a] -> Maybe a
-firstSolution (x:_) = Just x
-firstSolution []    = Nothing
-
+onlyFirstSolution :: [a] -> Maybe a
+onlyFirstSolution (x:_) = Just x
+onlyFirstSolution []    = Nothing
 
 
 
