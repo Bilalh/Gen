@@ -18,6 +18,16 @@ allValues [xMatch| rs := domain.int.ranges |] =
             error "int unbounded"
         getIntVals _ = error "getIntVals"
 
-allValues e = error . show . vcat $ [ "Missing case in AllValues", pretty e ]
+allValues [dMatch| set of &inner |] =
+    let
+        allInners = allValues inner
+        allSets =  subsequences allInners
+    in
+        map mkSet allSets
+
+    where
+        mkSet es =  [xMake| value.set.values := es |]
+
+allValues e = error . show . vcat $ [ "Missing case in AllValues", pretty e, prettyAsTree e ]
 
 
