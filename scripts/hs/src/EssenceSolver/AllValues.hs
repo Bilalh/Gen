@@ -80,6 +80,39 @@ allValues
         mkMatrix es = [xMake| value.matrix.values := es
                             | value.matrix.indexrange := [irDom] |]
 
+-- Function
+allValues
+    [xMatch| attrs       := domain.function.attributes.attrCollection
+           | [innerFrom] := domain.function.innerFrom
+           | [innerTo]   := domain.function.innerTo |] =
+    let
+        valFrom  = allValues innerFrom
+        valTo    = allValues innerTo
+        sFrom    = domSizeC innerFrom
+        sTo      = domSizeC innerTo
+        tos      = replicateM  (fromInteger . getInt $ sFrom) valTo
+        -- maps     = map (zip valFrom) tos
+        maps     = map (zipWith mkMapping valFrom) tos
+        allFuncs = map mkFunction maps
+        filters  = combinedFilter $ map (attrMeta . getAttr) attrs
+    in
+        filters allFuncs
+
+    where
+        mkMapping from to = [xMake| mapping := [from,to] |]
+        mkFunction es = [xMake| value.function.values := es |]
+
+        attrMeta :: (Text, Maybe E) -> E -> Bool
+        attrMeta ("size",Just v) e  =
+            eguard [eMake| |&e| = &v  |]
+
+        attrMeta ("minSize",Just v) e  =
+            eguard [eMake| |&e| >= &v  |]
+
+        attrMeta ("maxSize",Just v) e  =
+            eguard [eMake| |&e| <= &v  |]
+
+        attrMeta a e = error . show $ vcat [ "attrMeta", pretty a, pretty e ]
 
 allValues e = error . show $ vcat  [ "Missing case in AllValues", pretty e, prettyAsTree e ]
 
