@@ -25,8 +25,7 @@ main' SolverArgs{..} = do
     print . pretty $ spec
 
     let solution = solveSpec spec
-    -- print . pretty $ solution
-
+    print . fmap (map pretty)  $ solution
     return ()
 
 

@@ -169,6 +169,7 @@ Executable essenceSolver
                      , time
                      , transformers
                      , pretty
+                     , mtl
     ghc-prof-options:
         -auto-all
         -caf-all
