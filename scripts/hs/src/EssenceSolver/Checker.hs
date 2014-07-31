@@ -3,9 +3,9 @@
 {-# LANGUAGE FlexibleContexts #-}
 module EssenceSolver.Checker where
 
--- import Language.E
-import Language.E hiding (trace)
-import Debug.Trace(trace)
+import Language.E
+-- import Language.E hiding (trace)
+-- import Debug.Trace(trace)
 
 import qualified Data.Map as M
 

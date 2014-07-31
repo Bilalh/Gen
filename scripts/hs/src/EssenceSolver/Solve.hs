@@ -9,9 +9,9 @@ import EssenceSolver.Data
 import EssenceSolver.AllValues(allValues)
 import EssenceSolver.Checker
 
--- import Language.E
-import Language.E hiding (trace)
-import Debug.Trace(trace)
+import Language.E
+-- import Language.E hiding (trace)
+-- import Debug.Trace(trace)
 
 import Bug
 import Language.E.ValidateSolution

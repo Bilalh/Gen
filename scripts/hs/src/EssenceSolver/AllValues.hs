@@ -8,7 +8,10 @@ import EssenceSolver.Checker(eguard)
 import Language.E
 
 allValues :: E -> [E]
-allValues [xMatch| rs := domain.int.ranges |] =
+
+--int
+allValues
+    [xMatch| rs := domain.int.ranges |] =
     concatMap getIntVals rs
 
     where
@@ -20,12 +23,15 @@ allValues [xMatch| rs := domain.int.ranges |] =
             error "int unbounded"
         getIntVals _ = error "getIntVals"
 
-allValues [xMatch| attrs      := domain.set.attributes.attrCollection
-                 | [innerDom] := domain.set.inner |] =
+
+--set
+allValues
+    [xMatch| attrs      := domain.set.attributes.attrCollection
+           | [innerDom] := domain.set.inner |] =
     let
         allInners = allValues innerDom
         allSets   = map mkSet . subsequences $ allInners
-        filters  = combinedFilter $ map (attrMeta . getAttr) attrs
+        filters   = combinedFilter $ map (attrMeta . getAttr) attrs
     in
         filters allSets
 
@@ -44,6 +50,20 @@ allValues [xMatch| attrs      := domain.set.attributes.attrCollection
             eguard [eMake| |&e| <= &v  |]
 
         attrMeta a e = error . show $ vcat [ "attrMeta", pretty a, pretty e ]
+
+-- Tuple
+allValues
+    [xMatch| innerDoms := domain.tuple.inners|] =
+    let
+        allInners = map allValues innerDoms
+        allDoms   = map mkTuple . sequence $ allInners
+    in
+       allDoms
+
+    where
+        mkTuple es =  [xMake|  value.tuple.values := es |]
+
+
 
 
 allValues e = error . show $ vcat  [ "Missing case in AllValues", pretty e, prettyAsTree e ]
