@@ -2,7 +2,7 @@
 {-# LANGUAGE RecordWildCards, NamedFieldPuns #-}
 module EssenceSolver.AllValues(allValues) where
 
-import Common.Helpers(mkInt, getIntMaybe)
+import Common.Helpers(mkInt)
 import EssenceSolver.Checker(eguard)
 
 import Language.E
@@ -25,22 +25,41 @@ allValues [xMatch| attrs      := domain.set.attributes.attrCollection
     let
         allInners = allValues innerDom
         allSets   = map mkSet . subsequences $ allInners
-        -- filters   = compose (map (attrMeta . getAttr ) attrs)
-        filters  = combinedFilter (map (attrMeta . getAttr) attrs)
+        filters  = combinedFilter $ map (attrMeta . getAttr) attrs
     in
         filters allSets
 
     where
+        f a e = attrMeta a e || attrSize a e
         mkSet es =  [xMake| value.set.values := es |]
 
         attrMeta :: (Text, Maybe E) -> E -> Bool
         attrMeta ("size",Just v) e  =
             eguard [eMake| |&e| = &v  |]
 
-        reduceDomain :: [E] -> (Text, Maybe E) -> [E]
-        reduceDomain es attr = es
+        attrMeta ("minSize",Just v) e  =
+            eguard [eMake| |&e| >= &v  |]
+
+        attrMeta ("maxSize",Just v) e  =
+            eguard [eMake| |&e| <= &v  |]
+
+        attrMeta a e = error . show $ vcat [ "attrMeta", pretty a, pretty e ]
+
 
 allValues e = error . show $ vcat  [ "Missing case in AllValues", pretty e, prettyAsTree e ]
+
+attrSize :: (Text, Maybe E) -> E -> Bool
+attrSize ("size",Just v) e  =
+    eguard [eMake| |&e| = &v  |]
+
+attrSize ("minSize",Just v) e  =
+    eguard [eMake| |&e| >= &v  |]
+
+attrSize ("maxSize",Just v) e  =
+    eguard [eMake| |&e| <= &v  |]
+
+attrSize _ _ = True
+
 
 combinedFilter :: [a -> Bool] -> [a] -> [a]
 combinedFilter fs =  filter (\a -> all (\f -> f a )  fs  )
@@ -57,5 +76,5 @@ getAttr [xMatch| [Prim (S n)] := attribute.name.reference
 getAttr e = error . show  $ vcat [ "getAttr", pretty e, prettyAsTree e]
 
 -- Magically combine a list functions
-compose :: [a -> a] -> (a -> a)
-compose fs v = foldl (flip (.)) id fs $ v
+_compose :: [a -> a] -> (a -> a)
+_compose fs v = foldl (flip (.)) id fs $ v
