@@ -8,12 +8,15 @@ import Common.Helpers
 import EssenceSolver.Data
 import EssenceSolver.AllValues(allValues)
 
-import Bug
+-- import Language.E
 import Language.E hiding (trace)
+import Debug.Trace(trace)
+
+import Bug
 import Language.E.ValidateSolution
+import Language.E.Evaluator(fullySimplify)
 
 import Control.Monad(guard)
-import Debug.Trace(trace)
 import Data.Map(Map)
 
 import Control.Monad.State.Strict(State)
@@ -41,11 +44,11 @@ solveSpec (Spec _ stmt) =
 backtrackSolve :: [(Ref, [E])] -> [E] -> [[(Ref, E)]]
 backtrackSolve domValues constraints = do
     vs <- allCombinations domValues
-    mapM_ (guard . eSatisfied vs ) constraints
+    trace "   " $ mapM_ (guard . eSatisfied vs ) constraints
     return vs
 
 eSatisfied :: [(Ref, E)] -> E -> Bool
-eSatisfied vs e = subAndCheck
+eSatisfied vs e =  subAndCheck
 
     where
     subAndCheck =
@@ -69,6 +72,8 @@ subVals lettings expr =
     in
         return $ transform f expr
 
+fullySimplifyE :: MonadConjure m => E -> m E
+fullySimplifyE = liftM fst . runWriterT . fullySimplify
 
 eguard :: E -> Bool
 eguard e =
@@ -79,10 +84,11 @@ eguard e =
 
     where
         helper = do
-            res <- toBool e
+            simplifed <- fullySimplifyE e
+            res <- toBool simplifed
             return $ case res of
                 Right (b,_) -> b
-                Left _  -> False
+                Left m  -> error . show $ vcat ["eguard fail", pretty m]
 
 
 firstSolution :: [a] -> Maybe a
