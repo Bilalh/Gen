@@ -2,8 +2,8 @@
 {-# LANGUAGE RecordWildCards, NamedFieldPuns #-}
 module EssenceSolver.AllValues(allValues) where
 
-import Common.Helpers(mkInt)
-import EssenceSolver.Checker(eguard)
+import Common.Helpers(mkInt, getInt)
+import EssenceSolver.Checker(eguard,domSizeC)
 
 -- import Language.E
 import Language.E hiding (trace)
@@ -69,7 +69,7 @@ allValues
 allValues
     [dMatch| matrix indexed by [&irDom] of &innerDom  |] =
     let
-        dsize     =  2
+        dsize     = fromInteger . getInt $ domSizeC irDom
         allInners = allValues innerDom
         allDoms   = map mkMatrix .  replicateM dsize $ allInners
     in
@@ -80,23 +80,20 @@ allValues
         mkMatrix es = [xMake| value.matrix.values := es
                             | value.matrix.indexrange := [irDom] |]
 
+
 allValues e = error . show $ vcat  [ "Missing case in AllValues", pretty e, prettyAsTree e ]
-
-attrSize :: (Text, Maybe E) -> E -> Bool
-attrSize ("size",Just v) e  =
-    eguard [eMake| |&e| = &v  |]
-
-attrSize ("minSize",Just v) e  =
-    eguard [eMake| |&e| >= &v  |]
-
-attrSize ("maxSize",Just v) e  =
-    eguard [eMake| |&e| <= &v  |]
-
-attrSize _ _ = True
 
 
 combinedFilter :: [a -> Bool] -> [a] -> [a]
 combinedFilter fs =  filter (\a -> all (\f -> f a )  fs  )
+
+combinedFilter2 :: [a -> Bool] -> [a] -> [a]
+combinedFilter2 fs =  _compose (map filter fs)
+
+    where
+    -- Magically combine a list functions
+    _compose :: [a -> a] -> (a -> a)
+    _compose = foldl (flip (.)) id
 
 
 getAttr :: E -> (Text, Maybe E)
@@ -109,6 +106,15 @@ getAttr [xMatch| [Prim (S n)] := attribute.name.reference
 
 getAttr e = error . show  $ vcat [ "getAttr", pretty e, prettyAsTree e]
 
--- Magically combine a list functions
-_compose :: [a -> a] -> (a -> a)
-_compose fs v = foldl (flip (.)) id fs $ v
+
+attrSize :: (Text, Maybe E) -> E -> Bool
+attrSize ("size",Just v) e  =
+    eguard [eMake| |&e| = &v  |]
+
+attrSize ("minSize",Just v) e  =
+    eguard [eMake| |&e| >= &v  |]
+
+attrSize ("maxSize",Just v) e  =
+    eguard [eMake| |&e| <= &v  |]
+
+attrSize _ _ = True

@@ -11,6 +11,19 @@ import qualified Data.Map as M
 
 type Ref = E
 
+domSizeC :: E -> E
+domSizeC e  =
+    let (mresult, _logs) = runCompESingle "eguard" helper
+    in case mresult of
+        Right size ->  size
+        Left d     -> error . show .  vcat $ ["eguard", d, pretty _logs]
+
+    where
+        helper = do
+            f <- domSize e
+            fullySimplifyE f
+
+
 eSatisfied :: [(Ref, E)] -> E -> Bool
 eSatisfied vs e =  subAndCheck
 
