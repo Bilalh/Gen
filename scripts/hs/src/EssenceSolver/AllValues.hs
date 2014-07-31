@@ -5,7 +5,9 @@ module EssenceSolver.AllValues(allValues) where
 import Common.Helpers(mkInt)
 import EssenceSolver.Checker(eguard)
 
-import Language.E
+-- import Language.E
+import Language.E hiding (trace)
+import Debug.Trace(trace)
 
 allValues :: E -> [E]
 
@@ -63,8 +65,20 @@ allValues
     where
         mkTuple es =  [xMake|  value.tuple.values := es |]
 
+-- Matrix
+allValues
+    [dMatch| matrix indexed by [&irDom] of &innerDom  |] =
+    let
+        dsize     =  2
+        allInners = allValues innerDom
+        allDoms   = map mkMatrix .  replicateM dsize $ allInners
+    in
+        -- trace (show . vcat $ map pretty allDoms) allDoms
+        trace (show . vcat $ map pretty allDoms) allDoms
 
-
+    where
+        mkMatrix es = [xMake| value.matrix.values := es
+                            | value.matrix.indexrange := [irDom] |]
 
 allValues e = error . show $ vcat  [ "Missing case in AllValues", pretty e, prettyAsTree e ]
 
