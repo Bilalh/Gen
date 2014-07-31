@@ -100,6 +100,15 @@ _attTest = do
 mkInt :: Integer -> E
 mkInt j =  [xMake| value.literal := [Prim (I j)] |]
 
+getInt :: E -> Integer
+getInt [xMatch| [Prim (I j)] := value.literal |] = j
+getInt e = error . show  $ vcat ["Not a int", pretty e]
+
+getIntMaybe :: E -> Maybe Integer
+getIntMaybe [xMatch| [Prim (I j)] := value.literal |] = Just j
+getIntMaybe _ = Nothing
+
+
 
 timestamp :: IO Int
 timestamp = do

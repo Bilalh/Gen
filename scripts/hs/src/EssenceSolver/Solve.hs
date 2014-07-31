@@ -7,6 +7,7 @@ module EssenceSolver.Solve where
 import Common.Helpers
 import EssenceSolver.Data
 import EssenceSolver.AllValues(allValues)
+import EssenceSolver.Checker
 
 -- import Language.E
 import Language.E hiding (trace)
@@ -24,7 +25,6 @@ import Control.Monad.State.Strict(State)
 import qualified Data.Map as M
 import qualified Text.PrettyPrint as P
 
-type Ref = E
 
 -- Start with a Spec with finds and constraints
 -- letting and given have allready been inlined
@@ -47,53 +47,13 @@ backtrackSolve domValues constraints = do
     trace "   " $ mapM_ (guard . eSatisfied vs ) constraints
     return vs
 
-eSatisfied :: [(Ref, E)] -> E -> Bool
-eSatisfied vs e =  subAndCheck
-
-    where
-    subAndCheck =
-        let
-            (subbedE, _logs) = runCompESingle "subVals"  (subVals vs e)
-        in
-            case subbedE of
-                Left  x -> error . show $ vcat ["subAndCheck", x]
-                Right ne ->
-                    let sat =  eguard ne  in
-                    trace (show $ vcat [pretty ne, pretty sat]) $  eguard ne
-
-
-subVals  :: MonadConjure m => [(Ref, E)] -> E ->  m E
-subVals lettings expr =
-    let
-        lettingsMap = M.fromList lettings
-
-        f x | Just y <- M.lookup x lettingsMap = transform f y
-        f x = x
-    in
-        return $ transform f expr
-
-fullySimplifyE :: MonadConjure m => E -> m E
-fullySimplifyE = liftM fst . runWriterT . fullySimplify
-
-eguard :: E -> Bool
-eguard e =
-    let (mresult, _logs) = runCompESingle "eguard" helper
-    in case mresult of
-        Right b -> b
-        Left d  -> error . show .  vcat $ ["eguard", d]
-
-    where
-        helper = do
-            simplifed <- fullySimplifyE e
-            res <- toBool simplifed
-            return $ case res of
-                Right (b,_) -> b
-                Left m  -> error . show $ vcat ["eguard fail", pretty m]
-
 
 firstSolution :: [a] -> Maybe a
 firstSolution (x:_) = Just x
 firstSolution []    = Nothing
+
+
+
 
 aa :: State String String
 aa =  do
@@ -140,3 +100,17 @@ solveInts =  do
 type Choice a = [a]
 choose :: [a] -> Choice a
 choose xs = xs
+
+
+
+ff :: Int -> String -> Int
+ff  i  "a" = i * 2
+ff  0   _  = 1
+ff  i   _  = i - 1
+
+-- Magically combine a list functions
+compose :: [a -> a] -> (a -> a)
+compose fs v = foldl (flip (.)) id fs $ v
+
+xa :: String -> Int -> Bool
+xa _ _ = True
