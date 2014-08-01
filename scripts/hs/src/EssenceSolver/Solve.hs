@@ -1,6 +1,6 @@
 {-# LANGUAGE QuasiQuotes, ViewPatterns, OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards, NamedFieldPuns #-}
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts, ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}
 module EssenceSolver.Solve where
 
@@ -25,12 +25,15 @@ import Control.Monad.State.Strict(State)
 import qualified Data.Map as M
 import qualified Text.PrettyPrint as P
 
-firstSolution :: Spec -> Maybe [(Ref, E)]
-firstSolution sp = onlyFirstSolution $ allSolutions sp
+type Env        = [(Text, E)]
+type Constraint = E
+type DomVals    = (Text, [E])
+type DomVal     = (Text, E)
+
 
 -- Start with a Spec with finds and constraints
 -- letting and given have allready been inlined
--- allSolutions :: Spec -> [Spec]
+
 allSolutions :: Spec -> [[(Ref, E)]]
 allSolutions (Spec _ stmt) =
 
@@ -41,20 +44,65 @@ allSolutions (Spec _ stmt) =
         tDoms  = map (\(a,b) -> (a, allValues b)) tFinds
         tConstraints = pullConstraints $ es
 
-        sols = backtrackSolve tDoms tConstraints
+        sols = allPossibilitiesSolve tDoms tConstraints
     in sols
 
-backtrackSolve :: [(Ref, [E])] -> [E] -> [[(Ref, E)]]
-backtrackSolve domValues constraints = do
+firstSolution :: Spec -> Maybe [(Ref, E)]
+firstSolution sp = onlyFirstSolution $ allSolutions sp
+
+    where
+    onlyFirstSolution :: [a] -> Maybe a
+    onlyFirstSolution (x:_) = Just x
+    onlyFirstSolution []    = Nothing
+
+allPossibilitiesSolve :: [(Ref, [E])] -> [E] -> [[(Ref, E)]]
+allPossibilitiesSolve domValues constraints = do
     vs <- allCombinations domValues
     trace "   " $ mapM_ (guard . eSatisfied vs ) constraints
     return vs
 
 
-onlyFirstSolution :: [a] -> Maybe a
-onlyFirstSolution (x:_) = Just x
-onlyFirstSolution []    = Nothing
+dfsSolve :: [DomVals] ->  [Constraint] -> Env -> Maybe Env
+dfsSolve ds@(_:_) [] [] =  error "ToDO"
 
+dfsSolve [] _ env = Just env
+dfsSolve ( (dname, dvals) : drest) cs  env =
+    case dvals of
+        []     -> Nothing
+        (x:xs) -> let env' = updateEnv env (dname,x) in
+                    case violates cs env' of
+                        True  -> dfsSolve ( (dname, xs) : drest ) cs env
+                        False -> dfsSolve ( drest ) cs env'
+
+updateEnv :: Env -> DomVal  -> Env
+updateEnv env val = val : env
+
+-- Returns True if any constraint is not satisfied
+violates  :: [Constraint] -> Env -> Bool
+violates cs env =
+    let (mresult, _logs) = runCompESingle "violates" helper
+    in case mresult of
+        Right b    ->  b
+        Left d     -> error . show .  vcat $ ["violates", d, pretty _logs]
+
+    where
+    helper :: MonadConjure m => m Bool
+    helper = do
+        mapM_ (\(n,e) -> addReference n e )  env
+
+        violated :: Bool <- and <$> mapM eViolates cs
+        return violated
+
+    eViolates :: MonadConjure m =>  Constraint -> m Bool
+    eViolates e = do
+        simplifed <- fullySimplifyE e
+        res <- toBool simplifed
+        return $ case res of
+            Right (b,_) -> not b
+            Left m  -> trace (show $ vcat ["violates error", pretty m]) False
+
+
+-- ideas
 
 aa :: State String String
 aa =  do
@@ -66,9 +114,8 @@ greeter = do
     put "tintin"
     return ["hello, " ++ name ++ "!"]
 
--- Simple backtracking
-backtrackSolve1 :: [(E,E)]
-backtrackSolve1  = do
+solveEInts3 :: [(E,E)]
+solveEInts3  = do
     [x,y] <- mapM allValues [ [dMake| int(1..3) |],  [dMake| int(4..6) |] ]
     guard ( eguard [eMake| &x + &y > 4  |] )
     guard ( eguard [eMake| &y = &x + 1  |] )
@@ -76,33 +123,19 @@ backtrackSolve1  = do
 
 solveEInts2 :: [(E,E)]
 solveEInts2 = do
-    x <- choose $ allValues [dMake| int(1..3) |]
-    y <- choose $ allValues [dMake| int(4..6) |]
-    guard ( eguard [eMake| &x + &y > 4  |] )
-    guard ( eguard [eMake| &y = &x + 1  |] )
-    return (x, y)
-
-solveEInts :: [(E,E)]
-solveEInts = do
-    x <- choose $ [ [eMake| 1 |], [eMake| 2 |], [eMake| 3 |] ]
-    y <- choose $ [ [eMake| 4 |], [eMake| 5 |], [eMake| 6 |] ]
+    x <- allValues [dMake| int(1..3) |]
+    y <- allValues [dMake| int(4..6) |]
     guard ( eguard [eMake| &x + &y > 4  |] )
     guard ( eguard [eMake| &y = &x + 1  |] )
     return (x, y)
 
 solveInts :: [(Integer, Integer)]
 solveInts =  do
-    x <- choose [1,2,3 :: Integer]
-    y <- choose [4,5,6]
+    x <-  [1,2,3 :: Integer]
+    y <-  [4,5,6]
     guard ( x + y > 4 )
     guard ( y == x + 1 )
     return (x,y)
-
-type Choice a = [a]
-choose :: [a] -> Choice a
-choose xs = xs
-
-
 
 ff :: Int -> String -> Int
 ff  i  "a" = i * 2
