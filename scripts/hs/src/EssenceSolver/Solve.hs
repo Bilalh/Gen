@@ -9,9 +9,9 @@ import EssenceSolver.Data
 import EssenceSolver.AllValues(allValues)
 import EssenceSolver.Checker
 
-import Language.E
--- import Language.E hiding (trace)
--- import Debug.Trace(trace)
+-- import Language.E
+import Language.E hiding (trace)
+import Debug.Trace(trace)
 
 import Bug
 import Language.E.ValidateSolution
@@ -29,6 +29,12 @@ type Env        = [(Text, E)]
 type Constraint = E
 type DomVals    = (Text, [E])
 type DomVal     = (Text, E)
+
+tracePretty :: [Doc] -> a -> a
+tracePretty ds =  trace (show $ vcat ds)
+prettyEnv :: Env -> Doc
+prettyEnv [] = hang "" 4 $ "env: []"
+prettyEnv vs = hang "" 4 $  "env:" <+> (vcat . map pretty $ vs)
 
 
 -- Start with a Spec with finds and constraints
@@ -69,10 +75,14 @@ dfsSolve [] _ env = Just env
 dfsSolve ( (dname, dvals) : drest) cs  env =
     case dvals of
         []     -> Nothing
-        (x:xs) -> let env' = updateEnv env (dname,x) in
-                    case violates cs env' of
-                        True  -> dfsSolve ( (dname, xs) : drest ) cs env
-                        False -> dfsSolve ( drest ) cs env'
+        (x:xs) -> let newEnv = updateEnv env (dname,x) in
+                    case violates cs newEnv of
+                        True  -> tracePretty  [ "violated after"  <+> pretty dname,  prettyEnv newEnv]
+                            dfsSolve ( (dname, xs) : drest ) cs env
+                        False -> tracePretty [ "Assigned" <+> pretty dname,  prettyEnv newEnv  ] $
+                            case dfsSolve ( drest ) cs newEnv of
+                                Just jenv -> Just jenv
+                                Nothing -> dfsSolve ( (dname, xs) : drest ) cs env
 
 updateEnv :: Env -> DomVal  -> Env
 updateEnv env val = val : env
@@ -99,7 +109,7 @@ violates cs env =
         res <- toBool simplifed
         return $ case res of
             Right (b,_) -> not b
-            Left m  -> trace (show $ vcat ["violates error", pretty m]) False
+            Left m  -> tracePretty ["eViolates constraint" <+> pretty m, prettyEnv env] False
 
 
 -- ideas
