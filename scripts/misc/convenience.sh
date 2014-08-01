@@ -4,19 +4,37 @@
 
 # print the command the run it
 function echoing(){
-    echo "$@"
-    "$@"
+	echo "$@"
+	"$@"
 }
 
 if [ -n "$ZSH_VERSION" ]; then
-    exportf () {
-    	export $(echo $1)="`whence -f $1 | sed -e "s/$1 //" `"
-    }
+	exportf () {
+		export $(echo $1)="`whence -f $1 | sed -e "s/$1 //" `"
+	}
 else
     exportf (){
         export -f $1
     }
 fi
+
+# Runs the whole toolchain using compact with specifed params
+function csolve(){
+	if [ $# -lt 1 ]; then
+		echo "$0  param+ "
+	else
+		local base=`basename $PWD`
+		__models_dir="${base}-compact/"
+
+		if ( cr ); then
+			pushd ${base}-compact >/dev/null
+			export LINES_TO_SHOW=${LINES_TO_SHOW:-20}
+			refine_run ${EXTRA:-} ../${base}.essence ::: 0001.eprime ::: "$@"
+			popd > /dev/null
+		fi
+	fi
+}
+
 
 # refine params then solve them on all eprimes
 function refine_run(){
@@ -46,33 +64,18 @@ function refine_run(){
 		shift
 
 		export COLUMNS
-        exportf __refine_par_func
-        exportf refine_param
-        exportf solve_eprime_param
-        exportf up_eprime
-        exportf vaildate_solution
-        exportf minion_count_solutions
-        exportf echoing
+		exportf __refine_par_func
+		exportf refine_param
+		exportf solve_eprime_param
+		exportf up_eprime
+		exportf vaildate_solution
+		exportf minion_count_solutions
+		exportf echoing
 		parallel --keep-order --tagstring  "{2/.} {1/.}" -j${NUM_JOBS:-4} \
 			"__refine_par_func {2} {1} ${essence}" "$@"
 	fi
 }
 
-function csolve(){
-	if [ $# -lt 1 ]; then
-		echo "$0  param+ "
-	else
-		local base=`basename $PWD`
-		__models_dir="${base}-compact/"
-
-		if ( cr ); then
-			pushd ${base}-compact >/dev/null
-			export LINES_TO_SHOW=${LINES_TO_SHOW:-20}
-			refine_run ${EXTRA:-} ../${base}.essence ::: 0001.eprime ::: "$@"
-			popd > /dev/null
-		fi
-	fi
-}
 
 
 function cr(){
@@ -248,4 +251,15 @@ function vaildate_solution(){
 		--in-essence ${essence}  \
 		--in-param ${param} \
 		--in-solution ${solution}
+}
+
+function record_tools_versions(){
+	local __commands_needed=(ghc python python3 pip sqlite3 git hg perl parallel pigz ruby)
+	local __our_progs=(minion conjure savilerow essenceGivensToFinds essenceGivensToJson2 essenceLettingsToJson testGen essenceSolver)
+	
+	for prog in "$__commands_needed"; do
+		if ! hash "$prog" 2>/dev/null; then
+			printf "\e[01;31m Need $prog to be in the PATH \e[0m\n"	 >&2
+			return 1
+		fi
 }
