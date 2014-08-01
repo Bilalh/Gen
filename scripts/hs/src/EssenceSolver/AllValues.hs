@@ -99,14 +99,6 @@ allValues
            concatMap gen (subsequences valFrom)
 
         allFuncs =   map mkFunction maps
-        filters  =  combinedFilter $ map (attrMeta . getAttr) attrs
-    in
-        filters allFuncs
-
-    where
-
-        mkMapping from to = [xMake| mapping := [from,to] |]
-        mkFunction es = [xMake| value.function.values := es |]
 
         attrMeta :: (Text, Maybe E) -> E -> Bool
         attrMeta ("size",Just v) e  =
@@ -118,7 +110,21 @@ allValues
         attrMeta ("maxSize",Just v) e  =
             eguard [eMake| |defined(&e)| <= &v  |]
 
+        attrMeta ("total",Nothing) e  =
+            eguard [eMake| |defined(&e)| = &sFrom  |]
+
         attrMeta a e = error . show $ vcat [ "attrMeta", pretty a, pretty e ]
+
+        filters  =  combinedFilter $ map (attrMeta . getAttr) attrs
+    in
+        filters allFuncs
+
+    where
+
+        mkMapping from to = [xMake| mapping := [from,to] |]
+        mkFunction es = [xMake| value.function.values := es |]
+
+
 
 allValues e = error . show $ vcat  [ "Missing case in AllValues", pretty e, prettyAsTree e ]
 
