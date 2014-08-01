@@ -56,7 +56,6 @@ onlyFirstSolution (x:_) = Just x
 onlyFirstSolution []    = Nothing
 
 
-
 aa :: State String String
 aa =  do
     return ""

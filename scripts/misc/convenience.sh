@@ -1,8 +1,6 @@
 #!/bin/bash
 # Bilal Syed Hussain
 
-# file path to ourself, to allow sourcing
-__convenience_fp=${__convenience_fp:-$0}
 
 # print the command the run it
 function echoing(){
@@ -10,7 +8,15 @@ function echoing(){
     "$@"
 }
 
-
+if [ -n "$ZSH_VERSION" ]; then
+    exportf () {
+    	export $(echo $1)="`whence -f $1 | sed -e "s/$1 //" `"
+    }
+else
+    exportf (){
+        export -f $1
+    }
+fi
 
 # refine params then solve them on all eprimes
 function refine_run(){
@@ -31,7 +37,7 @@ function refine_run(){
 			shift
 		fi
 		if [ "$1" = "rnd"  ]; then
-			export MINION_OPTIONS="-minion-options -randomiseorder"
+			export MINION_OPTIONS="-solver-options -randomiseorder"
 			shift
 		fi
 		export __all_solution
@@ -40,8 +46,15 @@ function refine_run(){
 		shift
 
 		export COLUMNS
+        exportf __refine_par_func
+        exportf refine_param
+        exportf solve_eprime_param
+        exportf up_eprime
+        exportf vaildate_solution
+        exportf minion_count_solutions
+        exportf echoing
 		parallel --keep-order --tagstring  "{2/.} {1/.}" -j${NUM_JOBS:-4} \
-			"source ${__convenience_fp}; __refine_par_func {2} {1} ${essence}" "$@"
+			"__refine_par_func {2} {1} ${essence}" "$@"
 	fi
 }
 
@@ -200,12 +213,9 @@ function up_eprime(){
 			--in-essence ${essence}
 			--in-eprime-solution {} \
 			--in-essence-param ${eparam}
-			--out-solution \${sol};
-		conjure --mode validateSolution \
-			--in-essence ${essence}  \
-			--in-param ${param} \
-			--in-solution \${sol}
-		&& head -n ${LINES_TO_SHOW:-10} \${sol}  | sed '1d' "
+			--out-solution \${sol} \
+		&& head -n ${LINES_TO_SHOW:-10} \${sol} | sed '1d' | fmt -w$((COLUMNS - ${#pbase} - ${#ebase} - 5 )) \
+            && [ -z "${NO_VAILDATE:-}" ] && vaildate_solution \${sol} ${param} ${essence} && echo Vaild"
 		echo $cmd
 		parallel --tagstring "{#}" --keep-order -j${NUM_JOBS_ALL_SOLS:-1} $cmd ::: ${eprime_solution}.*
 
@@ -224,7 +234,7 @@ function up_eprime(){
 			--in-essence-param ${param} \
 			--out-solution ${solution} \
 		&& head -n ${LINES_TO_SHOW:-10} ${solution} | sed '1d' | fmt -w$((COLUMNS - ${#pbase} - ${#ebase} - 5 )) \
-		&& [ -z "${NO_VAILDATE:-}" ] && vaildate_solution ${solution} ${param} ${essence}
+		&& [ -z "${NO_VAILDATE:-}" ] && vaildate_solution ${solution} ${param} ${essence} && echo Vaild
 	fi
 
 }
@@ -239,37 +249,3 @@ function vaildate_solution(){
 		--in-param ${param} \
 		--in-solution ${solution}
 }
-
-
-if [ $ZSH_VERSION ]; then
-
-function _solve_eprime_param(){
-	_arguments \
-		"1:eprimes:_files -g \*.eprime" \
-		"2:params:_files -g \*.eprime-param"
-}
-
-compdef _solve_eprime_param solve_eprime_param
-
-
-function _refine_param(){
-	_arguments \
-		"1:essence param:_files -g \*.param" \
-		"2:eprime:_files -g \*.eprime" \
-		"3:essence:_files -g \*.essence"
-}
-
-compdef _refine_param refine_param
-
-
-function _up_eprime(){
-	_arguments \
-		"1:eprime solution:_files -g \*.eprime-solution" \
-		"2:essence param:_files -g \*.param" \
-		"3:essence:_files -g \*.essence"
-}
-
-
-compdef _up_eprime up_eprime
-
-fi
