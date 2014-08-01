@@ -92,15 +92,19 @@ allValues
         sFrom    = domSizeC innerFrom
         sTo      = domSizeC innerTo
 
-        tos      = replicateM  (fromInteger . getInt $ sFrom) valTo
-        maps     = map (zipWith mkMapping valFrom) tos
+        tos size = replicateM size valTo
+        gen fr   = map (zipWith mkMapping fr) (tos $ length fr)
+        maps     =
+           -- trace (show $ map length $ subsequences valFrom) $
+           concatMap gen (subsequences valFrom)
 
-        allFuncs = map mkFunction maps
-        filters  = combinedFilter $ map (attrMeta . getAttr) attrs
+        allFuncs =   map mkFunction maps
+        filters  =  combinedFilter $ map (attrMeta . getAttr) attrs
     in
         filters allFuncs
 
     where
+
         mkMapping from to = [xMake| mapping := [from,to] |]
         mkFunction es = [xMake| value.function.values := es |]
 
