@@ -253,13 +253,13 @@ function vaildate_solution(){
 		--in-solution ${solution}
 }
 
-function record_tools_versions(){
-	local __commands_needed=(ghc python python3 pip sqlite3 git hg perl parallel pigz ruby)
-	local __our_progs=(minion conjure savilerow essenceGivensToFinds essenceGivensToJson2 essenceLettingsToJson testGen essenceSolver)
-	
-	for prog in "$__commands_needed"; do
-		if ! hash "$prog" 2>/dev/null; then
-			printf "\e[01;31m Need $prog to be in the PATH \e[0m\n"	 >&2
-			return 1
-		fi
-}
+# function record_tools_versions(){
+# 	local __commands_needed=(ghc python python3 pip sqlite3 git hg perl parallel pigz ruby)
+# 	local __our_progs=(minion conjure savilerow essenceGivensToFinds essenceGivensToJson2 essenceLettingsToJson testGen essenceSolver)
+#
+# 	for prog in "$__commands_needed"; do
+# 		if ! hash "$prog" 2>/dev/null; then
+# 			printf "\e[01;31m Need $prog to be in the PATH \e[0m\n"	 >&2
+# 			return 1
+# 		fi
+# }
