@@ -9,9 +9,9 @@ import EssenceSolver.Data
 import EssenceSolver.AllValues(allValues)
 import EssenceSolver.Checker
 
--- import Language.E
-import Language.E hiding (trace)
-import Debug.Trace(trace)
+import Language.E
+-- import Language.E hiding (trace)
+-- import Debug.Trace(trace)
 
 import Bug
 import Language.E.ValidateSolution
@@ -127,50 +127,3 @@ violates cs env =
                            $ not b
             Left m      -> tracePretty ["eViolates constraint" <+> pretty m, prettyEnv env] False
 
-
--- ideas
-
-aa :: State String String
-aa =  do
-    return ""
-
-greeter :: (MonadState String m, Monad m) => m [String]
-greeter = do
-    name <- get
-    put "tintin"
-    return ["hello, " ++ name ++ "!"]
-
-solveEInts3 :: [(E,E)]
-solveEInts3  = do
-    [x,y] <- mapM allValues [ [dMake| int(1..3) |],  [dMake| int(4..6) |] ]
-    guard ( eguard [eMake| &x + &y > 4  |] )
-    guard ( eguard [eMake| &y = &x + 1  |] )
-    return (x, y)
-
-solveEInts2 :: [(E,E)]
-solveEInts2 = do
-    x <- allValues [dMake| int(1..3) |]
-    y <- allValues [dMake| int(4..6) |]
-    guard ( eguard [eMake| &x + &y > 4  |] )
-    guard ( eguard [eMake| &y = &x + 1  |] )
-    return (x, y)
-
-solveInts :: [(Integer, Integer)]
-solveInts =  do
-    x <-  [1,2,3 :: Integer]
-    y <-  [4,5,6]
-    guard ( x + y > 4 )
-    guard ( y == x + 1 )
-    return (x,y)
-
-ff :: Int -> String -> Int
-ff  i  "a" = i * 2
-ff  0   _  = 1
-ff  i   _  = i - 1
-
--- Magically combine a list functions
-compose :: [a -> a] -> (a -> a)
-compose fs v = foldl (flip (.)) id fs $ v
-
-xa :: String -> Int -> Bool
-xa _ _ = True
