@@ -32,6 +32,9 @@ type DomVal     = (Text, E)
 
 tracePretty :: [Doc] -> a -> a
 tracePretty ds =  trace (show $ vcat ds)
+traceHang :: Doc -> [Doc] -> a -> a
+traceHang msg ds = trace ( show $ hang msg 4 (vcat ds) )
+
 prettyEnv :: Env -> Doc
 prettyEnv [] = hang "" 4 $ "env: []"
 prettyEnv vs = hang "" 4 $  "env:" <+> (vcat . map pretty $ vs)
@@ -53,8 +56,8 @@ allSolutions (Spec _ stmt) =
         sols = allPossibilitiesSolve tDoms tConstraints
     in sols
 
-firstSolution :: Spec -> Maybe [(Ref, E)]
-firstSolution sp = onlyFirstSolution $ allSolutions sp
+firstSolutionAP :: Spec -> Maybe [(Ref, E)]
+firstSolutionAP sp = onlyFirstSolution $ allSolutions sp
 
     where
     onlyFirstSolution :: [a] -> Maybe a
@@ -67,6 +70,18 @@ allPossibilitiesSolve domValues constraints = do
     trace "   " $ mapM_ (guard . eSatisfied vs ) constraints
     return vs
 
+
+firstSolution :: Spec -> Maybe [(Ref, E)]
+firstSolution (Spec _ stmt) =
+
+    let
+        es = statementAsList stmt
+        tFinds = map (\(a,b) -> (getName a, b) ) .  pullFinds $ es
+        tDoms  = map (\(a,b) -> (a, allValues b)) tFinds
+        tConstraints = pullConstraints $ es
+
+        sol = dfsSolve tDoms tConstraints []
+    in fmap (map (\(n,v) -> (mkName n, v)) ) sol
 
 dfsSolve :: [DomVals] ->  [Constraint] -> Env -> Maybe Env
 dfsSolve ds@(_:_) [] [] =  error "ToDO"
@@ -92,7 +107,7 @@ violates  :: [Constraint] -> Env -> Bool
 violates cs env =
     let (mresult, _logs) = runCompESingle "violates" helper
     in case mresult of
-        Right b    ->  b
+        Right b    -> tracePretty ["violates result" <+> pretty b] b
         Left d     -> error . show .  vcat $ ["violates", d, pretty _logs]
 
     where
@@ -100,7 +115,7 @@ violates cs env =
     helper = do
         mapM_ (\(n,e) -> addReference n e )  env
 
-        violated :: Bool <- and <$> mapM eViolates cs
+        violated :: Bool <- or <$> mapM eViolates cs
         return violated
 
     eViolates :: MonadConjure m =>  Constraint -> m Bool
@@ -108,8 +123,9 @@ violates cs env =
         simplifed <- fullySimplifyE e
         res <- toBool simplifed
         return $ case res of
-            Right (b,_) -> not b
-            Left m  -> tracePretty ["eViolates constraint" <+> pretty m, prettyEnv env] False
+            Right (b,x) -> traceHang ("EV" <+> pretty (not b)) [vcat (map pretty x), prettyEnv env, pretty e]
+                           $ not b
+            Left m      -> tracePretty ["eViolates constraint" <+> pretty m, prettyEnv env] False
 
 
 -- ideas
