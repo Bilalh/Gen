@@ -25,51 +25,9 @@ import Control.Monad.State.Strict(State)
 import qualified Data.Map as M
 import qualified Text.PrettyPrint as P
 
-type Env        = [(Text, E)]
-type Constraint = E
-type DomVals    = (Text, [E])
-type DomVal     = (Text, E)
-
-tracePretty :: [Doc] -> a -> a
-tracePretty ds =  trace (show $ vcat ds)
-traceHang :: Doc -> [Doc] -> a -> a
-traceHang msg ds = trace ( show $ hang msg 4 (vcat ds) )
-
-prettyEnv :: Env -> Doc
-prettyEnv [] = hang "" 4 $ "env: []"
-prettyEnv vs = hang "" 4 $  "env:" <+> (vcat . map pretty $ vs)
-
 
 -- Start with a Spec with finds and constraints
 -- letting and given have allready been inlined
-
-allSolutions :: Spec -> [[(Ref, E)]]
-allSolutions (Spec _ stmt) =
-
-    let
-        es = statementAsList stmt
-        -- tFinds = map (\(a,b) -> (getName a, b) ) .  pullFinds $ es
-        tFinds = map (\(a,b) -> (a, b) ) .  pullFinds $ es
-        tDoms  = map (\(a,b) -> (a, allValues b)) tFinds
-        tConstraints = pullConstraints $ es
-
-        sols = allPossibilitiesSolve tDoms tConstraints
-    in sols
-
-firstSolutionAP :: Spec -> Maybe [(Ref, E)]
-firstSolutionAP sp = onlyFirstSolution $ allSolutions sp
-
-    where
-    onlyFirstSolution :: [a] -> Maybe a
-    onlyFirstSolution (x:_) = Just x
-    onlyFirstSolution []    = Nothing
-
-allPossibilitiesSolve :: [(Ref, [E])] -> [E] -> [[(Ref, E)]]
-allPossibilitiesSolve domValues constraints = do
-    vs <- allCombinations domValues
-    trace "   " $ mapM_ (guard . eSatisfied vs ) constraints
-    return vs
-
 
 firstSolution :: Spec -> Maybe [(Ref, E)]
 firstSolution (Spec _ stmt) =
@@ -80,50 +38,60 @@ firstSolution (Spec _ stmt) =
         tDoms  = map (\(a,b) -> (a, allValues b)) tFinds
         tConstraints = pullConstraints $ es
 
-        sol = dfsSolve tDoms tConstraints []
+        sol = dfsSolve tDoms tConstraints
     in fmap (map (\(n,v) -> (mkName n, v)) ) sol
 
-dfsSolve :: [DomVals] ->  [Constraint] -> Env -> Maybe Env
-dfsSolve ds@(_:_) [] [] =  error "ToDO"
 
-dfsSolve [] _ env = Just env
-dfsSolve ( (dname, dvals) : drest) cs  env =
-    case dvals of
-        []     -> Nothing
-        (x:xs) -> let newEnv = updateEnv env (dname,x) in
-                    case violates cs newEnv of
-                        True  -> tracePretty  [ "violated after"  <+> pretty dname,  prettyEnv newEnv]
-                            dfsSolve ( (dname, xs) : drest ) cs env
-                        False -> tracePretty [ "Assigned" <+> pretty dname,  prettyEnv newEnv  ] $
-                            case dfsSolve ( drest ) cs newEnv of
-                                Just jenv -> Just jenv
-                                Nothing -> dfsSolve ( (dname, xs) : drest ) cs env
+dfsSolve :: [DomVals] ->  [Constraint] -> Maybe Env
+dfsSolve a b = solve a b []
+
+    where
+    solve :: [DomVals] ->  [Constraint] -> Env -> Maybe Env
+    solve ds@(_:_) [] [] = let vs =  map f ds in
+            case all isJust vs of
+                True -> Just $ catMaybes vs
+                False -> Nothing
+
+        where f (_, [])    = Nothing
+              f (t, (e:_)) = Just (t, e)
+
+    solve [] _ env = Just env
+    solve ( (dname, dvals) : drest) cs  env =
+        case dvals of
+            []     -> Nothing
+            (x:xs) -> let newEnv = updateEnv env (dname,x) in
+                case violates cs newEnv of
+                    True  -> tracePretty  [ "violated after"  <+> pretty dname,  prettyEnv newEnv]
+                        solve ( (dname, xs) : drest ) cs env
+                    False -> tracePretty [ "Assigned" <+> pretty dname,  prettyEnv newEnv  ] $
+                        case solve ( drest ) cs newEnv of
+                            Just jenv -> Just jenv
+                            Nothing -> solve ( (dname, xs) : drest ) cs env
+
 
 updateEnv :: Env -> DomVal  -> Env
 updateEnv env val = val : env
 
--- Returns True if any constraint is not satisfied
-violates  :: [Constraint] -> Env -> Bool
-violates cs env =
-    let (mresult, _logs) = runCompESingle "violates" helper
-    in case mresult of
-        Right b    -> tracePretty ["violates result" <+> pretty b] b
-        Left d     -> error . show .  vcat $ ["violates", d, pretty _logs]
 
-    where
-    helper :: MonadConjure m => m Bool
-    helper = do
-        mapM_ (\(n,e) -> addReference n e )  env
+firstSolutionAP :: Spec -> Maybe [(Ref, E)]
+firstSolutionAP = listToMaybe . allSolutions
 
-        violated :: Bool <- or <$> mapM eViolates cs
-        return violated
+allSolutions :: Spec -> [[(Ref, E)]]
+allSolutions (Spec _ stmt) =
 
-    eViolates :: MonadConjure m =>  Constraint -> m Bool
-    eViolates e = do
-        simplifed <- fullySimplifyE e
-        res <- toBool simplifed
-        return $ case res of
-            Right (b,x) -> traceHang ("EV" <+> pretty (not b)) [vcat (map pretty x), prettyEnv env, pretty e]
-                           $ not b
-            Left m      -> tracePretty ["eViolates constraint" <+> pretty m, prettyEnv env] False
+    let
+        es = statementAsList stmt
+        tFinds = map (\(a,b) -> (a, b) ) .  pullFinds $ es
+        tDoms  = map (\(a,b) -> (a, allValues b)) tFinds
+        tConstraints = pullConstraints $ es
+
+        sols = allPossibilitiesSolve tDoms tConstraints
+    in sols
+
+allPossibilitiesSolve :: [(Ref, [E])] -> [E] -> [[(Ref, E)]]
+allPossibilitiesSolve domValues constraints = do
+    vs <- allCombinations domValues
+    trace "   " $ mapM_ (guard . eSatisfied vs ) constraints
+    return vs
+
 
