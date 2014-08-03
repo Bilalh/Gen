@@ -31,9 +31,10 @@ violates cs env =
         simplifed <- fullySimplifyE e
         res <- toBool simplifed
         return $ case res of
-            Right (b,x) -> traceHang ("EV" <+> pretty (not b)) [vcat (map pretty x), prettyEnv env, pretty e]
+            Right (b,x) -> traceHang ("EV" <+> pretty (not b))
+                [vcat (map pretty x), prettyEnv env, pretty e]
                            $ not b
-            Left m      -> tracePretty ["eViolates constraint" <+> pretty m, prettyEnv env] False
+            Left m -> tracePretty ["eViolates constraint" <+> pretty m, prettyEnv env] False
 
 
 

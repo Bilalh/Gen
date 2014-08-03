@@ -26,17 +26,8 @@ import qualified Data.Set as S
 import qualified Text.PrettyPrint as P
 
 
-
 -- Start with a Spec with finds and constraints
 -- letting and given have allready been inlined
-
-allVarsUsed ::  Set Text -> E ->  [Text]
-allVarsUsed varNames statement  =
-    [ nm
-    | [xMatch| [Prim (S nm)] := reference |] <- universe statement
-    , nm `S.member` varNames
-    ]
-
 
 firstSolution :: Spec -> Maybe [(Ref, E)]
 firstSolution (Spec _ stmt) =
@@ -55,7 +46,9 @@ firstSolution (Spec _ stmt) =
     -- in  error . show $ vcat [ vcat $ map pretty  tOrdered
     --                             , pretty  tTrie]
         sol = dfsSolve tDoms tTrie
-    in fmap (map (\(n,v) -> (mkName n, v)) ) sol
+    in
+        -- error $ show $ map (length . snd) tDoms
+        fmap (map (\(n,v) -> (mkName n, v)) ) sol
 
 
 dfsSolve :: [DomVals] ->  Trie Constraint -> Maybe Env
@@ -67,6 +60,7 @@ dfsSolve a b = solve a b []
     solve [] _ env = Just env  -- Assigned all variables successfully
 
     -- Variables without any constraints
+    -- Assign the first value in its domain
     solve ds@(_:_) TNone env = let vs =  map f ds in
             case all isJust vs of
                 True  -> Just $ catMaybes vs ++ env
@@ -78,21 +72,28 @@ dfsSolve a b = solve a b []
     -- dfs search
     solve ( (dname, dvals) : drest) trie@(TSome _ cs trest) env =
         case dvals of
-            []     -> Nothing  -- no values left in the domain
+        []     -> Nothing  -- no values left in the domain
 
-            (x:xs) -> let newEnv = updateEnv env (dname,x) in
-                case violates cs newEnv of
-                    True -> tracePretty  ["violated after"<+> pretty dname, prettyEnv newEnv]
-                        solve ( (dname, xs) : drest ) trie env
+        (x:xs) -> let newEnv = updateEnv env (dname,x) in
+            case violates cs newEnv of
+                True -> tracePretty  ["violated after"<+> pretty dname, prettyEnv newEnv]
+                    solve ( (dname, xs) : drest ) trie env
 
-                    False -> tracePretty ["Assigned" <+> pretty dname,  prettyEnv newEnv  ] $
-                        case solve ( drest ) trest newEnv of
-                            Just jenv -> Just jenv
-                            Nothing -> solve ( (dname, xs) : drest ) trie env
+                False -> tracePretty ["Assigned" <+> pretty dname,  prettyEnv newEnv  ] $
+                    case solve ( drest ) trest newEnv of
+                        Just jenv -> Just jenv
+                        Nothing -> solve ( (dname, xs) : drest ) trie env
 
 
 updateEnv :: Env -> DomVal  -> Env
 updateEnv env val = val : env
+
+allVarsUsed ::  Set Text -> E ->  [Text]
+allVarsUsed varNames statement  =
+    [ nm
+    | [xMatch| [Prim (S nm)] := reference |] <- universe statement
+    , nm `S.member` varNames
+    ]
 
 
 firstSolutionAP :: Spec -> Maybe [(Ref, E)]
