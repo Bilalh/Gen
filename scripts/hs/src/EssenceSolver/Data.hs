@@ -57,8 +57,8 @@ instance (Pretty a) => Pretty (Trie a) where
         hang ("TSome" <+> pretty (show n)) 4 (P.sep . punctuate "¸" $ map pretty as)
        <+> "\n" <+> P.parens (pretty t)
 
-instance Pretty a => Pretty (Set a) where
-    pretty s = P.braces $ P.sep $ P.punctuate "," $ map pretty (S.toList s)
+-- instance Pretty a => Pretty (Set a) where
+--     pretty s = P.braces $ P.sep $ P.punctuate "," $ map pretty (S.toList s)
 
 
 data SolverArgs = SolverArgs {

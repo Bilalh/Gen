@@ -10,8 +10,6 @@ import EssenceSolver.AllValues(allValues)
 import EssenceSolver.Checker
 
 import Language.E
--- import Language.E hiding (trace)
--- import Debug.Trace(trace)
 
 import Bug
 import Language.E.ValidateSolution
@@ -19,15 +17,26 @@ import Language.E.Evaluator(fullySimplify)
 
 import Control.Monad(guard)
 import Data.Map(Map)
+import Data.Set(Set)
 
 import Control.Monad.State.Strict(State)
 
 import qualified Data.Map as M
+import qualified Data.Set as S
 import qualified Text.PrettyPrint as P
+
 
 
 -- Start with a Spec with finds and constraints
 -- letting and given have allready been inlined
+
+allVarsUsed ::  Set Text -> E ->  [Text]
+allVarsUsed varNames statement  =
+    [ nm
+    | [xMatch| [Prim (S nm)] := reference |] <- universe statement
+    , nm `S.member` varNames
+    ]
+
 
 firstSolution :: Spec -> Maybe [(Ref, E)]
 firstSolution (Spec _ stmt) =
@@ -36,37 +45,50 @@ firstSolution (Spec _ stmt) =
         es = statementAsList stmt
         tFinds = map (\(a,b) -> (getName a, b) ) .  pullFinds $ es
         tDoms  = map (\(a,b) -> (a, allValues b)) tFinds
-        tConstraints = pullConstraints $ es
+        tNames = S.fromList $ (map fst) tFinds
+        tConstraints =  pullConstraints $ es
+        tOrdered = [ (S.fromList $  allVarsUsed tNames c, c)
+                   | c <- tConstraints
+                   ]
+        tTrie = mkTrie ( map fst tFinds) tOrdered
 
-        sol = dfsSolve tDoms tConstraints
+    -- in  error . show $ vcat [ vcat $ map pretty  tOrdered
+    --                             , pretty  tTrie]
+        sol = dfsSolve tDoms tTrie
     in fmap (map (\(n,v) -> (mkName n, v)) ) sol
 
 
-dfsSolve :: [DomVals] ->  [Constraint] -> Maybe Env
+dfsSolve :: [DomVals] ->  Trie Constraint -> Maybe Env
 dfsSolve a b = solve a b []
 
     where
-    solve :: [DomVals] ->  [Constraint] -> Env -> Maybe Env
-    solve ds@(_:_) [] [] = let vs =  map f ds in
+    solve :: [DomVals] -> Trie Constraint -> Env -> Maybe Env
+    solve [] _ []  = Nothing   -- No Variables
+    solve [] _ env = Just env  -- Assigned all variables successfully
+
+    -- Variables without any constraints
+    solve ds@(_:_) TNone env = let vs =  map f ds in
             case all isJust vs of
-                True -> Just $ catMaybes vs
+                True  -> Just $ catMaybes vs ++ env
                 False -> Nothing
 
         where f (_, [])    = Nothing
               f (t, (e:_)) = Just (t, e)
 
-    solve [] _ env = Just env
-    solve ( (dname, dvals) : drest) cs  env =
+    -- dfs search
+    solve ( (dname, dvals) : drest) trie@(TSome _ cs trest) env =
         case dvals of
-            []     -> Nothing
+            []     -> Nothing  -- no values left in the domain
+
             (x:xs) -> let newEnv = updateEnv env (dname,x) in
                 case violates cs newEnv of
-                    True  -> tracePretty  [ "violated after"  <+> pretty dname,  prettyEnv newEnv]
-                        solve ( (dname, xs) : drest ) cs env
-                    False -> tracePretty [ "Assigned" <+> pretty dname,  prettyEnv newEnv  ] $
-                        case solve ( drest ) cs newEnv of
+                    True -> tracePretty  ["violated after"<+> pretty dname, prettyEnv newEnv]
+                        solve ( (dname, xs) : drest ) trie env
+
+                    False -> tracePretty ["Assigned" <+> pretty dname,  prettyEnv newEnv  ] $
+                        case solve ( drest ) trest newEnv of
                             Just jenv -> Just jenv
-                            Nothing -> solve ( (dname, xs) : drest ) cs env
+                            Nothing -> solve ( (dname, xs) : drest ) trie env
 
 
 updateEnv :: Env -> DomVal  -> Env

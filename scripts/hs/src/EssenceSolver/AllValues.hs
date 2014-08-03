@@ -5,9 +5,7 @@ module EssenceSolver.AllValues(allValues) where
 import Common.Helpers(mkInt, getInt)
 import EssenceSolver.Checker(eguard,domSizeC)
 
--- import Language.E
-import Language.E hiding (trace)
-import Debug.Trace(trace)
+import Language.E
 
 allValues :: E -> [E]
 
@@ -74,7 +72,7 @@ allValues
         allDoms   = map mkMatrix .  replicateM dsize $ allInners
     in
         -- trace (show . vcat $ map pretty allDoms) allDoms
-        trace (show . vcat $ map pretty allDoms) allDoms
+        allDoms
 
     where
         mkMatrix es = [xMake| value.matrix.values := es

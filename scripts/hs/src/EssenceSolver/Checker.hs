@@ -14,7 +14,8 @@ violates  :: [Constraint] -> Env -> Bool
 violates cs env =
     let (mresult, _logs) = runCompESingle "violates" helper
     in case mresult of
-        Right b    -> tracePretty ["violates result" <+> pretty b] b
+        -- Right b    -> tracePretty ["violates result" <+> pretty b] b
+        Right b    -> b
         Left d     -> error . show .  vcat $ ["violates", d, pretty _logs]
 
     where
