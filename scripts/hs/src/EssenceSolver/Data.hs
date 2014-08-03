@@ -9,6 +9,8 @@ import Data.Map(Map)
 import qualified Text.PrettyPrint as P
 import qualified Data.Map as M
 
+import Data.Set(Set)
+import qualified Data.Set as S
 
 #ifdef TRACE_SOLVE
 import Language.E hiding (trace)
@@ -34,6 +36,29 @@ type Env        = [(Text, E)]
 type Constraint = E
 type DomVals    = (Text, [E])
 type DomVal     = (Text, E)
+
+data Trie a =
+      TSome Text [a] (Trie a)
+    | TNone
+    deriving(Show)
+
+mkTrie :: [Text] -> [( Set Text, a )] -> Trie a
+mkTrie [] _ = TNone
+mkTrie (x:xs) cs =
+    let
+        (hasX,noX) = partition (\(set,_) ->  x `S.member`  set && S.size set == 1 ) cs
+    in
+        TSome x (map snd hasX)
+            $ mkTrie xs (map (\(s,v) -> (x `S.delete` s, v) ) noX)
+
+instance (Pretty a) => Pretty (Trie a) where
+   pretty (TNone) = "TNone"
+   pretty (TSome n as t) =
+        hang ("TSome" <+> pretty (show n)) 4 (P.sep . punctuate "¸" $ map pretty as)
+       <+> "\n" <+> P.parens (pretty t)
+
+instance Pretty a => Pretty (Set a) where
+    pretty s = P.braces $ P.sep $ P.punctuate "," $ map pretty (S.toList s)
 
 
 data SolverArgs = SolverArgs {

@@ -6,8 +6,6 @@ module EssenceSolver.Checker where
 import EssenceSolver.Data
 
 import Language.E
--- import Language.E hiding (trace)
--- import Debug.Trace(trace)
 
 import qualified Data.Map as M
 
