@@ -111,6 +111,7 @@ Executable testGen
                        aeson
                      , bytestring
                      , QuickCheck
+                     , smallcheck
                      , base
                      , cmdargs
                      , conjure-cp
