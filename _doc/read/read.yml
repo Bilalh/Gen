@@ -1,0 +1,38 @@
+read:
+  2014-08-22:
+    
+    -
+      Link: sente://Main/Mossige+2014
+      Title: | Stress testing of task deadlines: A constraint programming approach
+      Authors: | Di Alesio S, Nejati S, Briand L, et al.
+      Where: | IEEE Xplore 2013 pp. 158-167
+      Notes: |   #tex
+        \begin{itemize}
+          \item Compares CP with GAs for the purpose of test case generation for Real Time Embedded Systems (RT-ESs)
+          
+          \item The whole problem of test generation is one CP search problem. This would not work for Essence expressions since they are 
+          \begin{enumerate}
+            \item Infinitely large
+            \item we do not have a specifying max number of test failures as an objective.
+          \end{enumerate}
+          
+          \item Concludes that CP is more Effective then GA for test generation of Schedules that might find bugs 
+        \end{itemize}
+        
+                
+    -
+  2014-08-23:
+    -
+      Link: sente://Main/Mossige+2014
+      Title: | Using CP in Automatic Test Generation for ABB Robotics’ Paint Control System
+      Authors: | Mossige M, Gotlieb A, and Meling H
+      Where: | Principles and Practice of Constraint Programming 2014 pp. 25-41
+      Notes: 
+        -  Test generation for a specific problem
+        - "a less accurate but faster test will always be preferred over a slow but accurate test"
+        -  They found a api to be more useful then spec language.
+        -  They made a python interface so the users to abstract way some of the CP
+        
+        
+    -
+
