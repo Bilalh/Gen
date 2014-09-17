@@ -85,6 +85,9 @@ if __name__ == "__main__":
         f.write(json.dumps(settings, indent=True,sort_keys=True,default=obj_to_json ))
 
 
+    if op.refine_only:
+        sys.exit(0)
+
     limit = op.timeout - refine_wall_time
     if limit <=0:
         logger.warn("No time left after refine")

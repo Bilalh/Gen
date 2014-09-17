@@ -11,7 +11,7 @@ import commands
 
 from datetime import datetime
 from pathlib import Path
-from pprint import pprint
+from pprint import pprint, pformat
 
 from collections import namedtuple
 from enum import Enum,IntEnum, unique
@@ -66,11 +66,13 @@ def run_refine_essence(*,op,compact=True,random=7):
     date_end=datetime.utcnow()
     diff = date_end - date_start
 
+
     results_unique = {}
     for result in results:
         (eprime_name,_) = result
         ep = (op.outdir/ eprime_name).with_suffix(".eprime")
         if not ep.exists():
+            results_unique[eprime_name] = result
             continue
         hf = hash_path( ep )
         if hf not in results_unique:
@@ -80,6 +82,7 @@ def run_refine_essence(*,op,compact=True,random=7):
                     eprime_name, results_unique[hf][0] )
             ep.unlink()
             ep.with_suffix(".eprime.logs").unlink()
+
 
     return (dict(results_unique.values()), sum( data['real_time']
                 for (_,data) in results  ) )

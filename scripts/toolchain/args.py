@@ -9,8 +9,10 @@ def do_args():
     parse_args = argparse.ArgumentParser()
     parse_args.add_argument("essence", help='')
     parse_args.add_argument("--outdir", required=True, help='')
-    parse_args.add_argument("--timeout", required=True,type=int, help='Wall time for everything')
+    parse_args.add_argument("--timeout", required=True,type=int,
+            help='Wall time for everything')
     parse_args.add_argument("--param", help='', default=None)
+    parse_args.add_argument("--refine_only", action='store_true')
     args = parse_args.parse_args()
 
     args.outdir = Path(args.outdir)
@@ -27,4 +29,4 @@ def do_args():
 
     args.essence = Path(args.essence)
     return args
-	
+
