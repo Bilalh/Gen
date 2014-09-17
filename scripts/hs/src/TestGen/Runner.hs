@@ -14,8 +14,6 @@ import System.Environment(getEnv)
 import System.FilePath((</>))
 import System.Process(rawSystem)
 
-
-
 import qualified Data.Aeson as A
 import qualified Data.ByteString.Lazy as B
 
@@ -107,3 +105,19 @@ runToolChain spec dir timeou = do
         (Just r, Just s)  -> Right (r,s)
         (Just r, Nothing) -> Left r
         (r, s)            -> error . show $ (r,s)
+
+runRefine :: FilePath -> FilePath -> Int -> IO RefineR
+runRefine spec dir timeou = do
+    pg <- getEnv "PARAM_GEN_SCRIPTS"
+    let toolchain= pg </> "toolchain" </> "toolchain.py"
+        args = [spec, "--refine_only", "--outdir", dir , "--timeout", show timeou]
+    putStrLn $ "cmd: " ++ toolchain ++ " " ++ foldl1 (\a b -> a ++ " " ++ b) args
+    _       <- rawSystem toolchain args
+    refineF <- getJSON $ dir </> "refine_essence.json"
+
+    return $ case (refineF) of
+        Just r  ->  r
+        Nothing -> error $ "script error" ++  "cmd: " ++ toolchain ++ " " ++ foldl1 (\a b -> a ++ " " ++ b) args
+
+
+

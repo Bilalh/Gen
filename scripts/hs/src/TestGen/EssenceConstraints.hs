@@ -30,3 +30,5 @@ instance ToEssence Eexpr where
     toEssence (Evar (name) ) = mkName name
     toEssence (Elit lit )    = toEssence lit
 
+mkConstraints :: [Eexpr] -> E
+mkConstraints cons = [xMake| topLevel.suchThat := map toEssence cons |]

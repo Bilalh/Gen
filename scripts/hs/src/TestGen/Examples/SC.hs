@@ -3,7 +3,7 @@
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures  #-}
 
-module TestGen.QC where
+module TestGen.Examples.QC where
 
 import Common.Helpers
 import TestGen.ToEssence
@@ -29,5 +29,3 @@ a = smallCheck 1 $ f
 
     where
     f (Eneq _ _) = (exists $ _ )
-
-refine _  = True

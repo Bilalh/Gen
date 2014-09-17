@@ -155,3 +155,18 @@ _main total perSpec seed = do
     main' globalState
 
 
+runRefine' :: Spec -> FilePath -> Int -> IO (String, RefineR)
+runRefine' spec base specTime = do
+    print . pretty $ spec
+
+    ts <- liftIO timestamp >>= return .show
+    let dir =  base </> ts
+    createDirectoryIfMissing True  dir
+
+    let name = (dir </> ts <.> ".essence")
+    writeSpec name spec
+
+    let specLim = specTime
+    result <- runRefine name dir specLim
+    putStrLn . groom $  result
+    return (ts,result)

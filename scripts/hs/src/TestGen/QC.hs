@@ -7,87 +7,78 @@ module TestGen.QC where
 
 import Common.Helpers
 import TestGen.ToEssence
-import Language.E
+import Language.E hiding(trace)
+import Debug.Trace(trace)
+import Language.E.Pipeline.ReadIn(readSpecFromFile)
 
-import Test.QuickCheck
 import Control.Monad(liftM2)
+import Test.QuickCheck
+import Test.QuickCheck.Monadic (assert, monadicIO, run)
+import qualified Test.QuickCheck.Property as P
 import TestGen.EssenceConstraints
-
+import TestGen.Runner(SettingI(..))
+import TestGen.TestGen(runRefine')
 import qualified Data.Text as T
-
-data Age = Age Int
-    deriving(Show)
-
-instance Arbitrary Age where
-    arbitrary = Age `liftM`  choose (0,100)
-
-type Name    = String
-data Person  = Person Name Age
-             deriving (Show)
-
-instance Arbitrary Person where
-  arbitrary  = liftM2 Person arbitrary arbitrary
-
-
-fibs :: [Integer]
-fibs = 0 : 1 : zipWith (+) fibs (tail fibs)
-
-smallNonNegativeIntegers :: Gen Int
-smallNonNegativeIntegers = choose (0, 500)
-
-prop_Fibonacci :: Property
-prop_Fibonacci =
-  forAll smallNonNegativeIntegers $ \n ->
-    let x = fibs !! (n)
-        y = fibs !! (n+1)
-        z = fibs !! (n+2)
-    in x + y == z
-
-prop_Idempotent xs =
-  classify (length xs < 2) "trivial" $
-    sort (sort xs) == sort xs
 
 instance Arbitrary Text where
     arbitrary = liftM (T.pack . ("var_" ++) .  show) $ choose (10,99 :: Integer)
 
 instance Arbitrary Eexpr where
-    arbitrary = oneof [
-            liftM  Evar arbitrary
-           ,liftM2 Egt  arbitrary arbitrary
-           ,liftM2 Eneq arbitrary arbitrary
+    arbitrary = sized arbitrarySized
+
+class Arbitrary a => ArbitrarySized a where
+    arbitrarySized :: Int ->  Gen a
+    arbitrarySized _ = error "no default sized generator"
+
+instance Arbitrary a => ArbitrarySized [a] where
+  arbitrarySized n  = do
+       k <- choose (0,n)
+       sequence [ arbitrary | _ <- [1..k] ]
+
+
+instance ArbitrarySized Eexpr where
+    arbitrarySized 0 = oneof [
+         liftM Evar (arbitrary)
+        ,liftM Elit (arbitrarySized 0)
+        ]
+    arbitrarySized n = oneof [
+            liftM  Evar (arbitrary)
+           ,liftM2 Egt  (arbitrarySized ((n-1) `div` 2)) (arbitrarySized ((n-1) `div` 2))
+           ,liftM2 Eneq (arbitrarySized ((n-1) `div` 2)) (arbitrarySized ((n-1) `div` 2))
+           ,liftM  Elit (arbitrarySized (n-1))
+        ]
+
+instance Arbitrary EssenceLiteral where
+    arbitrary = sized arbitrarySized
+
+instance ArbitrarySized EssenceLiteral where
+    arbitrarySized 0 = oneof [
+         liftM ELB arbitrary
+        ,liftM ELI arbitrary
+        ]
+    arbitrarySized n = oneof [
+         liftM ELB arbitrary
+        ,liftM ELI arbitrary
+        ,liftM ELSet arbitrary
         ]
 
 prop_consts :: Eexpr -> Property
-prop_consts es = es /== es
+prop_consts es = es === es
 
+specc = readSpecFromFile "/Users/bilalh/Desktop/Results/testgen/Older/aaaa/_dss 01.27.30/1406333220/1406333220.essence"
 
-arbTree :: Arbitrary a => Int -> Gen (Tree a)
-arbTree 0 = liftM L arbitrary
-arbTree n = frequency [
-     (1, liftM L arbitrary)
-    ,(2, liftM2 T (arbTree (n `div` 2)) (arbTree (n `div` 2)) )
-    ]
+instance Arbitrary Spec where
+    arbitrary = elements [speccc]
 
-data Tree a = L a | T (Tree a) (Tree a) deriving(Show)
+prop_specs_refine :: Spec -> Property
+prop_specs_refine spec =
+    monadicIO $ do
+        (ts, result) <- run $ runRefine' spec "__" 4
+        fail ts
 
-instance Arbitrary a =>  Arbitrary (Tree a)
-    where
-
--- equal
-    -- arbitrary = oneof [
-    --       liftM L arbitrary,
-    --       liftM2 T arbitrary arbitrary
-    --       ]
-
--- weighted
-    -- arbitrary = frequency [
-    --     (7, liftM L arbitrary),
-    --     (1, liftM2 T arbitrary arbitrary)
-    --     ]
-
--- sized
-    arbitrary = sized arbTree
-
+runn = do
+    sp <- specc
+    runRefine' sp "__"  4
 
 
 infix 4 /==
@@ -95,14 +86,7 @@ infix 4 /==
 x /== y =
   counterexample (show x ++ " == " ++ show y) (x /= y)
 
-newtype SmallIntList = SmallIntList [Int] deriving (Eq,Show)
-
-instance Arbitrary SmallIntList where
-  arbitrary = sized $ \s -> do
-                 n <- choose (0,s `min` 50)
-                 xs <- vectorOf n (choose (-10000,10000))
-                 return (SmallIntList xs)
-  shrink (SmallIntList xs) = map SmallIntList (shrink xs)
 
 
-
+speccc = Spec (
+    LanguageVersion "Essence" [1,3]) (StatementAndNext (Tagged (Tag "topLevel") [Tagged (Tag "declaration") [Tagged (Tag "find") [Tagged (Tag "name") [Tagged (Tag "reference") [Prim (S "var0")]],Tagged (Tag "domain") [Tagged (Tag "domain") [Tagged (Tag "function") [Tagged (Tag "attributes") [Tagged (Tag "attrCollection") [Tagged (Tag "attribute") [Tagged (Tag "name") [Tagged (Tag "reference") [Prim (S "total")]]],Tagged (Tag "attribute") [Tagged (Tag "name") [Tagged (Tag "reference") [Prim (S "surjective")]]]]],Tagged (Tag "innerFrom") [Tagged (Tag "domain") [Tagged (Tag "function") [Tagged (Tag "attributes") [Tagged (Tag "attrCollection") [Tagged (Tag "attribute") [Tagged (Tag "name") [Tagged (Tag "reference") [Prim (S "total")]]],Tagged (Tag "attribute") [Tagged (Tag "nameValue") [Tagged (Tag "name") [Tagged (Tag "reference") [Prim (S "minSize")]],Tagged (Tag "value") [Tagged (Tag "value") [Tagged (Tag "literal") [Prim (I 1)]]]]],Tagged (Tag "attribute") [Tagged (Tag "name") [Tagged (Tag "reference") [Prim (S "injective")]]],Tagged (Tag "attribute") [Tagged (Tag "nameValue") [Tagged (Tag "name") [Tagged (Tag "reference") [Prim (S "size")]],Tagged (Tag "value") [Tagged (Tag "value") [Tagged (Tag "literal") [Prim (I 3)]]]]]]],Tagged (Tag "innerFrom") [Tagged (Tag "domain") [Tagged (Tag "int") [Tagged (Tag "ranges") [Tagged (Tag "range") [Tagged (Tag "fromTo") [Tagged (Tag "value") [Tagged (Tag "literal") [Prim (I 3)]],Tagged (Tag "value") [Tagged (Tag "literal") [Prim (I 4)]]]]]]]],Tagged (Tag "innerTo") [Tagged (Tag "domain") [Tagged (Tag "int") [Tagged (Tag "ranges") [Tagged (Tag "range") [Tagged (Tag "fromTo") [Tagged (Tag "value") [Tagged (Tag "literal") [Prim (I 2)]],Tagged (Tag "value") [Tagged (Tag "literal") [Prim (I 4)]]]]]]]]]]],Tagged (Tag "innerTo") [Tagged (Tag "domain") [Tagged (Tag "set") [Tagged (Tag "attributes") [Tagged (Tag "attrCollection") [Tagged (Tag "attribute") [Tagged (Tag "nameValue") [Tagged (Tag "name") [Tagged (Tag "reference") [Prim (S "size")]],Tagged (Tag "value") [Tagged (Tag "value") [Tagged (Tag "literal") [Prim (I 4)]]]]],Tagged (Tag "attribute") [Tagged (Tag "nameValue") [Tagged (Tag "name") [Tagged (Tag "reference") [Prim (S "minSize")]],Tagged (Tag "value") [Tagged (Tag "value") [Tagged (Tag "literal") [Prim (I 4)]]]]],Tagged (Tag "attribute") [Tagged (Tag "nameValue") [Tagged (Tag "name") [Tagged (Tag "reference") [Prim (S "maxSize")]],Tagged (Tag "value") [Tagged (Tag "value") [Tagged (Tag "literal") [Prim (I 3)]]]]]]],Tagged (Tag "inner") [Tagged (Tag "domain") [Tagged (Tag "int") [Tagged (Tag "ranges") [Tagged (Tag "range") [Tagged (Tag "fromTo") [Tagged (Tag "value") [Tagged (Tag "literal") [Prim (I 4)]],Tagged (Tag "value") [Tagged (Tag "literal") [Prim (I 5)]]]]]]]]]]]]]]]]]) EOF)
