@@ -73,6 +73,8 @@ run seed limit = do
                 nextNesting nestl
                 run (eGen  st) (limit - time_taken_ r - time_taken_ s )
 
+        doRes _ =  error "doRes"
+
         checkConsistent ( Right (_, s@SettingI{consistent_}) )
             | not consistent_ = do
                 storeInconsistent s

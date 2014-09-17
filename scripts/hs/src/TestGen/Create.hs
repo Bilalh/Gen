@@ -1,9 +1,9 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
 {-# LANGUAGE ConstraintKinds, FlexibleContexts #-}
-
 {-# LANGUAGE RecordWildCards, NamedFieldPuns #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE PatternGuards #-}
+{-# OPTIONS_GHC -w #-}
 module TestGen.Create where
 
 import TestGen.ArbitraryDomains

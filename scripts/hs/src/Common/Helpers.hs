@@ -1,7 +1,7 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
 module Common.Helpers where
 
--- Helpers function which do depend on anything else
+-- Helpers function which do not depend on anything else in our sources
 
 import Language.E
 
