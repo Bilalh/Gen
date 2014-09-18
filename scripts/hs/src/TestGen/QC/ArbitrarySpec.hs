@@ -33,19 +33,11 @@ arbitrarySpec = do
     where name i =  T.pack $  "var" ++  (show  i)
 
 
-
--- arbitraryDoms :: Gen [(Text, EssenceDomain)]
--- arbitraryDoms = sized $ \n -> do
---     k <- choose (1, n `min` 1 )
-
---     doms <- sequence [ arbitraryDom | i <- [1..k] ]
---     -- let withNames =  zipWith (\d i -> (name i , d)) doms [1..]
---     _2
-
---     where name i =  T.pack $  "var" ++  (show  i)
-
 arbitraryDom ::  Gen (EssenceDomain)
-arbitraryDom = elements [ DInt 1 5 ]
+arbitraryDom =
+    oneof [
+      liftM2 DInt arbitrary arbitrary
+    ]
 
 arbitraryExpr :: Gen Eexpr
 arbitraryExpr = elements [ Elit (ELB True), Elit (ELB False)  ]

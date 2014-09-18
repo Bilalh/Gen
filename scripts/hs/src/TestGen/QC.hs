@@ -3,34 +3,47 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures  #-}
 
 module TestGen.QC where
+
 import TestGen.QC.ArbitrarySpec
+import TestGen.Runner(SettingI(..))
+import TestGen.TestGen(runRefine')
+import Common.Helpers(timestamp)
 
 import Language.E hiding(trace)
+import Debug.Trace(trace)
 
 import Test.QuickCheck
 import Test.QuickCheck.Monadic (assert, monadicIO, run)
-import TestGen.Runner(SettingI(..))
-import TestGen.TestGen(runRefine')
-
 import qualified Test.QuickCheck.Property as P
 
+import System.FilePath((</>), (<.>))
+import System.Random(randomRIO)
 
-prop_specs_refine :: SpecE -> Property
-prop_specs_refine specE =
-    let spec = toSpec specE in
+
+prop_specs_refine :: Int -> FilePath -> SpecE -> Property
+prop_specs_refine time out specE = do
+    let spec = toSpec specE
     typeChecks spec ==>
         monadicIO $ do
-            -- liftM whenFail _2
-            (ts, result) <- run $ runRefine' spec "__" 4
+            ts <- run timestamp >>= return . show
+            num <- run (randomRIO (10,99) :: IO Int)  >>= return . show
+            let uname  =  (ts ++ "_" ++ num )
+            result <- run $ runRefine' spec (out </> uname ) time
             case successful_ result of
                 True  -> return ()
-                False -> fail ts
+                False -> fail uname
 
+
+
+-- Strange things happen
 typeChecks :: Spec -> Bool
-typeChecks spec = case fst $ runCompESingle "Error while type checking." $
-    typeCheckSpec spec of
-        Left  e  -> True
-        Right () -> True
+typeChecks spec = True
+
+-- typeChecks spec = case fst $ runCompESingle "Error while type checking." $
+--     typeCheckSpec spec of
+--         Left  e  ->
+--             trace (show e ++ (show . pretty $ spec)) False
+--         Right () -> True
 
 infix 4 /==
 (/==) :: (Eq a, Show a) => a -> a -> Property
