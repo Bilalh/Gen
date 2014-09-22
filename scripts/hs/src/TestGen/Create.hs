@@ -11,7 +11,8 @@ import TestGen.Data
 import TestGen.EssenceConstraints
 import TestGen.EssenceDomain
 import Common.Helpers
-import TestGen.ToEssence
+
+import AST.ToEssence
 
 import Language.E
 

@@ -1,8 +1,11 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
 {-# LANGUAGE ConstraintKinds, FlexibleContexts #-}
-{-# OPTIONS_GHC -fno-warn-missing-signatures  #-}
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+{-# OPTIONS_GHC -fno-warn-unused-imports #-}
 
 module TestGen.QC where
+
+import AST.SpecE
 
 import TestGen.QC.ArbitrarySpec
 import TestGen.Runner(SettingI(..))
@@ -14,9 +17,11 @@ import Debug.Trace(trace)
 
 import Test.QuickCheck
 import Test.QuickCheck.Monadic (assert, monadicIO, run)
-import qualified Test.QuickCheck.Property as P
+import qualified Test.QuickCheck.Property as QC
+import qualified Test.QuickCheck as QC
 
-import System.FilePath((</>), (<.>))
+
+import System.FilePath((</>))
 import System.Random(randomRIO)
 
 
@@ -35,15 +40,12 @@ prop_specs_refine time out specE = do
 
 
 
--- Strange things happen
 typeChecks :: Spec -> Bool
-typeChecks spec = True
-
--- typeChecks spec = case fst $ runCompESingle "Error while type checking." $
---     typeCheckSpec spec of
---         Left  e  ->
---             trace (show e ++ (show . pretty $ spec)) False
---         Right () -> True
+typeChecks spec = case fst $ runCompESingle "Error while type checking." $
+    typeCheckSpec spec of
+        Left  e  ->
+            trace (show e ++ (show . pretty $ spec)) False
+        Right () -> True
 
 infix 4 /==
 (/==) :: (Eq a, Show a) => a -> a -> Property
@@ -51,3 +53,5 @@ x /== y =
   counterexample (show x ++ " == " ++ show y) (x /= y)
 
 
+rmain =
+    quickCheckWith stdArgs{QC.maxSize=3,maxSuccess=10} (prop_specs_refine 10 "__")

@@ -1,21 +1,26 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
 {-# LANGUAGE ConstraintKinds, FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+
 
 module TestGen.QC.ArbitrarySpec where
 
 import Language.E hiding(trace)
 
-import TestGen.EssenceDomain(EssenceDomain(..))
-import TestGen.EssenceConstraints
-import TestGen.ToEssence(toEssence)
-import Common.Helpers(mkFind,mkName,mkSpec)
+import AST.Constraint
+import AST.Domain
+import AST.Literal
+import AST.SpecE
+
+
+
 
 import Test.QuickCheck
 import Control.Monad(liftM2)
 import qualified Data.Text as T
 
-data SpecE = SpecE [(Text, EssenceDomain)] [Eexpr]
-    deriving(Show)
+import qualified Data.Map as M
 
 
 instance Arbitrary SpecE where
@@ -25,25 +30,27 @@ instance Arbitrary SpecE where
 arbitrarySpec :: Gen SpecE
 arbitrarySpec = do
     doms <- listOf1 arbitraryDom
-    let withNames =  zipWith (\d i -> (name i , d)) doms [1 :: Int ..]
-    exprs <- listOf arbitraryExpr
+    let withNames =  zipWith (\d i -> (name i , Find d)) doms [1 :: Int ..]
 
-    return $ SpecE withNames ( Elit (ELB True) :  exprs)
+    exprs <- listOf arbitraryExpr
+    let mappings = M.fromList withNames
+
+    return $ SpecE mappings  (ELit (EB True) :  exprs)
 
     where name i =  T.pack $  "var" ++  (show  i)
 
 
-arbitraryDom ::  Gen (EssenceDomain)
-arbitraryDom =
-    oneof [
-      liftM2 DInt arbitrary arbitrary
+arbitraryDom ::  Gen (Domain)
+arbitraryDom =oneof
+    [
+        return DInt `ap` arbitrary
     ]
 
-arbitraryExpr :: Gen Eexpr
-arbitraryExpr = elements [ Elit (ELB True), Elit (ELB False)  ]
+arbitraryExpr :: Gen Expr
+arbitraryExpr = elements [ ELit (EB True), ELit (EB False)  ]
 
 
-instance Arbitrary Eexpr where
+instance Arbitrary Expr where
     arbitrary = sized arbitrarySized
 
 class Arbitrary a => ArbitrarySized a where
@@ -56,39 +63,42 @@ instance Arbitrary a => ArbitrarySized [a] where
        sequence [ arbitrary | _ <- [1..k] ]
 
 
-instance ArbitrarySized Eexpr where
+instance ArbitrarySized Expr where
     arbitrarySized 0 = oneof [
-         liftM Evar (arbitrary)
-        ,liftM Elit (arbitrarySized 0)
+         liftM EVar (arbitrary)
+        ,liftM ELit (arbitrarySized 0)
         ]
     arbitrarySized n = oneof [
-            liftM  Evar (arbitrary)
-           ,liftM2 Egt  (arbitrarySized ((n-1) `div` 2)) (arbitrarySized ((n-1) `div` 2))
-           ,liftM2 Eneq (arbitrarySized ((n-1) `div` 2)) (arbitrarySized ((n-1) `div` 2))
-           ,liftM  Elit (arbitrarySized (n-1))
+            liftM  EVar (arbitrary)
+           ,liftM2 EGT  (arbitrarySized ((n-1) `div` 2)) (arbitrarySized ((n-1) `div` 2))
+           ,liftM  ELit (arbitrarySized (n-1))
         ]
 
-instance Arbitrary EssenceLiteral where
+instance Arbitrary Literal where
     arbitrary = sized arbitrarySized
+    -- shrink x  = genericShrink x
 
-instance ArbitrarySized EssenceLiteral where
+
+instance ArbitrarySized Literal where
     arbitrarySized 0 = oneof [
-         liftM ELB arbitrary
-        ,liftM ELI arbitrary
+         liftM EB arbitrary
+        ,liftM EI arbitrary
         ]
     arbitrarySized n = oneof [
-         liftM ELB arbitrary
-        ,liftM ELI arbitrary
-        ,liftM ELSet arbitrary
+         liftM EB arbitrary
+        ,liftM EI arbitrary
+        ,liftM ESet arbitrary
         ]
+
 
 instance Arbitrary Text where
     arbitrary = liftM (T.pack . ("var_" ++) .  show) $ choose (10,99 :: Integer)
 
+instance Arbitrary (Range Integer) where
+    arbitrary = oneof
+        [
+          liftM RSingle arbitrary
+        , liftM2 RFromTo arbitrary arbitrary
+        ]
 
-toSpec :: SpecE -> Spec
-toSpec (SpecE doms cons) =
-    let constraints = [xMake| topLevel.suchThat := map toEssence cons |]
-        finds = fmap (\(n,e) -> mkFind ((mkName n), toEssence e) ) doms
-    in
-        mkSpec $ finds ++ [constraints]
+    shrink x = genericShrink x

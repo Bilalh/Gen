@@ -63,5 +63,3 @@ sr :: MonadGen m => m [Integer]
 sr = do
     let lst = [1,2,3,4,5,6] :: [Integer]
     sample lst 2
-
-

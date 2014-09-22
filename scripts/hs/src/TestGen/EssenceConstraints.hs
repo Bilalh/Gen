@@ -1,12 +1,18 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
 {-# LANGUAGE ConstraintKinds, FlexibleContexts #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module TestGen.EssenceConstraints where
 
 import Common.Helpers
-import TestGen.ToEssence
+import AST.ToEssence
 
 import Language.E
+
+
+instance ToEssence EssenceLiteral where
+    toEssence lit = fromEssenceLiteral lit
+
 
 data Eexpr =
        Egt  Eexpr Eexpr

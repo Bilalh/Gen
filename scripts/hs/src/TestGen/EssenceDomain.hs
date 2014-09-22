@@ -3,7 +3,7 @@
 
 module TestGen.EssenceDomain where
 
-import TestGen.ToEssence
+import AST.ToEssence
 import Common.Helpers
 
 import Language.E
