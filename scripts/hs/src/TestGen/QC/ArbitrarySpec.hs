@@ -13,9 +13,6 @@ import AST.Domain
 import AST.Literal
 import AST.SpecE
 
-
-
-
 import Test.QuickCheck
 import Control.Monad(liftM2)
 import qualified Data.Text as T
@@ -24,30 +21,50 @@ import qualified Data.Map as M
 
 
 instance Arbitrary SpecE where
-    arbitrary = arbitrarySpec
+    arbitrary = sized arbitrarySpec
 
 
-arbitrarySpec :: Gen SpecE
-arbitrarySpec = do
-    doms <- listOf1 arbitraryDom
+arbitrarySpec :: Int -> Gen SpecE
+arbitrarySpec depth = do
+    doms <- listOf1 (arbitraryDom depth)
     let withNames =  zipWith (\d i -> (name i , Find d)) doms [1 :: Int ..]
-
-    exprs <- listOf arbitraryExpr
     let mappings = M.fromList withNames
+
+    exprs <- listOf (arbitraryExpr depth mappings)
 
     return $ SpecE mappings  (ELit (EB True) :  exprs)
 
     where name i =  T.pack $  "var" ++  (show  i)
 
 
-arbitraryDom ::  Gen (Domain)
-arbitraryDom =oneof
+arbitraryDom :: Int -> Gen (Domain)
+arbitraryDom _ =oneof
     [
         return DInt `ap` arbitrary
     ]
 
-arbitraryExpr :: Gen Expr
-arbitraryExpr = elements [ ELit (EB True), ELit (EB False)  ]
+arbitraryExpr :: Int -> Doms ->  Gen Expr
+arbitraryExpr 0 _ =
+    do { b <- arbitrary; return (ELit (EB b) ) }
+
+arbitraryExpr depth doms =
+    oneof
+        [
+             do { b <- arbitrary; return (ELit (EB b) ) }
+            ,arbitraryOp depth doms EEQ
+        ]
+
+
+
+
+type Bop = (Expr -> Expr -> Expr)
+
+arbitraryOp :: Int -> Doms -> Bop  -> Gen Expr
+arbitraryOp depth doms op =  do
+    e1 <- arbitraryExpr (depth - 1) doms
+    e2 <- arbitraryExpr (depth - 1) doms
+
+    return $ op e1 e2
 
 
 instance Arbitrary Expr where
@@ -84,7 +101,7 @@ instance ArbitrarySized Literal where
          liftM EB arbitrary
         ,liftM EI arbitrary
         ]
-    arbitrarySized n = oneof [
+    arbitrarySized _ = oneof [
          liftM EB arbitrary
         ,liftM EI arbitrary
         ,liftM ESet arbitrary

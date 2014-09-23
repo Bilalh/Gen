@@ -77,4 +77,3 @@ rangeRandomG range = do
         ++ " before " ++ show gen
         ++ " after  " ++ show gen')
         return $ fromIntegral x
-
