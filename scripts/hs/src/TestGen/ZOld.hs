@@ -65,12 +65,3 @@ instance ArbitrarySized Literal where
 
 instance Arbitrary Text where
     arbitrary = liftM (T.pack . ("var_" ++) .  show) $ choose (10,99 :: Integer)
-
-instance Arbitrary (Range Integer) where
-    arbitrary = oneof
-        [
-          liftM RSingle arbitrary
-        , liftM2 RFromTo arbitrary arbitrary
-        ]
-
-    shrink x = genericShrink x
