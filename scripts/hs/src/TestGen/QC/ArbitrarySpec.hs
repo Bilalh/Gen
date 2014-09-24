@@ -13,10 +13,10 @@ import AST.Constraint
 import AST.Domain
 import AST.Literal
 import AST.SpecE
--- import AST.ToEssence
+import AST.ToEssence
 
 import Test.QuickCheck
-import Control.Monad(liftM2)
+-- import Control.Monad(liftM2)
 import qualified Data.Text as T
 
 import qualified Data.Map as M
@@ -42,11 +42,35 @@ arbitrarySpec depth = do
 
 
 arbitraryDom :: Int -> Gen (Domain)
-arbitraryDom _ =oneof
+arbitraryDom _ = oneof
     [
-        -- return DInt `ap` arbitrary
-       return DBool
+    --   return DInt `ap` (listOfB 1 4 arbitrary)
+     return DBool
     ]
+
+-- | Generates a random length between the specifed bounds.
+--   The maximum length depends on the size parameter.
+listOfB :: Int -> Int -> Gen a -> Gen [a]
+listOfB l u gen = sized $ \n -> do
+    k <- choose ( 0 `max` l, u `min` n)
+    vectorOf k gen
+
+instance Arbitrary (Range Integer) where
+    arbitrary = oneof
+        [
+          liftM RSingle (choose ((-5),5 :: Integer))
+        , arbitraryFromTo
+        ]
+
+        where
+        arbitraryFromTo :: Gen (Range Integer)
+        arbitraryFromTo = do
+            do
+                a <- choose ((-10),10 :: Integer)
+                b <- choose (a,10)
+                return $ RFromTo a b
+
+    shrink x = genericShrink x
 
 
 arbitraryExpr :: Int -> Doms ->  Gen Expr
@@ -55,17 +79,18 @@ arbitraryExpr 0 _ =do
     return (ELit (EB b) )
 
 
-arbitraryExpr depth doms =
-    oneof
+arbitraryExpr depth doms = oneof
         [
-             do { b <- arbitrary; return (ELit (EB b) ) } -- Boolean Literal
-            ,arbitraryBop depth doms EEQ
+          do { b <- arbitrary; return (ELit (EB b) ) }
+        , arbitraryBop depth doms EEQ
         ]
+
 
 type Bop = (Expr -> Expr -> Expr)
 
 arbitraryBop :: Int -> Doms -> Bop  -> Gen Expr
 arbitraryBop depth doms op =  do
+    -- TODO we what domain without attributes, for type checking
     exprDom <- arbitraryDom (depth - 1)
 
     e1 <- exprOfType (depth - 1) doms exprDom
@@ -73,26 +98,48 @@ arbitraryBop depth doms op =  do
 
     return $ op e1 e2
 
-    -- let res = op e1 e2
-        -- typee = typeOfC (toEssence res)
-    -- return $ (trace . show . pretty $ typee ) res
 
 -- pick a type,   choose from all the way to genrate that type.
-
 exprOfType :: Int -> Doms -> Domain -> Gen Expr
 exprOfType 0 doms DBool = oneof
     [
-      do { b <- arbitrary; return (ELit (EB b) ) } -- Literal
+      do { b <- arbitrary; return (ELit (EB b) ) }
     ]
 
-exprOfType depth doms DBool = oneof
-    [
-      do { b <- arbitrary; return (ELit (EB b) ) } -- Literal
-    , arbitraryBop (depth - 1) doms EEQ
-    ]
+exprOfType depth doms DBool = do
+    let ofType = maybeToList $ varOfType doms DBool
+
+    oneof $ ofType ++
+        [
+          do { b <- arbitrary; return (ELit (EB b) ) } -- Literal
+        , arbitraryBop (depth - 1) doms EEQ
+        ]
+
+exprOfType depth doms dom = error . show . vcat $
+    ["exprOfType not Matched", pretty depth, pretty dom,pretty doms]
 
 
-exprOfType depth doms dom = error . show . vcat $ [pretty depth, pretty dom]
+instance Pretty (M.Map Text FG) where
+    pretty = vcat . map pretty . M.toList
+
+instance Pretty FG where
+    pretty (Find  d) = "Find"  <+>  pretty d
+    pretty (Given d) = "Given" <+>  pretty d
+
+
+varOfType :: Doms -> Domain -> Maybe (Gen Expr)
+varOfType doms dom = toGenExpr $  M.filter (typesUnify dom . domOfFG) doms
+
+
+-- TODO could be a lot more efficient
+typesUnify  :: Domain -> Domain -> Bool
+typesUnify a b = typeUnify (toEssence a) (toEssence b)
+
+
+toGenExpr :: Doms -> Maybe (Gen Expr)
+toGenExpr doms =  case (map (EVar . fst) . M.toList $ doms) of
+    [] -> Nothing
+    xs -> Just $ elements xs
 
 
 typeOfC :: E -> E
@@ -105,3 +152,8 @@ typeOfC e  =
     where
         helper = do
             typeOf e
+
+_sample :: Int -> IO ()
+_sample n  = do
+    a <- sample' (arbitrarySpec n)
+    mapM_  (putStrLn  . show . pretty) a
