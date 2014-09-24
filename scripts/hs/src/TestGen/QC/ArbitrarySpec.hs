@@ -36,7 +36,7 @@ arbitrarySpec depth = do
 
     exprs <- listOf (arbitraryExpr depth mappings)
 
-    return $ SpecE mappings  (ELit (EB True) :  exprs)
+    return $ SpecE mappings exprs
 
     where name i =  T.pack $  "var" ++  (show  i)
 
