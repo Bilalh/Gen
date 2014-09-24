@@ -44,9 +44,12 @@ arbitrarySpec depth = do
 arbitraryDom :: Int -> Gen (Domain)
 arbitraryDom _ = oneof
     [
-    --   return DInt `ap` (listOfB 1 4 arbitrary)
-     return DBool
+      arbitraryIntDomain
+    , return DBool
     ]
+
+arbitraryIntDomain :: Gen Domain
+arbitraryIntDomain = return DInt `ap` (listOfB 1 4 arbitrary)
 
 -- | Generates a random length between the specifed bounds.
 --   The maximum length depends on the size parameter.
@@ -54,6 +57,7 @@ listOfB :: Int -> Int -> Gen a -> Gen [a]
 listOfB l u gen = sized $ \n -> do
     k <- choose ( 0 `max` l, u `min` n)
     vectorOf k gen
+
 
 instance Arbitrary (Range Integer) where
     arbitrary = oneof
@@ -78,7 +82,6 @@ arbitraryExpr 0 _ =do
     b <- arbitrary
     return (ELit (EB b) )
 
-
 arbitraryExpr depth doms = oneof
         [
           do { b <- arbitrary; return (ELit (EB b) ) }
@@ -101,19 +104,33 @@ arbitraryBop depth doms op =  do
 
 -- pick a type,   choose from all the way to genrate that type.
 exprOfType :: Int -> Doms -> Domain -> Gen Expr
-exprOfType 0 doms DBool = oneof
+exprOfType 0 doms d@DBool = oneof $ ofType ++
     [
       do { b <- arbitrary; return (ELit (EB b) ) }
     ]
+    where ofType = maybeToList $ varOfType doms d
 
-exprOfType depth doms DBool = do
-    let ofType = maybeToList $ varOfType doms DBool
 
-    oneof $ ofType ++
-        [
-          do { b <- arbitrary; return (ELit (EB b) ) } -- Literal
-        , arbitraryBop (depth - 1) doms EEQ
-        ]
+exprOfType depth doms d@DBool = oneof $ ofType ++
+    [
+      do { b <- arbitrary; return (ELit (EB b) ) } -- Literal
+    , arbitraryBop (depth - 1) doms EEQ
+    ]
+    where ofType = maybeToList $ varOfType doms d
+
+
+exprOfType 0 doms d@DInt{..} = oneof $ ofType ++
+    [
+       do { i <- choose ((-10),10 :: Integer); return (ELit (EI i) ) }
+    ]
+    where ofType = maybeToList $ varOfType doms d
+
+exprOfType depth doms d@DInt{..} = oneof $ ofType ++
+    [
+       do { i <- choose ((-10),10 :: Integer); return (ELit (EI i) ) }
+    ]
+    where ofType = maybeToList $ varOfType doms d
+
 
 exprOfType depth doms dom = error . show . vcat $
     ["exprOfType not Matched", pretty depth, pretty dom,pretty doms]
