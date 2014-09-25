@@ -9,7 +9,7 @@ module TestGen.QC.ArbitrarySpec where
 
 import Language.E hiding(trace)
 
-import AST.Constraint
+import AST.Expr
 import AST.Domain
 import AST.Literal
 import AST.SpecE
@@ -30,11 +30,11 @@ instance Arbitrary SpecE where
 
 arbitrarySpec :: Int -> Gen SpecE
 arbitrarySpec depth = do
-    doms <- listOf1 (arbitraryDom depth)
+    doms <- listOfB 1 10 (arbitraryDom depth)
     let withNames =  zipWith (\d i -> (name i , Find d)) doms [1 :: Int ..]
     let mappings = M.fromList withNames
 
-    exprs <- listOf (arbitraryExpr depth mappings)
+    exprs <- listOfB 0 15 (arbitraryExpr depth mappings)
 
     return $ SpecE mappings exprs
 
@@ -42,14 +42,27 @@ arbitrarySpec depth = do
 
 
 arbitraryDom :: Int -> Gen (Domain)
-arbitraryDom _ = oneof
+arbitraryDom 0 = oneof
     [
-      arbitraryIntDomain
+      arbitraryIntDomain 0
     , return DBool
     ]
 
-arbitraryIntDomain :: Gen Domain
-arbitraryIntDomain = return DInt `ap` (listOfB 1 4 arbitrary)
+arbitraryDom n = oneof
+    [
+      arbitraryIntDomain (n - 1)
+    , return DBool
+    , arbitrarySetDomain (n - 1)
+    ]
+
+arbitraryIntDomain :: Int -> Gen Domain
+arbitraryIntDomain _ = return DInt `ap` (listOfB 1 4 arbitrary)
+
+arbitrarySetDomain :: Int -> Gen Domain
+arbitrarySetDomain depth = do
+    inner <- arbitraryDom depth
+    return $ dset{inner}
+
 
 -- | Generates a random length between the specifed bounds.
 --   The maximum length depends on the size parameter.
@@ -114,7 +127,7 @@ exprOfType 0 doms d@DBool = oneof $ ofType ++
 exprOfType depth doms d@DBool = oneof $ ofType ++
     [
       do { b <- arbitrary; return (ELit (EB b) ) } -- Literal
-    , arbitraryBop (depth - 1) doms EEQ
+    , arbitraryBop depth doms EEQ
     ]
     where ofType = maybeToList $ varOfType doms d
 
@@ -128,20 +141,13 @@ exprOfType 0 doms d@DInt{..} = oneof $ ofType ++
 exprOfType depth doms d@DInt{..} = oneof $ ofType ++
     [
        do { i <- choose ((-10),10 :: Integer); return (ELit (EI i) ) }
+    , arbitraryBop depth doms EEQ
     ]
     where ofType = maybeToList $ varOfType doms d
 
 
 exprOfType depth doms dom = error . show . vcat $
     ["exprOfType not Matched", pretty depth, pretty dom,pretty doms]
-
-
-instance Pretty (M.Map Text FG) where
-    pretty = vcat . map pretty . M.toList
-
-instance Pretty FG where
-    pretty (Find  d) = "Find"  <+>  pretty d
-    pretty (Given d) = "Given" <+>  pretty d
 
 
 varOfType :: Doms -> Domain -> Maybe (Gen Expr)
@@ -170,7 +176,7 @@ typeOfC e  =
         helper = do
             typeOf e
 
-_sample :: Int -> IO ()
-_sample n  = do
-    a <- sample' (arbitrarySpec n)
+-- _sample :: Int -> IO ()
+_sample e  = do
+    a <- sample' e
     mapM_  (putStrLn  . show . pretty) a
