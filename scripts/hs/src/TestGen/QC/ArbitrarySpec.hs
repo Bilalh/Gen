@@ -89,7 +89,7 @@ instance Arbitrary (Range Integer) where
 
     shrink x = genericShrink x
 
-
+-- An expression that results in a boolean
 arbitraryExpr :: Int -> Doms ->  Gen Expr
 arbitraryExpr 0 _ =do
     b <- arbitrary
@@ -99,12 +99,13 @@ arbitraryExpr depth doms = oneof
         [
           do { b <- arbitrary; return (ELit (EB b) ) }
         , arbitraryBop depth doms EEQ
+        , arbitraryBop depth doms ENEQ
         ]
 
 
 type Bop = (Expr -> Expr -> Expr)
 
-arbitraryBop :: Int -> Doms -> Bop  -> Gen Expr
+arbitraryBop :: Int -> Doms -> Bop ->  Gen Expr
 arbitraryBop depth doms op =  do
     -- TODO we what domain without attributes, for type checking
     exprDom <- arbitraryDom (depth - 1)
@@ -114,8 +115,18 @@ arbitraryBop depth doms op =  do
 
     return $ op e1 e2
 
+ofTypeBop depth doms exprDom op =  do
 
--- pick a type,   choose from all the way to genrate that type.
+    e1 <- exprOfType (depth - 1) doms exprDom
+    e2 <- exprOfType (depth - 1) doms exprDom
+
+    return $ op e1 e2
+
+ofTypeOp depth doms exprDom op =  do
+    e1 <- exprOfType (depth - 1) doms exprDom
+    return $ op e1
+
+-- pick a type,   choose from all the way to genrate that type, i.e lit.
 exprOfType :: Int -> Doms -> Domain -> Gen Expr
 exprOfType 0 doms d@DBool = oneof $ ofType ++
     [
@@ -140,10 +151,37 @@ exprOfType 0 doms d@DInt{..} = oneof $ ofType ++
 
 exprOfType depth doms d@DInt{..} = oneof $ ofType ++
     [
-       do { i <- choose ((-10),10 :: Integer); return (ELit (EI i) ) }
-    , arbitraryBop depth doms EEQ
+      do { i <- choose ((-10),10 :: Integer); return (ELit (EI i) ) }
+    , ofTypeBop depth doms d ESum
+    , bar
+    ]
+    where
+    ofType = maybeToList $ varOfType doms d
+    bar = do
+        edom <- arbitrarySetDomain (depth - 1)
+        ofTypeOp depth doms edom EBar
+
+exprOfType 0 doms d@DSet{..} = error "set depth 0"
+
+exprOfType 1 doms d@DSet{..} = oneof $ ofType ++
+    [
+       do { i <- choose ((-10),10 :: Integer); return (ELit (ESet [EI i] ) ) }
     ]
     where ofType = maybeToList $ varOfType doms d
+
+
+exprOfType depth doms d@DSet{..} = oneof $ ofType ++
+    [
+        do { i <- choose ((-10),10 :: Integer); return (ELit (ESet [EI i]) ) }
+    ]
+    where
+    ofType = maybeToList $ varOfType doms d
+
+
+    useInner = do
+        innerExpr <- exprOfType (depth - 1) doms inner
+        -- expr in lit
+        undefined
 
 
 exprOfType depth doms dom = error . show . vcat $
