@@ -23,13 +23,13 @@ function csolve(){
 	if [ $# -lt 1 ]; then
 		echo "$0  param+ "
 	else
-		local base=`basename $PWD`
+		local base="$(basename "$PWD")"
 		__models_dir="${base}-compact/"
 
 		if ( cr ); then
-			pushd ${base}-compact >/dev/null
+			pushd "${__models_dir}"
 			export LINES_TO_SHOW=${LINES_TO_SHOW:-20}
-			refine_run ${EXTRA:-} ../${base}.essence ::: 0001.eprime ::: "$@"
+			refine_run ${EXTRA:-} ../${base}.essence ::: "0001.eprime" ::: "$@"
 			popd > /dev/null
 		fi
 	fi
