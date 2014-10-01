@@ -7,13 +7,8 @@
 
 module TestGen.QC.ArbitrarySpec where
 
+import AST.Imports
 import Language.E hiding(trace)
-
-import AST.Expr
-import AST.Domain
-import AST.Literal
-import AST.SpecE
-import AST.ToEssence
 
 import Test.QuickCheck
 -- import Control.Monad(liftM2)
@@ -21,12 +16,10 @@ import qualified Data.Text as T
 
 import qualified Data.Map as M
 
--- import Language.E hiding(trace)
 -- import Debug.Trace(trace)
 
 instance Arbitrary SpecE where
     arbitrary = sized arbitrarySpec
-
 
 arbitrarySpec :: Int -> Gen SpecE
 arbitrarySpec depth = do
@@ -72,22 +65,22 @@ listOfB l u gen = sized $ \n -> do
     vectorOf k gen
 
 
-instance Arbitrary (Range Integer) where
+instance Arbitrary (Range Expr) where
     arbitrary = oneof
         [
-          liftM RSingle (choose ((-5),5 :: Integer))
-        , arbitraryFromTo
+        --   liftM RSingle (choose ((-5),5 :: Integer))
+         arbitraryFromTo
         ]
 
         where
-        arbitraryFromTo :: Gen (Range Integer)
+        arbitraryFromTo :: Gen (Range Expr)
         arbitraryFromTo = do
             do
                 a <- choose ((-10),10 :: Integer)
                 b <- choose (a,10)
-                return $ RFromTo a b
+                return $ RFromTo (ELit . EI $ a) (ELit . EI $  b)
 
-    shrink x = genericShrink x
+    -- shrink x = genericShrink x
 
 -- An expression that results in a boolean
 arbitraryExpr :: Int -> Doms ->  Gen Expr
@@ -98,12 +91,12 @@ arbitraryExpr 0 _ =do
 arbitraryExpr depth doms = oneof
         [
           do { b <- arbitrary; return (ELit (EB b) ) }
-        , arbitraryBop depth doms EEQ
-        , arbitraryBop depth doms ENEQ
+        , arbitraryBop depth doms BEQ
+        , arbitraryBop depth doms BNEQ
         ]
 
 
-type Bop = (Expr -> Expr -> Expr)
+type Bop = (Expr -> Expr -> BinOp)
 
 arbitraryBop :: Int -> Doms -> Bop ->  Gen Expr
 arbitraryBop depth doms op =  do
@@ -113,18 +106,19 @@ arbitraryBop depth doms op =  do
     e1 <- exprOfType (depth - 1) doms exprDom
     e2 <- exprOfType (depth - 1) doms exprDom
 
-    return $ op e1 e2
+    return $ EBinOp $  op e1 e2
 
 ofTypeBop depth doms exprDom op =  do
 
     e1 <- exprOfType (depth - 1) doms exprDom
     e2 <- exprOfType (depth - 1) doms exprDom
 
-    return $ op e1 e2
+    return $ EBinOp $ op e1 e2
+
 
 ofTypeOp depth doms exprDom op =  do
     e1 <- exprOfType (depth - 1) doms exprDom
-    return $ op e1
+    return $ EUniOp $ op e1
 
 -- pick a type,   choose from all the way to genrate that type, i.e lit.
 exprOfType :: Int -> Doms -> Domain -> Gen Expr
@@ -138,7 +132,7 @@ exprOfType 0 doms d@DBool = oneof $ ofType ++
 exprOfType depth doms d@DBool = oneof $ ofType ++
     [
       do { b <- arbitrary; return (ELit (EB b) ) } -- Literal
-    , arbitraryBop depth doms EEQ
+    , arbitraryBop depth doms BEQ
     ]
     where ofType = maybeToList $ varOfType doms d
 
@@ -149,17 +143,24 @@ exprOfType 0 doms d@DInt{..} = oneof $ ofType ++
     ]
     where ofType = maybeToList $ varOfType doms d
 
+exprOfType 1 doms d@DInt{..} = oneof $ ofType ++
+    [
+       do { i <- choose ((-10),10 :: Integer); return (ELit (EI i) ) }
+    , ofTypeBop 1 doms d (BPlus)
+    ]
+    where ofType = maybeToList $ varOfType doms d
+
 exprOfType depth doms d@DInt{..} = oneof $ ofType ++
     [
       do { i <- choose ((-10),10 :: Integer); return (ELit (EI i) ) }
-    , ofTypeBop depth doms d ESum
+    , ofTypeBop depth doms d ( BPlus)
     , bar
     ]
     where
     ofType = maybeToList $ varOfType doms d
     bar = do
         edom <- arbitrarySetDomain (depth - 1)
-        ofTypeOp depth doms edom EBar
+        ofTypeOp depth doms edom ( UBar)
 
 exprOfType 0 doms d@DSet{..} = error "set depth 0"
 
