@@ -8,20 +8,24 @@
 module TestGen.QC.ArbitrarySpec where
 
 import AST.Imports
+import TestGen.QC.Helpers
+
 import Language.E hiding(trace)
+-- import Debug.Trace(trace)
 
 import Test.QuickCheck
 -- import Control.Monad(liftM2)
-import qualified Data.Text as T
 
+import qualified Data.Text as T
 import qualified Data.Map as M
 
--- import Debug.Trace(trace)
+type Depth = Int
+
 
 instance Arbitrary SpecE where
     arbitrary = sized arbitrarySpec
 
-arbitrarySpec :: Int -> Gen SpecE
+arbitrarySpec :: Depth -> Gen SpecE
 arbitrarySpec depth = do
     doms <- listOfB 1 10 (arbitraryDom depth)
     let withNames =  zipWith (\d i -> (name i , Find d)) doms [1 :: Int ..]
@@ -33,8 +37,9 @@ arbitrarySpec depth = do
 
     where name i =  T.pack $  "var" ++  (show  i)
 
+---- Domains
 
-arbitraryDom :: Int -> Gen (Domain)
+arbitraryDom :: Depth -> Gen (Domain)
 arbitraryDom 0 = oneof
     [
       arbitraryIntDomain 0
@@ -48,21 +53,15 @@ arbitraryDom n = oneof
     , arbitrarySetDomain (n - 1)
     ]
 
-arbitraryIntDomain :: Int -> Gen Domain
+arbitraryIntDomain :: Depth -> Gen Domain
 arbitraryIntDomain _ = return DInt `ap` (listOfB 1 4 arbitrary)
 
-arbitrarySetDomain :: Int -> Gen Domain
+arbitrarySetDomain :: Depth -> Gen Domain
 arbitrarySetDomain depth = do
     inner <- arbitraryDom depth
     return $ dset{inner}
 
-
--- | Generates a random length between the specifed bounds.
---   The maximum length depends on the size parameter.
-listOfB :: Int -> Int -> Gen a -> Gen [a]
-listOfB l u gen = sized $ \n -> do
-    k <- choose ( 0 `max` l, u `min` n)
-    vectorOf k gen
+---- Ranges
 
 
 instance Arbitrary (Range Expr) where
@@ -82,21 +81,30 @@ instance Arbitrary (Range Expr) where
 
     -- shrink x = genericShrink x
 
--- An expression that results in a boolean
-arbitraryExpr :: Int -> Doms ->  Gen Expr
-arbitraryExpr 0 _ =do
-    b <- arbitrary
-    return (ELit (EB b) )
+---EXPR
 
-arbitraryExpr depth doms = oneof
+-- An expression that results in a boolean
+arbitraryExpr :: Depth -> Doms ->  Gen Expr
+arbitraryExpr depth doms = oneof $ case depth of
+        0 -> c0; 1 -> c1; _ -> c2
+
+    where
+    c0 =
         [
           do { b <- arbitrary; return (ELit (EB b) ) }
-        , arbitraryBop depth doms BEQ
+        ]
+    c1 =  c0 ++
+        [
+          arbitraryBop depth doms BEQ
         , arbitraryBop depth doms BNEQ
-        , arbitraryQuan depth doms
+        ]
+    c2 = c1 ++
+        [
+          arbitraryQuan depth doms
         ]
 
-arbitraryQuan :: Int -> Doms -> Gen Expr
+
+arbitraryQuan :: Depth -> Doms -> Gen Expr
 arbitraryQuan depth doms = do
 
     bs <- arbitraryExpr (depth - 1) doms
@@ -104,10 +112,11 @@ arbitraryQuan depth doms = do
                 bs
     return $ a
 
+----OPS
 
 type Bop = (Expr -> Expr -> BinOp)
 
-arbitraryBop :: Int -> Doms -> Bop ->  Gen Expr
+arbitraryBop :: Depth -> Doms -> Bop ->  Gen Expr
 arbitraryBop depth doms op =  do
     -- TODO we what domain without attributes, for type checking
     exprDom <- arbitraryDom (depth - 1)
@@ -129,8 +138,10 @@ ofTypeOp depth doms exprDom op =  do
     e1 <- exprOfType (depth - 1) doms exprDom
     return $ EUniOp $ op e1
 
+-- OfType
+
 -- pick a type,   choose from all the way to genrate that type, i.e lit.
-exprOfType :: Int -> Doms -> Domain -> Gen Expr
+exprOfType :: Depth -> Doms -> Domain -> Gen Expr
 exprOfType 0 doms d@DBool = oneof $ ofType ++
     [
       do { b <- arbitrary; return (ELit (EB b) ) }
@@ -202,29 +213,7 @@ varOfType :: Doms -> Domain -> Maybe (Gen Expr)
 varOfType doms dom = toGenExpr $  M.filter (typesUnify dom . domOfFG) doms
 
 
--- TODO could be a lot more efficient
-typesUnify  :: Domain -> Domain -> Bool
-typesUnify a b = typeUnify (toEssence a) (toEssence b)
-
-
 toGenExpr :: Doms -> Maybe (Gen Expr)
 toGenExpr doms =  case (map (EVar . fst) . M.toList $ doms) of
     [] -> Nothing
     xs -> Just $ elements xs
-
-
-typeOfC :: E -> E
-typeOfC e  =
-    let (mresult, _logs) = runCompESingle "typeOf" helper
-    in case mresult of
-        Right ss ->  ss
-        Left d     -> error . show .  vcat $ ["typeOf", d, pretty _logs]
-
-    where
-        helper = do
-            typeOf e
-
--- _sample :: Int -> IO ()
-_sample e  = do
-    a <- sample' e
-    mapM_  (putStrLn  . show . pretty) a
