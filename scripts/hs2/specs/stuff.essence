@@ -1,0 +1,59 @@
+language Essence 1.3
+
+given n : int(1..100)
+given a : int(1..2, 4, 8)
+find c : set (minSize 3) of function (injective, size 3) int --> set (size 3) of int
+find d : matrix indexed by [int(3..5)] of partition(regular) from int(4..10)
+
+letting b be 4
+letting dom be domain int(0..n-1)
+letting Length be domain int(1..n)
+
+find s: set (minSize a, maxSize a*2 + 1) of int(1..a*4*b)
+
+find quasigroup : matrix indexed by [dom,dom] of dom
+find Ticks : set (size n) of int(0..2**n)
+
+letting Golfers be new type of size g * s
+find sched : set (size w) of partition (regular, size g) from Golfers
+
+letting start    be function (1 --> 8, 2 --> 0, 3 --> 0)
+
+minimising |s|
+
+letting Index  be domain int(1..n*a)
+letting Num be domain int(1..n)
+find seq: function(total,surjective) Index --> Num
+
+such that
+
+forAll m : Num .
+    exists f : function (total, injective) int(1..k) --> Index .
+       (forAll i : Index .  i in range(f) <-> i in preImage(seq,m)) /\
+       (forAll j : int(1..k-1) . f(j+1) - f(j) = m + 1)
+
+such that
+
+s =  {1,2,a},
+
+forAll i in s,  i != 3.
+    i > a,
+
+forAll i,j : dom .
+    quasigroup[quasigroup[quasigroup[j,i],j],j] = i,
+
+allDiff(quasigroup),
+
+forAll pair1, pair2 : set (size 2) of int subsetEq Ticks
+    , pair1 != pair2
+    . max(pair1) - min(pair1) != max(pair2) - min(pair2),
+
+such that
+    forAll {week1, week2} subsetEq sched .
+        forAll group1 in parts(week1) .
+            forAll group2 in parts(week2) .
+                |group1 intersect group2| < 2,
+
+such that
+    exists startingIndexes : matrix indexed by [int(1..3)] of int(1..5) .
+        allDiff(startingIndexes)
