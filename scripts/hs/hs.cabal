@@ -127,6 +127,8 @@ Executable testGen
                      , text
                      , time
                      , transformers
+                     , cereal
+                     , hashable
     ghc-prof-options:
         -auto-all
         -caf-all

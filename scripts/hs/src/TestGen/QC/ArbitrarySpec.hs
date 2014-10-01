@@ -93,7 +93,16 @@ arbitraryExpr depth doms = oneof
           do { b <- arbitrary; return (ELit (EB b) ) }
         , arbitraryBop depth doms BEQ
         , arbitraryBop depth doms BNEQ
+        , arbitraryQuan depth doms
         ]
+
+arbitraryQuan :: Int -> Doms -> Gen Expr
+arbitraryQuan depth doms = do
+
+    bs <- arbitraryExpr (depth - 1) doms
+    let a = EQuan ForAll (BIn (EQVar "x") (EVar "a")) EEmptyGuard
+                bs
+    return $ a
 
 
 type Bop = (Expr -> Expr -> BinOp)
