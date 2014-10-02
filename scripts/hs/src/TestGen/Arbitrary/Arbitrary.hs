@@ -67,12 +67,33 @@ dom n = oneof
     ]
 
 intDom :: Depth -> Gen Domain
-intDom _ = return DInt `ap` (listOfB 1 4 arbitrary)
+intDom d = return DInt `ap` (listOfB 1 4 (range d))
 
 setDom :: Depth -> Gen Domain
 setDom depth = do
     inner <- dom depth
     return $ dset{inner}
+
+
+range :: Depth -> Gen (Range Expr)
+range _ = oneof
+    [
+      arbitrarySingle
+    , arbitraryFromTo
+    ]
+
+    where
+    arbitrarySingle :: Gen (Range Expr)
+    arbitrarySingle = do
+        a <- choose ((-10),10 :: Integer)
+        return $ RSingle (ELit . EI $ a)
+
+    arbitraryFromTo :: Gen (Range Expr)
+    arbitraryFromTo = do
+        do
+            a <- choose ((-10),10 :: Integer)
+            b <- choose (a,10)
+            return $ RFromTo (ELit . EI $ a) (ELit . EI $  b)
 
 
 ---- lits
@@ -96,24 +117,6 @@ setLit s@SS{..} = do
 
 
 ---- Ranges
-
-instance Arbitrary (Range Expr) where
-    arbitrary = oneof
-        [
-        --   liftM RSingle (choose ((-5),5 :: Integer))
-         arbitraryFromTo
-        ]
-
-        where
-        arbitraryFromTo :: Gen (Range Expr)
-        arbitraryFromTo = do
-            do
-                a <- choose ((-10),10 :: Integer)
-                b <- choose (a,10)
-                return $ RFromTo (ELit . EI $ a) (ELit . EI $  b)
-
-    -- shrink x = genericShrink x
-
 
 --- Exps
 
