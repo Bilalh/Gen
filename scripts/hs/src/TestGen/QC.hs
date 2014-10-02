@@ -7,7 +7,7 @@ module TestGen.QC where
 
 import AST.SpecE
 
-import TestGen.QC.ArbitrarySpec
+import TestGen.Arbitrary.Arbitrary
 import TestGen.Runner(SettingI(..))
 import TestGen.TestGen(runRefine')
 import Common.Helpers(timestamp)
