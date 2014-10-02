@@ -8,7 +8,7 @@ import Test.QuickCheck
 
 
 -- | Generates a random length between the specifed bounds.
---   The maximum length depends on the size parameter.
+--   The length depends on the size parameter.
 listOfB :: Int -> Int -> Gen a -> Gen [a]
 listOfB l u gen = sized $ \n -> do
     k <- choose ( 0 `max` l, u `min` n)

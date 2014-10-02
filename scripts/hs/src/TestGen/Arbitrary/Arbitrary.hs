@@ -4,7 +4,6 @@
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-
 module TestGen.Arbitrary.Arbitrary where
 
 import AST.Imports
@@ -20,56 +19,36 @@ import qualified Data.Text as T
 import qualified Data.Map as M
 import Data.Map(Map)
 import Control.Monad.Trans.State.Strict(State)
+import Text.Groom(groom)
 
 type Depth = Int
-
-type SpecM a = State SpecState a
 type GenM  a = State SpecState (Gen a)
 
-data SpecState = SpecState
+data SS = SS
     {
       depth_   :: Depth       --  how many levels to genrate
     , doms_    :: Map Text FG --  Domains
     , nextNum_ :: Int          -- Number to name next var
-    }
-
-
-
-
+    } deriving Show
+type SpecState=SS
 
 instance Arbitrary SpecE where
-    arbitrary = sized spec1
-
-spec1 :: Depth -> Gen SpecE
-spec1 depth = do
-    doms <- listOfB 1 10 (dom depth)
-    let withNames =  zipWith (\d i -> (name i , Find d)) doms [1 :: Int ..]
-    let mappings  = M.fromList withNames
-    undefined
-
-    let state = SpecState{depth_=depth, doms_=mappings, nextNum_ = length doms}
-
-    let exprGen =  runIdentity $  evalStateT boolExpr state
-    exprs <- listOfB 0 15 ( exprGen )
-
-    return $ SpecE mappings exprs
-
-    where name i =  T.pack $  "var" ++  (show  i)
-
+    arbitrary = sized spec
 
 spec :: Depth -> Gen SpecE
 spec depth = do
     doms <- listOfB 1 10 (dom depth)
     let withNames =  zipWith (\d i -> (name i , Find d)) doms [1 :: Int ..]
-    let mappings = M.fromList withNames
+    let mappings  = M.fromList withNames
 
-    exprs <- listOfB 0 15 (expr depth mappings)
+    let state = SS{depth_=depth, doms_=mappings, nextNum_ = length doms}
 
-
+    exprs <- listOfB 0 15 ( boolExpr state)
 
     return $ SpecE mappings exprs
 
     where name i =  T.pack $  "var" ++  (show  i)
+
 
 ---- Domains
 
@@ -95,22 +74,26 @@ setDom depth = do
     inner <- dom depth
     return $ dset{inner}
 
+
 ---- lits
 
-boolLit1 :: SpecM (Gen Expr)
-boolLit1 =
-    let b = do
-            bb <- arbitrary
-            return $ ELit (EB bb)
-    in return  b
-
-    -- return $ (liftM ELit (liftM EB arbitrary))
-    -- return $  (do {  dd <- (liftM EB arbitrary); return $ ELit dd  }  )
-
-boolLit :: Gen Expr
-boolLit = do
+boolLit :: SpecState -> Gen Expr
+boolLit _ = do
     b <- arbitrary
     return  (ELit (EB b))
+
+intLit :: SpecState -> Gen Expr
+intLit _ = do
+    i <- choose ((-10),10 :: Integer)
+    return (ELit (EI i) )
+
+setLit :: SpecState -> Gen Expr
+setLit s@SS{..} = do
+    --FIXME depth?
+    innerDom <- dom depth_
+    exprs <- listOfB 0 15 ( exprOf s innerDom)
+    return $ ELit $ ESet $ map EExpr $ exprs
+
 
 ---- Ranges
 
@@ -131,145 +114,133 @@ instance Arbitrary (Range Expr) where
 
     -- shrink x = genericShrink x
 
----EXPR
 
-boolExpr :: GenM Expr
-boolExpr =do
-    aa <- sequence [boolLit1]
+--- Exps
 
-    return $ oneof aa
+boolExpr :: SpecState -> Gen Expr
+boolExpr s@SS{..} = oneof $ case depth_ of
+     0 ->  [ boolLit s ]
+     1 ->  [ boolLit s, bop s BEQ ]
+     _ ->  [ boolLit s, bop s BEQ ] -- quan ...
 
--- An expression that results in a boolean
-expr :: Depth -> Doms ->  Gen Expr
-expr depth doms = oneof $ case depth of
-        0 -> c0; 1 -> c1; _ -> c2
-
-    where
-    c0 =
-        [
-          boolLit
-        ]
-    c1 =  c0 ++
-        [
-          bop depth doms BEQ
-        , bop depth doms BNEQ
-        ]
-    c2 = c1 ++
-        [
-          quanExpr depth doms
-        ]
-
-
-quanExpr :: Depth -> Doms -> Gen Expr
-quanExpr depth doms = do
-
-    bs <- expr (depth - 1) doms
-    let a = EQuan ForAll (BIn (EQVar "x") (EVar "a")) EEmptyGuard
-                bs
-    return $ a
+-- quanExpr :: Depth -> Doms -> Gen Expr
+-- quanExpr depth doms = do
+--
+--     bs <- expr (depth - 1) doms
+--     let a = EQuan ForAll (BIn (EQVar "x") (EVar "a")) EEmptyGuard
+--                 bs
+--     return $ a
 
 ----OPS
 
 type Bop = (Expr -> Expr -> BinOp)
 
-bop :: Depth -> Doms -> Bop ->  Gen Expr
-bop depth doms op =  do
+bop :: SS -> Bop ->  Gen Expr
+bop s@SS{..} op =  do
     -- TODO we what domain without attributes, for type checking
-    exprDom <- dom (depth - 1)
+    exprDom <- dom (depth_ -1)
 
-    e1 <- exprOf (depth - 1) doms exprDom
-    e2 <- exprOf (depth - 1) doms exprDom
+    e1 <- exprOf s{depth_=depth_ - 1} exprDom
+    e2 <- exprOf s{depth_=depth_ - 1} exprDom
 
     return $ EBinOp $  op e1 e2
 
-bopOf depth doms exprDom op =  do
 
-    e1 <- exprOf (depth - 1) doms exprDom
-    e2 <- exprOf (depth - 1) doms exprDom
+bopOf :: SS -> Bop -> Domain -> Gen Expr
+bopOf s@SS{..} op exprDom =  do
+    e1 <- exprOf s{depth_=depth_ - 1} exprDom
+    e2 <- exprOf s{depth_=depth_ - 1} exprDom
 
     return $ EBinOp $ op e1 e2
 
-
-opOf depth doms exprDom op =  do
-    e1 <- exprOf (depth - 1) doms exprDom
+opOf :: SS -> (Expr -> UniOp) -> Domain ->  Gen Expr
+opOf s@SS{..} op exprDom = do
+    e1 <- exprOf s{depth_=depth_ - 1} exprDom
     return $ EUniOp $ op e1
 
--- OfType
+bar :: SS -> Gen Expr
+bar s@SS{..} = do
+    edom <- undefined :: Gen Domain
+    opOf s UBar edom
 
 -- pick a type,   choose from all the way to genrate that type, i.e lit.
-exprOf :: Depth -> Doms -> Domain -> Gen Expr
-exprOf 0 doms d@DBool = oneof $ ofType ++
+exprOf :: SS -> Domain -> Gen Expr
+exprOf s@SS{depth_=0,..} d@DBool = oneof $ ofType ++
     [
-      do { b <- arbitrary; return (ELit (EB b) ) }
+      boolLit s
     ]
-    where ofType = maybeToList $ varOf doms d
+    where ofType = maybeToList $ varOf s d
 
-
-exprOf depth doms d@DBool = oneof $ ofType ++
+exprOf s@SS{..} d@DBool = oneof $ ofType ++
     [
-      do { b <- arbitrary; return (ELit (EB b) ) } -- Literal
-    , bop depth doms BEQ
+      boolLit s
+    , bop s BEQ
     ]
-    where ofType = maybeToList $ varOf doms d
+    where ofType = maybeToList $ varOf s d
 
 
-exprOf 0 doms d@DInt{..} = oneof $ ofType ++
+exprOf s@SS{depth_=0,..} d@DInt{} = oneof $ ofType ++
     [
-       do { i <- choose ((-10),10 :: Integer); return (ELit (EI i) ) }
+      intLit s
     ]
-    where ofType = maybeToList $ varOf doms d
+    where ofType = maybeToList $ varOf s d
 
-exprOf 1 doms d@DInt{..} = oneof $ ofType ++
+exprOf s@SS{depth_=1,..} d@DInt{} = oneof $ ofType ++
     [
-       do { i <- choose ((-10),10 :: Integer); return (ELit (EI i) ) }
-    , bopOf 1 doms d (BPlus)
+      intLit s
+    , bopOf s BPlus d
     ]
-    where ofType = maybeToList $ varOf doms d
+    where ofType = maybeToList $ varOf s d
 
-exprOf depth doms d@DInt{..} = oneof $ ofType ++
+exprOf s@SS{..} d@DInt{} = oneof $ ofType ++
     [
-      do { i <- choose ((-10),10 :: Integer); return (ELit (EI i) ) }
-    , bopOf depth doms d ( BPlus)
-    , bar
+      intLit s
+    , bopOf s BPlus d
     ]
     where
-    ofType = maybeToList $ varOf doms d
-    bar = do
-        edom <- setDom (depth - 1)
-        opOf depth doms edom ( UBar)
+    ofType = maybeToList $ varOf s d
 
-exprOf 0 doms d@DSet{..} = error "set depth 0"
+exprOf s@SS{depth_=0, ..} exprDom = error . show . vcat $
+    ["setSize 0", pretty exprDom, pretty . groom $ s]
 
-exprOf 1 doms d@DSet{..} = oneof $ ofType ++
+exprOf s@SS{..} d@DSet{..} = oneof $ ofType ++
     [
-       do { i <- choose ((-10),10 :: Integer); return (ELit (ESet [EI i] ) ) }
+       setLit s
     ]
-    where ofType = maybeToList $ varOf doms d
+    where ofType = maybeToList $ varOf s d
+
+exprOf ss  exprDom = error . show . vcat $
+    ["exprOfType not Matched", pretty exprDom, pretty . groom $ ss]
 
 
-exprOf depth doms d@DSet{..} = oneof $ ofType ++
-    [
-        do { i <- choose ((-10),10 :: Integer); return (ELit (ESet [EI i]) ) }
-    ]
-    where
-    ofType = maybeToList $ varOf doms d
-
-
-    useInner = do
-        innerExpr <- exprOf (depth - 1) doms inner
-        -- expr in lit
-        undefined
-
-
-exprOf depth doms dom = error . show . vcat $
-    ["exprOfType not Matched", pretty depth, pretty dom,pretty doms]
-
-
-varOf :: Doms -> Domain -> Maybe (Gen Expr)
-varOf doms dom = toGenExpr $  M.filter (typesUnify dom . domOfFG) doms
+varOf :: SS -> Domain -> Maybe (Gen Expr)
+varOf SS{..} exprDom = toGenExpr $  M.filter (typesUnify exprDom . domOfFG) doms_
 
 
 toGenExpr :: Doms -> Maybe (Gen Expr)
 toGenExpr doms =  case (map (EVar . fst) . M.toList $ doms) of
     [] -> Nothing
     xs -> Just $ elements xs
+
+
+
+
+---Old
+
+boolExpr2 :: GenM Expr
+boolExpr2 =do
+    aa <- sequence [boolLit2]
+
+    return $ oneof aa
+
+
+
+boolLit2 :: GenM Expr
+boolLit2 =
+    let b = do
+            bb <- arbitrary
+            return $ ELit (EB bb)
+    in return  b
+
+    -- return $ (liftM ELit (liftM EB arbitrary))
+    -- return $  (do {  dd <- (liftM EB arbitrary); return $ ELit dd  }  )
