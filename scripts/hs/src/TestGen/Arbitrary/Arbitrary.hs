@@ -90,8 +90,8 @@ intLit _ = do
 setLit :: SpecState -> Gen Expr
 setLit s@SS{..} = do
     --FIXME depth?
-    innerDom <- dom depth_
-    exprs <- listOfB 0 15 ( exprOf s innerDom)
+    innerDom <- dom (depth_ -1 )
+    exprs <- listOfB 0 15 ( exprOf s{depth_=depth_-1} innerDom)
     return $ ELit $ ESet $ map EExpr $ exprs
 
 
