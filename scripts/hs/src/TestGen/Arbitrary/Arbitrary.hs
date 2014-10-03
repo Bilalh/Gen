@@ -216,12 +216,12 @@ exprOf s@SS{..} d@DSet{..} | depth_ >=1 = oneof $ ofType ++
     ]
     where ofType = maybeToList $ varOf s d
 
-exprOf ss  exprDom = error . show . vcat $=
+exprOf ss  exprDom = error . show . vcat $
     ["exprOfType not Matched", "exprDom:" <+> pretty exprDom, pretty . groom $ ss]
 
 
 varOf :: SS -> Domain -> Maybe (Gen Expr)
-varOf SS{..} exprDom = toGenExpr $  M.filter (typesUnify exprDom . domOfFG) doms_
+varOf SS{..} exprDom = toGenExpr $  M.filter (typesUnifyO exprDom . domOfFG) doms_
 
 
 toGenExpr :: Doms -> Maybe (Gen Expr)
