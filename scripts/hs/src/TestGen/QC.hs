@@ -27,13 +27,13 @@ import System.Random(randomRIO)
 
 prop_specs_refine :: Int -> FilePath -> SpecE -> Property
 prop_specs_refine time out specE = do
-    let spec = toSpec specE
-    typeChecks spec ==>
+    let sp = toSpec specE
+    typeChecks sp ==>
         monadicIO $ do
             ts <- run timestamp >>= return . show
             num <- run (randomRIO (10,99) :: IO Int)  >>= return . show
             let uname  =  (ts ++ "_" ++ num )
-            result <- run $ runRefine' spec (out </> uname ) time
+            result <- run $ runRefine' sp (out </> uname ) time
             case successful_ result of
                 True  -> return ()
                 False -> fail uname
@@ -41,10 +41,10 @@ prop_specs_refine time out specE = do
 
 
 typeChecks :: Spec -> Bool
-typeChecks spec = case fst $ runCompESingle "Error while type checking." $
-    typeCheckSpec spec of
+typeChecks sp = case fst $ runCompESingle "Error while type checking." $
+    typeCheckSpec sp of
         Left  e  ->
-            trace (show e ++ (show . pretty $ spec)) False
+            trace (show e ++ (show . pretty $ sp)) False
         Right () -> True
 
 infix 4 /==
