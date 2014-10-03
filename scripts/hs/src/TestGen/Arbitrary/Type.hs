@@ -5,9 +5,10 @@ module TestGen.Arbitrary.Type where
 
 import AST.Imports
 import TestGen.Arbitrary.Data
+import TestGen.Arbitrary.Helpers
 
 import Test.QuickCheck
-
+import Language.E
 
 typesUnify :: Type -> Type -> Bool
 typesUnify TAny  _     = True
@@ -42,4 +43,15 @@ typeOfDom DFunc{innerFrom,innerTo} = TFunc (typeOfDom innerFrom) (typeOfDom inne
 
 
 atype :: SpecState -> Gen Type
-atype  SS{depth_=0,..} = elements [ TBool, TInt ]
+atype  SS{depth_=0,..}   = elements [ TBool, TInt ]
+atype  s@SS{..} = oneof [
+          elements [ TBool, TInt ]
+        , liftM TMatix (atype s{depth_=depth_-1})
+        , liftM TSet  (atype s{depth_=depth_-1})
+        , liftM TMSet (atype s{depth_=depth_-1})
+        , liftM TPar (atype s{depth_=depth_-1})
+        , return TFunc
+            `ap` (atype s{depth_=depth_-1})
+            `ap` (atype s{depth_=depth_-1})
+        , return TRel `ap` ( listOfB 1 10  (atype s{depth_=depth_-1} ) )
+        ]

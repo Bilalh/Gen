@@ -3,7 +3,6 @@
 module TestGen.Arbitrary.Helpers where
 
 import AST.Imports
-import TestGen.Arbitrary.Type
 import Language.E hiding(trace)
 
 import Test.QuickCheck
@@ -20,7 +19,6 @@ listOfB l u gen = sized $ \n -> do
 -- TODO could be a lot more efficient
 typesUnifyO  :: Domain -> Domain -> Bool
 typesUnifyO a b = typeUnify (toEssence a) (toEssence b)
-
 
 
 typeOfC :: E -> E
