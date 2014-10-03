@@ -18,7 +18,6 @@ import Test.QuickCheck
 
 import qualified Data.Text as T
 import qualified Data.Map as M
-import Data.Map(Map)
 import Text.Groom(groom)
 
 
@@ -31,9 +30,9 @@ spec depth = do
     let withNames =  zipWith (\d i -> (name i , Find d)) doms [1 :: Int ..]
     let mappings  = M.fromList withNames
 
-    let state = SS{depth_=depth, doms_=mappings, nextNum_ = length doms}
+    let state = SS{depth_=depth, doms_=mappings, nextNum_ = length doms + 1}
 
-    exprs <- listOfB 0 15 ( boolExpr state)
+    exprs <- listOfB 0 15 ( expr state)
 
     return $ SpecE mappings exprs
 
@@ -52,7 +51,9 @@ dom n = oneof
     ]
 
 intDom :: Depth -> Gen Domain
-intDom d = return DInt `ap` (listOfB 1 4 (range d))
+-- intDom d = return DInt `ap` (listOfB 1 4 (range d))
+-- FIXME hack for forall until we have  Type  instead of domain
+intDom d = return DInt `ap` (listOfB 1 1 (range d))
 
 setDom :: Depth -> Gen Domain
 setDom depth = do
@@ -78,7 +79,9 @@ range _ = oneof
         do
             a <- choose ((-10),10 :: Integer)
             b <- choose (a,10)
-            return $ RFromTo (ELit . EI $ a) (ELit . EI $  b)
+            -- return $ RFromTo (ELit . EI $ a) (ELit . EI $  b)
+            -- FIXME hack for forall until we have  Type  instead of domain
+            return $ RFromTo (ELit . EI $ 1) (ELit . EI $  10)
 
 
 ---- lits
@@ -104,23 +107,38 @@ setLitOf s@SS{..} innerDom = do
     exprs <- listOfB 0 15 ( exprOf s{depth_=depth_ - 1} innerDom)
     return $ ELit $ ESet $ map EExpr $ exprs
 
----- Ranges
-
 --- Exps
+
+expr :: SpecState -> Gen Expr
+expr s@SS{..} | depth_ < 3 = boolExpr s
+expr s = oneof $
+    [ boolExpr s, quanExpr s]
 
 boolExpr :: SpecState -> Gen Expr
 boolExpr s@SS{..} = oneof $ case depth_ of
      0 ->  [ boolLit s ]
      1 ->  [ boolLit s, bop s BEQ ]
-     _ ->  [ boolLit s, bop s BEQ ] -- quan ...
+     2 ->  [ boolLit s, bop s BEQ ]
+     _ ->  [ boolLit s, bop s BEQ, quanExpr s ] -- quan ...
 
--- quanExpr :: Depth -> Doms -> Gen Expr
--- quanExpr depth doms = do
---
---     bs <- expr (depth - 1) doms
---     let a = EQuan ForAll (BIn (EQVar "x") (EVar "a")) EEmptyGuard
---                 bs
---     return $ a
+quanExpr :: SpecState -> Gen Expr
+quanExpr s@SS{..} =
+    case overs of
+        Nothing  -> boolExpr s  -- Nothing to quan over
+        Just gen -> do
+            over <- gen
+
+            let varName = T.pack $ "q_" ++ show nextNum_
+            let s' = s{nextNum_=nextNum_ + 1}
+
+            bs <- boolExpr s'{depth_=depth_ - 1}
+            let a = EQuan ForAll (BIn (EQVar varName) over) EEmptyGuard
+                        bs
+            return $ a
+
+    where
+        overs =  varOf s dset{inner=dintRange 1 10}
+
 
 ----OPS
 
