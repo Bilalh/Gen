@@ -8,6 +8,7 @@ module TestGen.Arbitrary.Arbitrary where
 
 import AST.Imports
 import TestGen.Arbitrary.Helpers
+import TestGen.Arbitrary.Data
 
 import Language.E hiding(trace)
 -- import Debug.Trace(trace)
@@ -18,21 +19,8 @@ import Test.QuickCheck
 import qualified Data.Text as T
 import qualified Data.Map as M
 import Data.Map(Map)
-import Control.Monad.Trans.State.Strict(State)
 import Text.Groom(groom)
 
-type Depth = Int
-type GenM  a = State SpecState (Gen a)
-
-data SS = SS
-    {
-      depth_   :: Depth       --  how many levels to genrate
-    , doms_    :: Map Text FG --  Domains
-    , nextNum_ :: Int          -- Number to name next var
-    } deriving Show
-type SpecState=SS
-_ss :: Depth -> SS
-_ss d = SS{depth_=d, doms_ = M.empty, nextNum_=1}
 
 instance Arbitrary SpecE where
     arbitrary = sized spec
