@@ -8,7 +8,7 @@ import Control.Monad.Trans.State.Strict(State)
 import Test.QuickCheck
 import Data.Map(Map)
 import AST.Imports
-
+import Text.Groom
 
 import qualified Data.Map as M
 import qualified Text.PrettyPrint as Pr
@@ -38,3 +38,20 @@ instance Pretty SS where
                 , pretty doms_
             ]
             )
+
+data Type =
+      TInt
+    | TBool
+    | TMatix  Type
+    | TSet    Type
+    | TMSet   Type
+    | TPar    Type
+    | TRel    [Type]
+    | TFunc   Type Type
+    | TUnamed Text  -- each unamed type is unique
+    | TEnum   Text -- as are enums
+    | TAny
+    deriving(Show, Eq, Ord)
+
+instance Pretty Type where
+    pretty  =  pretty . groom
