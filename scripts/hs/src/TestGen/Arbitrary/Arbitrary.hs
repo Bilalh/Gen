@@ -9,6 +9,7 @@ module TestGen.Arbitrary.Arbitrary where
 import AST.Imports
 import TestGen.Arbitrary.Helpers
 import TestGen.Arbitrary.Data
+import TestGen.Arbitrary.Type
 
 import Language.E hiding(trace)
 -- import Debug.Trace(trace)
@@ -215,7 +216,7 @@ exprOf s@SS{..} d@DSet{..} | depth_ >=1 = oneof $ ofType ++
     ]
     where ofType = maybeToList $ varOf s d
 
-exprOf ss  exprDom = error . show . vcat $
+exprOf ss  exprDom = error . show . vcat $=
     ["exprOfType not Matched", "exprDom:" <+> pretty exprDom, pretty . groom $ ss]
 
 
@@ -227,26 +228,3 @@ toGenExpr :: Doms -> Maybe (Gen Expr)
 toGenExpr doms =  case (map (EVar . fst) . M.toList $ doms) of
     [] -> Nothing
     xs -> Just $ elements xs
-
-
-
-
----Old
-
-boolExpr2 :: GenM Expr
-boolExpr2 =do
-    aa <- sequence [boolLit2]
-
-    return $ oneof aa
-
-
-
-boolLit2 :: GenM Expr
-boolLit2 =
-    let b = do
-            bb <- arbitrary
-            return $ ELit (EB bb)
-    in return  b
-
-    -- return $ (liftM ELit (liftM EB arbitrary))
-    -- return $  (do {  dd <- (liftM EB arbitrary); return $ ELit dd  }  )
