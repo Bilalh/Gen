@@ -46,12 +46,18 @@ atype :: SpecState -> Gen Type
 atype  SS{depth_=0,..}   = elements [ TBool, TInt ]
 atype  s@SS{..} = oneof [
           elements [ TBool, TInt ]
-        , liftM TMatix (atype s{depth_=depth_-1})
-        , liftM TSet  (atype s{depth_=depth_-1})
-        , liftM TMSet (atype s{depth_=depth_-1})
-        , liftM TPar (atype s{depth_=depth_-1})
+        , liftM TMatix (atype newss)
+        , liftM TSet  (atype newss)
+        , liftM TMSet (atype newss)
+        , liftM TPar (atype newss)
         , return TFunc
-            `ap` (atype s{depth_=depth_-1})
-            `ap` (atype s{depth_=depth_-1})
-        , return TRel `ap` ( listOfB 1 10  (atype s{depth_=depth_-1} ) )
+            `ap` (atype newss)
+            `ap` (atype newss)
+        , return TRel `ap` ( listOfB 1 10  (atype newss ) )
         ]
+    where
+        newss = s{depth_=newDepth}
+        newDepth
+            | depth_ < 5   =  depth_  - 1
+            | depth_ < 20  = depth_ - 5
+            | otherwise    =  depth_ `div` 2
