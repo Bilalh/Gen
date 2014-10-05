@@ -52,9 +52,7 @@ dom n = oneof
     ]
 
 intDom :: Depth -> Gen Domain
--- intDom d = return DInt `ap` (listOfB 1 4 (range d))
--- FIXME hack for forall until we have  Type  instead of domain
-intDom d = return DInt `ap` (listOfB 1 1 (range d))
+intDom d = return DInt `ap` (listOfB 1 4 (range d))
 
 setDom :: Depth -> Gen Domain
 setDom depth = do
@@ -80,9 +78,7 @@ range _ = oneof
         do
             a <- choose ((-10),10 :: Integer)
             b <- choose (a,10)
-            -- return $ RFromTo (ELit . EI $ a) (ELit . EI $  b)
-            -- FIXME hack for forall until we have  Type  instead of domain
-            return $ RFromTo (ELit . EI $ 1) (ELit . EI $  10)
+            return $ RFromTo (ELit . EI $ a) (ELit . EI $  b)
 
 
 ---- lits
@@ -100,12 +96,12 @@ intLit _ = do
 --FIXME depth?
 setLit :: SpecState -> Gen Expr
 setLit s@SS{..} = do
-    innerDom <- dom (depth_ -1 )
-    setLitOf s{depth_=depth_-1} innerDom
+    innerType <- atype s{depth_ = depth_ -1 }
+    setLitOf s{depth_=depth_-1} innerType
 
-setLitOf :: SpecState -> Domain ->  Gen Expr
-setLitOf s@SS{..} innerDom = do
-    exprs <- listOfB 0 15 ( exprOf s{depth_=depth_ - 1} innerDom)
+setLitOf :: SpecState -> Type ->  Gen Expr
+setLitOf s@SS{..} innerType = do
+    exprs <- listOfB 0 15 ( exprOf s{depth_=depth_ - 1} innerType)
     return $ ELit $ ESet $ map EExpr $ exprs
 
 --- Exps
@@ -138,7 +134,7 @@ quanExpr s@SS{..} =
             return $ a
 
     where
-        overs =  varOf s dset{inner=dintRange 1 10}
+        overs =  varOf s (TSet TAny)
 
 
 ----OPS
@@ -148,40 +144,40 @@ type Bop = (Expr -> Expr -> BinOp)
 bop :: SS -> Bop ->  Gen Expr
 bop s@SS{..} op =  do
     -- TODO we what domain without attributes, for type checking
-    exprDom <- dom (depth_ - 1  )
+    exprType <- atype s{depth_=depth_ - 1}
 
-    e1 <- exprOf s{depth_=depth_ - 1} exprDom
-    e2 <- exprOf s{depth_=depth_ - 1} exprDom
+    e1 <- exprOf s{depth_=depth_ - 1} exprType
+    e2 <- exprOf s{depth_=depth_ - 1} exprType
 
     return $ EBinOp $  op e1 e2
 
 
-bopOf :: SS -> Bop -> Domain -> Gen Expr
-bopOf s@SS{..} op exprDom =  do
-    e1 <- exprOf s{depth_=depth_ - 1} exprDom
-    e2 <- exprOf s{depth_=depth_ - 1} exprDom
+bopOf :: SS -> Bop -> Type -> Gen Expr
+bopOf s@SS{..} op exprType =  do
+    e1 <- exprOf s{depth_=depth_ - 1} exprType
+    e2 <- exprOf s{depth_=depth_ - 1} exprType
 
     return $ EBinOp $ op e1 e2
 
-opOf :: SS -> (Expr -> UniOp) -> Domain ->  Gen Expr
-opOf s@SS{..} op exprDom = do
-    e1 <- exprOf s{depth_=depth_ - 1} exprDom
+opOf :: SS -> (Expr -> UniOp) -> Type ->  Gen Expr
+opOf s@SS{..} op exprType = do
+    e1 <- exprOf s{depth_=depth_ - 1} exprType
     return $ EUniOp $ op e1
 
 bar :: SS -> Gen Expr
 bar s@SS{..} = do
-    edom <- undefined :: Gen Domain
-    opOf s UBar edom
+    exprType <- undefined :: Gen Type
+    opOf s UBar exprType
 
--- Return a expr of the specifed depth and domain
-exprOf :: SS -> Domain -> Gen Expr
-exprOf s@SS{depth_=0,..} d@DBool = oneof $ ofType ++
+-- Return a expr of the specifed depth and type
+exprOf :: SS -> Type -> Gen Expr
+exprOf s@SS{depth_=0,..} d@TBool = oneof $ ofType ++
     [
       boolLit s
     ]
     where ofType = maybeToList $ varOf s d
 
-exprOf s@SS{..} d@DBool = oneof $ ofType ++
+exprOf s@SS{..} d@TBool = oneof $ ofType ++
     [
       boolLit s
     , bop s BEQ
@@ -189,20 +185,20 @@ exprOf s@SS{..} d@DBool = oneof $ ofType ++
     where ofType = maybeToList $ varOf s d
 
 
-exprOf s@SS{depth_=0,..} d@DInt{} = oneof $ ofType ++
+exprOf s@SS{depth_=0,..} d@TInt = oneof $ ofType ++
     [
       intLit s
     ]
     where ofType = maybeToList $ varOf s d
 
-exprOf s@SS{depth_=1,..} d@DInt{} = oneof $ ofType ++
+exprOf s@SS{depth_=1,..} d@TInt = oneof $ ofType ++
     [
       intLit s
     , bopOf s BPlus d
     ]
     where ofType = maybeToList $ varOf s d
 
-exprOf s@SS{..} d@DInt{} = oneof $ ofType ++
+exprOf s@SS{..} d@TInt = oneof $ ofType ++
     [
       intLit s
     , bopOf s BPlus d
@@ -210,7 +206,7 @@ exprOf s@SS{..} d@DInt{} = oneof $ ofType ++
     where
     ofType = maybeToList $ varOf s d
 
-exprOf s@SS{..} d@DSet{..} | depth_ >=1 = oneof $ ofType ++
+exprOf s@SS{..} d@(TSet inner) | depth_ >=1 = oneof $ ofType ++
     [
        setLitOf s inner
     ]
@@ -220,8 +216,9 @@ exprOf ss  exprDom = error . show . vcat $
     ["exprOfType not Matched", "exprDom:" <+> pretty exprDom, pretty . groom $ ss]
 
 
-varOf :: SS -> Domain -> Maybe (Gen Expr)
-varOf SS{..} exprDom = toGenExpr $  M.filter (typesUnifyO exprDom . domOfFG) doms_
+varOf :: SS -> Type -> Maybe (Gen Expr)
+varOf SS{..} exprType = toGenExpr $
+    M.filter (typesUnify exprType . typeOfDom . domOfFG) doms_
 
 
 toGenExpr :: Doms -> Maybe (Gen Expr)

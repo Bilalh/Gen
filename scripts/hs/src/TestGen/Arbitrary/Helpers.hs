@@ -16,11 +16,6 @@ listOfB l u gen = sized $ \n -> do
     vectorOf k gen
 
 
--- TODO could be a lot more efficient
-typesUnifyO  :: Domain -> Domain -> Bool
-typesUnifyO a b = typeUnify (toEssence a) (toEssence b)
-
-
 typeOfC :: E -> E
 typeOfC e  =
     let (mresult, _logs) = runCompESingle "typeOf" helper
