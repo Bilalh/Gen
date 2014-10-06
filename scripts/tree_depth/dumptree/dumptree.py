@@ -1,20 +1,25 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from __future__ import print_function, division, absolute_import
+# Parses a dumptree from  minion -dumptree
 
+from __future__ import print_function, division, absolute_import
 
 from collections import deque
 from pprint import pprint, pformat
-import util
 
 import logging
 logger = logging.getLogger(__name__)
 logging.basicConfig(format='%(name)s:%(lineno)d:%(funcName)s: %(message)s', level=logging.ERROR)
 
+import csv
 
-# Node#    BT    depth_from    depth_to
-#  2       1     4             3
-#  32      0     NA            Na
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument("dumptree", help='dumptree from minion -dumptree')
+parser.add_argument("csv",      help='csv output location')
+parser.add_argument('-p', action='store_true', dest='print_nodes', help='print nodes')
+parser.add_argument('--dot',  help='output the tree as a .dot file, for visualisation')
+
 
 
 def iter_many(it, length, num):
@@ -32,6 +37,7 @@ class Node(object):
 
 		self.left, self.right, self.parent = None, None, None
 		self.depth = None
+		self.backtracked = None
 
 	def set_parent(self, parent):
 		self.parent = parent
@@ -57,21 +63,26 @@ class Node(object):
 				prev = prev.parent
 			prev.right = NullNode(prev)
 
-
+		self.backtracked = prev
 		tree.current = prev.right
+
 
 	def to_dot(self, fh):
 		self._dot_node(fh)
 		if self.left:
-			fh.write('\t{} -> {} [label="{}"];\n'.format(
+			fh.write('\t{} -> {} [label=" {}"];\n'.format(
 				self.number, self.left.number, self._str_assgined() ))
 
 		if self.right:
-			fh.write('\t{} -> {} [label="{}"];\n'.format(
+			fh.write('\t{} -> {} [label=" {}"];\n'.format(
 				self.number, self.right.number, self._str_assgined(sym="≠") ))
 
 	def _dot_node(self, fh):
-		fh.write('\t{0} [label="{0}" ]\n'.format(self.number) )
+		if self.backtracked:
+			extra = ",color=blue"
+		else:
+			extra = ""
+		fh.write('\t{0} [label="{0}" {1}]\n'.format(self.number, extra) )
 
 	def _str_assgined(self, sym="="):
 			if self.number == 0:
@@ -91,9 +102,9 @@ class Node(object):
 		else:
 			a=""
 
-		return "{}({:<3}, depth {:<3}  L {:<3}  R {:<3}  P {:<3}) {} A {}".format(
+		return "{}({:<3}, depth {:<3}  L {:<3}  R {:<3}  P {:<3}) {} BT {}".format(
 			self.__class__.__name__, self.number, self.depth,
-			f(self.left), f(self.right), f(self.parent), a, not not self.actions )
+			f(self.left), f(self.right), f(self.parent), a,  f(self.backtracked))
 
 
 class NullNode(Node):
@@ -111,7 +122,7 @@ class NullNode(Node):
 		fh.write('\t{0} [shape=point] \n'.format(self.number, self.depth) )
 
 
-class Tree():
+class Tree(object):
 	def __init__(self):
 		super(Tree, self).__init__()
 
@@ -135,7 +146,6 @@ class Tree():
 			if tag == 'Node':
 				if node:
 					logger.info("ParsedAtrr %s", pformat(node.__dict__))
-
 
 				old=self.current
 				if self.current:
@@ -170,9 +180,7 @@ class Tree():
 		self.index.append(n)
 		assert self.index[num] == n
 
-
 		logger.info("Parsed     %s", pformat(n.__dict__))
-
 
 		if isinstance(self.current, NullNode):
 			n.set_parent(self.current.parent)
@@ -207,7 +215,7 @@ class Tree():
 		else:
 			raise ValueError("Not handled, value: " + value)
 
-	def debug_print(self):
+	def print_nodes(self):
 		# for ix in self.index:
 		# 	pprint(ix.__dict__)
 		pprint(self.index)
@@ -229,11 +237,37 @@ class Tree():
 
 			fh.write('}')
 
+	def to_csv(self, fp):
+		assert self.index
+		data = []
+		for n in self.index:
+			depth_from, depth_to = "NA", "NA"
+			if n.backtracked:
+				depth_from = n.depth + 1
+				depth_to = n.backtracked.depth
+			data.append(dict(index=n.number, bt=not not n.backtracked,
+						depth_from=depth_from, depth_to=depth_to))
 
-# Tree().parse("/Users/bilalh/CS/instancegen/scripts/tree_depth/simple/simple.eprime.minion-tree")
-t= Tree()
-# t.parse("/Users/bilalh/CS/instancegen/scripts/tree_depth/bibd/puget11.param.minion-tree")
-t.parse("/Users/bilalh/CS/instancegen/scripts/tree_depth/aa.param.minion-tree")
-t.debug_print()
-t.to_dot("a.dot")
+		with open(fp, "w") as fh:
+			temp=data[0].keys()
+			fieldnames = ["index", "bt", "depth_from", "depth_to"]
+			assert sorted(temp) == sorted(fieldnames)
+
+			writer = csv.DictWriter(fh, delimiter=',', fieldnames=fieldnames )
+			writer.writerow(  { fn: fn for fn in fieldnames} )
+			for row in data:
+				writer.writerow(row)
+
+
+if __name__ == "__main__":
+	args = parser.parse_args()
+	t= Tree()
+	# t.parse("/Users/bilalh/CS/instancegen/scripts/tree_depth/bibd/puget11.param.minion-tree")
+	# t.parse("/Users/bilalh/CS/instancegen/scripts/tree_depth/aa.param.minion-tree")
+	t.parse(args.dumptree)
+	if args.print_nodes:
+		t.print_nodes()
+	t.to_csv(args.csv)
+	if args.dot:
+		t.to_dot(args.dot)
 
