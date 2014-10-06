@@ -8,6 +8,7 @@ digraph G{
 	
 	n1 [shape=point]
 	n1 [shape=point]
+	n2 [shape=point]
 	n3 [shape=point]
 	n4 [shape=point]
 	
