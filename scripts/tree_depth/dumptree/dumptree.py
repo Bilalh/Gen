@@ -153,11 +153,20 @@ class Tree():
 			pprint(ix.__dict__)
 
 	def to_dot(self, fp):
+
+		def str_assgined(assigned):
+			name = assigned[0]
+			name = name.replace("AnyVarRef:Bool:Bool:", "b_")
+			name = name.replace("AnyVarRef:LongRange", "l_")
+			return "{} = {}".format(name, assigned[1])
+
 		with open(fp, "w") as f:
 			f.write('digraph G{\n\tgraph [ordering="out"];')
 			for ix in self.index:
+				f.write('{}[label="{},  D{}"]\n'.format(ix.number, ix.number, ix.depth))
 				if ix.parent:
-					f.write("\t{} -> {};\n".format(ix.number, ix.parent.number))
+					f.write('\t{} -> {} [label="{}"];\n'.format(
+						ix.number, ix.parent.number, str_assgined(ix.assigned) ))
 
 			f.write('}')
 
