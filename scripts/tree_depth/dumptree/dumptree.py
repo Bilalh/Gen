@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(format='%(name)s:%(lineno)d:%(funcName)s: %(message)s', level=logging.ERROR)
 
 import csv
+import json
 
 import argparse
 parser = argparse.ArgumentParser()
@@ -19,6 +20,7 @@ parser.add_argument("dumptree", help='dumptree from minion -dumptree')
 parser.add_argument("csv",      help='csv output location')
 parser.add_argument('-p', action='store_true', dest='print_nodes', help='print nodes')
 parser.add_argument('--dot',  help='output the tree as a .dot file, for visualisation')
+parser.add_argument('--meta',  help='output metadata as json')
 
 
 
@@ -141,6 +143,7 @@ class Tree(object):
 		lines = [ line.partition(":")[0::2] for line in raw_lines
 					if line and not line.startswith("#") ]
 
+		max_depth = -1
 		node = None
 		for (tag, value) in lines:
 			if tag == 'Node':
@@ -155,6 +158,8 @@ class Tree(object):
 					logger.info("current %s, assigned %s", self.current, self.current.assigned)
 
 				node = self.parse_Node(value)
+				if node.depth > max_depth:
+					max_depth = node.depth
 
 			elif tag == "SearchAssign":
 				self.parse_SearchAssign(value, node)
@@ -165,6 +170,8 @@ class Tree(object):
 
 		# for last node
 		node.left = NullNode(node)
+
+		self.meta["Max Depth"] = max_depth
 
 
 	def parse_Node(self, value):
@@ -246,11 +253,11 @@ class Tree(object):
 				depth_from = n.depth + 1
 				depth_to = n.backtracked.depth
 			data.append(dict(index=n.number, bt=not not n.backtracked,
-						depth_from=depth_from, depth_to=depth_to))
+						depth_from=depth_from, depth_to=depth_to, depth=n.depth))
 
 		with open(fp, "w") as fh:
 			temp=data[0].keys()
-			fieldnames = ["index", "bt", "depth_from", "depth_to"]
+			fieldnames = ["index", "depth", "bt", "depth_from", "depth_to"]
 			assert sorted(temp) == sorted(fieldnames)
 
 			writer = csv.DictWriter(fh, delimiter=',', fieldnames=fieldnames )
@@ -258,6 +265,10 @@ class Tree(object):
 			for row in data:
 				writer.writerow(row)
 
+	def save_meta(self, fp):
+		assert self.meta
+		with open(fp, "w") as fh:
+			json.dump(self.meta, fh)
 
 if __name__ == "__main__":
 	args = parser.parse_args()
@@ -265,9 +276,14 @@ if __name__ == "__main__":
 	# t.parse("/Users/bilalh/CS/instancegen/scripts/tree_depth/bibd/puget11.param.minion-tree")
 	# t.parse("/Users/bilalh/CS/instancegen/scripts/tree_depth/aa.param.minion-tree")
 	t.parse(args.dumptree)
+
 	if args.print_nodes:
 		t.print_nodes()
+
 	t.to_csv(args.csv)
+
 	if args.dot:
 		t.to_dot(args.dot)
 
+	if args.meta:
+		t.save_meta(args.meta)
