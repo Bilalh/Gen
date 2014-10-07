@@ -5,7 +5,6 @@ module TestGen.Arbitrary.Type where
 
 import AST.Imports
 import TestGen.Arbitrary.Data
-import TestGen.Arbitrary.Helpers
 
 import Test.QuickCheck
 import Language.E
@@ -40,6 +39,9 @@ typeOfDom DPar{inner}  = TPar  (typeOfDom inner)
 typeOfDom DRel{inners} = TRel (map typeOfDom inners)
 typeOfDom DFunc{innerFrom,innerTo} = TFunc (typeOfDom innerFrom) (typeOfDom innerTo)
 
+-- return the type of a, knowing b  from  `a in b`
+quanType_in :: Type -> Type
+quanType_in (TSet inner) = inner
 
 
 atype :: SpecState -> Gen Type

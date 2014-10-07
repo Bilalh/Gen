@@ -2,7 +2,6 @@
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
 module TestGen.Arbitrary.Helpers where
 
-import AST.Imports
 import Language.E hiding(trace)
 
 import Test.QuickCheck

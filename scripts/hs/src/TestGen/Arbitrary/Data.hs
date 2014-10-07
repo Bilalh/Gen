@@ -22,10 +22,11 @@ data SS = SS
       depth_   :: Depth       --  how many levels to genrate
     , doms_    :: Map Text FG --  Domains
     , nextNum_ :: Int          -- Number to name next var
+    , newVars_  :: [(Text,Type) ] -- Domains from e.g. forall
     } deriving Show
 type SpecState=SS
 _ss :: Depth -> SS
-_ss d = SS{depth_=d, doms_ = M.empty, nextNum_=1}
+_ss d = SS{depth_=d, doms_ = M.empty, nextNum_=1,newVars_=[] }
 
 
 instance Pretty SS where
