@@ -61,7 +61,7 @@ class Node(object):
 
 		prev = self
 		for bt, tu in iter_many(self.actions, len(self.actions), 2):
-			while tu[0] != prev.assigned[0]:
+			while isinstance(prev, SolutionNode) or tu[0] != prev.assigned[0]:
 				prev = prev.parent
 			prev.right = NullNode(prev)
 
@@ -124,6 +124,26 @@ class NullNode(Node):
 		fh.write('\t{0} [shape=point] \n'.format(self.number, self.depth) )
 
 
+class SolutionNode(Node):
+	"""
+	When a solution is found in opt problems, no children
+	"""
+
+	def __init__(self, parent, num):
+		super(SolutionNode, self).__init__(num)
+		self.set_parent(parent)
+		self.parent.left = self
+
+	def to_dot(self, fh):
+		self._dot_node(fh)
+
+	def _dot_node(self, fh):
+		fh.write('\t{0} [shape=point,color=red] \n'.format(self.number, self.depth) )
+
+	def _str_assgined(self, sym='='):
+		return "Sol"
+
+
 class Tree(object):
 	def __init__(self):
 		super(Tree, self).__init__()
@@ -143,21 +163,30 @@ class Tree(object):
 		lines = [ line.partition(":")[0::2] for line in raw_lines
 					if line and not line.startswith("#") ]
 
+		def process_last_node():
+			old=self.current
+			if self.current:
+				logger.info("current %s, assigned %s", self.current, self.current.assigned)
+				self.current.process(self)
+				logger.info("Processed  %s", pformat(old.__dict__))
+				logger.info("current %s, assigned %s", self.current, self.current.assigned)
+
+
 		max_depth = -1
-		node = None
 		for (tag, value) in lines:
+
 			if tag == 'Node':
-				if node:
-					logger.info("ParsedAtrr %s", pformat(node.__dict__))
-
-				old=self.current
-				if self.current:
-					logger.info("current %s, assigned %s", self.current, self.current.assigned)
-					self.current.process(self)
-					logger.info("Processed  %s", pformat(old.__dict__))
-					logger.info("current %s, assigned %s", self.current, self.current.assigned)
-
+				process_last_node()
 				node = self.parse_Node(value)
+				if node.depth > max_depth:
+					max_depth = node.depth
+
+			elif tag == "Solution found with Value":
+				process_last_node()
+				num = len(self.index)
+				node = SolutionNode(self.current, num)
+				self.parse_node_after(node, num)
+
 				if node.depth > max_depth:
 					max_depth = node.depth
 
@@ -169,7 +198,7 @@ class Tree(object):
 				self.meta[tag] = value.strip()
 
 		# for last node
-		node.left = NullNode(node)
+		self.current.left = NullNode(node)
 
 		self.meta["Max Depth"] = max_depth
 
@@ -183,25 +212,34 @@ class Tree(object):
 		else:
 			logger.info("current %s", self.current)
 
-		n = Node(num)
-		self.index.append(n)
-		assert self.index[num] == n
+		node = Node(num)
+		return self.parse_node_after(node, num)
 
-		logger.info("Parsed     %s", pformat(n.__dict__))
+	def parse_node_after(self, node, num):
+		if self.current:
+			logger.info("current %s, assigned %s", self.current, self.current.assigned)
+		else:
+			logger.info("current %s", self.current)
+
+		self.index.append(node)
+		assert self.index[num] == node
+
+		logger.info("Parsed     %s", pformat(node.__dict__))
 
 		if isinstance(self.current, NullNode):
-			n.set_parent(self.current.parent)
-			n.parent.right = n
+			node.set_parent(self.current.parent)
+			node.parent.right = node
 			# self.current.parent = None # might help gc
 		else:
-			n.set_parent(self.current)
+			node.set_parent(self.current)
 
 
 		if not self.root:
-			self.root = n
-		self.current = n
+			self.root = node
+		self.current = node
 
-		return n
+		return node
+
 
 	def parse_SearchAssign(self, value, node):
 		if "!=" in value:
@@ -237,6 +275,11 @@ class Tree(object):
 			while d:
 				cur = d.pop()
 				cur.to_dot(fh)
+				if isinstance(cur, SolutionNode):
+					assert isinstance(cur.left, NullNode) or cur.left is None
+					assert cur.right is None
+					continue
+
 				if cur.left:
 					d.append(cur.left)
 				if cur.right:
