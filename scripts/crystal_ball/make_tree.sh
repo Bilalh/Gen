@@ -19,12 +19,14 @@ for dir in data/*; do
     pushd "$dir"
     mkdir -p tree
 
-    parallel --resume --tag -j"${NUM_JOBS:-0}" --joblog tree/_.jobs \
+    parallel --resume --tag -j"${NUM_JOBS:-4}" --joblog tree/_.jobs \
         "minion {1} -quiet -noprintsols -solsout tree/{1/.}.{2}.minion-solution \
-        -tableout tree/{1.}.{2}.minion-table  -dumptree > tree/{1/.}.{2}.minion-tree \
+        -tableout tree/{1/.}.{2}.minion-table  -dumptree > tree/{1/.}.{2}.minion-tree \
+        -nodelimit ${NODE_LIMIT:-100000}
         \$(mk_varorder {2})" \
         ::: minions/*.minion \
-        ::: default sdf sdf-random srf srf-random ldf ldf-random random static
+        ::: default sdf
+        # ::: default sdf sdf-random srf srf-random ldf ldf-random random static
 
     popd
 done
