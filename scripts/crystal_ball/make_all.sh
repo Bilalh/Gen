@@ -4,7 +4,7 @@ Dir="$( cd "$( dirname "$0" )" && pwd )";
 
 case "$USER" in
 "bh246")
-    NUM_JOBS=${NUM_JOBS:-32} ;;
+    NUM_JOBS=${NUM_JOBS:-26} ;;
 "azureuser")
     NUM_JOBS=${NUM_JOBS:-8} ;;
 *)
