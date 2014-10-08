@@ -122,26 +122,36 @@ quanExpr :: SpecState -> Gen Expr
 quanExpr s@SS{..} =
     case overs of
         Nothing  -> boolExpr s  -- Nothing to quan over
-        Just gen -> do
+        Just gen-> do
             over@(EVar overName) <- gen
-            let overType = lookUpType s overName
+            let overType = lookupType s overName
 
             let (s', inName) = nextQuanVarName s
             let inType =  quanType_in overType
             let s'' = introduceVariable s' (inName, inType)
 
-            -- Esure with high prob that inName is actually used
+            -- FIXME Ensure with high prob that inName is actually used
 
-            bs <- boolExpr s''{depth_=depth_ - 1}
-            let a = EQuan ForAll (BIn (EQVar inName) over) EEmptyGuard
-                        bs
-            return $ a
+            quanType <- elements [ ForAll, Exists ]
+            let quanTop = EQuan quanType (BIn (EQVar inName) over)
+
+            -- quanGuard <- boolExpr s''{depth_=depth_ - 1}
+            let quanGuard = EEmptyGuard
+            quanBody <- boolExpr s''{depth_=depth_ - 1}
+            return $ quanTop quanGuard quanBody
 
     where
         overs =  varOf s (TSet TAny)
 
-lookUpType :: SpecState -> Text -> Type
-lookUpType  s@SS{..} name =
+-- assuming depth > 1 left
+exprUsingRef :: SpecState -> Text -> Gen Expr
+exprUsingRef s@SS{..} ref= do
+    let refType = lookupType s
+    _
+
+
+lookupType :: SpecState -> Text -> Type
+lookupType  s@SS{..} name =
     -- FIXME look in new vars
     case fmap (typeOfDom . domOfFG) $  name `M.lookup` doms_ of
         Nothing -> error . show $ vcat ["lookUpType", pretty s, pretty name]
@@ -163,9 +173,8 @@ introduceVariable s@SS{..} var =
 
 type Bop = (Expr -> Expr -> BinOp)
 
-bop :: SS -> Bop ->  Gen Expr
+bop :: SpecState -> Bop ->  Gen Expr
 bop s@SS{..} op =  do
-    -- TODO we what domain without attributes, for type checking
     exprType <- atype s{depth_=depth_ - 1}
 
     e1 <- exprOf s{depth_=depth_ - 1} exprType
@@ -174,7 +183,7 @@ bop s@SS{..} op =  do
     return $ EBinOp $  op e1 e2
 
 
-bopOf :: SS -> Bop -> Type -> Gen Expr
+bopOf :: SpecState -> Bop -> Type -> Gen Expr
 bopOf s@SS{..} op exprType =  do
     e1 <- exprOf s{depth_=depth_ - 1} exprType
     e2 <- exprOf s{depth_=depth_ - 1} exprType
