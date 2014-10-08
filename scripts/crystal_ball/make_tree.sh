@@ -11,10 +11,7 @@ function mk_varorder(){
 
 export -f mk_varorder
 
-for dir in data/*; do
-    if [ "$dir" == "data/__" ]; then
-        continue
-    fi
+for dir in $(find data/ -maxdepth 1 -mindepth 1 -type d -not -name __) ; do
 
     pushd "$dir"
     mkdir -p tree
@@ -25,8 +22,8 @@ for dir in data/*; do
         -nodelimit ${NODE_LIMIT:-100000}
         \$(mk_varorder {2})" \
         ::: minions/*.minion \
-        ::: default sdf
-        # ::: default sdf sdf-random srf srf-random ldf ldf-random random static
+        # ::: default sdf
+        ::: default sdf sdf-random srf srf-random ldf ldf-random random static
 
     popd
 done

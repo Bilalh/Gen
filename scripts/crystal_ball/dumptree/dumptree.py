@@ -20,7 +20,8 @@ parser.add_argument("dumptree", help='dumptree from minion -dumptree')
 parser.add_argument("csv",      help='csv output location')
 parser.add_argument('-p', action='store_true', dest='print_nodes', help='print nodes')
 parser.add_argument('--dot',  help='output the tree as a .dot file, for visualisation')
-parser.add_argument('--meta',  help='output metadata as json')
+parser.add_argument('--meta-json',  help='output metadata as json')
+parser.add_argument('--meta-csv',   help='output metadata as csv')
 
 
 
@@ -308,10 +309,32 @@ class Tree(object):
 			for row in data:
 				writer.writerow(row)
 
-	def save_meta(self, fp):
+	def fix_meta(self):
+		for ikey in ["Maximum RSS (kB)", "Solutions Found", "Total Nodes"]:
+			self.meta[ikey] = int(self.meta[ikey])
+
+		for rkey in ["First Node Time", "First node time", "Initial Propagate",
+					 "Parsing Time", "Setup Time", "Solve Time", "Total System Time",
+					 "Total Time", "Total Wall Time"]:
+			self.meta[rkey] = float(self.meta[rkey])
+
+		for bkey in ["Problem solvable?"]:
+			self.meta[bkey] = self.meta[bkey].lower() == "yes"
+
+	def save_meta_json(self, fp):
 		assert self.meta
+		self.fix_meta()
 		with open(fp, "w") as fh:
 			json.dump(self.meta, fh)
+
+	def save_meta_csv(self,fp):
+		assert self.meta
+		self.fix_meta()
+		with open(fp, "w") as fh:
+			fieldnames = sorted(self.meta.keys())
+			writer = csv.DictWriter(fh, delimiter=',', fieldnames=fieldnames )
+			writer.writerow(  { fn: fn for fn in fieldnames} )
+			writer.writerow(self.meta)
 
 if __name__ == "__main__":
 	args = parser.parse_args()
@@ -328,5 +351,8 @@ if __name__ == "__main__":
 	if args.dot:
 		t.to_dot(args.dot)
 
-	if args.meta:
-		t.save_meta(args.meta)
+	if args.meta_json:
+		t.save_meta_json(args.meta_json)
+
+	if args.meta_csv:
+		t.save_meta_csv(args.meta_csv)
