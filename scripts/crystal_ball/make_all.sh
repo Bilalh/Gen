@@ -19,15 +19,15 @@ function save_versions(){
 		echo "repo(git) version" >> "${fp}.versions"
 		git log -1 --format="%H" >> "${fp}.versions"
 		git describe --always    >> "${fp}.versions"
-        echo "" >> "${fp}.versions"
+		echo "" >> "${fp}.versions"
 	fi
 
 	echo "conjure">> "${fp}.versions"
-	conjure 2>&1 | grep Version						 >> "${fp}.versions"
+	conjure 2>&1 | grep Version  >> "${fp}.versions"
     echo "" >> "${fp}.versions"
 	minion 2>&1	 | egrep 'HG version|Minion Version' >> "${fp}.versions"
     echo "" >> "${fp}.versions"
-	savilerow	 | grep Version         			 >> "${fp}.versions"
+	savilerow	 | grep Version >> "${fp}.versions"
     echo "" >> "${fp}.versions"
 
 	echo "##OTHER##"  >> "${fp}.versions"
@@ -37,13 +37,13 @@ function save_versions(){
     local commands=(python python3 pip sqlite3 git hg perl parallel ruby )
 	for prog in "${commands[@]}"; do
 		echo "$prog version:" >> "${fp}.versions"
-		$prog --version  2>&1 | cat >> "${fp}.versions"
+		$prog --version  2>&1 | cat | head -n3 >> "${fp}.versions"
 		echo "" >> "${fp}.versions"
 	done
 
 	# Java just had to be different
 	echo "java version:" >> "${fp}.versions"
-	java -version  2>&1 | cat >> "${fp}.versions"
+	java -version  2>&1 | cat | head -n3 >> "${fp}.versions"
 
 }
 
