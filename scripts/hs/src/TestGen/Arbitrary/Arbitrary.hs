@@ -2,6 +2,7 @@
 {-# LANGUAGE ConstraintKinds, FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module TestGen.Arbitrary.Arbitrary where
@@ -136,7 +137,9 @@ quanExpr s@SS{..} =
             let quanTop = EQuan quanType (BIn (EQVar inName) over)
 
             -- quanGuard <- boolExpr s''{depth_=depth_ - 1}
-            let quanGuard = EEmptyGuard
+            quanGuard <- oneof [
+                return EEmptyGuard, exprUsingRef s''  overName
+                ]
             quanBody <- boolExpr s''{depth_=depth_ - 1}
             return $ quanTop quanGuard quanBody
 
@@ -146,8 +149,33 @@ quanExpr s@SS{..} =
 -- assuming depth > 1 left
 exprUsingRef :: SpecState -> Text -> Gen Expr
 exprUsingRef s@SS{..} ref= do
-    let refType = lookupType s
-    _
+    let refType = lookupType s ref
+    op <- elements [ BEQ ]
+    sidesType <- typeFromType s refType
+
+    other <- exprOf s sidesType
+    refExpr <- exprFromToType s ref refType sidesType
+
+    onLeft :: Bool <- arbitrary
+    if onLeft then
+        return $ EBinOp $  op refExpr other
+    else
+        return $ EBinOp $  op other refExpr
+
+exprFromToType :: SpecState -> Text -> Type -> Type -> Gen Expr
+exprFromToType _ ref from to | from == to =  return $ EVar ref
+
+
+
+
+-- Returns a type that can be reached within the allowed depth
+typeFromType :: SpecState -> Type -> Gen Type
+typeFromType SS{..} ty | depth_ < 1  =  elements [ty]
+typeFromType s@SS{..} ty@(TSet _) = oneof [
+      return ty
+    -- , return TInt
+    -- typeFromType s{depth_=depth_ - 1}
+    ]
 
 
 lookupType :: SpecState -> Text -> Type
