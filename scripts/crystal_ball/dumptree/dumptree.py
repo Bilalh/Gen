@@ -174,6 +174,7 @@ class Tree(object):
 
 
 		max_depth = -1
+		node = None
 		for (tag, value) in lines:
 
 			if tag == 'Node':
