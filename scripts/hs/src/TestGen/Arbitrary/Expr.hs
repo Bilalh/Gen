@@ -9,7 +9,7 @@ module TestGen.Arbitrary.Expr where
 
 import Language.E
 import AST.Imports
-import TestGen.Arbitrary.Helpers
+-- import TestGen.Arbitrary.Helpers
 import TestGen.Arbitrary.Data
 import TestGen.Arbitrary.Type
 import TestGen.Arbitrary.Common
@@ -19,7 +19,6 @@ import {-# SOURCE #-} TestGen.Arbitrary.Op
 
 import Test.QuickCheck
 import Text.Groom(groom)
-import qualified Data.Text as T
 import qualified Data.Map as M
 
 
@@ -31,9 +30,9 @@ expr s = oneof $
 boolExpr :: SpecState -> Gen Expr
 boolExpr s@SS{..} = oneof $ case depth_ of
      0 ->  [ boolLit s ]
-     1 ->  [ boolLit s, bop s BEQ ]
-     2 ->  [ boolLit s, bop s BEQ ]
-     _ ->  [ boolLit s, bop s BEQ, quanExpr s ]
+     1 ->  [ boolLit s, equivExpr s ]
+     2 ->  [ boolLit s, equivExpr s]
+     _ ->  [ boolLit s, equivExpr s , quanExpr s ]
 
 quanExpr :: SpecState -> Gen Expr
 quanExpr s@SS{..} =
@@ -84,7 +83,7 @@ exprFromToType _ ref from to | from == to =  return $ EVar ref
 
 
 -- Return a expr of the specifed depth and type
-exprOf :: SS -> Type -> Gen Expr
+exprOf :: SpecState -> Type -> Gen Expr
 exprOf s@SS{depth_=0,..} d@TBool = oneof $ ofType ++
     [
       boolLit s
@@ -94,7 +93,7 @@ exprOf s@SS{depth_=0,..} d@TBool = oneof $ ofType ++
 exprOf s@SS{..} d@TBool = oneof $ ofType ++
     [
       boolLit s
-    , bop s BEQ
+    , equivExpr s
     ]
     where ofType = maybeToList $ varOf s d
 
@@ -105,17 +104,11 @@ exprOf s@SS{depth_=0,..} d@TInt = oneof $ ofType ++
     ]
     where ofType = maybeToList $ varOf s d
 
-exprOf s@SS{depth_=1,..} d@TInt = oneof $ ofType ++
-    [
-      intLit s
-    , bopOf s BPlus d
-    ]
-    where ofType = maybeToList $ varOf s d
 
 exprOf s@SS{..} d@TInt = oneof $ ofType ++
     [
       intLit s
-    , bopOf s BPlus d
+    , arithmeticExprOf s d
     ]
     where
     ofType = maybeToList $ varOf s d

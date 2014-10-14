@@ -7,19 +7,14 @@
 
 module TestGen.Arbitrary.Domain where
 
-import Language.E
 import AST.Imports
-import TestGen.Arbitrary.Helpers
+import Language.E
 import TestGen.Arbitrary.Data
-import TestGen.Arbitrary.Type
+import TestGen.Arbitrary.Helpers
 
 import Test.QuickCheck
 
-import Text.Groom(groom)
-
-import qualified Data.Text as T
-import qualified Data.Map as M
-
+-- import Text.Groom(groom)
 
 
 dom :: Depth -> Gen (Domain)
