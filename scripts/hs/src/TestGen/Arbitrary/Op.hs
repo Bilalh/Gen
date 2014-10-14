@@ -45,11 +45,6 @@ opOf s@SS{..} op exprType = do
     e1 <- exprOf s{depth_=depth_ - 1} exprType
     return $ EUniOp $ op e1
 
-bar :: SpecState -> Gen Expr
-bar s@SS{..} = do
-    exprType <- undefined :: Gen Type
-    opOf s UBar exprType
-
 
 equivExpr :: SpecState -> Gen Expr
 equivExpr s = oneof $ map (bop s) [ BEQ, BNEQ ]
@@ -61,9 +56,12 @@ arithmeticTypes _ = return TInt
 arithmeticExpr :: SpecState -> Gen Expr
 arithmeticExpr s = do
     kind <- arithmeticTypes s
-    -- oneof $ map (flip (bopOf s) kind ) $ [BPlus]
     arithmeticExprOf s kind
 
 arithmeticExprOf :: SpecState -> Type ->  Gen Expr
 arithmeticExprOf s kind = do
     oneof $ map (flip (bopOf s) kind ) $ [BPlus]
+
+relationExpr :: SpecState -> Gen Expr
+relationExpr s =  do
+    oneof $ map (flip (bopOf s) TBool ) [BOr, BAnd]

@@ -30,9 +30,8 @@ expr s = oneof $
 boolExpr :: SpecState -> Gen Expr
 boolExpr s@SS{..} = oneof $ case depth_ of
      0 ->  [ boolLit s ]
-     1 ->  [ boolLit s, equivExpr s ]
-     2 ->  [ boolLit s, equivExpr s]
-     _ ->  [ boolLit s, equivExpr s , quanExpr s ]
+     1 ->  [ boolLit s, equivExpr s, relationExpr s ]
+     _ ->  [ boolLit s, equivExpr s, relationExpr s, quanExpr s ]
 
 quanExpr :: SpecState -> Gen Expr
 quanExpr s@SS{..} =
@@ -94,6 +93,7 @@ exprOf s@SS{..} d@TBool = oneof $ ofType ++
     [
       boolLit s
     , equivExpr s
+    , relationExpr s
     ]
     where ofType = maybeToList $ varOf s d
 
