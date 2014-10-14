@@ -54,4 +54,4 @@ x /== y =
 
 
 rmain =
-    quickCheckWith stdArgs{QC.maxSize=100,maxSuccess=100} (prop_specs_refine 30 "__")
+    quickCheckWith stdArgs{QC.maxSize=10,maxSuccess=3} (prop_specs_refine 10 "__")

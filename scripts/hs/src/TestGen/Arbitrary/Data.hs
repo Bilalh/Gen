@@ -37,6 +37,8 @@ instance Pretty SS where
                 , ",nextNum_ ="  <+>  (pretty nextNum_)
                 , ",doms_ = "
                 , pretty doms_
+                , ",newVars_ = "
+                , vcat $ map pretty newVars_
             ]
             )
 

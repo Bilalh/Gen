@@ -1,7 +1,10 @@
 
+
+want to be able to specify have like nesting occurs, for example for guards on quan, should in general not be nested too much
+
 2014-10-08:
 
-`exprUsingRef`  some possible ideas:
+`exprUsingRef`  some possible ideas @done(2014-10-09 03:11)
 
 we know the type `t` of  ref
 
@@ -16,6 +19,8 @@ choose the type of _1 to be a type that can be reached from `t` using n levels o
 | set of int      | int           | :ref:             |   1   |
 | int             | set of int    | {ref}             |   1   |
 | Func int -> int | (a,b)         | (ref[0], ref[1] ) | 2 + ? |
+
+
 
 then generating expression of the resulting type for _2  as normal
 
