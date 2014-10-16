@@ -284,7 +284,7 @@ function vaildate_solution(){
 function save_versions(){
     local _fp="$1$(date +%F_%H-%M_%s)"
 	local fp="`python -c 'import os,sys; print(os.path.realpath(sys.argv[1]))'  ${_fp}`"
-	echo "" >> "${fp}.versions"
+	echo "" > "${fp}.versions"
 	
 	if [ ! -f "${fp}.versions" ] ; then
 		echo "Can't write to ${fp}.versions"
@@ -301,8 +301,22 @@ function save_versions(){
 
 	local repos_dir="$(dirname `which savilerow`)/../"
 	
+    echo "System info" >> "${fp}.versions"
+	echoing parallel --number-of-cpus  >> "${fp}.versions"
+	echoing parallel --number-of-cores >> "${fp}.versions"
+    echo "" >> "${fp}.versions"
+	echoing hostname >> "${fp}.versions"
+	echoing whoami >> "${fp}.versions"
 	
-
+    echo "" >> "${fp}.versions"
+	
+	if (sw_vers); then
+		echoing sw_vers >>  "${fp}.versions"
+	    echo "" >> "${fp}.versions"
+	else
+		echoing cat /proc/meminfo  | grep MemTotal >> "${fp}.versions"
+	    echo "" >> "${fp}.versions"
+	fi
 
 	echo "conjure" >> "${fp}.versions"
 	conjure 2>&1 | grep Version  >> "${fp}.versions"
