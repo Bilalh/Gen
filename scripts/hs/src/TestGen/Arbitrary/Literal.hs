@@ -38,5 +38,5 @@ setLit s@SS{..} = do
 
 setLitOf :: SpecState -> Type ->  Gen Expr
 setLitOf s@SS{..} innerType = do
-    exprs <- listOfB 0 15 ( exprOf s{depth_=depth_ - 1} innerType)
+    exprs <- listOfB 0 (min 15 (3 * depth_) ) ( exprOf s{depth_=depth_ - 1} innerType)
     return $ ELit $ ESet $ map EExpr $ exprs
