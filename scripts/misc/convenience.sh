@@ -295,6 +295,7 @@ function save_versions(){
 		echo "repo(git) version" >> "${fp}.versions"
 		git log -1 --format="%H" >> "${fp}.versions"
 		git describe --always    >> "${fp}.versions"
+		echoing git branch  >> "${fp}.versions"
 		echo "" >> "${fp}.versions"
 	fi
 
@@ -344,10 +345,13 @@ function save_versions(){
 			echo "$repo(git) version" >> "${fp}.versions"
 			git log -1 --format="%H" >> "${fp}.versions"
 			git describe --always    >> "${fp}.versions"
+			echoing git branch  >> "${fp}.versions"
 			echo "" >> "${fp}.versions"
 		elif [ -d ".hg" ]; then
 			echo "$repo(hg) version" >> "${fp}.versions"
 			hg log -r . --template "{latesttag}-{latesttagdistance}-{node|short}" >> "${fp}.versions"
+			echo "" >> "${fp}.versions"
+			echoing hg branch  >> "${fp}.versions"
 			echo "" >> "${fp}.versions"
 		fi 
 		
