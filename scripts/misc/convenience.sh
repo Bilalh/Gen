@@ -18,6 +18,7 @@ else
     }
 fi
 
+
 # Runs the whole toolchain using compact with specifed params
 function csolve(){
 	if [ $# -lt 1 ]; then
@@ -76,7 +77,23 @@ function refine_run(){
 	fi
 }
 
+function mkessence(){
+	if [ $# -lt 1 ]; then
+		echo "$0 name"
+		return
+	fi
 
+	mkdir "$1"
+	echo "language Essence 1.3" > "$1/$1.essence"
+	echo "language Essence 1.3" > "$1/$1.param"
+	
+	echo "" >> "$1/$1.essence"
+	echo "" >> "$1/$1.param"
+	echo "" >> "$1/$1.essence"
+	echo "" >> "$1/$1.param"
+	
+	$EDITOR -p  $1/$1.essence +3 $1/$1.param +3
+}
 
 function cr(){
 	local base=`basename $PWD`

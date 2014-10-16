@@ -1,3 +1,13 @@
+
+sum contraints like
+
+    (sum i : int(1.2) . j ) > 2
+
+`methods`  like max, min etc
+
+bubbles, or are these just impl detail?
+
+
 remove causes that make the spec obviously insoluable?
 
 

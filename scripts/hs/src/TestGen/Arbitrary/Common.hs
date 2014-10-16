@@ -3,7 +3,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# OPTIONS_GHC -fno-warn-orphans -fno-warn-unused-imports #-}
 
 module TestGen.Arbitrary.Common where
 
@@ -25,12 +25,16 @@ import qualified Data.Map as M
 
 -- Returns a type that can be reached within the allowed depth
 typeFromType :: SpecState -> Type -> Gen Type
-typeFromType SS{..} ty | depth_ < 1  =  elements [ty]
+typeFromType SS{..} ty | depth_ < 1  = elements [ty]
 typeFromType s@SS{..} ty@(TSet _) = oneof [
       return ty
-    -- , return TInt
-    -- typeFromType s{depth_=depth_ - 1}
+    , reachable
+    , do
+        r <- reachable
+        typeFromType s{depth_=depth_ - 1} r
     ]
+
+    where reachable = elements [ TInt ]
 
 typeFromType s@SS{..} ty@TInt = oneof [
         return ty

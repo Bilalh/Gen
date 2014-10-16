@@ -16,6 +16,7 @@ import qualified Text.PrettyPrint as Pr
 
 type Depth = Int
 type GenM  a = State SpecState (Gen a)
+type Ref = Text
 
 data SS = SS
     {

@@ -1,0 +1,5318 @@
+language Essence 1.3
+
+given n,a,b : int(0..100)
+
+given s : set of int(1..n)
+
+find x : set of int(a..b)
+
+such that
+    x subsetEq s,
+    |x| in x
+
+language Essence 1.3
+
+
+letting Character be domain int(1..numChars)
+
+letting wordLength be lam*numChars
+
+letting Index be domain int(1..wordLength)
+
+letting String be domain function (total) Index --> Character
+
+find c : set (size numCodeWords) of String
+
+such that
+
+
+forAll s in c . forAll a : Character .
+    ( (sum i : Index . toInt(s(i)=a) )=lam),
+
+
+forAll s1, s2 in c, s1 != s2
+        . (sum i : Index . toInt(s1(i)!=s2(i))) = dist
+
+
+language Essence 1.3
+
+given n_cars, n_classes, n_options, n_upperBound : int(1..)
+
+letting Slots  be domain int(1..n_cars),
+        Class  be domain int(1..n_classes),
+        Option be domain int(1..n_options)
+
+given quantity : function (total) Class  --> int(1..n_upperBound),
+      maxcars  : function (total) Option --> int(1..n_upperBound),
+      blksize  : function (total) Option --> int(1..n_upperBound),
+      usage    : relation of ( Class * Option )
+
+find car : function (total) Slots --> Class
+
+such that
+    forAll c : Class . |preImage(car,c)| = quantity(c),
+    forAll opt : Option .
+        forAll s : int(1..n_cars+1-blksize(opt)) .
+            (sum i : int(s..s+blksize(opt)-1) . toInt(usage(car(i),opt))) <= maxcars(opt)
+language ESSENCE 1.3.0
+
+
+
+
+
+
+
+language Essence 1.3
+
+given n : int(1..100)
+letting dom be domain int(0..n-1)
+
+find quasigroup : matrix indexed by [dom,dom] of dom
+
+such that
+
+forAll col : dom . allDiff(quasigroup[.., col]),
+forAll row : dom . allDiff(quasigroup[row, ..]),
+
+forAll i : dom . quasigroup[i,i] = i,
+
+forAll i,j : dom . quasigroup[quasigroup[quasigroup[j,i],j],j] = i,
+
+forAll i,j : dom . quasigroup[i,j] = i <-> quasigroup[j,i] = i
+language Essence 1.3
+
+given n : int(1..)
+
+find seq : function (total) int(1..n) --> int(-1,1)
+
+minimising sum k : int(1..n) . (sum i : int(1..n-k) . seq(i) * seq(i+k)) ** 2
+
+language Essence 1.3
+
+given n : int
+
+where n >= 0
+
+letting bound be 2 ** n
+
+find Ticks : set (size n) of int(0..bound)
+
+minimising max(Ticks)
+
+such that
+    forAll pair1_1, pair1_2 in Ticks , pair1_1 < pair1_2 .
+    	forAll pair2_1, pair2_2 in Ticks , pair2_1 < pair2_2 .
+    		(pair1_1, pair1_2) != (pair2_1, pair2_2)
+    		->
+    		max({pair1_1, pair1_2}) - min({pair1_1, pair1_2}) !=
+          	max({pair2_1, pair2_2}) - min({pair2_1, pair2_2})
+
+language Essence 1.3
+
+given n : int
+
+where n >= 0
+
+letting bound be 2 ** n
+
+find Ticks : set (size n) of int(0..bound)
+
+minimising max(Ticks)
+
+such that
+    forAll {pair1_1, pair1_2} subsetEq Ticks .
+    	forAll {pair2_1, pair2_2} subsetEq Ticks , (pair1_1, pair1_2) != (pair2_1, pair2_2) .
+    		max({pair1_1, pair1_2}) - min({pair1_1, pair1_2}) !=
+          	max({pair2_1, pair2_2}) - min({pair2_1, pair2_2})
+
+language Essence 1.3
+
+given n : int
+
+where n >= 0
+
+letting bound be 2 ** n
+
+find Ticks : set (size n) of int(0..bound)
+
+minimising max(Ticks)
+
+such that
+    forAll pair1, pair2 : set (size 2) of int subsetEq Ticks
+        , pair1 != pair2
+        . max(pair1) - min(pair1) != max(pair2) - min(pair2)
+
+language ESSENCE 1.2.0
+
+given n : int(1..)
+
+letting Num be domain int(0..n-1),
+        Interval be domain int(1..n-1)
+
+find s : function (total, bijective) int(1..n) --> Num,
+     v : function (total, bijective) int(1..n-1) --> Interval
+
+such that forAll i : int(1..n-1) . v(i) = |s(i+1) - s(i)|
+
+language ESSENCE 1.2.0
+
+given n_upper : int
+
+given deck_width, deck_length, n_containers, n_classes : int(1..)
+
+letting Container be domain int(1..n_containers),
+        Class     be domain int(1..n_classes),
+        Width     be domain int(1..deck_width),
+        Length    be domain int(1..deck_length),
+        X         be domain int(0..deck_width),
+        Y         be domain int(0..deck_length)
+
+given width      : function (total) Container --> Width,
+      length     : function (total) Container --> Length,
+      class      : function (total) Container --> Class,
+      separation : function (total) set (size 2) of Class --> int(0..n_upper)
+
+find west,  east  : function (total) Container --> X,
+     north, south : function (total) Container --> Y
+
+such that
+    forAll c : Container . (east(c) - west(c) = width(c) /\
+                            south(c) - north(c) = length(c)) \/
+                           (east(c) - west(c) = length(c) /\
+                            south(c) - north(c) = width(c))
+
+such that
+    forAll c1, c2 : Container . c1 != c2 -> west(c1) != west(c2) \/
+                                                 north(c1) != north(c2)
+
+such that
+    forAll c1, c2 : Container . c1 != c2 ->
+        max({west(c1), west(c2)}) - min({east(c1), east(c2)}) >= 0 \/
+        max({north(c1), north(c2)}) - min({south(c1), south(c2)}) >= 0
+
+such that
+    forAll c1, c2 : Container . c1 != c2 ->
+        max({west(c1), west(c2)}) - min({east(c1), east(c2)})
+            >= separation({class(c1), class(c2)}) \/
+        max({north(c1), north(c2)}) - min({south(c1), south(c2)})
+            >= separation({class(c1), class(c2)})
+
+language ESSENCE 1.2.0
+
+given sizes new domain int
+
+letting container_size be sum i : sizes . 1
+
+where (sum s : sizes . s**2) = container_size**2
+
+letting Index be domain int(0..container_size-1)
+letting Square be domain sizes
+
+find x, y : function (total) Square --> Index
+
+such that
+    forAll s : Square . x(s) + s < container_size /\ y(s) + s < container_size,
+    forAll s1,s2 : Square , s1 != s2 .
+        max({x(s1),x(s2)}) - min({x(s1)+s1,x(s2)+s2}) >= 0 \/
+        max({y(s1),y(s2)}) - min({y(s1)+s1,y(s2)+s2}) >= 0
+
+language Essence 1.3
+
+given w, g, s : int(1..)
+
+letting Golfers be new type of size g * s
+
+find sched : set (size w) of partition (regular, size g) from Golfers
+
+such that
+    forAll {week1, week2} subsetEq sched .
+        forAll group1 in parts(week1) .
+            forAll group2 in parts(week2) .
+                |group1 intersect group2| < 2
+language ESSENCE 1.3.0
+
+
+given nGrid : int(1..)
+given maxRules : int(1..)
+
+letting dGrid be domain int(1..nGrid)
+letting dRules be domain int(1..maxRules)
+
+given rowRules : matrix indexed by [dGrid, dRules] of int(0..)
+given colRules : matrix indexed by [dGrid, dRules] of int(0..)
+
+find grid : matrix indexed by [dGrid, dGrid] of int(0..1)
+
+such that
+    forAll column : dGrid .
+
+        ((sum i : dGrid . grid[i][column]) = (sum j : dRules . colRules[column][j]))
+        /\
+
+        exists startingIndexes : matrix indexed by [dRules] of dGrid
+
+            . forAll ruleIndex : dRules
+
+                . colRules[column][ruleIndex] = 0
+
+                    \/
+
+                    ((ruleIndex = 1
+                    \/
+                    startingIndexes[ruleIndex] > startingIndexes[ruleIndex - 1])
+                    /\
+
+                    ( (sum i : int(startingIndexes[ruleIndex]..(startingIndexes[ruleIndex] + colRules[column][ruleIndex] - 1) ) . grid[i][column]) = colRules[column][ruleIndex])
+                    /\
+                    (startingIndexes[ruleIndex] = 1
+                    \/
+                    grid[(startingIndexes[ruleIndex])-1][column] = 0)
+                    /\
+                    ((startingIndexes[ruleIndex] + colRules[column][ruleIndex] - 1) = nGrid
+                    \/
+                    grid[(startingIndexes[ruleIndex] + colRules[column][ruleIndex])][column] = 0) )
+
+
+such that
+
+    forAll row : dGrid .
+
+        ((sum i : dGrid . grid[row][i]) = (sum j : dRules . rowRules[row][j]))
+        /\
+
+        exists startingIndexes : matrix indexed by [dRules] of int(0..nGrid)
+
+            . forAll ruleIndex : dRules
+
+                . rowRules[row][ruleIndex] = 0
+
+                    \/
+
+                    (( ruleIndex = 1
+                    \/
+                    startingIndexes[ruleIndex] > startingIndexes[ruleIndex - 1])
+                    /\
+
+                    ( (sum i : int(startingIndexes[ruleIndex]..(startingIndexes[ruleIndex] + rowRules[row][ruleIndex] - 1) ) . grid[row][i]) = rowRules[row][ruleIndex])
+                    /\
+                    (startingIndexes[ruleIndex] = 1
+                    \/
+                    grid[row][(startingIndexes[ruleIndex])-1] = 0)
+                    /\
+                    ((startingIndexes[ruleIndex] + rowRules[row][ruleIndex] - 1) = nGrid
+                    \/
+                    grid[row][(startingIndexes[ruleIndex] + rowRules[row][ruleIndex])] = 0) )
+language Essence 1.3
+
+given n_upper : int(1..100)
+given n_boats, n_periods : int(1..100)
+
+letting Boat be domain int(1..n_boats)
+
+given capacity, crew : function (total) Boat --> int(1..n_upper)
+
+find hosts : set of Boat,
+     sched : set (size n_periods) of function (total) Boat --> Boat
+
+minimising |hosts|
+
+such that
+    forAll p in sched . range(p) subsetEq hosts,
+    forAll p in sched . forAll h in hosts . p(h) = h,
+    forAll p in sched . forAll h in hosts . (sum b in preImage(p,h) . crew(b))
+                                            <= capacity(h),
+    forAll b1,b2 : Boat
+        , b1 != b2
+        . (sum p in sched . (p(b1) = p(b2))) <= 1
+
+language ESSENCE 1.2.0
+
+given n_balls, n_boxes : int(1..)
+
+letting Ball be domain int(1..n_balls)
+
+find schur : partition (size n_boxes) from Ball
+
+such that forAll b1,b2,b3 : Ball . forAll s in parts(schur) .
+    b1 != b2 /\ b1 + b2 = b3 -> ! ({b1,b2,b3} subsetEq s)
+
+language ESSENCE 1.2.0
+
+given n_roads : int(1..)
+
+letting Road be domain int(1..n_roads),
+        VCol be new type enum {r,ry,g,y},
+        PCol be new type enum {pr,pg}
+
+find valid : set of function (total) Road --> (VCol,PCol)
+
+such that forAll c in valid . forAll rd : Road .
+    {c(rd),c((rd % n_roads)+1)} in {{(r,pr),(g,pg)},{(ry,pr),(y,pr)}}
+language Essence 1.3
+
+letting nBuckets be 3
+letting totalWater be 8
+
+letting Bucket be domain int(1..nBuckets),
+        Water  be domain int(0..totalWater),
+        State  be domain function (total) Bucket --> Water
+
+letting start    be function (1 --> 8, 2 --> 0, 3 --> 0)
+letting capacity be function (1 --> 8, 2 --> 5, 3 --> 3)
+
+letting goal be function (1 --> 4, 2 --> 4, 3 --> 0)
+
+find plan: function int(1..(total_water+1)**n_buckets) --> State
+
+find plan_len: int(1..(total_water+1)**n_buckets)
+
+
+minimising plan_len
+
+such that
+
+plan_len = |plan|,
+
+forAll i : int(1..(total_water+1)**n_buckets) ,
+    i <= plan_len .
+    i in defined(plan),
+
+forAll s in range(plan) . (sum b : Bucket . s(b) )  = totalWater,
+
+forAll s in range(plan) .
+    forAll b : Bucket .
+        s(b) <= capacity(b),
+
+plan(1) = start,
+
+plan(|plan|) = goal,
+
+forAll i : int(1..(total_water+1)**n_buckets)
+    , i <= plan_len .
+     |plan(i) intersect plan(i+1)| = 1,
+
+forAll i : int(1..(total_water+1)**n_buckets) ,
+    i <= plan_len-1 .
+    (sum w in range(plan(i) - (plan(i) intersect plan(i+1))) . w) =
+    (sum w in range(plan(i+1) - (plan(i) intersect plan(i+1))) . w)
+language ESSENCE 1.2.0
+
+given n : int(1..)
+
+letting Index be domain int(1..n),
+        Value be domain int(1..n**2)
+
+find square : matrix indexed by [Index,Index] of Value,
+     s : int(1..sum i : int(n**2+1-n..n**2) . i)
+
+such that
+    allDiff(square),
+    forAll r : Index . (sum c : Index . square[r,c]) = s,
+    forAll c : Index . (sum r : Index . square[r,c]) = s,
+    (sum d : Index . square[d,d]) = s,
+    (sum d : Index . square[d,n+1-d]) = s
+language Essence 1.3
+
+given dom  new domain int
+given bound : int(1..100)
+letting Postion be domain (int(1..bound),int(1..bound))
+
+given numClues : int(1..bound**2)
+letting Clue be domain int(1..numClues)
+letting Arg be domain int(1..numClues)
+
+letting Type be new type enum  {Add, Modulo}
+given l : function (total,injective) Clue  --> (Type, Arg, Arg, Postion  )
+
+
+find grid : matrix indexed by [int(1..bound),int(1..bound)] of dom
+
+
+such that
+
+forAll i : Clue .  (
+    l(i)[1] = Add ->
+    grid[ l(i)[4,1], l(i)[4,2] ] =
+        grid[ l( l(i)[2] )[4,1]  , l( l(i)[2] )[4,2]  ]
+      + grid[ l( l(i)[3] )[4,1]  , l( l(i)[3] )[4,2]  ] ) /\ (
+
+    l(i)[1] = Modulo ->
+    grid[ l(i)[4,1], l(i)[4,2] ] =
+        grid[ l( l(i)[2] )[4,1]  , l( l(i)[2] )[4,2]  ]
+      % grid[ l( l(i)[3] )[4,1]  , l( l(i)[3] )[4,2]  ]
+)
+language ESSENCE 1.2.0
+
+given Tasks new type enum,
+      shifts : set of set of Tasks
+
+find sched : partition from Tasks
+
+minimising |parts(sched)|
+
+such that forAll s in parts(sched) . s in shifts
+
+language ESSENCE 1.2.0
+
+given d : int(1..)
+
+where d % 2 = 1
+
+letting o be d/2 + 1,
+        maxval be 3 * o**2 - 3 * o + 1,
+        maxsum be sum i : int(maxval + 1 - d..maxval) . i,
+        Value be domain int(1..maxval)
+
+find hexagon : matrix indexed by [int(1..d),int(1..d)] of Value,
+     s : int(1..maxsum)
+
+such that
+    forAll r1,r2 : int(1..d) . forAll i1 : int(1..d - |o - r1|) .
+        forAll i2 : int(1..d - |o - r2|) . r1 != r2 \/ i1 != i2 ->
+            hexagon[r1,i1] != hexagon[r2,i2],
+    forAll r : int(1..d) . (sum i : int(1..d - |o - r|) . hexagon[r,i]) = s,
+    forAll r : int(1..d) . (sum i : int(1..d - |o - r|) .
+        hexagon[i + max({0,o-r}), r - max({0,o-(i + max({0,o-r}))})]) = s,
+    forAll r : int(1..d) . (sum i : int(1..d - |o - r|) .
+        hexagon[i + max({0,r-o}), r - max({0,(i + max({0,r-o}))-o})]) = s
+language Essence 1.3.0
+
+given k : int(1..5)
+given n : int(1..30)
+
+letting Index  be domain int(1..n*k)
+letting Num be domain int(1..n)
+
+find seq: function(total,surjective) Index --> Num
+
+such that
+
+forAll m : Num .
+    exists f : function (total, injective) int(1..k) --> Index .
+       (forAll i : Index .  i in range(f) <-> i in preImage(seq,m)) /\
+       (forAll j : int(1..k-1) . f(j+1) - f(j) = m + 1)
+
+language Essence 1.3
+
+given k : int(2..5)
+given n : int(1..30)
+letting seqLength be k * n
+
+letting seqIndex be domain int(1..seqLength)
+
+find seq : function (total, surjective) seqIndex --> int(1..n)
+
+such that
+    forAll i,j : seqIndex , i < j .
+        seq(i) = seq(j) -> seq(i) = j - i - 1
+
+language Essence 1.3
+
+given indexSize: int
+
+letting Index be new type of size indexSize
+
+find m: matrix indexed by [Index,Index] of bool
+
+such that
+    forAll r : Index
+        . (sum c : Index . toInt(!m[r,c])) = 11,
+    forAll c : Index
+        . (sum r : Index . toInt(!m[r,c])) = 11,
+    forAll r1,r2 : Index
+        , r1 != r2
+        . (sum c : Index . toInt(!(m[r1,c] \/ m[r2,c]))) = 1
+
+language Essence 1.3
+
+given n_teams : int(1..)
+
+where n_teams % 2 = 0
+
+letting Team   be new type of size n_teams,
+        Week   be new type of size n_teams-1,
+        Period be new type of size n_teams/2
+
+find sched :
+    relation (size ((n_teams-1)*n_teams)/2) of
+        (Week * Period * set (size 2) of Team)
+
+such that
+    forAll t : Team . forAll w : Week . exists (p,ts) in toSet(sched(w,_,_)) . t in ts,
+    forAll t : Team . forAll p : Period .
+        (sum (w,ts) in toSet(sched(_,p,_)) . toInt(t in ts)) <= 2,
+    forAll t1,t2 : Team , t1 != t2 . |toSet(sched(_,_,{t1,t2}))| = 1
+
+language ESSENCE 1.3.0
+
+
+
+given gridSize : int(1..)
+given colours : int(1..)
+
+letting dGridSize be domain int(1..gridSize)
+letting dColours be domain int(0..colours-1)
+
+find clickMatrix : matrix indexed by [dGridSize, dGridSize] of dColours
+
+maximising (sum i,j : dGridSize . clickMatrix[i][j])
+
+such that
+    forAll simplerClickMatrix : matrix indexed by [dGridSize, dGridSize] of dColours .
+
+        (sum i,j : dGridSize . clickMatrix[i][j]) <= (sum i,j : dGridSize . simplerClickMatrix[i][j])
+        \/
+
+        exists x,y : dGridSize .
+
+            ((sum index : dGrid . clickMatrix[index][y] + clickMatrix[x][index]) - clickMatrix[x][y]) % colours
+            !=
+            ((sum index : dGrid . simplerClickMatrix[index][y] + simplerClickMatrix[x][index]) - simplerClickMatrix[x][y]) % colours
+
+language Essence 1.3
+
+given v, b, r, k, lambda_ : int(1..20)
+
+where v = b
+where r = k
+
+letting Obj   be new type of size v,
+        Block be new type of size b
+
+find bibd : relation of (Obj * Block)
+
+such that
+    forAll o  : Obj   . |toSet(bibd(o,_ ))| = r,
+    forAll bl : Block . |toSet(bibd(_,bl))| = k,
+    forAll o1, o2 : Obj
+        , o1 != o2
+        . |toSet(bibd(o1,_)) intersect toSet(bibd(o2,_))| = lambda_
+
+language ESSENCE 1.2.0
+
+given n_periods, maxl, minl, n_courses, maxc, minc, n_credits : int(1..)
+
+letting Course be domain int(1..n_courses),
+        Period be domain int(1..n_periods)
+
+given prereq : relation of (Course*Course),
+      credits : function (total) Course --> int(1..n_credits)
+
+find curr : function (total) Course --> Period
+
+such that
+    forAll c1,c2 : Course . prereq(c1,c2) -> curr(c1) < curr(c2),
+    forAll p : Period . (sum c in preImage(curr,p) . credits(c)) <= maxl /\
+                        (sum c in preImage(curr,p) . credits(c)) >= minl,
+    forAll p : Period . |preImage(curr,p)| <= maxc /\ |preImage(curr,p)| >= minc
+
+language Essence 1.3
+
+given n_models, n_types, n_cards, n_racks : int(1..5000)
+
+letting Model be domain int(1..n_models),
+        Type  be domain int(1..n_types),
+        Card  be domain int(1..n_cards),
+        Rack  be new type of size n_racks
+
+given max_power    : function (total) Model --> int(1..5000),
+      max_connects : function (total) Model --> int(1..5000),
+      price        : function (total) Model --> int(1..5000),
+      req_power    : function (total) Type  --> int(1..5000),
+      ctype        : function (total) Card  --> Type
+
+find model   : function Rack --> Model,
+     plugged : function Rack --> set of Card
+
+minimising sum r in defined(model) . price(model(r))
+
+such that
+    forAll c : Card .
+        exists r in defined(model) .
+            c in plugged(r)
+
+such that
+    forAll r1, r2 in defined(model)
+        , r1 != r2
+        . |plugged(r1) intersect plugged(r2)| = 0
+
+such that
+    forAll r in defined(model) .
+        (sum c in plugged(r) . (req_power(ctype(c))))
+        <= max_power(model(r))
+
+such that
+    forAll r in defined(model) .
+        |plugged(r)| <= max_connects(model(r))
+language Essence 1.3
+
+given n : int(1..)
+
+letting Index be domain int(1..n+2)
+letting Cell  be domain tuple (Index,Index)
+
+find alive : set of Cell
+
+maximising |alive|
+
+such that
+    forAll (a,b) : Cell
+        , |{a,b} intersect {1,n+2}| = 0
+        . !((a,b) in alive),
+
+    forAll (a,b) in alive .
+        3 <= ( sum i,j : int(-1..1) . (a+i,b+j) in alive ) /\
+        (sum i,j : int(-1..1) . toInt((a+i,b+j) in alive)) <= 4,
+
+    forAll (a,b) : Cell
+        , !((a,b) in alive)
+        . (sum i,j : int(-1..1) . toInt((a+i,b+j) in alive)) != 3
+
+language Essence 1.3
+
+letting Base be new type enum {A,C,G,T},
+        Index be domain int(1..8)
+
+find words : set of function (total) Index --> Base
+
+maximising |words|
+
+such that
+    forAll w in words . |preImage(w,C)| + |preImage(w,G)| = 4,
+    forAll w1,w2 in words
+        , w1 != w2
+        . (sum i : Index . toInt(w1(i) = w2(i))) <= 4,
+    forAll w1,w2 in words
+        , w1 = w2
+        . (sum i : Index
+            . toInt(w1(i) = A /\ w2(9-i) = T \/
+               w1(i) = C /\ w2(9-i) = G \/
+               w1(i) = G /\ w2(9-i) = C \/
+               w1(i) = T /\ w2(9-i) = A)
+          ) <= 4
+
+language ESSENCE 1.2.0
+
+given n_upper, n_stores, n_warehouses : int(1..)
+
+letting Store be domain int(1..n_stores),
+        WHouse be domain int(1..n_warehouses)
+
+given capacity : function (total) WHouse --> int(1..n_upper),
+      opencost : function (total) WHouse --> int(1..n_upper),
+      cost : function (total) tuple (Store, WHouse) --> int(1..n_upper)
+
+find open : function (total) Store --> WHouse
+
+minimising (sum r in range(open). opencost(r)) + sum s : Store . cost((s,open(s)))
+
+such that forAll w : WHouse . |preImage(open,w)| <= capacity(w)
+
+language Essence 1.3
+
+given Character new type enum  ,
+      codeWordLength : int(1..),
+      numOfCodeWords : int(1..)
+
+letting Index be domain int(1..codeWordLength),
+        String be domain function (total) Index --> Character
+
+given dist : function (Character, Character) --> int(0..maxDist),
+      minDist : int(0..maxDist * codeWordLength)
+
+find c : set (size numOfCodeWords) of String
+
+such that
+    forAll s1, s2 in c
+        , s1 != s2
+        . (sum i : Index . dist((s1(i),s2(i)))) >= minDist
+language Essence 1.3
+
+letting Dom be domain int(0..6)
+letting Peg be domain (Dom,Dom)
+
+letting numPegs  be 32
+letting maxSteps be 31
+letting Num be domain int(0..maxSteps)
+
+given hole, end: Peg
+
+find steps: function(total) Num --> set (minSize 1, maxSize 32) of Peg
+
+such that
+
+forAll i : Dom .
+    forAll j : int(2..4), (i,j) != hole .
+        (i,j) in steps(0),
+
+forAll i : int(2..4) .
+    forAll j : int(0..1) .
+        (i,j) in steps(0),
+
+forAll i : int(2..4) .
+    forAll j : int(5..6) .
+        (i,j) in steps(0),
+
+steps(31) = {end},
+
+forAll i : int(0..maxSteps-1) .
+    |steps(i)| = numPegs - i  /\
+    |steps(i) intersect steps(i+1)| = |steps(i)| - 2,
+
+forAll i : int(0..maxSteps-1) .
+   exists fro,to : Peg .
+    fro in steps(i)   /\ !(fro in steps(i+1) )  /\
+    to  in steps(i+1) /\ !(to in steps(i) )
+
+    /\ (to[1] <2 \/ to[1] > 4  -> to[2] >= 2 \/ to[2] <=4 )
+    /\ (to[2] <2 \/ to[2] > 4  -> to[1] >= 2 \/ to[1] <=4 )
+    /\
+
+       (fro[1] + (to[1] - fro[1])/2, fro[2] + (to[2] - fro[2])/2 ) in steps(i) /\
+    !( (fro[1] + (to[1] - fro[1])/2, fro[2] + (to[2] - fro[2])/2 ) in steps(i+1) )
+language Essence 1.3
+
+letting Dom be domain int(0..6)
+letting Peg be domain (Dom,Dom)
+
+letting numPegs  be 32
+letting maxSteps be 31
+letting Num be domain int(0..maxSteps)
+
+letting hole be (3,3)
+letting end  be (3,3)
+
+find steps: function(total) Num --> set (minSize 1, maxSize 32) of Peg
+
+find path : matrix indexed by [int(0..maxSteps-1)] of (Peg, Peg)
+
+given lookup : function (size 76) Peg --> Peg
+
+
+such that
+
+forAll i : Dom .
+    forAll j : int(2..4), (i,j) != hole .
+        (i,j) in steps(0),
+
+forAll i : int(2..4) .
+    forAll j : int(0..1) .
+        (i,j) in steps(0),
+
+forAll i : int(2..4) .
+    forAll j : int(5..6) .
+        (i,j) in steps(0),
+
+steps(31) = {end},
+
+forAll i : int(0..maxSteps-1) .
+    |steps(i)| = numPegs - i  /\
+    |steps(i) intersect steps(i+1)| = |steps(i)| - 2,
+
+forAll i : int(0..maxSteps-1) .
+   exists fro,to : Peg .
+    fro in steps(i)   /\ !(fro in steps(i+1) )  /\
+    to  in steps(i+1) /\ !(to in steps(i) )     /\
+
+    ((
+      lookup(fro) = to
+      /\ fro in steps(i)
+      /\ to  in steps(i+1)
+      /\ !(fro in steps(i+1))
+    ) \/ (
+      lookup(to) = fro
+      /\ to  in steps(i)
+      /\ fro in steps(i+1)
+      /\ !(to in steps(i+1))
+    )) /\
+
+       (fro[1] + (to[1] - fro[1])/2, fro[2] + (to[2] - fro[2])/2 ) in steps(i) /\
+    !( (fro[1] + (to[1] - fro[1])/2, fro[2] + (to[2] - fro[2])/2 ) in steps(i+1) )
+
+    /\ path[i] = (fro, to)
+
+language ESSENCE 1.2.0
+
+given x_size, y_size : int(1..)
+
+letting X be domain int(1..x_size),
+        Y be domain int(1..y_size),
+        Hole be domain tuple (X,Y),
+        Move be domain tuple (Hole,Hole)
+
+given board, init, goal : set of Hole
+
+where forAll h in init union goal . h in board
+
+find plan : function int(1..|board|) --> set of Hole,
+     moves : function int(1..|board|-1) --> Move
+
+such that
+    forAll i : int(1..|plan|) . i in defined(plan),
+    forAll (t,((x1,y1),(x2,y2))) in moves
+        .  (x1,y1) in plan(t)
+        /\ !((x1,y1) in plan(t+1))
+        /\ !((x2,y2) in plan(t))
+        /\ (x2,y2) in plan(t+1)
+        /\ ((x1+x2)/2,(y1+y2)/2) in plan(t)
+        /\ !(((x1+x2)/2,(y1+y2)/2) in plan(t+1)),
+    forAll s in range(plan) . forAll h in s . h in board,
+    forAll ((x1,y1),(x2,y2)) in range(moves) . |x1-x2| = 2 /\ |y1-y2| = 0 \/
+                                               |x1-x2| = 0 /\ |y1-y2| = 2,
+    forAll t : int(1..|plan|-1) . |plan(t)| - |plan(t+1)| = 1,
+    plan(1) = init,
+    plan(|plan|) = goal
+language ESSENCE 1.2.0
+
+given n_colours, n_orders, col_per_slab, n_orderSize : int(1..)
+given sizes new domain int
+
+letting Colour be domain int(1..n_colours),
+        Order be domain int(1..n_orders)
+
+given ordSize : function (total) Order --> int(1..n_orderSize),
+      ordCol : function (total) Order --> Colour
+
+find cut : function set of Order --> sizes
+
+minimising sum (_,os) in toSet(cut) . os
+
+such that
+    forAll os1, os2 in defined(cut), os1 != os2 . |os1 intersect os2| = 0,
+    forAll o : Order . exists os in defined(cut) . o in os,
+    forAll os in defined(cut) . (sum o in os . ordSize(o)) <= cut(os),
+    forAll (os,cut_os) in toSet(cut) . (sum o in os . ordSize(o)) <= cut_os,
+    forAll os in defined(cut) . (sum o in os . ordCol(o) ) <= col_per_slab
+language ESSENCE 1.2.0
+
+given n_pieces, n_players : int(1..)
+
+letting Piece be domain int(1..n_pieces),
+        Index be domain int(1..n_pieces),
+        Player be domain int(1..n_players)
+
+given duration : function (total) Piece --> int(1..),
+      plays_in : relation of (Player*Piece)
+
+find order : function (total, bijective) Index --> Piece,
+     arrive, leave : function (total) Player --> Index
+
+
+such that
+    forAll p : Player . plays_in(p,arrive(p)),
+    forAll p : Player . plays_in(p,leave(p)),
+    forAll p : Player .
+        forAll i : Index
+            , plays_in(p,order(i))
+            . arrive(p) <= i /\ leave(p) >= i
+
+language Essence 1.3
+
+
+
+given numNodes : int(1..)
+
+given numLeaves : int(1..)
+
+given numPeriods : int(1..)
+
+given maxStock : int(1..)
+
+letting dNodes be domain int(1..numNodes)
+letting dLeaves be domain int(1..numLeaves)
+letting dAllPeriods be domain int(0..numPeriods)
+letting dPeriods be domain int(1..numPeriods)
+
+given holdingCost : matrix indexed by [dNodes] of int(0..)
+
+given procCost : matrix indexed by [dNodes] of int(0..)
+
+given demand : matrix indexed by [dLeaves, dPeriods] of int(0..)
+
+given children : matrix indexed by [dNodes] of set of dNodes
+
+find orders : matrix indexed by [dNodes, dPeriods] of int(0..maxStock)
+
+find stock : matrix indexed by [dNodes, dAllPeriods] of int(0..maxStock)
+
+minimising (sum t : dPeriods . (sum i : dNodes . (holdingCost[i] * stock[i][t] + procCost[i] * (orders[i][t] > 0))))
+
+
+such that
+
+    forAll i : dNodes .
+        stock[i][0] = 0
+,
+    forAll t : dPeriods .
+        forAll i : int(numLeaves+1..numNodes) .
+            stock[i][t] = stock[i][t-1] + orders[i][t] - (sum m in children[i] . orders[m][t])
+,
+    forAll t : dPeriods .
+        forAll i : dLeaves .
+            stock[i][t] = stock[i][t-1] + orders[i][t] - demand[i][t]
+language ESSENCE 1.2.0
+
+given n : int(1..)
+
+letting Index be domain int(1..3*n),
+        Digit be domain int(1..9)
+
+find assign : function (total, surjective) Index --> Digit
+
+such that
+    (sum i : int(0..n-1) . assign(3*i+1) / (assign(3*i+2)*10
+                                            + assign(3*i+3))) = 1,
+    forAll d : Digit . (sum i : Index . (assign(i) = d)) <= (n+1)/3
+
+language Essence 1.3
+
+
+
+given numGates : int(1..)
+
+letting dGates be domain int(1..numGates)
+letting dGatesZero be domain int(0..numGates)
+
+given gateFuncs : function (total) dGates --> (function matrix indexed by [int(1..2)] of bool --> bool)
+
+given gateInpts : function (total) dGates --> matrix indexed by [int(1..2)] of int(-1..numGates)
+
+given finalOutputs : function dGates --> bool
+
+find faultyGates : function dGates --> bool
+
+minimising |faultyGates|
+
+such that
+
+    exists gateOutput : function (total) int(-1..numGates) --> bool .
+
+        gateOutput(-1) = false
+        /\
+        gateOutput(0) = true
+        /\
+
+        (forAll gate : dGates .
+            ( gateOutput(gate) = gateFuncs(gate)([gateOutput(gateInpts(gate)[1]), gateOutput(gateInpts(gate)[2])])
+
+            \/
+
+            gateOutput(gate) = faultyGates(gate)  )
+        )
+
+        /\
+
+
+        (forAll (gateLinkedtoOutput, expectedOutput) in finalOutputs .
+                gateOutput(gateLinkedtoOutput) = expectedOutput
+        )
+
+language Essence 1.3
+
+
+
+
+given n : int(1..)
+
+where    n % 6 = 1
+      \/ n % 6 = 3
+
+letting nb be n*(n-1) / 6
+
+find sets : matrix indexed by [int(1..nb)] of set (size 3) of int(1..n)
+
+
+such that
+
+    forAll setA : int(1..nb-1) .
+    forAll setB : int(setA+1..nb) .
+
+        | sets[setA] intersect sets[setB] | <= 1
+language Essence 1.3
+
+
+given k,b,t: int(1..), g: int(2..)
+where k>=t, b>=g**t
+
+letting alphabet be new type of size g
+letting switches be new type of size k
+
+find CoverTest: mset (size b) of function (total) switches --> alphabet
+
+such that
+        , |toSet(testcase)| = t
+        .
+
+
+
+
+
+
+
+
+
+
+language Essence 1.3
+
+
+given numNodes : int(1..)
+given maxPower : int(1..)
+
+given initialNode : int(1..)
+
+letting dNodes be domain int(1..numNodes)
+letting dPower be domain int(0..maxPower)
+
+given linkCosts : matrix indexed by [dNodes, dNodes] of dPower
+
+find nodeBroadcastPower : matrix indexed by [dNodes] of dPower
+
+find directChildrenMatrix : matrix indexed by [dNodes] of set of dNodes
+find totalChildrenMatrix : matrix indexed by [dNodes] of set of dNodes
+
+minimising (sum i : dNodes . nodeBroadcastPower[i])
+
+such that
+
+    forAll i,j : dNodes .
+
+        i=j
+        \/
+        |directChildrenMatrix[i] intersect directChildrenMatrix[j]| = 0
+
+,
+
+    |totalChildrenMatrix[initialNode]| = numNodes
+
+    /\
+
+    forAll node : dNodes .
+
+        node in totalChildrenMatrix[node]
+
+        /\
+
+        (sum i in directChildrenMatrix[node] . |totalChildrenMatrix[i]|) = |totalChildrenMatrix[node]| - 1
+
+        /\
+
+        forAll childNode in directChildrenMatrix[node] .
+
+            totalChildrenMatrix[childNode] subsetEq totalChildrenMatrix[node]
+
+            /\
+
+            linkCosts[node][childNode] != 0
+
+            /\
+
+            nodeBroadcastPower[node] >= linkCosts[node][childNode]
+
+
+
+
+
+
+language Essence 1.3
+
+
+given n : int(1..)
+where n%2 = 0
+
+letting dNum be domain int(1..n)
+
+find setA: set (size n/2) of dNum
+find setB: set (size n/2) of dNum
+
+such that
+
+    |setA union setB| = n
+,
+    |setA intersect setB| = 0
+,
+    (sum i in setA . i) = (sum i in setB . i)
+,
+    (sum i in setA . i*i) = (sum i in setB . i*i)
+
+language Essence 1.3
+
+
+
+given numCargos : int(2..)
+
+given numTanks : int(1..)
+
+letting dCargos be domain int(1..numCargos)
+letting dAllCargos be domain int(0..numCargos)
+letting dTanks be domain int(1..numTanks)
+
+given capacities : matrix indexed by [dTanks] of int(1..)
+
+given neighbours : matrix indexed by [dTanks] of set of dTanks
+
+given impossibleCargos : matrix indexed by [dTanks] of set of dAllCargos
+
+given volumeToShip : matrix indexed by [dCargos] of int(1..)
+
+given incompatibilities : set of set (size 2) of dCargos
+
+
+
+find allocation : matrix indexed by [dTanks] of dAllCargos
+
+maximising (sum tank : dTanks . (allocation[tank] = 0))
+
+such that
+
+    forAll cargo : dCargos .
+        (sum tank : dTanks . capacities[tank] * (allocation[tank] = cargo) ) >= volumeToShip[cargo]
+
+such that
+
+    forAll tank : dTanks .
+        !(allocation[tank] in impossibleCargos[tank])
+
+        /\
+
+        forAll neighbour in neighbours[tank] .
+            !({allocation[tank], allocation[neighbour]} in incompatibilities)
+
+
+language Essence 1.3
+
+given n : int(1..)
+
+letting Index be domain int(1..n)
+
+find arrangement : function (bijective) Index --> Index
+
+such that
+    forAll q1, q2 : Index , q1 < q2 .
+        |arrangement(q1) - arrangement(q2)| != |q1 - q2|
+
+language ESSENCE 1.3.0
+
+
+given v : int(1..)
+given d : int(1..)
+given q : int(1..)
+given lam : int(1..)
+
+letting dSequnce be domain int(1..q*lam)
+letting dElement be domain int(1..q)
+
+find E : set (size v) of matrix indexed by [dSequnce] of dElement
+
+such that
+    forAll m in E .
+        forAll element : dElement .
+            (sum index : dSequnce . toInt(m[index] = element)) = lam
+
+such that
+    forAll seqA, seqB in E .
+        seqA = seqB
+        \/
+        (sum index : dSequnce . toInt(seqA[index] != seqB[index])) = d
+
+language ESSENCE 1.3.0
+
+
+
+given gridSize : int(1..)
+given numHints : int(1..)
+given maxHintCells : int(1..)
+
+letting dHintGrid be domain int(1..numHints)
+letting dIndivHint be domain int(1..maxHintCells)
+letting dSolutionGrid be domain int(1..gridSize*gridSize)
+letting dHintFormat be domain int(1..2)
+
+letting hintSumIndex be maxHintCells + 1
+
+given hintMatrix : matrix indexed by [dHintGrid, int(1..hintSumIndex), dHintFormat] of int(0..)
+
+find solutionGrid : matrix indexed by [dSolutionGrid, dSolutionGrid] of dSolutionGrid
+
+such that
+    forAll i : dSolutionGrid . allDiff(solutionGrid[..][i]) /\ allDiff(solutionGrid[i][..])
+
+such that
+    forAll gridColumn, gridRow : int(0..gridSize-1) .
+
+        exists numberMapping : function (total, bijective) dSolutionGrid --> dSolutionGrid .
+
+            forAll boxColumn, boxRow : int(1..gridSize) .
+
+                numberMapping(boxColumn + ((boxRow-1)*gridSize)) = solutionGrid[(gridColumn*gridSize) + boxColumn][(gridRow*gridSize) + boxRow]
+
+such that
+    forAll hintSet : dHintGrid .
+
+        (sum index : int(1..hintMatrix[hintSet][hintSumIndex][2]) . (solutionGrid[ hintMatrix[hintSet][index][1] ][ hintMatrix[hintSet][index][2] ] ) ) = hintMatrix[hintSet][hintSumIndex][1]
+
+language Essence 1.3
+
+given n : int(1..)
+
+letting Index be domain int(1..n)
+
+find arrangement : function (bijective) Index --> Index
+
+such that
+    forAll q1, q2 : Index , q1 < q2 .
+        |arrangement(q1) - arrangement(q2)| != |q1 - q2|
+
+language ESSENCE 1.2.0
+
+given n : int(1..)
+
+letting Index be domain int(1..n),
+        Square be domain tuple (Index,Index)
+
+find black, white : set of Square
+
+maximising |black| + |white|
+
+such that
+    |black| = |white|,
+    forAll (rb,cb) in black . forAll (rw,cw) in white .
+        (rb != rw) /\ (cb != cw) /\ (|rw - rb| != |cw - cb|)
+
+language Essence 1.3
+
+given n_flights, n_planes, maint_freq : int(1..)
+
+letting Flight be domain int(1..n_flights),
+        Plane be domain int(1..n_planes)
+
+given network : relation of (Flight*Flight),
+      can_fly : relation of (Plane*Flight),
+      carry_in : function (total) Plane --> Flight,
+      maint : set of Flight
+
+find route : function (total) Plane --> function int(1..n_flights) --> Flight
+
+such that
+    forAll s in range(route) . forAll i : int(1..|s|) . i in defined(s),
+    forAll p : Plane . (carry_in(p), route(p)(1)) in network,
+    forAll p : Plane . forAll a in range(route(p)) . tuple (a) in can_fly(p,_),
+    forAll s in range(route) . forAll i : int(1..n_flights) , i <= |s|-1 .
+        (s(i),s(i+1)) in network,
+    forAll f : Flight . exists p : Plane . f in range(route(p)),
+    forAll p1,p2 : Plane . |range(route(p1)) intersect range(route(p2))| = 0,
+    forAll s in range(route) . forAll i : int(1..n_flights - maint_freq) , i <= |s| - maint_freq .
+        exists j : int(i..i+maint_freq) . s(j) in maint
+
+language ESSENCE 1.2.0
+
+letting Material be new type enum {glass,plastic,steel,wood,copper},
+        Colour be new type enum {red,green,blue}
+
+given quantity : function (total) Material --> int(0..),
+      capacity : function (total) Colour --> int(0..)
+
+letting Bin be new type of size (sum m : Material . quantity(m))
+
+find colour : function Bin --> Colour,
+     contents : function Bin --> mset of Material
+
+minimising |defined(colour)|
+
+such that
+    forAll b : Bin . b in defined(colour) <-> b in defined(contents),
+    forAll m : Material . (sum b in defined(contents) . freq(contents(b),m))
+                          = quantity(m),
+    forAll b in defined(colour) . |contents(b)| <= capacity(colour(b)),
+    forAll b in defined(colour) . colour(b) = red ->
+                                   !(plastic in contents(b)) /\
+                                   !(steel in contents(b)),
+    forAll b in defined(colour) . colour(b) = blue ->
+                                   !(wood in contents(b)) /\
+                                   !(plastic in contents(b)),
+    forAll b in defined(colour) . colour(b) = green ->
+                                   !(steel in contents(b)) /\
+                                   !(glass in contents(b)),
+    forAll b in defined(colour) . colour(b) = red ->
+                                   freq(contents(b),wood) <= 1,
+    forAll b in defined(colour) . colour(b) = green ->
+                                   freq(contents(b),wood) <= 2,
+    forAll b in defined(colour) . wood in contents(b) ->
+                                   plastic in contents(b),
+    forAll b in defined(colour) . glass in contents(b) ->
+                                   !(copper in contents(b)),
+    forAll b in defined(colour) . copper in contents(b) ->
+                                   !(plastic in contents(b))
+
+language ESSENCE 1.2.0
+
+given n_farms, capacity : int(1..)
+
+letting Farm be domain int(1..n_farms+1)
+
+given small, large : set of Farm,
+      distance : function (total) set (size 2) of Farm --> int(0..),
+      milk : function (total) Farm --> int(0..)
+
+where
+    forAll f : Farm . f != 1 <-> (f in small \/ f in large /\
+                                   !(f in small /\ f in large)),
+    milk(1) = 0
+
+find odd : function int(1..n_farms+2) --> Farm,
+     even : function int(1..n_farms+2) --> Farm
+
+minimising (sum i : int(1..|odd|-1) . distance({odd(i),odd(i+1)}))
+         + (sum i : int(1..|even|-1) . distance({even(i),even(i+1)}))
+
+such that
+    odd(1) = 1,
+    even(1) = 1,
+    true
+
+language ESSENCE 1.2.0
+
+given n_upper : int(1..100)
+
+given n_places, n_words : int(1..100)
+
+letting Place be domain int(1..n_places),
+        Word be domain int(1..n_words),
+        Alphabet be domain int(65..90)
+
+given length : function (total) Place --> int(1..n_upper),
+      inter : function tuple (Place,Place) --> tuple (int(1..n_upper),int(1..n_upper)),
+      dict : function (total) Word --> function int(1..n_upper) --> Alphabet
+
+where
+    forAll ((p1,p2),(i1,i2)) in inter . inter((p2,p1)) = (i2,i1),
+    forAll s in range(dict) . forAll i : int(1..|s|) . i in defined(s)
+
+find crossword : function (total) Place --> Word
+
+such that
+    forAll p : Place . |dict(crossword(p))| = length(p),
+    forAll ((p1,p2),(i1,i2)) in toSet(inter) .
+        dict(crossword(p1))(i1) = dict(crossword(p2))(i2),
+    forAll p1,p2 : Place . crossword(p1) =  crossword(p2) -> p1 = p2
+
+language Essence 1.2.0
+
+given nnodes, nrings, capacity : int(1..)
+
+letting Nodes be domain int(1..nnodes)
+
+given demand : set of set (size 2) of Nodes
+
+find network : mset (size nrings) of set (maxSize capacity) of Nodes
+
+minimising sum ring in network . |ring|
+
+such that
+
+forAll pair in demand . exists ring in network . pair subsetEq ring
+language ESSENCE 1.2.0
+
+given n_orders, n_lines, n_days, n_slots, batch_size: int(1..),
+      Attribute new type enum
+
+letting Order be domain int(1..n_orders),
+        Line be domain int(1..n_lines),
+        Day be domain int(1..n_days),
+        Slot be domain int(1..n_slots)
+
+given quantity : function (total) Order --> int(1..),
+      req_attr : function (total) Order --> set of Attribute,
+      capacity : function (total) tuple (Line,Day) --> int(1..),
+      line_attr : function (total) Line --> set of Attribute,
+      line_on : function (total) Order --> Day,
+      line_off : function (total) Order --> Day,
+      dist_except : function tuple (Day,Attribute) -->
+                             set (size 2) of int(0..),
+      earlier : relation of (set of Attribute * set of Attribute)
+
+where
+    (sum e in defined(capacity) . (capacity(e))) * batch_size =
+    sum o : Order . (quantity(o)),
+    forAll s1 : set of Attribute . earlier(s1,s1),
+    forAll s1,s2 : set of Attribute . (earlier(s1,s2) /\ earlier(s2,s1)
+                                       -> s1 = s2),
+    forAll s1,s2,s3 : set of Attribute . (earlier(s1,s2) /\
+                                          earlier(s2,s3) ->
+                                          earlier(s1,s3))
+
+letting Lot be domain tuple (Order,int(1..batch_size)),
+        Batch be new type of size (sum e in defined(capacity) . (capacity(e)))
+
+find batches : function (total) Batch --> mset of Lot,
+     batch_attr : function (total) Batch --> set of Attribute,
+     schedule : function (total, injective) tuple (Line,Day,Slot) --> Batch
+
+such that
+    forAll o : Order . (sum b in defined(batches) .
+                        sum (q) in toSet(batches(b))(o,_) .
+                        q * freq(batches(b),(o,q))) = quantity(o),
+    forAll b : Batch . forAll (o,q) in batches(b) .
+        req_attr(o) subsetEq batch_attr(b),
+    forAll b : Batch . forAll a in batch_attr(b) . exists (o,q) in batches(b) .
+        a in req_attr(o),
+    forAll (l,d,s) in defined(schedule) .
+    forAll (o,q) in batches(schedule((l,d,s))) .
+        req_attr(o) subsetEq line_attr(l),
+    forAll (l,d,s) in defined(schedule) .
+    forAll (o,q) in batches(schedule((l,d,s))) .
+        d >= line_on(o) /\ d <= line_off(o),
+    forAll l : Line . forAll a : Attribute . forAll d1,d2 : Day .
+        !((d1,a) in defined(dist_except)) /\
+        !((d2,a) in defined(dist_except))
+        -> |(sum (s) in defined(schedule)(l,d1,_) .
+                      (a in batch_attr(schedule((l,d1,s)))))
+               - (sum (s) in defined(schedule)(l,d2,_) .
+                      (a in batch_attr(schedule((l,d2,s)))))| <= 1,
+    forAll (d,a) in defined(dist_except) .
+    sum (l,s) in defined(schedule)(_,d,_) . (a in batch_attr(schedule((l,d,s))))
+        >= min(dist_except((d,a))) /\
+    sum (l,s) in defined(schedule)(_,d,_) . (a in batch_attr(schedule((l,d,s))))
+        <= max(dist_except((d,a))),
+    forAll l : Line . forAll d : Day . forAll s : int(1..n_slots-1) .
+    earlier(batch_attr(schedule((l,d,s))),batch_attr(schedule((l,d,s+1))))
+
+language ESSENCE 1.2.0
+
+given x_max, y_max, n_shapes : int(1..)
+
+letting Shape be domain int(1..n_shapes),
+        X be domain int(1..x_max),
+        Y be domain int(1..y_max),
+        Cell be domain tuple (X,Y)
+
+given grid : set of Cell,
+      form : function (total) Shape --> set of Cell
+
+find layout : function Cell --> Shape
+
+such that
+    forAll c in defined(layout) . c in grid,
+    forAll s : Shape . exists sx : set of X . exists sy : set of Y .
+        (forAll (x,y) : Cell . x in sx /\ y in sy <-> (x,y) in preImage(layout,s)) /\
+        forAll (x,y) in form(s) . layout((min(sx) + x,min(sy) + y)) = s,
+    forAll s : Shape . |form(s)| = |preImage(layout,s)|
+
+language ESSENCE 1.2.0
+
+given U new type enum,
+      s, v : function (total) U --> int (1..),
+      B, K : int (1..)
+
+find U' : set of U
+
+such that
+    (sum u in U' . s(u)) <= B,
+    (sum u in U' . v(u)) >= K
+
+language Essence 1.3
+
+given n : int(1..100)
+given totalWeight : int(1..1000)
+
+given weights : function (size n) int(1..n) --> int(1..100)
+given values  : function (size n) int(1..n) --> int(1..100)
+
+find picked: set(maxSize n, minSize 1) of int(1..n)
+
+maximising (sum i in picked . values(i) )
+
+such that
+    (sum i in picked . weights(i) ) <= totalWeight
+language Essence 1.3
+
+given n : int(1..100)
+given totalWeight : int(1..1000)
+
+given weights : function (total) int(1..n) --> int(1..100)
+given values  : function (total) int(1..n) --> int(1..100)
+
+find picked: set(maxSize n, minSize 1) of int(1..n)
+
+maximising (sum i in picked . values(i) )
+
+such that
+    (sum i in picked . weights(i) ) <= totalWeight
+language Essence 1.3
+
+given n : int(1..20)
+given colours : int(1..10)
+
+letting num_edges be  (n * (n-1))
+
+letting  Colour be domain int(1..colours)
+letting  Vertex be domain int(1..n)
+
+find graph : relation (size num_edges)  of ( Colour * Vertex * Vertex  )
+
+such that
+
+forAll i : Vertex .
+    |(toSet(graph(_,i,_) ))| = (n - 1) /\
+    |(toSet(graph(_,_,i) ))| = (n - 1) /\
+    |(toSet(graph(_,i,i) ))| = 0,
+
+forAll i, j :  Vertex , i != j .
+   |(toSet(graph(_,i,j) ))|  = 1 /\
+   |(toSet(graph(_,j,i) ))|  = 1 /\
+   graph(_,i,j) = graph(_,j,i),
+
+
+forAll i : Vertex .
+    forAll (c,e1) in toSet(graph(_, i, _) ) .
+        forAll tuple (t) in  toSet(graph(c, i, _) )  , t != e1 .
+            !graph(c, t, e1)
+language Essence 1.3
+
+given n : int(1..20)
+given colours : int(1..10)
+
+letting num_edges be  (n * (n-1))
+
+letting  Colour be domain int(1..colours)
+letting  Vertex be domain int(1..n)
+
+find graph : relation (size num_edges)  of ( Colour * Vertex * Vertex  )
+
+such that
+
+forAll i : Vertex .
+    |(toSet(graph(_,i,_) ))|  +  |(toSet(graph(_,_,i) ))|  = 2 * (n - 1) /\
+    |(toSet(graph(_,i,i) ))| = 0,
+
+forAll i, j :  Vertex , i != j .
+   |(toSet(graph(_,i,j) ))|  +  |(toSet(graph(_,j,i) ))| = 2 /\
+   graph(_,i,j) = graph(_,j,i),
+
+
+forAll i : Vertex .
+    forAll (c,e1) in toSet(graph(_, i, _) ) .
+        forAll tuple (t) in  toSet(graph(c, i, _) )  , t != e1 .
+            !graph(c, t, e1)
+language Essence 1.3
+
+given n : int(1..20)
+given colours : int(1..10)
+
+letting num_edges be  (n * (n-1))
+
+letting  Colour be domain int(1..colours)
+letting  Vertex be domain int(1..n)
+
+
+find graph: function (size  num_edges) (Vertex, Vertex ) --> Colour
+
+
+such that
+
+forAll i : Vertex .
+   ! ( (i,i) in defined(graph) ),
+
+forAll i, j : Vertex .
+    graph((i,j)) = graph((j,i)),
+
+forAll (u,v) in defined(graph) .
+     forAll (u2,v2) in defined(graph), u2 = v /\ v2 != u .
+            graph((u,v)) != graph((u2,v2)) \/  graph((u2,v2)) !=  graph((v2,u)) \/ graph((v2,u)) != graph((u,v))
+
+language Essence 1.3
+
+given n : int(1..20)
+given colours : int(1..10)
+
+letting num_edges be  (n * (n-1)) /2
+
+letting  Colour be domain int(1..colours)
+letting  Vertex be domain int(1..n)
+
+find graph : relation (size num_edges)  of ( Colour * Vertex * Vertex  )
+
+such that
+
+forAll i : Vertex .
+    |(toSet(graph(_,i,_) ))|  +  |(toSet(graph(_,_,i) ))|  = n - 1 /\
+    |(toSet(graph(_,i,i) ))| = 0,
+
+
+forAll i, j :  Vertex , i != j .
+   |(toSet(graph(_,i,j) ))|  +  |(toSet(graph(_,j,i) ))| = 1,
+
+
+
+forAll i : Vertex .
+    forAll (c,e1) in toSet(graph(_, i, _) ) .
+        forAll tuple (t) in ( toSet(graph(c, i, _) ) union toSet(graph(c, _, i) )  ) , t != e1 .
+            !graph(c, t, e1) /\  !graph(c, e1, t),
+
+
+forAll i : Vertex .
+    forAll (c,e1) in toSet(graph(_, _, i) ) .
+        forAll tuple (t) in ( toSet(graph(c, i, _) ) union toSet(graph(c, _, i) )  ) , t != e1 .
+            !graph(c, t, e1) /\  !graph(c, e1, t)
+
+language Essence 1.3
+
+given a : int
+given b : int(1..)
+given c : int(..9)
+given d : int(1..9)
+
+find x : int(0..50)
+
+such that
+    x = a + b + c + d
+
+language Essence 1.3
+
+given a,b : set of int(0..5)
+find x : set of int(0..5)
+such that x = a intersect b
+
+language Essence 1.3
+
+given a : set (size 4) of int(0..5)
+given b : set (size 3) of int(0..5)
+
+find x : set of int(0..9)
+
+such that
+    x = a union b
+
+language Essence 1.3
+
+given aSize, bSize, xSize : int
+
+given a : set (size aSize) of int(0..5)
+given b : set (size bSize) of int(0..5)
+
+find x : set (size xSize) of int(0..9)
+
+such that
+    x = a union b
+
+language Essence 1.3
+
+given a : int(0..9)
+given b : int(0..9)
+given x : set of int(a..b)
+
+language Essence 1.3
+
+given a: set (size 4) of int(0..9)
+find x: set of int(0..9)
+minimising sum i in x . i
+such that a subset x
+
+language Essence 1.3
+
+given a: set (size 4) of int(0..9)
+find x: set (maxSize 4) of int(0..9)
+such that a subsetEq x
+language Essence 1.3
+$ prob003: quasigroup existence
+$ http://www.cs.st-andrews.ac.uk/~ianm/CSPLib/prob/prob003/index.html
+
+given n : int(1..100)
+letting dom be domain int(0..n-1)
+
+find quasigroup : matrix indexed by [dom,dom] of dom
+
+such that
+
+$ all rows and columns should be different
+forAll col : dom . allDiff(quasigroup[.., col]),
+forAll row : dom . allDiff(quasigroup[row, ..]),
+
+$ idempotent
+forAll i : dom . quasigroup[i,i] = i,
+
+$ QG5  ((b*a)*b)*b = a
+forAll i,j : dom . quasigroup[quasigroup[quasigroup[j,i],j],j] = i,
+
+$ Implied (from constraint generation via automated theory formation, 2001)
+forAll i,j : dom . quasigroup[i,j] = i <-> quasigroup[j,i] = i
+language Essence 1.3
+
+find x : int(1..9)
+
+minimising x
+
+such that
+    x = 3
+language Essence 1.3
+
+given x : int
+
+where 2 = 2
+
+minimising x
+
+such that x = 3
+language Essence 1.3
+
+given x,y: int
+
+where x < y
+
+minimising y
+language Essence 1.3
+
+given x,y: int
+
+where x < y
+
+minimising y
+language Essence 1.3
+
+given x,y: int
+
+where x > 0
+
+given z : bool
+
+where x < y
+
+minimising y
+
+such that
+    toInt(z) < x + y
+language Essence 1.3
+
+such that
+    1 < 2,
+    2 < 3
+language Essence 1.3
+
+find x,y,z:int(1..9)
+
+language Essence 1.3
+
+find x : int(1..9)
+find y : int(1..9)
+find z : int(1..9)
+
+such that
+    x = 3*y,
+    y = 3*z
+
+language Essence 1.3
+
+find x : int(0..9)
+find y : int(0..9)
+
+letting xy be x * y
+
+such that
+    x = 3*y,
+    xy > 0
+language Essence 1.3
+
+letting digits be domain int(0..9)
+find x: matrix indexed by [digits, digits] of digits
+
+such that
+    allDiff(x)
+
+language ESSENCE 2.0
+
+find x : set (maxSize 2) of int(0..9)
+
+such that
+    2 in x,
+    8 < max(x)
+
+language ESSENCE 2.0
+
+find x : set (maxSize 1) of int(0..9)
+
+such that
+    2 in x,
+language ESSENCE 2.0
+
+find x : set (size 6) of int(0..9)
+find y : set (size 7) of int(0..9)
+
+maximising (sum i in x . i) + (sum i in y . i)
+$maximising sum i in x union y . i
+
+such that
+    1 in x,
+    x subsetEq y
+
+language ESSENCE 2.0
+
+letting sol be [0,1]
+find x : int(0..9)
+
+such that
+    x != 1
+language Essence 1.3
+
+find y : set (minSize 2) of int({8,3} union {2,7})
+
+such that
+    {2,7,8} subset y
+language ESSENCE 2.0
+
+find x : set (minSize 2) of int(0..6)
+
+such that forAll i in x . i > 4
+
+language ESSENCE 2.0
+
+find x : set (size 5) of int(4..9)
+find y : set (size 3) of int(3..7)
+
+such that
+    !(4 in x),
+    y subsetEq x
+
+language Essence 1.3
+
+find x,y : set (minSize 2, maxSize 4) of int(1..3)
+
+such that
+    |x union y| = 3,
+    x != y
+language Essence 1.3
+
+find x : set (size 4) of int(0..9)
+
+such that
+    forAll i : set (size 2) of int(3..5) .
+        i subsetEq x
+
+language Essence 1.3
+
+find x : bool
+
+such that
+    x = ({3,5} subsetEq {3,4,5,9}),
+    x = ({3,4} subsetEq {3,4,5,9}),
+    x = ({4,4} subsetEq {3,4,5,9}),
+    x = true /\ {3, 4} subsetEq {3, 4, 5, 9} /\ {3, 5} subsetEq {3, 4, 5, 9} /\ {4, 5} subsetEq {3, 4, 5, 9},
+
+language Essence 1.3
+
+letting e be new type enum { foo, bar, baz }
+
+find x : e
+find y : e(bar..baz)
+
+such that x != y
+such that x = foo
+language Essence 1.3
+
+given e new type enum
+
+find x,y : e
+
+such that x != y
+language Essence 1.3
+
+find x : set of int(1..2)
+such that
+    false = (({1,2,3}, {3,4}, false, 3) = ({1,2,4},{3,4}, true, 43)),
+    ({1,2,3}, {3,4}, false, 3) = ({1,2,3},{3,4}, false, 3),
+    {1} subsetEq x,
+    |x| = 1
+language Essence 1.3
+
+find x : set of int(0..9)
+
+such that
+    forAll i in x . true,
+    x = {2,3,4}
+language ESSENCE 2.0
+
+letting Index be domain int(1..2)
+
+find f : function (total) Index --> int(-1,1)
+such that
+    f = function(1 --> -1, 2 --> 1)
+language ESSENCE 2.0
+
+letting Index be domain int(1..2)
+
+find fs : set (minSize 1) of function (total) Index --> int(-1,1)
+such that
+    forAll f in fs . f(1) != -1
+language Essence 1.3
+
+letting VCol be new type enum {rx,ry}
+
+find valid :  function (total) int(1..3) --> VCol
+language Essence 1.3
+
+letting VCol be new type enum {rx,ry}
+
+find valid : function (total) int(1..3) --> VCol
+language Essence 1.3
+
+letting
+VCol be new type enum {rx,ry},
+PCol be new type enum {pr,pg}
+
+find x : relation (minSize 1) of (VCol * PCol)
+
+language Essence 1.3
+
+letting VCol be new type enum {rx,ry}
+
+find se : set (minSize 1) of VCol
+language Essence 1.3
+
+letting VCol be new type enum {rx,ry}
+
+find valid : set (minSize 1) of function (total) int(1..3) --> VCol
+language Essence 1.3
+
+letting
+VCol be new type enum {rx,ry},
+PCol be new type enum {pr,pg}
+
+find valid : set (minSize 1) of function (total) int(1..3) --> (VCol,PCol)
+
+language Essence 1.3
+find valid : set (minSize 1) of function (total) int(4..5) --> (int(6,7),int(9))
+
+language Essence 1.3.0
+
+given g : function (total) (int(1..3), int(1..4)) --> int(1..9)
+find f : function (total) (int(1..3), int(1..4)) --> int(1..9)
+
+such that forAll ((i,j),k) in toSet(g) . f((i,j)) = k
+language Essence 1.3.0
+
+given  a, b, c : int(1..30)
+find f : function (total)  tuple (int(1..a), int(1..b)) --> int(1..c)
+
+such that
+forAll i in toSet(f) .
+    i[1][1] != i[2]
+language Essence 1.3.0
+
+given  a, b, c : int(1..30)
+find f : function (total,injective)  tuple (int(1..a), int(1..b)) --> int(1..c)
+
+such that
+forAll i in toSet(f) .
+    i[1][1] != i[2]
+language Essence 1.3.0
+
+given  a, b, c : int(1..30)
+find f : function (total)  tuple (int(1..a), int(1..b)) --> set of int(1..c)
+
+such that
+forAll i in toSet(f) .
+    i[1][1] in i[2]
+language Essence 1.3.0
+
+given  a, b, c : int(1..30)
+find f : function (total)  tuple (int(1..a), int(1..b)) --> (int(1..c), int(1,c))
+
+such that
+forAll i in toSet(f) .
+    i[1][1] != i[2][1]
+language ESSENCE 1.2.0
+
+given n_colours: int(1..30)
+given n_orders: int(1..30)
+find col_per_slab: int(1..30)
+given n_orderSize: int(1..30)
+given sizes new domain int
+letting Colour be domain int(1..n_colours)
+letting Order be domain int(1..n_orders)
+find ordSize: function (total) Order --> int(1..n_orderSize)
+find ordCol: function (total) Order --> Colour
+language Essence 1.3
+
+find f : function (int(1..3), int(1..3)) --> set of int(0..9)
+such that
+        forAll i : int(1..3) . |f(tuple(i,i))| = i + i
+language Essence 1.3
+
+letting Index be domain int(1..3)
+letting Range be domain (int(3),int(4))
+
+find f : function (total) Index --> Range
+language Essence 1.3
+
+find pain : matrix indexed by [int(1)] of function (total) int(1..2) --> int(-1,1)
+
+language Essence 1.3
+
+letting Index be domain mset (size 2) of int(1..2)
+find f : function (total) Index --> int(-1,1)
+language Essence 1.3
+
+given dict : function (total) int(1..3) --> function int(1..2) --> int(65..90)
+
+find crossword : function (total) int(1..3) -->  int(1..3)
+
+such that
+    forAll p : int(1..3) . |dict(crossword(p))| < 3
+language Essence 1.3
+
+given a,b:int
+
+$ T is tuples_nested6
+letting T be domain
+    (
+        int(1),
+        set (size 2) of (int(10,11),int(12,13) ),
+        int(4)
+    )
+
+
+find fs : set (size 1) of
+    function (total) int(a..b) --> T
+
+such that
+    |fs| = 1
+
+
+language Essence 1.3
+
+$ T is tuples_nested6
+letting T be domain
+    (
+        int(1),
+        int(4)
+    )
+
+letting Index be domain set (size 2) of int(1..2)
+
+find fs : set (size 1) of
+          function (total) Index --> T
+
+such that
+    |fs| = 1
+
+
+language Essence 1.3
+
+given a,b:int
+
+$ T is tupley16
+letting T be domain matrix indexed by [int(1..2)] of
+    (
+        (set (size 1) of set (size 1) of int(18,19) , int(16,27) ),
+        int(11,12)
+    )
+
+
+find fs : set (size 1) of
+    function (total) int(a..b) --> T
+
+such that
+    |fs| = 1
+
+
+language Essence 1.3.0
+
+given  a, b, c : int(1..6)
+find sf : set (maxSize 3) of function (total)  tuple (int(1..a), int(1..b)) --> int(1..c)
+
+such that
+
+forAll f in sf .
+    forAll i in toSet(f) .
+        i[1][1] != i[2]
+language Essence 1.3
+
+letting Index be domain set (size 2) of int(1..2)
+find f : function (total) Index --> int(-1,1)
+language Essence 1.3
+
+letting Index be domain set (size 2) of int(1..2)
+letting Range be domain (int (3,4), int(5,6))
+
+find f : function (total) Index --> Range
+language Essence 1.3
+
+letting F be domain function (total) int(1..3) --> set of int(1,2)
+
+find y:
+tuple (
+    matrix indexed by [int(1,2)] of (int(10,11), F, int(33,55))
+)
+
+such that
+    y = tuple ([
+        (10, function(3 --> {}, 2 --> {1},  1 --> {2,1} ), 33),
+        (11, function(3 --> {}, 2 --> {1},  1 --> {2,1} ), 55)
+    ])
+
+
+language ESSENCE 1.3.0
+
+
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    int(1,2),
+                    function (total) int(1..2) --> int(-1,1),
+                    tuple (int(4,5)),
+                    tuple (int(7,8),int(2,3))
+                )
+
+such that
+    pain[1][1] = 2,
+    pain[1][2](1) != -1,
+    pain[1][3] = tuple (5),
+    pain[1][4] = (7,3),
+
+
+
+language Essence 1.3
+
+find var1: matrix indexed by [int(5..8)] of partition from int(2..4)
+language Essence 1.3
+
+
+given n : int(1..20)
+
+letting num_edges be  (n * (n-1)) /2
+
+letting  Colour be domain int(1..n)
+letting  Vertex be domain int(1..n)
+
+find graph : relation (size num_edges)  of (Vertex * Vertex  )
+
+such that
+
+forAll i : Vertex .
+    |(toSet(graph(i,_) ))|  +  |(toSet(graph(_,i) ))|  = n - 1 /\
+    !graph(i,i),
+
+
+forAll i, j :  Vertex, i != j .
+   graph(i,j)  <->  ! graph(j,i)
+language Essence 1.3
+
+given n : int(1..20)
+given colours : int(1..10)
+
+letting num_edges be  (n * (n-1)) /2
+
+letting  Colour be domain int(1..n)
+letting  Vertex be domain int(1..n)
+
+find graph : relation (size num_edges)  of ( Colour * Vertex * Vertex  )
+
+such that
+
+$ make sure the it's a complete graph
+forAll i : Vertex .
+    |(toSet(graph(_,i,_) ))|  +  |(toSet(graph(_,_,i) ))|  = n - 1 /\
+    |(toSet(graph(_,i,i) ))| = 0,
+
+
+forAll i, j :  Vertex, i != j .
+   |(toSet(graph(_,i,j) ))|  +  |(toSet(graph(_,j,i) ))| = 1,
+language Essence 1.3
+
+letting Index be domain int(1..2)
+
+find fs : mset(size 2) of set (minSize 1) of function (total) Index --> int(-1,1)
+
+such that
+    forAll f in fs .
+        forAll f2 in f .
+            f2(1) = -1
+
+language Essence 1.3
+
+letting f be function(3 --> {}, 2 --> {1},  1 --> {2,1})
+
+find x : int(0..100)
+
+such that
+    forAll i in f(2) . x >= i
+
+language Essence 1.3
+
+letting Index be domain int(1..3)
+
+letting f be function(3 --> {}, 2 --> {1},  1 --> {2,1})
+
+find x : int(0..100)
+
+such that
+    forAll i in f(2) . x >= i
+
+language Essence 1.3
+
+find p : partition (regular, size 2, partSize 2) from set of int(1..2)
+
+language Essence 1.3
+
+find p : partition (size 3) from int(1..9)
+
+such that
+   p =  partition({9}, {5, 6, 7, 8}, {1, 2, 3, 4})
+
+language ESSENCE 2.0
+
+given a,b,c,d,e,f:int
+
+letting Index be domain int(e..f)
+
+find fs : set(maxSize a) of set (minSize b) of function (total) Index --> int(c,d)
+such that
+    forAll i in fs .
+        forAll j in i .
+            j(1) = -1
+
+language Essence 1.3
+
+letting Index be domain set (size 2) of int(1..2)
+find f : function (total) Index --> int(-1,1)
+
+language Essence 1.3
+
+find p : partition (size 3) from set (size 3) of int(1..5)
+
+such that
+   p =  partition( { {1,2,3} }
+                 , { {2,3,4} }
+                 , { {3,4,5} }
+                 )
+
+language Essence 1.3
+
+given a,b:int
+
+letting T be domain
+    set (size 2) of (int(10,11),int(12,13) )
+
+find fs : function (total) int(a..b) --> T
+
+language Essence 1.3
+
+find fs : set (size 2) of (int(10,11),int(12,13))
+language Essence 1.3
+
+find fs : matrix indexed by [int(1..5)] of set (size 2) of (int(10,11),int(12,13))
+language Essence 1.3
+
+find fs : set (size 3) of set (size 2) of (int(10,11),int(12,13))
+language Essence 1.3
+
+given a,b,c,d:int
+
+find fs :
+    set (size 1) of
+        set (size 1) of
+            function (total)
+                int(a..b) -->
+                set (size 1) of
+                    set (size 2) of int(c..d)
+such that |fs| = 1
+
+language Essence 1.3
+
+letting foobarbaz be new type enum { foo, bar, baz }
+given e1,e2,e3 : foobarbaz
+find  x : foobarbaz
+such that x != e1, x != e2, x = e3
+language Essence 1.3
+
+find rs : set(size 2) of relation of (int(0..3) * int(0..4))
+
+such that forAll r in rs . r(1,2)
+such that forAll r in rs . |toSet(r(2,_))| = 3
+language Essence 1.3
+
+find seq : function (total) int(1..3) --> int(-1,1)
+
+such that seq = function(1 --> -1, 2 --> -1, 3 --> 1)
+
+language Essence 1.3
+find x : set (size 2) of relation (minSize 1) of (int(1..2) * int(3))
+
+$ x = { relation(1,3), relation(2,3) }
+language Essence 1.3
+
+find x: set (size 2) of relation of (int(1..2) * int(3))
+such that x = {relation(), relation((2, 3))}
+
+language Essence 1.3
+
+find x: set (size 2) of set of int(1)
+
+language Essence 1.3
+
+find x: mset (minSize 2, maxOccur 3) of int(0..9)
+such that forAll i in x . i > 4
+
+language Essence 1.3
+
+find x: mset (minSize 2, maxSize 6) of int(0..9)
+such that forAll i in x . i > 4
+
+language Essence 1.3
+
+find s: set (size 2) of set (size 1) of set (minSize 2, maxSize 3) of int(1..4)
+
+language Essence 1.3
+
+find s: set (size 2) of set (size 1) of set (minSize 2, maxSize 3) of int(1..4)
+
+language Essence 1.3
+find pain : matrix indexed by [int(1,2),int(1)] of
+                (
+                    int(1,2),
+                    matrix indexed by [int(1,2)] of (int(4,5), int(10,11))
+                )
+
+such that
+    pain[1][1][1] = 2,
+    pain[1][1][2] = [(4,10),(5,11)],
+
+    pain[2][1][1] = 2,
+    pain[2][1][2] = [(4,10),(5,11)],
+language Essence 1.3
+
+find pain: matrix indexed by [int(1, 2)] of (int(4, 5), int(10, 11))
+such that pain = [(4, 10), (5, 11);int(1,2)]
+
+
+language Essence 1.3
+
+find s : set (size 2 ) of set (minSize 3) of int(1..4)
+
+such that
+
+forAll i in s .
+    2 in i
+language Essence 1.3
+
+find s : matrix indexed by [int(0..4)] of (int(1..4), set of int(4,3))
+language Essence 1.3
+
+find s : set (minSize 1,maxSize 3) of (int(1..4), set of int(4,3))
+$ such that s = {(2,{3}), (1,{2}), (4,{1})}
+language Essence 1.3
+find s : set (minSize 1,maxSize 5) of set (minSize 2,maxSize 3) of int(1..5)
+language Essence 1.3
+find s : set (minSize 1,maxSize 5) of set (minSize 2,maxSize 3) of int(1..5)
+language Essence 1.3
+given n,a,b : int
+
+find s : set (size n) of
+         set (size n) of
+         set (size n) of
+         set (size n) of int(a..b)
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1,2)] of
+                (
+                    int(1),
+
+                    matrix indexed by [int(1,2)] of
+                    ( int(12)
+                    , matrix indexed by [int(1,2)] of (int(55,99),int(28,31,32,33))
+                    )
+                )
+
+such that
+    pain[1][1] = 1,
+    pain[1][2] = [ (12, [(55,28),(99,31) ] ), (12, [(55,28),(99,32) ] ) ],
+
+    pain[2][1] = 1,
+    pain[2][2] = [ (12, [(55,28),(99,31) ] ), (12, [(55,28),(99,33) ] ) ]
+language Essence 1.3
+
+find p : partition from matrix indexed by [int(1..2)] of  int(1..2)
+
+language Essence 1.3
+find x : mset (size 6) of int(4..9)
+such that x = mset(4,4,5,5,5,6)
+language Essence 1.3
+find x : mset (size 4, minOccur 2 ) of int(0..9)
+$ such that forAll i in x . i > 4
+language Essence 1.3
+
+find x : mset (size 3) of int(2)
+language ESSENCE 2.0
+
+find x : mset (size 5) of int(4..9)
+find y : mset (size 3) of int(3..7)
+
+such that
+    4 in x,
+    y subsetEq x
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    ( int(8),int(3)),
+                    matrix indexed by [int(1)] of (
+                        matrix indexed by [int(1)] of ( int(12),int(13) ),
+                        ( int(14), int(15) )
+                    ),
+                    ( int(15), int(16), int(17), int(18))
+                )
+
+such that
+    $pain[1][1] = (8,3),
+    pain[1][2] = [( [ (12,13)],  (14,15)  )],
+    $pain[1][3] = (15, 16, 17, 18)
+language Essence 1.3.0
+
+letting dat be
+    [ (1,2,3)
+    , (2,3,4)
+    , (3,4,5)
+    ]
+
+find x : int(1..9)
+
+such that
+    forAll i : int(1..3) .
+        x >= dat[i,1]
+language Essence 1.3.0
+
+letting dat be
+    [ (1,2,3)
+    , (2,3,4)
+    , (3,4,5)
+    ]
+
+find x : int(1..9)
+
+such that
+    forAll i : int(1..3) .
+        x >= dat[1,i]
+language Essence 1.3
+
+find m :
+	matrix indexed by [int(4,5)] of
+	set (minSize 1, maxSize 3) of
+	matrix indexed by [int(6..8)] of
+	set (minSize 1, maxSize 3) of
+	int(10..13)
+language Essence 1.3
+
+find m :
+	set (minSize 4) of
+	(int(10..13), int(0..1))
+language Essence 1.3
+
+find m :
+	$ matrix indexed by [int(4,5)] of
+	$ set (minSize 1, maxSize 3) of
+	matrix indexed by [int(6..8)] of
+	set (minSize 1, maxSize 3) of
+	int(10..13)
+language Essence 1.3
+
+find m :
+	$ matrix indexed by [int(4,5)] of
+	set (size 3) of
+	matrix indexed by [int(6..8)] of
+	set (size 4) of
+	int(10..14)
+language Essence 1.3
+
+find m :
+	$ matrix indexed by [int(4,5)] of
+	set (size 3) of
+	matrix indexed by [int(6..8)] of
+	set (minSize 1, maxSize 3) of
+	int(10..13)
+language Essence 1.3
+
+find m :
+	$ matrix indexed by [int(4,5)] of
+	set (minSize 1, maxSize 3) of
+	matrix indexed by [int(6..8)] of
+	set (size 4) of
+	int(10..13)
+language Essence 1.3
+
+letting Dom be domain int(0..6)
+letting Peg be domain (Dom,Dom)
+
+given end : Peg
+find steps : set of Peg
+
+such that steps = {end}
+
+language Essence 1.3
+
+letting Dom be domain int(0..6)
+letting Peg be domain (Dom,Dom)
+letting maxSteps be 31
+
+find path : matrix indexed by [int(0..maxSteps-1)] of function (size 1)  Peg --> Peg
+language Essence 1.3
+
+given sizes new domain int
+
+find x : sizes
+
+language Essence 1.3
+
+find a, b : set(size 3) of int(1..9)
+find c : set(size 2) of int(1..9)
+
+such that
+
+a - b = c,
+
+forAll {f1,f2} subsetEq  a - b .
+    f1 = f2 - 6
+language Essence 1.3
+$ base on prob037: Peg Solitaire
+
+letting Dom be domain int(0..6)
+letting Peg be domain (Dom,Dom)
+
+given startingSize : int
+given starting : set (size startingSize) of Peg
+
+find x : int(0..10000)
+
+such that x = sum (i,j) in starting . i + j
+
+language Essence 1.3
+letting Dom be domain int(0..6)
+letting Peg be domain (Dom,Dom)
+
+find s : set (size 2 ) of Peg
+
+such that
+
+forAll { (x1, y1), (x2,y2) } subsetEq s .
+        (x1 = x2 \/ y1 = y2)
+language Essence 1.3
+
+find i, j : int(0..5)
+such that
+    i = 0 -> j = 1
+language Essence 1.3
+
+letting n be 5
+letting Vertex be domain int(1..n)
+
+find graph : relation (size n*2) of (Vertex * Vertex)
+
+such that
+forAll i : Vertex .
+    exists {b1,b2} subsetEq toSet(graph(i,_)) .
+        b1 != b2
+language Essence 1.3
+
+given nums : set of int
+given N    : int
+
+such that
+
+N = sum i in nums . i
+language Essence 1.3
+
+letting n be 5
+letting Dom be domain int(1..n)
+find graph : relation (size 10)  of ( Dom * Dom * Dom  )
+
+such that
+forAll i : Dom .
+    |(toSet(graph(_,i,_) ))|  +  |(toSet(graph(_,_,i) ))|  = n - 1
+language Essence 1.2.0
+
+given machines  new type enum
+given processes new type enum
+
+given current_assignment : function (total) processes --> machines
+language Essence 1.3
+
+find m : matrix indexed by [int(4,5)] of set (minSize 1, maxSize 3) of int(6..8)
+language Essence 1.3
+
+find m : matrix indexed by [int(4,5),int(10,11)] of set (minSize 1, maxSize 3) of int(6..8)
+language Essence 1.3
+
+find m : matrix indexed by [int(4,5)] of set (minSize 1, maxSize 3)
+    of matrix indexed by [int(6..8)]  of int(10..13)
+language ESSENCE 2.0
+
+find x : mset (size 5) of int(4..9)
+find y : mset (size 3) of int(3..7)
+
+such that
+    4 in x,
+    y subsetEq x
+
+language Essence 1.3
+
+find x : mset (minSize 6, maxSize 12, minOccur 2, maxOccur 4 ) of int(0..6)
+
+such that
+
+forAll i in x . i > 4
+language Essence 1.3
+
+find x : mset (size 6) of int(4..9)
+
+such that
+    x = mset(4,4,5,5,5,6)
+language Essence 1.3
+
+find x : mset (minSize 2, maxOccur 3 ) of int(0..9)
+
+such that
+
+forAll i in x . i > 4
+language Essence 1.3
+
+find x : mset (size 5, minOccur 2, maxOccur 3 ) of int(0..9)
+
+such that
+
+forAll i in x . i > 4
+language Essence 1.3
+
+find x : mset (size 4, minOccur 2 ) of int(0..9)
+
+such that
+
+forAll i in x . i > 4
+language Essence 1.3
+
+find x : mset (minSize 2, maxSize 6) of int(0..9)
+
+such that
+
+forAll i in x . i > 4
+language Essence 1.3
+
+find x : mset (size 3) of int(2)
+language Essence 1.3
+
+find p : partition (size 3) from int(1..9)
+
+such that
+    forAll i in parts(p) . |i| < 5
+
+language Essence 1.3
+
+find p : partition (size 3) from int(1..9)
+
+such that
+   p =  partition({9}, {5, 6, 7, 8}, {1, 2, 3, 4})
+
+language Essence 1.3
+
+find p : partition (size 3) from set (size 3) of int(1..5)
+
+such that
+   p =  partition( { {1,2,3} }
+                 , { {2,3,4} }
+                 , { {3,4,5} }
+                 )
+language Essence 1.3
+
+find p : partition (size 2) from set of int(1..2)
+language Essence 1.3
+
+find s : set of int(0..9)
+find p : partition (size 3) from int(0..9)
+
+such that s in parts(p)
+
+language Essence 1.3
+$ prob010.essence: Social Golfer Problem
+$ Problem details available at http://www.csplib.org/prob/prob010/
+$
+$ In a golf club there are a number of golfers who wish to play together in g
+$ groups of size s. Find a schedule of play for w weeks such that no pair of
+$ golfers play together more than once.
+$
+
+given w, g, s : int(1..)
+
+letting Golfers be new type of size g * s
+
+find sched : mset (size w) of partition (regular, size g) from Golfers
+
+such that
+    forAll week1 in sched .
+        $forAll week2 in sched .
+        forAll week2 in sched , week1 != week2 .
+            forAll group1 in parts(week1) .
+                forAll group2 in parts(week2) .
+                    |group1 intersect group2| < 2
+
+language Essence 1.3
+
+find x : set(size 2) of relation  of (int(1..2) * int(3))
+
+such that
+    x  = { relation(), relation((2, 3)) }
+language Essence 1.3
+
+find x : set(size 2) of relation  of (int(1..2) * int(3))
+language Essence 1.3
+
+find x : set(size 2) of relation (size 2)  of (int(1..2) * int(3,4))
+language Essence 1.3
+
+find x : set of relation (size 2)  of (int(1..2) * int(3,4))
+language Essence 1.3
+
+find x : set(size 2) of relation (minSize 1) of (int(1..2) * int(3))
+language Essence 1.3
+
+find x : relation (size 12) of (int(1..2) * int(4..6) * int(1,7))
+
+language ESSENCE 2.0
+
+find x : relation (minSize 2) of (int(1) * int(4) * int(1,7))
+
+such that
+    forAll i in toSet(x) . i[1] != i[2] /\ i[2] != i[3]
+
+language ESSENCE 2.0
+
+find s: set (size 2) of bool
+
+such that
+    true in s
+language Essence 2.0
+
+letting e be new type enum { foo, bar, baz }
+
+letting test be bar
+
+find x : e
+find y : e(bar..baz)
+
+such that x != y
+such that x = foo
+language ESSENCE 2.0
+find x : set (maxSize 2) of int(0..9+1+4)
+
+such that
+    2 in x,
+    8 < max(x)
+language Essence 2.0
+
+letting digit be domain int(0..9)
+
+find x : digit
+find y : digit
+
+letting xy be x * y
+
+such that
+    x = 3*y,
+    xy > 0
+language ESSENCE 2.0
+
+letting V be domain int(1..3)
+
+find x : set (minSize 1) of V
+$ find x : set (minSize 1) of int(1..3)  $ works
+
+such that
+    3 in x
+language Essence 2.0
+
+find x : matrix indexed by [int(1..2),int(1,2)] of set(minSize 1) of int(6,7,8)
+such that
+    x[1][1] = {6},
+    x[1][2] = {7},
+    x[2][1] = {7,8},
+    x[2][2] = {8}
+
+language Essence 2.0
+
+find x : matrix indexed by [int(1..2)] of set(minSize 1) of int(6..8)
+such that
+    x[1] = {6},
+    x[2] = {7,8}language Essence 2.0
+
+find x : matrix indexed by [int(1..2),int(1,2)] of int(6..8)
+such that
+
+x[1][1] = 6
+
+language Essence 2.0
+
+find x : matrix indexed by [int(1..2),int(1,2)] of set(minSize 1) of int(6..8)
+such that
+    x[1][1] = {6},
+    x[1][2] = {7},
+    x[2][1] = {7,8},
+    x[2][2] = {8}
+
+language Essence 2.0
+
+find x : matrix indexed by [int(1..2)] of (set (minSize 1) of int(3,5), int(6,7),int(9))
+such that
+    x[1][1] = {3},
+    x[2] = ({5},7,9),
+    x[1][2] = 6,
+language Essence 2.0
+
+find x : matrix indexed by [int(1..2)] of (int(3,5), int(6,7),int(9))
+such that
+    x[1][1] = 3,
+    x[2] = (5,7,9),
+    x[1][2] = 6,
+language ESSENCE 2.0
+
+find x : matrix indexed by [int(1..2)] of set(minSize 1) of (int(4,5,6),int(7,8,9))
+such that
+    (4,7) in x[1],
+    x[2] = {(5,8),(6,9)}
+language Essence 2.0
+
+find mms: matrix indexed by [int(1..3),int(4..6)] of set (size 4) of int(1..9)
+
+such that
+    1 in mms[1,4]
+
+language Essence 2.0
+
+find mmt : matrix indexed by [int(1..3),int(4..6)] of tuple (bool,int(2..6))
+find mmtm : matrix indexed by [ int(1..3)
+                              , int(4..6)
+                              ] of tuple ( bool
+                                            , int(2..6)
+                                            , matrix indexed by [int(0..9)] of int(10..20)
+                                            )
+
+such that
+    mmt[1,4][1] = true,
+    mmt[1,4][2] = 3,
+    mmtm[1,4][1] = true,
+    mmtm[1,4][2] = 3,
+    mmtm[1,4][3][0] = 12
+language Essence 2.0
+
+find x : set (minSize 1) of set (minSize 1) of int(1..2)
+
+such that
+    forAll y in x . (sum i in y . i) = 2
+language Essence 2.0
+
+find x : set (minSize 2) of int(4..6)
+
+such that
+    forAll y in x .  y != 4
+language ESSENCE 2.0
+
+find x : set (size 1) of matrix indexed by [int(0..2)] of int(2..4)
+
+such that
+   [2,3,4;int(0..2)] in x
+
+language Essence 2.0
+
+find x : set (size 6) of set (size 4) of int(0..9)
+find y : set (size 4) of int(2..7)
+
+such that
+    y in x
+language ESSENCE 2.0
+
+letting y be {{{2,3},{2}}}
+find x : set(size 1) of set (minSize 1, maxSize 2) of set (minSize 1, maxSize 2) of int(2..3)
+
+such that
+    y subsetEq x
+language ESSENCE 2.0
+
+find x : set (minSize 2) of tuple (int(2,3),int(4,5),int(6,7))
+
+such that
+    (2,4,6) in x
+language ESSENCE 2.0
+
+find x : set (minSize 1) of tuple (set (size 2) of int(6,7))
+
+such that
+    tuple({6,7}) in x
+language ESSENCE 2.0
+
+find x : set (minSize 1) of tuple (set (size 2) of int(6,7), int(1,3), set (size 1) of int(9))
+
+such that
+    tuple({6,7},3,{9}) in x
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                    int(1,2)
+
+such that
+   pain[1] = 2
+
+language Essence 2.0
+
+find a : tuple (int(0..9))
+find b : tuple (int(0..9),int(3..8),set of int(3..4) )
+find c : tuple (int(0..9), set of int(3..4), tuple(set of int(3..4), tuple(int(3..4), bool) ) )
+
+such that
+    b[1] < 2,
+    b[2] > b[1],
+	c[1] = a[1],
+	c[2] = b[3],
+    c[3] = ({3,4},(3,true))
+language Essence 2.0
+
+find a : tuple (int(0..9))
+find b : tuple (int(0..9),int(3..8),set of int(3..4) )
+find c : tuple (int(0..9), set of int(3..4))
+
+such that
+	c[1] = a[1],
+	c[2] = b[3]
+language Essence 2.0
+
+find c : tuple (int(0..9), set of int(3..4),
+    tuple(set of int(3..4), tuple(int(3..4), bool) ) )
+
+such that
+    c[1] = 1,
+    c[2] = {3,4},
+    c[3] = ({3,4},(3,true))
+language Essence 2.0
+
+find a : tuple (int(0..9))
+find c : tuple (int(0..9), set of int(3..4),
+    tuple(set of int(3..4), tuple(int(3..4), bool) ) )
+
+such that
+    c[1] = a[1],
+    c[2] = {3,4},
+    c[3] = ({3,4},(3,true))
+language Essence 2.0
+
+find b : tuple (int(0..9),int(3..8),set of int(3..4) )
+find c : tuple (int(0..9), set of int(3..4),
+    tuple(set of int(3..4), tuple(int(3..4), bool) ) )
+
+such that
+    b[1] < 2,
+    b[2] > b[1],
+    c[1] = 1,
+    c[2] = b[3],
+    c[3] = ({3,4},(3,true))
+language Essence 1.3.0
+
+find pain : tuple ( tuple ( matrix indexed by [int(1..2)] of int(6,8)  ) )
+
+such that
+    pain[1,1] = [6,8]
+language ESSENCE 2.0
+
+find pain : (
+              ( set (minSize 1) of int(1,3), set (minSize 1) of (int(1,2), int(5)) ),
+              int (3)
+            )
+such that
+    pain[1] = ({3}, {(1,5)}),
+    pain[2] = 3
+language ESSENCE 2.0
+
+find pain : (
+              ( set (minSize 1) of int(1,3), set (minSize 1) of (int(1,2), int(5)) ),
+              ( set (minSize 1) of int(1,3), set (minSize 1) of (int(1,2), int(6)) )
+            )
+such that
+    pain[1] = ({3}, {(1,5)}),
+    pain[2] = ({1}, {(2,6)}),
+language Essence 2.0
+
+letting x be (1, (1,2,3) )
+
+find y  : tuple ( int(1..4), tuple( int(1..3), int(2..5), int(3..6) ) )
+
+such that
+    y = x
+language Essence 2.0
+
+
+find y: matrix indexed by [int(1,2)] of (int(10,11),int(12,13) )
+
+such that
+    y = [ (10,12), (11,13) ]
+
+
+language Essence 2.0
+
+
+find y  : (int(1),(int(2),(int(3),int(4))))
+
+such that
+    y = (1,(2,(3,4)))
+language Essence 2.0
+
+
+find y  : (  (int(1), set (size 2) of int(2,3), int(4), (int(5),int(6), set (size 3) of int(7,8,9) )))
+
+such that
+    y = (  (1, {2,3}, 4, (5,6, {7,8,9} )))
+
+language Essence 2.0
+
+
+find y  :
+(
+    (int(14), (int(15), int(16),int(17))),
+    int(1),
+    set (size 2) of (int(10,11),int(12,13) ),
+    int(4),
+    (int(5),int(6), set (size 3) of int(7,8,9) )
+)
+
+such that
+    y =
+(
+    (14, (15, 16,17)),
+    1,
+    {(10,12), (11,13) },
+    4,
+    (5, 6, {7,8,9} )
+)
+
+
+language Essence 2.0
+
+
+find y  :
+(
+    int(1),
+    set (size 2) of (int(10,11),int(12,13) ),
+    int(4),
+    (int(5),int(6), set (size 3) of int(7,8,9) )
+)
+
+such that
+    y =
+(
+    1,
+    {(10,12), (11,13) },
+    4,
+    (5, 6, {7,8,9} )
+)
+
+
+language Essence 2.0
+
+
+find y  :
+(
+    int(1),
+    set (size 2) of (int(10,11),int(12,13) ),
+    int(4)
+)
+
+such that
+    y =
+(
+    1,
+    {(10,12), (11,13) },
+    4
+)
+
+
+language Essence 2.0
+
+
+find y  :
+    set (size 2) of (int(10,11),int(12,13) )
+
+such that
+    y =
+    {(10,12), (11,13) }
+
+
+language Essence 2.0
+
+
+find y  :
+    set (size 1) of tuple (int(12,13) )
+
+such that
+    y =
+    {tuple (12)}
+
+
+language Essence 2.0
+
+
+find y:
+tuple (
+    set (size 2) of (int(10,11),int(12,13) )
+)
+
+such that
+    y =
+tuple (
+    {(10,12), (11,13) }
+)
+
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1..2),int(2..3)] of
+                ( (int(1,2), int(4,5))
+                , int(8..9)
+                )
+
+such that
+    pain[1,2][1]    = (1,4),
+    pain[1,3][1][1] = 2,
+    pain[1,3][2]    = 8,
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1..2)] of
+                ( int(5)
+                , int(8)
+                , int(9)
+                , int(4)
+                )
+
+such that
+    pain[1][1] = 5,
+    pain[1][2] = 8,
+    pain[1][3] = 9,
+    pain[1][4] = 4,
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1..2)] of
+                ( set(size 1) of int(5)
+                , int(8)
+                , int(9)
+                )
+
+such that
+    pain[1][1] = {5},
+    pain[1][2] = 8,
+    pain[1][3] = 9,
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1..2)] of
+               tuple ( set(size 1) of int(5) )
+
+such that
+    pain[1][1] = {5},
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1..2)] of
+                ( set(size 1)  of int(5)
+                , set (size 1) of int(8)
+                , set (size 1) of int(9)
+                )
+
+such that
+    pain[1][1] = {5},
+    pain[1][2] = {8},
+    pain[1][3] = {9},
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1..2)] of
+                ( set(size 1)  of int(5)
+                , set (size 1) of int(9)
+                )
+
+such that
+    pain[1][1] = {5},
+    pain[1][2] = {9},
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1..2)] of
+                ( set (size 1) of int(5)
+                , set (size 1) of int(9)
+                , set (size 1) of int(6)
+                , set (size 1) of int(5)
+                )
+
+such that
+    pain[1][1] = {5},
+    pain[1][2] = {9},
+    pain[1][3] = {6},
+    pain[1][4] = {5},
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1..2)] of
+                ( set(size 1) of int(5)
+                , int(8)
+                , set (size 1) of int(9)
+                )
+
+such that
+    pain[1][1] = {5},
+    pain[1][2] = 8,
+    pain[1][3] = {9},
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1..2)] of
+                ( set(size 1) of int(5)
+                , int(8)
+                , set (size 1) of int(9)
+                , int(7)
+                )
+
+such that
+    pain[1][1] = {5},
+    pain[1][2] = 8,
+    pain[1][3] = {9},
+    pain[1][4] = 7,
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1..2)] of
+                ( set(size 1) of int(5)
+                , int(8)
+                , set (size 1) of int(9)
+                , int(7)
+                , set (size 1) of int(4)
+                )
+
+such that
+    pain[1][1] = {5},
+    pain[1][2] = 8,
+    pain[1][3] = {9},
+    pain[1][4] = 7,
+    pain[1][5] = {4},
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1..2)] of
+                ( int(5)
+                , int(8)
+                , int(9)
+                )
+
+such that
+    pain[1][1] = 5,
+    pain[1][2] = 8,
+    pain[1][3] = 9,
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1..2)] of
+                ( int(5)
+                , int(8)
+                , int(9)
+                , int(10)
+                , int(11)
+                , int(12)
+                )
+
+such that
+    pain[1][1] = 5,
+    pain[1][2] = 8,
+    pain[1][3] = 9,
+    pain[1][4] = 10,
+    pain[1][5] = 11,
+    pain[1][6] = 12,
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1..2)] of
+                ( int(4,5)
+                , int(8..9)
+                )
+
+such that
+    pain[1][1]  = 4,
+    pain[1][2] = 9
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1..2)] of
+                ( (int(1,2), int(4,5) ), int(8,9))
+
+such that
+    pain[1][1][1] = 2,
+    pain[1][1][2] = 5,
+
+    pain[2][1][1] = 1,
+    pain[2][1][2] = 4,
+
+    pain[1][2]    = 8,
+    pain[2][2]    = 9,
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1..2)] of
+                ( (int(1,2), int(4,5) ), set (size 1) of int(8,9))
+
+such that
+    pain[1][1][1] = 2,
+    pain[1][1][2] = 5,
+
+    pain[2][1][1] = 1,
+    pain[2][1][2] = 4,
+
+    pain[1][2]    = {8},
+    pain[2][2]    = {9},
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1..2)] of
+                ( (set (size 1) of set (size 1) of int(1,2) , int(4,5) ), int(8,9))
+
+such that
+    pain[1][1][1] = {{2}},
+    pain[1][1][2] = 5,
+
+    pain[2][1][1] = {{1}},
+    pain[2][1][2] = 4,
+
+    pain[1][2]    = 8,
+    pain[2][2]    = 9,
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1..2),int(3)] of
+                ( (set (size 1) of int(1,2), set (size 1) of int(4,5) ), int(8,9))
+
+such that
+    pain[1,3][1][1] = {2},
+    pain[1,3][1][2] = {5},
+
+    pain[2,3][1][1] = {1},
+    pain[2,3][1][2] = {4},
+
+    pain[1,3][2]    = 8,
+    pain[2,3][2]    = 9,
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1..2),int(2..3)] of
+                ( matrix indexed by [int(3..4)] of (int(1,2),int(3,4),int(5,6))
+                , int(8..9)
+                , int(7)
+                )
+
+such that
+    $ pain[1,2][1][3] = (1,3,5),
+    $ pain[1,2][1][4] = (2,4,6),
+
+    $ pain[2,2][1][3] = (2,3,6),
+    $ pain[2,2][1][4] = (1,4,5),
+
+    $ pain[1,2][2] = 9,
+    pain[1,3][2] = 8,
+    $ pain[1,2][3] = 7
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1..2),int(3)] of
+                ( (set (size 1) of int(1,2), set (size 1) of int(4,5) ), set of int(8,9))
+
+such that
+    pain[1,3][1][1] = {2},
+    pain[1,3][1][2] = {5},
+
+    pain[2,3][1][1] = {1},
+    pain[2,3][1][2] = {4},
+
+    pain[1,3][2]    = {8},
+    pain[2,3][2]    = {9},
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1..2),int(3)] of
+                ( ( (set (size 1) of int(1,2), set (size 1) of int(4,5) ),int(3,6) ), int(8,9))
+
+such that
+    pain[1,3][1][1][1] = {2},
+    pain[1,3][1][1][2] = {5},
+    pain[1,3][1][2]    = 3,
+
+    pain[2,3][1][1][1] = {1},
+    pain[2,3][1][1][2] = {4},
+    pain[2,3][1][2]    = 6,
+
+    pain[1,3][2]    = 8,
+    pain[2,3][2]    = 9,
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1..2)] of
+                ( (
+                    set (size 1) of set (size 1) of int(1,2),
+                    tuple (int(4,5))
+                  ),
+                  int(8,9)
+                )
+
+such that
+    pain[1][1][1] = {{2}},
+    pain[1][1][2] = tuple (5),
+
+    pain[2][1][1] = {{1}},
+    pain[2][1][2] = tuple (4),
+
+    pain[1][2]    = 8,
+    pain[2][2]    = 9,
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1..2)] of
+                ( (
+                    set (size 1) of set (size 1) of int(1,2),
+                    int(4,5)
+                  ),
+                  int(8,9)
+                )
+
+such that
+    pain[1][1][1] = {{2}},
+    pain[1][1][2] = (5),
+
+    pain[2][1][1] = {{1}},
+    pain[2][1][2] = (4),
+
+    pain[1][2]    = 8,
+    pain[2][2]    = 9,
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1..2)] of
+                ( (
+                    set (size 1) of int(1,2),
+                    tuple (int(4,5))
+                  ),
+                  int(8,9)
+                )
+
+such that
+    pain[1][1][1] = {2},
+    pain[1][1][2] = tuple (5),
+
+    pain[2][1][1] = {1},
+    pain[2][1][2] = tuple (4),
+
+    pain[1][2]    = 8,
+    pain[2][2]    = 9,
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1..2)] of
+                ( (
+                    int(1,2),
+                    tuple (int(4,5))
+                  ),
+                  int(8,9)
+                )
+
+such that
+    pain[1][1][1] = 2,
+    pain[1][1][2] = tuple (5),
+
+    pain[2][1][1] = 1,
+    pain[2][1][2] = tuple (4),
+
+    pain[1][2]    = 8,
+    pain[2][2]    = 9,
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                tuple ( (
+                    int(1,2),
+                    (int(4),int(5))
+                  )
+                )
+
+such that
+    pain[1][1][1] = 2,
+    pain[1][1][2] = (4, 5),
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                tuple ( (
+                    int(1,2),
+                    (int(4), (int(5),int(6)) )
+                  )
+                )
+
+such that
+    pain[1][1][1] = 2,
+    pain[1][1][2] = (4, (5,6)),
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                tuple ( (
+                    int(1,2),
+                    int(3)
+                  )
+                )
+
+such that
+    pain[1][1][1] = 2,
+    pain[1][1][2] = 3,
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                tuple ( (
+                    int(1,2),
+                    int(3),
+                    int(4),
+                    int(5)
+                  )
+                )
+
+such that
+    pain[1][1][1] = 2,
+    pain[1][1][2] = 3,
+    pain[1][1][3] = 4,
+    pain[1][1][4] = 5
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                tuple ( tuple(
+                    int(1,2)
+                  )
+                )
+
+such that
+    pain[1][1][1] = 2
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1,2,3)] of
+                tuple ( tuple(
+                    int(2,3,4)
+                  )
+                )
+
+such that
+    pain[1][1][1] = 2,
+    pain[2][1][1] = 3,
+    pain[3][1][1] = 4
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1..2)] of
+                (
+                    int(1,2),
+                    tuple (int(4,5))
+                )
+
+such that
+    pain[1][1] = 2,
+    pain[1][2] = tuple (5),
+
+    pain[2][1] = 1,
+    pain[2][2] = tuple (4),
+language Essence 1.3.0
+
+find pain : tuple (
+                int(1,2),
+                tuple (int(4,5))
+            )
+
+such that
+    pain[1] = 2,
+    pain[2] = tuple (5),
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1..2)] of
+                matrix indexed by [int(3..4)] of set (minSize 1) of int(6,8)
+
+such that
+    6 in pain[1][3],
+    8 in pain[1][4]
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1..2)] of
+                matrix indexed by [int(3..4)] of set (size 1) of int(6,8)
+
+such that
+    6 in pain[1][3],
+    8 in pain[1][4]
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    int(1,2),
+                    tuple (int(4,5))
+                )
+
+such that
+    pain[1][1] = 2,
+    pain[1][2] = tuple (5),
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    tuple (int(4,5))
+                )
+
+such that
+    pain[1] = tuple (5),
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    int(1,2),
+                    tuple (int(4,5)),
+                    tuple (int(7,8),int(2,3))
+                )
+
+such that
+    pain[1][1] = 2,
+    pain[1][2] = tuple (5),
+    pain[1][3] = (7,3)
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    int(1,2),
+                    int(0),
+                    tuple (int(4,5))
+                )
+
+such that
+    pain[1][1] = 2,
+    pain[1][2] = 0,
+    pain[1][3] = tuple (5)
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    int(1,2),
+                    int(0),
+                    tuple (int(7,8),int(2,3))
+                )
+
+such that
+    pain[1][1] = 2,
+    pain[1][2] = 0,
+    pain[1][3] = (7,3)
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    int(1,2),
+                    tuple (int(7,8),int(2,3))
+                )
+
+such that
+    pain[1][1] = 2,
+    pain[1][2] = (7,3)
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    int(1,2),
+                    tuple (int(4,5)),
+                    tuple (int(6,7))
+                )
+
+such that
+    pain[1][1] = 2,
+    pain[1][2] = tuple(5),
+    pain[1][3] = tuple(6)
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    int(1,2),
+                    tuple (int(4,5)),
+                    tuple (int(6,7)),
+                    tuple (int(8,9))
+                )
+
+such that
+    pain[1][1] = 2,
+    pain[1][2] = tuple(5),
+    pain[1][3] = tuple(6),
+    pain[1][4] = tuple(8)
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    int(1,2),
+                    tuple (int(4,5)),
+                    tuple (int(6,7)),
+                    tuple (int(8,9)),
+                    tuple (int(3))
+                )
+
+such that
+    pain[1][1] = 2,
+    pain[1][2] = tuple(5),
+    pain[1][3] = tuple(6),
+    pain[1][4] = tuple(8),
+    pain[1][5] = tuple(3)
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    int(1,2),
+                    (int(1),int(2)),
+                    (int(3),int(4))
+                )
+
+such that
+    pain[1][1] = 2,
+    pain[1][2] = (1,2),
+    pain[1][3] = (3,4)
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    int(1,2),
+                    (int(1),int(2)),
+                    (int(3),int(4)),
+                    (int(5),int(6))
+                )
+
+such that
+    pain[1][1] = 2,
+    pain[1][2] = (1,2),
+    pain[1][3] = (3,4),
+    pain[1][4] = (5,6)
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    int(1,2),
+                    (int(1),int(2)),
+                    (int(3),int(4)),
+                    (int(5),int(6)),
+                    (int(7),int(8)),
+                    (int(9),int(10)),
+                    (int(11),int(12))
+                )
+
+such that
+    pain[1][1] = 2,
+    pain[1][2] = (1,2),
+    pain[1][3] = (3,4),
+    pain[1][4] = (5,6),
+    pain[1][5] = (7,8),
+    pain[1][6] = (9,10),
+    pain[1][7] = (11,12)
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    int(1,2),
+                    (int(1),int(2)),
+                    (int(3),int(4)),
+                    (int(5),int(6)),
+                    (int(7),int(8))
+                )
+
+such that
+    pain[1][1] = 2,
+    pain[1][2] = (1,2),
+    pain[1][3] = (3,4),
+    pain[1][4] = (5,6),
+    pain[1][5] = (7,8)
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    int(2),
+                    (int(5),int(6)),
+                    ( (int(10), int(11)),  int(12)),
+                    int(3)
+                )
+
+such that
+    pain[1][1] = 2,
+    pain[1][2] = (5,6),
+    pain[1][3] = ( (10,11),12),
+    pain[1][4] = 3
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    (int(5),int(6)),
+                    ( (int(10), int(11)),  int(12)),
+                    int(3)
+                )
+
+such that
+    pain[1][1] = (5,6),
+    pain[1][2] = ( (10,11),12),
+    pain[1][3] = 3
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    (int(5),int(6)),
+                    int(3),
+                    ( (int(10), int(11)),  int(12))
+                )
+
+such that
+    pain[1][1] = (5,6),
+    pain[1][2] = 3,
+    pain[1][3] = ( (10,11),12)
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    (int(5),int(6)),
+                    int(3),
+                    int(4),
+                    ( (int(10), int(11)),  int(12))
+                )
+
+such that
+    pain[1][1] = (5,6),
+    pain[1][2] = 3,
+    pain[1][3] = 4,
+    pain[1][4] = ( (10,11),12)
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    (int(5),int(6)),
+                    ( (int(10), int(11)),  int(12))
+                )
+
+such that
+    pain[1][1] = (5,6),
+    pain[1][2] = ( (10,11),12)
+
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    int(2),
+                    int(3),
+                    (int(5),int(6)),
+                    ( (int(10), int(11)),  int(12))
+                )
+
+such that
+    pain[1][1] = 2,
+    pain[1][2] = 3,
+    pain[1][3] = (5,6),
+    pain[1][4] = ( (10,11),12)
+
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    int(2),
+                    (int(5),int(6),int(7), int(8)),
+                    ( (int(10), int(11)),  int(12))
+                )
+
+such that
+    pain[1][1] = 2,
+    pain[1][2] = (5,6,7,8),
+    pain[1][3] = ( (10,11),12)
+
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    int(2),
+                    (int(5),int(6),int(7), int(8))
+                )
+
+such that
+    pain[1][1] = 2,
+    pain[1][2] = (5,6,7,8)
+
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    int(2),
+                    ( (int(10), int(11)),  int(12))
+                )
+
+such that
+    pain[1][1] = 2,
+    pain[1][2] = ( (10,11),12)
+
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    int(2),
+                    (int(5),int(6),int(7), int(8)),
+                    (int(10), int(11))
+                )
+
+such that
+    pain[1][1] = 2,
+    pain[1][2] = (5,6,7,8),
+    pain[1][3] = (10,11)
+
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    int(2),
+                    (int(5),int(6),int(7)),
+                    (int(10), int(11))
+                )
+
+such that
+    pain[1][1] = 2,
+    pain[1][2] = (5,6,7),
+    pain[1][3] = (10,11)
+
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    (int(4),int(7)),
+                    (int(5),int(6)),
+                    (int(10), int(11))
+                )
+
+such that
+    pain[1][1] = (4,7),
+    pain[1][2] = (5,6),
+    pain[1][3] = (10,11)
+
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    int(2),
+                    (int(5),int(6)),
+                    (int(10), int(11)),
+
+                    int(3),
+                    (int(7),int(8)),
+                    (int(12), int(13))
+                )
+
+such that
+    pain[1][1] = 2,
+    pain[1][2] = (5,6),
+    pain[1][3] = (10,11),
+
+    pain[1][4] = 3,
+    pain[1][5] = (7,8),
+    pain[1][6] = (12,13)
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    int(2),
+                    (int(5),int(6)),
+                    (int(10), int(11))
+                )
+
+such that
+    pain[1][1] = 2,
+    pain[1][2] = (5,6),
+    pain[1][3] = (10,11)
+
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    int(2),
+                    tuple (int(5)),
+                    (int(10), int(11))
+                )
+
+such that
+    pain[1][1] = 2,
+    pain[1][2] = tuple (5),
+    pain[1][3] = (10,11)
+
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    int(2),
+                    (int(5),int(6)),
+                    tuple (int(10))
+                )
+
+such that
+    pain[1][1] = 2,
+    pain[1][2] = (5,6),
+    pain[1][3] = tuple (10)
+
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    (int(5),int(6),int(7), int(8)),
+                    ( (int(10), int(11)),  int(12))
+                )
+
+such that
+    pain[1][1] = (5,6,7,8),
+    pain[1][2] = ( (10,11),12)
+
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    int(2),
+                    ((int(10), int(11)),  int(12)),
+                    int(14),
+                    set (size 1) of (int(15),int(16))
+                )
+
+such that
+    pain[1][1] = 2,
+    pain[1][2] = ( (10,11),12),
+    pain[1][3] = 14,
+    pain[1][4] = { (15,16)}
+
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    (int(1),int(9),int(3), int(4)),
+                    (int(5),int(6),int(7), int(8)),
+                    ( (int(10), int(11)),  int(12)),
+                    set (size 1) of (int(15),int(16))
+                )
+
+such that
+    pain[1][1] = (1,9,3,4),
+    pain[1][2] = (5,6,7,8),
+    pain[1][3] = ( (10,11),12),
+    pain[1][4] = { (15,16)}
+
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    int(2),
+                    (int(1),int(9),int(3), int(4)),
+                    (int(5),int(6),int(7), int(8)),
+                    ( (int(10), int(11)),  int(12)),
+                    int(14),
+                    set (size 1) of (int(15),int(16))
+                )
+
+such that
+    pain[1][1] = 2,
+    pain[1][2] = (1,9,3,4),
+    pain[1][3] = (5,6,7,8),
+    pain[1][4] = ( (10,11),12),
+    pain[1][5] = 14,
+    pain[1][6] = { (15,16)}
+
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    int(1),
+                    ( int(8),int(3)),
+                    set (size 1) of (
+                        matrix indexed by [int(1)] of ( int(12),int(13) ),
+                        ( int(14), int(15) )
+                    )
+                )
+
+such that
+    pain[1][1] = 1,
+    pain[1][2] = (8,3),
+    pain[1][3] = { ( [ (12,13)],  (14,15)  )}
+
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    ( int(8),int(3)),
+                    matrix indexed by [int(1)] of (
+                        matrix indexed by [int(1)] of ( int(12),int(13) ),
+                        ( int(14), int(15) )
+                    ),
+                    ( int(15), int(16), int(17), int(18))
+                )
+
+such that
+    pain[1][1] = (8,3),
+    pain[1][2] = [( [ (12,13)],  (14,15)  )],
+    pain[1][3] = (15, 16, 17, 18)
+
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    int(1),
+                    matrix indexed by [int(1)] of ( int(12),int(13) ),
+                    ( int(14), int(15) )
+                )
+
+such that
+    pain[1][1] = 1,
+    pain[1][2] = [ (12,13) ],
+    pain[1][3] = (14,15)
+
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    matrix indexed by [int(1)] of ( int(12),int(13) ),
+                    ( int(14), int(15) )
+                )
+
+such that
+    pain[1][1] = [ (12,13) ],
+    pain[1][2] = (14,15)
+
+
+language Essence 1.3.0
+
+find pain :
+    (
+        matrix indexed by [int(1)] of ( int(12),int(13) ),
+        ( int(14), int(15) )
+    )
+
+such that
+    pain[1] = [ (12,13) ],
+    pain[2] = (14,15)
+
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    tuple (int(4,5)),
+                    (int(7,8),int(2,3))
+                )
+
+such that
+    pain[1][1] = tuple (5),
+    pain[1][2] = (7,3)
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1..3)] of
+                (
+                    int(1,2),
+                    tuple (int(4,5)),
+                    tuple (int(7,8),int(2,3))
+                )
+
+such that
+    pain[1][1] = 2,
+    pain[1][2] = tuple (5),
+    pain[1][3] = (7,3),
+
+    pain[2][1] = 1,
+    pain[2][2] = tuple (4),
+    pain[2][3] = (8,2),
+
+    pain[3][1] = 2,
+    pain[3][2] = tuple (4),
+    pain[3][3] = (7,2)
+
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1..3)] of
+                (
+                    int(1,2),
+                    tuple (int(4,5),int(10,11,12)),
+                    tuple (int(7,8),int(2,3))
+                )
+
+such that
+    pain[1][1] = 2,
+    pain[1][2] = tuple (5,10),
+    pain[1][3] = (7,3),
+
+    pain[2][1] = 1,
+    pain[2][2] = tuple (4,11),
+    pain[2][3] = (8,2),
+
+    pain[3][1] = 2,
+    pain[3][2] = tuple (4,12),
+    pain[3][3] = (7,2)
+
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    tuple (int(4,5)),
+                    tuple (int(7,8),int(2,3))
+                )
+
+such that
+    pain[1][1] = tuple (5),
+    pain[1][2] = (7,3)
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    int(1,2),
+                    tuple (int(4,5)),
+                    tuple (int(7,8),int(2,3))
+                )
+
+such that
+    pain[1][1] = 2,
+    pain[1][2] = tuple (5),
+    pain[1][3] = (7,3)
+
+language Essence 2.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    int(2),
+                    (int(4,5),int(6,1)),
+                    (int(7,8),int(2,3))
+                )
+
+such that
+    pain[1][1] = 2,
+    pain[1][2] = (5,6),
+    pain[1][3] = (7,3)
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    tuple (int(4,5),int(10)),
+                    tuple (int(7,8),int(2,3))
+                )
+
+such that
+    pain[1][1] = (5,10),
+    pain[1][2] = (7,3)
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    tuple (int(4,5),int(10)),
+                    tuple (int(7,8),int(2,3)),
+                    tuple (int(11,12),int(13,14))
+                )
+
+such that
+    pain[1][1] = (5,10),
+    pain[1][2] = (7,3),
+    pain[1][3] = (11,13)
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    tuple (int(4,5),int(10)),
+                    tuple (int(7,8),int(2,3)),
+                    tuple (int(11),int(13)),
+                    tuple (int(12),int(14)),
+                    tuple (int(1),int(15))
+                )
+
+such that
+    pain[1][1] = (5,10),
+    pain[1][2] = (7,3),
+    pain[1][3] = (11,13),
+    pain[1][4] = (12,14),
+    pain[1][5] = (1,15)
+
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1)] of
+                (
+                    int(1,2),
+                    tuple (int(4,5)),
+                    (int(7,8),int(2,3)),
+                    (int(6,7), int(8,9),int(0,9))
+                )
+
+such that
+    pain[1][1] = 2,
+    pain[1][2] = tuple (5),
+    pain[1][3] = (7,2),
+    pain[1][4] = (6,8,0)
+
+language ESSENCE 2.0
+
+find pain : matrix indexed by [int(1..2)] of
+                matrix indexed by [int(3..4)] of (int(3,4), bool)
+
+such that
+    pain[2][4] = (3,true)
+language Essence 2.0
+
+find pain : matrix indexed by [int(1),int(2)] of
+                tuple ( matrix indexed by [int(3)] of (bool,bool) )
+
+such that
+    pain[1,2][1][3] = (true,false)
+language Essence 2.0
+
+find pain : matrix indexed by [int(1)] of
+                tuple ( matrix indexed by [int(3)] of (bool,bool,bool,int(4)) )
+
+such that
+    pain[1][1][3] = (true,false,true,4)
+language Essence 2.0
+
+find pain : matrix indexed by [int(1)] of
+                tuple ( matrix indexed by [int(3)] of (bool,bool,bool,int(4),int(5)) )
+
+such that
+    pain[1][1][3] = (true,false,true,4,5)
+language Essence 2.0
+
+find pain : matrix indexed by [int(1)] of
+                tuple ( matrix indexed by [int(3)] of (bool,bool,bool,int(4),int(5),int(6)) )
+
+such that
+    pain[1][1][3] = (true,false,true,4,5,6)
+language Essence 2.0
+
+find pain : matrix indexed by [int(1)] of
+                tuple ( matrix indexed by [int(3)] of (bool,bool,bool) )
+
+such that
+    pain[1][1][3] = (true,false,true)
+language Essence 2.0
+
+find pain : matrix indexed by [int(1)] of
+                tuple ( matrix indexed by [int(3)] of (bool,bool) )
+
+such that
+    pain[1][1][3] = (true,false)
+language Essence 2.0
+
+find pain : matrix indexed by [int(1)] of
+                tuple ( matrix indexed by [int(3)] of tuple (bool) )
+
+such that
+    pain[1][1][3] = tuple (true)
+language Essence 1.3.0
+
+find pain : matrix indexed by [int(1..2),int(2..3)] of
+                ( matrix indexed by [int(3..4)] of int(1..7)
+                , int(8..9)
+                )
+
+such that
+    pain[1,2][1][3] = 6,
+    pain[1,3][1][3] = 7,
+    pain[2,2][1][3] = 1,
+    pain[2,3][1][3] = 2,
+    pain[1,2][2]    = 8,
+language Essence 2.0
+
+find x,y : int(-9..9)
+
+find s1,s2 : set of int(0..9)
+
+such that
+    |x| = y,
+    |s1 intersect s2| = y - x
+language Essence 1.3
+
+given n_boats, n_periods : int(1..10)
+
+letting Boat be domain int(1..n_boats)
+
+find sched : set (size n_periods) of function (total) Boat --> Boat
+
+such that
+
+
+forAll p in sched .
+    p(1) != 1
+language Essence 1.3
+
+given n_roads : int(1..20)
+
+letting Road be domain int(1..n_roads),
+        VCol be new type enum {r,ry,g,y},
+        PCol be new type enum {pr,pg}
+
+find valid : set of function (total) Road --> (VCol,PCol)
+language Essence 1.3
+
+letting nBuckets be 3
+letting totalWater be 8
+
+letting Bucket be domain int(1..nBuckets),
+        Water  be domain int(0..totalWater),
+        State  be domain function (total) Bucket --> Water
+
+letting State  be domain function (total) Bucket --> Water
+
+find plan: function int(1..(totalWater+1)**nBuckets)--> State
+language Essence 1.3
+
+given n_teams : int(1..)
+
+where n_teams % 2 = 0
+
+letting Team   be new type of size n_teams,
+        Week   be new type of size n_teams-1,
+        Period be new type of size n_teams/2
+
+find sched :
+    relation (size ((n_teams-1)*n_teams)/2) of
+        (Week * Period * set (size 2) of Team)
+language Essence 1.3
+
+given n : int(1..)
+
+letting Index be domain int(1..n+2)
+letting Cell  be domain tuple (Index,Index)
+
+find alive : set of Cell
+language Essence 1.3
+
+letting Base be new type enum {A,C,G,T},
+        Index be domain int(1..8)
+
+find words : set of function (total) Index --> Base
+language Essence 1.3
+
+given Character new type enum,
+      codeWordLength : int(1..),
+      numOfCodeWords : int(1..)
+
+letting Index be domain int(1..codeWordLength),
+        String be domain function (total) Index --> Character
+
+find c : set (size numOfCodeWords) of String
+language Essence 1.3
+
+letting Dom be domain int(0..6)
+letting Peg be domain (Dom,Dom)
+
+letting Num be domain int(0..31)
+
+find steps: function(total) Num --> set (minSize 1, maxSize 32) of Peg
+language Essence 1.3
+
+given sizes new domain int
+letting Order be domain int(1..10)
+
+find cut : function set of Order --> sizes
+language Essence 1.3
+
+given k,b,t: int(1..), g: int(2..)
+where k>=t, b>=g**t
+
+letting alphabet be new type of size g
+letting switches be new type of size k
+
+find CoverTest: mset (size b) of function (total) switches --> alphabet
+language Essence 1.3
+
+given n : int(1..20)
+given colours : int(1..10)
+
+letting num_edges be  (n * (n-1))
+
+letting  Colour be domain int(1..colours)
+letting  Vertex be domain int(1..n)
+
+find graph : relation (size num_edges)  of ( Colour * Vertex * Vertex  )
+language Essence 1.3
+
+given n_flights, n_planes: int(1..20)
+
+letting Plane be domain int(1..n_planes)
+letting Flight be domain int(1..n_flights)
+
+find route : function (total) Plane --> function int(1..n_flights) --> Flight
+language Essence 1.3
+
+letting Material be new type enum {glass,plastic}
+letting quantity be function (glass --> 1, plastic -->2  )
+letting Bin be new type of size (sum m : Material . quantity(m))
+
+find contents : function Bin --> mset (maxOccur 3) of Material
+language Essence 1.3
+
+given nnodes, nrings, capacity : int(1..100)
+letting Nodes be domain int(1..nnodes)
+
+find network : mset (size nrings) of set (maxSize capacity) of Nodes
+language Essence 1.3
+
+letting Order be domain int(1..10),
+        Line be domain int(1..10),
+        Day be domain int(1..10),
+        Slot be domain int(1..10),
+        Batch be new type of size 10
+
+find schedule : function (total, injective) tuple (Line,Day,Slot) --> Batch
+
+language Essence 1.3
+
+find x,y,z: int(1..9)
+branching on [z,x,y]
+such that x + y = z
+language Essence 1.3
+
+find a : int(0..9)
+
+such that a = { x @ find x : int(0..9)
+                    such that x = 3
+              } +
+              { y @ find y : int(0..9)
+                    such that y = 4
+              }
+language Essence 1.3
+
+find a,x,y : int(0..9)
+
+such that a = { x / y @ such that y != 0 }
+language ESSENCE 1.3
+
+find x : set (size 2) of int(1..5)
+find y : set (maxSize 3) of int(1..5)
+
+such that
+
+x = ylanguage ESSENCE 1.3
+
+find x : set (size 2) of int(1..5)
+find y : set (maxSize 3) of int(1..5)
+
+such that
+
+x = ylanguage ESSENCE 1.3
+
+find x : set (size 2) of int(1..5)
+find y : set (size 3) of int(1..5)
+
+such that
+
+x subset ylanguage Essence 1.3
+
+given a : int(0..9)
+find  x : int(0..9)
+
+such that
+    x < a
+
+language Essence 1.3
+
+given a : relation of (int(1..9) * int(1..9))
+find x : relation of (int(1..9) * int(1..9))
+
+such that
+    a = x
+
+language Essence 1.3
+
+given a : set (size 2) of int(0..9)
+find  x : set (size 2) of int(0..9)
+
+such that
+    x subsetEq a
+
+language Essence 1.3
+
+given a : set (size 2) of int(0..9)
+find  x : set (size 2) of int(0..9)
+
+such that
+    x subsetEq a,
+    1 in a
+
+language Essence 1.3
+
+given a : set (maxSize 3) of int(0..9)
+find  x : set (size 2) of int(0..9)
+
+such that
+    x subsetEq a
+
+language Essence 1.3
+
+given a : set (maxSize 3) of int(0..9)
+find  x : set (size 1) of int(1)
+
+such that
+    x subsetEq a
+
+language Essence 1.3
+
+given a : set (size 2) of set (size 4) of int(0..9)
+find  x : set (size 2) of set (size 4) of int(0..9)
+
+such that
+    x subsetEq a
+
+language Essence 1.3
+
+given a : set (maxSize 3) of set (size 4) of int(0..9)
+find  x : set (size    2) of set (size 4) of int(0..9)
+
+such that
+    x = a
+
+language Essence 1.3
+
+given e new type enum
+find x : int(0..10)
+such that x = |e| / 2
+language Essence 1.3
+
+find x : int(0..1000)
+
+such that x = 5!
+
+language Essence 1.3
+
+given a : int
+find x : int(0..a!)
+
+such that x = 1
+
+language Essence 1.3
+
+given a : int
+find x : int(0..100)
+
+such that x = |20 - a!|!
+
+language Essence 1.3
+
+given n: int(1..)
+letting squares be domain tuple(int(1..n),int(1..n))
+letting queens be new type of size n
+find  P: function(total,injective) queens --> squares
+such that
+    forAll q_1,q_2 in queens, q_1 != q_2 .
+        P(q_1)[1] != P(q_2)[1]                          /\      $ different rows
+        P(q_1)[2] != P(q_2)[2]                          /\      $ different cols
+        P(q_2)[1] - P(q_1)[1] != P(q_2)[2] - P(q_1)[2]  /\      $ different downward diagonals
+        P(q_2)[1] - P(q_1)[1] != P(q_1)[2] - P(q_2)[2]          $ different upward diagonals
+
+language Essence 1.3
+
+find x : function (total) int(1..2) --> set of int(1..2)
+
+such that
+    1 in x(2)
+
+language Essence 1.2.0
+
+find packing : function (total) int(1..5) --> int(1..5)
+minimising |range(packing)|
+language Essence 1.2.0
+
+find packing : function (total) int(1..5) --> int(1..5)
+minimising max(range(packing))
+language Essence 1.3
+
+find x : function (total, surjective) int(1..4) --> int(1..3)
+
+
+language Essence 1.3
+
+find f : function (total) (int(1..3), int(4..5)) --> int(0..9)
+
+such that
+    f((1,4)) = 0
+
+language Essence 1.3
+
+find f : function (int(1..3), int(1..3)) --> int(0..9)
+such that forAll i : int(1..3) . f(tuple(i,i)) = i + i
+language Essence 1.3
+
+given items   new type enum,
+      bins    new type enum,
+      bin_vol : int(1..),
+      vols    : function (total) items --> int(1..bin_vol)
+
+find assignment : function (total) items --> bins
+language Essence 1.3
+
+find x : set (size 3) of int(0..9)
+
+maximising min(x)
+
+such that
+    4 > max(x)
+language Essence 1.3
+
+find x : set (size 6) of int(0..9)
+find y : set (size 7) of int(0..9)
+
+such that
+    1 in x,
+    x subsetEq y
+language Essence 1.3
+
+find s : set of int(0..9)
+find p : partition (size 3) from int(0..9)
+
+such that s in parts(p)
+
+language Essence 1.3
+
+given n: int(1..)
+
+find divisors: function (total) int(1..n) --> set of int(1..n)
+$ find num_divisors: function (total) int(1..n) --> int(1..n)
+$ find num_divisors_divides : set of int(1..n)
+
+$ such that
+$     forAll i : int(1..n) .
+$         forAll j : int(1..n)
+$             , j <= i /\ i % j = 0
+$             . j in divisors(i),
+
+$     forAll i : int(1..n) .
+$         forAll j : int(1..n)
+$             , j <= i /\ i % j != 0
+$             . !(j in divisors(i)),
+
+$     forAll i : int(1..n) . num_divisors(i) = |divisors(i)|,
+
+$     forAll i : int(1..n) , i % num_divisors(i) = 0 . i in num_divisors_divides,
+
+such that
+    forAll i : int(1..n) .
+        forAll j : int(1..i) .
+            i % j = 0 -> j in divisors(j)
+
+language Essence 1.3
+
+letting p be partition({1,2,3},{4,5,6},{7,8,9})
+
+find x : int(0..9)
+
+such that
+    forAll i in parts(p) . x >= |i|
+
+language Essence 1.3
+
+given m : matrix indexed by [int(1..28)] of (int, int, int, int)
+
+find x : int(-100000..100000)
+
+such that
+    x = sum i : int(1..28) . m[i,1] + m[i,2] - m[i,3] - m[i,4]
+language Essence 1.3
+
+find x : int(0..100)
+
+such that
+    x = sum m : matrix indexed by [int(1..2), int(1..1)] of int(1..2) , (forAll i : int(1..2) . allDiff(m[i])) . 1
+language Essence 1.3
+
+find a,r,s: int(1..10)
+such that max({a, 3 - max({a, 3 - r})}) = s
+language Essence 1.3
+
+find x : mset (size 4) of int(0..9)
+such that 3 in x
+
+language Essence 1.3
+
+find x : mset (size 4) of mset (size 3) of int(0..9)
+
+language Essence 1.3
+
+find x : mset (size 4) of mset (size 3) of mset (size 2) of int(0..9)
+
+language Essence 1.3
+
+find x : mset (size 4) of mset (size 3) of mset (size 2) of mset (size 2) of int(0..9)
+
+language Essence 1.3
+
+find x : mset (size 4) of int(0..9)
+
+language Essence 1.3
+
+find x : int(1..5)
+find y : mset (size 3) of int(1..5)
+
+such that
+
+freq(y, x) = 2
+language Essence 1.3
+find x : mset (maxSize 3) of int(1..3)
+such that x = mset(1,1,2)language Essence 1.3
+
+find a: mset (size 3) of int(1..10)
+find b: mset (size 3) of int(1..10)
+find c: mset (size 3) of int(1..10)
+
+such that forAll i in a intersect b . i <= 3
+language Essence 1.3
+
+given n,m,k: int
+
+find a: mset (size k) of int(n..m)
+find b: mset (size k) of int(n..m)
+find c: int(n..m)
+
+such that |a intersect b| = c
+such that a != b
+
+language Essence 1.3
+
+find a: mset (size 3) of int(1..10)
+find b: mset (size 3) of int(1..10)
+find c: mset (size 3) of int(1..10)
+
+such that a intersect b = c
+language Essence 1.3
+
+find f : function (minSize 1) int(1..9) --> int(1..9)
+such that forAll i : int(1..3) . f(i) = f(f(i))
+such that f(1) = 7
+language Essence 1.3
+
+letting Index be domain int(1..3)
+
+letting s be {
+    function( 3 --> {1,2}, 2 --> {1,3},  1 --> {2,1} ),
+    function( 3 --> {3,2}, 1 --> {2,1},  2 --> {2,3} )
+}
+
+find fs : set (size 2) of set (size 2) of function (total) Index --> set (size 2) of int(1,2,3)
+
+such that
+
+fs = { s, s}
+
+
+language Essence 1.3
+
+find x : int(0..10000)
+
+minimising x
+
+such that
+    forAll v__101, blah, v__1 : int(0..9) .
+        x >= v__101 * blah * v__1
+
+language Essence 1.3
+
+given n_colours : int (1..10)
+given sizes new domain int
+
+find stuff : set of sizes
+
+such that
+    n_colours in stuff
+language Essence 1.3
+
+given n_colours : int (1..10)
+given sizes new domain int
+
+find stuff : function (total) sizes --> int (1..n_colours)
+
+such that
+	n_colours in defined(stuff)
+language Essence 1.3
+given n_colours, n_orders: int(1..20)
+given sizes new domain int
+
+letting Order be domain int(1..n_orders)
+
+given ordsize : function (total) Order --> int(1..10)
+
+find cut : function set of Order --> sizes
+
+minimising sum (_,os) in toSet(cut) . os
+
+such that
+    forAll os in defined(cut) . (sum o in os . ordsize(o)) <= cut(os),
+language Essence 1.3
+given n_orders: int(1..20)
+given sizes new domain int
+
+letting Order be domain int(1..n_orders)
+
+given ordsize : function (total) Order --> int(1..10),
+      ordcol : function (total) Order --> int(1..10)
+
+find cut : function set of Order --> sizes
+
+minimising sum (_,os) in toSet(cut) . os
+
+such that
+    forAll os in defined(cut) . (sum o in os . ordsize(o)) <= cut(os),
+    forAll (os,cut_os) in toSet(cut) . (sum o in os . ordsize(o)) <= cut_os
+language Essence 1.3
+given n_colours, n_orders: int(1..)
+given sizes new domain int
+
+letting Order be domain int(1..n_orders)
+
+given ordsize : function (total) Order --> int(1..)
+
+find cut : function set of Order --> sizes
+
+minimising sum (_,os) in toSet(cut) . os
+
+such that
+    forAll os in defined(cut) . (sum o in os . ordsize(o)) <= cut(os),
+language Essence 1.3
+
+given x : set (size 4) of int(0..9)
+
+find y,z : int(0..100)
+
+such that
+    y = sum i in x . i,
+    z = sum i in x . 1
+language Essence 1.3
+
+find f : function int(1..9) --> int(1..9)
+such that |f| = 2
+language Essence 1.3
+
+find x : partition (regular, size 4, partSize 3) from int(1..12)
+
+language Essence 1.3
+
+find x : int(0..100)
+such that x = sum s : set of int(1..5) . toInt({2,3} subsetEq s)
+
+language Essence 1.3
+
+find x : relation of (int(1..4) * int(1..3))
+
+letting all be
+    { (1,1)
+    , (1,2)
+    , (1,3)
+    , (2,1)
+    , (2,2)
+    , (2,3)
+    , (3,1)
+    , (3,2)
+    , (3,3)
+    , (4,1)
+    , (4,2)
+    , (4,3)
+    }
+
+such that forAll (i,j) in all . x(i,j)
+
+language Essence 1.3
+
+find r : relation of (int(0..9) * int(0..9))
+
+such that
+    r(1,2),
+    |toSet(r(2,_))| = 3,
+    |toSet(r(_,4))| = 5
+language Essence 1.3
+
+find r : relation of (int(0..9) * int(0..9))
+
+such that |toSet(r(2,_)) intersect toSet(r(4,_))| = 3
+language Essence 1.3
+
+find r : relation of (int(1..5) * int(1..5) * int(1..5))
+
+such that
+    r(1,2,3),
+    |toSet(r(1,2,_))| = 3,
+    |toSet(r(1,_,3))| = 3,
+    |toSet(r(_,2,3))| = 3,
+    |toSet(r(1,_,_))| = 3,
+    |toSet(r(_,2,_))| = 3,
+    |toSet(r(_,_,3))| = 3,
+language ESSENCE 2.0
+
+find x : int(0..90)
+
+such that
+    x = sum (i,j) in toSet(relation( (1,2), (1,3), (2,2) )) , i = 1 . j
+
+language ESSENCE 2.0
+
+find x : relation (maxSize 3) of (int(1..3) * int(1..3) * int(1..3))
+
+such that
+    x(1,_,_) = relation((1,1))
+
+language Essence 1.3
+
+letting r be relation( (1,2), (1,3), (2,2) )
+
+find x : int(0..90)
+
+such that
+    tuple (x) in r(1,_)
+language Essence 1.3
+
+such that
+    (relation((1,2,3)))(1,_,_) = relation((2,3))
+
+language Essence 1.3
+
+find r : relation (size 3) of (int(0..9) * bool)
+
+language Essence 1.3
+
+find x : set of (int(1..4), int(1..3))
+
+letting all be
+    { (1,1)
+    , (1,2)
+    , (1,3)
+    , (2,1)
+    , (2,2)
+    , (2,3)
+    , (3,1)
+    , (3,2)
+    , (3,3)
+    , (4,1)
+    , (4,2)
+    , (4,3)
+    }
+
+such that x = all
+
+language Essence 1.3
+
+find x : set (size 4) of int(0..9)
+find y : int(0..20)
+
+such that
+    forAll i,j in x , i != j . i+j < y
+
+language Essence 1.3
+
+find x : set (size 4) of int(0..9)
+such that 3 in x
+
+language Essence 1.3
+
+find x : set (size 4) of set (size 3) of int(0..9)
+
+language Essence 1.3
+
+find x : set (size 4) of set (size 3) of set (size 2) of int(0..9)
+
+language Essence 1.3
+
+find x : set (size 4) of set (size 3) of set (size 2) of set (size 2) of int(0..9)
+
+language Essence 1.3
+
+find x : set (size 4) of int(0..9)
+
+language Essence 1.3
+
+find x : set of int(0..9)
+find y : int(3..7)
+
+such that
+    y in x,
+    y = 4,
+    |x| = 1
+
+language Essence 1.3
+
+find x : set (size 4) of set (minSize 1, maxSize 3) of int(0..9)
+
+language Essence 1.3
+
+find x : set (size 4) of set (size 3) of set (minSize 1, maxSize 2) of int(0..9)
+
+language Essence 1.3
+
+find x : set (size 4) of set (size 3) of set (size 2) of set (minSize 1, maxSize 2) of int(0..9)
+
+language Essence 1.3
+
+find x : set (minSize 1, maxSize 4) of int(0..9)
+such that 3 in x
+
+language Essence 1.3
+
+find x : set (minSize 1, maxSize 4) of int(0..9)
+
+language Essence 1.3
+
+find x :
+    set (size 2) of
+    set (size 3) of
+    set (maxSize 4) of int(0..9)
+
+language Essence 1.3
+
+find x :
+    set (size 2) of
+    set (size 3) of
+    set (size 4) of int(0..9)
+
+language Essence 1.3
+
+find x : set (maxSize 7) of
+    set (size 2) of set (size 3) of int(1..9)
+such that |x| = 3
+language Essence 1.3
+
+find s : set of set (minSize 1, maxSize 3) of int(1..4)
+
+language Essence 1.3
+
+find s : set (minSize 2) of relation (minSize 1) of (int(1..2) * int(1..2))
+
+language Essence 1.3
+
+find s : set (minSize 1) of (int(1..2), int(1..2))
+
+language Essence 1.3
+
+find S : set (minSize 2) of (int(1..4), int(1..4))
+
+such that
+
+forAll {(c1,v1), (c2,u2)} subsetEq S .
+    exists  (x1,y1) in S .
+        | { [c1,c2], [v1,y1], [x1,u2] }| = 3
+language Essence 1.3
+
+find a,b,c,d: int(0..5)
+
+such that
+    [a, b] =  [c, d],
+    [a, b] != [d, c]
+language Essence 1.3
+
+letting s be {1,2,3,4}
+
+find a : set of int(1..4)
+
+such that
+forAll i : int(1..2) .
+    |{i, i+ 1}| in a
+language Essence 1.3
+
+letting S be {1,2,3,4,5,5,6,7,8,8,9,0,1,3,3,3}
+
+
+
+find n : int(1..100)
+
+such that
+    n = |S|
+language ESSENCE 1.3
+
+given Items new type enum,
+      capacity : int(1..),
+      weight,value : function (total) Items --> int (1..)
+
+find packed : set of Items
+
+maximising sum i in packed . value(i)
+
+such that (sum i in packed . weight(i)) <= capacity
+language Essence 1.3
+
+find r : relation (size 5) of (int(0..3) * int(0..3))
+
+maximising sum i in toSet(r(1,_)) . i[1]
+language Essence 1.3
+
+find r : relation (size 5) of (int(0..3) * int(0..3))
+
+maximising sum tuple (i) in toSet(r(1,_)) . i
+language Essence 1.3
+
+find x : set (size 4) of int(0..9)
+find y : int(0..100)
+
+maximising y
+
+such that
+    y = sum {i,j} subsetEq x . i * j
+
+language Essence 1.3
+
+find x : set (size 4) of int(0..9)
+find y : int(0..1000)
+
+maximising y
+
+such that
+    y = sum {i,j,k} subsetEq x . i * j + k
+
+language Essence 1.3
+
+find x : set (size 4) of int(0..9)
+find y : int(0..100)
+
+minimising y
+
+such that
+    y = sum {i,j} subsetEq x . i * j
+
+language Essence 1.3
+
+find x : int(1..1000)
+
+such that
+    x = sum (i,j) : (int(1..9), int(1..9)) , i < j . j
+
+language Essence 1.3
+
+find x,y : int(-9..9)
+
+find s1,s2 : set of int(0..9)
+
+such that
+    |x| = y,
+    |s1 intersect s2| = y - x
+language Essence 1.3
+
+find totalCost   : int(0..1000)
+find totalCost_a : int(0..1000)
+find totalCost_b : int(0..1000)
+
+such that
+    totalCost = totalCost_a + totalCost_b,
+    totalCost_a = 10,
+    totalCost_b = 10
+language Essence 1.3
+
+find x: int(6, 1)
+such that x = 1
+
+language Essence 1.3
+
+find foo: matrix indexed by [int(8, 3, 2, 7)] of bool
+such that exists i : int(8, 3, 2, 7) . foo[i] /\ i = 2
