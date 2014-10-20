@@ -34,7 +34,9 @@ boolExpr s@SS{..} = oneof $ case depth_ of
      _ ->  [ boolLit s, equivExpr s, relationExpr s ]
 
 quanExpr :: SpecState -> Gen Expr
-quanExpr s = oneof $ [ quanInExpr s ]
+quanExpr s = oneof $ [ quanInExpr s, quanOverExpr s ]
+-- quanExpr s = oneof $ [ quanOverExpr s ]
+
 
 quanInExpr :: SpecState -> Gen Expr
 quanInExpr s =
@@ -53,13 +55,40 @@ quanInExpr s =
             let quanTop = EQuan quanType (BIn (EQVar inName) over)
 
             quanGuard <- oneof [
-                return EEmptyGuard, exprUsingRef s''  inName
+                return EEmptyGuard, boolExprUsingRef s''  inName
                 ]
             quanBody <- boolExpr s''{depth_=depth_ s''  - 1}
             return $ quanTop quanGuard quanBody
 
     where
         overs =  varOf s (TSet TAny)
+
+
+quanOverExpr :: SpecState -> Gen Expr
+quanOverExpr s =
+    case overs of
+        Nothing  -> boolExpr s  -- Nothing to quantify over
+        Just gen-> do
+            dom <- gen
+            let overType = typeOfDom dom
+
+            let inType =  quanType_in overType
+            let (s', inName) = nextQuanVarName s
+            let s'' = introduceVariable s' (inName, inType)
+
+            -- FIXME Ensure with high prob that inName is actually used
+            quanType <- elements [ ForAll, Exists ]
+            let quanTop = EQuan quanType (BOver (EQVar inName) (EDom dom) )
+
+            quanGuard <- oneof [
+                return EEmptyGuard, boolExprUsingRef s''  inName
+                ]
+            quanBody <- boolExpr s''{depth_=depth_ s''  - 1}
+            return $ quanTop quanGuard quanBody
+
+    where
+        overs =  domOf s (TSet TAny)
+
 
 quanSum :: SpecState -> Gen Expr
 quanSum s =
@@ -79,15 +108,15 @@ quanSum s =
                 return EEmptyGuard
                 ]
 
-            quanBody <- intLit s''
+            quanBody <-  exprOf s''{depth_=  depth_ s'' -1 } TInt
             return $ quanTop quanGuard quanBody
 
     where
     overs =  varOf s (TSet TInt)
 
 -- assuming depth > 1 left
-exprUsingRef :: SpecState -> Ref -> Gen Expr
-exprUsingRef s@SS{..} ref= do
+boolExprUsingRef :: SpecState -> Ref -> Gen Expr
+boolExprUsingRef s@SS{..} ref= do
     let refType = lookupType s ref
     sidesType <- typeFromType s refType
 
@@ -101,7 +130,7 @@ exprUsingRef s@SS{..} ref= do
     else
         return $ op other refExpr
 
-exprFromToType :: SpecState -> Text -> Type -> Type -> Gen Expr
+exprFromToType :: SpecState -> Ref -> Type -> Type -> Gen Expr
 exprFromToType _ ref from to | from == to =  return $ EVar ref
 
 exprFromToType s ref (TSet _) TInt = return $ EUniOp $ UBar $ EVar ref
@@ -158,16 +187,21 @@ exprOf ss  exprDom = error . show . vcat $
     ["exprOfType not Matched", "exprDom:" <+> pretty exprDom, pretty . groom $ ss]
 
 
-varOf :: SS -> Type -> Maybe (Gen Expr)
-varOf SS{..} exprType = toGenExpr $ newVars ++  (map fst . M.toList  .
+varOf :: SpecState -> Type -> Maybe (Gen Expr)
+varOf SS{..} exprType = toGenExpr EVar $ newVars ++  (map fst . M.toList  .
     M.filter (typesUnify exprType . typeOfDom . domOfFG ))  doms_
 
     where
     newVars :: [Text]
     newVars = map fst $ filter (typesUnify exprType . snd ) $ newVars_
 
+domOf :: SpecState -> Type -> Maybe (Gen Domain)
+domOf SS{..} exprType = toGenExpr id  $ (map (domOfFG . snd) . M.toList  .
+    M.filter (typesUnify exprType . typeOfDom . domOfFG ))  doms_
 
-toGenExpr :: [Ref] -> Maybe (Gen Expr)
-toGenExpr doms =  case (map (EVar) $ doms) of
+
+
+toGenExpr ::  (a -> b) -> [a] -> Maybe (Gen b)
+toGenExpr f vs =  case (map f vs) of
     [] -> Nothing
     xs -> Just $ elements xs

@@ -44,7 +44,7 @@ typeFromType s@SS{..} ty@TBool = oneof [
         return ty
     ]
 
-lookupType :: SpecState -> Text -> Type
+lookupType :: SpecState -> Ref -> Type
 lookupType  s@SS{..} name =
     case  name `lookup` newVars_ of
         Just v  -> v
