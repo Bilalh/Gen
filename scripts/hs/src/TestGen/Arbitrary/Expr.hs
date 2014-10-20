@@ -61,6 +61,30 @@ quanInExpr s =
     where
         overs =  varOf s (TSet TAny)
 
+quanSum :: SpecState -> Gen Expr
+quanSum s =
+    case overs of
+        Nothing -> intLit s
+        Just gen -> do
+            over@(EVar overName) <- gen
+            let overType = lookupType s overName
+
+            let inType =  quanType_in overType
+            let (s', inName) = nextQuanVarName s
+            let s'' = introduceVariable s' (inName, inType)
+
+            let quanTop = EQuan Sum (BIn (EQVar inName) over)
+
+            quanGuard <- oneof [
+                return EEmptyGuard
+                ]
+
+            quanBody <- intLit s''
+            return $ quanTop quanGuard quanBody
+
+    where
+    overs =  varOf s (TSet TInt)
+
 -- assuming depth > 1 left
 exprUsingRef :: SpecState -> Ref -> Gen Expr
 exprUsingRef s@SS{..} ref= do
@@ -107,10 +131,19 @@ exprOf s@SS{depth_=0,..} d@TInt = oneof $ ofType ++
     where ofType = maybeToList $ varOf s d
 
 
+exprOf s@SS{depth_=1,..} d@TInt = oneof $ ofType ++
+    [
+      intLit s
+    , arithmeticExprOf s d
+    ]
+    where
+    ofType = maybeToList $ varOf s d
+
 exprOf s@SS{..} d@TInt = oneof $ ofType ++
     [
       intLit s
     , arithmeticExprOf s d
+    , quanSum s
     ]
     where
     ofType = maybeToList $ varOf s d
