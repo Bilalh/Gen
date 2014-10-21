@@ -22,7 +22,7 @@ fi
 # Runs the whole toolchain using compact with specifed params
 function csolve(){
 	if [ $# -lt 1 ]; then
-		echo "$0  param+ "
+		echo "csolve  param+ "
 	else
 		local base="$(basename "$PWD")"
 		__models_dir="${base}-compact/"
