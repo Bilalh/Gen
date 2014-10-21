@@ -5,7 +5,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 
-module TestGen.ZOld where
+module TestGen.Old.ZOld where
 
 import Language.E hiding(trace)
 
