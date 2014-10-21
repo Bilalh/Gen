@@ -3,11 +3,11 @@
 
 {-# LANGUAGE DeriveGeneric #-}
 
-module TestGen.Data where
+module TestGen.Old.Data where
 
 import TestGen.Runner(RefineR,SolveR)
-import TestGen.EssenceDomain(EssenceDomain)
-import TestGen.EssenceConstraints(Eexpr)
+import TestGen.Old.EssenceDomain(EssenceDomain)
+import TestGen.Old.EssenceConstraints(Eexpr)
 
 import Language.E hiding (trace)
 

@@ -5,10 +5,10 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE PatternGuards #-}
 
-module TestGen.TestGen where
+module TestGen.Old.TestGen where
 
-import TestGen.Create
-import TestGen.Data
+import TestGen.Old.Create
+import TestGen.Old.Data
 import Common.Helpers
 import TestGen.Runner
 

@@ -4,7 +4,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ConstraintKinds #-}
 
-module TestGen.Debug where
+module TestGen.Old.Debug where
 
 import TestGen.Data
 import Language.E

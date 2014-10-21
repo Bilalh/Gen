@@ -1,8 +1,8 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE RecordWildCards #-}
-module TestGen.Args(parseArgs) where
+module TestGen.Old.Args(parseArgs) where
 
-import TestGen.Data
+import TestGen.Old.Data
 
 import Build_autoversion(buildDateRFC2822,autoVersion)
 import System.Console.CmdArgs.Implicit

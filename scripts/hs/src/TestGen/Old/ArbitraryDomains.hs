@@ -1,11 +1,11 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
 {-# LANGUAGE ConstraintKinds, FlexibleContexts #-}
 
-module TestGen.ArbitraryDomains where
+module TestGen.Old.ArbitraryDomains where
 
-import TestGen.Data
-import TestGen.EssenceDomain
-import TestGen.Sample(sample,weightedRange)
+import TestGen.Old.Data
+import TestGen.Old.EssenceDomain
+import TestGen.Old.Sample(sample,weightedRange)
 
 
 class ArbitraryLimited a where

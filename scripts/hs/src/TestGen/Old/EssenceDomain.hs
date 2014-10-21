@@ -1,7 +1,7 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
 {-# LANGUAGE ConstraintKinds, FlexibleContexts #-}
 
-module TestGen.EssenceDomain where
+module TestGen.Old.EssenceDomain where
 
 import AST.ToEssence
 import Common.Helpers

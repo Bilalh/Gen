@@ -2,7 +2,7 @@
 {-# LANGUAGE ConstraintKinds, FlexibleContexts #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module TestGen.EssenceConstraints where
+module TestGen.Old.EssenceConstraints where
 
 import Common.Helpers
 import AST.ToEssence

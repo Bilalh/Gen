@@ -4,12 +4,12 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE PatternGuards #-}
 {-# OPTIONS_GHC -w #-}
-module TestGen.Create where
+module TestGen.Old.Create where
 
-import TestGen.ArbitraryDomains
-import TestGen.Data
-import TestGen.EssenceConstraints
-import TestGen.EssenceDomain
+import TestGen.Old.ArbitraryDomains
+import TestGen.Old.Data
+import TestGen.Old.EssenceConstraints
+import TestGen.Old.EssenceDomain
 import Common.Helpers
 
 import AST.ToEssence
