@@ -22,6 +22,7 @@ import Text.Groom(groom)
 import qualified Data.Map as M
 
 
+
 expr :: SpecState -> Gen Expr
 expr s@SS{..} | depth_ < 3 = boolExpr s
 expr s = oneof $
@@ -35,7 +36,6 @@ boolExpr s@SS{..} = oneof $ case depth_ of
 
 quanExpr :: SpecState -> Gen Expr
 quanExpr s = oneof $ [ quanInExpr s, quanOverExpr s ]
--- quanExpr s = oneof $ [ quanOverExpr s ]
 
 
 quanInExpr :: SpecState -> Gen Expr
@@ -68,13 +68,13 @@ quanOverExpr :: SpecState -> Gen Expr
 quanOverExpr s =
     case overs of
         Nothing  -> boolExpr s  -- Nothing to quantify over
-        Just gen-> do
+        Just gen -> do
             dom <- gen
             let overType = typeOfDom dom
 
-            let inType =  quanType_in overType
+            let innerType = overType
             let (s', inName) = nextQuanVarName s
-            let s'' = introduceVariable s' (inName, inType)
+            let s'' = introduceVariable s' (inName, innerType)
 
             -- FIXME Ensure with high prob that inName is actually used
             quanType <- elements [ ForAll, Exists ]
@@ -87,7 +87,7 @@ quanOverExpr s =
             return $ quanTop quanGuard quanBody
 
     where
-        overs =  domOf s (TSet TAny)
+        overs =  domOf s [TSet TAny, TInt]
 
 
 quanSum :: SpecState -> Gen Expr
@@ -130,6 +130,7 @@ boolExprUsingRef s@SS{..} ref= do
     else
         return $ op other refExpr
 
+-- Types that can be reached from a type in n levels of nesting
 exprFromToType :: SpecState -> Ref -> Type -> Type -> Gen Expr
 exprFromToType _ ref from to | from == to =  return $ EVar ref
 
@@ -195,9 +196,10 @@ varOf SS{..} exprType = toGenExpr EVar $ newVars ++  (map fst . M.toList  .
     newVars :: [Text]
     newVars = map fst $ filter (typesUnify exprType . snd ) $ newVars_
 
-domOf :: SpecState -> Type -> Maybe (Gen Domain)
-domOf SS{..} exprType = toGenExpr id  $ (map (domOfFG . snd) . M.toList  .
-    M.filter (typesUnify exprType . typeOfDom . domOfFG ))  doms_
+domOf :: SpecState -> [Type] -> Maybe (Gen Domain)
+domOf SS{..} exprTypes = toGenExpr id  $ (map (domOfFG . snd) . M.toList  .
+    M.filter (  (\t -> any (typesUnify t) exprTypes )  . typeOfDom . domOfFG ))
+        doms_
 
 
 
