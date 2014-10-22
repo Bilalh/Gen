@@ -11,6 +11,8 @@ module TestGen.Arbitrary.Domain
     , intDom
     , setDom
     , matDom
+    , rangeComp
+    , intFromDint
 ) where
 
 import AST.Imports
@@ -18,17 +20,13 @@ import Language.E  hiding (trace)
 import TestGen.Arbitrary.Data
 import TestGen.Arbitrary.Helpers
 
-import Debug.Trace(trace)
-
 import Test.QuickCheck
-
 import Data.Set(Set)
-
 import qualified Data.Set as S
 
-import Text.PrettyPrint(parens)
-instance (Pretty a, Pretty b, Pretty c) => Pretty (a,b, c) where
-    pretty (a,b,c) = prettyListDoc parens "," [pretty a, pretty b, pretty c]
+-- import Text.PrettyPrint(parens)
+-- instance (Pretty a, Pretty b, Pretty c) => Pretty (a,b, c) where
+--     pretty (a,b,c) = prettyListDoc parens "," [pretty a, pretty b, pretty c]
 
 dom :: Depth -> Gen (Domain)
 dom 0 = oneof [ intDom 0 , return DBool ]
@@ -59,18 +57,6 @@ matDom depth = do
 
     -- return $ (numElems,numRanges, DMat{innerIdx=idx, inner=innerDom })
     return $ DMat{innerIdx=idx, inner=innerDom }
-
-
-rangeComp :: Range Expr -> Range Expr -> Ordering
-rangeComp (RSingle (ELit (EI a) ))    (RSingle (ELit (EI b) ))   = compare a b
-rangeComp (RSingle (ELit (EI a) ))    (RFromTo (ELit (EI b) ) _) = compare a b
-rangeComp (RFromTo (ELit (EI a) ) _ ) (RFromTo (ELit (EI b) ) _) = compare a b
-rangeComp (RFromTo (ELit (EI a) ) _)  (RSingle (ELit (EI b) ))   = compare a b
-rangeComp a b  = error . show $ vcat [
-    "rangeComp not matched",
-    pretty $ show a, pretty $ show b,
-    pretty a, pretty b
-    ]
 
 
 mkRanges :: Integer ->  Integer -> Integer -> Set Integer -> Gen ( [Range Expr] )
@@ -153,3 +139,30 @@ range _ = oneof
             a <- choose ((-10),10 :: Integer)
             b <- choose (a,10)
             return $ RFromTo (ELit . EI $ a) (ELit . EI $  b)
+
+
+rangeComp :: Range Expr -> Range Expr -> Ordering
+rangeComp (RSingle (ELit (EI a) ))    (RSingle (ELit (EI b) ))   = compare a b
+rangeComp (RSingle (ELit (EI a) ))    (RFromTo (ELit (EI b) ) _) = compare a b
+rangeComp (RFromTo (ELit (EI a) ) _ ) (RFromTo (ELit (EI b) ) _) = compare a b
+rangeComp (RFromTo (ELit (EI a) ) _)  (RSingle (ELit (EI b) ))   = compare a b
+rangeComp a b  = error . show $ vcat [
+    "rangeComp not matched",
+    pretty $ show a, pretty $ show b,
+    pretty a, pretty b
+    ]
+
+intFromDint :: Domain -> Gen Expr
+intFromDint DInt{..} =  elements $ concatMap getInts ranges
+    where
+        getInts (RSingle x@(ELit (EI _))) =  [x]
+        getInts (RFromTo (ELit (EI a) ) (ELit (EI b) ))  = map (ELit . EI) [a..b]
+        getInts a = error . show $ vcat [
+            "getInts not matched",
+            pretty $ show a, pretty a
+            ]
+
+intFromDint a = error . show $ vcat [
+    "intFromInt not matched",
+    pretty $ show a, pretty a
+    ]
