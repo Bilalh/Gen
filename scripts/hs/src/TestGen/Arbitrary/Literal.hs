@@ -11,6 +11,8 @@ import AST.Imports
 import TestGen.Arbitrary.Helpers
 import TestGen.Arbitrary.Data
 import TestGen.Arbitrary.Type
+import TestGen.Arbitrary.SizeOf
+import TestGen.Arbitrary.Domain
 
 import TestGen.Arbitrary.Expr(exprOf)
 
@@ -40,3 +42,10 @@ setLitOf :: SpecState -> Type ->  Gen Expr
 setLitOf s@SS{..} innerType = do
     exprs <- listOfB 0 (min 15 (3 * depth_) ) ( exprOf s{depth_=depth_ - 1} innerType)
     return $ ELit $ ESet $ map EExpr $ exprs
+
+matrixLitOf :: SpecState -> Type -> Gen Expr
+matrixLitOf s@SS{..} innerType = do
+    idx <- intDom (depth_ - 1)
+    let numElems = sizeOf idx
+    exprs <- vectorOf (fromInteger numElems) ( exprOf s{depth_=depth_ - 1} innerType)
+    return $ ELit $ EMatrix (map EExpr $ exprs) idx

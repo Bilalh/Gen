@@ -10,7 +10,7 @@ module TestGen.Arbitrary.Domain
       dom
     , intDom
     , setDom
-    , matDom
+    , matixDom
     , rangeComp
     , intFromDint
 ) where
@@ -28,25 +28,26 @@ import qualified Data.Set as S
 -- instance (Pretty a, Pretty b, Pretty c) => Pretty (a,b, c) where
 --     pretty (a,b,c) = prettyListDoc parens "," [pretty a, pretty b, pretty c]
 
-dom :: Depth -> Gen (Domain)
+dom :: Depth -> Gen Domain
 dom 0 = oneof [ intDom 0 , return DBool ]
 dom n = oneof
     [
-      intDom n
-    , return DBool
+      return DBool
+    , intDom n
     , setDom n
+    , matixDom n
     ]
 
 intDom :: Depth -> Gen Domain
-intDom d = return DInt `ap` (listOfB 1 4 (range d))
+intDom d = return DInt `ap` listOfB 1 4 (range d)
 
 setDom :: Depth -> Gen Domain
 setDom depth = do
     inner <- dom (depth - 1)
     return $ dset{inner}
 
-matDom :: Depth -> Gen Domain
-matDom depth = do
+matixDom :: Depth -> Gen Domain
+matixDom depth = do
     numElems <- choose (1 :: Integer, max (fromIntegral $ depth * 3) 10 )
     numRanges <- choose (1 :: Integer, numElems)
 
@@ -56,7 +57,7 @@ matDom depth = do
     innerDom <- dom (depth - 1)
 
     -- return $ (numElems,numRanges, DMat{innerIdx=idx, inner=innerDom })
-    return $ DMat{innerIdx=idx, inner=innerDom }
+    return  DMat{innerIdx=idx, inner=innerDom }
 
 
 mkRanges :: Integer ->  Integer -> Integer -> Set Integer -> Gen ( [Range Expr] )
@@ -64,7 +65,7 @@ mkRanges _ 0 0 _ = return []
 
 mkRanges ub ns 1 used = do
     (l,u) <- chooseUnusedSized ub ns used
-    return $ [ RFromTo (ELit . EI $ l) (ELit . EI $ u) ]
+    return  [ RFromTo (ELit . EI $ l) (ELit . EI $ u) ]
 
 mkRanges ub ns rs used | ns == rs = do
     i <- chooseUnused ub used
@@ -84,12 +85,12 @@ mkRanges ub ns rs used | ns >=2= do
         num <- choose (2, ns - rs + 1 )
         (l,u) <- chooseUnusedSized ub num used
 
-        let used' = (S.fromList [l..u] ) `S.union` used
+        let used' = S.fromList [l..u]  `S.union` used
         rest <- mkRanges ub (ns - (u - l + 1) ) (rs - 1) used'
 
         return $ RFromTo (ELit . EI $ l) (ELit . EI $ u) : rest
 
-mkRanges _ ns rs _  = do
+mkRanges _ ns rs _  =
      error . show $ ("mkRanges unmatched" :: String, ns, rs)
 
 chooseUnusedSized ::  Integer -> Integer -> Set Integer -> Gen (Integer, Integer)
@@ -130,15 +131,16 @@ range _ = oneof
     where
     arbitrarySingle :: Gen (Range Expr)
     arbitrarySingle = do
-        a <- choose ((-10),10 :: Integer)
+        a <- choose (-10,10 :: Integer)
         return $ RSingle (ELit . EI $ a)
 
     arbitraryFromTo :: Gen (Range Expr)
     arbitraryFromTo = do
         do
-            a <- choose ((-10),10 :: Integer)
+            a <- choose (-10,10 :: Integer)
             b <- choose (a,10)
             return $ RFromTo (ELit . EI $ a) (ELit . EI $  b)
+
 
 
 rangeComp :: Range Expr -> Range Expr -> Ordering

@@ -68,6 +68,7 @@ quanOverExpr :: SpecState -> Gen Expr
 quanOverExpr s =
     case overs of
         Nothing  -> boolExpr s  -- Nothing to quantify over
+
         Just gen -> do
             dom <- gen
             let overType = typeOfDom dom
@@ -185,7 +186,7 @@ exprOf s@SS{..} d@(TSet inner) | depth_ >=1 = oneof $ ofType ++
     where ofType = maybeToList $ varOf s d
 
 exprOf ss  exprDom = error . show . vcat $
-    ["exprOfType not Matched", "exprDom:" <+> pretty exprDom, pretty . groom $ ss]
+    ["exprOf not Matched", "exprDom:" <+> pretty exprDom, pretty . groom $ ss]
 
 
 varOf :: SpecState -> Type -> Maybe (Gen Expr)
