@@ -1,6 +1,7 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
 
+
 module TestGen.Arbitrary.Data where
 
 import Language.E
@@ -59,3 +60,7 @@ data Type =
 
 instance Pretty Type where
     pretty  =  pretty . groom
+
+
+docError :: [Doc] -> a
+docError = error . show . vcat

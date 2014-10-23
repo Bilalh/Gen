@@ -148,7 +148,7 @@ rangeComp (RSingle (ELit (EI a) ))    (RSingle (ELit (EI b) ))   = compare a b
 rangeComp (RSingle (ELit (EI a) ))    (RFromTo (ELit (EI b) ) _) = compare a b
 rangeComp (RFromTo (ELit (EI a) ) _ ) (RFromTo (ELit (EI b) ) _) = compare a b
 rangeComp (RFromTo (ELit (EI a) ) _)  (RSingle (ELit (EI b) ))   = compare a b
-rangeComp a b  = error . show $ vcat [
+rangeComp a b  = docError [
     "rangeComp not matched",
     pretty $ show a, pretty $ show b,
     pretty a, pretty b
@@ -159,12 +159,12 @@ intFromDint DInt{..} =  elements $ concatMap getInts ranges
     where
         getInts (RSingle x@(ELit (EI _))) =  [x]
         getInts (RFromTo (ELit (EI a) ) (ELit (EI b) ))  = map (ELit . EI) [a..b]
-        getInts a = error . show $ vcat [
+        getInts a = docError [
             "getInts not matched",
             pretty $ show a, pretty a
             ]
 
-intFromDint a = error . show $ vcat [
+intFromDint a = docError [
     "intFromInt not matched",
     pretty $ show a, pretty a
     ]

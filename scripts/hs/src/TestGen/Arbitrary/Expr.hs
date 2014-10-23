@@ -185,8 +185,37 @@ exprOf s@SS{..} d@(TSet inner) | depth_ >=1 = oneof $ ofType ++
     ]
     where ofType = maybeToList $ varOf s d
 
-exprOf ss  exprDom = error . show . vcat $
-    ["exprOf not Matched", "exprDom:" <+> pretty exprDom, pretty . groom $ ss]
+
+exprOf s@SS{..} d@(TMatix inner) | depth_ >=1  = oneof $ ofType ++
+    [
+       matrixLitOf s inner
+    ]
+    where ofType = maybeToList $ varOf s d
+
+
+exprOf s@SS{..} d@(TPar _)  =  docError $
+    ["exprOf not Matched", "exprDom:" <+> pretty d, pretty . groom $ s]
+
+exprOf s@SS{..} d@(TRel _)  =  docError $
+    ["exprOf not Matched", "exprDom:" <+> pretty d, pretty . groom $ s]
+
+exprOf s@SS{..} d@(TFunc _ _)  =  docError $
+    ["exprOf not Matched", "exprDom:" <+> pretty d, pretty . groom $ s]
+
+exprOf s@SS{..} d@(TUnamed _ )  =  docError $
+    ["exprOf not Matched", "exprDom:" <+> pretty d, pretty . groom $ s]
+
+exprOf s@SS{..} d@(TEnum _ )  =  docError $
+    ["exprOf not Matched", "exprDom:" <+> pretty d, pretty . groom $ s]
+
+exprOf s@SS{..} d@(TMSet _ )  =  docError $
+    ["exprOf not Matched", "exprDom:" <+> pretty d, pretty . groom $ s]
+
+exprOf s@SS{..} d@(TAny  )  =  docError $
+    ["exprOf not Matched", "exprDom:" <+> pretty d, pretty . groom $ s]
+
+exprOf s d  =  docError $
+    ["exprOf not Matched other", "exprDom:" <+> pretty d, pretty . groom $ s]
 
 
 varOf :: SpecState -> Type -> Maybe (Gen Expr)

@@ -36,6 +36,10 @@ typeFromType s@SS{..} ty@(TSet _) = oneof [
 
     where reachable = elements [ TInt ]
 
+typeFromType s@SS{..} ty@(TMatix _) = oneof [
+        return ty
+    ]
+
 typeFromType s@SS{..} ty@TInt = oneof [
         return ty
     ]
@@ -44,13 +48,20 @@ typeFromType s@SS{..} ty@TBool = oneof [
         return ty
     ]
 
+typeFromType s ty = docError [
+    "typeFromType unmatched",
+    pretty . show $ ty,
+    pretty s
+    ]
+
+
 lookupType :: SpecState -> Ref -> Type
 lookupType  s@SS{..} name =
     case  name `lookup` newVars_ of
         Just v  -> v
         Nothing ->
             case fmap (typeOfDom . domOfFG) $  name `M.lookup` doms_ of
-                Nothing -> error . show $ vcat ["lookUpType", pretty s, pretty name]
+                Nothing ->  docError ["lookUpType", pretty s, pretty name]
                 Just v  -> v
 
 nextQuanVarName :: SpecState -> (SpecState, Text)

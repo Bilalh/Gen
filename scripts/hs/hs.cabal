@@ -35,7 +35,8 @@ Executable essenceGivensToJson2
         -fwarn-overlapping-patterns
         -fwarn-tabs
         -fwarn-unused-do-bind
-        -fwarn-unused-matches
+        -- -fwarn-unused-matches
+        -fno-warn-unused-matches
         -Wall
         -Werror
         -rtsopts
@@ -65,7 +66,9 @@ Executable essenceLettingsToJson
         -fwarn-overlapping-patterns
         -fwarn-tabs
         -fwarn-unused-do-bind
-        -fwarn-unused-matches
+        -- -fwarn-unused-matches
+        -fno-warn-unused-matches
+
         -Wall
         -Werror
         -rtsopts
@@ -96,7 +99,8 @@ Executable essenceGivensToFinds
         -fwarn-overlapping-patterns
         -fwarn-tabs
         -fwarn-unused-do-bind
-        -fwarn-unused-matches
+        -- -fwarn-unused-matches
+        -fno-warn-unused-matches
         -Wall
         -Werror
         -rtsopts
@@ -129,6 +133,7 @@ Executable testGen
                      , transformers
                      , cereal
                      , hashable
+                     , template-haskell
     ghc-prof-options:
         -auto-all
         -caf-all
@@ -141,7 +146,8 @@ Executable testGen
         -fwarn-overlapping-patterns
         -fwarn-tabs
         -fwarn-unused-do-bind
-        -fwarn-unused-matches
+        -- -fwarn-unused-matches
+        -fno-warn-unused-matches
         -Wall
         ---Werror
         -rtsopts
@@ -185,7 +191,8 @@ Executable essenceSolver
         -fwarn-overlapping-patterns
         -fwarn-tabs
         -fwarn-unused-do-bind
-        -fwarn-unused-matches
+        -- -fwarn-unused-matches
+        -fno-warn-unused-matches
         -Wall
         ---Werror
         -rtsopts

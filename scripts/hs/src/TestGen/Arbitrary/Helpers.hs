@@ -20,7 +20,7 @@ typeOfC e  =
     let (mresult, _logs) = runCompESingle "typeOf" helper
     in case mresult of
         Right ss ->  ss
-        Left d     -> error . show .  vcat $ ["typeOf", d, pretty _logs]
+        Left d     -> error . show . vcat $  ["typeOf", d, pretty _logs]
 
     where
         helper = do

@@ -87,4 +87,8 @@ boolOpFor (TSet _) =  do
     op <-  elements [ BEQ, BNEQ, BLT, Bsubset, BsubsetEq, Bsupset, BsupsetEq ]
     return $ (\a b -> EBinOp $ op a  b )
 
-boolOpFor  t = error . show $ t
+boolOpFor (TMatix _) = do
+    op <- elements [BEQ, BNEQ ]
+    return $ (\a b -> EBinOp $ op a  b )
+
+boolOpFor  t = docError ["boolOpFor",pretty $  show t  ]

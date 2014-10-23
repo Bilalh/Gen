@@ -9,3 +9,4 @@ boolLit :: SpecState -> Gen Expr
 intLit :: SpecState -> Gen Expr
 setLit :: SpecState -> Gen Expr
 setLitOf :: SpecState -> Type ->  Gen Expr
+matrixLitOf :: SpecState -> Type -> Gen Expr

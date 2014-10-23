@@ -48,7 +48,7 @@ atype :: SpecState -> Gen Type
 atype  SS{depth_=0,..}   = elements [ TBool, TInt ]
 atype  s@SS{..} = oneof [
           elements [ TBool, TInt ]
-        -- , liftM TMatix (atype newss)
+        , liftM TMatix (atype newss)
         , liftM TSet  (atype newss)
         -- , liftM TMSet (atype newss)
         -- , liftM TPar (atype newss)
