@@ -17,3 +17,4 @@ msetLitOf :: SpecState -> Type ->  Gen Expr
 
 funcLitOf :: SpecState -> Type -> Type -> Gen Expr
 relLitOf :: SpecState -> [Type] -> Gen Expr
+parLitOf :: SpecState -> Type -> Gen Expr

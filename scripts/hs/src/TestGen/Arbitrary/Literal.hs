@@ -73,6 +73,8 @@ funcLitOf s@SS{..} fromType toType = do
 
     return $ ELit $ EFunction vs
 
+-- FIXME pick only values that in the domain?
+
 relLitOf :: SpecState -> [Type] -> Gen Expr
 relLitOf s@SS{..} types = do
     parts <-  mapM mkParts types
@@ -80,6 +82,18 @@ relLitOf s@SS{..} types = do
 
     where
         mkParts ty = do
+            numElems <- choose (1, min 15 (2 * depth_) )
+            vs <- vectorOf numElems ( exprOf s{depth_=depth_ - 1} ty)
+            return $ map EExpr vs
+
+parLitOf :: SpecState -> Type -> Gen Expr
+parLitOf s@SS{..} innerType = do
+    numElems <- choose (1, min 15 (2 * depth_) )
+    parts <-  vectorOf numElems (mkPart innerType)
+    return $ ELit $ EPartition parts
+
+    where
+        mkPart ty = do
             numElems <- choose (1, min 15 (2 * depth_) )
             vs <- vectorOf numElems ( exprOf s{depth_=depth_ - 1} ty)
             return $ map EExpr vs

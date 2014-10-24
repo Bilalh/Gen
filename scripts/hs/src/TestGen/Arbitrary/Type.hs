@@ -52,7 +52,7 @@ atype  s@SS{..} = oneof [
         , liftM TMatix (atype newss)
         , liftM TSet  (atype newss)
         , liftM TMSet (atype newss)
-        -- , liftM TPar (atype newss)
+        , liftM TPar (atype newss)
         , return TFunc
             `ap` (atype newss)
             `ap` (atype newss)
