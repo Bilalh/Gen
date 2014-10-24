@@ -5,6 +5,7 @@ module TestGen.Arbitrary.Type where
 
 import AST.Imports
 import TestGen.Arbitrary.Data
+import TestGen.Arbitrary.Helpers
 
 import Test.QuickCheck
 import Language.E
@@ -52,10 +53,11 @@ atype  s@SS{..} = oneof [
         , liftM TSet  (atype newss)
         , liftM TMSet (atype newss)
         -- , liftM TPar (atype newss)
-        -- , return TFunc
-        --     `ap` (atype newss)
-        --     `ap` (atype newss)
-        -- , return TRel `ap` ( listOfB 1 10  (atype newss ) )
+        , return TFunc
+            `ap` (atype newss)
+            `ap` (atype newss)
+        , return TRel `ap` ( listOfB 1 (min 10 (2 * depth_))
+                (atype newss ) )
         ]
     where
         newss = s{depth_=newDepth}

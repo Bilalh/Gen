@@ -62,3 +62,24 @@ matrixLitOf s@SS{..} innerType = do
     let numElems = sizeOf idx
     exprs <- vectorOf (fromInteger numElems) ( exprOf s{depth_=depth_ - 1} innerType)
     return $ ELit $ EMatrix (map EExpr $ exprs) idx
+
+-- FIXME from mappings should be distinct?
+funcLitOf :: SpecState -> Type -> Type -> Gen Expr
+funcLitOf s@SS{..} fromType toType = do
+    numElems <- choose (1, min 15 (2 * depth_) )
+    froms <- vectorOf ( numElems)  ( exprOf s{depth_=depth_ - 1} fromType)
+    tos   <- vectorOf ( numElems)  ( exprOf s{depth_=depth_ - 1} toType)
+    let vs = zipWith (\a b -> (EExpr $ a, EExpr $ b) ) froms tos
+
+    return $ ELit $ EFunction vs
+
+relLitOf :: SpecState -> [Type] -> Gen Expr
+relLitOf s@SS{..} types = do
+    parts <-  mapM mkParts types
+    return $ ELit $ ERelation parts
+
+    where
+        mkParts ty = do
+            numElems <- choose (1, min 15 (2 * depth_) )
+            vs <- vectorOf numElems ( exprOf s{depth_=depth_ - 1} ty)
+            return $ map EExpr vs

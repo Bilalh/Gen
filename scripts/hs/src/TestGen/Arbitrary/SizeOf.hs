@@ -9,7 +9,7 @@ module TestGen.Arbitrary.SizeOf where
 import AST.Imports
 import qualified Data.Set as S
 import Language.E
-
+import TestGen.Arbitrary.Data
 
 -- How many different unique values are in say a domain
 class SizeOf a where
@@ -18,7 +18,7 @@ class SizeOf a where
 
 instance SizeOf Domain where
     sizeOf DInt{..} = fromIntegral .  S.size .  S.fromList . concatMap rangeInts $ ranges
-    sizeOf r = error . show $ vcat [
+    sizeOf r = docError [
         "sizeOf not matched",
         pretty $ show r, pretty r
         ]

@@ -198,14 +198,21 @@ exprOf s@SS{..} d@(TMatix inner) | depth_ >=1  = oneof $ ofType ++
     ]
     where ofType = maybeToList $ varOf s d
 
+exprOf s@SS{..} d@(TFunc a b) | depth_ >=1  = oneof $ ofType ++
+    [
+       funcLitOf s a b
+    ]
+    where ofType = maybeToList $ varOf s d
+
+exprOf s@SS{..} d@(TRel tys)  | depth_ >=1  = oneof $ ofType ++
+    [
+       relLitOf s tys
+    ]
+    where ofType = maybeToList $ varOf s d
+
+
 
 exprOf s@SS{..} d@(TPar _)  =  docError $
-    ["exprOf not Matched", "exprDom:" <+> pretty d, pretty . groom $ s]
-
-exprOf s@SS{..} d@(TRel _)  =  docError $
-    ["exprOf not Matched", "exprDom:" <+> pretty d, pretty . groom $ s]
-
-exprOf s@SS{..} d@(TFunc _ _)  =  docError $
     ["exprOf not Matched", "exprDom:" <+> pretty d, pretty . groom $ s]
 
 exprOf s@SS{..} d@(TUnamed _ )  =  docError $
@@ -223,8 +230,9 @@ exprOf s d  =  docError $
 
 
 varOf :: SpecState -> Type -> Maybe (Gen Expr)
-varOf SS{..} exprType = toGenExpr EVar $ newVars ++  (map fst . M.toList  .
-    M.filter (typesUnify exprType . typeOfDom . domOfFG ))  doms_
+varOf SS{..} exprType = toGenExpr EVar $ newVars ++ (
+    map fst . M.toList  . M.filter
+        (typesUnify exprType . typeOfDom . domOfFG ))  doms_
 
     where
     newVars :: [Text]
