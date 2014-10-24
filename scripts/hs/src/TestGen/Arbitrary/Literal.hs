@@ -32,16 +32,29 @@ intLit _ = do
     i <- choose ((-10),10 :: Integer)
     return (ELit (EI i) )
 
---FIXME depth?
+
 setLit :: SpecState -> Gen Expr
 setLit s@SS{..} = do
     innerType <- atype s{depth_ = depth_ -1 }
     setLitOf s{depth_=depth_-1} innerType
 
+--FIXME  Make the values in the set possibly unique
 setLitOf :: SpecState -> Type ->  Gen Expr
 setLitOf s@SS{..} innerType = do
-    exprs <- listOfB 0 (min 15 (3 * depth_) ) ( exprOf s{depth_=depth_ - 1} innerType)
+    exprs <- listOfB 0 (min 15 (2 * depth_) ) ( exprOf s{depth_=depth_ - 1} innerType)
     return $ ELit $ ESet $ map EExpr $ exprs
+
+
+msetLit :: SpecState -> Gen Expr
+msetLit s@SS{..} = do
+    innerType <- atype s{depth_ = depth_ -1 }
+    msetLitOf s{depth_=depth_-1} innerType
+
+msetLitOf :: SpecState -> Type ->  Gen Expr
+msetLitOf s@SS{..} innerType = do
+    exprs <- listOfB 0 (min 15 (2 * depth_) ) ( exprOf s{depth_=depth_ - 1} innerType)
+    return $ ELit $ EMSet $ map EExpr $ exprs
+
 
 matrixLitOf :: SpecState -> Type -> Gen Expr
 matrixLitOf s@SS{..} innerType = do

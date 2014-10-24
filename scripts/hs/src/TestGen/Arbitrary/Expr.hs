@@ -185,6 +185,12 @@ exprOf s@SS{..} d@(TSet inner) | depth_ >=1 = oneof $ ofType ++
     ]
     where ofType = maybeToList $ varOf s d
 
+exprOf s@SS{..} d@(TMSet inner) | depth_ >=1 = oneof $ ofType ++
+    [
+       msetLitOf s inner
+    ]
+    where ofType = maybeToList $ varOf s d
+
 
 exprOf s@SS{..} d@(TMatix inner) | depth_ >=1  = oneof $ ofType ++
     [
@@ -208,8 +214,6 @@ exprOf s@SS{..} d@(TUnamed _ )  =  docError $
 exprOf s@SS{..} d@(TEnum _ )  =  docError $
     ["exprOf not Matched", "exprDom:" <+> pretty d, pretty . groom $ s]
 
-exprOf s@SS{..} d@(TMSet _ )  =  docError $
-    ["exprOf not Matched", "exprDom:" <+> pretty d, pretty . groom $ s]
 
 exprOf s@SS{..} d@(TAny  )  =  docError $
     ["exprOf not Matched", "exprDom:" <+> pretty d, pretty . groom $ s]

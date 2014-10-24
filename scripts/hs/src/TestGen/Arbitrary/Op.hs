@@ -87,6 +87,10 @@ boolOpFor (TSet _) =  do
     op <-  elements [ BEQ, BNEQ, BLT, Bsubset, BsubsetEq, Bsupset, BsupsetEq ]
     return $ (\a b -> EBinOp $ op a  b )
 
+boolOpFor (TMSet _) =  do
+    op <-  elements [ BEQ, BNEQ, BLT, Bsubset, BsubsetEq, Bsupset, BsupsetEq ]
+    return $ (\a b -> EBinOp $ op a  b )
+
 boolOpFor (TMatix _) = do
     op <- elements [BEQ, BNEQ ]
     return $ (\a b -> EBinOp $ op a  b )

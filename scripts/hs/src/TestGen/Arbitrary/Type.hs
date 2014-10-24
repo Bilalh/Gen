@@ -50,7 +50,7 @@ atype  s@SS{..} = oneof [
           elements [ TBool, TInt ]
         , liftM TMatix (atype newss)
         , liftM TSet  (atype newss)
-        -- , liftM TMSet (atype newss)
+        , liftM TMSet (atype newss)
         -- , liftM TPar (atype newss)
         -- , return TFunc
         --     `ap` (atype newss)
