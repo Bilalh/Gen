@@ -10,7 +10,7 @@ import AST.SpecE
 
 import TestGen.Arbitrary.Arbitrary
 import TestGen.Runner(SettingI(..))
-import TestGen.TestGen(runRefine')
+import TestGen.Old.TestGen(runRefine')
 import Common.Helpers(timestamp)
 
 import Language.E hiding(trace)
@@ -60,7 +60,7 @@ x /== y =
 
 
 rmain =
-    quickCheckWith stdArgs{QC.maxSize=10,maxSuccess=100} (prop_specs_refine 10 "__")
+    quickCheckWith stdArgs{QC.maxSize=5,maxSuccess=50} (prop_specs_refine 100 "__")
 
 cmain =
     quickCheckWith stdArgs{QC.maxSize=10,maxSuccess=1000} (prop_specs_type_check)
