@@ -35,7 +35,11 @@ dom n = oneof
       return DBool
     , intDom n
     , setDom n
+    , msetDom n
     , matixDom n
+    , funcDom n
+    , relDom n
+    , parDom n
     ]
 
 intDom :: Depth -> Gen Domain
@@ -46,9 +50,14 @@ setDom depth = do
     inner <- dom (depth - 1)
     return $ dset{inner}
 
+msetDom :: Depth -> Gen Domain
+msetDom depth = do
+    inner <- dom (depth - 1)
+    return $ dmset{inner}
+
 matixDom :: Depth -> Gen Domain
 matixDom depth = do
-    numElems <- choose (1 :: Integer, max (fromIntegral $ depth * 3) 10 )
+    numElems <- choose (1 :: Integer, min (fromIntegral $ depth * 3) 10 )
     numRanges <- choose (1 :: Integer, numElems)
 
     -- ranges <-trace (show ("aaa",numElems, numRanges) )  $
@@ -57,8 +66,24 @@ matixDom depth = do
     innerDom <- dom (depth - 1)
 
     -- return $ (numElems,numRanges, DMat{innerIdx=idx, inner=innerDom })
-    return  DMat{innerIdx=idx, inner=innerDom }
+    return  dmat{innerIdx=idx, inner=innerDom }
 
+funcDom :: Depth -> Gen Domain
+funcDom depth = do
+    innerFrom <- dom (depth - 1)
+    innerTo   <- dom (depth - 1)
+    return dfunc{innerFrom,innerTo}
+
+relDom :: Depth -> Gen Domain
+relDom depth = do
+    numElems <- choose (1, min (depth * 2) 10 )
+    doms <- vectorOf numElems (dom (depth -1) )
+    return drel{inners=doms}
+
+parDom :: Depth -> Gen Domain
+parDom depth = do
+    inner <- dom (depth - 1)
+    return dpar{inner}
 
 mkRanges :: Integer ->  Integer -> Integer -> Set Integer -> Gen ( [Range Expr] )
 mkRanges _ 0 0 _ = return []
