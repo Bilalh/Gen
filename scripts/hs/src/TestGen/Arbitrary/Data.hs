@@ -50,11 +50,12 @@ data Type =
     | TMatix  Type
     | TSet    Type
     | TMSet   Type
-    | TPar    Type
-    | TRel    [Type]
     | TFunc   Type Type
-    | TUnamed Text  -- each unamed type is unique
-    | TEnum   Text -- as are enums
+    | TTuple  [Type]
+    | TRel    [Type] -- tuples 
+    | TPar    Type
+    | TUnamed Text   -- each unamed type is unique
+    | TEnum   Text   -- as are enums
     | TAny
     deriving(Show, Eq, Ord)
 

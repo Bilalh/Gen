@@ -22,6 +22,9 @@ import qualified Data.Text as T
 import qualified Data.Map as M
 import Text.Groom(groom)
 
+-- FIXME pick only values that in the domain?
+
+
 boolLit :: SpecState -> Gen Expr
 boolLit _ = do
     b <- arbitrary
@@ -73,18 +76,28 @@ funcLitOf s@SS{..} fromType toType = do
 
     return $ ELit $ EFunction vs
 
--- FIXME pick only values that in the domain?
 
-relLitOf :: SpecState -> [Type] -> Gen Expr
-relLitOf s@SS{..} types = do
-    parts <-  mapM mkParts types
-    return $ ELit $ ERelation parts
+tupleLitOf :: SpecState -> [Type] -> Gen Expr
+tupleLitOf s@SS{..} types = do
+    parts <- mapM mkParts types
+    return $ ELit $ ETuple parts
 
     where
         mkParts ty = do
-            numElems <- choose (1, min 15 (2 * depth_) )
-            vs <- vectorOf numElems ( exprOf s{depth_=depth_ - 1} ty)
-            return $ map EExpr vs
+            e <- exprOf s{depth_=depth_ - 1} ty
+            return $ EExpr  e
+
+relLitOf :: SpecState -> [Type] -> Gen Expr
+relLitOf s@SS{..} types = undefined
+-- relLitOf s@SS{..} types = do
+--     parts <-  mapM mkParts types
+--     return $ ELit $ ERelation parts
+--
+--     where
+--         mkParts ty = do
+--             numElems <- choose (1, min 15 (2 * depth_) )
+--             vs <- vectorOf numElems ( exprOf s{depth_=depth_ - 1} ty)
+--             return $ map EExpr vs
 
 parLitOf :: SpecState -> Type -> Gen Expr
 parLitOf s@SS{..} innerType = do

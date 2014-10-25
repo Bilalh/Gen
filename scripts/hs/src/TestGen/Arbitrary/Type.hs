@@ -19,10 +19,14 @@ typesUnify TBool TBool = True
 typesUnify (TMatix i1) (TMatix i2) = typesUnify i1 i2
 typesUnify (TSet i1)   (TSet i2)   = typesUnify i1 i2
 typesUnify (TMSet i1)  (TMSet i2)  = typesUnify i1 i2
+
 typesUnify (TPar i1)   (TPar i2)   = typesUnify i1 i2
 
-typesUnify (TRel i1)     (TRel i2)      = all (uncurry typesUnify)  $ zip i1 i2
-typesUnify (TFunc i1 j1) (TFunc i2 j2)  = all (uncurry typesUnify)  $ [(i1, i2), (j1, j2)]
+typesUnify (TRel i1)   (TRel i2)    = all (uncurry typesUnify)  $ zip i1 i2
+typesUnify (TTuple i1) (TTuple i2)  = all (uncurry typesUnify)  $ zip i1 i2
+
+typesUnify (TFunc i1 j1) (TFunc i2 j2)  =
+    all (uncurry typesUnify)  $ [(i1, i2), (j1, j2)]
 
 typesUnify (TUnamed t1) (TUnamed t2) = t1 == t2
 typesUnify (TEnum t1)   (TEnum t2)   = t1 == t2
@@ -56,10 +60,16 @@ atype  s@SS{..} = oneof [
         , return TFunc
             `ap` (atype newss)
             `ap` (atype newss)
-        , return TRel `ap` ( listOfB 1 (min 10 (2 * depth_))
-                (atype newss ) )
+        , atuple
+        -- , return TRel `ap` ( listOfB 1 (min 10 (2 * depth_))
+        --         (atype newss ) )
         ]
     where
+        atuple = do
+            vs <- listOfB 1 (min 10 (2 * depth_)) (atype newss)
+            return $ TTuple vs
+
+
         newss = s{depth_=newDepth}
         newDepth
             | depth_ < 5   =  depth_  - 1

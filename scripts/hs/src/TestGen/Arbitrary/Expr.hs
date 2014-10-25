@@ -206,12 +206,20 @@ exprOf s@SS{..} d@(TFunc a b) | depth_ >=1  = oneof $ ofType ++
 
 exprOf s@SS{..} d@(TRel tys)  | depth_ >=1  = oneof $ ofType ++
     [
-       relLitOf s tys    ]
+       relLitOf s tys
+    ]
     where ofType = maybeToList $ varOf s d
 
 exprOf s@SS{..} d@(TPar inner)  | depth_ >=1  = oneof $ ofType ++
     [
-       parLitOf s inner    ]
+       parLitOf s inner
+    ]
+    where ofType = maybeToList $ varOf s d
+
+exprOf s@SS{..} d@(TTuple tys)  | depth_ >=1  = oneof $ ofType ++
+    [
+       tupleLitOf s tys
+    ]
     where ofType = maybeToList $ varOf s d
 
 

@@ -38,7 +38,7 @@ dom n = oneof
     , msetDom n
     , matixDom n
     , funcDom n
-    , relDom n
+    -- , relDom n
     , parDom n
     ]
 
