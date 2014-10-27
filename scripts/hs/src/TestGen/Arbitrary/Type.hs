@@ -74,7 +74,7 @@ atype  s | depth_ s == 1 = oneof [
         , atuple s
         ]
     where
-        newss = s{depth_=newDepth $ depth_ s}
+        newss = s{depth_=depth_ s - 1}
 
 atype  s = oneof [
           elements [ TBool, TInt ]
@@ -89,25 +89,24 @@ atype  s = oneof [
         , arel s
         ]
     where
-        newss = s{depth_=newDepth $ depth_ s}
+        newss = s{depth_= depth_ s - 1}
 
 
-newDepth depth
-    | depth < 5   =  depth  - 1
-    | depth < 20  =  depth - 5
-    | otherwise   =  depth `div` 2
-
-
+atuple :: SpecState -> Gen Type
 atuple s | tracef "atuple" [prettyDepth s] = undefined
 atuple ss = do
     vs <- listOfB 1 (min 10 (2 * depth_ ss))
     -- vs <- vectorOf 1
-        (atype ss{depth_=newDepth $ depth_ ss})
+        (atype ss{depth_= depth_ ss -1 })
     return $ TTuple vs
 
+-- a relation e.g   relation (  tuple(int,int) )
+-- has a nesting of 2  int -> tuple -> relation
+
+arel :: SpecState -> Gen Type
 arel s| tracef "arel" [prettyDepth s] = undefined
 arel ss = do
     vs <- listOfB 1 (min 5 (2 * depth_ ss))
-    -- vs <- vectorOf 1
-        (atuple ss{depth_=newDepth $ depth_ ss})
+        (atype ss{depth_=  depth_ ss - 2})
+
     return $ tracer "arel" ([ pretty $ TRel vs]) (TRel vs)

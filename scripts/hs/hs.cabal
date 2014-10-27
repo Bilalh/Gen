@@ -134,6 +134,7 @@ Executable testGen
                      , cereal
                      , hashable
                      , template-haskell
+                     , unordered-containers
     ghc-prof-options:
         -auto-all
         -caf-all

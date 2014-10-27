@@ -103,16 +103,13 @@ relLitOf s@SS{depth_} tys | depth_ <2  = docError [
     ]
 
 relLitOf s@SS{..} types = do
-    parts <-  mapM mkParts types
+    parts <-  vectorOf 3 $ mkParts types
     return $ ELit $ ERelation parts
 
     where
-        mkParts (TTuple tys) = do
+        mkParts tys = do
             (ELit lit) <- tupleLitOf s{depth_=depth_ - 1} tys
             return lit
-
-        mkParts d  =  docError $
-            ["mkParts invaild", "type",  pretty . groom  $ d]
 
 
 parLitOf :: SpecState -> Type -> Gen Expr

@@ -26,7 +26,8 @@ import qualified Data.Map as M
 expr :: SpecState -> Gen Expr
 expr s@SS{..} | depth_ < 3 = boolExpr s
 expr s = oneof $
-    [ boolExpr s, quanExpr s]
+    -- [ boolExpr s, quanExpr s]
+    [ boolExpr s]
 
 boolExpr :: SpecState -> Gen Expr
 boolExpr s@SS{..} = oneof $ case depth_ of
