@@ -63,4 +63,4 @@ rmain =
     quickCheckWith stdArgs{QC.maxSize=5,maxSuccess=50} (prop_specs_refine 100 "__")
 
 cmain =
-    quickCheckWith stdArgs{QC.maxSize=5,maxSuccess=2000} (prop_specs_type_check)
+    quickCheckWith stdArgs{QC.maxSize=5,maxSuccess=1000} (prop_specs_type_check)

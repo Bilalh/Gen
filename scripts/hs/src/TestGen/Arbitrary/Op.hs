@@ -107,4 +107,20 @@ boolOpFor (TMatix _) = do
     op <- elements [BEQ, BNEQ ]
     return $ (\a b -> EBinOp $ op a  b )
 
+boolOpFor (TTuple _) = do
+    op <- elements [BEQ, BNEQ ]
+    return $ (\a b -> EBinOp $ op a  b )
+
+boolOpFor (TRel _) = do
+    op <- elements [BEQ, BNEQ ]
+    return $ (\a b -> EBinOp $ op a  b )
+
+boolOpFor (TFunc _ _) = do
+    op <- elements [BEQ, BNEQ ]
+    return $ (\a b -> EBinOp $ op a  b )
+
+boolOpFor (TPar _) = do
+    op <- elements [BEQ, BNEQ ]
+    return $ (\a b -> EBinOp $ op a  b )
+
 boolOpFor  t = docError ["boolOpFor",pretty $  show t  ]

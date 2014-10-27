@@ -48,6 +48,8 @@ typeFromType s@SS{..} ty@TBool = oneof [
         return ty
     ]
 
+typeFromType s ty = return ty
+
 typeFromType s ty = docError [
     "typeFromType unmatched",
     pretty . show $ ty,

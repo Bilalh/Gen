@@ -26,8 +26,8 @@ import qualified Data.Map as M
 expr :: SpecState -> Gen Expr
 expr s@SS{..} | depth_ < 3 = boolExpr s
 expr s = oneof $
-    -- [ boolExpr s, quanExpr s]
-    [ boolExpr s]
+    [ boolExpr s, quanExpr s]
+    -- [ boolExpr s]
 
 boolExpr :: SpecState -> Gen Expr
 boolExpr s@SS{..} = oneof $ case depth_ of
@@ -41,6 +41,7 @@ quanExpr s = oneof $ [ quanInExpr s, quanOverExpr s ]
 
 
 quanInExpr :: SpecState -> Gen Expr
+quanInExpr s | tracef "quanInExpr" [pretty s] = undefined
 quanInExpr s =
     case overs of
         Nothing  -> boolExpr s  -- Nothing to quantify over
@@ -67,6 +68,7 @@ quanInExpr s =
 
 
 quanOverExpr :: SpecState -> Gen Expr
+quanOverExpr s | tracef "quanInExpr" [pretty s] = undefined
 quanOverExpr s =
     case overs of
         Nothing  -> boolExpr s  -- Nothing to quantify over
