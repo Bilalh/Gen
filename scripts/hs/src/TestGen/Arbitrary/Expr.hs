@@ -34,6 +34,7 @@ boolExpr s@SS{..} = oneof $ case depth_ of
      1 ->  [ boolLit s, equivExpr s, relationExpr s ]
      _ ->  [ boolLit s, equivExpr s, relationExpr s ]
 
+
 quanExpr :: SpecState -> Gen Expr
 quanExpr s = oneof $ [ quanInExpr s, quanOverExpr s ]
 
@@ -117,7 +118,7 @@ quanSum s =
 
 -- assuming depth > 1 left
 boolExprUsingRef :: SpecState -> Ref -> Gen Expr
-boolExprUsingRef s@SS{..} ref= do
+boolExprUsingRef s@SS{..} ref | depth_ > 1= do
     let refType = lookupType s ref
     sidesType <- typeFromType s refType
 
@@ -137,9 +138,13 @@ exprFromToType _ ref from to | from == to =  return $ EVar ref
 
 exprFromToType s ref (TSet _) TInt = return $ EUniOp $ UBar $ EVar ref
 
-
 -- Return a expr of the specifed depth and type
 exprOf :: SpecState -> Type -> Gen Expr
+exprOf s ty | tracef "exprOf" [pretty ty, prettyDepth s] = undefined
+
+exprOf s@SS{depth_} d  | depth_ < 0 =  docError $
+    ["exprOf depth_ <0 ", "exprDom:" <+> pretty d, pretty . groom $ s]
+
 exprOf s@SS{depth_=0,..} d@TBool = oneof $ ofType ++
     [
       boolLit s
@@ -204,7 +209,7 @@ exprOf s@SS{..} d@(TFunc a b) | depth_ >=1  = oneof $ ofType ++
     ]
     where ofType = maybeToList $ varOf s d
 
-exprOf s@SS{..} d@(TRel tys)  | depth_ >=1  = oneof $ ofType ++
+exprOf s@SS{..} d@(TRel tys)  | depth_ >=2  = oneof $ ofType ++
     [
        relLitOf s tys
     ]

@@ -25,6 +25,10 @@ type Bop = (Expr -> Expr -> BinOp)
 type Uop = (Expr -> UniOp)
 
 bop :: SpecState -> Bop ->  Gen Expr
+bop s@SS{depth_} _ | depth_<1 =  docError
+    [  "bop depth_ < 1", pretty s
+    ]
+
 bop s@SS{..} op =  do
     exprType <- atype s{depth_=depth_ - 1}
 
@@ -35,6 +39,10 @@ bop s@SS{..} op =  do
 
 
 bopOf :: SpecState -> Bop -> Type -> Gen Expr
+bopOf s@SS{depth_} op ty |  depth_<1 =  docError
+    [  "bopOf depth_ < 1", pretty . groom $ ty, pretty s
+    ]
+
 bopOf s@SS{..} op exprType =  do
     e1 <- exprOf s{depth_=depth_ - 1} exprType
     e2 <- exprOf s{depth_=depth_ - 1} exprType
@@ -42,6 +50,10 @@ bopOf s@SS{..} op exprType =  do
     return $ EBinOp $ op e1 e2
 
 opOf :: SpecState -> Uop -> Type ->  Gen Expr
+opOf s@SS{depth_} _ ty |  depth_<1 =  docError
+    [  "opOf depth_ < 1", pretty . groom $ ty, pretty s
+    ]
+
 opOf s@SS{..} op exprType = do
     e1 <- exprOf s{depth_=depth_ - 1} exprType
     return $ EUniOp $ op e1

@@ -1,10 +1,11 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
-
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE CPP #-}
 
 module TestGen.Arbitrary.Data where
 
-import Language.E
+import Language.E  hiding(trace)
 import Control.Monad.Trans.State.Strict(State)
 import Test.QuickCheck
 import Data.Map(Map)
@@ -14,6 +15,7 @@ import Text.Groom
 import qualified Data.Map as M
 import qualified Text.PrettyPrint as Pr
 
+import Debug.Trace(trace)
 
 type Depth = Int
 type GenM  a = State SpecState (Gen a)
@@ -29,6 +31,9 @@ data SS = SS
 type SpecState=SS
 _ss :: Depth -> SS
 _ss d = SS{depth_=d, doms_ = M.empty, nextNum_=1,newVars_=[] }
+
+prettyDepth :: SpecState -> Doc
+prettyDepth SS{depth_} = "depth_ " <+> pretty depth_
 
 
 instance Pretty SS where
@@ -52,7 +57,7 @@ data Type =
     | TMSet   Type
     | TFunc   Type Type
     | TTuple  [Type]
-    | TRel    [Type] -- tuples 
+    | TRel    [Type] -- tuples
     | TPar    Type
     | TUnamed Text   -- each unamed type is unique
     | TEnum   Text   -- as are enums
@@ -62,6 +67,31 @@ data Type =
 instance Pretty Type where
     pretty  =  pretty . groom
 
+instance Pretty [Type] where
+    pretty  =  pretty . groom
 
 docError :: [Doc] -> a
 docError = error . show . vcat
+
+#ifdef TTRACE
+
+tracer :: String -> [Doc] -> a -> a
+tracer title docs =  trace
+    ( show  $  (" ¦" <+> pretty (padRight 15 ' ' title)) <+> (nest 4 $ vcat docs)  )
+
+tracet :: String -> [Doc] -> Bool
+tracet title docs =  tracer title docs True
+tracef :: String -> [Doc] -> Bool
+tracef title docs =  tracer title docs False
+
+#else
+
+tracer :: String -> [Doc] -> a -> a
+tracer _ _ a = a
+
+tracet :: String -> [Doc] -> Bool
+tracet _ _  = True
+tracef :: String -> [Doc] -> Bool
+tracef _ _ =  False
+
+#endif

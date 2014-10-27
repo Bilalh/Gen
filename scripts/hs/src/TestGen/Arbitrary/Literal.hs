@@ -22,6 +22,8 @@ import qualified Data.Text as T
 import qualified Data.Map as M
 import Text.Groom(groom)
 
+import Language.E
+
 -- FIXME pick only values that in the domain?
 
 
@@ -78,26 +80,40 @@ funcLitOf s@SS{..} fromType toType = do
 
 
 tupleLitOf :: SpecState -> [Type] -> Gen Expr
+tupleLitOf s tys | tracef "tupleLitOf" [pretty tys, prettyDepth s] = undefined
+
+tupleLitOf s@SS{depth_} tys | depth_ <1  = docError [
+    "tupleLitOf depth_ <1",  pretty $ groom tys,  pretty s
+    ]
+
 tupleLitOf s@SS{..} types = do
     parts <- mapM mkParts types
     return $ ELit $ ETuple parts
 
     where
-        mkParts ty = do
+        mkParts ty  = do
             e <- exprOf s{depth_=depth_ - 1} ty
             return $ EExpr  e
 
 relLitOf :: SpecState -> [Type] -> Gen Expr
-relLitOf s@SS{..} types = undefined
--- relLitOf s@SS{..} types = do
---     parts <-  mapM mkParts types
---     return $ ELit $ ERelation parts
---
---     where
---         mkParts ty = do
---             numElems <- choose (1, min 15 (2 * depth_) )
---             vs <- vectorOf numElems ( exprOf s{depth_=depth_ - 1} ty)
---             return $ map EExpr vs
+relLitOf s tys | tracef "relLitOf" [pretty tys,  prettyDepth s] = undefined
+
+relLitOf s@SS{depth_} tys | depth_ <2  = docError [
+    "relLitOf depth_ <2",  pretty $ groom tys,  pretty s
+    ]
+
+relLitOf s@SS{..} types = do
+    parts <-  mapM mkParts types
+    return $ ELit $ ERelation parts
+
+    where
+        mkParts (TTuple tys) = do
+            (ELit lit) <- tupleLitOf s{depth_=depth_ - 1} tys
+            return lit
+
+        mkParts d  =  docError $
+            ["mkParts invaild", "type",  pretty . groom  $ d]
+
 
 parLitOf :: SpecState -> Type -> Gen Expr
 parLitOf s@SS{..} innerType = do

@@ -24,7 +24,7 @@ import qualified Test.QuickCheck as QC
 
 import System.FilePath((</>))
 import System.Random(randomRIO)
-
+import Language.E
 
 prop_specs_refine :: Int -> FilePath -> SpecE -> Property
 prop_specs_refine time out specE = do
@@ -63,4 +63,4 @@ rmain =
     quickCheckWith stdArgs{QC.maxSize=5,maxSuccess=50} (prop_specs_refine 100 "__")
 
 cmain =
-    quickCheckWith stdArgs{QC.maxSize=6,maxSuccess=1000} (prop_specs_type_check)
+    quickCheckWith stdArgs{QC.maxSize=4,maxSuccess=2000} (prop_specs_type_check)
