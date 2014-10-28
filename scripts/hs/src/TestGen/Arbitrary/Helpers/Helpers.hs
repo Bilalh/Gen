@@ -1,6 +1,6 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
-module TestGen.Arbitrary.Helpers where
+module TestGen.Arbitrary.Helpers.Helpers where
 
 import Language.E hiding(trace)
 

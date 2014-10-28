@@ -7,16 +7,14 @@
 
 module TestGen.Arbitrary.Arbitrary where
 
-import AST.Imports
+import TestGen.Arbitrary.Helpers.Prelude
 import TestGen.Arbitrary.Data
 import TestGen.Arbitrary.Domain
 import TestGen.Arbitrary.Expr
-import TestGen.Arbitrary.Helpers
 
-import Test.QuickCheck
-import qualified Data.Text as T
 import qualified Data.Map as M
-import Language.E
+import qualified Data.Text as T
+
 
 instance Arbitrary SpecE where
     arbitrary = sized spec

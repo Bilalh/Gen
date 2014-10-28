@@ -3,12 +3,8 @@
 
 module TestGen.Arbitrary.Type where
 
-import AST.Imports
-import TestGen.Arbitrary.Data
-import TestGen.Arbitrary.Helpers
+import TestGen.Arbitrary.Helpers.Prelude
 
-import Test.QuickCheck
-import Language.E
 
 typesUnify :: Type -> Type -> Bool
 typesUnify TAny  _     = True

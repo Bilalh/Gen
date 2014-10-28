@@ -7,20 +7,11 @@
 
 module TestGen.Arbitrary.Common where
 
-import Language.E
-import AST.Imports
-import TestGen.Arbitrary.Helpers
-import TestGen.Arbitrary.Data
+import TestGen.Arbitrary.Helpers.Prelude
 import TestGen.Arbitrary.Type
 
-import Test.QuickCheck
-
-import Text.Groom(groom)
-
-import qualified Data.Text as T
 import qualified Data.Map as M
-
-
+import qualified Data.Text as T
 
 
 -- Returns a type that can be reached within the allowed depth

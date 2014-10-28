@@ -15,13 +15,7 @@ module TestGen.Arbitrary.Domain
     , intFromDint
 ) where
 
-import AST.Imports
-import Language.E  hiding (trace)
-import TestGen.Arbitrary.Data
-import TestGen.Arbitrary.Helpers
-
-import Test.QuickCheck
-import Data.Set(Set)
+import TestGen.Arbitrary.Helpers.Prelude
 import qualified Data.Set as S
 
 -- import Text.PrettyPrint(parens)

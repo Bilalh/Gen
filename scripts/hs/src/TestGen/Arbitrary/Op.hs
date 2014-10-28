@@ -7,18 +7,10 @@
 
 module TestGen.Arbitrary.Op where
 
-import Language.E
-import AST.Imports
-import TestGen.Arbitrary.Helpers
-import TestGen.Arbitrary.Data
-import TestGen.Arbitrary.Type
+import TestGen.Arbitrary.Helpers.Prelude
 
 import TestGen.Arbitrary.Expr
-
-import Test.QuickCheck
-import Text.Groom(groom)
-import qualified Data.Text as T
-import qualified Data.Map as M
+import TestGen.Arbitrary.Type
 
 
 type Bop = (Expr -> Expr -> BinOp)

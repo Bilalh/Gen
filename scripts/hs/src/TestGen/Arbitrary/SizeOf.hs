@@ -6,10 +6,9 @@
 
 module TestGen.Arbitrary.SizeOf where
 
-import AST.Imports
+import TestGen.Arbitrary.Helpers.Prelude
 import qualified Data.Set as S
-import Language.E
-import TestGen.Arbitrary.Data
+
 
 -- How many different unique values are in say a domain
 class SizeOf a where

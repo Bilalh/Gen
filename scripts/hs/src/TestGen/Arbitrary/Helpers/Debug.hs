@@ -2,7 +2,10 @@
 {-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -fno-warn-unused-binds #-}
 
-module TestGen.Arbitrary.Debug(docError, tracer, tracet, tracef) where
+module TestGen.Arbitrary.Helpers.Debug(
+    docError, tracer, tracet, tracef
+    )
+    where
 
 import Language.E hiding(trace)
 

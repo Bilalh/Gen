@@ -7,31 +7,16 @@
 
 module TestGen.Arbitrary.Expr where
 
-import Language.E
-import AST.Imports
--- import TestGen.Arbitrary.Helpers
-import TestGen.Arbitrary.Data
+import TestGen.Arbitrary.Helpers.Prelude
+
 import TestGen.Arbitrary.Type
 import TestGen.Arbitrary.Common
 
 import {-# SOURCE #-} TestGen.Arbitrary.Literal
 import {-# SOURCE #-} TestGen.Arbitrary.Op
 
-import Test.QuickCheck
-import Text.Groom(groom)
 import qualified Data.Map as M
 
-import Control.Monad.State.Strict(StateT,evalStateT,State)
-
-import Test.QuickCheck.Gen
-
-import System.Random
-  ( Random
-  , StdGen
-  , randomR
-  , split
-  , newStdGen
-  )
 
 expr :: SpecState -> Gen Expr
 expr s@SS{..} | depth_ < 3 = boolExpr s
@@ -290,7 +275,7 @@ matrixLit2 :: GG Expr
 matrixLit2 = do
 
     -- modify (\s -> s{depth_ = depth_ s - 1 } )
-    inner <- vectorOf2 4 boolLit2
+    inner <- listOfBounds (1, 10)  boolLit2
     idx <- intDom2
 
     return $ ELit $ EMatrix (map EExpr inner) idx
@@ -318,29 +303,14 @@ boolLit2 = do
     addLog "boolLit2"
     return a
 
-
--- | Generates a list of the given length.
-vectorOf2 :: Int -> GG a -> GG [a]
-vectorOf2 k gen = sequence [ gen | _ <- [1..k] ]
-
-
-choose2 :: Random a => (a,a) -> GG a
-choose2 rng = lift $  MkGen (\r _ -> let (x,_) = randomR rng r in x)
-
--- | Randomly uses one of the given generators. The input list
--- must be non-empty.
-oneof2 :: [GG a] -> GG a
-oneof2 [] = error "2 QuickCheck.oneof used with empty list"
-oneof2 gs = choose2 (0,length gs - 1) >>=   (gs !!)
-
-
-aa :: State Int [String]
-aa = do
-     sequence [ bb | _ <- [1..3 :: Int] ]
-
-
-bb :: State Int String
-bb = do
-    a <- get
-    put (a+1)
-    return (show (a+1))
+--
+-- aa :: State Int [String]
+-- aa = do
+--      sequence [ bb | _ <- [1..3 :: Int] ]
+--
+--
+-- bb :: State Int String
+-- bb = do
+--     a <- get
+--     put (a+1)
+--     return (show (a+1))

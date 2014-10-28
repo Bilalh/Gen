@@ -4,8 +4,7 @@
 {-# LANGUAGE CPP #-}
 
 module TestGen.Arbitrary.Data (
-     module X
-    , Depth
+      Depth
     , GenM
     , Ref
     , SS(..)
@@ -30,7 +29,6 @@ import qualified Text.PrettyPrint as Pr
 
 import Control.Monad.State.Strict(StateT,evalStateT,State)
 
-import TestGen.Arbitrary.Debug as X
 type GG a =  StateT SpecState Gen a
 
 type Depth = Int

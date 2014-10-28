@@ -7,22 +7,13 @@
 
 module TestGen.Arbitrary.Literal where
 
-import AST.Imports
-import TestGen.Arbitrary.Helpers
-import TestGen.Arbitrary.Data
+import TestGen.Arbitrary.Helpers.Prelude
+
 import TestGen.Arbitrary.Type
 import TestGen.Arbitrary.SizeOf
 import TestGen.Arbitrary.Domain
 
 import TestGen.Arbitrary.Expr(exprOf)
-
-import Test.QuickCheck
-
-import qualified Data.Text as T
-import qualified Data.Map as M
-import Text.Groom(groom)
-
-import Language.E
 
 -- FIXME pick only values that in the domain?
 
