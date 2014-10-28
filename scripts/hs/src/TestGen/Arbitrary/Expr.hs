@@ -21,7 +21,17 @@ import Test.QuickCheck
 import Text.Groom(groom)
 import qualified Data.Map as M
 
+import Control.Monad.State.Strict(StateT,evalStateT,State)
 
+import Test.QuickCheck.Gen
+
+import System.Random
+  ( Random
+  , StdGen
+  , randomR
+  , split
+  , newStdGen
+  )
 
 expr :: SpecState -> Gen Expr
 expr s@SS{..} | depth_ < 3 = boolExpr s
@@ -265,3 +275,72 @@ toGenExpr ::  (a -> b) -> [a] -> Maybe (Gen b)
 toGenExpr f vs =  case (map f vs) of
     [] -> Nothing
     xs -> Just $ elements xs
+
+
+
+expr2 :: GG Expr
+expr2 = do
+    ss <- get
+    addLog "expr2"
+    lit <- oneof2 [ matrixLit2 ]
+
+    return $ lit
+
+matrixLit2 :: GG Expr
+matrixLit2 = do
+
+    -- modify (\s -> s{depth_ = depth_ s - 1 } )
+    inner <- vectorOf2 4 boolLit2
+    idx <- intDom2
+
+    return $ ELit $ EMatrix (map EExpr inner) idx
+
+intDom2 :: GG Domain
+intDom2 = return DInt `ap` vectorOf2 2 (range2)
+
+range2 :: GG (Range Expr)
+range2 = do
+    a <- choose2 (1,10)
+    addLog $ "saved " ++ show a
+    return $ RSingle (ELit . EI $ a)
+
+intLit2 :: GG Expr
+intLit2 = do
+    modify (\s -> s{depth_ = depth_ s - 1 } )
+    addLog "intLit2"
+    a <- gets depth_
+
+    return $  ELit (EI $ fromIntegral a)
+
+boolLit2  ::  GG Expr
+boolLit2 = do
+    let a = ELit (EB True)
+    addLog "boolLit2"
+    return a
+
+
+-- | Generates a list of the given length.
+vectorOf2 :: Int -> GG a -> GG [a]
+vectorOf2 k gen = sequence [ gen | _ <- [1..k] ]
+
+
+choose2 :: Random a => (a,a) -> GG a
+choose2 rng = lift $  MkGen (\r _ -> let (x,_) = randomR rng r in x)
+
+-- | Randomly uses one of the given generators. The input list
+-- must be non-empty.
+oneof2 :: [GG a] -> GG a
+oneof2 [] = error "2 QuickCheck.oneof used with empty list"
+oneof2 gs = choose2 (0,length gs - 1) >>=   (gs !!)
+
+
+aa :: State Int [String]
+aa = do
+     sequence [ bb | _ <- [1..3 :: Int] ]
+
+
+bb :: State Int String
+bb = do
+    a <- get
+    put (a+1)
+    return (show (a+1))

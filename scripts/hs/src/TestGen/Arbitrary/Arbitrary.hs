@@ -28,7 +28,7 @@ spec depth = do
     let withNames =  zipWith (\d i -> (name i , Find d)) doms [1 :: Int ..]
     let mappings  = M.fromList withNames
 
-    let state = SS{depth_=depth, doms_=mappings, nextNum_ = length doms + 1,newVars_=[]}
+    let state = (_ss depth){doms_=mappings, nextNum_ = length doms + 1}
 
     exprs <- listOfB 0 15 ( expr state)
     -- exprs <- vectorOf 2 ( expr state)
