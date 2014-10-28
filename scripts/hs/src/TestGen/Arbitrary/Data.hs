@@ -17,17 +17,18 @@ module TestGen.Arbitrary.Data (
     , addLog
     ) where
 
+import AST.Imports
 import Language.E
-import Control.Monad.Trans.State.Strict(State)
+import TestGen.Arbitrary.Helpers.Log
+
 import Test.QuickCheck
 import Data.Map(Map)
-import AST.Imports
 import Text.Groom
 
 import qualified Data.Map as M
 import qualified Text.PrettyPrint as Pr
 
-import Control.Monad.State.Strict(StateT,evalStateT,State)
+import Control.Monad.State.Strict(StateT)
 
 type GG a =  StateT SpecState Gen a
 
@@ -44,19 +45,15 @@ data SS = SS
     , doms_     :: Map Text FG --  Domains
     , nextNum_  :: Int          -- Number to name next var
     , newVars_  :: [(Text,Type) ] -- Domains from e.g. forall
-    , logs      :: [String]
+    , logs_     :: LogsTree
     } deriving Show
 type SpecState=SS
 _ss :: Depth -> SS
-_ss d = SS{depth_=d, doms_ = M.empty, nextNum_=1,newVars_=[], logs=[] }
+_ss d = SS{depth_=d, doms_ = M.empty, nextNum_=1,newVars_=[], logs_=LSEmpty }
 
 
 prettyDepth :: SpecState -> Doc
 prettyDepth SS{depth_} = "depth_ " <+> pretty depth_
-
-addLog :: String -> GG ()
-addLog s = modify (\m -> m{logs=s: logs m } )
-
 
 instance Pretty SS where
     pretty (SS{..}) =
@@ -91,3 +88,10 @@ instance Pretty Type where
 
 instance Pretty [Type] where
     pretty  =  pretty . groom
+
+addLog :: String -> [Doc] ->  GG ()
+addLog nm docs = case makeLog nm docs of
+    Nothing -> return ()
+    Just l -> modify $ \st -> st{
+        logs_ = LSMultiple (logs_ st) (LSSingle l)
+    }

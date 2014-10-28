@@ -135,6 +135,7 @@ Executable testGen
                      , hashable
                      , template-haskell
                      , unordered-containers
+                     , dlist
     ghc-prof-options:
         -auto-all
         -caf-all

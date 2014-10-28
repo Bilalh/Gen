@@ -266,7 +266,7 @@ toGenExpr f vs =  case (map f vs) of
 expr2 :: GG Expr
 expr2 = do
     ss <- get
-    addLog "expr2"
+    addLog "expr2" ["dsds"]
     lit <- oneof2 [ matrixLit2 ]
 
     return $ lit
@@ -286,13 +286,13 @@ intDom2 = return DInt `ap` vectorOf2 2 (range2)
 range2 :: GG (Range Expr)
 range2 = do
     a <- choose2 (1,10)
-    addLog $ "saved " ++ show a
+    addLog  "saved " [ pretty a ]
     return $ RSingle (ELit . EI $ a)
 
 intLit2 :: GG Expr
 intLit2 = do
     modify (\s -> s{depth_ = depth_ s - 1 } )
-    addLog "intLit2"
+    addLog "intLit2" []
     a <- gets depth_
 
     return $  ELit (EI $ fromIntegral a)
@@ -300,7 +300,7 @@ intLit2 = do
 boolLit2  ::  GG Expr
 boolLit2 = do
     let a = ELit (EB True)
-    addLog "boolLit2"
+    addLog "boolLit2" []
     return a
 
 --
