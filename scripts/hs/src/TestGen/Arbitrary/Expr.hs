@@ -158,8 +158,7 @@ exprOf ty = do
     let ofType = maybeToList $ varOf st ty
 
     gets depth_ >>= \d -> if
-        | d == 0 -> get >>= \st -> docError
-            ["exprOf depth_ <0 ", "exprDom:" <+> pretty d, pretty st ]
+        | d < 0 -> ggError "exprOf depth_ <0" ["exprDom:" <+> pretty ty]
 
 
 
@@ -286,57 +285,3 @@ toGenExpr ::  (a -> b) -> [a] -> Maybe (Gen b)
 toGenExpr f vs =  case (map f vs) of
     [] -> Nothing
     xs -> Just $ elements xs
-
-
-
-expr2 :: GG Expr
-expr2 = do
-    ss <- get
-    addLog "expr2" ["dsds"]
-    lit <- oneof2 [ matrixLit2 ]
-
-    return $ lit
-
-matrixLit2 :: GG Expr
-matrixLit2 = do
-
-    -- modify (\s -> s{depth_ = depth_ s - 1 } )
-    inner <- listOfBounds (1, 10)  boolLit2
-    idx <- intDom2
-
-    return $ ELit $ EMatrix (map EExpr inner) idx
-
-intDom2 :: GG Domain
-intDom2 = return DInt `ap` vectorOf2 2 (range2)
-
-range2 :: GG (Range Expr)
-range2 = do
-    a <- choose2 (1,10)
-    addLog  "saved " [ pretty a ]
-    return $ RSingle (ELit . EI $ a)
-
-intLit2 :: GG Expr
-intLit2 = do
-    modify (\s -> s{depth_ = depth_ s - 1 } )
-    addLog "intLit2" []
-    a <- gets depth_
-
-    return $  ELit (EI $ fromIntegral a)
-
-boolLit2  ::  GG Expr
-boolLit2 = do
-    let a = ELit (EB True)
-    addLog "boolLit2" []
-    return a
-
---
--- aa :: State Int [String]
--- aa = do
---      sequence [ bb | _ <- [1..3 :: Int] ]
---
---
--- bb :: State Int String
--- bb = do
---     a <- get
---     put (a+1)
---     return (show (a+1))
