@@ -18,7 +18,10 @@ import qualified Data.Map as M
 
 expr :: GG Expr
 expr = do
-    gets depth_ >>= \d -> if
+    d <- gets depth_
+    addLog "expr" ["depth_" <+> pretty d]
+
+    if
         | d < 3     -> boolExpr
         | otherwise -> oneof2 [ boolExpr,quanExpr]
 
@@ -31,7 +34,7 @@ boolExpr = do
         _ -> oneof2 [ boolLit, equivExpr, relationExpr ]
 
 quanExpr ::  GG Expr
-quanExpr = oneof2 $ [ quanInExpr, quanOverExpr ]
+quanExpr = oneof2 [ quanInExpr, quanOverExpr ]
 
 quanInExpr :: GG Expr
 quanInExpr  =
@@ -200,7 +203,6 @@ exprOf ty = do
           tupleLitOf tys
         ]
 
-
     exprOf' d _ _  = ggError "exprOf not Matched other"
         ["exprDom:" <+> pretty ty, "d:" <+> pretty d ]
 
@@ -209,7 +211,7 @@ varOf ::  Type -> GG (Maybe (Gen Expr))
 varOf exprType = do
     SS{doms_,newVars_} <- get
 
-    let newVars = map fst $ filter (typesUnify exprType . snd ) $ newVars_
+    let newVars = map fst $ filter (typesUnify exprType . snd ) newVars_
 
     return $ toGenExpr EVar $ newVars ++ (
         map fst . M.toList  . M.filter
@@ -225,6 +227,6 @@ domOf exprTypes = do
 
 
 toGenExpr ::  (a -> b) -> [a] -> Maybe (Gen b)
-toGenExpr f vs =  case (map f vs) of
+toGenExpr f vs =  case map f vs of
     [] -> Nothing
     xs -> Just $ elements xs

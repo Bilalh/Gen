@@ -19,7 +19,7 @@ import Language.E as X
 import Text.Groom as X (groom)
 import Data.Set as X (Set)
 
-import Development.Placeholders as X (placeholder,notImplemented)
+import Development.Placeholders as X (placeholder,notImplemented,todo)
 
 import qualified Text.PrettyPrint as P
 

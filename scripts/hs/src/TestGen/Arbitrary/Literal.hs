@@ -1,9 +1,6 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
-{-# LANGUAGE ConstraintKinds, FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables, MultiWayIf #-}
-{-# OPTIONS_GHC -fno-warn-orphans -fno-warn-unused-imports #-}
 
 module TestGen.Arbitrary.Literal where
 

@@ -1,6 +1,4 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
-{-# LANGUAGE ConstraintKinds, FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables, MultiWayIf #-}
 {-# OPTIONS_GHC -fno-warn-orphans -fno-warn-unused-imports #-}
@@ -39,9 +37,7 @@ typeFromType' ty@(TSet _) = oneof2 [
 
     where reachable = elements2 [ TInt ]
 
-typeFromType' ty = do
-    s <- get
-    ggError "typeFromType' unmatched" [ pretty . show $ ty ]
+typeFromType' ty =  ggError "typeFromType' unmatched" [ pretty . show $ ty ]
 
 
 lookupType ::  Ref -> GG Type
