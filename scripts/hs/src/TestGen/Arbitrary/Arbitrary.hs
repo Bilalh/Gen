@@ -15,7 +15,6 @@ import TestGen.Arbitrary.Expr
 import qualified Data.Map as M
 import qualified Data.Text as T
 
-import TestGen.Arbitrary.Helpers.Z
 
 instance Arbitrary SpecE where
     arbitrary = sized spec
