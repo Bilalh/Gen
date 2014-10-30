@@ -58,6 +58,8 @@ atype :: GG Type
 
 atype = do
     depth_ <- gets depth_
+    addLog "atype" ["depth_" <+> pretty depth_]
+
     if
         | depth_ < 0  -> ggError "atype invaild depth" []
         | depth_ == 0 -> elements2 [TBool, TInt]
@@ -109,6 +111,6 @@ arel = do
     addLog "arel" ["depth_" <+> pretty depth_]
 
     vs <- listOfBounds (1,  min 5 (2 * depth_))
-        (withDepth (depth_ - 1) atype )
+        (withDepth (depth_ - 2) atype )
 
     return $ (TRel vs)

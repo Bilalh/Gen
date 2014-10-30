@@ -22,10 +22,10 @@ bop op = do
     if
         | depth_ < 1 -> ggError "bop depth_ < 1" [ ]
         | otherwise -> do
-            let newDepth = depth_ - 1
             exprType <-  withDepthDec atype
-            e1 <- withDepth newDepth (exprOf exprType)
-            e2 <- withDepth newDepth (exprOf exprType)
+            addLog "bop" ["bop ty" <+> pretty exprType ]
+            e1 <- withDepthDec (exprOf exprType)
+            e2 <- withDepthDec (exprOf exprType)
 
             return $ EBinOp $  op e1 e2
 
@@ -33,7 +33,7 @@ bop op = do
 bopOf :: Bop -> Type -> GG Expr
 bopOf op exprType = do
     depth_ <- gets depth_
-    addLog "bop" ["depth_" <+> pretty depth_, "ty" <+> pretty exprType ]
+    addLog "bopOf" ["depth_" <+> pretty depth_, "ty" <+> pretty exprType ]
 
     if
         | depth_ < 1 -> ggError "bopOf depth_ < 1" [pretty exprType]
