@@ -8,7 +8,11 @@ module TestGen.Arbitrary.Domain
       dom
     , intDom
     , setDom
+    , msetDom
     , matixDom
+    , funcDom
+    , relDom
+    , parDom
     , rangeComp
     , intFromDint
 ) where
@@ -27,11 +31,11 @@ dom n = oneof
       return DBool
     , intDom n
     , setDom n
-    -- , msetDom n
-    -- , matixDom n
-    -- , funcDom n
+    , msetDom n
+    , matixDom n
+    , funcDom n
     , relDom n
-    -- , parDom n
+    , parDom n
     ]
 -- FIXME tuple dom
 

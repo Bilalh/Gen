@@ -35,7 +35,6 @@ boolExpr = do
 
 quanExpr ::  GG Expr
 quanExpr = oneof2 [ quanInExpr, quanOverExpr ]
--- quanExpr = oneof2 [ quanInExpr ]
 
 
 quanInExpr :: GG Expr
@@ -129,6 +128,10 @@ quanSum = withQuan $
             let inType =  quanType_in overType
             inName <- nextQuanVarName
             introduceVariable  (inName, inType)
+
+            addLog "quanSum" [ "in" <+> pretty inName
+                                  , "inTy" <+> pretty inType
+                                  ]
 
             let quanTop = EQuan Sum (BIn (EQVar inName) over)
 
