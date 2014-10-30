@@ -46,14 +46,29 @@ data SS = SS
     , nextNum_  :: Int          -- Number to name next var
     , newVars_  :: [(Text,Type) ] -- Domains from e.g. forall
     , logs_     :: LogsTree
-    } deriving Show
+    }
 type SpecState=SS
 _ss :: Depth -> SS
 _ss d = SS{depth_=d, doms_ = M.empty, nextNum_=1,newVars_=[], logs_=LSEmpty }
 
 
-prettyDepth :: SpecState -> Doc
-prettyDepth SS{depth_} = "depth_ " <+> pretty depth_
+prettyDepth :: GG Doc
+prettyDepth  = do
+    SS{depth_} <- get
+    return $ "depth_ " <+> pretty depth_
+
+instance Show SS where
+    show (SS{..}) = show $
+        "SS" <+> Pr.braces (
+            Pr.sep [
+                  "depth_ ="  <+> (pretty  depth_)
+                , ",nextNum_ ="  <+>  (pretty nextNum_)
+                , ",doms_ = "
+                , pretty $ groom doms_
+                , ",newVars_ = "
+                , prettyArr newVars_
+            ]
+            )
 
 instance Pretty SS where
     pretty (SS{..}) =
@@ -64,9 +79,13 @@ instance Pretty SS where
                 , ",doms_ = "
                 , pretty doms_
                 , ",newVars_ = "
-                , vcat $ map pretty newVars_
+                , prettyArr newVars_
             ]
             )
+
+prettyArr :: Pretty a => [a] -> Doc
+prettyArr [] = "[]"
+prettyArr vs = vcat $ map pretty vs
 
 data Type =
       TInt

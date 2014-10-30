@@ -4,18 +4,17 @@ import AST.Imports
 import TestGen.Arbitrary.Data
 import Test.QuickCheck(Gen)
 
+boolLit :: GG Expr
+intLit  :: GG Expr
+matrixLitOf :: Type -> GG Expr
 
-boolLit :: SpecState -> Gen Expr
-intLit :: SpecState -> Gen Expr
-matrixLitOf :: SpecState -> Type -> Gen Expr
+setLit   :: GG Expr
+setLitOf ::  Type ->  GG Expr
 
-setLit :: SpecState -> Gen Expr
-setLitOf :: SpecState -> Type ->  Gen Expr
+msetLit   :: GG Expr
+msetLitOf :: Type ->  GG Expr
 
-msetLit :: SpecState -> Gen Expr
-msetLitOf :: SpecState -> Type ->  Gen Expr
-
-funcLitOf  :: SpecState -> Type -> Type -> Gen Expr
-relLitOf   :: SpecState -> [Type] -> Gen Expr
-parLitOf   :: SpecState -> Type -> Gen Expr
-tupleLitOf :: SpecState -> [Type] -> Gen Expr
+funcLitOf  :: Type -> Type -> GG Expr
+relLitOf   :: [Type] -> GG Expr
+parLitOf   :: Type -> GG Expr
+tupleLitOf :: [Type] -> GG Expr

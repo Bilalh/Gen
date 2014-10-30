@@ -1,5 +1,6 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
+{-# LANGUAGE MultiWayIf #-}
 
 module TestGen.Arbitrary.Type where
 
@@ -50,59 +51,60 @@ quanType_in :: Type -> Type
 quanType_in (TSet inner) = inner
 
 
-atype :: SpecState -> Gen Type
-atype s | tracef "atype" [prettyDepth s] = undefined
+atype :: GG Type
+-- atype s | tracef "atype" [prettyDepth s] = undefined
 
-atype  s@SS{depth_} | depth_ <0   = docError
-    ["atype invaild depth", pretty s ]
+atype = do
+    s@SS{depth_} <- get
+    if
+        | depth_ < 0  -> docError ["atype invaild depth", pretty s ]
+        | depth_ == 0 -> elements2 [TBool, TInt]
+        | depth_ == 1 -> do
+            let inner = withDepth 0
+            oneof2 [
+                  elements2 [TBool, TInt]
+                , liftM TMatix (inner atype)
+                , liftM TSet  (inner atype)
+                , liftM TMSet (inner atype)
+                , liftM TPar  (inner atype)
+                , return TFunc
+                    `ap`  (inner atype)
+                    `ap`  (inner atype)
+                , atuple
+                , arel
+                ]
 
-atype  SS{depth_=0}   = elements [ TBool, TInt ]
-
-atype  s | depth_ s == 1 = oneof [
-          elements [ TBool, TInt ]
-        , liftM TMatix (atype newss)
-        , liftM TSet  (atype newss)
-        , liftM TMSet (atype newss)
-        , liftM TPar (atype newss)
-        , return TFunc
-            `ap` (atype newss)
-            `ap` (atype newss)
-        , atuple s
-        ]
-    where
-        newss = s{depth_=depth_ s - 1}
-
-atype  s = oneof [
-          elements [ TBool, TInt ]
-        , liftM TMatix (atype newss)
-        , liftM TSet  (atype newss)
-        , liftM TMSet (atype newss)
-        , liftM TPar (atype newss)
-        , return TFunc
-            `ap` (atype newss)
-            `ap` (atype newss)
-        , atuple s
-        , arel s
-        ]
-    where
-        newss = s{depth_= depth_ s - 1}
+        | otherwise -> do
+            let inner = withDepth (depth_ - 1)
+            oneof2 [
+                  elements2 [TBool, TInt]
+                , liftM TMatix (inner atype)
+                , liftM TSet  (inner atype)
+                , liftM TMSet (inner atype)
+                , liftM TPar  (inner atype)
+                , return TFunc
+                    `ap`  (inner atype)
+                    `ap`  (inner atype)
+                , atuple
+                , arel
+                ]
 
 
-atuple :: SpecState -> Gen Type
-atuple s | tracef "atuple" [prettyDepth s] = undefined
-atuple ss = do
-    vs <- listOfB 1 (min 10 (2 * depth_ ss))
-    -- vs <- vectorOf 1
-        (atype ss{depth_= depth_ ss -1 })
+atuple :: GG Type
+atuple = do
+    depth_ <- gets depth_
+    vs <- listOfBounds (1,  min 10 (2 * depth_))
+        (withDepth (depth_ - 1) atype )
     return $ TTuple vs
 
 -- a relation e.g   relation (  tuple(int,int) )
 -- has a nesting of 2  int -> tuple -> relation
 
-arel :: SpecState -> Gen Type
-arel s| tracef "arel" [prettyDepth s] = undefined
-arel ss = do
-    vs <- listOfB 1 (min 5 (2 * depth_ ss))
-        (atype ss{depth_=  depth_ ss - 2})
+arel :: GG Type
+arel = do
+    depth_ <- gets depth_
 
-    return $ tracer "arel" ([ pretty $ TRel vs]) (TRel vs)
+    vs <- listOfBounds (1,  min 5 (2 * depth_))
+        (withDepth (depth_ - 1) atype )
+
+    return $ (TRel vs)

@@ -36,7 +36,7 @@ tracer title _   a | title `S.member` suppress = a
 -- tracer title docs a | not (title `S.member` only) =  a
 
 tracer title docs a =  trace
-    ( show  $  (" ¦" <+> pretty (padRight 15 ' ' title)) <+> (nest 4 $ vcat docs)  ) a
+        ( show  $  (" ¦" <+> pretty (padRight 15 ' ' title)) <+> (nest 4 $ vcat docs)  ) a
 
 tracet :: String -> [Doc] -> Bool
 tracet title docs =  tracer title docs True

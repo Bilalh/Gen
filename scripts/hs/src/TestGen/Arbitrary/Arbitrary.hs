@@ -15,6 +15,7 @@ import TestGen.Arbitrary.Expr
 import qualified Data.Map as M
 import qualified Data.Text as T
 
+import TestGen.Arbitrary.Helpers.Z
 
 instance Arbitrary SpecE where
     arbitrary = sized spec
@@ -28,8 +29,7 @@ spec depth = do
 
     let state = (_ss depth){doms_=mappings, nextNum_ = length doms + 1}
 
-    exprs <- listOfB 0 15 ( expr state)
-    -- exprs <- vectorOf 2 ( expr state)
+    (exprs,ss) <- runStateT (listOfBounds (0,15) expr) state
 
     return $ SpecE mappings exprs
 

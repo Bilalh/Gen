@@ -1,5 +1,8 @@
 module TestGen.Arbitrary.Helpers.Prelude (
-      module X,
+      module X
+    , withDepth
+    , withDepthDec
+    , ggError
 ) where
 
 import AST.Imports as X
@@ -13,3 +16,27 @@ import Test.QuickCheck as X hiding (maxSize)
 import Language.E as X
 import Text.Groom as X (groom)
 import Data.Set as X (Set)
+
+import qualified Text.PrettyPrint as P
+
+withDepth :: Depth -> GG a -> GG a
+withDepth newDepth f = do
+    oldDepth <- gets depth_
+    modify $ \st -> st{ depth_= newDepth }
+    res <- f
+    modify $ \st -> st{ depth_= oldDepth }
+    return res
+
+withDepthDec :: GG a -> GG a
+withDepthDec f = do
+    oldDepth <- gets depth_
+    modify $ \st -> st{ depth_= oldDepth - 1 }
+    res <- f
+    modify $ \st -> st{ depth_= oldDepth }
+    return res
+
+ggError :: String -> [Doc] -> GG a
+ggError title docs = do
+    st <- get
+    error . show $ (P.text $ padRight 15 ' '  ('['  :title ++ "]" ) ) <+>
+        (nest 4 $ vcat (docs ++ [pretty st] ))

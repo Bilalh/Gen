@@ -3,6 +3,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE LambdaCase, MultiWayIf #-}
 {-# OPTIONS_GHC -fno-warn-orphans -fno-warn-unused-imports #-}
 
 module TestGen.Arbitrary.Op where
@@ -16,66 +17,69 @@ import TestGen.Arbitrary.Type
 type Bop = (Expr -> Expr -> BinOp)
 type Uop = (Expr -> UniOp)
 
-bop :: SpecState -> Bop ->  Gen Expr
-bop s@SS{depth_} _ | depth_<1 =  docError
-    [  "bop depth_ < 1", pretty s
-    ]
+bop :: Bop ->  GG Expr
+bop op = do
+    s@SS{depth_} <- get
+    if
+        | depth_ < 1 -> docError [ "bop depth_ < 1", pretty s ]
+        | otherwise -> do
+            let newDepth = depth_ - 1
+            exprType :: Type <-  undefined
+            e1 <- withDepth newDepth (exprOf exprType)
+            e2 <- withDepth newDepth (exprOf exprType)
 
-bop s@SS{..} op =  do
-    exprType <- atype s{depth_=depth_ - 1}
-
-    e1 <- exprOf s{depth_=depth_ - 1} exprType
-    e2 <- exprOf s{depth_=depth_ - 1} exprType
-
-    return $ EBinOp $  op e1 e2
-
-
-bopOf :: SpecState -> Bop -> Type -> Gen Expr
-bopOf s@SS{depth_} op ty |  depth_<1 =  docError
-    [  "bopOf depth_ < 1", pretty . groom $ ty, pretty s
-    ]
-
-bopOf s@SS{..} op exprType =  do
-    e1 <- exprOf s{depth_=depth_ - 1} exprType
-    e2 <- exprOf s{depth_=depth_ - 1} exprType
-
-    return $ EBinOp $ op e1 e2
-
-opOf :: SpecState -> Uop -> Type ->  Gen Expr
-opOf s@SS{depth_} _ ty |  depth_<1 =  docError
-    [  "opOf depth_ < 1", pretty . groom $ ty, pretty s
-    ]
-
-opOf s@SS{..} op exprType = do
-    e1 <- exprOf s{depth_=depth_ - 1} exprType
-    return $ EUniOp $ op e1
+            return $ EBinOp $  op e1 e2
 
 
-equivExpr :: SpecState -> Gen Expr
-equivExpr s = oneof $ map (bop s) [ BEQ, BNEQ ]
+bopOf :: Bop -> Type -> GG Expr
+bopOf op exprType = do
+    s@SS{depth_} <- get
+    if
+        | depth_ < 1 -> docError [
+            "bopOf depth_ < 1", pretty . groom $ exprType, pretty s
+            ]
+        | otherwise -> do
+            e1 <- withDepthDec (exprOf exprType)
+            e2 <- withDepthDec (exprOf exprType)
+
+            return $ EBinOp $ op e1 e2
 
 
-arithmeticTypes :: SpecState -> Gen Type
-arithmeticTypes _ = return TInt
+opOf :: Uop -> Type ->  GG Expr
+opOf op exprType =  do
+    depth_ <- gets depth_
+    if
+        | depth_ < 1 -> ggError "opOf depth_ < 1" [ pretty . groom $ exprType ]
+        | otherwise -> do
+            e1 <- withDepthDec (exprOf exprType)
+            return $ EUniOp $ op e1
 
 
-arithmeticExpr :: SpecState -> Gen Expr
-arithmeticExpr s = do
-    kind <- arithmeticTypes s
-    arithmeticExprOf s kind
-
-arithmeticExprOf :: SpecState -> Type ->  Gen Expr
-arithmeticExprOf s kind = do
-    oneof $ map (flip (bopOf s) kind ) $ [BPlus, BMult, BDiv, BPow, BMod]
+equivExpr :: GG Expr
+equivExpr = oneof2 $ map (bop) [ BEQ, BNEQ ]
 
 
-relationExpr :: SpecState -> Gen Expr
-relationExpr s =  do
-    oneof $ map (flip (bopOf s) TBool ) [BOr, BAnd, Bimply, Biff]
+arithmeticTypes :: GG Type
+arithmeticTypes  = return TInt
 
-comparisonExpr :: SpecState -> Gen Expr
-comparisonExpr s =  do
-    oneof $ map (flip (bopOf s) TBool ) [BLT, BLTE, BGT, BGTE]
+
+arithmeticExpr :: GG Expr
+arithmeticExpr = do
+    kind <- arithmeticTypes
+    arithmeticExprOf kind
+
+arithmeticExprOf :: Type ->  GG Expr
+arithmeticExprOf kind = do
+    oneof2 $ map (flip (bopOf) kind ) $ [BPlus, BMult, BDiv, BPow, BMod]
+
+
+relationExpr :: GG Expr
+relationExpr =  do
+    oneof2 $ map (flip bopOf TBool ) [BOr, BAnd, Bimply, Biff]
+
+comparisonExpr :: GG Expr
+comparisonExpr =  do
+    oneof2 $ map (flip bopOf TBool ) [BLT, BLTE, BGT, BGTE]
 
 
 boolOpFor :: Type -> Gen (Expr -> Expr -> Expr)
