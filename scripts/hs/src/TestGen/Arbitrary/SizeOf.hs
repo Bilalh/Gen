@@ -4,7 +4,9 @@
 
 module TestGen.Arbitrary.SizeOf where
 
-import TestGen.Arbitrary.Helpers.Prelude
+import AST.Imports
+import TestGen.Arbitrary.Data
+import TestGen.Arbitrary.Helpers.Debug
 import qualified Data.Set as S
 
 
@@ -12,6 +14,8 @@ import qualified Data.Set as S
 class SizeOf a where
     sizeOf :: a -> Integer
 
+class DepthOf a where
+    depthOf :: a -> Integer
 
 instance SizeOf Domain where
     sizeOf DInt{..} = fromIntegral .  S.size .  S.fromList . concatMap rangeInts $ ranges
@@ -21,11 +25,26 @@ instance SizeOf Domain where
         ]
 
 
+instance DepthOf Type where
+    depthOf TInt  = 0
+    depthOf TBool = 0
+
+    depthOf (TMatix inner)   = 1 + depthOf inner
+    depthOf (TSet inner)     = 1 + depthOf inner
+    depthOf (TMSet inner)    = 1 + depthOf inner
+    depthOf (TFunc from to ) = 1 + (maximum $ map depthOf [from, to])
+    depthOf (TTuple inners ) = 1 + (maximum $ map depthOf inners)
+    -- TRel must of the form  (TRel  (TTuple  [ values ] ) )
+    depthOf (TRel inners )   = 2 + (maximum $ map depthOf inners)
+    depthOf (TPar inner)     = 1 + depthOf inner
+
+
+    depthOf ty = docError [ "depthOf not implemented", pretty ty ]
 
 rangeInts :: Range Expr -> [Integer]
 rangeInts (RSingle (ELit (EI a) ))     = [a]
 rangeInts (RFromTo (ELit (EI a) )  (ELit (EI b) ) )  = [a..b]
-rangeInts r = error . show $ vcat [
+rangeInts r = docError [
     "rangeInts not matched",
     pretty $ show r, pretty r
     ]

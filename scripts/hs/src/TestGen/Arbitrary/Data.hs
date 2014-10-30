@@ -46,10 +46,11 @@ data SS = SS
     , nextNum_  :: Int          -- Number to name next var
     , newVars_  :: [(Text,Type) ] -- Domains from e.g. forall
     , logs_     :: LogsTree
+    , __lc      :: Int
     }
 type SpecState=SS
 _ss :: Depth -> SS
-_ss d = SS{depth_=d, doms_ = M.empty, nextNum_=1,newVars_=[], logs_=LSEmpty }
+_ss d = SS{depth_=d, doms_ = M.empty, nextNum_=1,newVars_=[], logs_=LSEmpty, __lc=0 }
 
 
 prettyDepth :: GG Doc
@@ -80,6 +81,7 @@ instance Pretty SS where
                 , pretty doms_
                 , ",newVars_ = "
                 , prettyArr newVars_
+                , "__lc ="  <+> (pretty  __lc)
             ]
             )
 
@@ -95,7 +97,7 @@ data Type =
     | TMSet   Type
     | TFunc   Type Type
     | TTuple  [Type]
-    | TRel    [Type] --  tuples
+    | TRel    [Type] 
     | TPar    Type
     | TUnamed Text   -- each unamed type is unique
     | TEnum   Text   -- as are enums
@@ -109,8 +111,12 @@ instance Pretty [Type] where
     pretty  =  pretty . groom
 
 addLog :: String -> [Doc] ->  GG ()
-addLog nm docs = case makeLog nm docs of
-    Nothing -> return ()
-    Just l -> modify $ \st -> st{
-        logs_ = LSMultiple (logs_ st) (LSSingle l)
-    }
+addLog nm docs = do
+    lc <- gets __lc
+    -- case makeLog nm  ( ("__lc" <+> pretty lc) : docs) of
+    case makeLog nm  docs of
+        Nothing -> return ()
+        Just l -> modify $ \st -> st{
+            logs_ = LSMultiple (logs_ st) (LSSingle l),
+            __lc   = lc + 1
+        }

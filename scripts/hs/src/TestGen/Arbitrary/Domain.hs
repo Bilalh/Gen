@@ -27,12 +27,13 @@ dom n = oneof
       return DBool
     , intDom n
     , setDom n
-    , msetDom n
-    , matixDom n
-    , funcDom n
+    -- , msetDom n
+    -- , matixDom n
+    -- , funcDom n
     , relDom n
-    , parDom n
+    -- , parDom n
     ]
+-- FIXME tuple dom
 
 intDom :: Depth -> Gen Domain
 intDom d = return DInt `ap` listOfB 1 4 (range d)

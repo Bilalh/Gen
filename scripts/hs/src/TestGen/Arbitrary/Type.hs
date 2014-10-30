@@ -53,45 +53,48 @@ quanType_in (TSet inner) = inner
 
 
 atype :: GG Type
-
 -- TODO partition should also be of depth 2?
 
 atype = do
-    depth_ <- gets depth_
-    addLog "atype" ["depth_" <+> pretty depth_]
+    addLog "atype" ["start"]
+    d <- gets depth_
+    addLog "atype" ["depth_" <+> pretty d]
 
-    if
-        | depth_ < 0  -> ggError "atype invaild depth" []
-        | depth_ == 0 -> elements2 [TBool, TInt]
-        | depth_ == 1 -> do
+
+    res <- if
+        | d < 0  -> ggError "atype invaild depth" []
+        | d == 0 -> elements2 [TBool, TInt]
+        | d == 1 -> do
             let inner = withDepth 0
             oneof2 [
                   elements2 [TBool, TInt]
-                , liftM TMatix (inner atype)
-                , liftM TSet  (inner atype)
-                , liftM TMSet (inner atype)
-                , liftM TPar  (inner atype)
-                , return TFunc
-                    `ap`  (inner atype)
-                    `ap`  (inner atype)
-                , atuple
+                -- , liftM TMatix (inner atype)
+                -- , liftM TSet  (inner atype)
+                -- , liftM TMSet (inner atype)
+                -- , liftM TPar  (inner atype)
+                -- , return TFunc
+                --     `ap`  (inner atype)
+                --     `ap`  (inner atype)
+                -- , atuple
                 ]
 
         | otherwise -> do
-            let inner = withDepth (depth_ - 1)
+            let inner = withDepth (d - 1)
             oneof2 [
                   elements2 [TBool, TInt]
-                , liftM TMatix (inner atype)
-                , liftM TSet  (inner atype)
-                , liftM TMSet (inner atype)
-                , liftM TPar  (inner atype)
-                , return TFunc
-                    `ap`  (inner atype)
-                    `ap`  (inner atype)
-                , atuple
+                -- , liftM TMatix (inner atype)
+                -- , liftM TSet  (inner atype)
+                -- , liftM TMSet (inner atype)
+                -- , liftM TPar  (inner atype)
+                -- , return TFunc
+                --     `ap`  (inner atype)
+                --     `ap`  (inner atype)
+                -- , atuple
                 , arel
                 ]
-
+    d' <- gets depth_
+    addLog "atype" ["resTy" <+> pretty res, "depth_" <+> pretty d' ]
+    return res
 
 atuple :: GG Type
 atuple = do
@@ -107,10 +110,11 @@ atuple = do
 
 arel :: GG Type
 arel = do
-    depth_ <- gets depth_
-    addLog "arel" ["depth_" <+> pretty depth_]
 
-    vs <- listOfBounds (1,  min 5 (2 * depth_))
-        (withDepth (depth_ - 2) atype )
+    d <- gets depth_
+    addLog "arel" ["depth_" <+> pretty d]
 
-    return $ (TRel vs)
+    vs <- listOfBounds (1,  min 5 (2 * d))
+        (withDepth (d - 2) atype )
+
+    return $ TRel vs

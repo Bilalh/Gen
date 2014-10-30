@@ -19,6 +19,7 @@ instance Arbitrary SpecE where
 
 spec :: Depth -> Gen SpecE
 spec depth = do
+
     doms <- listOfB 1 (min (depth*2) 10) (dom depth)
     -- doms <- vectorOf 2  (dom depth)
     let withNames =  zipWith (\d i -> (name i , Find d)) doms [1 :: Int ..]

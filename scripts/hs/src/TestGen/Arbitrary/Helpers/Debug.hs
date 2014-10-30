@@ -20,8 +20,7 @@ docError = error . show . vcat
 
 suppress :: S.HashSet String
 suppress = S.fromList [
-          "exprOf"
-        , "atype"
+        ""
     ]
 
 only :: S.HashSet String

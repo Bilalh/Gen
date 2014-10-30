@@ -35,7 +35,7 @@ typeFromType' ty@(TSet _) = oneof2 [
     , nextReachable reachable
     ]
 
-    where reachable = elements2 [ TInt ]
+    where reachable = elements2 [ TInt ] -- with one step
 
 typeFromType' ty = return ty
 typeFromType' ty =  ggError "typeFromType' unmatched" [ pretty . show $ ty ]
