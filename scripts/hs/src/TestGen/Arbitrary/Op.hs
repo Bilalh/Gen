@@ -21,7 +21,7 @@ bop :: Bop ->  GG Expr
 bop op = do
     s@SS{depth_} <- get
     if
-        | depth_ < 1 -> docError [ "bop depth_ < 1", pretty s ]
+        | depth_ < 1 -> ggError "bop depth_ < 1" [ ]
         | otherwise -> do
             let newDepth = depth_ - 1
             exprType <-  withDepthDec atype
@@ -35,9 +35,8 @@ bopOf :: Bop -> Type -> GG Expr
 bopOf op exprType = do
     s@SS{depth_} <- get
     if
-        | depth_ < 1 -> docError [
-            "bopOf depth_ < 1", pretty . groom $ exprType, pretty s
-            ]
+        | depth_ < 1 -> ggError "bopOf depth_ < 1" [pretty exprType]
+
         | otherwise -> do
             e1 <- withDepthDec (exprOf exprType)
             e2 <- withDepthDec (exprOf exprType)
@@ -119,4 +118,4 @@ boolOpFor (TPar _) = do
     op <- elements2 [BEQ, BNEQ ]
     return $ (\a b -> EBinOp $ op a  b )
 
-boolOpFor  t = docError ["boolOpFor",pretty $  show t  ]
+boolOpFor  t = ggError "boolOpFor" [pretty t]

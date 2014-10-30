@@ -146,8 +146,8 @@ exprOf ty = do
     -- Simple cases
     if
         | d < 0 -> ggError "exprOf depth_ <0" ["exprDom:" <+> pretty ty]
-        | d == 0 && ty == TInt  -> oneof2 $ boolLit : ofType
-        | d == 0 && ty == TBool -> oneof2 $ intLit  : ofType
+        | d == 0 && ty == TInt  -> oneof2 $ intLit : ofType
+        | d == 0 && ty == TBool -> oneof2 $ boolLit  : ofType
         | d < 1 -> ggError "exprOf depth_ <1" ["exprDom:" <+> pretty ty]
         | otherwise  -> exprOf' d ofType ty
 

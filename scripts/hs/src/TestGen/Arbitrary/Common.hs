@@ -19,7 +19,7 @@ typeFromType :: Type -> GG Type
 typeFromType ty = do
     depth_ <- gets depth_
     if
-        | depth_ < 0  -> docError ["typeFromType depth 0"]
+        | depth_ < 0  -> ggError "typeFromType depth 0" []
         | depth_ == 0 -> return ty
         | otherwise -> typeFromType' ty
 
@@ -41,11 +41,7 @@ typeFromType' ty@(TSet _) = oneof2 [
 
 typeFromType' ty = do
     s <- get
-    docError [
-        "typeFromType' unmatched",
-        pretty . show $ ty,
-        pretty s
-        ]
+    ggError "typeFromType' unmatched" [ pretty . show $ ty ]
 
 
 lookupType ::  Ref -> GG Type
@@ -56,7 +52,7 @@ lookupType  name = do
         Just v  -> return v
         Nothing ->
             case fmap (typeOfDom . domOfFG) $  name `M.lookup` doms_ of
-                Nothing ->  docError ["lookUpType", pretty s, pretty name]
+                Nothing ->  ggError "lookUpType"  [pretty name]
                 Just v  -> return v
 
 
