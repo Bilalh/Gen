@@ -1,6 +1,6 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
 
-{-# LANGUAGE ConstraintKinds, FlexibleContexts #-}
+{-# LANGUAGE RecordWildCards, NamedFieldPuns #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}
 
@@ -25,6 +25,8 @@ import qualified Test.QuickCheck as QC
 import System.FilePath((</>))
 import System.Random(randomRIO)
 import Language.E
+
+import TestGen.Args(TArgs(..))
 
 prop_specs_refine :: Int -> FilePath -> SpecE -> Property
 prop_specs_refine time out specE = do
@@ -64,3 +66,10 @@ rmain =
 
 cmain =
     quickCheckWith stdArgs{QC.maxSize=5,maxSuccess=2000} (prop_specs_type_check)
+
+generate :: TArgs -> IO ()
+generate TArgs{..} = do
+    let maxSuccess = totalTime_  `div` perSpecTime_
+    --  Sanity checks
+    quickCheckWith stdArgs{QC.maxSize=4,maxSuccess=2000} (prop_specs_type_check)
+    quickCheckWith stdArgs{QC.maxSize=5,maxSuccess} (prop_specs_refine perSpecTime_ baseDirectory_)

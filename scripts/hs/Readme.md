@@ -1,6 +1,7 @@
 Requires
 	
-	Python3.4 (or Python3.3 with enum34 and pathlib)
+	Python3.4
+	ghc 7.8 to compile
 	Compatible Conjure, Savilerow & Minion
 
 To build (places `testGen` in ./bin)
@@ -12,8 +13,10 @@ To build (places `testGen` in ./bin)
 Before running
 
 	export PARAM_GEN_SCRIPTS=<full path of instancegen/scripts>
+
+
 		
-Usage 
+Old Usage 
 
 	TestGen [OPTIONS]
 
