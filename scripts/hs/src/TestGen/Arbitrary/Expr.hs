@@ -17,34 +17,21 @@ import qualified Data.Map as M
 
 
 expr :: GG Expr
-expr  = do
+expr = do
     gets depth_ >>= \d -> if
         | d < 3     -> boolExpr
-        | otherwise -> boolExpr
+        | otherwise -> oneof2 [ boolExpr,quanExpr]
 
-
--- expr s = oneof $
---     [ boolExpr s, quanExpr s]
 
 boolExpr :: GG Expr
 boolExpr = do
     gets depth_ >>= \case
         0 -> oneof2 [ boolLit ]
-        1 -> oneof2 [ boolLit ]
-        _ -> oneof2 [ boolLit ]
+        1 -> oneof2 [ boolLit, equivExpr, relationExpr ]
+        _ -> oneof2 [ boolLit, equivExpr, relationExpr ]
 
-    -- d <- gets depth_
-    -- oneof2 $ case d of
-    --  0 ->  [ boolLit2 ]
-    --  1 ->  [ boolLit s, equivExpr s, relationExpr s ]
-    --  _ ->  [ boolLit s, equivExpr s, relationExpr s ]
-
--- boolExpr  GG Expr
--- boolExpr s@SS{..} = oneof $ case depth_ of
---      0 ->  [ boolLit s ]
---      1 ->  [ boolLit s, equivExpr s, relationExpr s ]
---      _ ->  [ boolLit s, equivExpr s, relationExpr s ]
-
+quanExpr :: GG Expr
+quanExpr = error "quanExprquanExpr"
 
 -- quanExpr  GG Expr
 -- quanExpr s = oneof $ [ quanInExpr s, quanOverExpr s ]
@@ -154,12 +141,21 @@ boolExpr = do
 -- Return a expr of the specifed depth and type
 exprOf :: Type -> GG Expr
 exprOf ty = do
-    st <- get
-    let ofType = maybeToList $ varOf st ty
+    ofType <-  map lift . maybeToList <$> varOf ty
 
+    -- Simple cases
     gets depth_ >>= \d -> if
         | d < 0 -> ggError "exprOf depth_ <0" ["exprDom:" <+> pretty ty]
+        | d == 0 && ty == TInt  -> oneof2 $ boolLit : ofType
+        | d == 0 && ty == TBool -> oneof2 $ intLit  : ofType
+        | d < 1 -> ggError "exprOf depth_ <1" ["exprDom:" <+> pretty ty]
+        | otherwise  -> exprOf' ty
 
+
+    where
+    exprOf' :: Type -> GG Expr
+    exprOf' d  = ggError "exprOf not Matched other"
+        ["exprDom:" <+> pretty d]
 
 
 -- exprOf  Type -> GG Expr
@@ -265,21 +261,24 @@ exprOf ty = do
 --     ["exprOf not Matched other", "exprDom:" <+> pretty d, pretty . groom $ s]
 
 
-varOf :: SpecState ->  Type -> Maybe (Gen Expr)
-varOf SS{..} exprType = toGenExpr EVar $ newVars ++ (
-    map fst . M.toList  . M.filter
-        (typesUnify exprType . typeOfDom . domOfFG ))  doms_
+varOf ::  Type -> GG (Maybe (Gen Expr))
+varOf exprType = do
+    SS{doms_,newVars_} <- get
 
-    where
-    newVars :: [Text]
-    newVars = map fst $ filter (typesUnify exprType . snd ) $ newVars_
+    let newVars = map fst $ filter (typesUnify exprType . snd ) $ newVars_
 
-domOf :: SpecState -> [Type] -> Maybe (Gen Domain)
-domOf SS{..} exprTypes = toGenExpr id  $ (map (domOfFG . snd) . M.toList  .
-    M.filter (  (\t -> any (typesUnify t) exprTypes )  . typeOfDom . domOfFG ))
-        doms_
+    return $ toGenExpr EVar $ newVars ++ (
+        map fst . M.toList  . M.filter
+            (typesUnify exprType . typeOfDom . domOfFG ))  doms_
 
 
+
+domOf ::  [Type] -> GG (Maybe (Gen Domain))
+domOf exprTypes = do
+    doms_ <- gets doms_
+    return $ toGenExpr id  $ (map (domOfFG . snd) . M.toList  .
+        M.filter (  (\t -> any (typesUnify t) exprTypes )  . typeOfDom . domOfFG ))
+            doms_
 
 toGenExpr ::  (a -> b) -> [a] -> Maybe (Gen b)
 toGenExpr f vs =  case (map f vs) of

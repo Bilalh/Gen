@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 module TestGen.Arbitrary.Helpers.Prelude (
       module X
     , withDepth
@@ -37,6 +38,9 @@ withDepthDec f = do
 
 ggError :: String -> [Doc] -> GG a
 ggError title docs = do
+    addLog "ggerror" ["some log"]
     st <- get
-    error . show $ (P.text $ padRight 15 ' '  ('['  :title ++ "]" ) ) <+>
-        (nest 4 $ vcat (docs ++ [pretty st] ))
+    error . show $ ( P.text $ padRight 15 ' ' title  )
+        P.$+$ (nest 4 $ vcat (docs ++ [pretty st] ))
+        P.$+$ nest 4 "--Logs--"
+        P.$+$ (nest 4 $ pretty (logs_ st) )
