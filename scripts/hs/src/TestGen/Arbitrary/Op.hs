@@ -5,6 +5,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE LambdaCase, MultiWayIf #-}
 {-# OPTIONS_GHC -fno-warn-orphans -fno-warn-unused-imports #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module TestGen.Arbitrary.Op where
 
@@ -24,7 +25,7 @@ bop op = do
         | depth_ < 1 -> docError [ "bop depth_ < 1", pretty s ]
         | otherwise -> do
             let newDepth = depth_ - 1
-            exprType :: Type <-  undefined
+            exprType :: Type <-  $notImplemented
             e1 <- withDepth newDepth (exprOf exprType)
             e2 <- withDepth newDepth (exprOf exprType)
 

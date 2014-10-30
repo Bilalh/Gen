@@ -18,7 +18,11 @@ import Language.E as X
 import Text.Groom as X (groom)
 import Data.Set as X (Set)
 
+import Development.Placeholders as X (placeholder,notImplemented)
+
 import qualified Text.PrettyPrint as P
+
+
 
 withDepth :: Depth -> GG a -> GG a
 withDepth newDepth f = do
