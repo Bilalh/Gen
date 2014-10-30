@@ -1,6 +1,6 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns, ScopedTypeVariables#-}
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
-{-# LANGUAGE LambdaCase, MultiWayIf #-}
+{-# LANGUAGE LambdaCase, MultiWayIf, TemplateHaskell #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module TestGen.Arbitrary.Expr where
@@ -31,7 +31,8 @@ boolExpr = do
         _ -> oneof2 [ boolLit, equivExpr, relationExpr ]
 
 quanExpr :: GG Expr
-quanExpr = error "quanExprquanExpr"
+quanExpr = $notImplemented
+quanSum  = $notImplemented
 
 -- quanExpr  GG Expr
 -- quanExpr s = oneof $ [ quanInExpr s, quanOverExpr s ]
@@ -149,116 +150,60 @@ exprOf ty = do
         | d == 0 && ty == TInt  -> oneof2 $ boolLit : ofType
         | d == 0 && ty == TBool -> oneof2 $ intLit  : ofType
         | d < 1 -> ggError "exprOf depth_ <1" ["exprDom:" <+> pretty ty]
-        | otherwise  -> exprOf' ty
+        | otherwise  -> exprOf' d ofType ty
 
 
     where
-    exprOf' :: Type -> GG Expr
-    exprOf' d  = ggError "exprOf not Matched other"
-        ["exprDom:" <+> pretty d]
+    exprOf' :: Depth -> [GG Expr] -> Type -> GG Expr
+
+    exprOf' _ ofType TBool = oneof2 $ ofType ++ [
+          boolLit
+        , equivExpr
+        , relationExpr
+        ]
+
+    exprOf' 1 ofType TInt = oneof2 $ ofType ++ [
+          intLit
+        , arithmeticExprOf ty
+        ]
+
+    exprOf' _ ofType TInt = oneof2 $ ofType ++ [
+          intLit
+        , arithmeticExprOf ty
+        -- , quanSum
+        ]
+
+    exprOf' _ ofType (TSet inner) = oneof2 $ ofType ++ [
+          setLitOf inner
+        ]
+
+    exprOf' _ ofType (TMSet inner) = oneof2 $ ofType ++ [
+          msetLitOf inner
+        ]
+
+    exprOf' _ ofType (TMatix inner) = oneof2 $ ofType ++ [
+          matrixLitOf inner
+        ]
+
+    exprOf' _ ofType (TFunc a b) = oneof2 $ ofType ++ [
+          funcLitOf a b
+        ]
+
+    exprOf' d ofType (TRel tys) | d >= 2 = oneof2 $ ofType ++ [
+          relLitOf tys
+        ]
+
+    exprOf' _ ofType (TPar inner) = oneof2 $ ofType ++ [
+          parLitOf inner
+        ]
+
+    exprOf' _ ofType (TTuple tys) = oneof2 $ ofType ++ [
+          tupleLitOf tys
+        ]
 
 
--- exprOf  Type -> GG Expr
--- exprOf s ty | tracef "exprOf" [pretty ty, prettyDepth s] = undefined
---
--- exprOf s@SS{depth_} d  | depth_ < 0 =  docError
---     ["exprOf depth_ <0 ", "exprDom:" <+> pretty d, pretty . groom $ s]
---
--- exprOf s@SS{depth_=0,..} d@TBool = oneof $ ofType ++
---     [
---       boolLit s
---     ]
---     where ofType = maybeToList $ varOf s d
---
--- exprOf s@SS{..} d@TBool = oneof $ ofType ++
---     [
---       boolLit s
---     , equivExpr s
---     , relationExpr s
---     ]
---     where ofType = maybeToList $ varOf s d
---
---
--- exprOf s@SS{depth_=0,..} d@TInt = oneof $ ofType ++
---     [
---       intLit s
---     ]
---     where ofType = maybeToList $ varOf s d
---
---
--- exprOf s@SS{depth_=1,..} d@TInt = oneof $ ofType ++
---     [
---       intLit s
---     , arithmeticExprOf s d
---     ]
---     where
---     ofType = maybeToList $ varOf s d
---
--- exprOf s@SS{..} d@TInt = oneof $ ofType ++
---     [
---       intLit s
---     , arithmeticExprOf s d
---     -- , quanSum s
---     ]
---     where
---     ofType = maybeToList $ varOf s d
---
--- exprOf s@SS{..} d@(TSet inner) | depth_ >=1 = oneof $ ofType ++
---     [
---        setLitOf s inner
---     ]
---     where ofType = maybeToList $ varOf s d
---
--- exprOf s@SS{..} d@(TMSet inner) | depth_ >=1 = oneof $ ofType ++
---     [
---        msetLitOf s inner
---     ]
---     where ofType = maybeToList $ varOf s d
---
---
--- exprOf s@SS{..} d@(TMatix inner) | depth_ >=1  = oneof $ ofType ++
---     [
---        matrixLitOf s inner
---     ]
---     where ofType = maybeToList $ varOf s d
---
--- exprOf s@SS{..} d@(TFunc a b) | depth_ >=1  = oneof $ ofType ++
---     [
---        funcLitOf s a b
---     ]
---     where ofType = maybeToList $ varOf s d
---
--- exprOf s@SS{..} d@(TRel tys)  | depth_ >=2  = oneof $ ofType ++
---     [
---        relLitOf s tys
---     ]
---     where ofType = maybeToList $ varOf s d
---
--- exprOf s@SS{..} d@(TPar inner)  | depth_ >=1  = oneof $ ofType ++
---     [
---        parLitOf s inner
---     ]
---     where ofType = maybeToList $ varOf s d
---
--- exprOf s@SS{..} d@(TTuple tys)  | depth_ >=1  = oneof $ ofType ++
---     [
---        tupleLitOf s tys
---     ]
---     where ofType = maybeToList $ varOf s d
---
---
--- exprOf s@SS{..} d@(TUnamed _ )  =  docError
---     ["exprOf not Matched", "exprDom:" <+> pretty d, pretty . groom $ s]
---
--- exprOf s@SS{..} d@(TEnum _ )  =  docError
---     ["exprOf not Matched", "exprDom:" <+> pretty d, pretty . groom $ s]
---
---
--- exprOf s@SS{..} d@(TAny  )  =  docError
---     ["exprOf not Matched", "exprDom:" <+> pretty d, pretty . groom $ s]
---
--- exprOf s d  =  docError
---     ["exprOf not Matched other", "exprDom:" <+> pretty d, pretty . groom $ s]
+    exprOf' d _ _  = ggError "exprOf not Matched other"
+        ["exprDom:" <+> pretty ty, "d:" <+> pretty d ]
 
 
 varOf ::  Type -> GG (Maybe (Gen Expr))
@@ -272,13 +217,13 @@ varOf exprType = do
             (typesUnify exprType . typeOfDom . domOfFG ))  doms_
 
 
-
 domOf ::  [Type] -> GG (Maybe (Gen Domain))
 domOf exprTypes = do
     doms_ <- gets doms_
     return $ toGenExpr id  $ (map (domOfFG . snd) . M.toList  .
         M.filter (  (\t -> any (typesUnify t) exprTypes )  . typeOfDom . domOfFG ))
             doms_
+
 
 toGenExpr ::  (a -> b) -> [a] -> Maybe (Gen b)
 toGenExpr f vs =  case (map f vs) of
