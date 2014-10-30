@@ -14,4 +14,4 @@ equivExpr        ::  GG Expr
 arithmeticExprOf ::  Type ->  GG Expr
 relationExpr     ::  GG Expr
 
-boolOpFor :: Type -> Gen (Expr -> Expr -> Expr)
+boolOpFor :: Type -> GG (Expr -> Expr -> Expr)

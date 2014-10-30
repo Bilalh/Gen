@@ -46,18 +46,20 @@ typeOfDom DFunc{innerFrom,innerTo} =
 
 typeOfDom DTuple{inners} = TTuple (map typeOfDom inners)
 
+
 -- return the type of a, knowing b  from  `a in b`
 quanType_in :: Type -> Type
 quanType_in (TSet inner) = inner
 
 
 atype :: GG Type
--- atype s | tracef "atype" [prettyDepth s] = undefined
+
+-- TODO partition should also be of depth 2?
 
 atype = do
-    s@SS{depth_} <- get
+    depth_ <- gets depth_
     if
-        | depth_ < 0  -> docError ["atype invaild depth", pretty s ]
+        | depth_ < 0  -> ggError "atype invaild depth" []
         | depth_ == 0 -> elements2 [TBool, TInt]
         | depth_ == 1 -> do
             let inner = withDepth 0
@@ -71,7 +73,6 @@ atype = do
                     `ap`  (inner atype)
                     `ap`  (inner atype)
                 , atuple
-                , arel
                 ]
 
         | otherwise -> do
@@ -93,6 +94,8 @@ atype = do
 atuple :: GG Type
 atuple = do
     depth_ <- gets depth_
+    addLog "atuple" ["depth_" <+> pretty depth_]
+
     vs <- listOfBounds (1,  min 10 (2 * depth_))
         (withDepth (depth_ - 1) atype )
     return $ TTuple vs
@@ -103,6 +106,7 @@ atuple = do
 arel :: GG Type
 arel = do
     depth_ <- gets depth_
+    addLog "arel" ["depth_" <+> pretty depth_]
 
     vs <- listOfBounds (1,  min 5 (2 * depth_))
         (withDepth (depth_ - 1) atype )

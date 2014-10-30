@@ -4,6 +4,7 @@ module TestGen.Arbitrary.Helpers.Prelude (
     , withDepth
     , withDepthDec
     , ggError
+    , ggAssert
 ) where
 
 import AST.Imports as X
@@ -22,6 +23,7 @@ import Development.Placeholders as X (placeholder,notImplemented)
 
 import qualified Text.PrettyPrint as P
 
+import Control.Exception as X(assert)
 
 
 withDepth :: Depth -> GG a -> GG a
@@ -42,9 +44,12 @@ withDepthDec f = do
 
 ggError :: String -> [Doc] -> GG a
 ggError title docs = do
-    addLog "ggerror" ["some log"]
+    addLog "ggError" ["Last log"]
     st <- get
     error . show $ ( P.text $ padRight 15 ' ' title  )
         P.$+$ (nest 4 $ vcat (docs ++ [pretty st] ))
         P.$+$ nest 4 "--Logs--"
         P.$+$ (nest 4 $ pretty (logs_ st) )
+
+ggAssert :: Bool -> GG ()
+ggAssert b = return $ assert b ()

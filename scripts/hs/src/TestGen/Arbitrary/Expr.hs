@@ -30,122 +30,121 @@ boolExpr = do
         1 -> oneof2 [ boolLit, equivExpr, relationExpr ]
         _ -> oneof2 [ boolLit, equivExpr, relationExpr ]
 
-quanExpr :: GG Expr
-quanExpr = $notImplemented
-quanSum  = $notImplemented
+quanExpr ::  GG Expr
+quanExpr = oneof2 $ [ quanInExpr, quanOverExpr ]
 
--- quanExpr  GG Expr
--- quanExpr s = oneof $ [ quanInExpr s, quanOverExpr s ]
---
---
--- quanInExpr  GG Expr
--- quanInExpr s | tracef "quanInExpr" [pretty s] = undefined
--- quanInExpr s =
---     case overs of
---         Nothing  -> boolExpr s  -- Nothing to quantify over
---         Just gen-> do
---             over@(EVar overName) <- gen
---             let overType = lookupType s overName
---
---             let inType =  quanType_in overType
---             let (s', inName) = nextQuanVarName s
---             let s'' = introduceVariable s' (inName, inType)
---
---             -- FIXME Ensure with high prob that inName is actually used
---             quanType <- elements [ ForAll, Exists ]
---             let quanTop = EQuan quanType (BIn (EQVar inName) over)
---
---             quanGuard <- oneof [
---                 return EEmptyGuard, boolExprUsingRef s''  inName
---                 ]
---             quanBody <- boolExpr s''{depth_=depth_ s''  - 1}
---             return $ quanTop quanGuard quanBody
---
---     where
---         overs =  varOf s (TSet TAny)
---
---
--- quanOverExpr  GG Expr
--- quanOverExpr s | tracef "quanInExpr" [pretty s] = undefined
--- quanOverExpr s =
---     case overs of
---         Nothing  -> boolExpr s  -- Nothing to quantify over
---
---         Just gen -> do
---             dom <- gen
---             let overType = typeOfDom dom
---
---             let innerType = overType
---             let (s', inName) = nextQuanVarName s
---             let s'' = introduceVariable s' (inName, innerType)
---
---             -- FIXME Ensure with high prob that inName is actually used
---             quanType <- elements [ ForAll, Exists ]
---             let quanTop = EQuan quanType (BOver (EQVar inName) (EDom dom) )
---
---             quanGuard <- oneof [
---                 return EEmptyGuard, boolExprUsingRef s''  inName
---                 ]
---             quanBody <- boolExpr s''{depth_=depth_ s''  - 1}
---             return $ quanTop quanGuard quanBody
---
---     where
---         overs =  domOf s [TSet TAny, TInt]
---
---
--- quanSum  GG Expr
--- quanSum s =
---     case overs of
---         Nothing -> intLit s
---         Just gen -> do
---             over@(EVar overName) <- gen
---             let overType = lookupType s overName
---
---             let inType =  quanType_in overType
---             let (s', inName) = nextQuanVarName s
---             let s'' = introduceVariable s' (inName, inType)
---
---             let quanTop = EQuan Sum (BIn (EQVar inName) over)
---
---             quanGuard <- oneof [
---                 return EEmptyGuard
---                 ]
---
---             quanBody <-  exprOf s''{depth_=  depth_ s'' -1 } TInt
---             return $ quanTop quanGuard quanBody
---
---     where
---     overs =  varOf s (TSet TInt)
+quanInExpr :: GG Expr
+quanInExpr  =
+    overs >>= \case
+        Nothing -> boolExpr  -- Nothing to quantify over
+        Just gen -> do
+            over@(EVar overName) <- lift gen
+            overType <- lookupType overName
 
--- -- assuming depth > 1 left
--- boolExprUsingRef  Ref -> GG Expr
--- boolExprUsingRef s@SS{..} ref | depth_ > 1= do
---     let refType = lookupType s ref
---     sidesType <- typeFromType s refType
---
---     other <- exprOf s sidesType
---     refExpr <- exprFromToType s{depth_ = min 2 depth_} ref refType sidesType
---
---     onLeft :: Bool <- arbitrary
---     op <- boolOpFor sidesType
---     if onLeft then
---         return $ op refExpr other
---     else
---         return $ op other refExpr
---
--- -- Types that can be reached from a type in n levels of nesting
--- exprFromToType  Ref -> Type -> Type -> GG Expr
--- exprFromToType _ ref from to | from == to =  return $ EVar ref
---
--- exprFromToType s ref (TSet _) TInt = return $ EUniOp $ UBar $ EVar ref
+            let inType =  quanType_in overType
+            inName <-  nextQuanVarName
+            introduceVariable (inName, inType)
+
+            -- FIXME Ensure with high prob that inName is actually used
+            quanType <- elements2 [ ForAll, Exists ]
+            let quanTop = EQuan quanType (BIn (EQVar inName) over)
+
+            quanGuard <- oneof2 [
+                return EEmptyGuard, boolExprUsingRef  inName
+                ]
+            quanBody <- withDepthDec boolExpr
+            return $ quanTop quanGuard quanBody
+
+    where
+        overs =  varOf  (TSet TAny)
+
+quanOverExpr :: GG Expr
+quanOverExpr =
+    overs >>= \case
+        Nothing -> boolExpr  -- Nothing to quantify over
+        Just gen -> do
+            dom <- lift gen
+            let overType = typeOfDom dom
+
+            let innerType = overType
+            inName <-  nextQuanVarName
+            introduceVariable (inName, innerType)
+
+            -- FIXME Ensure with high prob that inName is actually used
+            quanType <- elements2 [ ForAll, Exists ]
+            let quanTop = EQuan quanType (BOver (EQVar inName) (EDom dom))
+
+            quanGuard <- oneof2 [
+                return EEmptyGuard, boolExprUsingRef  inName
+                ]
+            quanBody <- withDepthDec boolExpr
+            return $ quanTop quanGuard quanBody
+
+    where
+        overs = domOf [TSet TAny, TInt]
+
+
+quanSum :: GG Expr
+quanSum =
+    overs >>= \case
+        Nothing  -> intLit
+        Just gen -> do
+            over@(EVar overName) <- lift gen
+            overType <- lookupType overName
+
+            let inType =  quanType_in overType
+            inName <- nextQuanVarName
+            introduceVariable  (inName, inType)
+
+            let quanTop = EQuan Sum (BIn (EQVar inName) over)
+
+            quanGuard <- oneof2 [
+                return EEmptyGuard
+                ]
+
+            quanBody <-  withDepthDec $ exprOf TInt
+            return $ quanTop quanGuard quanBody
+
+    where
+    overs = varOf  (TSet TInt)
+
+
+-- assuming depth > 1 left
+boolExprUsingRef :: Ref -> GG Expr
+boolExprUsingRef ref = do
+    depth_ <- gets depth_
+    ggAssert $ depth_ > 1
+
+    refType <- lookupType ref
+    sidesType <- typeFromType refType
+
+    other <- exprOf sidesType
+    refExpr <- withDepth (min 2 depth_) $ exprFromToType ref refType sidesType
+
+    onLeft :: Bool <- lift arbitrary
+    op <- boolOpFor sidesType
+    if onLeft then
+        return $ op refExpr other
+    else
+        return $ op other refExpr
+
+-- Types that can be reached from a type in n levels of nesting
+exprFromToType :: Ref -> Type -> Type -> GG Expr
+exprFromToType ref from to | from == to =  return $ EVar ref
+
+exprFromToType ref (TSet _) TInt = return $ EUniOp $ UBar $ EVar ref
+
 
 -- Return a expr of the specifed depth and type
 exprOf :: Type -> GG Expr
 exprOf ty = do
     ofType <-  map lift . maybeToList <$> varOf ty
 
+    d <- gets depth_
+    addLog "exprOf" ["ty"  <+> pretty ty,  "depth_" <+> pretty d ]
+
     -- Simple cases
-    gets depth_ >>= \d -> if
+    if
         | d < 0 -> ggError "exprOf depth_ <0" ["exprDom:" <+> pretty ty]
         | d == 0 && ty == TInt  -> oneof2 $ boolLit : ofType
         | d == 0 && ty == TBool -> oneof2 $ intLit  : ofType
@@ -170,7 +169,7 @@ exprOf ty = do
     exprOf' _ ofType TInt = oneof2 $ ofType ++ [
           intLit
         , arithmeticExprOf ty
-        -- , quanSum
+        , quanSum
         ]
 
     exprOf' _ ofType (TSet inner) = oneof2 $ ofType ++ [

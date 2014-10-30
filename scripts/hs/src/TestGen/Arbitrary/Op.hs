@@ -82,41 +82,41 @@ comparisonExpr =  do
     oneof2 $ map (flip bopOf TBool ) [BLT, BLTE, BGT, BGTE]
 
 
-boolOpFor :: Type -> Gen (Expr -> Expr -> Expr)
+boolOpFor :: Type -> GG (Expr -> Expr -> Expr)
 boolOpFor TBool = do
-    op <- elements [ BEQ, BNEQ, BOr, BAnd, Bimply, Biff ]
+    op <- elements2 [ BEQ, BNEQ, BOr, BAnd, Bimply, Biff ]
     return $ (\a b -> EBinOp $ op a  b )
 
 boolOpFor TInt = do
-    op <- elements [ BEQ, BNEQ, BLT, BLTE, BGT, BGTE]
+    op <- elements2 [ BEQ, BNEQ, BLT, BLTE, BGT, BGTE]
     return $ (\a b -> EBinOp $ op a  b )
 
 boolOpFor (TSet _) =  do
-    op <-  elements [ BEQ, BNEQ, BLT, Bsubset, BsubsetEq, Bsupset, BsupsetEq ]
+    op <-  elements2 [ BEQ, BNEQ, BLT, Bsubset, BsubsetEq, Bsupset, BsupsetEq ]
     return $ (\a b -> EBinOp $ op a  b )
 
 boolOpFor (TMSet _) =  do
-    op <-  elements [ BEQ, BNEQ, BLT, Bsubset, BsubsetEq, Bsupset, BsupsetEq ]
+    op <-  elements2 [ BEQ, BNEQ, BLT, Bsubset, BsubsetEq, Bsupset, BsupsetEq ]
     return $ (\a b -> EBinOp $ op a  b )
 
 boolOpFor (TMatix _) = do
-    op <- elements [BEQ, BNEQ ]
+    op <- elements2 [BEQ, BNEQ ]
     return $ (\a b -> EBinOp $ op a  b )
 
 boolOpFor (TTuple _) = do
-    op <- elements [BEQ, BNEQ ]
+    op <- elements2 [BEQ, BNEQ ]
     return $ (\a b -> EBinOp $ op a  b )
 
 boolOpFor (TRel _) = do
-    op <- elements [BEQ, BNEQ ]
+    op <- elements2 [BEQ, BNEQ ]
     return $ (\a b -> EBinOp $ op a  b )
 
 boolOpFor (TFunc _ _) = do
-    op <- elements [BEQ, BNEQ ]
+    op <- elements2 [BEQ, BNEQ ]
     return $ (\a b -> EBinOp $ op a  b )
 
 boolOpFor (TPar _) = do
-    op <- elements [BEQ, BNEQ ]
+    op <- elements2 [BEQ, BNEQ ]
     return $ (\a b -> EBinOp $ op a  b )
 
 boolOpFor  t = docError ["boolOpFor",pretty $  show t  ]
