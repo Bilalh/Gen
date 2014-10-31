@@ -22,10 +22,17 @@ repos_dir="$(dirname "$(which savilerow)")/../"
 
 
 cp "$(which conjure)" .
+cp "$(which conjureBF)" .
 cp "$(which savilerow)" .
 cp "$(which minion)" .
 cp "$repos_dir/savilerow/savilerow.jar" .
-cp -r "$repos_dir/instancegen/scripts/hs/bin" ig_bin
+cp "$(which essenceSolver)"
+cp "$(which testGen)"
+cp "$(which testSample)"
+cp "$(which essenceGivensToFinds)"
+cp "$(which essenceLettingsToJson)"
+cp "$(which essenceGivensToJson2)"
+# cp -r "$repos_dir/instancegen/scripts/hs/bin" ig_bin
 
 popd
 tar -c binaries | pigz -c -p ${NUM_JOBS:-4} > binaries.tar.gz
