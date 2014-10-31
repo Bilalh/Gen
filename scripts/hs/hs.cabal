@@ -186,7 +186,7 @@ Executable testSample
                      , unordered-containers
                      , dlist
                      , mtl
-                     , pretty   
+                     , pretty
     ghc-prof-options:
         -auto-all
         -caf-all
