@@ -1,23 +1,5 @@
-*** Exception: exprOf depth_ <1
-    exprDom: TMSet TInt
-    SS {depth_ = 0
-        ,nextNum_ = 2
-        ,doms_ =
-        (var1, Find matrix indexed by [int(-4..-4, 3)] of bool)
-        ,newVars_ =
-        []}
-    --Logs--
-    [expr]          depth_ 3
-    [bop]           depth_ 3
-    [arel]          depth_ 2
-    [atuple]        depth_ 1
-    [bop]           bop ty TRel [TMSet TInt, TTuple [TBool, TBool]]
-    [exprOf]        ty TRel [TMSet TInt, TTuple [TBool, TBool]]
-                    depth_ 2
-    [exprOf]        ty TMSet TInt
-                    depth_ 0
-    [ggError]       Last log
-❯
+
+    ☐  0 length tuple?
 
 
 

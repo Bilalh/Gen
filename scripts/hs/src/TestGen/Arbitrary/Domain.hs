@@ -15,6 +15,7 @@ module TestGen.Arbitrary.Domain
     , parDom
     , rangeComp
     , intFromDint
+    , tupleDom
 ) where
 
 import TestGen.Arbitrary.Helpers.Prelude
@@ -36,6 +37,7 @@ dom n = oneof
     , funcDom n
     , relDom n
     , parDom n
+    , tupleDom n
     ]
 -- FIXME tuple dom
 
@@ -81,6 +83,14 @@ parDom :: Depth -> Gen Domain
 parDom depth = do
     inner <- dom (depth - 1)
     return dpar{inner}
+
+tupleDom :: Depth -> Gen Domain
+tupleDom depth = do
+    numElems <- choose (1, min (depth * 2) 5 )
+    doms <- vectorOf numElems (dom (depth -1) )
+    return dtuple{inners=doms}
+
+
 
 mkRanges :: Integer ->  Integer -> Integer -> Set Integer -> Gen ( [Range Expr] )
 mkRanges _ 0 0 _ = return []
