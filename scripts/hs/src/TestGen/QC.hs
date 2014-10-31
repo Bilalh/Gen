@@ -71,5 +71,7 @@ generate :: TArgs -> IO ()
 generate TArgs{..} = do
     let maxSuccess = totalTime_  `div` perSpecTime_
     --  Sanity checks
+    putStrLn "Typechecking 2000 random specs, with depth up to size 4"
     quickCheckWith stdArgs{QC.maxSize=4,maxSuccess=2000} (prop_specs_type_check)
+    putStrLn "Generating spec, with depth up to size 4"
     quickCheckWith stdArgs{QC.maxSize=5,maxSuccess} (prop_specs_refine perSpecTime_ baseDirectory_)
