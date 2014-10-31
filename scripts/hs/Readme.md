@@ -4,7 +4,7 @@ Requires
 	ghc 7.8 to compile
 	Compatible Conjure, Savilerow & Minion
 
-To build (places `testGen` in ./bin)
+To build (places `testSample` in ./bin)
 
 	export CONJURE_REPO=<where conjure repo is>
 	./make.sh
@@ -16,18 +16,10 @@ Before running
 
 
 		
-Old Usage 
-
-	TestGen [OPTIONS]
-
-	Common flags:
-	  -b    --base-directory=ITEM  Base Directory
-	  -t    --total-time=NUM       Total time to use
-	  -p    --per-spec-time=INT    Total time to spend on each spec
-	  -r    --rseed=INT            Seed to Use
-	  -h -? --help                 Display help message
-	  -V    --version              Print version information
-	  
-Example 
-
-	 testgen -b outdir -t600 -p50 --rseed 4223
+Usage from 
+	
+	testSample --help
+	
+wrapper 
+	
+	testSampleWrap.sh
