@@ -12,7 +12,7 @@ import TestGen.Arbitrary.Domain
 
 import TestGen.Arbitrary.Expr(exprOf)
 
--- FIXME pick only values that in the domain?
+-- FIXME option to  only pick values that in the domain?
 
 
 boolLit :: GG Expr
@@ -54,7 +54,7 @@ msetLitOf innerType = do
 matrixLitOf :: Type -> GG Expr
 matrixLitOf innerType = do
     depth_ <- gets depth_
-    idx <- lift $ intDom (depth_ - 1)
+    idx <-  withDepthDec intDom
     let numElems = sizeOf idx
     exprs <- vectorOf2 (fromInteger numElems) ( withDepthDec $ exprOf innerType)
     return $ ELit $ EMatrix (map EExpr $ exprs) idx

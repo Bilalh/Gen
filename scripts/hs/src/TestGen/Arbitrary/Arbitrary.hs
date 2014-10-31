@@ -20,14 +20,15 @@ instance Arbitrary SpecE where
 spec :: Depth -> Gen SpecE
 spec depth = do
 
-    doms <- listOfB 1 (min (depth*2) 10) (dom depth)
-    -- doms <- vectorOf 2  (dom depth)
+    let state = (_ss depth)
+    (doms,state') <- runStateT  ( listOfBounds (1, (min (depth*2) 10)) dom) state
+
     let withNames =  zipWith (\d i -> (name i , Find d)) doms [1 :: Int ..]
     let mappings  = M.fromList withNames
 
-    let state = (_ss depth){doms_=mappings, nextNum_ = length doms + 1}
 
-    (exprs,ss) <- runStateT (listOfBounds (0,15) expr) state
+    let state'' =  state'{doms_=mappings, depth_ =depth, nextNum_ = length doms + 1}
+    (exprs,sfinal) <- runStateT (listOfBounds (0,15) expr) state''
 
     return $ SpecE mappings exprs
 
