@@ -1,5 +1,91 @@
+[3, 5; int(9, 8..9)],
 
+
+Boolean expr:
+    ✔  boolLit @done(2014-10-31 09:45)
+    ✔  equivExpr @done(2014-10-31 09:45)
+    ✔  relationExpr @done(2014-10-31 09:45)
+    ☐  set stuff
+    ☐  lex stuff
+
+tasks:
+    ✔  literals (apart from enums and unamed) @done(2014-10-31 03:40)
+
+    ☐  enums and unnamed domains
+    ☐  enums and unnamed literals
+
+    ☐  forall/exist  i  in var
+        ✔ started @done(2014-10-31 05:29) @project(    tasks)
+        ☐ all
+
+    ☐  forall/exist  i  : dom
+        ✔ started @done(2014-10-31 05:29) @project(    tasks)
+        all
+
+    ☐  guards
+        ✔  started @done(2014-10-31 05:28) @project(    tasks)
+
+    ☐ tuple indexing
+        ✔ beConstant_ flag @done(2014-10-31 11:09)
+
+
+    ☐ quan sum
+        ✔  mostly @done(2014-10-31 05:29) @project(tasks)
+
+    ☐ binop
+        ☐ In
+        ☐ Over
+        ✔ EQ @done(2014-10-31 05:35) @project(tasks)
+        ✔ NEQ @done(2014-10-31 05:35) @project(tasks)
+        ☐ LT
+        ☐ LTE
+        ☐ GT
+        ☐ GTE
+        ✔ Plus @done(2014-10-31 05:34) @project(tasks)
+        ✔ Mult @done(2014-10-31 05:34) @project(tasks)
+        ✔ Div @done(2014-10-31 05:34) @project(tasks)
+        ✔ Pow @done(2014-10-31 05:34) @project(tasks)
+        ✔ Mod @done(2014-10-31 05:34) @project(tasks)
+        ✔ And @done(2014-10-31 05:34) @project(tasks)
+        ✔ Or @done(2014-10-31 05:34) @project(tasks)
+        ✔ imply @done(2014-10-31 05:34) @project(tasks)
+        ✔ iff @done(2014-10-31 05:34) @project(tasks)
+        ☐ subset
+        ☐ subsetEq
+        ☐ supset
+        ☐ supsetEq
+        ☐ intersect
+        ☐ union
+        ☐ lexLT
+        ☐ lexLTE
+        ☐ lexGT
+        ☐ lexGTE
+
+    ☐ functions
+        ☐ freq
+        ☐ hist
+        ☐ max
+        ☐ min
+        ☐ toInt
+        ☐ toMSet
+        ☐ toRelation
+        ☐ toSet
+        ☐ toInto
+        ☐ defined
+        ☐ image
+        ☐ inverse
+        ☐ preImage
+        ☐ range
+        ☐ apart
+        ☐ parts
+        ☐ party
+        ☐ together
+    ☐ SR functions
+
+    ☐  0 length matrix?  e.g [; int]
     ☐  0 length tuple?
+
+
 
 
 

@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# OPTIONS_GHC -fno-warn-unused-imports #-}
 module TestGen.Arbitrary.Helpers.Prelude (
       module X
     , withDepth
@@ -21,6 +22,9 @@ import Data.Set as X (Set)
 import Development.Placeholders as X (placeholder,notImplemented,todo)
 import Language.E as X
 import Text.Groom as X (groom)
+
+import Control.Monad.State.Strict as X (evalStateT)
+import Control.Monad as X(filterM)
 
 import qualified Control.Exception as C
 import qualified Text.PrettyPrint as P
@@ -47,6 +51,8 @@ withDepthDec f = do
     modify $ \st -> st{ depth_ = oldDepth }
     addLog "withDepthDec" ["from" <+> pretty (oldDepth - 1) <+> "backto" <+> pretty oldDepth ]
     return res
+
+
 
 -- Use so that variables in qualifiers don't get reused outside
 withQuan  :: GG a -> GG a

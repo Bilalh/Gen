@@ -7,7 +7,6 @@ module TestGen.Arbitrary.Literal where
 import TestGen.Arbitrary.Helpers.Prelude
 
 import TestGen.Arbitrary.Type
-import TestGen.Arbitrary.SizeOf
 import TestGen.Arbitrary.Domain
 
 import TestGen.Arbitrary.Expr(exprOf)
@@ -53,11 +52,11 @@ msetLitOf innerType = do
 
 matrixLitOf :: Type -> GG Expr
 matrixLitOf innerType = do
-    depth_ <- gets depth_
     idx <-  withDepthDec intDom
     let numElems = sizeOf idx
     exprs <- vectorOf2 (fromInteger numElems) ( withDepthDec $ exprOf innerType)
     return $ ELit $ EMatrix (map EExpr $ exprs) idx
+
 
 -- FIXME from mappings should be distinct?
 funcLitOf :: Type -> Type -> GG Expr

@@ -1,7 +1,6 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns, ScopedTypeVariables#-}
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
 {-# LANGUAGE LambdaCase, MultiWayIf, TemplateHaskell #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module TestGen.Arbitrary.Expr where
 
@@ -12,6 +11,7 @@ import TestGen.Arbitrary.Common
 
 import {-# SOURCE #-} TestGen.Arbitrary.Literal
 import {-# SOURCE #-} TestGen.Arbitrary.Op
+import {-# SOURCE #-} TestGen.Arbitrary.FromNested
 
 import qualified Data.Map as M
 
@@ -75,7 +75,7 @@ quanInExpr  = withQuan $
             return $ quanTop quanGuard quanBody
 
     where
-        overs =  varOf  (TSet TAny)
+        overs =  varsOf'  (TSet TAny)
 
 quanOverExpr :: GG Expr
 quanOverExpr = withQuan $
@@ -143,7 +143,7 @@ quanSum = withQuan $
             return $ quanTop quanGuard quanBody
 
     where
-    overs = varOf  (TSet TInt)
+    overs = varsOf'  (TSet TInt)
 
 
 -- assuming depth > 1 left
@@ -179,18 +179,20 @@ exprFromToType ref (TSet _) TInt = return $ EUniOp $ UBar $ EVar ref
 -- Return a expr of the specifed depth and type
 exprOf :: Type -> GG Expr
 exprOf ty = do
-    ofType <-  map lift . maybeToList <$> varOf ty
+    nestedOfType <-  maybeToList <$> nestedVarsOf ty
+    ofType <-  varsOf ty
+    let refs = (ofType ++ nestedOfType )
 
     d <- gets depth_
     addLog "exprOf" ["depth_" <+> pretty d, "ty"  <+> pretty ty ]
 
     -- Simple cases
     if
-        | d < 0 -> ggError "exprOf depth_ <0" ["exprDom:" <+> pretty ty]
-        | d == 0 && ty == TInt  -> oneof2 $ intLit : ofType
-        | d == 0 && ty == TBool -> oneof2 $ boolLit  : ofType
-        | d < 1 -> ggError "exprOf depth_ <1" ["exprDom:" <+> pretty ty]
-        | otherwise  -> exprOf' d ofType ty
+        | d < 0 -> ggError "exprOf depth_ <0" ["exprTy:" <+> pretty ty]
+        | d == 0 && ty == TInt  -> oneof2 $ intLit : refs
+        | d == 0 && ty == TBool -> oneof2 $ boolLit  : refs
+        | d < 1 -> ggError "exprOf depth_ <1" ["exprTy:" <+> pretty ty]
+        | otherwise  -> exprOf' d refs ty
 
 
     where
@@ -245,8 +247,16 @@ exprOf ty = do
         ["exprDom:" <+> pretty ty, "d:" <+> pretty d ]
 
 
-varOf ::  Type -> GG (Maybe (Gen Expr))
-varOf exprType = do
+-- at most one element
+-- zero elements if beConstant_
+varsOf ::Type -> GG [GG Expr]
+varsOf ty = gets beConstant_ >>= \case
+    False -> return []
+    True  -> map lift . maybeToList <$> varsOf' ty
+
+
+varsOf' :: Type -> GG (Maybe (Gen Expr))
+varsOf' exprType = do
     SS{doms_,newVars_} <- get
 
     let newVars = map fst $ filter (typesUnify exprType . snd ) newVars_
@@ -254,6 +264,7 @@ varOf exprType = do
     return $ toGenExpr EVar $ newVars ++ (
         map fst . M.toList  . M.filter
             (typesUnify exprType . typeOfDom . domOfFG ))  doms_
+
 
 
 domOf ::  [Type] -> GG (Maybe (Gen Domain))

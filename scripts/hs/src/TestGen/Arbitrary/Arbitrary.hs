@@ -20,7 +20,7 @@ instance Arbitrary SpecE where
 spec :: Depth -> Gen SpecE
 spec depth = do
 
-    let state = (_ss depth)
+    let state = (_ss $ depth `div` 2)
     (doms,state') <- runStateT  ( listOfBounds (1, (min (depth*2) 10)) dom) state
 
     let withNames =  zipWith (\d i -> (name i , Find d)) doms [1 :: Int ..]

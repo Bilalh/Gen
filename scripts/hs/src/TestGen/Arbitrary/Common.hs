@@ -43,7 +43,7 @@ typeFromType' ty =  ggError "typeFromType' unmatched" [ pretty . show $ ty ]
 
 lookupType ::  Ref -> GG Type
 lookupType  name = do
-    s@SS{newVars_,doms_} <- get
+    SS{newVars_,doms_} <- get
 
     case name `lookup` newVars_ of
         Just v  -> return v

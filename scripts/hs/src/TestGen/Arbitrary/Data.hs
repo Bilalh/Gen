@@ -41,16 +41,18 @@ type Ref = Text
 
 data SS = SS
     {
-      depth_    :: Depth       --  how many levels to genrate
-    , doms_     :: Map Text FG --  Domains
-    , nextNum_  :: Int          -- Number to name next var
-    , newVars_  :: [(Text,Type) ] -- Domains from e.g. forall
-    , logs_     :: LogsTree
-    , __lc      :: Int
+      depth_      :: Depth       --  how many levels to genrate
+    , doms_       :: Map Text FG --  Domains
+    , nextNum_    :: Int          -- Number to name next var
+    , newVars_    :: [(Text,Type) ] -- Domains from e.g. forall
+    , logs_       :: LogsTree
+    , __lc        :: Int
+    , beConstant_ :: Bool  -- when true only generate constrant expressions
     }
 type SpecState=SS
 _ss :: Depth -> SS
-_ss d = SS{depth_=d, doms_ = M.empty, nextNum_=1,newVars_=[], logs_=LSEmpty, __lc=0 }
+_ss d = SS{depth_=d, doms_ = M.empty, nextNum_=1
+          ,newVars_=[], logs_=LSEmpty, __lc=0, beConstant_ =False }
 
 
 prettyDepth :: GG Doc
@@ -97,7 +99,7 @@ data Type =
     | TMSet   Type
     | TFunc   Type Type
     | TTuple  [Type]
-    | TRel    [Type] 
+    | TRel    [Type]
     | TPar    Type
     | TUnamed Text   -- each unamed type is unique
     | TEnum   Text   -- as are enums

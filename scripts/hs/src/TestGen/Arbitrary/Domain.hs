@@ -51,7 +51,7 @@ dom =  gets depth_ >>= \case
         ]
 
 intDom :: GG Domain
-intDom = return DInt `ap` listOfBounds (1, 4) (range)
+intDom = return DInt `ap` listOfBounds (1, 2) (range)
 
 setDom :: GG Domain
 setDom = do
@@ -175,14 +175,14 @@ range = oneof2
     where
     arbitrarySingle :: GG (Range Expr)
     arbitrarySingle = do
-        a <- choose2 (-10,10 :: Integer)
+        a <- choose2 (-5,5 :: Integer)
         return $ RSingle (ELit . EI $ a)
 
     arbitraryFromTo :: GG (Range Expr)
     arbitraryFromTo = do
         do
-            a <- choose2 (-10,10 :: Integer)
-            b <- choose2 (a,10)
+            a <- choose2 (-5,5 :: Integer)
+            b <- choose2 (a,5)
             return $ RFromTo (ELit . EI $ a) (ELit . EI $  b)
 
 

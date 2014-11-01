@@ -2,7 +2,6 @@ module TestGen.Arbitrary.Op where
 
 import AST.Imports
 import TestGen.Arbitrary.Data
-import Test.QuickCheck(Gen)
 
 type Bop = (Expr -> Expr -> BinOp)
 type Uop = (Expr -> UniOp)
