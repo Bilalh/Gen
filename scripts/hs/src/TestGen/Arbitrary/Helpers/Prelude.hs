@@ -11,12 +11,15 @@ module TestGen.Arbitrary.Helpers.Prelude (
 
 import AST.Imports as X
 
+
 import Test.QuickCheck as X hiding (maxSize)
+
 import TestGen.Arbitrary.Data as X
 import TestGen.Arbitrary.Helpers.Debug as X
 import TestGen.Arbitrary.Helpers.Helpers as X
 import TestGen.Arbitrary.Helpers.QuickCheck2 as X
 import TestGen.Arbitrary.SizeOf as X
+import Common.Helpers as X
 
 import Data.Set as X (Set)
 import Development.Placeholders as X (placeholder,notImplemented,todo)

@@ -75,7 +75,7 @@ atype = do
                 -- , return TFunc
                 --     `ap`  (inner atype)
                 --     `ap`  (inner atype)
-                -- , atuple
+                , atuple
                 ]
 
         | otherwise -> do
@@ -89,7 +89,7 @@ atype = do
                 -- , return TFunc
                 --     `ap`  (inner atype)
                 --     `ap`  (inner atype)
-                -- , atuple
+                , atuple
                 -- , arel
                 ]
     d' <- gets depth_

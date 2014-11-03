@@ -38,8 +38,7 @@ nestedVarsOf' :: Type -> GG (Maybe (GG Expr))
 nestedVarsOf' tyTo = do
     addLog "nestedVarsOf" []
 
-    -- FIXME combine with newVars
-    -- FIXME are types enough
+    -- FIXME are types enough?
     doms     <- gets doms_
     quanVars <- gets newVars_
     let refs =  quanVars  ++ (toTy <$> M.toList doms)
@@ -49,7 +48,7 @@ nestedVarsOf' tyTo = do
         (_, []) -> return Nothing
         (_, _) ->  do
             filterM ( \(_, from) ->
-                (inDepth d ) <$> typeReachable tyTo from) refs >>=
+                (inDepth d ) <$> typeReachable from tyTo ) refs >>=
                  \case
                     [] -> return Nothing
                     xs -> do
@@ -67,21 +66,29 @@ nestedVarsOf' tyTo = do
 
 -- Returns the min number of steps to convert types
 typeReachable :: Type -> Type -> GG (Maybe Int)
-typeReachable to from | to == from =  return (Just 0)
+typeReachable from to  | to == from =  return (Just 0)
 
-typeReachable TInt TBool    = return (Just 1) -- ToInt(bool)
-typeReachable TInt (TSet _) = return (Just 1) -- |set|
+typeReachable TBool TInt     = return (Just 1) -- ToInt(bool)
+typeReachable (TSet _) TInt  = return (Just 1) -- |set|
 
 -- val1 != val2
-typeReachable TBool _ = return (Just 1)
+typeReachable _ TBool = return (Just 1)
 
 -- using set literal  {val}
-typeReachable (TSet inner) from | from == inner = return (Just 1)
+typeReachable from (TSet inner)  | from == inner = return (Just 1)
 
--- 1 + converting to the inner type
-typeReachable (TSet inner) from = do
-    i <- typeReachable (inner) from
-    return $  (+1) <$> i
+-- -- 1 + converting to the inner type
+-- typeReachable (TSet inner) from = do
+--     i <- typeReachable (inner) from
+--     return $  (+1) <$> i
+
+typeReachable (TTuple inners) to = do
+    case any (== to ) inners of
+        True  -> return . Just $ 2
+        False -> return Nothing
+
+
+typeReachable _ _ = return Nothing
 
 typeReachable to from = ggError "typeReachable"
     ["to" <+> pretty to
@@ -96,7 +103,7 @@ exprFromRefTo (ref,tyFrom) tyTo = do
 
     d <- gets depth_
     addLog "exprFromRefTo" ["depth, ref, fromTy, tyTo"
-                           , pretty ref, pretty tyFrom, pretty tyTo  ]
+                           ,pretty d,  pretty ref, pretty tyFrom, pretty tyTo  ]
 
     process (EVar ref) tyFrom
 
@@ -135,8 +142,6 @@ nextt' cur tyFrom tyTo = do
 
     ff tyFrom tyTo
 
-    -- _g
-
     where
     ff :: Type -> Type -> GG [(Expr, Type)]
     ff TBool TInt  = do
@@ -151,6 +156,14 @@ nextt' cur tyFrom tyTo = do
 
     ff from to@(TSet inner) | from == inner  = do
         return [(ELit $ ESet $ [EExpr cur], to )]
+
+    ff (TTuple inners) to | any (==to) inners = do
+        let withIdx = zip inners [1..]
+            possible =  filter (\(f,_) -> f == to ) withIdx
+
+        (cEle, cIndex) <- elements2 possible
+        return $ [  (EProc $ PIndex cur (ELit $ EI cIndex)  , to)  ]
+
 
 
     ff from to = ggError "ff unmatched" $ [  "cur" <+> pretty cur
