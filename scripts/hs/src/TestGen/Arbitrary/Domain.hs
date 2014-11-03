@@ -31,22 +31,22 @@ dom =  gets depth_ >>= \case
     1  -> oneof2
         [ return DBool
         , intDom
-        -- , setDom
-        -- , msetDom
-        -- , matixDom
-        -- , funcDom
-        -- , parDom
+        , setDom
+        , msetDom
+        , matixDom
+        , funcDom
+        , parDom
         , tupleDom
         ]
     _ -> oneof2
         [ return DBool
         , intDom
-        -- , setDom
-        -- , msetDom
-        -- , matixDom
-        -- , funcDom
-        -- , relDom
-        -- , parDom
+        , setDom
+        , msetDom
+        , matixDom
+        , funcDom
+        , relDom
+        , parDom
         , tupleDom
         ]
 

@@ -62,10 +62,10 @@ x /== y =
 
 
 rmain =
-    quickCheckWith stdArgs{QC.maxSize=5,maxSuccess=50} (prop_specs_refine 100 "__")
+    quickCheckWith stdArgs{QC.maxSize=4,maxSuccess=50} (prop_specs_refine 100 "__")
 
 cmain =
-    quickCheckWith stdArgs{QC.maxSize=5,maxSuccess=2000} (prop_specs_type_check)
+    quickCheckWith stdArgs{QC.maxSize=4,maxSuccess=2000} (prop_specs_type_check)
 
 generate :: TArgs -> IO ()
 generate TArgs{..} = do
@@ -73,5 +73,5 @@ generate TArgs{..} = do
     --  Sanity checks
     putStrLn "Typechecking 2000 random specs, with depth up to size 4"
     quickCheckWith stdArgs{QC.maxSize=4,maxSuccess=2000} (prop_specs_type_check)
-    putStrLn "Generating spec, with depth up to size 4"
+    putStrLn "Generating specs, with depth up to size 4"
     quickCheckWith stdArgs{QC.maxSize=5,maxSuccess} (prop_specs_refine perSpecTime_ baseDirectory_)
