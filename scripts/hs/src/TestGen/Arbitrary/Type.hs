@@ -68,29 +68,29 @@ atype = do
             let inner = withDepth 0
             oneof2 [
                   elements2 [TBool, TInt]
-                , liftM TMatix (inner atype)
+                -- , liftM TMatix (inner atype)
                 , liftM TSet  (inner atype)
-                , liftM TMSet (inner atype)
-                , liftM TPar  (inner atype)
-                , return TFunc
-                    `ap`  (inner atype)
-                    `ap`  (inner atype)
-                , atuple
+                -- , liftM TMSet (inner atype)
+                -- , liftM TPar  (inner atype)
+                -- , return TFunc
+                --     `ap`  (inner atype)
+                --     `ap`  (inner atype)
+                -- , atuple
                 ]
 
         | otherwise -> do
             let inner = withDepth (d - 1)
             oneof2 [
                   elements2 [TBool, TInt]
-                , liftM TMatix (inner atype)
+                -- , liftM TMatix (inner atype)
                 , liftM TSet  (inner atype)
-                , liftM TMSet (inner atype)
-                , liftM TPar  (inner atype)
-                , return TFunc
-                    `ap`  (inner atype)
-                    `ap`  (inner atype)
-                , atuple
-                , arel
+                -- , liftM TMSet (inner atype)
+                -- , liftM TPar  (inner atype)
+                -- , return TFunc
+                --     `ap`  (inner atype)
+                --     `ap`  (inner atype)
+                -- , atuple
+                -- , arel
                 ]
     d' <- gets depth_
     addLog "atype" ["resTy" <+> pretty res, "depth_" <+> pretty d' ]

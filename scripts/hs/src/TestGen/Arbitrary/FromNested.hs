@@ -7,6 +7,7 @@ module TestGen.Arbitrary.FromNested where
 import TestGen.Arbitrary.Helpers.Prelude
 import TestGen.Arbitrary.Expr
 import TestGen.Arbitrary.Type
+import TestGen.Arbitrary.Op
 
 import qualified Data.Map as M
 import Data.Maybe(isJust)
@@ -18,7 +19,7 @@ import Data.Maybe(isJust)
         find tu :  tuple( int, int )
 
     this could return depending on the depth
-        tu[0]        # depth 2   (indexing counts as lavel)
+        tu[0]        # depth 2   (indexing counts as level)
         tu[ |{0}| ]  # depth 4
 
     e.g. TBool  from
@@ -47,7 +48,8 @@ nestedVarsOf' tyTo = do
         (0, _) -> return Nothing
         (_, []) -> return Nothing
         (_, _) ->  do
-            filterM ( \(_, from) -> isJust <$> typeReachable tyTo from) refs >>=
+            filterM ( \(_, from) ->
+                (inDepth d ) <$> typeReachable tyTo from) refs >>=
                  \case
                     [] -> return Nothing
                     xs -> do
@@ -56,12 +58,101 @@ nestedVarsOf' tyTo = do
 
 
     where
+        inDepth _ Nothing  = False
+        inDepth d (Just c) = c <  d
+
         toTy (ref, fg) = (ref, typeOfDom . domOfFG $ fg )
 
--- Just steps  if a type can be reached within specifed depth
+--TODO Make sure to handle Tany
+
+-- Returns the min number of steps to convert types
 typeReachable :: Type -> Type -> GG (Maybe Int)
-typeReachable to from = $notImplemented
+typeReachable to from | to == from =  return (Just 0)
 
+typeReachable TInt TBool    = return (Just 1) -- ToInt(bool)
+typeReachable TInt (TSet _) = return (Just 1) -- |set|
 
+-- val1 != val2
+typeReachable TBool _ = return (Just 1)
+
+-- using set literal  {val}
+typeReachable (TSet inner) from | from == inner = return (Just 1)
+
+-- 1 + converting to the inner type
+typeReachable (TSet inner) from = do
+    i <- typeReachable (inner) from
+    return $  (+1) <$> i
+
+typeReachable to from = ggError "typeReachable"
+    ["to" <+> pretty to
+    ,"from" <+> pretty from
+    ]
+
+-- returns a expr that contraints the Ref
 exprFromRefTo :: (Ref,Type) -> Type -> GG Expr
-exprFromRefTo (ref,fromTy) tyTo = $notImplemented
+exprFromRefTo (ref,tyFrom) tyTo = do
+    -- TODO inefficient
+    minSteps <- typeReachable tyTo tyFrom
+
+    d <- gets depth_
+    addLog "exprFromRefTo" ["depth, ref, fromTy, tyTo"
+                           , pretty ref, pretty tyFrom, pretty tyTo  ]
+
+    process (EVar ref) tyFrom
+
+
+    where
+    process cur from = do
+        choices <- nextt cur from tyTo
+        (newCur, newFrom ) <- elements2 choices
+        if
+            | newFrom == tyTo -> return newCur
+            | otherwise ->  process newCur newFrom
+
+
+
+-- A generator for all types which would still be able to reach
+-- the destination
+
+nextt, nextt' ::
+    Expr -> -- current  (starts as just the ref)
+    Type -> -- current's Type
+    Type -> -- Final Destination type
+    --TODO should be GG [ GG (Expr, Type) ] ?
+    GG [ (Expr, Type) ] -- A list of possible transformations + their type
+
+nextt cur tyFrom tyTo  = gets depth_ >>= \d -> if
+    | d < 0 -> ggError "nextt depth <0 " $ ["cur tyFrom tyTo"
+                                           , pretty cur
+                                           , pretty tyFrom
+                                           , pretty tyTo ]
+
+    | otherwise -> nextt' cur tyFrom tyTo
+
+nextt' cur tyFrom tyTo | tyFrom == tyTo = return [ (cur, tyTo) ]
+nextt' cur tyFrom tyTo = do
+    d <-  gets depth_
+
+    ff tyFrom tyTo
+
+    -- _g
+
+    where
+    ff :: Type -> Type -> GG [(Expr, Type)]
+    ff TBool TInt  = do
+        return [ ( EProc $ PtoInt cur , TInt)  ]
+
+    ff (TSet _) TInt = do
+        return [( EUniOp $ UBar cur , TInt) ]
+
+    ff ty TBool = do
+        op <- boolOpFor ty
+        return $ [(op cur cur, TBool)]
+
+    ff from to@(TSet inner) | from == inner  = do
+        return [(ELit $ ESet $ [EExpr cur], to )]
+
+
+    ff from to = ggError "ff unmatched" $ [  "cur" <+> pretty cur
+                                          , "tyFrom" <+> pretty from
+                                          , "tyTo" <+> pretty to ]

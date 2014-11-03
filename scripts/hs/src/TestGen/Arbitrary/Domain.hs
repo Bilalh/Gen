@@ -32,22 +32,22 @@ dom =  gets depth_ >>= \case
         [ return DBool
         , intDom
         , setDom
-        , msetDom
-        , matixDom
-        , funcDom
-        , parDom
-        , tupleDom
+        -- , msetDom
+        -- , matixDom
+        -- , funcDom
+        -- , parDom
+        -- , tupleDom
         ]
     _ -> oneof2
         [ return DBool
         , intDom
         , setDom
-        , msetDom
-        , matixDom
-        , funcDom
-        , relDom
-        , parDom
-        , tupleDom
+        -- , msetDom
+        -- , matixDom
+        -- , funcDom
+        -- , relDom
+        -- , parDom
+        -- , tupleDom
         ]
 
 intDom :: GG Domain
