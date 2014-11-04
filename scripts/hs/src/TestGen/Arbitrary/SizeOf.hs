@@ -32,14 +32,16 @@ instance DepthOf Type where
     depthOf (TMatix inner)   = 1 + depthOf inner
     depthOf (TSet inner)     = 1 + depthOf inner
     depthOf (TMSet inner)    = 1 + depthOf inner
-    depthOf (TFunc from to ) = 1 + (maximum $ map depthOf [from, to])
-    depthOf (TTuple inners ) = 1 + (maximum $ map depthOf inners)
-    -- TRel must of the form  (TRel  (TTuple  [ values ] ) )
-    depthOf (TRel inners )   = 2 + (maximum $ map depthOf inners)
+    depthOf (TFunc from to ) = 1 + nonEmpty (maximum . map depthOf) [from, to]
+    depthOf (TTuple inners ) = 1 + nonEmpty (maximum . map depthOf) inners
+    depthOf (TRel inners )   = 2 + nonEmpty (maximum . map depthOf) inners
     depthOf (TPar inner)     = 1 + depthOf inner
 
-
     depthOf ty = docError [ "depthOf not implemented", pretty ty ]
+
+
+nonEmpty _ [] = 0
+nonEmpty f xs = f xs
 
 rangeInts :: Range Expr -> [Integer]
 rangeInts (RSingle (ELit (EI a) ))     = [a]

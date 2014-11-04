@@ -82,11 +82,18 @@ typeReachable from (TSet inner)  | from == inner = return (Just 1)
 --     i <- typeReachable (inner) from
 --     return $  (+1) <$> i
 
+--  t: tuple(ty, ty2 )  ty  -> t[1]
 typeReachable (TTuple inners) to = do
     case any (== to ) inners of
         True  -> return . Just $ 2
         False -> return Nothing
 
+-- FIXME  need domain for function
+--  f: function  int -> Bool
+--  want a bool
+--  we can do f(?int)
+-- do we want to make sure ?int is inside the domain of f?
+-- if so we need to use the domains as well
 
 typeReachable _ _ = return Nothing
 
@@ -161,7 +168,7 @@ nextt' cur tyFrom tyTo = do
         let withIdx = zip inners [1..]
             possible =  filter (\(f,_) -> f == to ) withIdx
 
-        (cEle, cIndex) <- elements2 possible
+        (_, cIndex) <- elements2 possible
         return $ [  (EProc $ PIndex cur (ELit $ EI cIndex)  , to)  ]
 
 
