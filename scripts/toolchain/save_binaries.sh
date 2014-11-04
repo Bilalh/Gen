@@ -26,12 +26,12 @@ cp "$(which conjureBF)" .
 cp "$(which savilerow)" .
 cp "$(which minion)" .
 cp "$repos_dir/savilerow/savilerow.jar" .
-cp "$(which essenceSolver)"
-cp "$(which testGen)"
-cp "$(which testSample)"
-cp "$(which essenceGivensToFinds)"
-cp "$(which essenceLettingsToJson)"
-cp "$(which essenceGivensToJson2)"
+cp "$(which essenceSolver)" .
+cp "$(which testGen)" .
+cp "$(which testSample)" .
+cp "$(which essenceGivensToFinds)" .
+cp "$(which essenceLettingsToJson)" .
+cp "$(which essenceGivensToJson2)" .
 # cp -r "$repos_dir/instancegen/scripts/hs/bin" ig_bin
 
 popd
