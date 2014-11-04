@@ -16,10 +16,19 @@ Before running
 
 
 		
-Usage from 
+Usage from:
 	
 	testSample --help
 	
-wrapper 
+wrapper scripts, which makes sure the directory exists and saves version infomation.
 	
 	testSampleWrap.sh
+	
+example:
+
+	testSampleWrap.sh  runs  -t 21600 -p 120 --rseed 33
+
+
+save binaries:
+ 
+	$PARAM_GEN_SCRIPTS/toolchain/save_binaries.sh zbin@
