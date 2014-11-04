@@ -73,44 +73,6 @@ prop_int :: Int -> Property
 prop_int x  = do
     counterexample (show x) (x < 10)
 
-genrateTest = do
-    startTime <- round `fmap` getPOSIXTime
-    helper 1 startTime []
-
-    where
-    helper total startTime results = do
-        let maxSuccess = 2000  `div` 1
-
-        case maxSuccess <= 0 of
-            True  -> return results
-            False -> do
-
-                r <- quickCheckWithResult stdArgs{QC.maxSize=400,maxSuccess}
-                    (prop_int)
-                let results'  = addResults r results
-
-
-                now <- round `fmap` getPOSIXTime
-                putStrLn $ "Running for " ++ (show $ now - startTime ) ++ " s"
-
-                case (r, now - startTime < total) of
-
-                    (GaveUp{}, _ ) -> do
-                        putStrLn "Gaveup"
-                        return results'
-
-
-
-                    (_, False) -> do
-                        putStrLn "Time up"
-                        return results'
-
-                    (_, True)  -> helper total startTime results'
-
-        where
-        addResults :: Result ->  [(String, String)] -> [(String, String)]
-        addResults Failure{reason,output} arr = (reason,output) : arr
-        addResults _ arr = arr
 
 generate :: TArgs -> IO ()
 generate TArgs{..} = do
@@ -134,7 +96,7 @@ generate TArgs{..} = do
 
     writeToFile name arr =
       do h <- openFile (name) WriteMode
-         mapM (hPutStrLn h) arr
+         mapM_ (hPutStrLn h) arr
          hClose h
 
     helper :: Int -> [String] -> IO [String]
@@ -142,25 +104,30 @@ generate TArgs{..} = do
         before <- round `fmap` getPOSIXTime
 
         let maxSuccess = (totalTime_ - (before - startTime)) `div` perSpecTime_
-        r <- quickCheckWithResult stdArgs{QC.maxSize=5,maxSuccess}
-            (prop_specs_refine perSpecTime_ baseDirectory_)
-        let results'  = addResults r results
+
+        case maxSuccess <= 0 of
+            True  -> return results
+            False -> do
+
+                r <- quickCheckWithResult stdArgs{QC.maxSize=5,maxSuccess}
+                    (prop_specs_refine perSpecTime_ baseDirectory_)
+                let results'  = addResults r results
 
 
-        after <- round `fmap` getPOSIXTime
-        putStrLn $ "Running for " ++ (show $ after - startTime ) ++ " s"
+                after <- round `fmap` getPOSIXTime
+                putStrLn $ "Running for " ++ (show $ after - startTime ) ++ " s"
 
-        case (r, after - startTime < totalTime_) of
+                case (r, after - startTime < totalTime_) of
 
-            (GaveUp{}, _ ) -> do
-                putStrLn "Gaveup"
-                return results'
+                    (GaveUp{}, _ ) -> do
+                        putStrLn "Gaveup"
+                        return results'
 
-            (_, False) -> do
-                putStrLn "Time up"
-                return results'
+                    (_, False) -> do
+                        putStrLn "Time up"
+                        return results'
 
-            (_, True)  -> helper startTime results'
+                    (_, True)  -> helper startTime results'
 
         where
         addResults :: Result ->  [String] -> [String]
