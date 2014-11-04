@@ -32,8 +32,14 @@ def hash_path(path):
 # global function for run_refine_essence
 # because nested function can't be pickled
 def run_refine(kwargs,i):
-    eprime = kwargs['outdir'] / "{:04}.eprime".format(i)
-    c=shlex.split(commands.ConjureRandom.format(eprime=eprime, **kwargs))
+    if i == 0:
+        eprime =  kwargs['outdir'] / "comp.eprime"
+        c=shlex.split(commands.ConjureCompact.format(
+            eprime=eprime, **kwargs))
+    else:   
+        eprime = kwargs['outdir'] / "{:04}.eprime".format(i)
+        c=shlex.split(commands.ConjureRandom.format(eprime=eprime, **kwargs))
+        
     logger.warn("running %s", c)
     (res, output) = run_with_timeout(kwargs['itimeout'], c)
     return ((eprime.stem,res.__dict__), " ".join(c) + "\n" + output)
@@ -42,23 +48,14 @@ def run_refine_essence(*,op,compact=True,random=20):
     limit = op.timeout
     date_start = datetime.utcnow()
 
-    eprime = op.outdir / "comp.eprime"
-    c=shlex.split(commands.ConjureCompact.format(
-        itimeout = int(math.ceil(limit)),
-        eprime=eprime, essence=op.essence))
-    logger.warn("running %s", c)
-
-    (cres,cout) = run_with_timeout(limit, c)
-    compact = [(("comp", cres.__dict__), " ".join(c) + "\n" + cout)]
-
     mapping = dict(essence=op.essence,outdir=op.outdir)
     mapping['itimeout'] = int(math.ceil(limit))
 
     rr = partial(run_refine,mapping)
     pool = Pool()
-    rnds = list(pool.map(rr,range(1,random+1)))
+    rnds = list(pool.map(rr,range(0,random+1)))
 
-    (results,outputs) =list(zip( *( compact + rnds ) ))
+    (results,outputs) =list(zip( *(  rnds ) ))
 
     with (op.outdir / "_refine.output").open("w") as f:
         f.write("\n".join(outputs))
