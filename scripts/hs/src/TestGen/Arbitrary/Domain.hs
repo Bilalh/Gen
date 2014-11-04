@@ -32,7 +32,7 @@ dom =  gets depth_ >>= \case
         [ return DBool
         , intDom
         , setDom
-        , msetDom
+        -- , msetDom
         , matixDom
         , funcDom
         , parDom
@@ -42,7 +42,7 @@ dom =  gets depth_ >>= \case
         [ return DBool
         , intDom
         , setDom
-        , msetDom
+        -- , msetDom
         , matixDom
         , funcDom
         , relDom
