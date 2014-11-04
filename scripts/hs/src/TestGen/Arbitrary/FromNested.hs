@@ -95,6 +95,9 @@ typeReachable (TTuple inners) to = do
 -- do we want to make sure ?int is inside the domain of f?
 -- if so we need to use the domains as well
 
+typeReachable (TFunc ffrom fto) to | fto == to  = return . Just . fromInteger $
+    depthOf ffrom
+
 typeReachable _ _ = return Nothing
 
 typeReachable to from = ggError "typeReachable"
@@ -147,6 +150,8 @@ nextt' cur tyFrom tyTo | tyFrom == tyTo = return [ (cur, tyTo) ]
 nextt' cur tyFrom tyTo = do
     d <-  gets depth_
 
+    addLog "next'" []
+
     ff tyFrom tyTo
 
     where
@@ -169,9 +174,11 @@ nextt' cur tyFrom tyTo = do
             possible =  filter (\(f,_) -> f == to ) withIdx
 
         (_, cIndex) <- elements2 possible
-        return $ [  (EProc $ PIndex cur (ELit $ EI cIndex)  , to)  ]
+        return $ [  (EProc $ Pindex cur (ELit $ EI cIndex)  , to)  ]
 
-
+    ff (TFunc ffrom fto) to | fto == to = do
+        indexer <-  exprOf ffrom
+        return [ (EProc $ Papply cur [indexer] , to) ]
 
     ff from to = ggError "ff unmatched" $ [  "cur" <+> pretty cur
                                           , "tyFrom" <+> pretty from
