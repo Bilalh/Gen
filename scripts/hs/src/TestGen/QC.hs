@@ -23,21 +23,26 @@ import qualified Test.QuickCheck as QC
 
 import Data.Time.Clock.POSIX(getPOSIXTime)
 
-import System.FilePath((</>))
+import System.FilePath((</>), takeFileName)
+import System.Directory(createDirectoryIfMissing)
 import System.Random(randomRIO)
 import Language.E
 
 import TestGen.Args(TArgs(..))
 import System.IO(IOMode(..),hPutStrLn, openFile, hClose)
 
-prop_specs_refine :: Int -> FilePath -> SpecE -> Property
-prop_specs_refine time out specE = do
+prop_specs_refine :: Int -> FilePath -> WithLogs SpecE -> Property
+prop_specs_refine time out (WithLogs specE logs) = do
     let sp = toSpec specE
     fst (typeChecks sp) ==>
         monadicIO $ do
             ts <- run timestamp >>= return . show
             num <- run (randomRIO (10,99) :: IO Int)  >>= return . show
             let uname  =  (ts ++ "_" ++ num )
+            run $ createDirectoryIfMissing True (out </> uname)
+            run $  writeFile (out </> uname </> "spec.logs" ) (renderNormal logs)
+
+
             result <- run $ runRefine' sp (out </> uname ) time
             case successful_ result of
                 True  -> return ()
@@ -86,6 +91,7 @@ generate TArgs{..} = do
     startTime <- round `fmap` getPOSIXTime
     failed <- helper startTime []
 
+    -- let paths = map (\fn -> takeFileName' baseDirectory_ </> fn </> "spec.essence" ) failed
     let paths = map (\fn -> baseDirectory_ </> fn </> "spec.essence" ) failed
 
     print paths
@@ -133,3 +139,8 @@ generate TArgs{..} = do
         addResults :: Result ->  [String] -> [String]
         addResults Failure{reason} arr = (reason) : arr
         addResults _ arr = arr
+
+takeFileName' :: FilePath -> FilePath
+takeFileName' fp = case reverse fp of
+    ('/': xs) -> takeFileName (reverse xs)
+    _         -> takeFileName fp

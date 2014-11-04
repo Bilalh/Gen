@@ -19,6 +19,7 @@ import TestGen.Arbitrary.Helpers.Debug as X
 import TestGen.Arbitrary.Helpers.Helpers as X
 import TestGen.Arbitrary.Helpers.QuickCheck2 as X
 import TestGen.Arbitrary.SizeOf as X
+import TestGen.Arbitrary.Helpers.Log as X (LogsTree(..), Pretty(..))
 import Common.Helpers as X
 
 import Data.Set as X (Set)

@@ -1,6 +1,6 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ScopedTypeVariables, FlexibleInstances #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module TestGen.Arbitrary.Arbitrary where
@@ -13,12 +13,27 @@ import TestGen.Arbitrary.Expr
 import qualified Data.Map as M
 import qualified Data.Text as T
 
+data WithLogs a = WithLogs a LogsTree
+    deriving(Show)
+
+instance Arbitrary (WithLogs SpecE) where
+    arbitrary = do
+        (specE, logs) <- sized spec'
+        return $ WithLogs specE logs
+
 
 instance Arbitrary SpecE where
     arbitrary = sized spec
 
+
+
 spec :: Depth -> Gen SpecE
-spec depth = do
+spec depth =  do
+    (specE, _) <- spec' depth
+    return specE
+
+spec' :: Depth -> Gen (SpecE, LogsTree)
+spec' depth = do
 
     let state = (_ss $ depth `div` 2)
     (doms,state') <- runStateT  ( listOfBounds (1, (min (depth*2) 10)) dom) state
@@ -30,6 +45,6 @@ spec depth = do
     let state'' =  state'{doms_=mappings, depth_ =depth, nextNum_ = length doms + 1}
     (exprs,sfinal) <- runStateT (listOfBounds (0,15) expr) state''
 
-    return $ SpecE mappings exprs
+    return $ (SpecE mappings exprs, logs_ sfinal)
 
     where name i =  T.pack $  "var" ++  (show  i)
