@@ -31,8 +31,10 @@ import Language.E
 import TestGen.Args(TArgs(..))
 import System.IO(IOMode(..),hPutStrLn, openFile, hClose)
 
-prop_specs_refine :: Int -> FilePath -> WithLogs SpecE -> Property
-prop_specs_refine time out (WithLogs specE logs) = do
+type Cores = Int
+
+prop_specs_refine :: Cores ->  Int -> FilePath -> WithLogs SpecE -> Property
+prop_specs_refine cores time out (WithLogs specE logs) = do
     let sp = toSpec specE
     fst (typeChecks sp) ==>
         monadicIO $ do
@@ -43,7 +45,7 @@ prop_specs_refine time out (WithLogs specE logs) = do
             run $  writeFile (out </> uname </> "spec.logs" ) (renderNormal logs)
 
 
-            result <- run $ runRefine' sp (out </> uname ) time
+            result <- run $ runRefine' cores sp (out </> uname ) time
             case successful_ result of
                 True  -> return ()
                 False -> fail uname
@@ -69,7 +71,7 @@ x /== y =
 
 
 rmain =
-    quickCheckWith stdArgs{QC.maxSize=4,maxSuccess=50} (prop_specs_refine 100 "__")
+    quickCheckWith stdArgs{QC.maxSize=4,maxSuccess=50} (prop_specs_refine 100 4 "__")
 
 cmain =
     quickCheckWith stdArgs{QC.maxSize=4,maxSuccess=2000} (prop_specs_type_check)
@@ -116,7 +118,7 @@ generate TArgs{..} = do
             False -> do
 
                 r <- quickCheckWithResult stdArgs{QC.maxSize=5,maxSuccess}
-                    (prop_specs_refine perSpecTime_ baseDirectory_)
+                    (prop_specs_refine cores_ perSpecTime_ baseDirectory_)
                 let results'  = addResults r results
 
 

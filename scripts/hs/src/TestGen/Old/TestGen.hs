@@ -157,8 +157,8 @@ _main total perSpec seed = do
     main' globalState
 
 
-runRefine' :: Spec -> FilePath -> Int -> IO RefineR
-runRefine' spec dir specTime = do
+runRefine' :: Int -> Spec -> FilePath -> Int -> IO RefineR
+runRefine' cores spec dir specTime = do
     print . pretty $ spec
 
     createDirectoryIfMissing True  dir
@@ -167,6 +167,6 @@ runRefine' spec dir specTime = do
     writeSpec name spec
 
     let specLim = specTime
-    result <- runRefine name dir specLim
+    result <- runRefine cores name dir specLim
     putStrLn . groom $  result
     return result
