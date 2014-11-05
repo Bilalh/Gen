@@ -103,7 +103,6 @@ tasks:
         ☐ toMSet
         ☐ toRelation
         ☐ toSet
-        ☐ toInto
         ☐ defined
         ☐ image
         ☐ inverse

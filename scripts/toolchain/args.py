@@ -13,6 +13,8 @@ def do_args():
             help='Wall time for everything')
     parse_args.add_argument("--param", help='', default=None)
     parse_args.add_argument("--refine_only", action='store_true')
+    parse_args.add_argument("--num_cores", type=int, default=1)
+
     args = parse_args.parse_args()
 
     args.outdir = Path(args.outdir)
@@ -29,4 +31,3 @@ def do_args():
 
     args.essence = Path(args.essence)
     return args
-

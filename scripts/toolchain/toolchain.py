@@ -73,7 +73,8 @@ if __name__ == "__main__":
 
 
     # Make the eprimes
-    (essence_refine,refine_wall_time) = run.run_refine_essence(op=op)
+    (essence_refine,refine_wall_time) = run.run_refine_essence(
+        op=op,random=op.num_cores)
     logger.info("essence_refine: %s", pformat(essence_refine))
 
     successful =  all(  res['status_'] in [Status.success, Status.timeout]
