@@ -51,7 +51,7 @@ echo "" >> "${fp}.versions"
 savilerow	 | grep Version >> "${fp}.versions"
 echo "" >> "${fp}.versions"
 testSample --version >> "${fp}.versions"
- 
+
 
 echo ""  >> "$fp.versions"
 echo "##Repos##"  >> "$fp.versions"
@@ -91,7 +91,7 @@ echo "##OTHER##"  >> "$fp.versions"
 echo "" >> "${fp}.versions"
 
 declare -a commands
-commands=(python python3 pip sqlite3 git hg perl parallel ruby ghc cabal pigz pip3)
+commands=(python python3 pip sqlite3 git hg perl parallel ruby ghc cabal gcc clang pigz pip3 )
 for prog in "${commands[@]}"; do
     echo "$prog version:" >> "${fp}.versions"
     $prog --version  2>&1 | cat | head -n3 >> "${fp}.versions"
