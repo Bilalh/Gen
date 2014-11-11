@@ -223,8 +223,8 @@ exprOf ty = do
           msetLitOf inner
         ]
 
-    exprOf' _ ofType (TMatix inner) = oneof2 $ ofType ++ [
-          matrixLitOf inner
+    exprOf' _ ofType (TMatix inner) = frequency2 $ (map (\t -> (10,t)) ofType ) ++ [
+          (1,matrixLitOf inner)
         ]
 
     exprOf' _ ofType (TFunc a b) = oneof2 $ ofType ++ [
