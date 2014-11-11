@@ -39,7 +39,7 @@ instance DepthOf Type where
 
     depthOf ty = docError [ "depthOf not implemented", pretty ty ]
 
-
+nonEmpty :: ([t] -> Integer) -> [t] -> Integer
 nonEmpty _ [] = 0
 nonEmpty f xs = f xs
 
