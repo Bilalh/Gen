@@ -27,6 +27,20 @@ oneof2 :: [GG a] -> GG a
 oneof2 [] = error "QuickCheck2.oneof used with empty list"
 oneof2 gs = choose2 (0,length gs - 1) >>=   (gs !!)
 
+-- | Chooses one of the given generators, with a weighted random distribution.
+-- The input list must be non-empty.
+frequency2 :: [(Int, GG a)] -> GG a
+frequency2 [] = error "QuickCheck.frequency used with empty list"
+frequency2 xs0 = choose2 (1, tot) >>= (`pick` xs0)
+ where
+  tot = sum (map fst xs0)
+
+  pick n ((k,x):xs)
+    | n <= k    = x
+    | otherwise = pick (n-k) xs
+  pick _ _  = error "QuickCheck.pick used with empty list"
+
+
 -- | Used to construct generators that depend on the size parameter.
 sized2 :: (Int -> GG a) -> GG a
 sized2 f = do
