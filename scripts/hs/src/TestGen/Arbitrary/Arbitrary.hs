@@ -14,7 +14,6 @@ import qualified Data.Map as M
 import qualified Data.Text as T
 
 data WithLogs a = WithLogs a LogsTree
-    deriving(Show)
 
 instance Arbitrary (WithLogs SpecE) where
     arbitrary = do
@@ -26,6 +25,9 @@ instance Arbitrary SpecE where
     arbitrary = sized spec
 
 
+instance Show (WithLogs SpecE) where
+    show (WithLogs specE logs) =
+        "WithLogs ( " ++ show specE ++ " ) "
 
 spec :: Depth -> Gen SpecE
 spec depth =  do

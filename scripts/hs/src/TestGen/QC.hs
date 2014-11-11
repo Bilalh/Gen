@@ -51,11 +51,13 @@ prop_specs_refine cores time out (WithLogs specE logs) = do
                 False -> fail uname
 
 
-prop_specs_type_check :: SpecE -> Property
-prop_specs_type_check specE = do
+prop_specs_type_check ::  WithLogs SpecE -> Property
+prop_specs_type_check (WithLogs specE logs) = do
     let sp = toSpec specE
         (res,doc) = typeChecks sp
-    counterexample (show doc ++ (show . pretty $ sp)) (res)
+    counterexample
+        (show doc ++ (show . pretty $ sp) ++ (show . pretty $ logs ) )
+        (res)
 
 typeChecks :: Spec -> (Bool, Doc)
 typeChecks sp = case fst $ runCompESingle "Error while type checking." $
