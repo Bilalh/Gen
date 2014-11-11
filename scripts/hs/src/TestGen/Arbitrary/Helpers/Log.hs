@@ -38,14 +38,17 @@ suppress :: S.HashSet String
 suppress = S.fromList
     [ "test"
     , "test2"
+    , "withDepthDec"
     ]
 
 
 makeLog :: String -> [Doc] -> Maybe LogNamed
 #ifdef LOGS_TRACE
-makeLog nm docs | nm `S.member` suppress = trace
+makeLog nm _ | nm `S.member` suppress = Nothing
+makeLog nm docs  = trace
     ( show  $  (" ¦" <+> pretty (padRight 15 ' ' nm)) <+> (nest 4 $ vcat docs)
     $ Just (LogNamed nm docs)
 #else
+makeLog nm docs | nm `S.member` suppress = Nothing
 makeLog nm docs = Just (LogNamed nm docs)
 #endif
