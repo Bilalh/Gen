@@ -1,4 +1,7 @@
 
+
+
+
 fromNested basic:
     ✔ tuple @done(2014-11-05 05:41) @project(fromNested)
     ✔ function  @done(2014-11-05 05:41) @project(fromNested)
@@ -94,7 +97,7 @@ tasks:
         ☐ lexGT
         ☐ lexGTE
 
-    ☐ functions
+{{    ☐ functions
         ☐ freq
         ☐ hist
         ☐ max
@@ -112,7 +115,7 @@ tasks:
         ☐ parts
         ☐ party
         ☐ together
-    ☐ SR functions
+    ☐ SR functions}}
 
     ☐  0 length matrix?  e.g [; int]
     ☐  0 length tuple?
