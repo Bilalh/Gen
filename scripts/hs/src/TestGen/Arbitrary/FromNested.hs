@@ -29,7 +29,9 @@ import Data.Maybe(isJust)
         f( {1} )   # depth 4
 
 -}
+
 nestedVarsOf :: Type -> GG (Maybe (GG Expr))
+-- nestedVarsOf  ty = return Nothing
 nestedVarsOf ty = gets beConstant_ >>= \case
     True  -> return Nothing
     False -> nestedVarsOf' ty  -- TODO too strict?
@@ -53,6 +55,7 @@ nestedVarsOf' tyTo = do
                     [] -> return Nothing
                     xs -> do
                         tu@(name,tyFrom) <- elements2 xs
+                        addLog "nestedVarsOf'gets" [pretty name, pretty tyFrom]
                         return . Just $  exprFromRefTo tu tyTo
 
 
@@ -88,7 +91,16 @@ typeReachable (TTuple inners) to = do
         True  -> return . Just $ 2
         False -> return Nothing
 
--- FIXME  need domain for function
+-- typeReachable (TMatix inner) _ = error "dd"
+
+typeReachable (TMatix inner) to | inner == to = do
+    d <- gets depth_
+    addLog "typeReachable mat of" [pretty inner, "to" <+> pretty to
+                                  , "depth_" <+> pretty d ]
+    return . Just $ 2
+
+
+-- FIXME  need domain for function?
 --  f: function  int -> Bool
 --  want a bool
 --  we can do f(?int)
@@ -100,14 +112,16 @@ typeReachable (TFunc ffrom fto) to | fto == to  = return . Just . fromInteger $
 
 typeReachable _ _ = return Nothing
 
-typeReachable to from = ggError "typeReachable"
-    ["to" <+> pretty to
-    ,"from" <+> pretty from
-    ]
+-- typeReachable to from = ggError "typeReachable"
+--     ["to" <+> pretty to
+--     ,"from" <+> pretty from
+--     ]
+
 
 -- returns a expr that contraints the Ref
 exprFromRefTo :: (Ref,Type) -> Type -> GG Expr
 exprFromRefTo (ref,tyFrom) tyTo = do
+    addLog "exprFromRefTo" []
     -- TODO inefficient
     minSteps <- typeReachable tyTo tyFrom
 
@@ -128,8 +142,10 @@ exprFromRefTo (ref,tyFrom) tyTo = do
 
 
 
+
 -- A generator for all types which would still be able to reach
 -- the destination
+
 
 nextt, nextt' ::
     Expr -> -- current  (starts as just the ref)
@@ -150,11 +166,11 @@ nextt' cur tyFrom tyTo | tyFrom == tyTo = return [ (cur, tyTo) ]
 nextt' cur tyFrom tyTo = do
     d <-  gets depth_
 
-    addLog "next'" []
+    addLog "next'" [pretty tyFrom, pretty tyTo]
 
     ff tyFrom tyTo
 
-    where
+    where -- :: from to -> choices
     ff :: Type -> Type -> GG [(Expr, Type)]
     ff TBool TInt  = do
         return [ ( EProc $ PtoInt cur , TInt)  ]
@@ -179,6 +195,12 @@ nextt' cur tyFrom tyTo = do
     ff (TFunc ffrom fto) to | fto == to = do
         indexer <-  exprOf ffrom
         return [ (EProc $ Papply cur [indexer] , to) ]
+
+    ff (TMatix inner) to | inner == to = do
+        addLog "ffmat" []
+        indexer <- exprOf TInt
+        return $ [ (EProc $ Pindex cur (indexer ), to) ]
+
 
     ff from to = ggError "ff unmatched" $ [  "cur" <+> pretty cur
                                           , "tyFrom" <+> pretty from
