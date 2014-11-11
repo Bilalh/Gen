@@ -93,7 +93,7 @@ boolOpFor TInt = do
     return (\a b -> EBinOp $ op a  b )
 
 boolOpFor (TSet _) =  do
-    op <-  elements2 [ BEQ, BNEQ, BLT, Bsubset, BsubsetEq, Bsupset, BsupsetEq ]
+    op <-  elements2 [ BEQ, BNEQ, Bsubset, BsubsetEq, Bsupset, BsupsetEq ]
     return (\a b -> EBinOp $ op a  b )
 
 boolOpFor (TMSet _) =  do
