@@ -1,3 +1,30 @@
+type conversion
+
+    ☐ functions
+        ☐ freq
+        ☐ hist
+        ☐ max
+        ☐ min
+        ✔ toInt @done(2014-11-12 04:02)
+        ☐ toMSet
+        ☐ toRelation
+        ☐ toSet
+        ☐ defined
+        ☐ image
+        ☐ inverse
+        ☐ preImage
+        ☐ range
+        ☐ apart
+        ☐ parts
+        ☐ party
+        ☐ together
+
+    ☐ Uops
+        ✔  | | @done(2014-11-12 04:02)
+        ☐
+
+
+
 
 
 

@@ -243,6 +243,12 @@ exprOf ty = do
           tupleLitOf tys
         ]
 
+    exprOf' d ofType TAny = oneof2 $ ofType ++ [
+          do
+              ty <- withDepth d atype
+              withDepth d (exprOf ty)
+        ]
+
     exprOf' d _ _  = ggError "exprOf not Matched other"
         ["exprDom:" <+> pretty ty, "d:" <+> pretty d ]
 

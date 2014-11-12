@@ -25,11 +25,10 @@ toTypeWithConversions ty = do
 con :: Depth -> Type -> GG (Maybe (Expr))
 con _ to  = do
     d <- gets depth_
-    mchoices <- reachableToType d to
 
-    case mchoices of
-        Nothing -> return Nothing
-        Just choices -> do
+    reachableToType d to >>= \case
+        [] -> return Nothing
+        choices -> do
             (fromTy, toFn) <- elements2 choices
             fromExpr <- withDepthDec (exprOf fromTy)
             fs <- toFn
@@ -43,19 +42,19 @@ type ToTypeFn = (Expr -> Expr)
 -- Give an type return the possible ways to get to that type
 -- e.g  TInt  ->  Just $  [TSet Tint,  [  | x |  ]   ]
 
-reachableToType :: Depth -> Type -> GG (Maybe [ (Type, GG [ToTypeFn] )  ])
-reachableToType 0 _ = return  Nothing
-reachableToType _ ( TSet (TTuple [a, b] )) = return $ Just $ [ (TFunc a b,
+reachableToType :: Depth -> Type -> GG [ (Type, GG [ToTypeFn] )  ]
+reachableToType 0 _ = return  []
+reachableToType _ ( TSet (TTuple [a, b] )) = return $  [ (TFunc a b,
              return $  [ EProc . PtoSet ]
         )]
 
-reachableToType _ TBool = return Nothing
+reachableToType _ TBool = return []
 
 
 reachableToType d TInt =  do
 
     res <- concatMapM inner (allowed d)
-    return $ Just $ res
+    return res
 
     where
 
@@ -68,25 +67,22 @@ reachableToType d TInt =  do
 
     inner :: Type -> GG ( [ (Type, GG [ToTypeFn] )  ])
     inner ty@TBool = do
-        choices <-  reachableToType (d - 1) ty
-        let arr = [ EProc . PtoInt ]
-        combined <-  combine (ty, arr) choices
-        return $  (ty, return arr) : combined
+        innerCommon ty [ EProc . PtoInt ]
 
     inner ty@(TSet (TTuple [TInt, TInt] )) = do
-        choices <-  reachableToType (d- 1) ty
+        innerCommon ty [ EUniOp . UBar ]
 
-        let arr = [ EUniOp . UBar ]
-        combined <-  combine (ty, arr) choices
+
+    innerCommon :: Type -> [Expr -> Expr] -> GG ( [ (Type, GG [ToTypeFn] )  ])
+    innerCommon ty arr = do
+        choices  <- reachableToType (d- 1) ty
+        combined <- combine (ty, arr) choices
         return $  (ty, return arr) : combined
 
 
-
-
-combine ::  (Type, [ToTypeFn]) ->  Maybe [(Type, GG [ToTypeFn])] -> GG ( [(Type, GG [ToTypeFn])])
-combine _ Nothing = return []
-combine _ (Just []) = return []
-combine (_, ff) (Just xs) = do
+combine ::  (Type, [ToTypeFn]) ->  [(Type, GG [ToTypeFn])] -> GG ( [(Type, GG [ToTypeFn])])
+combine _ []       = return []
+combine (_, ff) xs = do
     res <- mapM (mapper ff) xs
 
     return $  res
