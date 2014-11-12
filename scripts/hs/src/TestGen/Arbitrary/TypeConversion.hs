@@ -7,13 +7,13 @@ module TestGen.Arbitrary.TypeConversions(toTypeWithConversions) where
 import TestGen.Arbitrary.Helpers.Prelude
 import TestGen.Arbitrary.Expr
 import TestGen.Arbitrary.Literal
-
+import TestGen.Arbitrary.Type
 
 
 toTypeWithConversions :: Type -> GG (Maybe Expr)
 toTypeWithConversions ty = do
     d <- gets depth_
-    addLog "toType" ["depth_" <+> pretty d]
+    addLog "toType" ["depth_" <+> pretty d, "ty" <+> pretty ty]
 
     -- Simple cases
     if
@@ -44,43 +44,66 @@ type ToTypeFn = (Expr -> Expr)
 
 reachableToType :: Depth -> Type -> GG [ (Type, GG [ToTypeFn] )  ]
 reachableToType 0 _ = return  []
-reachableToType _ ( TSet (TTuple [a, b] )) = return $  [ (TFunc a b,
-             return $  [ EProc . PtoSet ]
-        )]
 
 reachableToType _ TBool = return []
 
+reachableToType d TAny = do
+    newTy <- withDepth d atype
+    reachableToType d newTy
 
-reachableToType d TInt =  do
 
-    res <- concatMapM inner (allowed d)
-    return res
-
+reachableToType d oty@TInt = concatMapM process (allowed d)
     where
 
     allowed :: Depth -> [Type]
     allowed 0 = []
-    allowed 1 = [TBool]
-    allowed 2 = allowed 1 ++ []
-    allowed _ = allowed 2 ++ [TSet (TTuple [TInt, TInt] )]
+    allowed 1 = allowed 0 ++ [TBool]
+    allowed _ = allowed 1 ++ [TSet TAny]
+
+    process :: Type -> GG ( [ (Type, GG [ToTypeFn] )  ])
+    process ty@TBool = do
+        processCommon d ty [ EProc . PtoInt ]
+
+    process ty@(TSet TAny) = do
+        processCommon d ty [ EUniOp . UBar ]
+
+    process ty = ggError "reachableToType missing"
+        ["ty" <+> pretty ty, "oty" <+> pretty oty ]
 
 
-    inner :: Type -> GG ( [ (Type, GG [ToTypeFn] )  ])
-    inner ty@TBool = do
-        innerCommon ty [ EProc . PtoInt ]
+reachableToType d oty@(TSet inner) = concatMapM process (allowed d)
+    where
+    tyDepth = depthOf inner
 
-    inner ty@(TSet (TTuple [TInt, TInt] )) = do
-        innerCommon ty [ EUniOp . UBar ]
-
-
-    innerCommon :: Type -> [Expr -> Expr] -> GG ( [ (Type, GG [ToTypeFn] )  ])
-    innerCommon ty arr = do
-        choices  <- reachableToType (d- 1) ty
-        combined <- combine (ty, arr) choices
-        return $  (ty, return arr) : combined
+    allowed :: Depth -> [Type]
+    allowed 0 = []
+    allowed 1 = allowed 0 ++ []
+    allowed 2 = allowed 1  ++ [] ++
+        if | tyDepth == 0  -> [TFunc inner TAny ]
+           | otherwise  -> []
 
 
-combine ::  (Type, [ToTypeFn]) ->  [(Type, GG [ToTypeFn])] -> GG ( [(Type, GG [ToTypeFn])])
+    process :: Type -> GG ( [ (Type, GG [ToTypeFn] )  ])
+    process ty@(TFunc inner _) =
+        processCommon d ty [ EProc . Pdefined ]
+
+    process ty = ggError "reachableToType missing"
+        ["ty" <+> pretty ty, "oty" <+> pretty oty ]
+
+reachableToType d oty@(TFunc from to) = return []
+
+
+reachableToType d ty = ggError "reachableToType missing ty"
+        ["ty"  <+> pretty ty, "depth" <+> pretty ty ]
+
+
+processCommon :: Depth ->  Type -> [ToTypeFn] -> GG [(Type, GG [ToTypeFn] ) ]
+processCommon d ty arr = do
+    choices  <- reachableToType (d- 1) ty
+    combined <- combine (ty, arr) choices
+    return $  (ty, return arr) : combined
+
+combine :: (Type, [ToTypeFn]) -> [(Type, GG [ToTypeFn])] -> GG [(Type, GG [ToTypeFn])]
 combine _ []       = return []
 combine (_, ff) xs = do
     res <- mapM (mapper ff) xs
@@ -97,7 +120,7 @@ combine (_, ff) xs = do
         return $ (innerTy, return xx)
 
 
-sd :: GG ( Maybe ( Expr))
+sd :: GG ( Maybe Expr)
 sd = return $ Just undefined
 
 aa :: GG Expr
