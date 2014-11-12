@@ -2,7 +2,7 @@
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
 {-# LANGUAGE LambdaCase, MultiWayIf, TemplateHaskell, TupleSections #-}
 
-module TestGen.Arbitrary.TypeConversions where
+module TestGen.Arbitrary.TypeConversions(toTypeWithConversions) where
 
 import TestGen.Arbitrary.Helpers.Prelude
 import TestGen.Arbitrary.Expr
@@ -13,10 +13,11 @@ import TestGen.Arbitrary.Literal
 toTypeWithConversions :: Type -> GG (Maybe Expr)
 toTypeWithConversions ty = do
     d <- gets depth_
+    addLog "toType" ["depth_" <+> pretty d]
 
     -- Simple cases
     if
-        | d < 0  -> ggError "exprOf depth_ <0" ["exprTy:" <+> pretty ty]
+        | d < 0  -> ggError "toTypeWithConversions depth_ <0" ["ty:" <+> pretty ty]
         | d == 0 ->  return Nothing
         | otherwise  -> con d ty
 
@@ -43,28 +44,43 @@ type ToTypeFn = (Expr -> Expr)
 -- e.g  TInt  ->  Just $  [TSet Tint,  [  | x |  ]   ]
 
 reachableToType :: Depth -> Type -> GG (Maybe [ (Type, GG [ToTypeFn] )  ])
-reachableToType 0 _ =return  Nothing
-reachableToType d ( TSet (TTuple [a, b] )) = return $ Just $ [ (TFunc a b,
+reachableToType 0 _ = return  Nothing
+reachableToType _ ( TSet (TTuple [a, b] )) = return $ Just $ [ (TFunc a b,
              return $  [ EProc . PtoSet ]
         )]
 
-reachableToType d TBool = return Nothing
+reachableToType _ TBool = return Nothing
 
 
 reachableToType d TInt =  do
-    res <- concatMapM inner [(TSet (TTuple [TInt, TInt] ))]
+
+    res <- concatMapM inner (allowed d)
     return $ Just $ res
 
     where
+
+    allowed :: Depth -> [Type]
+    allowed 0 = []
+    allowed 1 = [TBool]
+    allowed 2 = allowed 1 ++ []
+    allowed _ = allowed 2 ++ [TSet (TTuple [TInt, TInt] )]
+
+
     inner :: Type -> GG ( [ (Type, GG [ToTypeFn] )  ])
+    inner ty@TBool = do
+        choices <-  reachableToType (d - 1) ty
+        let arr = [ EProc . PtoInt ]
+        combined <-  combine (ty, arr) choices
+        return $  (ty, return arr) : combined
+
     inner ty@(TSet (TTuple [TInt, TInt] )) = do
         choices <-  reachableToType (d- 1) ty
 
         let arr = [ EUniOp . UBar ]
-
         combined <-  combine (ty, arr) choices
-
         return $  (ty, return arr) : combined
+
+
 
 
 combine ::  (Type, [ToTypeFn]) ->  Maybe [(Type, GG [ToTypeFn])] -> GG ( [(Type, GG [ToTypeFn])])
