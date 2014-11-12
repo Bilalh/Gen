@@ -3,6 +3,7 @@
 module TestGen.Arbitrary.Helpers.Prelude (
       module X
     , withDepth
+    , withSameDepth
     , withDepthDec
     , withQuan
     , ggError
@@ -43,6 +44,15 @@ withDepth newDepth f = do
     res <- f
     modify $ \st -> st{ depth_ = oldDepth }
     addLog "withDepth" ["from" <+> pretty newDepth, "backto" <+> pretty oldDepth ]
+    return res
+
+withSameDepth :: GG a -> GG a
+withSameDepth f = do
+    oldDepth <- gets depth_
+    addLog "withSameDepth" ["from" <+> pretty oldDepth ]
+    res <- f
+    modify $ \st -> st{ depth_ = oldDepth }
+    addLog "withSameDepth" ["backto" <+> pretty oldDepth ]
     return res
 
 withDepthDec :: GG a -> GG a

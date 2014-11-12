@@ -17,6 +17,7 @@ class SizeOf a where
 class DepthOf a where
     depthOf :: a -> Integer
 
+
 instance SizeOf Domain where
     sizeOf DInt{..} = fromIntegral .  S.size .  S.fromList . concatMap rangeInts $ ranges
     sizeOf r = docError [
@@ -36,6 +37,9 @@ instance DepthOf Type where
     depthOf (TTuple inners ) = 1 + nonEmpty (maximum . map depthOf) inners
     depthOf (TRel inners )   = 2 + nonEmpty (maximum . map depthOf) inners
     depthOf (TPar inner)     = 1 + depthOf inner
+
+    --FIXME what should the depth of any be?
+    depthOf TAny             = 0
 
     depthOf ty = docError [ "depthOf not implemented", pretty ty ]
 

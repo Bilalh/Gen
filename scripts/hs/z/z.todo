@@ -1,3 +1,26 @@
+|defined(function(function(0 --> -8) --> {true, false}))|
+
+bar 0
+    defined 1
+        function 2
+            function 3
+                0    4
+                8    4
+            set        3
+                true   4
+                false  4
+
+|{  (2, -7),   [true, true; int(4, 2..2)] }|
+
+
+
+defined
+    function
+        int -> _
+
+
+
+
 type conversion
 
     ☐ functions
@@ -21,7 +44,6 @@ type conversion
 
     ☐ Uops
         ✔  | | @done(2014-11-12 04:02)
-        ☐
 
 
 

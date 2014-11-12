@@ -181,6 +181,7 @@ exprOf :: Type -> GG Expr
 exprOf ty = do
     nestedOfType <-  maybeToList <$> nestedVarsOf ty
     ofType <-  varsOf ty
+    --FIXME varibles of TAny should be  restricted to the allowed depth
     let refs = (ofType ++ nestedOfType )
 
     d <- gets depth_
@@ -191,8 +192,9 @@ exprOf ty = do
         | d < 0 -> ggError "exprOf depth_ <0" ["exprTy:" <+> pretty ty]
         | d == 0 && ty == TInt  -> oneof2 $ intLit : refs
         | d == 0 && ty == TBool -> oneof2 $ boolLit  : refs
-        | d < 1 -> ggError "exprOf depth_ <1" ["exprTy:" <+> pretty ty]
-        | otherwise  -> exprOf' d refs ty
+        | d == 0 && ty == TAny  -> oneof2 $ [intLit, boolLit ] ++ refs
+        | d == 0 -> ggError "exprOf depth_ <1" ["exprTy:" <+> pretty ty]
+        | otherwise  ->  deAny ty >>= exprOf' d refs
 
 
     where
@@ -243,15 +245,27 @@ exprOf ty = do
           tupleLitOf tys
         ]
 
-    exprOf' d ofType TAny = oneof2 $ ofType ++ [
-          do
-              ty <- withDepth d atype
-              withDepth d (exprOf ty)
-        ]
-
     exprOf' d _ _  = ggError "exprOf not Matched other"
         ["exprDom:" <+> pretty ty, "d:" <+> pretty d ]
 
+
+-- Remove one level of any
+-- e.g for sets
+deAny :: Type -> GG Type
+deAny TAny = withSameDepth atype
+
+deAny (TSet TAny)   = return TSet <*> (withSameDepth atype)
+deAny (TMSet TAny)  = return TMSet <*> (withSameDepth atype)
+deAny (TMatix TAny) = return TMatix <*> (withSameDepth atype)
+deAny (TPar TAny)   = return TPar <*> (withSameDepth atype)
+
+deAny (TTuple ts) =  return TTuple <*> (mapM deAny ts)
+deAny (TRel   ts) =  return TRel   <*> (mapM deAny ts)
+
+deAny (TFunc a b)   = return TFunc <*> (withSameDepth atype)
+                                   <*> (withSameDepth atype)
+
+deAny ty = return ty
 
 -- at most one element
 -- zero elements if beConstant_
