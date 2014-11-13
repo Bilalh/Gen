@@ -12,6 +12,8 @@ import TestGen.Arbitrary.Common
 import {-# SOURCE #-} TestGen.Arbitrary.Literal
 import {-# SOURCE #-} TestGen.Arbitrary.Op
 import {-# SOURCE #-} TestGen.Arbitrary.FromNested
+import {-# SOURCE #-} TestGen.Arbitrary.TypeConversions
+
 
 import qualified Data.Map as M
 
@@ -183,8 +185,10 @@ exprOf :: Type -> GG Expr
 exprOf ty = do
     nestedOfType <-  maybeToList <$> nestedVarsOf ty
     ofType <-  varsOf ty
+    tyCons <-  map return .  maybeToList <$> toTypeWithConversions ty
+
     --FIXME varibles of TAny should be  restricted to the allowed depth
-    let refs = (ofType ++ nestedOfType )
+    let refs = (ofType ++ nestedOfType ++ tyCons )
 
     d <- gets depth_
     addLog "exprOf" ["depth_" <+> pretty d, "ty"  <+> pretty ty ]

@@ -56,7 +56,6 @@ reachableToType d TAny = do
     newTy <- withSameDepth atype
     reachableToType d newTy
 
-
 reachableToType d oty@TInt = concatMapM process (allowed d)
     where
 
@@ -76,29 +75,51 @@ reachableToType d oty@TInt = concatMapM process (allowed d)
         ["ty" <+> pretty ty, "oty" <+> pretty oty ]
 
 
-reachableToType d oty@(TSet inner) = concatMapM process (allowed d)
+reachableToType d oty@(TSet ity) = concatMapM process (allowed d)
     where
-    tyDepth = depthOf inner
+    tyDepth = depthOf ity
 
     allowed :: Depth -> [Type]
     allowed 0 = []
     allowed 1 = allowed 0 ++ []
     allowed _ = allowed 1  ++ [] ++
-        if | tyDepth == 0  -> [TFunc inner TAny ]
+        if | tyDepth == 0  -> [TFunc ity TAny,  TFunc TAny ity]
            | otherwise  -> []
 
 
     process :: Type -> GG ( [ (Type, GG [ToTypeFn] )  ])
-    process ty@(TFunc inner _) =
-        processCommon d ty [ EProc . Pdefined ]
+    process ty@(TFunc a b )=
+        processCommon d ty funcs
+
+        where
+        da = depthOf a
+        db = depthOf b
+        funcs =
+            if | a == ity &&  d - (fromInteger da) - 1 > 0 -> [ EProc . Pdefined ]
+               | otherwise -> []
+            ++
+            if | b == ity && d - (fromInteger db) - 1 > 0 -> [ EProc . Prange ]
+               | otherwise -> []
+            ++
+            if | d >2 && typesUnify ity (TTuple [a,b])  -> [EProc . PtoSet]
+               | otherwise -> []
+            -- ++
+            -- if | d >2 && a == ity  -> [
+            --         do
+            --             let f e = EProc . PpreImage e
+            --             -- ep <- withDepthDec (exprOf b)
+            --             _
+            --         ]
+            --    | otherwise -> []
 
     process ty = ggError "reachableToType missing"
         ["ty" <+> pretty ty, "oty" <+> pretty oty ]
 
-reachableToType d oty@(TFunc from to) = return []
+
+reachableToType _ oty@(TFunc from to) = return []
 
 
-reachableToType d ty = ggError "reachableToType missing ty"
+reachableToType _ ty = ggError "reachableToType missing ty"
         ["ty"  <+> pretty ty, "depth" <+> pretty ty ]
 
 
@@ -132,3 +153,15 @@ aa :: GG Expr
 aa = do
     d <- map return <$> maybeToList <$> sd
     oneof2 $ d ++ [  boolLit ]
+
+conditions i j = c1 i j ++ c2 i j ++ c3 i j
+
+    where
+    c1 i j | i > 2     = ["x"]
+           | otherwise = []
+    c2 i j | j > 5   = ["y"]
+           | otherwise = []
+    c3 i j | j > 10  = ["z"]
+           | otherwise = []
+    c4 i j | j > 10 && i > 1 = ["z"]
+           | otherwise = []
