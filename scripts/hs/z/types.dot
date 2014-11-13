@@ -1,0 +1,18 @@
+digraph{
+
+/*graph [ordering="out"];*/
+
+enum [label="enum"]
+func[label="function"]
+int [label="int" ]
+mset [label="mset"]
+par [label="partition"]
+set [label="set"]
+un [label="unamed"]
+bool [label="bool"]
+
+set -> int  [label="  |expr|"]
+function -> 
+
+
+}

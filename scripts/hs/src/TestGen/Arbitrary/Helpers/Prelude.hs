@@ -8,6 +8,7 @@ module TestGen.Arbitrary.Helpers.Prelude (
     , withQuan
     , ggError
     , ggAssert
+    , nn
 ) where
 
 import AST.Imports as X
@@ -93,3 +94,8 @@ ggError title docs = do
 
 ggAssert :: Bool -> GG ()
 ggAssert b = return $ C.assert b ()
+
+-- for printing a name and a value
+-- nn "dsd" <some Expr>
+nn :: Pretty b => Doc -> b -> Doc
+nn a b =  a <+> pretty b

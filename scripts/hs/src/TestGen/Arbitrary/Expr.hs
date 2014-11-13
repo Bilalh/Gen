@@ -176,6 +176,8 @@ exprFromToType ref from to | from == to =  return $ EVar ref
 exprFromToType ref (TSet _) TInt = return $ EUniOp $ UBar $ EVar ref
 
 
+
+
 -- Return a expr of the specifed depth and type
 exprOf :: Type -> GG Expr
 exprOf ty = do
@@ -194,7 +196,10 @@ exprOf ty = do
         | d == 0 && ty == TBool -> oneof2 $ boolLit  : refs
         | d == 0 && ty == TAny  -> oneof2 $ [intLit, boolLit ] ++ refs
         | d == 0 -> ggError "exprOf depth_ <1" ["exprTy:" <+> pretty ty]
-        | otherwise  ->  deAny ty >>= exprOf' d refs
+        | otherwise  ->  do
+            newTy <- deAny ty
+            addLog "exprOf" [nn "ty" ty, nn "newTy" newTy, nn "depth" d ]
+            exprOf' d refs newTy
 
 
     where
@@ -254,16 +259,18 @@ exprOf ty = do
 deAny :: Type -> GG Type
 deAny TAny = withSameDepth atype
 
-deAny (TSet TAny)   = return TSet <*> (withSameDepth atype)
-deAny (TMSet TAny)  = return TMSet <*> (withSameDepth atype)
-deAny (TMatix TAny) = return TMatix <*> (withSameDepth atype)
-deAny (TPar TAny)   = return TPar <*> (withSameDepth atype)
+deAny (TSet TAny)   = return TSet   <*> (withDepthDec atype)
+deAny (TMSet TAny)  = return TMSet  <*> (withDepthDec atype)
+deAny (TMatix TAny) = return TMatix <*> (withDepthDec atype)
+deAny (TPar TAny)   = return TPar   <*> (withDepthDec atype)
 
-deAny (TTuple ts) =  return TTuple <*> (mapM deAny ts)
-deAny (TRel   ts) =  return TRel   <*> (mapM deAny ts)
+deAny (TTuple ts) =  return TTuple <*> (mapM (withDepthDec . deAny) ts)
+deAny (TRel   ts) =  do
+    d <- gets depth_
+    return TRel  <*> (mapM (withDepth (d - 2) . deAny) ts)
 
-deAny (TFunc a b)   = return TFunc <*> (withSameDepth atype)
-                                   <*> (withSameDepth atype)
+deAny (TFunc a b)   = return TFunc <*> (withDepthDec atype)
+                                   <*> (withDepthDec atype)
 
 deAny ty = return ty
 

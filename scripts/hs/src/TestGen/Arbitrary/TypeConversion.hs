@@ -30,6 +30,11 @@ con _ to  = do
         [] -> return Nothing
         choices -> do
             (fromTy, toFn) <- elements2 choices
+            addLog "toType:choices"
+                [ "fromTy" <+> pretty fromTy
+                , "d"      <+> pretty d
+                , "to"     <+> pretty to
+                ]
             fromExpr <- withDepthDec (exprOf fromTy)
             fs <- toFn
             f <- elements2 fs
@@ -48,7 +53,7 @@ reachableToType 0 _ = return  []
 reachableToType _ TBool = return []
 
 reachableToType d TAny = do
-    newTy <- withDepth d atype
+    newTy <- withSameDepth atype
     reachableToType d newTy
 
 
@@ -78,7 +83,7 @@ reachableToType d oty@(TSet inner) = concatMapM process (allowed d)
     allowed :: Depth -> [Type]
     allowed 0 = []
     allowed 1 = allowed 0 ++ []
-    allowed 2 = allowed 1  ++ [] ++
+    allowed _ = allowed 1  ++ [] ++
         if | tyDepth == 0  -> [TFunc inner TAny ]
            | otherwise  -> []
 

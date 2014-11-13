@@ -1,3 +1,18 @@
+[toType]        depth_ 3
+                ty TInt
+
+[toType:choices] fromTy TFunc TAny TAny
+                 d 3
+                 to TInt
+
+
+|  |        0
+    toSet       1
+        TFunc       2
+            TAny        3
+            TAny        3
+
+
 |defined(function(function(0 --> -8) --> {true, false}))|
 
 bar 0

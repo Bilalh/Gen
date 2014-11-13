@@ -1,3 +1,39 @@
+*** Exception: exprOf depth_ <1
+    exprTy: TPar TBool
+    SS {depth_ = 0 ,nextNum_ = 1 ,doms_ =  ,newVars_ =  [] __lc = 17}
+
+                ==Logs==
+[toType]        depth_ 2
+                ty TInt
+[toType:choices] fromTy TSet TAny
+                 d 2
+                 to TInt
+[nestedVarsOf]
+[exprOf]        depth_ 1
+                ty TSet TAny
+[withSameDepth] from 1
+[atype]         start
+[atype]         depth_ 1
+[withDepth]     from 1
+                to 0
+[atype]         start
+[atype]         depth_ 0
+[atype]         resTy TBool
+                depth_ 0
+[withDepth]     from 0
+                backto 1
+[atype]         resTy TPar TBool
+                depth_ 1
+[withSameDepth] backto 1
+[exprOf]        ty TSet TAny
+                newTy TSet (TPar TBool)
+                depth 1
+[nestedVarsOf]
+[exprOf]        depth_ 0
+                ty TPar TBool
+
+
+
 find var1: bool
 such that {} != {{0}, {-3, 6}}
 such that (-8 != 2) = var1 \/ false /\ 0 != -10
