@@ -9,6 +9,10 @@ module TestGen.Arbitrary.Helpers.Prelude (
     , ggError
     , ggAssert
     , nn
+    , _genlogs
+    , _genfile
+    , _gen
+    , renderSmall
 ) where
 
 import AST.Imports as X
@@ -35,6 +39,9 @@ import Control.Monad as X(filterM, guard)
 import qualified Control.Exception as C
 import qualified Text.PrettyPrint as P
 
+import System.Directory(getHomeDirectory, createDirectoryIfMissing)
+import System.FilePath((</>), (<.>))
+import Data.Time.Clock.POSIX(getPOSIXTime)
 
 withDepth :: Depth -> GG a -> GG a
 withDepth newDepth f = do
@@ -99,3 +106,50 @@ ggAssert b = return $ C.assert b ()
 -- nn "dsd" <some Expr>
 nn :: Pretty b => Doc -> b -> Doc
 nn a b =  a <+> pretty b
+
+
+_genlogs :: Pretty a =>  GG a -> Int -> IO ()
+_genlogs e n  = do
+    res <-  (sample' (runStateT e (_ss n) ))
+    forM_ res $ \(r,st) -> do
+        putStrLn . renderSmall $ ""
+            P.$+$ nest 16 "~~Result~~"
+            P.$+$ ( pretty r )
+            P.$+$ ""
+            P.$+$ (nest 8 $ pretty st )
+            P.$+$ ""
+            P.$+$ nest 16 "==Logs=="
+            P.$+$ nest 8 (pretty (logs_ st) )
+
+_genfile :: Pretty a =>  GG a -> Int -> IO ()
+_genfile e n  = do
+    res <-  (sample' (runStateT e (_ss n) ))
+    -- run $ createDirectoryIfMissing True (out </> uname)
+    home <- getHomeDirectory
+    date <- round `fmap` getPOSIXTime
+    let dir = home </> "__" </> "logs" </> (show date)
+    createDirectoryIfMissing True dir
+
+    forM_ (zip res [1..]) $ \((r,st),index :: Int) -> do
+
+        putStrLn . renderSmall $ nest 75 (P.quotes $ pretty index )
+            P.$+$ ( pretty r )
+
+        writeFile (dir </> renderWide index <.> "logs") $
+            show $ ""
+                P.$+$ ( pretty r )
+                P.$+$ ""
+                P.$+$ (nest 2 $ pretty st )
+                P.$+$ ""
+                P.$+$ nest 16 "==Logs=="
+                P.$+$ nest 2 (pretty (logs_ st) )
+
+_gen :: Pretty a =>  GG a -> Int -> IO ()
+_gen e n  = do
+    res <-  (sample' (runStateT e (_ss n) ))
+    forM_ res $ \(r,st) -> do
+        putStrLn . renderSmall $ ""
+            P.$+$ ( pretty r )
+
+renderSmall :: Pretty a => a -> String
+renderSmall = P.renderStyle (P.style { P.lineLength = 75 }) . pretty

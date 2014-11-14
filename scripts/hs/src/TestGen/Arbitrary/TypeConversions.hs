@@ -9,8 +9,9 @@ import TestGen.Arbitrary.Expr
 import TestGen.Arbitrary.Literal
 import TestGen.Arbitrary.Type
 
-aa ::Type ->  GG (Maybe Expr)
-aa ty = do
+-- for ghci usage
+_aa ::Type ->  GG (Maybe Expr)
+_aa ty = do
     toTypeWithConversions ty >>= \case
         Nothing -> return Nothing
         Just xs -> do
@@ -181,6 +182,7 @@ combine (_, ff) xs = do
 
 raise ::  (Expr -> Expr,Depth) -> (ToTypeFn, Depth)
 raise (f,c) = ( \d -> d >>= return . f   , c)
+-- raise (f,c) = (f, c)
 
 
 raiseExpr :: (a -> b) -> GG a -> GG b
