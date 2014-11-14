@@ -185,7 +185,7 @@ exprOf :: Type -> GG Expr
 exprOf ty = do
     nestedOfType <-  maybeToList <$> nestedVarsOf ty
     ofType <-  varsOf ty
-    tyCons <-  map return .  maybeToList <$> toTypeWithConversions ty
+    tyCons <-   maybeToList <$> toTypeWithConversions ty
 
     --FIXME varibles of TAny should be  restricted to the allowed depth
     let refs = (ofType ++ nestedOfType ++ tyCons )

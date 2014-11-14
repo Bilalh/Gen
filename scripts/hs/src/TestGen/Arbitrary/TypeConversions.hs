@@ -9,8 +9,17 @@ import TestGen.Arbitrary.Expr
 import TestGen.Arbitrary.Literal
 import TestGen.Arbitrary.Type
 
+aa ::Type ->  GG (Maybe Expr)
+aa ty = do
+    toTypeWithConversions ty >>= \case
+        Nothing -> return Nothing
+        Just xs -> do
+            xx <- xs
+            return $ Just xx
 
-toTypeWithConversions :: Type -> GG (Maybe Expr)
+
+
+toTypeWithConversions :: Type -> GG (Maybe (GG Expr))
 toTypeWithConversions ty = do
     d <- gets depth_
     addLog "toType" ["depth_" <+> pretty d, "ty" <+> pretty ty]
@@ -19,11 +28,11 @@ toTypeWithConversions ty = do
     if
         | d < 0  -> ggError "toTypeWithConversions depth_ <0" ["ty:" <+> pretty ty]
         | d == 0 ->  return Nothing
-        | otherwise  -> con d ty
+        | otherwise  -> con ty
 
 
-con :: Depth -> Type -> GG (Maybe (Expr))
-con _ to  = do
+con :: Type -> GG (Maybe (GG Expr))
+con  to  = do
     d <- gets depth_
 
     reachableToType d to >>= \case
@@ -35,19 +44,21 @@ con _ to  = do
                 , "d"      <+> pretty d
                 , "to"     <+> pretty to
                 ]
-            fromExpr <- withDepthDec (exprOf fromTy)
             fs <- toFn
-            f <- elements2 fs
-            return $  Just $ f fromExpr
+            (f, depthNeeded) <- elements2 fs
+            fromExpr <- withDepth (d - depthNeeded) (exprOf fromTy)
+            return $  Just $ f (return fromExpr)
 
 
 
-type ToTypeFn = (Expr -> Expr)
+type ToTypeFn = (GG Expr -> GG Expr)
 
--- Give an type return the possible ways to get to that type
--- e.g  TInt  ->  Just $  [TSet Tint,  [  | x |  ]   ]
+---- Give an type return the possible ways to get to that type
+---- e.g  TInt  ->  Just $  [TSet Tint,  [  | x |  ]   ]
 
-reachableToType :: Depth -> Type -> GG [ (Type, GG [ToTypeFn] )  ]
+-- return (the type, (function applied and depth needed)  )
+
+reachableToType :: Depth -> Type -> GG [ (Type, GG [(ToTypeFn, Depth)] ) ]
 reachableToType 0 _ = return  []
 
 reachableToType _ TBool = return []
@@ -64,15 +75,16 @@ reachableToType d oty@TInt = concatMapM process (allowed d)
     allowed 1 = allowed 0 ++ [TBool]
     allowed _ = allowed 1 ++ [TSet TAny]
 
-    process :: Type -> GG ( [ (Type, GG [ToTypeFn] )  ])
+    process :: Type -> GG [ (Type, GG [(ToTypeFn,Depth)] ) ]
     process ty@TBool = do
-        processCommon d ty [ EProc . PtoInt ]
+        processCommon d ty [ raise ( EProc . PtoInt, 1) ]
 
     process ty@(TSet TAny) = do
-        processCommon d ty [ EUniOp . UBar ]
+        processCommon d ty [ raise (EUniOp . UBar, 1) ]
 
     process ty = ggError "reachableToType missing"
         ["ty" <+> pretty ty, "oty" <+> pretty oty ]
+
 
 
 reachableToType d oty@(TSet ity) = concatMapM process (allowed d)
@@ -86,50 +98,67 @@ reachableToType d oty@(TSet ity) = concatMapM process (allowed d)
         if | tyDepth == 0  -> [TFunc ity TAny,  TFunc TAny ity]
            | otherwise  -> []
 
-
-    process :: Type -> GG ( [ (Type, GG [ToTypeFn] )  ])
-    process ty@(TFunc a b )=
-        processCommon d ty funcs
+    process :: Type -> GG [ (Type, GG [(ToTypeFn,Depth)] ) ]
+    process ty@(TFunc a b ) = do
+        fs :: [[(ToTypeFn, Depth)]] <- funcs
+        processCommon d ty (concat fs)
 
         where
         da = depthOf a
         db = depthOf b
-        funcs =
-            if | a == ity &&  d - (fromInteger da) - 1 > 0 -> [ EProc . Pdefined ]
-               | otherwise -> []
-            ++
-            if | b == ity && d - (fromInteger db) - 1 > 0 -> [ EProc . Prange ]
-               | otherwise -> []
-            ++
-            if | d >2 && typesUnify ity (TTuple [a,b])  -> [EProc . PtoSet]
-               | otherwise -> []
-            -- ++
-            -- if | d >2 && a == ity  -> [
-            --         do
-            --             let f e = EProc . PpreImage e
-            --             -- ep <- withDepthDec (exprOf b)
-            --             _
-            --         ]
-            --    | otherwise -> []
+
+
+        funcs :: GG [[(ToTypeFn, Depth)]]
+        funcs = sequence
+            [ mapM ( return . raise) [  (EProc . Pdefined, 1)  ]
+                *| a == ity &&  d - (fromInteger da) - 1 > 0
+
+            , mapM ( return . raise) [  (EProc . Prange, 1)  ]
+                *| b == ity && d - (fromInteger db) - 1 > 0
+
+            , sequence [ preImage ]
+                *| d >2 && a == ity
+
+            , sequence [ image ]
+                *| d >3 && b== ity
+
+            ]
+
+
+        preImage :: GG (ToTypeFn, Depth)
+        preImage = do
+            ep <- withDepthDec (exprOf b)
+            return $ raise $ (EProc . PpreImage ep, 1)
+
+        image :: GG (ToTypeFn, Depth)
+        image = do
+            ep <- withDepthDec (exprOf $ TSet a)
+            return $ raise $ (EProc . Pimage ep, 1)
 
     process ty = ggError "reachableToType missing"
         ["ty" <+> pretty ty, "oty" <+> pretty oty ]
 
 
-reachableToType _ oty@(TFunc from to) = return []
+reachableToType d oty@(TTuple inner) = return []
+reachableToType d oty@(TMatix inner) = return []
+reachableToType d oty@(TMSet inner)    = return []
+reachableToType d oty@(TFunc from to) = return []
+reachableToType d oty@(TRel inners)   = return []
+reachableToType d oty@(TPar inners)   = return []
+reachableToType d oty@(TUnamed _)   = return []
+reachableToType d oty@(TEnum _)   = return []
 
 
-reachableToType _ ty = ggError "reachableToType missing ty"
-        ["ty"  <+> pretty ty, "depth" <+> pretty ty ]
-
-
-processCommon :: Depth ->  Type -> [ToTypeFn] -> GG [(Type, GG [ToTypeFn] ) ]
+processCommon :: Depth ->  Type -> [(ToTypeFn,Depth)] -> GG [(Type, GG [(ToTypeFn,Depth)] ) ]
+processCommon _ _ [] =  return []
 processCommon d ty arr = do
     choices  <- reachableToType (d- 1) ty
     combined <- combine (ty, arr) choices
     return $  (ty, return arr) : combined
 
-combine :: (Type, [ToTypeFn]) -> [(Type, GG [ToTypeFn])] -> GG [(Type, GG [ToTypeFn])]
+combine :: (Type, [(ToTypeFn,Depth)])
+        -> [(Type, GG [(ToTypeFn,Depth)])]
+        -> GG [(Type, GG [(ToTypeFn,Depth)])]
 combine _ []       = return []
 combine (_, ff) xs = do
     res <- mapM (mapper ff) xs
@@ -137,31 +166,28 @@ combine (_, ff) xs = do
     return $  res
 
     where
-    mapper :: [ToTypeFn] -> (Type, GG [ToTypeFn]) -> GG (Type, GG [ToTypeFn] )
+    mapper :: [(ToTypeFn,Depth)]
+           -> (Type, GG [(ToTypeFn,Depth)])
+           -> GG (Type, GG [(ToTypeFn,Depth)] )
     mapper outer (innerTy, innerW)  = do
         inner <-  innerW
 
-        let xx  = [ o . i |  i <- inner, o <- outer   ]
+        let xx  = [ dotTypeFunc o  i |  i <- inner, o <- outer   ]
 
         return $ (innerTy, return xx)
 
+    dotTypeFunc :: (ToTypeFn,Depth) -> (ToTypeFn,Depth) -> (ToTypeFn,Depth)
+    dotTypeFunc (o,od) (i, oi) = (o. i, od + oi)
 
-sd :: GG ( Maybe Expr)
-sd = return $ Just undefined
+raise ::  (Expr -> Expr,Depth) -> (ToTypeFn, Depth)
+raise (f,c) = ( \d -> d >>= return . f   , c)
 
-aa :: GG Expr
-aa = do
-    d <- map return <$> maybeToList <$> sd
-    oneof2 $ d ++ [  boolLit ]
 
-conditions i j = c1 i j ++ c2 i j ++ c3 i j
+raiseExpr :: (a -> b) -> GG a -> GG b
+raiseExpr f = (=<<) (return . f)
 
-    where
-    c1 i j | i > 2     = ["x"]
-           | otherwise = []
-    c2 i j | j > 5   = ["y"]
-           | otherwise = []
-    c3 i j | j > 10  = ["z"]
-           | otherwise = []
-    c4 i j | j > 10 && i > 1 = ["z"]
-           | otherwise = []
+infixl 1 *|
+
+(*|) :: Monad m =>  m [a] -> Bool -> m [a]
+xs *| c | c = xs
+_  *| _    = return []

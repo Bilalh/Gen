@@ -29,8 +29,8 @@ import Development.Placeholders as X (placeholder,notImplemented,todo)
 import Language.E as X
 import Text.Groom as X (groom)
 
-import Control.Monad.State.Strict as X (evalStateT)
-import Control.Monad as X(filterM)
+import Control.Monad.State.Strict as X (evalStateT,StateT)
+import Control.Monad as X(filterM, guard)
 
 import qualified Control.Exception as C
 import qualified Text.PrettyPrint as P

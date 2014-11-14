@@ -1,3 +1,49 @@
+|
+    { defined(function(false --> -1))
+    , {true <-> false}
+    , {false}
+    , defined(function(-1 --> false))
+    }
+|
+
+
+
+
+|
+    defined(
+            function(
+                {(false, 7), (false, 4), (false, 1)}
+                --> function(
+                        [false; int(0)]
+                        --> (false, -1)
+                    )
+            )
+    )
+|
+
+
+
+|
+ range(
+    function(
+
+        defined(
+            function(
+                -5 --> false,
+                6 --> false)
+        )
+        --> tuple ({6, 9}),
+
+        {-10 != -7}
+        --> tuple ({0, -9})
+
+        )
+    )
+|
+
+
+
+
 [toType]        depth_ 3
                 ty TInt
 
