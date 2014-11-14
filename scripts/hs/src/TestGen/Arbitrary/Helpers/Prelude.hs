@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}
 module TestGen.Arbitrary.Helpers.Prelude (
       module X
@@ -42,6 +42,7 @@ import qualified Text.PrettyPrint as P
 import System.Directory(getHomeDirectory, createDirectoryIfMissing)
 import System.FilePath((</>), (<.>))
 import Data.Time.Clock.POSIX(getPOSIXTime)
+import Data.Time
 
 withDepth :: Depth -> GG a -> GG a
 withDepth newDepth f = do
@@ -123,19 +124,26 @@ _genlogs e n  = do
 
 _genfile :: Pretty a =>  GG a -> Int -> IO ()
 _genfile e n  = do
-    res <-  (sample' (runStateT e (_ss n) ))
-    -- run $ createDirectoryIfMissing True (out </> uname)
+
+    c <- getCurrentTime
+    let (y,m,d) = toGregorian $ utctDay c
+
     home <- getHomeDirectory
     date <- round `fmap` getPOSIXTime
-    let dir = home </> "__" </> "logs" </> (show date)
+    let dir = home </> "__" </> "logs" </> "gen"
+            </> ( intercalate "-" [show y, padShowInt 2 m, padShowInt 2 d] )
+            </> (show date)
     createDirectoryIfMissing True dir
+
+    res <-  (sample' (runStateT e (_ss n) ))
+
 
     forM_ (zip res [1..]) $ \((r,st),index :: Int) -> do
 
         putStrLn . renderSmall $ nest 75 (P.quotes $ pretty index )
             P.$+$ ( pretty r )
 
-        writeFile (dir </> renderWide index <.> "logs") $
+        writeFile (dir </> renderWide index <.> "output") $
             show $ ""
                 P.$+$ ( pretty r )
                 P.$+$ ""
@@ -143,6 +151,7 @@ _genfile e n  = do
                 P.$+$ ""
                 P.$+$ nest 16 "==Logs=="
                 P.$+$ nest 2 (pretty (logs_ st) )
+
 
 _gen :: Pretty a =>  GG a -> Int -> IO ()
 _gen e n  = do
@@ -152,4 +161,4 @@ _gen e n  = do
             P.$+$ ( pretty r )
 
 renderSmall :: Pretty a => a -> String
-renderSmall = P.renderStyle (P.style { P.lineLength = 75 }) . pretty
+renderSmall = P.renderStyle (P.style { P.lineLength = 74 }) . pretty

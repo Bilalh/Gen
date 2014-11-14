@@ -23,13 +23,15 @@ import qualified Test.QuickCheck as QC
 
 import Data.Time.Clock.POSIX(getPOSIXTime)
 
-import System.FilePath((</>), takeFileName)
-import System.Directory(createDirectoryIfMissing)
+import System.FilePath((</>), (<.>), takeFileName)
+import System.Directory(createDirectoryIfMissing, getHomeDirectory)
 import System.Random(randomRIO)
 import Language.E
 
 import TestGen.Args(TArgs(..))
 import System.IO(IOMode(..),hPutStrLn, openFile, hClose)
+import Data.Time
+
 
 type Cores = Int
 
@@ -70,13 +72,6 @@ infix 4 /==
 (/==) :: (Eq a, Show a) => a -> a -> Property
 x /== y =
   counterexample (show x ++ " == " ++ show y) (x /= y)
-
-
-rmain =
-    quickCheckWith stdArgs{QC.maxSize=4,maxSuccess=50} (prop_specs_refine 100 4 "__")
-
-cmain =
-    quickCheckWith stdArgs{QC.maxSize=4,maxSuccess=2000} (prop_specs_type_check)
 
 prop_int :: Int -> Property
 prop_int x  = do
@@ -148,3 +143,27 @@ takeFileName' :: FilePath -> FilePath
 takeFileName' fp = case reverse fp of
     ('/': xs) -> takeFileName (reverse xs)
     _         -> takeFileName fp
+
+
+
+rmain =
+    quickCheckWith stdArgs{QC.maxSize=4,maxSuccess=50} (prop_specs_refine 100 4 "__")
+
+cmain = do
+
+    c <- getCurrentTime
+    let (y,m,d) = toGregorian $ utctDay c
+    home <- getHomeDirectory
+    date <- round `fmap` getPOSIXTime
+
+    let dir = home </> "__" </> "logs" </> "cmain"
+            </> ( intercalate "-" [show y, padShowInt 2 m, padShowInt 2 d] )
+
+    createDirectoryIfMissing True dir
+
+    res <- quickCheckWithResult stdArgs{QC.maxSize=3,maxSuccess=2000} (prop_specs_type_check)
+    case res of
+        Failure{reason, output} ->
+            writeFile (dir </> (show date) <.> "output") output
+
+        _ -> return ()
