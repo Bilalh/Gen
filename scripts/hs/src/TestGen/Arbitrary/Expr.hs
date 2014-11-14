@@ -201,9 +201,8 @@ exprOf ty = do
         | d == 0 && ty == TAny  -> oneof2 $ [intLit, boolLit ] ++ refs
         | d == 0 -> ggError "exprOf depth_ <1" ["exprTy:" <+> pretty ty]
         | otherwise  ->  do
-            newTy <- deAny ty
-            addLog "exprOf" [nn "ty" ty, nn "newTy" newTy, nn "depth" d ]
-            exprOf' d refs newTy
+            addLog "exprOf" [nn "ty" ty, nn "depth" d ]
+            exprOf' d refs ty 
 
 
     where
@@ -277,6 +276,36 @@ deAny (TFunc a b)   = return TFunc <*> (withDepthDec atype)
                                    <*> (withDepthDec atype)
 
 deAny ty = return ty
+
+
+purgeAny :: Type -> GG Type
+purgeAny TAny = withSameDepth atype
+
+purgeAny ts@TInt        = return ts
+purgeAny ts@TBool       = return ts
+purgeAny ts@(TUnamed _) = return ts
+purgeAny ts@(TEnum _)   = return ts
+
+
+purgeAny (TSet   ts) = return TSet   <*> (withDepthDec $ purgeAny ts )
+purgeAny (TMSet  ts) = return TMSet  <*> (withDepthDec $ purgeAny ts )
+purgeAny (TMatix ts) = return TMatix <*> (withDepthDec $ purgeAny ts )
+purgeAny (TPar   ts) = return TPar   <*> (withDepthDec $ purgeAny ts )
+
+purgeAny (TTuple ts) =  return TTuple <*> (mapM (withDepthDec . purgeAny ) ts)
+purgeAny (TRel ts) =  do
+    d <- gets depth_
+    return TRel  <*> (mapM (withDepth (d - 2) . purgeAny) ts)
+
+purgeAny (TFunc a b)   = return TFunc <*> (withDepthDec $ purgeAny a)
+                                   <*> (withDepthDec $ purgeAny b)
+
+exprOfPurgeAny :: Type -> GG Expr
+exprOfPurgeAny ty  = do
+    newTy <- purgeAny ty
+    addLog "exprOfPurgeAny" [nn "ty" ty, nn "newTy" newTy]
+    exprOf newTy
+
 
 -- at most one element
 -- zero elements if beConstant_

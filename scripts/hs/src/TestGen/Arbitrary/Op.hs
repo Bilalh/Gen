@@ -32,6 +32,7 @@ bop op = do
 
 bopOf :: Bop -> Type -> GG Expr
 bopOf op exprType = do
+
     depth_ <- gets depth_
     addLog "bopOf" []
     addLog "bopOf" ["depth_" <+> pretty depth_, "ty" <+> pretty exprType ]

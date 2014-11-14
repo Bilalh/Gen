@@ -47,7 +47,7 @@ con  to  = do
                 ]
             fs <- toFn
             (f, depthNeeded) <- elements2 fs
-            fromExpr <- withDepth (d - depthNeeded) (exprOf fromTy)
+            fromExpr <- withDepth (d - depthNeeded) (exprOfPurgeAny fromTy)
             return $  Just $ f (return fromExpr)
 
 
@@ -128,12 +128,12 @@ reachableToType d oty@(TSet ity) = concatMapM process (allowed d)
 
         preImage :: GG (ToTypeFn, Depth)
         preImage = do
-            ep <- withDepthDec (exprOf b)
+            ep <- withDepthDec (exprOfPurgeAny b)
             return $ raise $ (EProc . PpreImage ep, 1)
 
         image :: GG (ToTypeFn, Depth)
         image = do
-            ep <- withDepthDec (exprOf $ TSet a)
+            ep <- withDepthDec (exprOfPurgeAny $ TSet a)
             return $ raise $ (EProc . Pimage ep, 1)
 
     process ty = ggError "reachableToType missing"

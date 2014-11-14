@@ -146,10 +146,10 @@ takeFileName' fp = case reverse fp of
 
 
 
-rmain =
-    quickCheckWith stdArgs{QC.maxSize=4,maxSuccess=50} (prop_specs_refine 100 4 "__")
+rmain n =
+    quickCheckWith stdArgs{QC.maxSize=n,maxSuccess=50} (prop_specs_refine 7 10  "__")
 
-cmain = do
+cmain n = do
 
     c <- getCurrentTime
     let (y,m,d) = toGregorian $ utctDay c
@@ -161,7 +161,7 @@ cmain = do
 
     createDirectoryIfMissing True dir
 
-    res <- quickCheckWithResult stdArgs{QC.maxSize=3,maxSuccess=2000} (prop_specs_type_check)
+    res <- quickCheckWithResult stdArgs{QC.maxSize=n,maxSuccess=2000} (prop_specs_type_check)
     case res of
         Failure{reason, output} ->
             writeFile (dir </> (show date) <.> "output") output
