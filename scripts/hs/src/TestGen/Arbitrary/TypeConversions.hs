@@ -129,7 +129,7 @@ reachableToType d oty@(TSet ity) = concatMapM process (allowed d)
         preImage :: GG (ToTypeFn, Depth)
         preImage = do
             ep <- withDepthDec (exprOfPurgeAny b)
-            return $ raise $ (EProc . PpreImage ep, 1)
+            return $ raise $ (EProc . (flip PpreImage) ep, 1)
 
         image :: GG (ToTypeFn, Depth)
         image = do
