@@ -140,14 +140,14 @@ reachableToType d oty@(TSet ity) = concatMapM process (allowed d)
         ["ty" <+> pretty ty, "oty" <+> pretty oty ]
 
 
-reachableToType d oty@(TTuple inner) = return []
-reachableToType d oty@(TMatix inner) = return []
-reachableToType d oty@(TMSet inner)    = return []
+reachableToType d oty@(TTuple inner)  = return []
+reachableToType d oty@(TMatix inner)  = return []
+reachableToType d oty@(TMSet inner)   = return []
 reachableToType d oty@(TFunc from to) = return []
 reachableToType d oty@(TRel inners)   = return []
 reachableToType d oty@(TPar inners)   = return []
-reachableToType d oty@(TUnamed _)   = return []
-reachableToType d oty@(TEnum _)   = return []
+reachableToType d oty@(TUnamed _)     = return []
+reachableToType d oty@(TEnum _)       = return []
 
 
 processCommon :: Depth ->  Type -> [(ToTypeFn,Depth)] -> GG [(Type, GG [(ToTypeFn,Depth)] ) ]
