@@ -187,7 +187,6 @@ exprOf ty = do
     ofType <-  varsOf ty
     tyCons <-   maybeToList <$> toTypeWithConversions ty
 
-    --FIXME varibles of TAny should be  restricted to the allowed depth
     let refs = (ofType ++ nestedOfType ++ tyCons )
 
     d <- gets depth_
@@ -202,7 +201,7 @@ exprOf ty = do
         | d == 0 -> ggError "exprOf depth_ <1" ["exprTy:" <+> pretty ty]
         | otherwise  ->  do
             addLog "exprOf" [nn "ty" ty, nn "depth" d ]
-            exprOf' d refs ty 
+            exprOf' d refs ty
 
 
     where

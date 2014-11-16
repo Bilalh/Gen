@@ -88,16 +88,17 @@ reachableToType d oty@TInt = concatMapM process (allowed d)
 
 
 
-reachableToType d oty@(TSet ity) = concatMapM process (allowed d)
+reachableToType d oty@(TSet ity) = concatMapM process (types)
     where
     tyDepth = depthOf ity
 
-    allowed :: Depth -> [Type]
-    allowed 0 = []
-    allowed 1 = allowed 0 ++ []
-    allowed _ = allowed 1  ++ [] ++
-        if | tyDepth == 0  -> [TFunc ity TAny,  TFunc TAny ity]
-           | otherwise  -> []
+    types = [ TFunc ity TAny,  TFunc TAny ity ]
+    -- allowed :: Depth -> [Type]
+    -- allowed 0 = []
+    -- allowed 1 = allowed 0 ++ []
+    -- allowed _ = allowed 1  ++ [] ++
+    --     if | tyDepth == 0  -> [TFunc ity TAny,  TFunc TAny ity]
+    --        | otherwise  -> []
 
     process :: Type -> GG [ (Type, GG [(ToTypeFn,Depth)] ) ]
     process ty@(TFunc a b ) = do
@@ -111,21 +112,32 @@ reachableToType d oty@(TSet ity) = concatMapM process (allowed d)
 
         funcs :: GG [[(ToTypeFn, Depth)]]
         funcs = sequence
+            -- 1 for func
+            -- 1 usually for TFunc
+
             [ mapM ( return . raise) [  (EProc . Pdefined, 1)  ]
-                *| a == ity &&  d - (fromInteger da) - 1 > 0
+                *| a == ity &&  d - (fromInteger da) > 2
 
             , mapM ( return . raise) [  (EProc . Prange, 1)  ]
-                *| b == ity && d - (fromInteger db) - 1 > 0
+                *| b == ity && d - (fromInteger db) > 2
+
+
+            , mapM ( return . raise )  [ (EProc . PtoSet, 1)]
+                *| d - (fromInteger $ max da db ) > 2
+                && typesUnify  (TTuple [a,b]) ity
 
             , sequence [ preImage ]
-                *| d >2 && a == ity
+                *| a == ity
+                && d - (fromInteger $ max da db ) > 2
 
             , sequence [ image ]
-                *| d >3 && b== ity
+                *|  b== ity
+                && d - (fromInteger $ max da db ) > 2
+
 
             ]
 
-
+        --FIXME need to return the new type, purged of any anys.
         preImage :: GG (ToTypeFn, Depth)
         preImage = do
             ep <- withDepthDec (exprOfPurgeAny b)
