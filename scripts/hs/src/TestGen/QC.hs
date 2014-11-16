@@ -82,11 +82,11 @@ generate :: TArgs -> IO ()
 generate TArgs{..} = do
     let maxSuccess = totalTime_  `div` perSpecTime_
     --  Sanity checks
-    putStrLn "Typechecking 2000 random specs, with depth up to size 4"
-    quickCheckWith stdArgs{QC.maxSize=4,maxSuccess=2000}
+    putStrLn "Typechecking 2000 random specs, with depth up to size 5"
+    quickCheckWith stdArgs{QC.maxSize=5,maxSuccess=2000}
         (prop_specs_type_check)
 
-    putStrLn "Generating specs, with depth up to size 4"
+    putStrLn "Generating specs, with depth up to size 5"
     startTime <- round `fmap` getPOSIXTime
     failed <- helper startTime []
 
