@@ -93,28 +93,50 @@ reachableToType d oty@TInt = concatMapM process (allowed d)
 reachableToType d oty@(TSet ity) = concatMapM process (types)
     where
 
-    types = [ TFunc ity TAny,  TFunc TAny ity ]
+    types =  catMaybes [ Just  $ TFunc ity TAny
+                       , Just  $ TFunc TAny ity
+                    --    , TRel TAny *| ity == TAny
+                       , TRel <$> tupleInner ity
+                       ]
+
+    tupleInner :: Type -> Maybe [Type]
+    tupleInner (TTuple ts) = Just ts
+    tupleInner _           = Nothing
 
     process :: Type -> GG [ (Type, GG [(ToTypeFn,Depth)] ) ]
-    process oty@(TFunc a b ) = do
-        fs  <- funcs
-        concatMapM (\(nty,arr) -> processCommon d nty arr ) fs
+
+
+    process fty@(TRel itys) = funcs >>=
+        concatMapM (uncurry (processCommon d) )
 
         where
+        funcs :: GG [ (Type, [(ToTypeFn, Depth)]) ]
+        funcs = catMaybes <$> sequence
+            [
+             simple fty [ (EProc . PtoSet, 1)]
+                +| d - (fromInteger $ depthOf fty) >= 1
 
+
+            ]
+
+
+    process fty@(TFunc a b) = funcs >>=
+        concatMapM (uncurry (processCommon d) )
+
+        where
         funcs :: GG [ (Type, [(ToTypeFn, Depth)]) ]
         funcs = catMaybes <$> sequence
             -- 1 for func
             -- 1 usually for TFunc
 
-            [ simple [ (EProc . Pdefined, 1) ]
+            [ simple fty [ (EProc . Pdefined, 1) ]
                 +| a == ity &&  d - (fromInteger $ depthOf a) > 2
 
-            , simple [  (EProc . Prange, 1)  ]
+            , simple fty [  (EProc . Prange, 1)  ]
                 +| b == ity && d - (fromInteger $ depthOf b) > 2
 
 
-            ,simple [ (EProc . PtoSet, 1)]
+            ,simple fty [ (EProc . PtoSet, 1)]
                 +| d - (fromInteger $ max (depthOf a ) (depthOf b) ) > 2
                 && typesUnify  (TTuple [a,b]) ity
 
@@ -131,7 +153,6 @@ reachableToType d oty@(TSet ity) = concatMapM process (types)
 
             ]
 
-        simple val =  (oty,) <$>  mapM ( return . raise) val
 
         preImage :: PType -> GG (ToTypeFn, Depth)
         preImage pb = do
@@ -185,20 +206,28 @@ combine (_, ff) xs = do
         return $ (innerTy, return xx)
 
     dotTypeFunc :: (ToTypeFn,Depth) -> (ToTypeFn,Depth) -> (ToTypeFn,Depth)
-    dotTypeFunc (o,od) (i, oi) = (o. i, od + oi)
+    dotTypeFunc (o ,od) (i, oi) = (o. i, od + oi)
+
+
 
 raise ::  (Expr -> Expr,Depth) -> (ToTypeFn, Depth)
 raise (f,c) = ( \d -> d >>= return . f   , c)
 -- raise (f,c) = (f, c)
 
+simple
+  :: (Functor f, Monad f)
+  =>  t -> [(Expr -> Expr, Depth)]
+  ->  f (t, [(ToTypeFn, Depth)])
+simple ty val =  (ty,) <$>  mapM ( return . raise) val
+
 
 infixl 1 *|
+
+(*|) :: a -> Bool -> Maybe a
+a  *| c | c = Just a
+_  *| _    = Nothing
+
 infixl 1 +|
-
-(*|) :: Monad m =>  m [a] -> Bool -> m [a]
-xs *| c | c = xs
-_  *| _    = return []
-
 (+|) :: Monad m =>  m a -> Bool -> m (Maybe a)
 xs +| c | c = do
     x <- xs

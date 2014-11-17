@@ -1,3 +1,13 @@
+
+toSet
+    rel
+        tuple
+            a
+            b
+            c
+
+
+
 |
     { defined(function(false --> -1))
     , {true <-> false}
