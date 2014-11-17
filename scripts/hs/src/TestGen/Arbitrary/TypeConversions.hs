@@ -57,7 +57,7 @@ con  to  = do
 type ToTypeFn = (GG Expr -> GG Expr)
 
 ---- Give an type return the possible ways to get to that type
----- e.g  TInt  ->  Just $  [TSet Tint,  [  | x |  ]   ]
+---- e.g  TInt  ->  Just $  [TSet Tint,  [  | x |, 1  ]   ]
 
 -- return (the type, (function applied and depth needed)  )
 
@@ -93,10 +93,12 @@ reachableToType d oty@TInt = concatMapM process (allowed d)
 reachableToType d oty@(TSet ity) = concatMapM process (types)
     where
 
-    types =  catMaybes [ Just  $ TFunc ity TAny
-                       , Just  $ TFunc TAny ity
+    types =  catMaybes [ Just  $  TFunc ity TAny
+                       , Just  $  TFunc TAny ity
                     --    , TRel TAny *| ity == TAny
                        , TRel <$> tupleInner ity
+                       , Just  $  TPar  ity
+                       , Just  $  TMSet ity
                        ]
 
     tupleInner :: Type -> Maybe [Type]
@@ -105,9 +107,8 @@ reachableToType d oty@(TSet ity) = concatMapM process (types)
 
     process :: Type -> GG [ (Type, GG [(ToTypeFn,Depth)] ) ]
 
-
-    process fty@(TRel itys) = funcs >>=
-        concatMapM (uncurry (processCommon d) )
+    process fty@(TMSet _) = funcs >>=
+        concatMapM (uncurry (processCommon d))
 
         where
         funcs :: GG [ (Type, [(ToTypeFn, Depth)]) ]
@@ -115,8 +116,40 @@ reachableToType d oty@(TSet ity) = concatMapM process (types)
             [
              simple fty [ (EProc . PtoSet, 1)]
                 +| d - (fromInteger $ depthOf fty) >= 1
+            ]
 
 
+    process fty@(TPar _) = funcs >>=
+        concatMapM (uncurry (processCommon d))
+
+        where
+        funcs :: GG [ (Type, [(ToTypeFn, Depth)]) ]
+        funcs = catMaybes <$> sequence
+            [
+              simple fty [ (EProc . Pparticipants, 1)]
+                +| d - (fromInteger $ depthOf fty) >= 1
+            , do
+                nty@(TPar ins) <- purgeAny fty
+                (nty,) <$> sequence [ party ins ]
+                    +| d - (fromInteger $ depthOf nty) >= 1
+
+            ]
+
+        party :: PType -> GG (ToTypeFn, Depth)
+        party i =  do
+            ep <- withDepthDec (exprOf i)
+            return $ raise $ (EProc . Pparty ep, 1)
+
+
+    process fty@(TRel _) = funcs >>=
+        concatMapM (uncurry (processCommon d))
+
+        where
+        funcs :: GG [ (Type, [(ToTypeFn, Depth)]) ]
+        funcs = catMaybes <$> sequence
+            [
+             simple fty [ (EProc . PtoSet, 1)]
+                +| d - (fromInteger $ depthOf fty) >= 1
             ]
 
 
@@ -166,6 +199,9 @@ reachableToType d oty@(TSet ity) = concatMapM process (types)
 
     process ty = ggError "reachableToType missing"
         ["ty" <+> pretty ty, "oty" <+> pretty oty ]
+
+
+
 
 
 reachableToType d oty@(TTuple inner)  = return []
