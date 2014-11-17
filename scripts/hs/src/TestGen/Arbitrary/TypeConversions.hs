@@ -99,6 +99,7 @@ reachableToType d oty@(TSet ity) = concatMapM process (types)
                        , TRel <$> tupleInner ity
                        , Just  $  TPar  ity
                        , Just  $  TMSet ity
+                       , Just  $  TSet  ity
                        ]
 
     tupleInner :: Type -> Maybe [Type]
@@ -106,6 +107,32 @@ reachableToType d oty@(TSet ity) = concatMapM process (types)
     tupleInner _           = Nothing
 
     process :: Type -> GG [ (Type, GG [(ToTypeFn,Depth)] ) ]
+    process fty@(TSet _) = funcs >>=
+        concatMapM (uncurry (processCommon d))
+
+        where
+        -- FIXME weighting
+        -- FIXME sym?
+        funcs :: GG [ (Type, [(ToTypeFn, Depth)]) ]
+        funcs = catMaybes <$> sequence
+            [
+                do
+                nty <- purgeAny fty
+                (nty,) <$>  sequence [ union nty, intersect nty  ]
+                    +| d - (fromInteger $ depthOf nty) >= 1
+            ]
+
+        union :: PType -> GG (ToTypeFn, Depth)
+        union i = do
+            otherSet <- withDepthDec $ exprOf i
+            return $ raise $ (EBinOp . Bunion otherSet, 1)
+
+        intersect :: PType -> GG (ToTypeFn, Depth)
+        intersect i = do
+            otherSet <- withDepthDec $ exprOf i
+            ff <- elements2 [Bintersect, flip Bintersect]
+            return $ raise $ (EBinOp . ff otherSet, 1)
+
 
     process fty@(TMSet _) = funcs >>=
         concatMapM (uncurry (processCommon d))
@@ -149,7 +176,8 @@ reachableToType d oty@(TSet ity) = concatMapM process (types)
         funcs = catMaybes <$> sequence
             [
              simple fty [ (EProc . PtoSet, 1)]
-                +| d - (fromInteger $ depthOf fty) >= 1
+                +| d - (fromInteger $ depthOf fty) >= 2
+                -- one for toSet, one for the rel
             ]
 
 
