@@ -9,6 +9,8 @@ import TestGen.Arbitrary.Expr
 import TestGen.Arbitrary.Literal
 import TestGen.Arbitrary.Type
 
+type PType = Type
+
 -- for ghci usage
 _aa ::Type ->  GG (Maybe Expr)
 _aa ty = do
@@ -90,62 +92,55 @@ reachableToType d oty@TInt = concatMapM process (allowed d)
 
 reachableToType d oty@(TSet ity) = concatMapM process (types)
     where
-    tyDepth = depthOf ity
 
     types = [ TFunc ity TAny,  TFunc TAny ity ]
-    -- allowed :: Depth -> [Type]
-    -- allowed 0 = []
-    -- allowed 1 = allowed 0 ++ []
-    -- allowed _ = allowed 1  ++ [] ++
-    --     if | tyDepth == 0  -> [TFunc ity TAny,  TFunc TAny ity]
-    --        | otherwise  -> []
 
     process :: Type -> GG [ (Type, GG [(ToTypeFn,Depth)] ) ]
-    process ty@(TFunc a b ) = do
-        fs :: [[(ToTypeFn, Depth)]] <- funcs
-        processCommon d ty (concat fs)
+    process oty@(TFunc a b ) = do
+        fs  <- funcs
+        concatMapM (\(nty,arr) -> processCommon d nty arr ) fs
 
         where
-        da = depthOf a
-        db = depthOf b
 
-
-        funcs :: GG [[(ToTypeFn, Depth)]]
-        funcs = sequence
+        funcs :: GG [ (Type, [(ToTypeFn, Depth)]) ]
+        funcs = catMaybes <$> sequence
             -- 1 for func
             -- 1 usually for TFunc
 
-            [ mapM ( return . raise) [  (EProc . Pdefined, 1)  ]
-                *| a == ity &&  d - (fromInteger da) > 2
+            [ simple [ (EProc . Pdefined, 1) ]
+                +| a == ity &&  d - (fromInteger $ depthOf a) > 2
 
-            , mapM ( return . raise) [  (EProc . Prange, 1)  ]
-                *| b == ity && d - (fromInteger db) > 2
+            , simple [  (EProc . Prange, 1)  ]
+                +| b == ity && d - (fromInteger $ depthOf b) > 2
 
 
-            , mapM ( return . raise )  [ (EProc . PtoSet, 1)]
-                *| d - (fromInteger $ max da db ) > 2
+            ,simple [ (EProc . PtoSet, 1)]
+                +| d - (fromInteger $ max (depthOf a ) (depthOf b) ) > 2
                 && typesUnify  (TTuple [a,b]) ity
 
-            , sequence [ preImage ]
-                *| a == ity
-                && d - (fromInteger $ max da db ) > 2
-
-            , sequence [ image ]
-                *|  b== ity
-                && d - (fromInteger $ max da db ) > 2
-
+            ,do
+                nb <- purgeAny b
+                (TFunc a nb,) <$> sequence [ preImage nb ]
+                    +| a == ity
+                    && d - (fromInteger $ max (depthOf a ) (depthOf nb) ) > 2
+            ,do
+                na <- purgeAny a
+                (TFunc na b, ) <$> sequence  [image na]
+                    +| b == ity
+                    && d - (fromInteger $ max (depthOf na ) (depthOf b) ) > 2
 
             ]
 
-        --FIXME need to return the new type, purged of any anys.
-        preImage :: GG (ToTypeFn, Depth)
-        preImage = do
-            ep <- withDepthDec (exprOfPurgeAny b)
+        simple val =  (oty,) <$>  mapM ( return . raise) val
+
+        preImage :: PType -> GG (ToTypeFn, Depth)
+        preImage pb = do
+            ep <- withDepthDec (exprOf pb)
             return $ raise $ (EProc . (flip PpreImage) ep, 1)
 
-        image :: GG (ToTypeFn, Depth)
-        image = do
-            ep <- withDepthDec (exprOfPurgeAny $ TSet a)
+        image :: PType -> GG (ToTypeFn, Depth)
+        image pa = do
+            ep <- withDepthDec (exprOf $ TSet pa)
             return $ raise $ (EProc . Pimage ep, 1)
 
     process ty = ggError "reachableToType missing"
@@ -197,11 +192,16 @@ raise (f,c) = ( \d -> d >>= return . f   , c)
 -- raise (f,c) = (f, c)
 
 
-raiseExpr :: (a -> b) -> GG a -> GG b
-raiseExpr f = (=<<) (return . f)
-
 infixl 1 *|
+infixl 1 +|
 
 (*|) :: Monad m =>  m [a] -> Bool -> m [a]
 xs *| c | c = xs
 _  *| _    = return []
+
+(+|) :: Monad m =>  m a -> Bool -> m (Maybe a)
+xs +| c | c = do
+    x <- xs
+    return (Just x)
+
+_  +| _    = return Nothing

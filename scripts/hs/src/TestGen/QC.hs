@@ -89,6 +89,7 @@ generate TArgs{..} = do
     putStrLn "Generating specs, with depth up to size 5"
     startTime <- round `fmap` getPOSIXTime
     failed <- helper startTime []
+    
 
     -- let paths = map (\fn -> takeFileName' baseDirectory_ </> fn </> "spec.essence" ) failed
     let paths = map (\fn -> baseDirectory_ </> fn </> "spec.essence" ) failed
