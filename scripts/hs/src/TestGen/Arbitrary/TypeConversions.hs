@@ -9,6 +9,7 @@ import TestGen.Arbitrary.Expr
 import TestGen.Arbitrary.Literal
 import TestGen.Arbitrary.Type
 
+-- Type that does not have any anys
 type PType = Type
 
 -- for ghci usage
@@ -104,6 +105,61 @@ reachableToType d oty@TBool = concatMapM process types
             e2 <- withDepthDec $ exprOf i
             return $ raise $ (EProc . Papart e1 e2, 1)
 
+reachableToType d oty@TInt = concatMapM process types
+    where
+
+    types =  catMaybes
+        [
+            Just $ TSet  TAny
+        ,   Just $ TMSet TAny
+        ,   Just $ TPar  TAny
+        -- ,   Just $ TRel (any number of anys  )
+        ,   Just $ TFunc TAny TAny
+        ]
+
+    process :: Type -> GG [ (Type, GG [(ToTypeFn,Depth)] ) ]
+
+    process fty@(TMSet _)  = funcs >>=
+        concatMapM (uncurry (processCommon d))
+
+        where
+        funcs :: GG [ (Type, [(ToTypeFn, Depth)]) ]
+        funcs = catMaybes <$> sequence
+            [
+              simple fty [ (EUniOp . UBar, 1)]
+                +| d - (fromInteger $ depthOf fty) >= 1
+
+            , do
+                nty@(TMSet ins) <- purgeAny fty
+                (nty,) <$> sequence [ freq ins ]
+                    +| d - (fromInteger $ depthOf nty) >= 1
+
+            ]
+
+        freq :: PType -> GG (ToTypeFn, Depth)
+        freq i =  do
+            ep <- withDepthDec (exprOf i)
+            return $ raise $ (EProc . (flip Pfreq) ep, 1)
+
+
+    process fty@(TSet _)    = onlyBar fty
+    process fty@(TPar _)    = onlyBar fty
+    process fty@(TRel _)    = onlyBar fty
+    process fty@(TFunc _ _) = onlyBar fty
+    process ty = ggError "reachableToType missing"
+        ["ty" <+> pretty ty, "oty" <+> pretty oty ]
+
+
+    onlyBar fty = funcs >>=
+        concatMapM (uncurry (processCommon d))
+
+        where
+        funcs :: GG [ (Type, [(ToTypeFn, Depth)]) ]
+        funcs = catMaybes <$> sequence
+            [
+              simple fty [ (EUniOp . UBar, 1)]
+                +| d - (fromInteger $ depthOf fty) >= 1
+            ]
 
 reachableToType d oty@TInt = concatMapM process (allowed d)
     where
@@ -119,6 +175,7 @@ reachableToType d oty@TInt = concatMapM process (allowed d)
 
     process ty@(TSet TAny) = do
         processCommon d ty [ raise (EUniOp . UBar, 1) ]
+
 
     process ty = ggError "reachableToType missing"
         ["ty" <+> pretty ty, "oty" <+> pretty oty ]
