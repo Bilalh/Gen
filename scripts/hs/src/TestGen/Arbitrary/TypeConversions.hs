@@ -64,11 +64,46 @@ type ToTypeFn = (GG Expr -> GG Expr)
 reachableToType :: Depth -> Type -> GG [ (Type, GG [(ToTypeFn, Depth)] ) ]
 reachableToType 0 _ = return  []
 
-reachableToType _ TBool = return []
 
 reachableToType d TAny = do
     newTy <- withSameDepth atype
     reachableToType d newTy
+
+reachableToType d oty@TBool = concatMapM process types
+    where
+
+    types =  catMaybes
+        [
+            TPar TAny *| d >= 2
+        ]
+
+    process :: Type -> GG [ (Type, GG [(ToTypeFn,Depth)] ) ]
+    process fty@(TPar _) = funcs >>=
+        concatMapM (uncurry (processCommon d))
+
+        where
+        funcs :: GG [ (Type, [(ToTypeFn, Depth)]) ]
+        funcs = catMaybes <$> sequence
+            [
+                do
+                nty@(TPar inn) <- purgeAny fty
+                (nty,) <$>  sequence [ together inn, apart inn  ]
+                    +| d - (fromInteger $ depthOf nty) >= 1
+
+            ]
+
+        together :: PType -> GG (ToTypeFn, Depth)
+        together i = do
+            e1 <- withDepthDec $ exprOf i
+            e2 <- withDepthDec $ exprOf i
+            return $ raise $ (EProc . Ptogether e1 e2, 1)
+
+        apart :: PType -> GG (ToTypeFn, Depth)
+        apart i = do
+            e1 <- withDepthDec $ exprOf i
+            e2 <- withDepthDec $ exprOf i
+            return $ raise $ (EProc . Papart e1 e2, 1)
+
 
 reachableToType d oty@TInt = concatMapM process (allowed d)
     where
