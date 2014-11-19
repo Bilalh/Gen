@@ -132,13 +132,6 @@ reachableToType d oty@TBool = concatMapM process types
 
             ]
 
-        element :: PType -> GG (ToTypeFn, Depth)
-        element i = do
-            e1 <- withDepthDec $ exprOf i
-            return $ raise $ (EBinOp . (flip BIn) e1, 1)
-
-
-
     process fty@(TPar _) = funcs >>=
         concatMapM (uncurry (processCommon d))
 
@@ -374,14 +367,47 @@ reachableToType d oty@(TSet ity) =  join (ss oty) (concatMapM process (types))
         ["ty" <+> pretty ty, "oty" <+> pretty oty ]
 
 
-reachableToType d oty@(TTuple inner)  = return []
-reachableToType d oty@(TMatix inner)  = return []
-reachableToType d oty@(TMSet inner)   = return []
-reachableToType d oty@(TFunc from to) = return []
 reachableToType d oty@(TRel inners)   = return []
-reachableToType d oty@(TPar inners)   = return []
-reachableToType d oty@(TUnamed _)     = return []
-reachableToType d oty@(TEnum _)       = return []
+reachableToType d oty@(TMSet inner)   = return []
+
+
+reachableToType d oty@(TMatix TInt) = concatMapM process types
+    where
+
+    types =  catMaybes
+        [
+            TMSet TAny *| d >= 2
+        ]
+
+    process :: Type -> GG [ (Type, GG [(ToTypeFn,Depth)] ) ]
+
+    process fty@(TMSet _)  = funcs >>=
+        concatMapM (uncurry (processCommon d))
+
+        where
+        funcs :: GG [ (Type, [(ToTypeFn, Depth)]) ]
+        funcs = catMaybes <$> sequence
+            [
+            do
+            nty@(TMSet ins) <- purgeAny fty
+            (nty,) <$> sequence [ hist ins ]
+                +| d - (fromInteger $ depthOf nty) >= 1
+
+            ]
+
+        hist :: PType -> GG (ToTypeFn, Depth)
+        hist i =  do
+            -- matrix indexed by [w] of i
+            ep <- withDepthDec (exprOf $ TMatix i)
+            return $ raise $ (EProc . (flip Phist) ep, 1)
+
+
+reachableToType _ (TMatix _ )     = return []
+reachableToType _ (TTuple _ )     = return []
+reachableToType _ (TFunc _ _)     = return []
+reachableToType _ (TPar _)        = return []
+reachableToType _ (TUnamed _)     = return []
+reachableToType _ (TEnum _)       = return []
 
 reachableToTypeSetSet :: Depth -> Type -> GG [ (Type, GG [(ToTypeFn, Depth)] ) ]
 reachableToTypeSetSet d oty@(TSet (TSet inner) ) = concatMapM process types
@@ -404,6 +430,9 @@ reachableToTypeSetSet d oty@(TSet (TSet inner) ) = concatMapM process types
     process ty = ggError "reachableToType missing"
         ["ty" <+> pretty ty, "oty" <+> pretty oty ]
 
+
+reachableToTypeSetSet d ty =
+    ggError "reachableToTypeSetSet" [nn "d" d, nn "ty" ty ]
 
 
 union :: PType -> GG (ToTypeFn, Depth)
