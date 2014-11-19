@@ -91,8 +91,9 @@ function mkessence(){
 	echo "" >> "$1/$1.param"
 	echo "" >> "$1/$1.essence"
 	echo "" >> "$1/$1.param"
-	
-	$EDITOR -p  $1/$1.essence +3 $1/$1.param +3
+
+	cd "$1"
+	$EDITOR -p  $1.essence +3 $1.param +3
 }
 
 function cr(){
