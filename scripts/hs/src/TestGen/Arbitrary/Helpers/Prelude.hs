@@ -156,7 +156,7 @@ _genfile e n  = do
 _gen :: Pretty a =>  GG a -> Int -> IO ()
 _gen e n  = do
     res <-  (sample' (runStateT e (_ss n) ))
-    forM_ res $ \(r,st) -> do
+    forM_ res $ \(r,_) -> do
         putStrLn . renderSmall $ ""
             P.$+$ ( pretty r )
 

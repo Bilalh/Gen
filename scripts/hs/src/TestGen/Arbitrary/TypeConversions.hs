@@ -366,9 +366,31 @@ reachableToType d oty@(TSet ity) =  join (ss oty) (concatMapM process (types))
     process ty = ggError "reachableToType missing"
         ["ty" <+> pretty ty, "oty" <+> pretty oty ]
 
-
-reachableToType d oty@(TRel inners)   = return []
 reachableToType d oty@(TMSet inner)   = return []
+
+
+reachableToType d oty@(TRel inners)   =  concatMapM process types
+
+    where
+    types =  catMaybes
+        [
+            TFunc (inners !! 0) (inners !! 1)  *| length inners == 2 &&  d >= 2
+        ]
+
+    process :: Type -> GG [ (Type, GG [(ToTypeFn,Depth)] ) ]
+    process fty@(TFunc a b ) = funcs >>=
+        concatMapM (uncurry (processCommon d))
+
+        where
+        funcs :: GG [ (Type, [(ToTypeFn, Depth)]) ]
+        funcs = catMaybes <$> sequence
+            [
+                simple fty [ (EProc . PtoRelation, 1)]
+                    +| d - (fromInteger $ depthOf fty) >= 1
+            ]
+
+    process ty = ggError "reachableToType missing"
+        ["ty" <+> pretty ty, "oty" <+> pretty oty ]
 
 
 reachableToType d oty@(TMatix TInt) = concatMapM process types
@@ -401,7 +423,10 @@ reachableToType d oty@(TMatix TInt) = concatMapM process types
             ep <- withDepthDec (exprOf $ TMatix i)
             return $ raise $ (EProc . (flip Phist) ep, 1)
 
+    process ty = ggError "reachableToType missing"
+        ["ty" <+> pretty ty, "oty" <+> pretty oty ]
 
+    
 reachableToType _ (TMatix _ )     = return []
 reachableToType _ (TTuple _ )     = return []
 reachableToType _ (TFunc _ _)     = return []
