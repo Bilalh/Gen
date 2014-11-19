@@ -86,8 +86,9 @@ reachableToType d oty@TBool = concatMapM process types
 
     types =  catMaybes
         [
-            TPar TAny *| d >= 2
-        ,   TAny      *| d >= 2
+            TPar TAny       *| d >= 2
+        ,   TAny            *| d >= 2
+        ,   TFunc TAny TAny *| d >= 2
         ]
 
     process :: Type -> GG [ (Type, GG [(ToTypeFn,Depth)] ) ]
@@ -101,7 +102,7 @@ reachableToType d oty@TBool = concatMapM process types
                 do
                 innerTy <- withDepth (d - 2) atype
                 container <- elements2 [TSet, TMSet ]
-
+                --TODO  could also allow the other way around
                 (innerTy,) <$> sequence [ element $ container innerTy ]
                     +| True
 
@@ -111,6 +112,31 @@ reachableToType d oty@TBool = concatMapM process types
         element i = do
             e1 <- withDepthDec $ exprOf i
             return $ raise $ (EBinOp . (flip BIn) e1, 1)
+
+    process fty@(TFunc _ _ ) = funcs >>=
+        concatMapM (uncurry (processCommon d))
+
+        where
+        funcs :: GG [ (Type, [(ToTypeFn, Depth)]) ]
+        funcs = catMaybes <$> sequence
+            [
+            do
+            (TFunc a b) <- withDepthDec (purgeAny fty)
+
+            op <-  elements2 [ Pinverse , flip Pinverse  ]
+            (t1,t2) <- elements2 [ (TFunc a b, TFunc b a ),  (TFunc b a, TFunc a b ) ]
+            e1 <- withDepthDec (exprOf t1)
+
+
+            return . Just $ (t2, [ raise (EProc . op e1 , 1)  ] )
+
+            ]
+
+        element :: PType -> GG (ToTypeFn, Depth)
+        element i = do
+            e1 <- withDepthDec $ exprOf i
+            return $ raise $ (EBinOp . (flip BIn) e1, 1)
+
 
 
     process fty@(TPar _) = funcs >>=
