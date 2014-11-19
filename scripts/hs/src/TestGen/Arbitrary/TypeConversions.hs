@@ -39,7 +39,7 @@ con :: Type -> GG (Maybe (GG Expr))
 con  to  = do
     d <- gets depth_
 
-    reachableToType d to >>= \case
+    reachableToTypeWithCommon d to >>= \case
         [] -> return Nothing
         choices -> do
             (fromTy, toFn) <- elements2 choices
@@ -62,6 +62,17 @@ type ToTypeFn = (GG Expr -> GG Expr)
 
 -- return (the type, (function applied and depth needed)  )
 
+reachableToTypeWithCommon :: Depth -> Type -> GG [ (Type, GG [(ToTypeFn, Depth)] ) ]
+reachableToTypeWithCommon 0 _ =  return []
+reachableToTypeWithCommon d y =  do
+    rs <- reachableToType d y
+    return (common ++ rs)
+
+
+    where
+    common = []
+
+
 reachableToType :: Depth -> Type -> GG [ (Type, GG [(ToTypeFn, Depth)] ) ]
 reachableToType 0 _ = return  []
 
@@ -76,9 +87,32 @@ reachableToType d oty@TBool = concatMapM process types
     types =  catMaybes
         [
             TPar TAny *| d >= 2
+        ,   TAny      *| d >= 2
         ]
 
     process :: Type -> GG [ (Type, GG [(ToTypeFn,Depth)] ) ]
+    process fty@(TAny) = funcs >>=
+        concatMapM (uncurry (processCommon d))
+
+        where
+        funcs :: GG [ (Type, [(ToTypeFn, Depth)]) ]
+        funcs = catMaybes <$> sequence
+            [
+                do
+                innerTy <- withDepth (d - 2) atype
+                container <- elements2 [TSet, TMSet ]
+
+                (innerTy,) <$> sequence [ element $ container innerTy ]
+                    +| True
+
+            ]
+
+        element :: PType -> GG (ToTypeFn, Depth)
+        element i = do
+            e1 <- withDepthDec $ exprOf i
+            return $ raise $ (EBinOp . (flip BIn) e1, 1)
+
+
     process fty@(TPar _) = funcs >>=
         concatMapM (uncurry (processCommon d))
 
@@ -104,6 +138,9 @@ reachableToType d oty@TBool = concatMapM process types
             e1 <- withDepthDec $ exprOf i
             e2 <- withDepthDec $ exprOf i
             return $ raise $ (EProc . Papart e1 e2, 1)
+
+    process ty = ggError "reachableToType missing"
+        ["ty" <+> pretty ty, "oty" <+> pretty oty ]
 
 
 reachableToType d oty@TInt = concatMapM process types
@@ -163,7 +200,6 @@ reachableToType d oty@TInt = concatMapM process types
     process ty = ggError "reachableToType missing"
         ["ty" <+> pretty ty, "oty" <+> pretty oty ]
 
-
     onlyBar fty = funcs >>=
         concatMapM (uncurry (processCommon d))
 
@@ -213,21 +249,9 @@ reachableToType d oty@(TSet ity) =  join (ss oty) (concatMapM process (types))
             [
                 do
                 nty <- purgeAny fty
-                (nty,) <$>  sequence [ union nty, intersect nty  ]
+                (nty,) <$>  sequence [ union nty, intersect nty, diff nty ]
                     +| d - (fromInteger $ depthOf nty) >= 1
             ]
-
-        union :: PType -> GG (ToTypeFn, Depth)
-        union i = do
-            otherSet <- withDepthDec $ exprOf i
-            return $ raise $ (EBinOp . Bunion otherSet, 1)
-
-        intersect :: PType -> GG (ToTypeFn, Depth)
-        intersect i = do
-            otherSet <- withDepthDec $ exprOf i
-            ff <- elements2 [Bintersect, flip Bintersect]
-            return $ raise $ (EBinOp . ff otherSet, 1)
-
 
     process fty@(TMSet _) = funcs >>=
         concatMapM (uncurry (processCommon d))
@@ -353,6 +377,26 @@ reachableToTypeSetSet d oty@(TSet (TSet inner) ) = concatMapM process types
 
     process ty = ggError "reachableToType missing"
         ["ty" <+> pretty ty, "oty" <+> pretty oty ]
+
+
+
+union :: PType -> GG (ToTypeFn, Depth)
+union i = do
+    other <- withDepthDec $ exprOf i
+    return $ raise $ (EBinOp . Bunion other, 1)
+
+intersect :: PType -> GG (ToTypeFn, Depth)
+intersect i = do
+    other <- withDepthDec $ exprOf i
+    ff <- elements2 [Bintersect, flip Bintersect]
+    return $ raise $ (EBinOp . ff other, 1)
+
+diff :: PType -> GG (ToTypeFn, Depth)
+diff i = do
+    other <- withDepthDec $ exprOf i
+    ff <- elements2 [BDiff, flip BDiff]
+    return $ raise $ (EBinOp . ff other, 1)
+
 
 
 processCommon :: Depth ->  Type -> [(ToTypeFn,Depth)] -> GG [(Type, GG [(ToTypeFn,Depth)] ) ]
