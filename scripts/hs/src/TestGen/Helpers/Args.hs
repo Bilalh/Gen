@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE RecordWildCards, NamedFieldPuns #-}
-module TestGen.Args(parseArgs, TArgs(..)) where
+module TestGen.Helpers.Args(parseArgs, TArgs(..)) where
 
 
 import Build_autoversion(buildDateRFC2822,autoVersion)

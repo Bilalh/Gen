@@ -1,6 +1,6 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
 {-# LANGUAGE DeriveGeneric #-}
-module TestGen.Runner where
+module TestGen.Helpers.Runner where
 
 
 

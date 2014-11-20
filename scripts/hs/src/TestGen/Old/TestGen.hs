@@ -10,7 +10,7 @@ module TestGen.Old.TestGen where
 import TestGen.Old.Create
 import TestGen.Old.Data
 import Common.Helpers
-import TestGen.Runner
+import TestGen.Helpers.Runner
 
 import Language.E
 import Language.E.Pipeline.ReadIn(writeSpec)

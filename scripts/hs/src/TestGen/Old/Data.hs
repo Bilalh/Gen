@@ -5,7 +5,7 @@
 
 module TestGen.Old.Data where
 
-import TestGen.Runner(RefineR,SolveR)
+import TestGen.Helpers.Runner(RefineR,SolveR)
 import TestGen.Old.EssenceDomain(EssenceDomain)
 import TestGen.Old.EssenceConstraints(Eexpr)
 

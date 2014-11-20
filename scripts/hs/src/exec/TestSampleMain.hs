@@ -1,6 +1,6 @@
 module Main where
 
-import TestGen.Args
+import TestGen.Helpers.Args
 import TestGen.QC
 
 main :: IO ()

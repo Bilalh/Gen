@@ -9,7 +9,7 @@ module TestGen.QC where
 import AST.SpecE
 
 import TestGen.Arbitrary.Arbitrary
-import TestGen.Runner(SettingI(..))
+import TestGen.Helpers.Runner(SettingI(..))
 import TestGen.Old.TestGen(runRefine')
 import Common.Helpers(timestamp)
 
@@ -28,7 +28,7 @@ import System.Directory(createDirectoryIfMissing, getHomeDirectory)
 import System.Random(randomRIO)
 import Language.E
 
-import TestGen.Args(TArgs(..))
+import TestGen.Helpers.Args(TArgs(..))
 import System.IO(IOMode(..),hPutStrLn, openFile, hClose)
 import Data.Time
 
