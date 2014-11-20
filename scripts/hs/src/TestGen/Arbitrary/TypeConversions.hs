@@ -50,6 +50,9 @@ con  to  = do
                 ]
             fs <- toFn
             (f, depthNeeded) <- elements2 fs
+            addLog "toType:choices" 
+                [ nn "depthNeeded" depthNeeded  ]
+            
             fromExpr <- withDepth (d - depthNeeded) (exprOfPurgeAny fromTy)
             return $  Just $ f (return fromExpr)
 
@@ -66,11 +69,36 @@ reachableToTypeWithCommon :: Depth -> Type -> GG [ (Type, GG [(ToTypeFn, Depth)]
 reachableToTypeWithCommon 0 _ =  return []
 reachableToTypeWithCommon d y =  do
     rs <- reachableToType d y
-    return (common ++ rs)
+    cs  <- common
+    return (cs ++ rs)
 
 
     where
-    common = []
+    common :: GG [(Type, GG [(ToTypeFn, Depth)])]
+    common | isOrdered y && d > 2  =
+        funcs >>= concatMapM (uncurry (processCommon d))
+
+           | otherwise = return []
+               
+    funcs = do 
+        addLog "reTyCommon" [ nn "y" y, nn "d" d  ]
+        catMaybes <$> sequence 
+            [
+                do
+                nty <- TSet <$> purgeAny y
+                (nty,) <$>  sequence [ min, max ]
+                    +| d - (fromInteger $ depthOf nty) >= 2
+                    
+            ,   do
+                nty <- TMSet <$> purgeAny y
+                (nty,) <$> sequence [ min, max ]
+                    +| d - (fromInteger $ depthOf nty) >= 2
+            ] 
+
+    min, max :: GG (ToTypeFn, Depth)
+    min = return $ raise $ (EProc . Pmin, 1)
+    max = return $ raise $ (EProc . Pmax, 1)
+    
 
 
 reachableToType :: Depth -> Type -> GG [ (Type, GG [(ToTypeFn, Depth)] ) ]
@@ -127,10 +155,10 @@ reachableToType d oty@TBool = concatMapM process types
             (t1,t2) <- elements2 [ (TFunc a b, TFunc b a ),  (TFunc b a, TFunc a b ) ]
             e1 <- withDepthDec (exprOf t1)
 
-
-            return . Just $ (t2, [ raise (EProc . op e1 , 1)  ] )
-
+            (t2,) <$> sequence [ return . raise $ (EProc . op e1, 1) ]
+                +| d - (max (fromInteger $ depthOf t1 ) (fromInteger $ depthOf t2 )) > 1
             ]
+
 
     process fty@(TPar _) = funcs >>=
         concatMapM (uncurry (processCommon d))
@@ -470,6 +498,8 @@ reachableToType _ (TTuple _ )     = return []
 reachableToType _ (TPar _)        = return []
 reachableToType _ (TUnamed _)     = return []
 reachableToType _ (TEnum _)       = return []
+-- reachableToType _ _               = return []
+
 
 
 reachableToTypeSetSet :: Depth -> Type -> GG [ (Type, GG [(ToTypeFn, Depth)] ) ]

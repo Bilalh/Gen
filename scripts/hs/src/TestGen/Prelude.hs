@@ -20,8 +20,9 @@ import AST.Imports as X
 import Common.Helpers as X
 
 import TestGen.Arbitrary.Data as X
-import TestGen.Helpers.SizeOf as X
 import TestGen.Helpers.Log as X (LogsTree(..), Pretty(..))
+import TestGen.Helpers.OrderedType as X
+import TestGen.Helpers.SizeOf as X
 
 import TestGen.Helpers.Debug as X
 import TestGen.Helpers.Helpers as X
