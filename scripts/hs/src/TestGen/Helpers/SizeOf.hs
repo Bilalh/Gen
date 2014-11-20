@@ -2,7 +2,7 @@
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module TestGen.Arbitrary.SizeOf where
+module TestGen.Helpers.SizeOf where
 
 import AST.Imports
 import TestGen.Arbitrary.Data
