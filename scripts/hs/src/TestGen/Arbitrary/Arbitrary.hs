@@ -5,7 +5,7 @@
 
 module TestGen.Arbitrary.Arbitrary where
 
-import TestGen.Arbitrary.Helpers.Prelude
+import TestGen.Prelude
 import TestGen.Arbitrary.Data
 import TestGen.Arbitrary.Domain
 import TestGen.Arbitrary.Expr

@@ -2,15 +2,17 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module TestGen.Arbitrary.Helpers.Log(
+module TestGen.Helpers.Log(
     makeLog, LogsTree(..), LogNamed(..), Pretty(..), suppress
 ) where
 
-import qualified GHC.Generics
-import qualified Data.HashSet as S
-import qualified Data.DList as DList
 import Language.E
+
+import qualified Data.DList as DList
+import qualified Data.HashSet as S
+import qualified GHC.Generics
 import qualified Text.PrettyPrint as P
+
 
 data LogsTree = LSEmpty | LSSingle !LogNamed | LSMultiple !LogsTree !LogsTree
     deriving (Show, GHC.Generics.Generic)

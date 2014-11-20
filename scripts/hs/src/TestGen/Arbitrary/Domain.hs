@@ -18,7 +18,7 @@ module TestGen.Arbitrary.Domain
     , tupleDom
 ) where
 
-import TestGen.Arbitrary.Helpers.Prelude
+import TestGen.Prelude
 import qualified Data.Set as S
 
 -- import Text.PrettyPrint(parens)

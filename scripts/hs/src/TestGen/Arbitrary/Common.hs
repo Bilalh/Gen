@@ -5,7 +5,7 @@
 
 module TestGen.Arbitrary.Common  where
 
-import TestGen.Arbitrary.Helpers.Prelude
+import TestGen.Prelude
 import TestGen.Arbitrary.Type
 
 import qualified Data.Map as M

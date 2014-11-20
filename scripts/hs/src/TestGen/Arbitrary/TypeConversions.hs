@@ -4,7 +4,7 @@
 
 module TestGen.Arbitrary.TypeConversions(toTypeWithConversions) where
 
-import TestGen.Arbitrary.Helpers.Prelude
+import TestGen.Prelude
 import TestGen.Arbitrary.Expr
 import TestGen.Arbitrary.Literal
 import TestGen.Arbitrary.Type
@@ -245,7 +245,6 @@ reachableToType d oty@(TSet ity) =  join (ss oty) (concatMapM process (types))
 
     types =  catMaybes [ Just  $  TFunc ity TAny
                        , Just  $  TFunc TAny ity
-                    --    , TRel TAny *| ity == TAny
                        , TRel <$> tupleInner ity
                        , Just  $  TPar  ity
                        , Just  $  TMSet ity
@@ -262,7 +261,6 @@ reachableToType d oty@(TSet ity) =  join (ss oty) (concatMapM process (types))
 
         where
         -- FIXME weighting
-        -- FIXME sym?
         funcs :: GG [ (Type, [(ToTypeFn, Depth)]) ]
         funcs = catMaybes <$> sequence
             [
@@ -366,6 +364,7 @@ reachableToType d oty@(TSet ity) =  join (ss oty) (concatMapM process (types))
     process ty = ggError "reachableToType missing"
         ["ty" <+> pretty ty, "oty" <+> pretty oty ]
 
+
 reachableToType d oty@(TMSet inner)   = return []
 
 
@@ -375,10 +374,11 @@ reachableToType d oty@(TRel inners)   =  concatMapM process types
     types =  catMaybes
         [
             TFunc (inners !! 0) (inners !! 1)  *| length inners == 2 &&  d >= 2
+        ,   oty *|  d >= 3
         ]
 
     process :: Type -> GG [ (Type, GG [(ToTypeFn,Depth)] ) ]
-    process fty@(TFunc a b ) = funcs >>=
+    process fty@(TFunc _ _ ) = funcs >>=
         concatMapM (uncurry (processCommon d))
 
         where
@@ -388,6 +388,44 @@ reachableToType d oty@(TRel inners)   =  concatMapM process types
                 simple fty [ (EProc . PtoRelation, 1)]
                     +| d - (fromInteger $ depthOf fty) >= 1
             ]
+
+    process fty@(TRel _) | fty == oty = funcs >>=
+        concatMapM (uncurry (processCommon d))
+
+        where
+        funcs :: GG [ (Type, [(ToTypeFn, Depth)]) ]
+        funcs = catMaybes <$> sequence
+            [
+                do
+                nty <- purgeAny fty
+                (nty,) <$>  sequence [ union nty, intersect nty, diff nty ]
+                    +| d - (fromInteger $ depthOf nty) >= 1
+            ]
+
+    process ty = ggError "reachableToType missing"
+        ["ty" <+> pretty ty, "oty" <+> pretty oty ]
+
+
+reachableToType d oty@(TFunc _ _ ) = concatMapM process types
+    where
+
+    types =  catMaybes [ oty *| d >= 2
+                       ]
+
+    process :: Type -> GG [ (Type, GG [(ToTypeFn,Depth)] ) ]
+    process fty@(TFunc _ _) = funcs >>=
+        concatMapM (uncurry (processCommon d))
+
+        where
+        funcs :: GG [ (Type, [(ToTypeFn, Depth)]) ]
+        funcs = catMaybes <$> sequence
+            [
+                do
+                nty <- purgeAny fty
+                (nty,) <$>  sequence [ intersect nty, diff nty ]
+                    +| d - (fromInteger $ depthOf nty) >= 1
+            ]
+
 
     process ty = ggError "reachableToType missing"
         ["ty" <+> pretty ty, "oty" <+> pretty oty ]
@@ -426,13 +464,13 @@ reachableToType d oty@(TMatix TInt) = concatMapM process types
     process ty = ggError "reachableToType missing"
         ["ty" <+> pretty ty, "oty" <+> pretty oty ]
 
-    
+
 reachableToType _ (TMatix _ )     = return []
 reachableToType _ (TTuple _ )     = return []
-reachableToType _ (TFunc _ _)     = return []
 reachableToType _ (TPar _)        = return []
 reachableToType _ (TUnamed _)     = return []
 reachableToType _ (TEnum _)       = return []
+
 
 reachableToTypeSetSet :: Depth -> Type -> GG [ (Type, GG [(ToTypeFn, Depth)] ) ]
 reachableToTypeSetSet d oty@(TSet (TSet inner) ) = concatMapM process types
@@ -463,7 +501,8 @@ reachableToTypeSetSet d ty =
 union :: PType -> GG (ToTypeFn, Depth)
 union i = do
     other <- withDepthDec $ exprOf i
-    return $ raise $ (EBinOp . Bunion other, 1)
+    ff <- elements2 [Bunion, flip Bunion]
+    return $ raise $ (EBinOp . ff other, 1)
 
 intersect :: PType -> GG (ToTypeFn, Depth)
 intersect i = do

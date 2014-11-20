@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}
-module TestGen.Arbitrary.Helpers.Prelude (
+module TestGen.Prelude (
       module X
     , withDepth
     , withSameDepth
@@ -17,32 +17,33 @@ module TestGen.Arbitrary.Helpers.Prelude (
 
 import AST.Imports as X
 
-
-import Test.QuickCheck as X hiding (maxSize)
-
-import TestGen.Arbitrary.Data as X
-import TestGen.Arbitrary.Helpers.Debug as X
-import TestGen.Arbitrary.Helpers.Helpers as X
-import TestGen.Arbitrary.Helpers.QuickCheck2 as X
-import TestGen.Arbitrary.SizeOf as X
-import TestGen.Arbitrary.Helpers.Log as X (LogsTree(..), Pretty(..))
 import Common.Helpers as X
 
-import Data.Set as X (Set)
-import Development.Placeholders as X (placeholder,notImplemented,todo)
-import Language.E as X
-import Text.Groom as X (groom)
+import TestGen.Arbitrary.Data as X
+import TestGen.Arbitrary.SizeOf as X
+import TestGen.Helpers.Log as X (LogsTree(..), Pretty(..))
 
-import Control.Monad.State.Strict as X (evalStateT,StateT)
+import TestGen.Helpers.Debug as X
+import TestGen.Helpers.Helpers as X
+import TestGen.Helpers.QuickCheck2 as X
+
+import Development.Placeholders as X (placeholder,notImplemented,todo)
+
+import Language.E as X
+
 import Control.Monad as X(filterM, guard)
+import Control.Monad.State.Strict as X (evalStateT,StateT)
+import Data.Set as X (Set)
+import Data.Time
+import Data.Time.Clock.POSIX(getPOSIXTime)
+import System.Directory(getHomeDirectory, createDirectoryIfMissing)
+import System.FilePath((</>), (<.>))
+import Test.QuickCheck as X hiding (maxSize)
+import Text.Groom as X (groom)
 
 import qualified Control.Exception as C
 import qualified Text.PrettyPrint as P
 
-import System.Directory(getHomeDirectory, createDirectoryIfMissing)
-import System.FilePath((</>), (<.>))
-import Data.Time.Clock.POSIX(getPOSIXTime)
-import Data.Time
 
 withDepth :: Depth -> GG a -> GG a
 withDepth newDepth f = do

@@ -6,7 +6,7 @@ module TestGen.Arbitrary.SizeOf where
 
 import AST.Imports
 import TestGen.Arbitrary.Data
-import TestGen.Arbitrary.Helpers.Debug
+import TestGen.Helpers.Debug
 import qualified Data.Set as S
 
 

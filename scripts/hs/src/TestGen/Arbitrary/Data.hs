@@ -19,7 +19,7 @@ module TestGen.Arbitrary.Data (
 
 import AST.Imports
 import Language.E
-import TestGen.Arbitrary.Helpers.Log
+import TestGen.Helpers.Log
 
 import Test.QuickCheck
 import Data.Map(Map)

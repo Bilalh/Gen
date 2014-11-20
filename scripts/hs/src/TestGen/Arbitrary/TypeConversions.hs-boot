@@ -4,6 +4,6 @@
 
 module TestGen.Arbitrary.TypeConversions where
 
-import TestGen.Arbitrary.Helpers.Prelude
+import TestGen.Prelude
 
 toTypeWithConversions :: Type -> GG (Maybe (GG Expr) )

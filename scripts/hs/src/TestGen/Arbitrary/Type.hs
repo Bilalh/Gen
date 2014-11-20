@@ -4,7 +4,7 @@
 
 module TestGen.Arbitrary.Type where
 
-import TestGen.Arbitrary.Helpers.Prelude
+import TestGen.Prelude
 
 
 typesUnify :: Type -> Type -> Bool

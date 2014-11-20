@@ -6,7 +6,6 @@ module EssenceSolver.EssenceSolver where
 import EssenceSolver.Data
 import EssenceSolver.Solve
 
-import Bug
 import Language.E
 import Language.E.ValidateSolution
 
@@ -45,7 +44,7 @@ inlineParamAndLettings essence param =
         (mresult, _logs) = runCompESingle "simplify solution" helper
         in
         case mresult of
-            Left  x      -> userErr x
+            Left  x      -> error . show $ x
             Right b -> (b, _logs)
 
     where

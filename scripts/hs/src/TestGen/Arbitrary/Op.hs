@@ -5,7 +5,7 @@
 
 module TestGen.Arbitrary.Op where
 
-import TestGen.Arbitrary.Helpers.Prelude
+import TestGen.Prelude
 
 import TestGen.Arbitrary.Expr
 import TestGen.Arbitrary.Type

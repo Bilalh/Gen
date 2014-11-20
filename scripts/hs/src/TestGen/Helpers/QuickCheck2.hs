@@ -1,15 +1,13 @@
 -- Basily some Test.QuickCheck functions to work with our stateT.
 -- Plus some functions that use them
-module TestGen.Arbitrary.Helpers.QuickCheck2 where
+module TestGen.Helpers.QuickCheck2 where
 
 import TestGen.Arbitrary.Data(GG)
 
 import Test.QuickCheck.Gen
 
-import Control.Monad.Trans.Class as X ( MonadTrans(lift) )
 import Control.Monad.State.Strict(runStateT, MonadState(get, put))
-
-
+import Control.Monad.Trans.Class as X ( MonadTrans(lift) )
 import System.Random( Random )
 
 
