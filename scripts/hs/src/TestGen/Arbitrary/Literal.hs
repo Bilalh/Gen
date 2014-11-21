@@ -11,6 +11,10 @@ import TestGen.Arbitrary.Domain
 
 import TestGen.Arbitrary.Expr(exprOf)
 
+import qualified Data.Set as S
+import qualified Data.HashSet as H
+import Data.HashSet(HashSet)
+
 -- FIXME option to  only pick values that in the domain?
 
 
@@ -107,12 +111,50 @@ parLitOf innerType = do
     if
         | depth_ < 1 -> ggError "parLitOf depth <1" [pretty $ groom innerType]
         | otherwise -> do
-            numElems <- choose2 (1, min 15 (2 * depth_) )
-            parts <-  vectorOf2 numElems (mkPart innerType)
+            
+            let maxElems :: Int  = fromInteger $ sizeOfBounded 10 (TPar innerType)
+            
+            numElems <- choose2 (1,  minimum [maxElems, 15,  2 *  depth_  ] )
+            numParts <- choose2 (1, numElems)
+            
+            parts <- mkParts numElems numParts (H.empty)
+            
             return $ ELit $ EPartition parts
 
     where
-        mkPart ty = do
+        
+        mkParts 
+            :: Int  -- Number of elements to put in all parts 
+            -> Int  -- Number of parts
+            -> HashSet Expr 
+            -> GG [[Literal]]
+        mkParts e 1 done = (\f -> [fst f]) <$> mkPart e done
+        mkParts e p done = do
+            numElems <- choose2 (1, (e - (p - 1) ))
+
+            (part, done') <- mkPart numElems done
+            parts <- (mkParts (e - numElems) (p-1) done')
+            return $ part : parts
+
+        mkPart 
+            :: Int         -- Number of elements 
+            -> HashSet Expr 
+            -> GG ( [Literal], HashSet Expr)
+        mkPart e done = do 
+            (es,done') <- expr e done
+            return $ (map EExpr es, done')
+            
+            where
+            expr 0 seen = return ([], seen)
+            expr e seen = do
+                e1 <- withDepthDec $ exprOf innerType
+                if 
+                    | e1 `H.member` seen -> expr e seen
+                    | otherwise          -> do 
+                        (es,seen') <- expr (e - 1) (e1 `H.insert` seen)
+                        return $ (e1 : es, seen' )
+        
+        mkPart1 ty = do
             depth_ <- gets depth_
             numElems <- choose2 (1, min 15 (2 * depth_) )
             vs <- vectorOf2 numElems ( withDepthDec $ exprOf ty)
