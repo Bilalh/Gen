@@ -13,6 +13,7 @@ module TestGen.Prelude (
     , _genfile
     , _gen
     , renderSmall
+    , _ss
 ) where
 
 import AST.Imports as X
@@ -20,6 +21,8 @@ import AST.Imports as X
 import Common.Helpers as X
 
 import TestGen.Arbitrary.Data as X
+import {-# SOURCE #-} TestGen.Arbitrary.Generators as X
+
 import TestGen.Helpers.Log as X (LogsTree(..), Pretty(..))
 import TestGen.Helpers.OrderedType as X
 import TestGen.Helpers.SizeOf as X
@@ -34,6 +37,7 @@ import Language.E as X
 
 import Control.Monad as X(filterM, guard)
 import Control.Monad.State.Strict as X (evalStateT,StateT)
+import Data.Default as X ( Default, def )
 import Data.Set as X (Set)
 import Data.Time
 import Data.Time.Clock.POSIX(getPOSIXTime)
@@ -42,8 +46,12 @@ import System.FilePath((</>), (<.>))
 import Test.QuickCheck as X hiding (maxSize)
 import Text.Groom as X (groom)
 
+
+
 import qualified Control.Exception as C
 import qualified Text.PrettyPrint as P
+
+import qualified Data.Map as M
 
 
 withDepth :: Depth -> GG a -> GG a
@@ -164,3 +172,7 @@ _gen e n  = do
 
 renderSmall :: Pretty a => a -> String
 renderSmall = P.renderStyle (P.style { P.lineLength = 74 }) . pretty
+
+
+_ss :: Depth -> SS
+_ss d = def{depth_=d}

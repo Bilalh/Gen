@@ -4,17 +4,18 @@
 {-# LANGUAGE CPP #-}
 
 module TestGen.Arbitrary.Data (
-      Depth
+      addLog
+    , Depth
+    , Generators(..)
     , GenM
-    , Ref
-    , SS(..)
-    , SpecState
-    , _ss
-    , prettyDepth
-    , Pretty(..)
-    , Type(..)
     , GG
-    , addLog
+    , Pretty(..)
+    , Ref
+    , SpecState
+    , SS(..)
+    , Type(..)
+    
+    , atype
     ) where
 
 import AST.Imports
@@ -30,6 +31,8 @@ import qualified Text.PrettyPrint as Pr
 
 import Control.Monad.State.Strict(StateT)
 
+
+
 type GG a =  StateT SpecState Gen a
 
 type Depth = Int
@@ -38,6 +41,7 @@ type GenM m  = (MonadState SpecState m)
 
 
 type Ref = Text
+
 
 data SS = SS
     {
@@ -48,17 +52,21 @@ data SS = SS
     , logs_       :: LogsTree
     , __lc        :: Int
     , beConstant_ :: Bool  -- when true only generate constrant expressions
+    
+    , generators_ :: Generators
+    
     }
+
 type SpecState=SS
-_ss :: Depth -> SS
-_ss d = SS{depth_=d, doms_ = M.empty, nextNum_=1
-          ,newVars_=[], logs_=LSEmpty, __lc=0, beConstant_ =False }
 
+data Generators = Generators
+    {
+        gen_atype :: GG Type
+    }
 
-prettyDepth :: GG Doc
-prettyDepth  = do
-    SS{depth_} <- get
-    return $ "depth_ " <+> pretty depth_
+atype :: GG Type 
+atype = gets generators_ >>= \m -> gen_atype m
+
 
 instance Show SS where
     show (SS{..}) = show $
