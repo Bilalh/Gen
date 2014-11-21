@@ -68,6 +68,7 @@ atype :: GG Type
 atype = gets generators_ >>= \m -> gen_atype m
 
 
+
 instance Show SS where
     show (SS{..}) = show $
         "SS" <+> Pr.braces (
