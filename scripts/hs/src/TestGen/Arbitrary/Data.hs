@@ -14,9 +14,7 @@ module TestGen.Arbitrary.Data (
     , SpecState
     , SS(..)
     , Type(..)
-    
-    , atype
-    ) where
+        ) where
 
 import AST.Imports
 import Language.E
@@ -63,11 +61,6 @@ data Generators = Generators
     {
         gen_atype :: GG Type
     }
-
-atype :: GG Type 
-atype = gets generators_ >>= \m -> gen_atype m
-
-
 
 instance Show SS where
     show (SS{..}) = show $

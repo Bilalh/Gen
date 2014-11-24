@@ -8,6 +8,6 @@ main = do
     args <- parseArgs
     print args
 
-    generate args
+    generateSpecs args
 
     putStrLn "<<Finished>>"

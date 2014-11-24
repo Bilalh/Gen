@@ -10,6 +10,11 @@ import TestGen.Arbitrary.Type(atype_def)
 import qualified Data.Map as M
 
 
+atype :: GG Type 
+atype = gets generators_ >>= \m -> gen_atype m
+
+
+
 instance Default SS where
      def = SS
              { depth_      = error "no depth"

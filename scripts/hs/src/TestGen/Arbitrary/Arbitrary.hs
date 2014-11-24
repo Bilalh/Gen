@@ -34,10 +34,14 @@ spec depth =  do
     (specE, _) <- spec' depth
     return specE
 
-spec' :: Depth -> Gen (SpecE, LogsTree)
-spec' depth = do
+spec' :: Depth -> Gen (SpecE, LogsTree) 
+spec' = flip spec'' def
 
-    let state = def{depth_= depth `div` 2}
+
+spec'' :: Depth -> Generators -> Gen (SpecE, LogsTree) 
+spec'' depth gens  = do
+
+    let state = def{depth_= depth `div` 2, generators_=gens}
     (doms,state') <- runStateT  ( listOfBounds (1, (min (depth*2) 10)) dom) state
 
     let withNames =  zipWith (\d i -> (name i , Find d)) doms [1 :: Int ..]

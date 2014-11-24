@@ -1,6 +1,6 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
 
-{-# LANGUAGE RecordWildCards, NamedFieldPuns #-}
+{-# LANGUAGE RecordWildCards, NamedFieldPuns, ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}
 
@@ -8,6 +8,7 @@ module TestGen.QC where
 
 import AST.SpecE
 
+import TestGen.Prelude(SpecState, Generators)
 import TestGen.Arbitrary.Arbitrary
 import TestGen.Helpers.Runner(SettingI(..))
 import TestGen.Old.TestGen(runRefine')
@@ -34,7 +35,6 @@ import Data.Time
 
 
 type Cores = Int
-
 prop_specs_refine :: Cores ->  Int -> FilePath -> WithLogs SpecE -> Property
 prop_specs_refine cores time out (WithLogs specE logs) = do
     let sp = toSpec specE
@@ -78,8 +78,8 @@ prop_int x  = do
     counterexample (show x) (x < 10)
 
 
-generate :: TArgs -> IO ()
-generate TArgs{..} = do
+generateSpecs :: TArgs -> IO ()
+generateSpecs TArgs{..} = do
     let maxSuccess = totalTime_  `div` perSpecTime_
     --  Sanity checks
     putStrLn "Typechecking 2000 random specs, with depth up to size 5"
@@ -168,3 +168,46 @@ cmain n = do
             writeFile (dir </> (show date) <.> "output") output
 
         _ -> return ()
+
+
+newtype E2 = E2 Example 
+    deriving (Show)
+
+class Genable a where 
+    getGen :: a -> Gens
+
+instance Genable E2 where 
+    getGen _ = Gens (return 1) (return "d")
+
+instance Arbitrary E2 where
+    arbitrary = E2 <$> arbExample (getGen (undefined :: E2))
+
+data Example = Example
+    { myInt  :: Int 
+    , myList :: [String]
+    } deriving (Show)
+
+data Gens =  Gens
+    { gen1 :: Gen Int
+    , gen2 :: Gen String }
+
+arbExample :: Gens -> Gen Example
+arbExample gens = do 
+    i  <- gen1 gens 
+    xs <- vectorOf i (gen2 gens)
+    return Example{myInt=i, myList=xs}
+
+prop_example :: Example -> Property
+prop_example example =  do
+    let len = length (myList example) 
+    monadicIO $ do 
+        -- result of running some program
+        successful <- run $ (\e -> return False) example  
+        case successful of
+            True  -> return ()
+            False -> fail "failure "
+    
+instance Arbitrary Example  where
+    arbitrary =  arbExample (Gens (return 1) (return "d"))
+
+
