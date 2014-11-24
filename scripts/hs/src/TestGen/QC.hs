@@ -88,18 +88,27 @@ generateSpecs TArgs{..} = do
 
     putStrLn "Generating specs, with depth up to size 5"
     startTime <- round `fmap` getPOSIXTime
+    
+    createDirectoryIfMissing  True tmpdir
     failed <- helper startTime []
     
-
-    -- let paths = map (\fn -> takeFileName' baseDirectory_ </> fn </> "spec.essence" ) failed
-    let paths = map (\fn -> baseDirectory_ </> fn </> "spec.essence" ) failed
-
-    print paths
-    writeToFile ( baseDirectory_ </> "failures.txt" ) paths
+    saveFailures failed (baseDirectory_ </> "failures.txt")
 
 
     where
 
+    tmpdir  = baseDirectory_ </> "temp"
+    
+
+    saveFailures :: [String] -> FilePath -> IO ()
+    saveFailures failed fp  = do 
+        -- let paths = map (\fn -> takeFileName' baseDirectory_ </> fn </> "spec.essence" ) failed
+        let paths = map (\fn -> baseDirectory_ </> fn </> "spec.essence" ) failed
+        print "Current Failures found"
+        print paths        
+        writeToFile ( fp ) paths
+                
+    
     writeToFile name arr =
       do h <- openFile (name) WriteMode
          mapM_ (hPutStrLn h) arr
@@ -133,7 +142,9 @@ generateSpecs TArgs{..} = do
                         putStrLn "Time up"
                         return results'
 
-                    (_, True)  -> helper startTime results'
+                    (_, True)  -> do
+                        saveFailures results' (tmpdir </> (show after) <.> "txt")
+                        helper startTime results'
 
         where
         addResults :: Result ->  [String] -> [String]
