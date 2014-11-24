@@ -20,8 +20,8 @@ class DepthOf a where
 
 -- How many different unique values are in say a domain
 -- return the given values if the a is large then it 
-class SizeOfBounded a where
-    sizeOfBounded:: Integer -> a  -> Integer
+class SizeOfLimited a where
+    sizeOfLimited:: Integer -> a  -> Integer
 
 
 
@@ -47,23 +47,23 @@ instance SizeOf Domain where
 --     sizeOf (TUnamed _)     = error "SizeOf Type called with TUnamed"
 --     sizeOf (TEnum _)       = error "SizeOf Type called with TUnamed"
 
-instance SizeOfBounded Type where
+instance SizeOfLimited Type where
     -- FIXME hardcoded
-    sizeOfBounded m TInt           = 20   
-    sizeOfBounded m TBool          = 2 
-    sizeOfBounded m (TMatix inner) = minB m (sizeOfBounded m inner) (20 ^)
-    sizeOfBounded m (TSet inner)   = minB m (sizeOfBounded m inner) (2 ^)
-    sizeOfBounded m (TMSet inner)  = minB m (sizeOfBounded m inner) (2 ^)
-    sizeOfBounded m (TTuple inners)= min m ( product (map (sizeOfBounded m) inners ) )
-    sizeOfBounded m (TRel inners)  = sizeOfBounded m (TSet (TTuple inners) )
-    sizeOfBounded m (TPar inner)   = sizeOfBounded m (TSet (TSet inner))
-    sizeOfBounded m TAny           = error "SizeOf Type called with TAny"
-    sizeOfBounded m (TUnamed _)    = error "SizeOf Type called with TUnamed"
-    sizeOfBounded m (TEnum _)      = error "SizeOf Type called with TUnamed"
+    sizeOfLimited m TInt           = 20   
+    sizeOfLimited m TBool          = 2 
+    sizeOfLimited m (TMatix inner) = minB m (sizeOfLimited m inner) (20 ^)
+    sizeOfLimited m (TSet inner)   = minB m (sizeOfLimited m inner) (2 ^)
+    sizeOfLimited m (TMSet inner)  = minB m (sizeOfLimited m inner) (2 ^)
+    sizeOfLimited m (TTuple inners)= min m ( product (map (sizeOfLimited m) inners ) )
+    sizeOfLimited m (TRel inners)  = sizeOfLimited m (TSet (TTuple inners) )
+    sizeOfLimited m (TPar inner)   = sizeOfLimited m (TSet (TSet inner))
+    sizeOfLimited m TAny           = error "SizeOf Type called with TAny"
+    sizeOfLimited m (TUnamed _)    = error "SizeOf Type called with TUnamed"
+    sizeOfLimited m (TEnum _)      = error "SizeOf Type called with TUnamed"
     
-    sizeOfBounded m (TFunc from to) = 
-        let toSize   = sizeOfBounded m to 
-            fromSize = sizeOfBounded m from
+    sizeOfLimited m (TFunc from to) = 
+        let toSize   = sizeOfLimited m to 
+            fromSize = sizeOfLimited m from
         in if
            | (toSize + 1) >= m -> m
            | otherwise         -> min m ( (toSize + 1) ^ (fromSize) )

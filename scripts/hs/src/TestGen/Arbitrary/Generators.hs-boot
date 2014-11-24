@@ -5,7 +5,7 @@
 module TestGen.Arbitrary.Generators where
 
 import TestGen.Arbitrary.Data
-import Data.Default as X ( Default, def )
+import Data.Default as X ( Default)
 
 atype :: GG Type 
 

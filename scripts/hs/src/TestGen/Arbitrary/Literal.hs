@@ -112,7 +112,7 @@ parLitOf innerType = do
         | depth_ < 1 -> ggError "parLitOf depth <1" [pretty $ groom innerType]
         | otherwise -> do
             
-            let maxElems :: Int  = fromInteger $ sizeOfBounded 10 (TPar innerType)
+            let maxElems :: Int  = fromInteger $ sizeOfLimited 10 (TPar innerType)
             
             numElems <- choose2 (1,  minimum [maxElems, 15,  2 *  depth_  ] )
             numParts <- choose2 (1, numElems)

@@ -187,6 +187,7 @@ Executable testSample
                      , dlist
                      , mtl
                      , pretty
+                     , data-default
     ghc-prof-options:
         -auto-all
         -caf-all
