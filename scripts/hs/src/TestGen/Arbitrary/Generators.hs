@@ -14,7 +14,6 @@ atype :: GG Type
 atype = gets generators_ >>= \m -> gen_atype m
 
 
-
 instance Default SS where
      def = SS
              { depth_      = error "no depth"

@@ -6,55 +6,47 @@ module TestGen.Arbitrary.Type where
 
 import TestGen.Prelude
 
-
-typesUnify :: Type -> Type -> Bool
-typesUnify TAny  _     = True
-typesUnify _     TAny  = True
-typesUnify TInt  TInt  = True
-typesUnify TBool TBool = True
-
-typesUnify (TMatix i1) (TMatix i2) = typesUnify i1 i2
-typesUnify (TSet i1)   (TSet i2)   = typesUnify i1 i2
-typesUnify (TMSet i1)  (TMSet i2)  = typesUnify i1 i2
-
-typesUnify (TPar i1)   (TPar i2)   = typesUnify i1 i2
-
-typesUnify (TRel i1)   (TRel i2)   | length i1 == length i2  =
-    all (uncurry typesUnify)  $ zip i1 i2
-typesUnify (TTuple i1) (TTuple i2) | length i1 == length i2 =
-    all (uncurry typesUnify)  $ zip i1 i2
-
-typesUnify (TFunc i1 j1) (TFunc i2 j2)  =
-    all (uncurry typesUnify)  $ [(i1, i2), (j1, j2)]
-
-typesUnify (TUnamed t1) (TUnamed t2) = t1 == t2
-typesUnify (TEnum t1)   (TEnum t2)   = t1 == t2
-typesUnify _ _ = False
-
-typeOfDom :: Domain -> Type
-typeOfDom  DInt{} = TInt
-typeOfDom  DBool  = TBool
-
-typeOfDom DMat{inner}  = TMatix (typeOfDom inner)
-typeOfDom DSet{inner}  = TSet   (typeOfDom inner)
-typeOfDom DMSet{inner} = TMSet  (typeOfDom inner)
-typeOfDom DPar{inner}  = TPar  (typeOfDom inner)
-
-typeOfDom DRel{inners} = TRel (map typeOfDom inners)
-typeOfDom DFunc{innerFrom,innerTo} =
-    TFunc (typeOfDom innerFrom) (typeOfDom innerTo)
-
-typeOfDom DTuple{inners} = TTuple (map typeOfDom inners)
-
-
 -- return the type of a, knowing b  from  `a in b`
 quanType_in :: Type -> Type
 quanType_in (TSet inner) = inner
 
 
+atype_only :: [Type] -> GG Type 
+atype_only tys = do 
+    d <- gets depth_
+    if | d < 0  -> ggError "atype_only invalid depth" []
+       | otherwise -> do 
+    
+        let inDepth = filter (\t -> (fromInteger $ depthOf t) <= d ) tys
+        choice <- oneof2 (map converted inDepth)
+        return choice
+
+    where 
+        converted :: Type -> GG Type
+        converted (TMatix TAny)  = liftM TMatix (withDepthDec atype)
+        converted (TSet TAny)    = liftM TSet (withDepthDec atype)
+        converted (TMSet TAny)   = liftM TMSet (withDepthDec atype)
+        converted (TPar TAny)    = liftM TPar (withDepthDec atype)
+        
+        converted (TFunc TAny TAny) = return TFunc
+                    `ap`  (withDepthDec atype)
+                    `ap`  (withDepthDec atype)
+        
+        converted (TFunc TAny b) = return TFunc
+                    `ap`  (withDepthDec atype)
+                    `ap`  (return b)
+
+        converted (TFunc a TAny) = return TFunc
+                    `ap`  (return a)
+                    `ap`  (withDepthDec atype)
+
+        converted (TTuple [TAny]) = atuple
+        converted (TRel   [TAny]) = arel
+        converted ty = return ty 
+
+
 atype_def :: GG Type
 -- TODO partition should also be of depth 2?
-
 atype_def = do
     addLog "atype_def" ["start"]
     d <- gets depth_
@@ -62,7 +54,7 @@ atype_def = do
 
 
     res <- if
-        | d < 0  -> ggError "atype_def invaild depth" []
+        | d < 0  -> ggError "atype_def invalid depth" []
         | d == 0 -> elements2 [TBool, TInt]
         | d == 1 -> do
             let inner = withDepth 0
@@ -118,3 +110,44 @@ arel = do
         (withDepth (d - 2) atype_def )
 
     return $ TRel vs
+
+
+
+typesUnify :: Type -> Type -> Bool
+typesUnify TAny  _     = True
+typesUnify _     TAny  = True
+typesUnify TInt  TInt  = True
+typesUnify TBool TBool = True
+
+typesUnify (TMatix i1) (TMatix i2) = typesUnify i1 i2
+typesUnify (TSet i1)   (TSet i2)   = typesUnify i1 i2
+typesUnify (TMSet i1)  (TMSet i2)  = typesUnify i1 i2
+
+typesUnify (TPar i1)   (TPar i2)   = typesUnify i1 i2
+
+typesUnify (TRel i1)   (TRel i2)   | length i1 == length i2  =
+    all (uncurry typesUnify)  $ zip i1 i2
+typesUnify (TTuple i1) (TTuple i2) | length i1 == length i2 =
+    all (uncurry typesUnify)  $ zip i1 i2
+
+typesUnify (TFunc i1 j1) (TFunc i2 j2)  =
+    all (uncurry typesUnify)  $ [(i1, i2), (j1, j2)]
+
+typesUnify (TUnamed t1) (TUnamed t2) = t1 == t2
+typesUnify (TEnum t1)   (TEnum t2)   = t1 == t2
+typesUnify _ _ = False
+
+typeOfDom :: Domain -> Type
+typeOfDom  DInt{} = TInt
+typeOfDom  DBool  = TBool
+
+typeOfDom DMat{inner}  = TMatix (typeOfDom inner)
+typeOfDom DSet{inner}  = TSet   (typeOfDom inner)
+typeOfDom DMSet{inner} = TMSet  (typeOfDom inner)
+typeOfDom DPar{inner}  = TPar  (typeOfDom inner)
+
+typeOfDom DRel{inners} = TRel (map typeOfDom inners)
+typeOfDom DFunc{innerFrom,innerTo} =
+    TFunc (typeOfDom innerFrom) (typeOfDom innerTo)
+
+typeOfDom DTuple{inners} = TTuple (map typeOfDom inners)
