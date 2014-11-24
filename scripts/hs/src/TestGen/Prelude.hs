@@ -119,9 +119,9 @@ nn :: Pretty b => Doc -> b -> Doc
 nn a b =  a <+> pretty b
 
 
-_genlogs :: Pretty a =>  GG a -> Int -> IO ()
-_genlogs e n  = do
-    res <-  (sample' (runStateT e (_ss n) ))
+_genlogs :: Pretty a =>  GG a -> SpecState -> IO ()
+_genlogs e ss  = do
+    res <-  (sample' (runStateT e (ss) ))
     forM_ res $ \(r,st) -> do
         putStrLn . renderSmall $ ""
             P.$+$ nest 16 "~~Result~~"
@@ -132,8 +132,8 @@ _genlogs e n  = do
             P.$+$ nest 16 "==Logs=="
             P.$+$ nest 8 (pretty (logs_ st) )
 
-_genfile :: Pretty a =>  GG a -> Int -> IO ()
-_genfile e n  = do
+_genfile :: Pretty a =>  GG a -> SpecState -> IO ()
+_genfile e ss  = do
 
     c <- getCurrentTime
     let (y,m,d) = toGregorian $ utctDay c
@@ -145,7 +145,7 @@ _genfile e n  = do
             </> (show date)
     createDirectoryIfMissing True dir
 
-    res <-  (sample' (runStateT e (_ss n) ))
+    res <-  (sample' (runStateT e (ss) ))
 
 
     forM_ (zip res [1..]) $ \((r,st),index :: Int) -> do
@@ -163,9 +163,9 @@ _genfile e n  = do
                 P.$+$ nest 2 (pretty (logs_ st) )
 
 
-_gen :: Pretty a =>  GG a -> Int -> IO ()
-_gen e n  = do
-    res <-  (sample' (runStateT e (_ss n) ))
+_gen :: Pretty a =>  GG a -> SpecState -> IO ()
+_gen e ss  = do
+    res <-  (sample' (runStateT e (ss) ))
     forM_ res $ \(r,_) -> do
         putStrLn . renderSmall $ ""
             P.$+$ ( pretty r )
