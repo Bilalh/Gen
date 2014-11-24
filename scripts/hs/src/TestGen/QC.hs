@@ -170,18 +170,6 @@ cmain n = do
         _ -> return ()
 
 
-newtype E2 = E2 Example 
-    deriving (Show)
-
-class Genable a where 
-    getGen :: a -> Gens
-
-instance Genable E2 where 
-    getGen _ = Gens (return 1) (return "d")
-
-instance Arbitrary E2 where
-    arbitrary = E2 <$> arbExample (getGen (undefined :: E2))
-
 data Example = Example
     { myInt  :: Int 
     , myList :: [String]
@@ -197,8 +185,23 @@ arbExample gens = do
     xs <- vectorOf i (gen2 gens)
     return Example{myInt=i, myList=xs}
 
-prop_example :: Example -> Property
-prop_example example =  do
+newtype E2 = E2 Example 
+    deriving (Show)
+
+class Arbitrary a => Genable a where 
+    tyGen :: a -> Gens
+    getExample :: a -> Example
+
+instance Genable E2 where 
+    tyGen _ = Gens (return 1) (return "d")
+    getExample (E2 ex) = ex
+    
+instance Arbitrary E2 where
+    arbitrary = E2 <$> arbExample (tyGen (undefined :: E2))
+
+prop_example :: Genable a => a -> Property
+prop_example a =  do
+    let example = getExample a
     let len = length (myList example) 
     monadicIO $ do 
         -- result of running some program
@@ -206,8 +209,7 @@ prop_example example =  do
         case successful of
             True  -> return ()
             False -> fail "failure "
-    
-instance Arbitrary Example  where
-    arbitrary =  arbExample (Gens (return 1) (return "d"))
 
+exampleRun = 
+     quickCheck (prop_example :: E2 -> Property )
 
