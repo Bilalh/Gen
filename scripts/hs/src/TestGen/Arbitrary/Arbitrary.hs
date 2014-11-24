@@ -12,6 +12,7 @@ import TestGen.Arbitrary.Expr
 
 import qualified Data.Map as M
 import qualified Data.Text as T
+import Data.List
 
 data WithLogs a = WithLogs a LogsTree
 
@@ -20,10 +21,20 @@ instance Arbitrary (WithLogs SpecE) where
         (specE, logs) <- sized spec'
         return $ WithLogs specE logs
 
+    shrink (WithLogs (SpecE ds es) a) = 
+        let sps = map (\x -> WithLogs (SpecE ds x) a ) (tails2 es)
+        in sps
 
 instance Arbitrary SpecE where
     arbitrary = sized spec
+    shrink (SpecE ds es) = 
+        let sps = map (SpecE ds) (tails2 es)
+        in sps
 
+
+tails2 :: [a] -> [[a]]
+tails2 [] = []
+tails2 xs = tail (tails xs)
 
 instance Show (WithLogs SpecE) where
     show (WithLogs specE logs) =

@@ -58,7 +58,7 @@ prop_specs_type_check (WithLogs specE logs) = do
     let sp = toSpec specE
         (res,doc) = typeChecks sp
     counterexample
-        (show doc ++ (show . pretty $ sp) ++ (show . pretty $ logs ) )
+        (show doc ++ (show . pretty $ sp) )
         (res)
 
 typeChecks :: Spec -> (Bool, Doc)
@@ -213,3 +213,19 @@ prop_example a =  do
 exampleRun = 
      quickCheck (prop_example :: E2 -> Property )
 
+prop_example2 :: Genable a => a -> a -> Property
+prop_example2 _  a =  do
+    let example = getExample a
+    let len = length (myList example) 
+    monadicIO $ do 
+        -- result of running some program
+        successful <- run $ (\e -> return False) example  
+        case successful of
+            True  -> return ()
+            False -> fail "failure "
+
+
+exampleRun2 unused = do
+    quickCheck (prop_example2 unused)
+    
+    

@@ -1,5 +1,7 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}
+{-# LANGUAGE CPP #-}
+
 module TestGen.Prelude (
       module X
     , withDepth
@@ -107,8 +109,10 @@ ggError title docs = do
     error . show $ ( P.text $ padRight 15 ' ' title  )
         P.$+$ (nest 4 $ vcat (docs ++ [pretty st] ))
         P.$+$ ""
+        #ifndef NO_GGERROR_LOGS
         P.$+$ nest 16 "==Logs=="
         P.$+$ (pretty (logs_ st) )
+        #endif
 
 ggAssert :: Bool -> GG ()
 ggAssert b = return $ C.assert b ()
