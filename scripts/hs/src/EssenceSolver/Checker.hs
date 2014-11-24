@@ -47,7 +47,7 @@ domSizeC e  =
 
     where
         helper = do
-            f <- domSize e
+            f <- sizeOfBounded e
             fullySimplifyE f
 
 
