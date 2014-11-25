@@ -8,7 +8,8 @@ module TestGen.QC where
 
 import AST.SpecE
 
-import TestGen.Prelude(SpecState, Generators)
+import TestGen.Prelude(SpecState, Generators,Domain, listOfBounds,SS(depth_),FG)
+import TestGen.Arbitrary.Domain(dom)
 import TestGen.Arbitrary.Arbitrary
 import TestGen.Helpers.Runner(SettingI(..))
 import TestGen.Old.TestGen(runRefine')
@@ -33,6 +34,9 @@ import TestGen.Helpers.Args(TArgs(..))
 import System.IO(IOMode(..),hPutStrLn, openFile, hClose)
 import Data.Time
 
+import qualified Data.Text as T
+import qualified Data.Map as M
+
 
 type Cores = Int
 prop_specs_refine :: Cores ->  Int -> FilePath -> WithLogs SpecE -> Property
@@ -45,6 +49,8 @@ prop_specs_refine cores time out (WithLogs specE logs) = do
             let uname  =  (ts ++ "_" ++ num )
             run $ createDirectoryIfMissing True (out </> uname)
             run $  writeFile (out </> uname </> "spec.logs" ) (renderNormal logs)
+            run $  writeFile (out </> uname </> "spec.specE" ) (show specE)
+            
 
 
             result <- run $ runRefine' cores sp (out </> uname ) time
@@ -239,4 +245,41 @@ prop_example2 _  a =  do
 exampleRun2 unused = do
     quickCheck (prop_example2 unused)
     
+    
+newtype DD = DD (M.Map Text FG) 
+    deriving(Show)
+
+instance Arbitrary DD where
+    arbitrary = do
+        let depth = 0
+            state = def{depth_= depth `div` 2}
+            domsCount = (1, 2)
+        (doms,_) <- runStateT  ( listOfBounds domsCount dom) state
+        let withNames =  zipWith (\d i -> (name i , Find d)) doms [1 :: Int ..]
+        let mappings  = M.fromList withNames
+        return $ DD mappings
+    
+        where name i =  T.pack $  "var" ++  (show  i)
+    
+    
+prop_DD_is_nonempty :: DD -> Property
+prop_DD_is_nonempty (DD ds) = 
+    counterexample
+        ( show ds )
+        (M.size ds >= 0 )
+    
+newtype AA a = AC [a]
+    deriving (Show)
+
+instance Arbitrary a => Arbitrary (AA a) where
+    arbitrary = do
+        let state = def{depth_= 5}
+        u <- choose (1,100)
+        (xs,_) <- runStateT  ( listOfBounds (1,u) (lift arbitrary) ) state
+        return $ AC  xs
+        
+prop_AA_is_nonempty (AC ds)  = do 
+    counterexample
+        ( show ds )
+        (length ds >= 0 )
     

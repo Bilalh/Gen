@@ -52,8 +52,9 @@ sized2 f = do
 --   The length depends on the size parameter.
 listOfBounds :: (Int,Int) -> GG a -> GG [a]
 listOfBounds (l,u) gen = sized2 $ \n -> do
-    k <- choose2 ( 0 `max` l, u `min` n)
+    k <- choose2 ( 0 `max` l, (u `min` n) `max` l )
     vectorOf2 k gen
+    
 
 -- | Generates one of the given values. The input list must be non-empty.
 elements2 :: [a] -> GG a

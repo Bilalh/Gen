@@ -50,18 +50,47 @@ spec' = flip spec'' def
 
 
 spec'' :: Depth -> Generators -> Gen (SpecE, LogsTree) 
+spec'' depth _ | depth < 0 = error "spec'' depth < 0"
 spec'' depth gens  = do
-
     let state = def{depth_= depth `div` 2, generators_=gens}
-    (doms,state') <- runStateT  ( listOfBounds (1, (min (depth*2) 10)) dom) state
+    let domsCount = (1, min ((depth+1)*2) 10)
+    let exprCount = (0, min ((depth+1)*2) 10)
+    
+    (doms,state') <- runStateT  ( listOfBounds domsCount dom) state
+
 
     let withNames =  zipWith (\d i -> (name i , Find d)) doms [1 :: Int ..]
     let mappings  = M.fromList withNames
 
 
     let state'' =  state'{doms_=mappings, depth_ =depth, nextNum_ = length doms + 1}
-    (exprs,sfinal) <- runStateT (listOfBounds (0,15) expr) state''
+    (exprs,sfinal) <- runStateT (listOfBounds exprCount expr) state''
 
-    return $ (SpecE mappings exprs, logs_ sfinal)
+    if length withNames == 0 then
+        error . show $  vcat . map pretty  $ 
+            [ "~~------~~"
+            , "both doms  zero length"
+            , nn "depth" depth
+            , nn "domsCount" domsCount
+            , nn "exprCount" exprCount
+            , nn "depthlen" (length doms)
+            , nn "doms" (vcat . map pretty $ doms)
+            , nn "withNames" (vcat . map pretty $ withNames)
+            , nn "exprs" (vcat . map pretty $ exprs)
+            , nn "state" state
+            , nn "state'" state'
+            , nn "state''" state''
+            , nn "sfinal" sfinal            
+            , nn "state" (show state)
+            , nn "state'" (show state')
+            , nn "state''" (show state'')            
+            , nn "sfinal" (show sfinal) 
+            , "|------|"
+            ]
+    else 
+        return $ (SpecE mappings exprs, logs_ sfinal)
 
     where name i =  T.pack $  "var" ++  (show  i)
+
+
+    
