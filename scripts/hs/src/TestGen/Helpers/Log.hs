@@ -6,7 +6,8 @@ module TestGen.Helpers.Log(
     makeLog, LogsTree(..), LogNamed(..), Pretty(..), suppress
 ) where
 
-import Language.E
+import Language.E hiding(trace)
+import Debug.Trace(trace)
 
 import qualified Data.DList as DList
 import qualified Data.HashSet as S
@@ -48,7 +49,7 @@ makeLog :: String -> [Doc] -> Maybe LogNamed
 #ifdef LOGS_TRACE
 makeLog nm _ | nm `S.member` suppress = Nothing
 makeLog nm docs  = trace
-    ( show  $  (" ¦" <+> pretty (padRight 15 ' ' nm)) <+> (nest 4 $ vcat docs)
+    ( show  $  (" ¦" <+> pretty (padRight 15 ' ' nm)) <+> (nest 4 $ vcat docs) )
     $ Just (LogNamed nm docs)
 #else
 makeLog nm docs | nm `S.member` suppress = Nothing
