@@ -14,6 +14,7 @@ module TestGen.Arbitrary.Data (
     , SpecState
     , SS(..)
     , Type(..)
+    , ArbSpec(..)
         ) where
 
 import AST.Imports
@@ -61,6 +62,11 @@ data Generators = Generators
     {
         gen_atype :: GG Type
     }
+
+class (Arbitrary a, Show a) => ArbSpec a where 
+    tyGens  :: a -> Generators
+    getSpec :: a -> SpecE
+
 
 instance Show SS where
     show (SS{..}) = show $

@@ -45,7 +45,9 @@ import Data.Time
 import Data.Time.Clock.POSIX(getPOSIXTime)
 import System.Directory(getHomeDirectory, createDirectoryIfMissing)
 import System.FilePath((</>), (<.>))
-import Test.QuickCheck as X hiding (maxSize)
+import Test.QuickCheck as X (quickCheckWith, quickCheckWithResult
+    , quickCheckResult, quickCheck, Gen,generate, sample'
+    , Arbitrary(..), CoArbitrary(..), elements, sized)
 import Text.Groom as X (groom)
 
 
@@ -176,6 +178,7 @@ _gen e ss  = do
 
 renderSmall :: Pretty a => a -> String
 renderSmall = P.renderStyle (P.style { P.lineLength = 74 }) . pretty
+
 
 
 _ss :: Depth -> SS

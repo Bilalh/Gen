@@ -7,48 +7,50 @@
 module TestGen.QC where
 
 import AST.SpecE
+import Language.E hiding(trace)
+import Language.E.Pipeline.ReadIn(writeSpec)
 
-import TestGen.Prelude(SpecState, Generators,Domain, listOfBounds,SS(depth_),FG)
-import TestGen.Arbitrary.Domain(dom)
-import TestGen.Arbitrary.Arbitrary
-import TestGen.Helpers.Runner(SettingI(..))
-import TestGen.Old.TestGen(runRefine')
 import Common.Helpers(timestamp)
 
-import Language.E hiding(trace)
+import TestGen.Arbitrary.Arbitrary
+import TestGen.Helpers.Runner(runRefine)
+import TestGen.Arbitrary.Domain(dom)
+import TestGen.Helpers.Args(TArgs(..))
+import TestGen.Helpers.Runner(SettingI(..), RefineR)
+import TestGen.Prelude(SpecState, Generators,Domain, listOfBounds,SS(depth_),FG ,ArbSpec(..))
+
+
+import Data.Time
+import Data.Time.Clock.POSIX(getPOSIXTime)
 import Debug.Trace(trace)
+
+import qualified Data.Map as M
+import qualified Data.Text as T
+import qualified Test.QuickCheck as QC
+import qualified Test.QuickCheck.Property as QC
+
+import System.Directory(createDirectoryIfMissing, getHomeDirectory)
+import System.FilePath((</>), (<.>), takeFileName)
+import System.IO(IOMode(..),hPutStrLn, openFile, hClose)
+import System.Random(randomRIO)
 
 import Test.QuickCheck
 import Test.QuickCheck.Monadic (assert, monadicIO, run)
-import qualified Test.QuickCheck.Property as QC
-import qualified Test.QuickCheck as QC
-
-import Data.Time.Clock.POSIX(getPOSIXTime)
-
-import System.FilePath((</>), (<.>), takeFileName)
-import System.Directory(createDirectoryIfMissing, getHomeDirectory)
-import System.Random(randomRIO)
-import Language.E
-
-import TestGen.Helpers.Args(TArgs(..))
-import System.IO(IOMode(..),hPutStrLn, openFile, hClose)
-import Data.Time
-
-import qualified Data.Text as T
-import qualified Data.Map as M
+import Text.Groom(groom)
 
 
 type Cores = Int
-prop_specs_refine :: Cores ->  Int -> FilePath -> WithLogs SpecE -> Property
-prop_specs_refine cores time out (WithLogs specE logs) = do
-    let sp = toSpec specE
+prop_specs_refine :: ArbSpec a => a -> Cores ->  Int -> FilePath -> a -> Property
+prop_specs_refine  _ cores time out arb = do
+    let specE = getSpec arb
+        sp    = toSpec specE
     fst (typeChecks sp) ==>
         monadicIO $ do
             ts <- run timestamp >>= return . show
             num <- run (randomRIO (10,99) :: IO Int)  >>= return . show
             let uname  =  (ts ++ "_" ++ num )
             run $ createDirectoryIfMissing True (out </> uname)
-            run $  writeFile (out </> uname </> "spec.logs" ) (renderNormal logs)
+            -- run $  writeFile (out </> uname </> "spec.logs" ) (renderNormal logs)
             run $  writeFile (out </> uname </> "spec.specE" ) (show specE)
             
 
@@ -59,12 +61,13 @@ prop_specs_refine cores time out (WithLogs specE logs) = do
                 False -> fail uname
 
 
-prop_specs_type_check ::  WithLogs SpecE -> Property
-prop_specs_type_check (WithLogs specE logs) = do
-    let sp = toSpec specE
+prop_specs_type_check ::  ArbSpec a => a -> a  -> Property
+prop_specs_type_check _ arb = do
+    let specE = getSpec arb
+        sp = toSpec specE
         (res,doc) = typeChecks sp
     counterexample
-        (show doc ++ (show . pretty $ sp) )
+        (show doc ++ (show . typeChecks $ sp) )
         (res)
 
 typeChecks :: Spec -> (Bool, Doc)
@@ -84,13 +87,13 @@ prop_int x  = do
     counterexample (show x) (x < 10)
 
 
-generateSpecs :: TArgs -> IO ()
-generateSpecs TArgs{..} = do
+generateSpecs :: ArbSpec a => a -> TArgs -> IO ()
+generateSpecs unused TArgs{..} = do
     let maxSuccess = totalTime_  `div` perSpecTime_
     --  Sanity checks
     putStrLn "Typechecking 2000 random specs, with depth up to size 5"
     quickCheckWith stdArgs{QC.maxSize=5,maxSuccess=2000}
-        (prop_specs_type_check)
+        (prop_specs_type_check unused )
 
     putStrLn "Generating specs, with depth up to size 5"
     startTime <- round `fmap` getPOSIXTime
@@ -131,7 +134,8 @@ generateSpecs TArgs{..} = do
             False -> do
 
                 r <- quickCheckWithResult stdArgs{QC.maxSize=5,maxSuccess}
-                    (prop_specs_refine cores_ perSpecTime_ baseDirectory_)
+                    (prop_specs_refine unused 
+                        cores_ perSpecTime_ baseDirectory_)
                 let results'  = addResults r results
 
 
@@ -162,10 +166,25 @@ takeFileName' fp = case reverse fp of
     ('/': xs) -> takeFileName (reverse xs)
     _         -> takeFileName fp
 
+runRefine' :: Int -> Spec -> FilePath -> Int -> IO RefineR
+runRefine' cores spec dir specTime = do
+    print . pretty $ spec
+
+    createDirectoryIfMissing True  dir
+
+    let name = (dir </> "spec" <.> ".essence")
+    writeSpec name spec
+
+    let specLim = specTime
+    result <- runRefine cores name dir specLim
+    putStrLn . groom $  result
+    return result
+
 
 
 rmain n =
-    quickCheckWith stdArgs{QC.maxSize=n,maxSuccess=50} (prop_specs_refine 7 10  "__")
+    quickCheckWith stdArgs{QC.maxSize=n,maxSuccess=50} 
+    (prop_specs_refine (undefined :: SpecE) 7 10  "__")
 
 cmain n = do
 
@@ -179,107 +198,10 @@ cmain n = do
 
     createDirectoryIfMissing True dir
 
-    res <- quickCheckWithResult stdArgs{QC.maxSize=n,maxSuccess=2000} (prop_specs_type_check)
+    res <- quickCheckWithResult stdArgs{QC.maxSize=n,maxSuccess=2000} 
+        (prop_specs_type_check (undefined :: SpecE))
     case res of
         Failure{reason, output} ->
             writeFile (dir </> (show date) <.> "output") output
 
         _ -> return ()
-
-
-data Example = Example
-    { myInt  :: Int 
-    , myList :: [String]
-    } deriving (Show)
-
-data Gens =  Gens
-    { gen1 :: Gen Int
-    , gen2 :: Gen String }
-
-arbExample :: Gens -> Gen Example
-arbExample gens = do 
-    i  <- gen1 gens 
-    xs <- vectorOf i (gen2 gens)
-    return Example{myInt=i, myList=xs}
-
-newtype E2 = E2 Example 
-    deriving (Show)
-
-class Arbitrary a => Genable a where 
-    tyGen :: a -> Gens
-    getExample :: a -> Example
-
-instance Genable E2 where 
-    tyGen _ = Gens (return 1) (return "d")
-    getExample (E2 ex) = ex
-    
-instance Arbitrary E2 where
-    arbitrary = E2 <$> arbExample (tyGen (undefined :: E2))
-
-prop_example :: Genable a => a -> Property
-prop_example a =  do
-    let example = getExample a
-    let len = length (myList example) 
-    monadicIO $ do 
-        -- result of running some program
-        successful <- run $ (\e -> return False) example  
-        case successful of
-            True  -> return ()
-            False -> fail "failure "
-
-exampleRun = 
-     quickCheck (prop_example :: E2 -> Property )
-
-prop_example2 :: Genable a => a -> a -> Property
-prop_example2 _  a =  do
-    let example = getExample a
-    let len = length (myList example) 
-    monadicIO $ do 
-        -- result of running some program
-        successful <- run $ (\e -> return False) example  
-        case successful of
-            True  -> return ()
-            False -> fail "failure "
-
-
-exampleRun2 unused = do
-    quickCheck (prop_example2 unused)
-    
-    
-newtype DD = DD (M.Map Text FG) 
-    deriving(Show)
-
-instance Arbitrary DD where
-    arbitrary = do
-        let depth = 0
-            state = def{depth_= depth `div` 2}
-            domsCount = (1, 2)
-        (doms,_) <- runStateT  ( listOfBounds domsCount dom) state
-        let withNames =  zipWith (\d i -> (name i , Find d)) doms [1 :: Int ..]
-        let mappings  = M.fromList withNames
-        return $ DD mappings
-    
-        where name i =  T.pack $  "var" ++  (show  i)
-    
-    
-prop_DD_is_nonempty :: DD -> Property
-prop_DD_is_nonempty (DD ds) = 
-    counterexample
-        ( show ds )
-        (M.size ds >= 0 )
-    
-newtype AA a = AC [a]
-    deriving (Show)
-
-instance Arbitrary a => Arbitrary (AA a) where
-    arbitrary = do
-        let state = def{depth_= 5}
-        u <- choose (1,100)
-        (xs,_) <- runStateT  ( listOfBounds (1,u) (lift arbitrary) ) state
-        return $ AC  xs
-        
-prop_AA_is_nonempty (AC ds)  = do 
-    counterexample
-        ( show ds )
-        (length ds >= 0 )
-    

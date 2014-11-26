@@ -148,7 +148,7 @@ parLitOf innerType = do
             expr e seen = do
                 e1 <- withDepthDec $ exprOf innerType
                 if 
-                    | (hash e1) `I.member` seen -> expr e seen
+                    -- | (hash e1) `I.member` seen -> expr e seen
                     | otherwise          -> do 
                         (es,seen') <- expr (e - 1) ((hash e1) `I.insert` seen)
                         return $ (e1 : es, seen' )

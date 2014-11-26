@@ -31,6 +31,10 @@ instance Arbitrary SpecE where
         let sps = map (SpecE ds) (tails2 es)
         in sps
 
+instance ArbSpec SpecE where 
+    tyGens  = def
+    getSpec = id
+    
 
 tails2 :: [a] -> [[a]]
 tails2 [] = []

@@ -1,0 +1,348 @@
+name:                essence-testgen
+version:             0.6
+synopsis:            .
+description:         .
+License:             AllRightsReserved
+author:              Bilal Syed Hussain
+maintainer:          bh246@st-andrews.ac.uk
+category:            Constraint Programming
+build-type:          Custom
+-- extra-source-files:
+cabal-version:       >=1.18
+
+Library
+    default-language : Haskell2010
+    hs-source-dirs   : src
+    
+    exposed-modules  : Build_autoversion
+                     , AST.Domain
+                     , AST.Expr
+                     , AST.ExprHelpers
+                     , AST.FromEssence
+                     , AST.Helper
+                     , AST.Imports
+                     , AST.Literal
+                     , AST.OpName
+                     , AST.Range
+                     , AST.SpecE
+                     , AST.ToEssence
+                     , AST.Types
+                     , Common.Helpers
+                     , TestGen.Arbitrary.Arbitrary
+                     , TestGen.Arbitrary.Common
+                     , TestGen.Arbitrary.Data
+                     , TestGen.Arbitrary.Domain
+                     , TestGen.Arbitrary.Expr
+                     , TestGen.Arbitrary.FromNested
+                     , TestGen.Arbitrary.Generators
+                     , TestGen.Arbitrary.Literal
+                     , TestGen.Arbitrary.Op
+                     , TestGen.Arbitrary.Type
+                     , TestGen.Arbitrary.TypeConversions
+                     , TestGen.Helpers.Args
+                     , TestGen.Helpers.Debug
+                     , TestGen.Helpers.Helpers
+                     , TestGen.Helpers.Log
+                     , TestGen.Helpers.OrderedType
+                     , TestGen.Helpers.QuickCheck2
+                     , TestGen.Helpers.Runner
+                     , TestGen.Helpers.SizeOf
+                     , TestGen.Prelude
+                     , TestGen.QC
+    
+    
+    build-depends    : base
+                     , aeson
+                     , bytestring
+                     , cereal
+                     , cmdargs
+                     , conjure-cp
+                     , containers
+                     , data-default
+                     , datetime
+                     , derive
+                     , directory
+                     , dlist
+                     , filepath
+                     , groom
+                     , hashable
+                     , mtl
+                     , old-locale
+                     , pretty
+                     , process
+                     , QuickCheck
+                     , random
+                     , smallcheck
+                     , template-haskell
+                     , text
+                     , time
+                     , transformers
+                     , unordered-containers
+   ghc-prof-options:
+       -auto-all
+       -caf-all
+   ghc-options:
+       -fwarn-incomplete-patterns
+       -fwarn-incomplete-uni-patterns
+       -fwarn-missing-signatures
+       -fwarn-name-shadowing
+       -fwarn-orphans
+       -fwarn-overlapping-patterns
+       -fwarn-tabs
+       -fwarn-unused-do-bind
+       -- -fwarn-unused-matches
+       -fno-warn-unused-matches
+       -Wall
+       ---Werror
+       -rtsopts
+       -with-rtsopts=-K200M
+       -with-rtsopts=-M1G
+                     
+                     
+
+Executable testSample
+    default-language : Haskell2010
+    hs-source-dirs   : src/exec
+    main-is          : TestSampleMain.hs
+    build-depends    : essence-testgen
+                     , base
+    ghc-prof-options:
+        -auto-all
+        -caf-all
+   ghc-options:
+       -fwarn-incomplete-patterns
+       -fwarn-incomplete-uni-patterns
+       -fwarn-missing-signatures
+       -fwarn-name-shadowing
+       -fwarn-orphans
+       -fwarn-overlapping-patterns
+       -fwarn-tabs
+       -fwarn-unused-do-bind
+       -- -fwarn-unused-matches
+       -fno-warn-unused-matches
+       -Wall
+       ---Werror
+       -rtsopts
+       -with-rtsopts=-K200M
+       -with-rtsopts=-M1G
+
+Executable testSampleOnlySets
+    default-language : Haskell2010
+    hs-source-dirs   : src/exec
+    main-is          : TestSampleOnlySets.hs
+    build-depends    : essence-testgen
+                     , base
+    ghc-prof-options:
+        -auto-all
+        -caf-all
+   ghc-options:
+       -fwarn-incomplete-patterns
+       -fwarn-incomplete-uni-patterns
+       -fwarn-missing-signatures
+       -fwarn-name-shadowing
+       -fwarn-orphans
+       -fwarn-overlapping-patterns
+       -fwarn-tabs
+       -fwarn-unused-do-bind
+       -- -fwarn-unused-matches
+       -fno-warn-unused-matches
+       -Wall
+       ---Werror
+       -rtsopts
+       -with-rtsopts=-K200M
+       -with-rtsopts=-M1G
+
+
+
+Executable essenceSolver
+    default-language : Haskell2010
+    hs-source-dirs   : src, src/exec
+    main-is          : EssenceSolverMain.hs
+    build-depends    :
+                       aeson
+                     , bytestring
+                     , QuickCheck
+                     , base
+                     , cmdargs
+                     , conjure-cp
+                     , containers
+                     , datetime
+                     , derive
+                     , directory
+                     , filepath
+                     , groom
+                     , old-locale
+                     , process
+                     , random
+                     , text
+                     , time
+                     , transformers
+                     , pretty
+                     , mtl
+    ghc-prof-options:
+        -auto-all
+        -caf-all
+    ghc-options:
+        -fwarn-incomplete-patterns
+        -fwarn-incomplete-uni-patterns
+        -fwarn-missing-signatures
+        -fwarn-name-shadowing
+        -fwarn-orphans
+        -fwarn-overlapping-patterns
+        -fwarn-tabs
+        -fwarn-unused-do-bind
+        -- -fwarn-unused-matches
+        -fno-warn-unused-matches
+        -Wall
+        ---Werror
+        -rtsopts
+        -with-rtsopts=-K200M
+        -with-rtsopts=-M1G
+
+
+-- Old stuff
+
+Executable testGen
+    default-language : Haskell2010
+    hs-source-dirs   : src, src/exec
+    main-is          : TestGenMain.hs
+    build-depends    :
+                       aeson
+                     , bytestring
+                     , QuickCheck
+                     , smallcheck
+                     , base
+                     , cmdargs
+                     , conjure-cp
+                     , containers
+                     , datetime
+                     , derive
+                     , directory
+                     , filepath
+                     , groom
+                     , old-locale
+                     , process
+                     , random
+                     , text
+                     , time
+                     , transformers
+                     , cereal
+                     , hashable
+                     , template-haskell
+                     , unordered-containers
+                     , dlist
+    ghc-prof-options:
+        -auto-all
+        -caf-all
+    ghc-options:
+        -fwarn-incomplete-patterns
+        -fwarn-incomplete-uni-patterns
+        -fwarn-missing-signatures
+        -fwarn-name-shadowing
+        -fwarn-orphans
+        -fwarn-overlapping-patterns
+        -fwarn-tabs
+        -fwarn-unused-do-bind
+        -- -fwarn-unused-matches
+        -fno-warn-unused-matches
+        -Wall
+        ---Werror
+        -rtsopts
+        -with-rtsopts=-K200M
+        -with-rtsopts=-M1G
+
+
+
+Executable essenceGivensToJson2
+    default-language : Haskell2010
+    hs-source-dirs   : src/exec
+    main-is          : EssenceGivensToJson2.hs
+    build-depends    :
+                       bytestring
+                     , aeson
+                     , base
+                     , conjure-cp
+                     , vector
+    ghc-prof-options:
+        -auto-all
+        -caf-all
+    ghc-options:
+        -fwarn-incomplete-patterns
+        -fwarn-incomplete-uni-patterns
+        -fwarn-missing-signatures
+        -fwarn-name-shadowing
+        -fwarn-orphans
+        -fwarn-overlapping-patterns
+        -fwarn-tabs
+        -fwarn-unused-do-bind
+        -- -fwarn-unused-matches
+        -fno-warn-unused-matches
+        -Wall
+        -Werror
+        -rtsopts
+        -with-rtsopts=-K200M
+        -with-rtsopts=-M1G
+
+
+Executable essenceLettingsToJson
+    default-language : Haskell2010
+    hs-source-dirs   : src/exec
+    main-is          : EssenceLettingsToJson.hs
+    build-depends    :
+                       aeson
+                     , bytestring
+                     , conjure-cp
+                     , base
+                     , vector
+    ghc-prof-options:
+        -auto-all
+        -caf-all
+    ghc-options:
+        -fwarn-incomplete-patterns
+        -fwarn-incomplete-uni-patterns
+        -fwarn-missing-signatures
+        -fwarn-name-shadowing
+        -fwarn-orphans
+        -fwarn-overlapping-patterns
+        -fwarn-tabs
+        -fwarn-unused-do-bind
+        -- -fwarn-unused-matches
+        -fno-warn-unused-matches
+
+        -Wall
+        -Werror
+        -rtsopts
+        -with-rtsopts=-K200M
+        -with-rtsopts=-M1G
+
+
+
+Executable essenceGivensToFinds
+    default-language : Haskell2010
+    hs-source-dirs   : src/exec
+    main-is          : EssenceGivensToFinds.hs
+    build-depends    :
+                       aeson
+                     , bytestring
+                     , conjure-cp
+                     , base
+                     , containers
+    ghc-prof-options:
+        -auto-all
+        -caf-all
+    ghc-options:
+        -fwarn-incomplete-patterns
+        -fwarn-incomplete-uni-patterns
+        -fwarn-missing-signatures
+        -fwarn-name-shadowing
+        -fwarn-orphans
+        -fwarn-overlapping-patterns
+        -fwarn-tabs
+        -fwarn-unused-do-bind
+        -- -fwarn-unused-matches
+        -fno-warn-unused-matches
+        -Wall
+        -Werror
+        -rtsopts
+        -with-rtsopts=-K200M
+        -with-rtsopts=-M1G
