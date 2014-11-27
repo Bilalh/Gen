@@ -56,3 +56,4 @@ cabal.sandbox.config
 result.json
 TestSampleOnlySets
 tmtags
+TestSampleMain
