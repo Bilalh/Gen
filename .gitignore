@@ -54,3 +54,4 @@ scripts/tools/cputimeout/cputimeout
 .Rhistory
 cabal.sandbox.config
 result.json
+TestSampleOnlySets

@@ -38,6 +38,7 @@ import Test.QuickCheck
 import Test.QuickCheck.Monadic (assert, monadicIO, run)
 import Text.Groom(groom)
 
+import Data.IORef(newIORef, readIORef, writeIORef)
 
 type Cores = Int
 prop_specs_refine :: ArbSpec a => a -> Cores ->  Int -> FilePath -> a -> Property
@@ -61,7 +62,7 @@ prop_specs_refine  _ cores time out arb = do
                 False -> fail uname
 
 
-prop_specs_type_check ::  ArbSpec a => a -> a  -> Property
+prop_specs_type_check ::  ArbSpec a => a -> a -> Property
 prop_specs_type_check _ arb = do
     let specE = getSpec arb
         sp = toSpec specE
@@ -90,18 +91,29 @@ prop_int x  = do
 generateSpecs :: ArbSpec a => a -> TArgs -> IO ()
 generateSpecs unused TArgs{..} = do
     let maxSuccess = totalTime_  `div` perSpecTime_
-    --  Sanity checks
     putStrLn "Typechecking 2000 random specs, with depth up to size 5"
     quickCheckWith stdArgs{QC.maxSize=5,maxSuccess=2000}
         (prop_specs_type_check unused )
 
-    putStrLn "Generating specs, with depth up to size 5"
-    startTime <- round `fmap` getPOSIXTime
+    case typecheckOnly_ of 
+        (Just times) -> do
+            putStrLn $ "Typechecking " ++ (show times) ++ 
+                "random specs, with depth up to size 5"
+            quickCheckWith stdArgs{QC.maxSize=5,maxSuccess=times}
+                (prop_specs_type_check unused )
+        
+        Nothing -> do
+            --  Sanity check
+            putStrLn "Typechecking 2000 random specs, with depth up to size 5"
+            quickCheckWith stdArgs{QC.maxSize=5,maxSuccess=2000}
+                (prop_specs_type_check unused )
+            putStrLn "Generating specs, with depth up to size 5"
+            startTime <- round `fmap` getPOSIXTime
     
-    createDirectoryIfMissing  True tmpdir
-    failed <- helper startTime []
+            createDirectoryIfMissing  True tmpdir
+            failed <- helper startTime []
     
-    saveFailures failed (baseDirectory_ </> "failures.txt")
+            saveFailures failed (baseDirectory_ </> "failures.txt")
 
 
     where
@@ -113,7 +125,7 @@ generateSpecs unused TArgs{..} = do
     saveFailures failed fp  = do 
         -- let paths = map (\fn -> takeFileName' baseDirectory_ </> fn </> "spec.essence" ) failed
         let paths = map (\fn -> baseDirectory_ </> fn </> "spec.essence" ) failed
-        print "Current Failures found"
+        print ("Current Failures found" :: String)
         print paths        
         writeToFile ( fp ) paths
                 
@@ -156,10 +168,9 @@ generateSpecs unused TArgs{..} = do
                         saveFailures results' (tmpdir </> (show after) <.> "txt")
                         helper startTime results'
 
-        where
-        addResults :: Result ->  [String] -> [String]
-        addResults Failure{reason} arr = (reason) : arr
-        addResults _ arr = arr
+    addResults :: Result ->  [String] -> [String]
+    addResults Failure{reason} arr = (reason) : arr
+    addResults _ arr = arr
 
 takeFileName' :: FilePath -> FilePath
 takeFileName' fp = case reverse fp of
@@ -205,3 +216,35 @@ cmain n = do
             writeFile (dir </> (show date) <.> "output") output
 
         _ -> return ()
+
+
+prop_failIfZero :: Int -> Bool
+prop_failIfZero n = n /= 0
+
+prop_specs_type_check_bool ::  ArbSpec a => a -> a -> Bool
+prop_specs_type_check_bool _ arb = 
+    let specE = getSpec arb
+        sp = toSpec specE
+        (res,doc) = typeChecks sp
+    in res
+
+quickCheckWithResult2 :: (Arbitrary a, Show a) => Args -> (a -> Bool) ->  IO (Maybe a)
+quickCheckWithResult2 args prop  = do 
+    input <- newIORef Nothing
+    result <- quickCheckWithResult args2 (logInput input prop)
+    case result of
+        Failure {} -> readIORef input
+        _ -> return Nothing
+        
+    where
+    logInput input prop x = monadicIO $ do run $ writeIORef input (Just x)
+                                           assert (prop x)
+    args2 = args{ chatty = False }
+    
+main1 = do
+        failed :: Maybe SpecE <- quickCheck2
+            stdArgs{QC.maxSize=5,maxSuccess=2000}
+            (prop_specs_type_check_bool (undefined :: SpecE))
+        case failed of
+            Just x -> putStrLn $ "The input that failed was:\n" ++ (show $ pretty x)
+            Nothing -> putStrLn "The test passed"

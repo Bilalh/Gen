@@ -23,6 +23,7 @@ if ( git rev-parse --is-inside-work-tree ); then
     echo "" >> "${fp}.versions"
 fi
 
+echo "\$testSample is ${testSample:-unset}"
 
 repos_dir="$(dirname `which savilerow`)/../"
 
@@ -50,7 +51,7 @@ minion 2>&1	 | egrep 'HG version|Minion Version' >> "${fp}.versions"
 echo "" >> "${fp}.versions"
 savilerow	 | grep Version >> "${fp}.versions"
 echo "" >> "${fp}.versions"
-testSample --version >> "${fp}.versions"
+${testSample:-testSample} --version >> "${fp}.versions"
 
 
 echo ""  >> "$fp.versions"
