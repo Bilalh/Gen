@@ -16,14 +16,34 @@ import Data.List
 
 data WithLogs a = WithLogs a LogsTree
 
-instance Arbitrary (WithLogs SpecE) where
+
+instance (ArbSpec a, Show a, Arbitrary a) => ArbSpec (WithLogs a) where
+    getSpec (WithLogs aa _) = getSpec aa
+    tyGens  aa              = tyGens aa
+    wrapSpec                = error "wrapSpec, would not have logs" 
+    
+instance (Show a) => Show (WithLogs a) where
+    show (WithLogs inner _) =
+        "WithLogs( " ++ show inner ++ " )"
+
+instance (Arbitrary a, ArbSpec a) => Arbitrary (WithLogs a) where
     arbitrary = do
         (specE, logs) <- sized spec'
-        return $ WithLogs specE logs
+        return $ WithLogs (wrapSpec specE) logs
 
-    shrink (WithLogs (SpecE ds es) a) = 
-        let sps = map (\x -> WithLogs (SpecE ds x) a ) (tails2 es)
+    shrink (WithLogs inner a) =
+        let (SpecE ds es)  = getSpec inner
+            sps = map (\x -> WithLogs (wrapSpec $  SpecE ds x) a ) (tails2 es)
         in sps
+        
+-- instance Arbitrary (WithLogs SpecE) where
+--     arbitrary = do
+--         (specE, logs) <- sized spec'
+--         return $ WithLogs specE logs
+--
+--     shrink (WithLogs (SpecE ds es) a) =
+--         let sps = map (\x -> WithLogs (SpecE ds x) a ) (tails2 es)
+--         in sps
 
 instance Arbitrary SpecE where
     arbitrary = sized spec
@@ -32,17 +52,15 @@ instance Arbitrary SpecE where
         in sps
 
 instance ArbSpec SpecE where 
-    tyGens  = def
-    getSpec = id
+    tyGens   = def
+    getSpec  = id
+    wrapSpec = id
     
 
 tails2 :: [a] -> [[a]]
 tails2 [] = []
 tails2 xs = tail (tails xs)
 
-instance Show (WithLogs SpecE) where
-    show (WithLogs specE logs) =
-        "WithLogs ( " ++ show specE ++ " ) "
 
 spec :: Depth -> Gen SpecE
 spec depth =  do

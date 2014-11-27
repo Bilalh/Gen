@@ -46,8 +46,8 @@ import qualified Data.ByteString.Char8 as BS
 
 
 type Cores = Int
-prop_specs_refine :: ArbSpec a => a -> Cores ->  Int -> FilePath -> a -> Property
-prop_specs_refine  _ cores time out arb = do
+prop_specs_refine :: ArbSpec a => WithLogs a -> Cores ->  Int -> FilePath -> WithLogs a -> Property
+prop_specs_refine  _ cores time out (WithLogs arb logs) = do
     let specE = getSpec arb
         sp    = toSpec specE
     fst (typeChecks sp) ==>
@@ -56,7 +56,7 @@ prop_specs_refine  _ cores time out arb = do
             num <- run (randomRIO (10,99) :: IO Int)  >>= return . show
             let uname  =  (ts ++ "_" ++ num )
             run $ createDirectoryIfMissing True (out </> uname)
-            -- run $  writeFile (out </> uname </> "spec.logs" ) (renderNormal logs)
+            run $  writeFile (out </> uname </> "spec.logs" ) (renderNormal logs)
             run $  writeFile (out </> uname </> "spec.specE" ) (show specE)
             
 
@@ -93,7 +93,7 @@ prop_int x  = do
     counterexample (show x) (x < 10)
 
 
-generateSpecs :: ArbSpec a => a -> TArgs -> IO ()
+generateSpecs :: ArbSpec a => WithLogs a -> TArgs -> IO ()
 generateSpecs unused TArgs{..} = do
     let maxSuccess = totalTime_  `div` perSpecTime_
     
@@ -221,7 +221,7 @@ runRefine' cores spec dir specTime = do
 
 rmain n =
     quickCheckWith stdArgs{QC.maxSize=n,maxSuccess=50} 
-    (prop_specs_refine (undefined :: SpecE) 7 10  "__")
+    (prop_specs_refine (undefined :: WithLogs SpecE) 7 10  "__")
 
 cmain n = do
 
@@ -244,7 +244,7 @@ cmain n = do
         _ -> return ()
 
 
-quickTypeCheck1 :: (ArbSpec a) => a -> FilePath -> Args ->  IO (Maybe (Int))
+quickTypeCheck1 :: (ArbSpec a) => WithLogs a -> FilePath -> Args ->  IO (Maybe (Int))
 quickTypeCheck1 unused fp args = do
     
     result <- quickCheckWithResult args{chatty=False} (ty unused)
@@ -254,8 +254,8 @@ quickTypeCheck1 unused fp args = do
         _ -> return Nothing
 
     where
-        ty :: (ArbSpec a) => a -> a -> Property
-        ty _ arb = do
+        ty :: (ArbSpec a) => WithLogs a -> WithLogs a -> Property
+        ty _ (WithLogs arb logs) = do
             let specE = getSpec arb
                 sp = toSpec specE
                 (res,doc) = typeChecks sp
@@ -263,11 +263,13 @@ quickTypeCheck1 unused fp args = do
                 if res then
                     return ()
                 else do
-                    run $ print . pretty $ doc
-                    run $ print . pretty $ sp
+                    -- run $ print . pretty $ doc
+                    -- run $ print . pretty $ sp
                     run $ writeSpec fp sp 
                     run $ writeFile (fp <.> "error") (renderWide (doc <+> vcat ["---", prettySpecDebug $ sp] ) )
                     run $ writeFile (fp <.> "specE") (show specE ++ "\n\n" ++ groom specE)
+                    run $ writeFile (fp <.> "logs") (renderNormal logs)
+                    
                     
                     fail (show doc)
 

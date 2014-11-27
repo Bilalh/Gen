@@ -2,7 +2,7 @@ module Main where
 
 import TestGen.Prelude
 
-import TestGen.Arbitrary.Arbitrary(spec'')
+import TestGen.Arbitrary.Arbitrary(spec'', WithLogs)
 import TestGen.Arbitrary.Type(atype_only)
 import TestGen.Helpers.Args(parseArgs)
 import TestGen.QC(generateSpecs)
@@ -13,7 +13,7 @@ main = do
     args <- parseArgs
     print args
 
-    generateSpecs (undefined :: SpecE) args
+    generateSpecs (undefined :: WithLogs SpecE) args
     putStrLn "<<Finished>>"
 
 newtype S1 = S1 SpecE
@@ -21,6 +21,7 @@ newtype S1 = S1 SpecE
 
 instance ArbSpec S1 where
     getSpec (S1 sp) = sp
+    wrapSpec sp  = S1 sp
     tyGens _ = def{
         gen_atype = atype_only [ TInt, TBool, TSet TAny  ]
         }
