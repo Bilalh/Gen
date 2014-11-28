@@ -16,6 +16,9 @@ import Data.List
 
 data WithLogs a = WithLogs a LogsTree
 
+arbitraryDef :: ArbSpec a => a -> Gen a
+arbitraryDef unused = fmap (wrapSpec . fst) <$> sized $ (flip  spec'') (tyGens unused)
+    
 
 instance (ArbSpec a, Show a, Arbitrary a) => ArbSpec (WithLogs a) where
     getSpec (WithLogs aa _) = getSpec aa
@@ -27,14 +30,17 @@ instance (Show a) => Show (WithLogs a) where
         "WithLogs( " ++ show inner ++ " )"
 
 instance (Arbitrary a, ArbSpec a) => Arbitrary (WithLogs a) where
-    arbitrary = do
-        (specE, logs) <- sized spec'
-        return $ WithLogs (wrapSpec specE) logs
+    arbitrary = needed undefined
+        
+        where 
+        needed :: ArbSpec a => a -> Gen (WithLogs a)
+        needed unused = fmap (\(sp,t) -> WithLogs (wrapSpec sp) t ) 
+                     <$> sized $ (flip  spec'') (tyGens unused)
 
-    shrink (WithLogs inner a) =
-        let (SpecE ds es)  = getSpec inner
-            sps = map (\x -> WithLogs (wrapSpec $  SpecE ds x) a ) (tails2 es)
-        in sps
+    -- shrink (WithLogs inner a) =
+    --     let (SpecE ds es)  = getSpec inner
+    --         sps = map (\x -> WithLogs (wrapSpec $  SpecE ds x) a ) (tails2 es)
+    --     in sps
         
 -- instance Arbitrary (WithLogs SpecE) where
 --     arbitrary = do

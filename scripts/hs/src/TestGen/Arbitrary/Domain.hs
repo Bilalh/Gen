@@ -1,11 +1,23 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
-{-# LANGUAGE ScopedTypeVariables, LambdaCase #-}
+{-# LANGUAGE ScopedTypeVariables, LambdaCase, MultiWayIf #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module TestGen.Arbitrary.Domain
 (
-      dom
+      dom_def
+    , dom_only
+    
+    , intDomChoice
+    , setDomChoice
+    , msetDomChoice
+    , matixDomChoice
+    , funcDomChoice
+    , relDomChoice
+    , parDomChoice
+    , tupleDomChoice
+    , boolDomChoice
+    
     , intDom
     , setDom
     , msetDom
@@ -13,9 +25,10 @@ module TestGen.Arbitrary.Domain
     , funcDom
     , relDom
     , parDom
+    , tupleDom
+    
     , rangeComp
     , intFromDint
-    , tupleDom
 ) where
 
 import TestGen.Prelude
@@ -25,8 +38,36 @@ import qualified Data.Set as S
 -- instance (Pretty a, Pretty b, Pretty c) => Pretty (a,b, c) where
 --     pretty (a,b,c) = prettyListDoc parens "," [pretty a, pretty b, pretty c]
 
-dom :: GG Domain
-dom =  gets depth_ >>= \case
+intDomChoice, setDomChoice, msetDomChoice, matixDomChoice :: (Int, GG Domain)
+funcDomChoice, relDomChoice, parDomChoice, tupleDomChoice :: (Int, GG Domain)
+boolDomChoice :: (Int, GG Domain)
+
+boolDomChoice  = (0, return DBool)
+intDomChoice   = (0, intDom)
+setDomChoice   = (1, setDom)
+msetDomChoice  = (1, msetDom)
+matixDomChoice = (1, matixDom)
+funcDomChoice  = (1, funcDom)
+relDomChoice   = (2, relDom)
+parDomChoice   = (1, parDom)
+tupleDomChoice = (1, parDom)
+
+
+dom_only :: [(Int,GG Domain)] -> GG Domain
+dom_only ds = do 
+    addLog "dom_only" ["start"]
+    
+    d <- gets depth_
+    if | d < 0  -> ggError "dom_only invalid depth" []
+       | otherwise -> do 
+    
+        let inDepth = map snd . filter (\(i,_) -> i <= d ) $ ds
+        choice <- oneof2 inDepth
+        return choice
+
+
+dom_def :: GG Domain
+dom_def =  gets depth_ >>= \case
     0  -> oneof2 [ intDom, return DBool ]
     1  -> oneof2
         [ return DBool

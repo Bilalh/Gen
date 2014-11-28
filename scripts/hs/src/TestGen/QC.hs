@@ -16,7 +16,6 @@ import Common.Helpers(timestamp)
 
 import TestGen.Arbitrary.Arbitrary
 import TestGen.Helpers.Runner(runRefine)
-import TestGen.Arbitrary.Domain(dom)
 import TestGen.Helpers.Args(TArgs(..))
 import TestGen.Helpers.Runner(SettingI(..), RefineR)
 import TestGen.Prelude(SpecState, Generators,Domain, listOfBounds,SS(depth_),FG ,ArbSpec(..))
@@ -44,6 +43,9 @@ import Data.IORef(newIORef, readIORef, writeIORef, atomicWriteIORef)
 
 import qualified Data.ByteString.Char8 as BS
 
+import TestGen.Prelude
+import TestGen.Arbitrary.Arbitrary(spec'', WithLogs)
+import TestGen.Arbitrary.Type(atype_only)
 
 type Cores = Int
 prop_specs_refine :: ArbSpec a => WithLogs a -> Cores ->  Int -> FilePath -> WithLogs a -> Property
@@ -344,3 +346,16 @@ main1 = do
         case failed of
             Just x -> putStrLn $ "The input that failed was:\n" ++ (show $ pretty x)
             Nothing -> putStrLn "The test passed"
+
+newtype S1 = S1 SpecE
+    deriving Show  
+
+instance ArbSpec S1 where
+    getSpec (S1 sp) = sp
+    wrapSpec sp     = S1 sp
+    tyGens _      = def{
+        gen_atype = atype_only [ TInt, TBool, TSet TAny  ]
+        }
+    
+instance Arbitrary S1 where
+    arbitrary = arbitraryDef undefined

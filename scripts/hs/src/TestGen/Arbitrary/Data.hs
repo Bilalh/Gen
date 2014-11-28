@@ -61,12 +61,14 @@ type SpecState=SS
 data Generators = Generators
     {
         gen_atype :: GG Type
+    ,   gen_dom   :: GG Domain
     }
 
 class (Arbitrary a, Show a) => ArbSpec a where 
     tyGens  :: a -> Generators
     getSpec :: a -> SpecE
     wrapSpec :: SpecE -> a
+
 
 
 instance Show SS where

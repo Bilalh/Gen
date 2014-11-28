@@ -13,6 +13,8 @@ quanType_in (TSet inner) = inner
 
 atype_only :: [Type] -> GG Type 
 atype_only tys = do 
+    addLog "atype_only" ["start"]
+    
     d <- gets depth_
     if | d < 0  -> ggError "atype_only invalid depth" []
        | otherwise -> do 
