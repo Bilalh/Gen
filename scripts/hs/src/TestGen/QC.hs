@@ -30,7 +30,7 @@ import qualified Data.Text as T
 import qualified Test.QuickCheck as QC
 import qualified Test.QuickCheck.Property as QC
 
-import System.Directory(createDirectoryIfMissing, getHomeDirectory)
+import System.Directory(createDirectoryIfMissing, getHomeDirectory, doesFileExist)
 import System.FilePath((</>), (<.>), takeFileName)
 import System.IO(IOMode(..),hPutStrLn, openFile, hClose)
 import System.Random(randomRIO)
@@ -46,6 +46,9 @@ import qualified Data.ByteString.Char8 as BS
 import TestGen.Prelude
 import TestGen.Arbitrary.Arbitrary(spec'', WithLogs)
 import TestGen.Arbitrary.Type(atype_only)
+
+import TestGen.QCDebug
+
 
 type Cores = Int
 prop_specs_refine :: ArbSpec a => WithLogs a -> Cores ->  Int -> FilePath -> WithLogs a -> Property
@@ -102,11 +105,12 @@ generateSpecs unused TArgs{..} = do
     createDirectoryIfMissing  True tmpdir
     case typecheckOnly_ of 
         (Just times) -> do
-            putStrLn $ "Typechecking " ++ (show times) ++ 
+            putStrLn $ "Type checking " ++ (show times) ++ 
                 " random specs, with depth up to size 5"
             
-            failed <- typecheckHelper times [] 0
+            (failed, ourErrors) <- typecheckHelper times [] [] 0
             saveFailures failed (baseDirectory_ </> "failures.txt")
+            saveFailures' "gen.error" ourErrors (baseDirectory_ </> "genErrors.txt")
         
         Nothing -> do
             --  Sanity check
@@ -126,21 +130,22 @@ generateSpecs unused TArgs{..} = do
     
 
     saveFailures :: [String] -> FilePath -> IO ()
-    saveFailures failed fp  = do 
-        -- let paths = map (\fn -> takeFileName' baseDirectory_ </> fn </> "spec.essence" ) failed
-        let paths = map (\fn -> baseDirectory_ </> fn </> "spec.essence" ) failed
+    saveFailures  = saveFailures' "spec.essence"
+   
+    saveFailures' :: String -> [String] -> FilePath -> IO ()
+    saveFailures' name failed fp  = do 
+        let paths = map (\fn -> baseDirectory_ </> fn </> name) failed
         print ("Current Failures found" :: String)
         putStrLn (unlines paths)
-        writeToFile ( fp ) paths
-                
+        writeToFile ( fp ) paths             
     
     writeToFile name arr =
       do h <- openFile (name) WriteMode
          mapM_ (hPutStrLn h) arr
          hClose h
 
-    typecheckHelper :: Int -> [String] ->Int -> IO [String]
-    typecheckHelper left results index = do 
+    typecheckHelper :: Int -> [String] -> [String] -> Int -> IO ([String], [String])
+    typecheckHelper left results ourErrors index = do 
         putStrLn $ "left: " ++ (show left)
         
         let indexStr = padShowInt 4 index
@@ -152,15 +157,24 @@ generateSpecs unused TArgs{..} = do
             stdArgs{QC.maxSize=5,maxSuccess=left}
         case r of
             (Nothing) -> do
-                return results
-            (Just (count)) -> do 
+                return (results, ourErrors)
+            (Just (count, output)) -> do 
                                 
-                let results' = (indexStr) : results
+                specExist <-  doesFileExist (dir </> "spec.essence")
+                when (not specExist) $ do 
+                    writeFile (dir </> "gen.error") output 
+                
+                let (results', ourErrors') =      
+                        if specExist then
+                            ( indexStr : results, ourErrors)
+                        else 
+                            ( results, indexStr : ourErrors)
+                                
                 let leftAfter = left - count
                 if leftAfter > 0 then
-                    typecheckHelper (leftAfter) results' (index+1)
+                    typecheckHelper (leftAfter) results' ourErrors' (index+1)
                 else
-                    return results'
+                    return (results', ourErrors')
 
 
     helper :: Int -> [String] -> IO [String]
@@ -225,7 +239,7 @@ rmain n =
     quickCheckWith stdArgs{QC.maxSize=n,maxSuccess=50} 
     (prop_specs_refine (undefined :: WithLogs SpecE) 7 10  "__")
 
-cmain n = do
+cmain unused n = do
 
     c <- getCurrentTime
     let (y,m,d) = toGregorian $ utctDay c
@@ -238,7 +252,7 @@ cmain n = do
     createDirectoryIfMissing True dir
 
     res <- quickCheckWithResult stdArgs{QC.maxSize=n,maxSuccess=2000} 
-        (prop_specs_type_check (undefined :: SpecE))
+        (prop_specs_type_check (unused  ))
     case res of
         Failure{reason, output} ->
             writeFile (dir </> (show date) <.> "output") output
@@ -246,13 +260,13 @@ cmain n = do
         _ -> return ()
 
 
-quickTypeCheck1 :: (ArbSpec a) => WithLogs a -> FilePath -> Args ->  IO (Maybe (Int))
+quickTypeCheck1 :: (ArbSpec a) => WithLogs a -> FilePath -> Args ->  IO (Maybe (Int, String))
 quickTypeCheck1 unused fp args = do
     
     result <- quickCheckWithResult args{chatty=False} (ty unused)
     case result of 
-        Failure {numTests,reason} -> do
-            return (Just (numTests ))
+        Failure {numTests,reason, output} -> do
+            return (Just (numTests, output ))
         _ -> return Nothing
 
     where
@@ -265,8 +279,8 @@ quickTypeCheck1 unused fp args = do
                 if res then
                     return ()
                 else do
-                    -- run $ print . pretty $ doc
-                    -- run $ print . pretty $ sp
+                    run $ print . pretty $ doc
+                    run $ print . pretty $ sp
                     run $ writeSpec fp sp 
                     run $ writeFile (fp <.> "error") (renderWide (doc <+> vcat ["---", prettySpecDebug $ sp] ) )
                     run $ writeFile (fp <.> "specE") (show specE ++ "\n\n" ++ groom specE)
@@ -346,16 +360,3 @@ main1 = do
         case failed of
             Just x -> putStrLn $ "The input that failed was:\n" ++ (show $ pretty x)
             Nothing -> putStrLn "The test passed"
-
-newtype S1 = S1 SpecE
-    deriving Show  
-
-instance ArbSpec S1 where
-    getSpec (S1 sp) = sp
-    wrapSpec sp     = S1 sp
-    tyGens _      = def{
-        gen_atype = atype_only [ TInt, TBool, TSet TAny  ]
-        }
-    
-instance Arbitrary S1 where
-    arbitrary = arbitraryDef undefined

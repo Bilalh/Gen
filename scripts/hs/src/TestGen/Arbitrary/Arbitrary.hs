@@ -37,25 +37,12 @@ instance (Arbitrary a, ArbSpec a) => Arbitrary (WithLogs a) where
         needed unused = fmap (\(sp,t) -> WithLogs (wrapSpec sp) t ) 
                      <$> sized $ (flip  spec'') (tyGens unused)
 
-    -- shrink (WithLogs inner a) =
-    --     let (SpecE ds es)  = getSpec inner
-    --         sps = map (\x -> WithLogs (wrapSpec $  SpecE ds x) a ) (tails2 es)
-    --     in sps
-        
--- instance Arbitrary (WithLogs SpecE) where
---     arbitrary = do
---         (specE, logs) <- sized spec'
---         return $ WithLogs specE logs
---
---     shrink (WithLogs (SpecE ds es) a) =
---         let sps = map (\x -> WithLogs (SpecE ds x) a ) (tails2 es)
---         in sps
 
 instance Arbitrary SpecE where
     arbitrary = sized spec
-    shrink (SpecE ds es) = 
-        let sps = map (SpecE ds) (tails2 es)
-        in sps
+    -- shrink (SpecE ds es) =
+    --     let sps = map (SpecE ds) (tails2 es)
+    --     in sps
 
 instance ArbSpec SpecE where 
     tyGens   = def

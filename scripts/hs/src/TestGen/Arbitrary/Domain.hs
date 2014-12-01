@@ -63,6 +63,7 @@ dom_only ds = do
     
         let inDepth = map snd . filter (\(i,_) -> i <= d ) $ ds
         choice <- oneof2 inDepth
+        addLog "dom_only" [nn "choice" choice, nn "depth_" d]
         return choice
 
 

@@ -104,12 +104,14 @@ reachableToTypeWithCommon d y =  do
 reachableToType :: Depth -> Type -> GG [ (Type, GG [(ToTypeFn, Depth)] ) ]
 reachableToType 0 _ = return  []
 
+--
+-- reachableToType d TAny = do
+--     newTy <- withSameDepth atype
+--     reachableToType d newTy
 
-reachableToType d TAny = do
-    newTy <- withSameDepth atype
-    reachableToType d newTy
-
-reachableToType d oty@TBool = concatMapM process types
+reachableToType d oty@TBool = do
+    addLog "reachableToType" ["TBool" ]
+    concatMapM process types
     where
 
     types =  catMaybes
@@ -259,7 +261,9 @@ reachableToType d oty@TInt = concatMapM process types
             ]
 
 
-reachableToType d oty@(TSet ity) =  join (ss oty) (concatMapM process (types))
+reachableToType d oty@(TSet ity) =  do
+    addLog "reachToTy" [nn "depth" d, nn "ty" oty ]
+    join (ss oty) (concatMapM process (types))
     where
 
 
@@ -294,6 +298,11 @@ reachableToType d oty@(TSet ity) =  join (ss oty) (concatMapM process (types))
             [
                 do
                 nty <- purgeAny fty
+                addLog "reachToTy:set:set" 
+                    [ nn "d" d
+                    , nn "nty" nty
+                    , nn "depth nty" (depthOf nty)
+                    , nn "con" (d - (fromInteger $ depthOf nty) >= 1)]
                 customM nty [ union nty **| useFunc Aunion , intersect nty **| useFunc Aintersect
                         , diff nty **| useFunc Adiff ]
                     ++| d - (fromInteger $ depthOf nty) >= 1
@@ -729,10 +738,10 @@ simpleM0 ty val=  simpleM' ty (catMaybes val)
 
 infixl 1 ++|
 (++|) :: Monad m =>  m (Maybe a) -> Bool -> m (Maybe a)
+_   ++| False =  return Nothing
 mxs ++| c = do
     xs <- mxs
-    case (c, xs) of 
-        (False, _)       -> return Nothing
-        (True, Just xs ) -> return (Just xs)
-        _                -> return Nothing
+    case xs of 
+        Just xs -> return (Just xs)
+        Nothing -> return Nothing
 

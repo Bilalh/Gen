@@ -183,7 +183,8 @@ exprFromToType ref (TSet _) TInt = return $ EUniOp $ UBar $ EVar ref
 -- Return a expr of the specifed depth and type
 exprOf :: Type -> GG Expr
 exprOf ty = do
-    nestedOfType <-  maybeToList <$> nestedVarsOf ty
+    -- nestedOfType <-  maybeToList <$> nestedVarsOf ty
+    nestedOfType <-  return []
     ofType <-  varsOf ty
     tyCons <-   maybeToList <$> toTypeWithConversions ty
 
@@ -259,7 +260,12 @@ exprOf ty = do
 -- Remove one level of any
 -- e.g for sets
 deAny :: Type -> GG Type
-deAny TAny = withSameDepth atype
+deAny TAny = do 
+    d <- gets depth_
+    addLog "deAny" [nn "depth" d]
+    ty <- withSameDepth atype
+    addLog "deAny" [nn "depth" d, nn "ty" ty]
+    return ty
 
 deAny (TSet TAny)   = return TSet   <*> (withDepthDec atype)
 deAny (TMSet TAny)  = return TMSet  <*> (withDepthDec atype)
@@ -278,7 +284,12 @@ deAny ty = return ty
 
 
 purgeAny :: Type -> GG Type
-purgeAny TAny = withSameDepth atype
+purgeAny TAny = do
+    d <- gets depth_
+    addLog "purgeAny" [nn "depth" d]
+    ty <- withSameDepth atype
+    addLog "purgeAny" [nn "depth" d, nn "ty" ty]
+    return ty
 
 purgeAny ts@TInt        = return ts
 purgeAny ts@TBool       = return ts
@@ -301,6 +312,7 @@ purgeAny (TFunc a b)   = return TFunc <*> (withDepthDec $ purgeAny a)
 
 exprOfPurgeAny :: Type -> GG Expr
 exprOfPurgeAny ty  = do
+    addLog "exprOfPurgeAny" []
     newTy <- purgeAny ty
     addLog "exprOfPurgeAny" [nn "ty" ty, nn "newTy" newTy]
     exprOf newTy
