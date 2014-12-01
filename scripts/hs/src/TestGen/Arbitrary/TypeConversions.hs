@@ -9,6 +9,11 @@ import TestGen.Arbitrary.Expr
 import TestGen.Arbitrary.Literal
 import TestGen.Arbitrary.Type
 
+useFunc :: FuncsNames -> Bool
+useFunc AtoInt = True 
+useFunc _      = False 
+
+
 -- Type that does not have any anys
 type PType = Type
 
@@ -85,13 +90,13 @@ reachableToTypeWithCommon d y =  do
             [
                 do
                 nty <- TSet <$> purgeAny y
-                (nty,) <$>  sequence [ min, max ]
-                    +| d - (fromInteger $ depthOf nty) >= 2
+                customM nty [min *| useFunc Amin , max *| useFunc Amax]
+                    ++| d - (fromInteger $ depthOf nty) >= 2
                     
             ,   do
                 nty <- TMSet <$> purgeAny y
-                (nty,) <$> sequence [ min, max ]
-                    +| d - (fromInteger $ depthOf nty) >= 2
+                customM nty [min *| useFunc Amin , max *| useFunc Amax]
+                    ++| d - (fromInteger $ depthOf nty) >= 2
             ] 
 
     min, max :: GG (ToTypeFn, Depth)
@@ -211,13 +216,15 @@ reachableToType d oty@TInt = concatMapM process types
         funcs :: GG [ (Type, [(ToTypeFn, Depth)]) ]
         funcs = catMaybes <$> sequence
             [
-              simple fty [ (EUniOp . UBar, 1)]
-                +| d - (fromInteger $ depthOf fty) >= 1
+              simpleM fty [ (EUniOp . UBar, 1) *| useFunc Aubar ]
+                ++| d - (fromInteger $ depthOf fty) >= 1
 
             , do
                 nty@(TMSet ins) <- purgeAny fty
-                (nty,) <$> sequence [ freq ins ]
-                    +| d - (fromInteger $ depthOf nty) >= 1
+                customM nty [ freq ins *| useFunc Afreq ]
+                    ++| d - (fromInteger $ depthOf nty) >= 1
+                -- (nty,) <$> sequence (catMaybes [ freq ins *| useFunc Afreq ])
+                --     +| d - (fromInteger $ depthOf nty) >= 1
 
             ]
 
@@ -233,8 +240,8 @@ reachableToType d oty@TInt = concatMapM process types
         funcs :: GG [ (Type, [(ToTypeFn, Depth)]) ]
         funcs = catMaybes <$> sequence
             [
-              simple fty [ (EProc . PtoInt, 1)]
-                +| d - (fromInteger $ depthOf fty) >= 1
+              simpleM fty [ (EProc . PtoInt, 1) *| useFunc AtoInt  ]
+                ++| d - (fromInteger $ depthOf fty) >= 1
 
             ]
 
@@ -253,8 +260,8 @@ reachableToType d oty@TInt = concatMapM process types
         funcs :: GG [ (Type, [(ToTypeFn, Depth)]) ]
         funcs = catMaybes <$> sequence
             [
-              simple fty [ (EUniOp . UBar, 1)]
-                +| d - (fromInteger $ depthOf fty) >= 1
+              simpleM fty [ (EUniOp . UBar, 1) *| useFunc Aubar ]
+                ++| d - (fromInteger $ depthOf fty) >= 1
             ]
 
 
@@ -650,8 +657,7 @@ raise ::  (Expr -> Expr,Depth) -> (ToTypeFn, Depth)
 raise (f,c) = ( \d -> d >>= return . f   , c)
 -- raise (f,c) = (f, c)
 
-simple
-  :: (Functor f, Monad f)
+simple :: (Functor f, Monad f)
   =>  t -> [(Expr -> Expr, Depth)]
   ->  f (t, [(ToTypeFn, Depth)])
 simple ty val =  (ty,) <$>  mapM ( return . raise) val
@@ -670,3 +676,34 @@ xs +| c | c = do
     return (Just x)
 
 _  +| _    = return Nothing
+
+
+
+simpleM :: (Functor f, Monad f)
+  =>  t -> [Maybe (Expr -> Expr, Depth)]
+  ->  f (Maybe  (t, [(ToTypeFn, Depth)]) )
+simpleM ty val=  simpleM' ty (catMaybes val)
+     
+    where
+    simpleM' _  []  = return Nothing
+    simpleM' ty val = (ty,) <$>  mapM ( return . raise) val >>= return . Just
+
+customM :: (Functor f, Monad f)
+  =>  t -> [Maybe (f (ToTypeFn, Depth)) ]
+  ->  f (Maybe  (t, [(ToTypeFn, Depth)]) )
+customM ty val= customM' ty (catMaybes val)
+    
+    where
+    customM' _  []  = return Nothing
+    customM' ty val = (ty,) <$>  sequence  val >>= return . Just    
+    
+
+infixl 1 ++|
+(++|) :: Monad m =>  m (Maybe a) -> Bool -> m (Maybe a)
+mxs ++| c = do
+    xs <- mxs
+    case (c, xs) of 
+        (False, _)       -> return Nothing
+        (True, Just xs ) -> return (Just xs)
+        _                -> return Nothing
+

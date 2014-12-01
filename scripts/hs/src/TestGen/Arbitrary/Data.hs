@@ -15,7 +15,8 @@ module TestGen.Arbitrary.Data (
     , SS(..)
     , Type(..)
     , ArbSpec(..)
-        ) where
+    , FuncsNames(..)
+    ) where
 
 import AST.Imports
 import Language.E
@@ -133,3 +134,32 @@ addLog nm docs = do
             logs_ = LSMultiple (logs_ st) (LSSingle l),
             __lc   = lc + 1
         }
+
+
+data FuncsNames  = AallDiff
+    | Aindex
+    | Aapply
+
+    | Afreq
+    | Ahist
+
+    | Amax
+    | Amin
+
+    | AtoInt
+    | AtoMSet
+    | AtoRelation
+    | AtoSet
+
+    | Adefined
+    | Aimage
+    | Ainverse
+    | ApreImage
+    | Arange
+
+    | Aapart
+    | Aparts
+    | Aparty
+    | Aparticipants
+    | Atogether
+    | Aubar
