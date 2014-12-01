@@ -1,4 +1,5 @@
-TmCtagsTagFileName = 'tags'
+TmCtagsTagFileName   = 'tags'
 TmCtagsOkSingleSound = ''
-TmCtagsOkMultiSound = ''
-TmCtagsAutoJump=1
+TmCtagsOkMultiSound  = ''
+TmCtagsAutoJump      = 1
+exclude              = "{$exclude,TestSampleMain,TestSampleOnlySets}"

@@ -36,7 +36,7 @@ instance ArbSpec S1 where
         }
     
 -- Only return domains like function tuple(Any) -> Int
--- Any meaning any of the domains from gen_dom
+-- Any meaning any of the domains from `dom` i.e `gen_dom`
 -- The function may be total 
 myFuncDom :: GG Domain
 myFuncDom = do
