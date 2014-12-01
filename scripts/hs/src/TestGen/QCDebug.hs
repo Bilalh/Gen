@@ -38,3 +38,26 @@ instance ArbSpec S1 where
 myUseFunc :: FuncsNames -> Bool 
 myUseFunc Aunion = True
 myUseFunc _      = False
+
+
+newtype S2 = S2 SpecE
+    deriving Show  
+
+instance Arbitrary S2 where
+    arbitrary = arbitraryDef undefined
+
+instance ArbSpec S2 where
+    getSpec (S2 sp) = sp
+    wrapSpec sp     = S2 sp
+    
+    tyGens _ = def{
+            gen_useFunc = myUseFunc2
+        }
+
+myUseFunc2 :: FuncsNames -> Bool 
+myUseFunc2 Atogether     = False
+myUseFunc2 Aapart        = False
+myUseFunc2 Aparticipants = False
+myUseFunc2 Aparty        = False
+myUseFunc2 AtoMSet       = False
+myUseFunc2 _             = True

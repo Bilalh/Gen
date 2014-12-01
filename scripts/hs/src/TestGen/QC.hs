@@ -78,7 +78,7 @@ prop_specs_type_check _ arb = do
         sp = toSpec specE
         (res,doc) = typeChecks sp
     counterexample
-        (show doc ++ (show . typeChecks $ sp) )
+        (show doc ++ (show $ pretty sp) )
         (res)
 
 typeChecks :: Spec -> (Bool, Doc)
@@ -234,32 +234,6 @@ runRefine' cores spec dir specTime = do
     return result
 
 
-
-rmain n =
-    quickCheckWith stdArgs{QC.maxSize=n,maxSuccess=50} 
-    (prop_specs_refine (undefined :: WithLogs SpecE) 7 10  "__")
-
-cmain unused n = do
-
-    c <- getCurrentTime
-    let (y,m,d) = toGregorian $ utctDay c
-    home <- getHomeDirectory
-    date <- round `fmap` getPOSIXTime
-
-    let dir = home </> "__" </> "logs" </> "cmain"
-            </> ( intercalate "-" [show y, padShowInt 2 m, padShowInt 2 d] )
-
-    createDirectoryIfMissing True dir
-
-    res <- quickCheckWithResult stdArgs{QC.maxSize=n,maxSuccess=2000} 
-        (prop_specs_type_check (unused  ))
-    case res of
-        Failure{reason, output} ->
-            writeFile (dir </> (show date) <.> "output") output
-
-        _ -> return ()
-
-
 quickTypeCheck1 :: (ArbSpec a) => WithLogs a -> FilePath -> Args ->  IO (Maybe (Int, String))
 quickTypeCheck1 unused fp args = do
     
@@ -288,6 +262,33 @@ quickTypeCheck1 unused fp args = do
                     
                     
                     fail (show doc)
+
+
+
+rmain n =
+    quickCheckWith stdArgs{QC.maxSize=n,maxSuccess=50} 
+    (prop_specs_refine (undefined :: WithLogs SpecE) 7 10  "__")
+
+cmain unused n = do
+
+    c <- getCurrentTime
+    let (y,m,d) = toGregorian $ utctDay c
+    home <- getHomeDirectory
+    date <- round `fmap` getPOSIXTime
+
+    let dir = home </> "__" </> "logs" </> "cmain"
+            </> ( intercalate "-" [show y, padShowInt 2 m, padShowInt 2 d] )
+
+    createDirectoryIfMissing True dir
+
+    res <- quickCheckWithResult stdArgs{QC.maxSize=n,maxSuccess=2000} 
+        (prop_specs_type_check (unused  ))
+    case res of
+        Failure{reason, output} ->
+            writeFile (dir </> (show date) <.> "output") output
+
+        _ -> return ()
+
 
 quickTypeCheck :: (ArbSpec a) => a -> Args ->  IO (Maybe (a, Doc,Int))
 quickTypeCheck _ args = do
