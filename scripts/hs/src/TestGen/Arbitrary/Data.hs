@@ -163,3 +163,7 @@ data FuncsNames  = AallDiff
     | Aparticipants
     | Atogether
     | Aubar
+    | Aelement
+    | Aunion
+    | Aintersect
+    | Adiff

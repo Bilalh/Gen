@@ -134,9 +134,9 @@ reachableToType d oty@TBool = concatMapM process types
                 do
                 innerTy <- withDepth (d - 2) atype
                 container <- elements2 [TSet, TMSet ]
-                --TODO  could also allow the other way around
-                (innerTy,) <$> sequence [ element $ container innerTy ]
-                    +| True
+                --TODO  could also allow the other way around?
+                customM innerTy [ element (container innerTy) *| useFunc Aelement ]
+                    ++| True
 
             ]
 
@@ -159,8 +159,8 @@ reachableToType d oty@TBool = concatMapM process types
             (t1,t2) <- elements2 [ (TFunc a b, TFunc b a ),  (TFunc b a, TFunc a b ) ]
             e1 <- withDepthDec (exprOf t1)
 
-            (t2,) <$> sequence [ return . raise $ (EProc . op e1, 1) ]
-                +| d - (max (fromInteger $ depthOf t1 ) (fromInteger $ depthOf t2 )) > 1
+            customM t2  [ (return . raise) (EProc . op e1, 1) *| useFunc Ainverse ]
+                ++| d - (max (fromInteger $ depthOf t1 ) (fromInteger $ depthOf t2 )) > 1
             ]
 
 
@@ -173,8 +173,8 @@ reachableToType d oty@TBool = concatMapM process types
             [
                 do
                 nty@(TPar inn) <- purgeAny fty
-                (nty,) <$>  sequence [ together inn, apart inn  ]
-                    +| d - (fromInteger $ depthOf nty) >= 1
+                customM nty [ together inn *| useFunc Atogether , apart inn *| useFunc Aapart  ]
+                    ++| d - (fromInteger $ depthOf nty) >= 1
 
             ]
 
@@ -223,8 +223,6 @@ reachableToType d oty@TInt = concatMapM process types
                 nty@(TMSet ins) <- purgeAny fty
                 customM nty [ freq ins *| useFunc Afreq ]
                     ++| d - (fromInteger $ depthOf nty) >= 1
-                -- (nty,) <$> sequence (catMaybes [ freq ins *| useFunc Afreq ])
-                --     +| d - (fromInteger $ depthOf nty) >= 1
 
             ]
 
@@ -300,8 +298,9 @@ reachableToType d oty@(TSet ity) =  join (ss oty) (concatMapM process (types))
             [
                 do
                 nty <- purgeAny fty
-                (nty,) <$>  sequence [ union nty, intersect nty, diff nty ]
-                    +| d - (fromInteger $ depthOf nty) >= 1
+                customM nty [ union nty *| useFunc Aunion , intersect nty *| useFunc Aintersect
+                        , diff nty *| useFunc Adiff ]
+                    ++| d - (fromInteger $ depthOf nty) >= 1
             ]
 
     process fty@(TMSet _) = funcs >>=
@@ -311,8 +310,8 @@ reachableToType d oty@(TSet ity) =  join (ss oty) (concatMapM process (types))
         funcs :: GG [ (Type, [(ToTypeFn, Depth)]) ]
         funcs = catMaybes <$> sequence
             [
-             simple fty [ (EProc . PtoSet, 1)]
-                +| d - (fromInteger $ depthOf fty) >= 1
+             simpleM fty [ (EProc . PtoSet, 1) *| useFunc AtoSet ]
+                ++| d - (fromInteger $ depthOf fty) >= 1
             ]
 
 
@@ -323,12 +322,12 @@ reachableToType d oty@(TSet ity) =  join (ss oty) (concatMapM process (types))
         funcs :: GG [ (Type, [(ToTypeFn, Depth)]) ]
         funcs = catMaybes <$> sequence
             [
-              simple fty [ (EProc . Pparticipants, 1)]
-                +| d - (fromInteger $ depthOf fty) >= 1
+              simpleM fty [ (EProc . Pparticipants, 1) *| useFunc Aparticipants ]
+                ++| d - (fromInteger $ depthOf fty) >= 1
             , do
                 nty@(TPar ins) <- purgeAny fty
-                (nty,) <$> sequence [ party ins ]
-                    +| d - (fromInteger $ depthOf nty) >= 1
+                customM nty [ party ins  *| useFunc Aparty ]
+                    ++| d - (fromInteger $ depthOf nty) >= 1
 
             ]
 
@@ -345,8 +344,8 @@ reachableToType d oty@(TSet ity) =  join (ss oty) (concatMapM process (types))
         funcs :: GG [ (Type, [(ToTypeFn, Depth)]) ]
         funcs = catMaybes <$> sequence
             [
-             simple fty [ (EProc . PtoSet, 1)]
-                +| d - (fromInteger $ depthOf fty) >= 2
+             simpleM fty [ (EProc . PtoSet, 1) *| useFunc AtoSet ]
+                ++| d - (fromInteger $ depthOf fty) >= 2
                 -- one for toSet, one for the rel
             ]
 
@@ -360,26 +359,26 @@ reachableToType d oty@(TSet ity) =  join (ss oty) (concatMapM process (types))
             -- 1 for func
             -- 1 usually for TFunc
 
-            [ simple fty [ (EProc . Pdefined, 1) ]
-                +| a == ity &&  d - (fromInteger $ depthOf a) > 2
+            [ simpleM fty [ (EProc . Pdefined, 1) *| useFunc Adefined ]
+                ++| a == ity &&  d - (fromInteger $ depthOf a) > 2
 
-            , simple fty [  (EProc . Prange, 1)  ]
-                +| b == ity && d - (fromInteger $ depthOf b) > 2
+            , simpleM fty [  (EProc . Prange, 1)  *| useFunc Arange  ]
+                ++| b == ity && d - (fromInteger $ depthOf b) > 2
 
 
-            ,simple fty [ (EProc . PtoSet, 1)]
-                +| d - (fromInteger $ max (depthOf a ) (depthOf b) ) > 2
+            ,simpleM fty [ (EProc . PtoSet, 1) *| useFunc AtoSet ]
+                ++| d - (fromInteger $ max (depthOf a ) (depthOf b) ) > 2
                 && typesUnify  (TTuple [a,b]) ity
 
             ,do
                 nb <- purgeAny b
-                (TFunc a nb,) <$> sequence [ preImage nb ]
-                    +| a == ity
+                customM  (TFunc a nb) [ preImage nb *| useFunc ApreImage ]
+                    ++| a == ity
                     && d - (fromInteger $ max (depthOf a ) (depthOf nb) ) > 2
             ,do
                 na <- purgeAny a
-                (TFunc na b, ) <$> sequence  [image na]
-                    +| b == ity
+                customM (TFunc na b ) [image na  *| useFunc Aimage ]
+                    ++| b == ity
                     && d - (fromInteger $ max (depthOf na ) (depthOf b) ) > 2
 
             ]
@@ -423,8 +422,9 @@ reachableToType d oty@(TMSet ity) =  concatMapM process (types)
             [
                 do
                 nty <- purgeAny fty
-                (nty,) <$>  sequence [ union nty, intersect nty, diff nty ]
-                    +| d - (fromInteger $ depthOf nty) >= 1
+                customM nty [ union nty *| useFunc Aunion , intersect nty *| useFunc Aintersect
+                            , diff nty *| useFunc Adiff ]
+                    ++| d - (fromInteger $ depthOf nty) >= 1
             ]
 
     process fty@(TSet _) = funcs >>=
@@ -434,8 +434,8 @@ reachableToType d oty@(TMSet ity) =  concatMapM process (types)
         funcs :: GG [ (Type, [(ToTypeFn, Depth)]) ]
         funcs = catMaybes <$> sequence
             [
-             simple fty [ (EProc . PtoMSet, 1)]
-                +| d - (fromInteger $ depthOf fty) >= 1
+             simpleM fty [ (EProc . PtoMSet, 1) *| useFunc AtoMSet ]
+                ++| d - (fromInteger $ depthOf fty) >= 1
             ]
             
             
@@ -446,8 +446,8 @@ reachableToType d oty@(TMSet ity) =  concatMapM process (types)
         funcs :: GG [ (Type, [(ToTypeFn, Depth)]) ]
         funcs = catMaybes <$> sequence
             [
-             simple fty [ (EProc . PtoMSet, 1)]
-                +| d - (fromInteger $ depthOf fty) >= 2
+             simpleM fty [ (EProc . PtoMSet, 1) *| useFunc AtoMSet  ]
+                ++| d - (fromInteger $ depthOf fty) >= 2
                 -- one for toSet, one for the rel
             ]
 
@@ -461,8 +461,8 @@ reachableToType d oty@(TMSet ity) =  concatMapM process (types)
             -- 1 for func
             -- 1 usually for TFunc
             [
-              simple fty [ (EProc . PtoMSet, 1)]
-                +| d - (fromInteger $ max (depthOf a ) (depthOf b) ) > 2
+              simpleM fty [ (EProc . PtoMSet, 1) *| useFunc AtoMSet ]
+                ++| d - (fromInteger $ max (depthOf a ) (depthOf b) ) > 2
                 && typesUnify  (TTuple [a,b]) ity
             ]
 
@@ -488,8 +488,8 @@ reachableToType d oty@(TRel inners)   =  concatMapM process types
         funcs :: GG [ (Type, [(ToTypeFn, Depth)]) ]
         funcs = catMaybes <$> sequence
             [
-                simple fty [ (EProc . PtoRelation, 1)]
-                    +| d - (fromInteger $ depthOf fty) >= 1
+                simpleM fty [ (EProc . PtoRelation, 1) *| useFunc AtoRelation ]
+                    ++| d - (fromInteger $ depthOf fty) >= 1
             ]
 
     process fty@(TRel _) | fty == oty = funcs >>=
@@ -501,8 +501,9 @@ reachableToType d oty@(TRel inners)   =  concatMapM process types
             [
                 do
                 nty <- purgeAny fty
-                (nty,) <$>  sequence [ union nty, intersect nty, diff nty ]
-                    +| d - (fromInteger $ depthOf nty) >= 1
+                customM nty [ union nty *| useFunc Aunion , intersect nty *| useFunc Aintersect
+                            , diff nty *| useFunc Adiff ]
+                    ++| d - (fromInteger $ depthOf nty) >= 1
             ]
 
     process ty = ggError "reachableToType missing"
@@ -525,8 +526,9 @@ reachableToType d oty@(TFunc _ _ ) = concatMapM process types
             [
                 do
                 nty <- purgeAny fty
-                (nty,) <$>  sequence [ intersect nty, diff nty ]
-                    +| d - (fromInteger $ depthOf nty) >= 1
+                customM nty [intersect nty *| useFunc Aintersect 
+                        , diff nty *| useFunc Adiff ]
+                    ++| d - (fromInteger $ depthOf nty) >= 1
             ]
 
 
@@ -553,8 +555,8 @@ reachableToType d oty@(TMatix TInt) = concatMapM process types
             [
             do
             nty@(TMSet ins) <- purgeAny fty
-            (nty,) <$> sequence [ hist ins ]
-                +| d - (fromInteger $ depthOf nty) >= 1
+            customM nty [ hist ins *| useFunc Ahist ]
+                ++| d - (fromInteger $ depthOf nty) >= 1
 
             ]
 
@@ -589,8 +591,8 @@ reachableToTypeSetSet d oty@(TSet (TSet inner) ) = concatMapM process types
         funcs :: GG [ (Type, [(ToTypeFn, Depth)]) ]
         funcs = catMaybes <$> sequence
             [
-              simple fty [ (EProc . Pparts, 1)]
-                  +| d - (fromInteger $ depthOf fty) >= 1
+              simpleM fty [ (EProc . Pparts, 1) *| useFunc Aparts ]
+                  ++| d - (fromInteger $ depthOf fty) >= 1
             ]
 
     process ty = ggError "reachableToType missing"
@@ -656,11 +658,6 @@ combine (_, ff) xs = do
 raise ::  (Expr -> Expr,Depth) -> (ToTypeFn, Depth)
 raise (f,c) = ( \d -> d >>= return . f   , c)
 -- raise (f,c) = (f, c)
-
-simple :: (Functor f, Monad f)
-  =>  t -> [(Expr -> Expr, Depth)]
-  ->  f (t, [(ToTypeFn, Depth)])
-simple ty val =  (ty,) <$>  mapM ( return . raise) val
 
 
 infixl 1 *|
