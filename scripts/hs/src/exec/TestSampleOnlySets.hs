@@ -33,6 +33,7 @@ instance ArbSpec S1 where
         , gen_dom   = dom_only [boolDomChoice, setDomChoice
                                , (1 + 1 + 0, myFuncDom)
                                ]
+        , gen_useFunc = myUseFunc
         }
     
 -- Only return domains like function tuple(Any) -> Int
@@ -44,3 +45,14 @@ myFuncDom = do
     innerTo   <- withDepthDec tupleDom
     total     <- elements2 [True, False]
     return dfunc{innerFrom,innerTo,total}
+
+-- Allows specifying which function to generate
+-- see TestGen.Arbitrary.Data for full list
+myUseFunc :: FuncsNames -> Bool 
+myUseFunc Amax   = False
+myUseFunc Aparty = False
+myUseFunc Aunion = False
+myUseFunc Aubar  = False
+myUseFunc _      = True
+
+
