@@ -10,6 +10,8 @@ import Data.Default as X ( Default)
 
 atype :: GG Type 
 dom   :: GG Domain
+useFunc :: FuncsNames -> GG Bool
+
 
 instance Default SS
 

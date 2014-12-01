@@ -61,8 +61,9 @@ type SpecState=SS
 
 data Generators = Generators
     {
-        gen_atype :: GG Type
-    ,   gen_dom   :: GG Domain
+        gen_atype      :: GG Type
+    ,   gen_dom        :: GG Domain
+    ,   gen_useFunc    :: FuncsNames -> Bool
     }
 
 class (Arbitrary a, Show a) => ArbSpec a where 

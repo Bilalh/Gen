@@ -2,7 +2,12 @@
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
 {-# LANGUAGE MultiWayIf #-}
 
-module TestGen.Arbitrary.Generators where
+module TestGen.Arbitrary.Generators(
+      atype
+    , dom
+    , useFunc
+    , Default(..)
+    ) where
 
 import TestGen.Prelude
 
@@ -16,6 +21,10 @@ atype = gets generators_ >>= \m -> gen_atype m
 
 dom :: GG Domain
 dom = gets generators_ >>= \m -> gen_dom m
+
+useFunc :: FuncsNames -> GG Bool
+useFunc fs = gets generators_ >>= \m -> return (  (gen_useFunc m) fs)
+
 
 instance Default SS where
      def = SS
@@ -32,6 +41,13 @@ instance Default SS where
 
 instance Default Generators where
     def = Generators
-        { gen_atype = atype_def
-        , gen_dom   = dom_def
+        { gen_atype   = atype_def
+        , gen_dom     = dom_def
+        , gen_useFunc = const True
         }
+
+useFunc_def :: FuncsNames -> Bool 
+useFunc_def AtoInt = True 
+useFunc_def Aparts = True 
+useFunc_def Amin   = True 
+useFunc_def _      = False
