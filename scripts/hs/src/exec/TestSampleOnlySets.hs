@@ -50,6 +50,7 @@ myFuncDom = do
 -- see TestGen.Arbitrary.Data for full list
 
 -- These all cause some kind of typechecking error
+myUseFunc2 :: FuncsNames -> Bool
 myUseFunc2 Atogether     = False
 myUseFunc2 Aapart        = False
 myUseFunc2 Aparticipants = False

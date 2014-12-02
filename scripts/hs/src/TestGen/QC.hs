@@ -98,7 +98,7 @@ generateSpecs unused TArgs{..} = do
         Nothing -> do
             --  Sanity check
             putStrLn "Typechecking 2000 random specs, with depth up to size 5"
-            quickCheckWith stdArgs{QC.maxSize=5,maxSuccess=2000}
+            quickCheckWith stdArgs{QC.maxSize=size_,maxSuccess=2000, replay}
                 (prop_specs_type_check unused )
             putStrLn "Generating specs, with depth up to size 5"
             startTime <- round `fmap` getPOSIXTime
@@ -109,6 +109,11 @@ generateSpecs unused TArgs{..} = do
 
     where
 
+    replay = case rseed_ of 
+        Just iseed ->  Just (mkQCGen iseed, size_)
+        Nothing    -> Nothing
+    
+    
     tmpdir  = baseDirectory_ </> "temp"
     
 
@@ -137,7 +142,7 @@ generateSpecs unused TArgs{..} = do
         
         r <- quickTypeCheck1 unused 
             (dir </> "spec.essence")
-            stdArgs{QC.maxSize=5,maxSuccess=left}
+            stdArgs{QC.maxSize=size_,maxSuccess=left, replay}
         case r of
             (Nothing) -> do
                 return (results, ourErrors)
@@ -170,7 +175,7 @@ generateSpecs unused TArgs{..} = do
             True  -> return results
             False -> do
 
-                r <- quickCheckWithResult stdArgs{QC.maxSize=5,maxSuccess}
+                r <- quickCheckWithResult stdArgs{QC.maxSize=size_,maxSuccess, replay}
                     (prop_specs_refine unused 
                         cores_ perSpecTime_ baseDirectory_)
                 let results'  = addResults r results
