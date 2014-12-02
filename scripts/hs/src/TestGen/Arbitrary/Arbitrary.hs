@@ -40,9 +40,9 @@ instance (Arbitrary a, ArbSpec a) => Arbitrary (WithLogs a) where
 
 instance Arbitrary SpecE where
     arbitrary = sized spec
-    -- shrink (SpecE ds es) =
-    --     let sps = map (SpecE ds) (tails2 es)
-    --     in sps
+    shrink (SpecE ds es) =
+        let sps = map (SpecE ds) (tails2 es)
+        in sps
 
 instance ArbSpec SpecE where 
     tyGens   = def

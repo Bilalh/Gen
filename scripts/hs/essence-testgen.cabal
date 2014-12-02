@@ -49,6 +49,8 @@ Library
                      , TestGen.Helpers.SizeOf
                      , TestGen.Prelude
                      , TestGen.QC
+                     , TestGen.QCDebug
+                     , TestGen.QCUnused
     
     
     build-depends    : base
