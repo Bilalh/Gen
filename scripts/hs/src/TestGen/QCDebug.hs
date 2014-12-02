@@ -19,27 +19,6 @@ import qualified Test.QuickCheck.Property as QC
 import Text.Groom(groom)
 
 
-newtype S1 = S1 SpecE
-    deriving Show  
-
-instance Arbitrary S1 where
-    arbitrary = arbitraryDef undefined
-
-instance ArbSpec S1 where
-    getSpec (S1 sp) = sp
-    wrapSpec sp     = S1 sp
-    
-    tyGens _ = def{
-          gen_atype = atype_only [ TBool, TSet TAny  ]
-        , gen_dom   = dom_only [boolDomChoice]
-        , gen_useFunc = myUseFunc
-        }
-
-myUseFunc :: FuncsNames -> Bool 
-myUseFunc Aunion = True
-myUseFunc _      = False
-
-
 newtype S2 = S2 SpecE
     deriving Show  
 
@@ -67,4 +46,23 @@ myUseFunc2 Amax          = False
 myUseFunc2 Adiff         = False
 myUseFunc2 Aunion        = False
 myUseFunc2 Aintersect    = False
+myUseFunc2 Aimage        = False
 myUseFunc2 _             = True
+
+
+newtype S3 = S3 SpecE
+    deriving Show  
+
+instance Arbitrary S3 where
+    arbitrary = arbitraryDef undefined
+
+instance ArbSpec S3 where
+    getSpec (S3 sp) = sp
+    wrapSpec sp     = S3 sp
+    
+    tyGens _ = def{
+            gen_useFunc = myUseFunc2
+        ,   gen_atype   = atype_only [TInt, TBool, TFunc TInt TBool, TSet TAny]  
+        ,   gen_dom     = dom_only [boolDomChoice, setDomChoice ]
+        }
+

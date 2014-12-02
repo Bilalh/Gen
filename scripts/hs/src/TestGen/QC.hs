@@ -237,7 +237,7 @@ prop_typeCheckSave fp _  (WithLogs arb logs) = do
         if res then
             return ()
         else do
-            run $ print . pretty $ doc
+            -- run $ print . pretty $ doc
             run $ print . pretty $ sp
             run $ writeSpec fp sp 
             run $ writeFile (fp <.> "error") (renderWide (doc <+> vcat ["---", prettySpecDebug $ sp] ) )
