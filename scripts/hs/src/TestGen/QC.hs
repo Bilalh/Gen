@@ -35,6 +35,7 @@ import System.IO(IOMode(..),hPutStrLn, openFile, hClose)
 import System.Random(randomRIO)
 
 import Test.QuickCheck
+import Test.QuickCheck.Random(mkQCGen)
 import Test.QuickCheck.Monadic (assert, monadicIO, run)
 import Text.Groom(groom)
 
@@ -78,14 +79,6 @@ typeChecks sp = case fst $ runCompESingle "Error while type checking." $
             -- trace (show e ++ (show . pretty $ sp)) False
         Right () -> (True, "")
 
-infix 4 /==
-(/==) :: (Eq a, Show a) => a -> a -> Property
-x /== y =
-  counterexample (show x ++ " == " ++ show y) (x /= y)
-
-prop_int :: Int -> Property
-prop_int x  = do
-    counterexample (show x) (x < 10)
 
 
 generateSpecs :: ArbSpec a => WithLogs a -> TArgs -> IO ()
@@ -227,31 +220,32 @@ runRefine' cores spec dir specTime = do
 quickTypeCheck1 :: (ArbSpec a) => WithLogs a -> FilePath -> Args ->  IO (Maybe (Int, String))
 quickTypeCheck1 unused fp args = do
     
-    result <- quickCheckWithResult args{chatty=False} (ty unused)
+    result <- quickCheckWithResult args{chatty=False} (prop_typeCheckSave fp unused)
     case result of 
         Failure {numTests,reason, output} -> do
             return (Just (numTests, output ))
         _ -> return Nothing
 
     where
-        ty :: (ArbSpec a) => WithLogs a -> WithLogs a -> Property
-        ty _ (WithLogs arb logs) = do
-            let specE = getSpec arb
-                sp = toSpec specE
-                (res,doc) = typeChecks sp
-            monadicIO $ do
-                if res then
-                    return ()
-                else do
-                    run $ print . pretty $ doc
-                    run $ print . pretty $ sp
-                    run $ writeSpec fp sp 
-                    run $ writeFile (fp <.> "error") (renderWide (doc <+> vcat ["---", prettySpecDebug $ sp] ) )
-                    run $ writeFile (fp <.> "specE") (show specE ++ "\n\n" ++ groom specE)
-                    run $ writeFile (fp <.> "logs") (renderNormal logs)
-                    
-                    
-                    fail (show doc)
+
+prop_typeCheckSave :: (ArbSpec a) => FilePath -> WithLogs a -> WithLogs a -> Property
+prop_typeCheckSave fp _  (WithLogs arb logs) = do
+    let specE = getSpec arb
+        sp = toSpec specE
+        (res,doc) = typeChecks sp
+    monadicIO $ do
+        if res then
+            return ()
+        else do
+            run $ print . pretty $ doc
+            run $ print . pretty $ sp
+            run $ writeSpec fp sp 
+            run $ writeFile (fp <.> "error") (renderWide (doc <+> vcat ["---", prettySpecDebug $ sp] ) )
+            run $ writeFile (fp <.> "specE") (show specE ++ "\n\n" ++ groom specE)
+            run $ writeFile (fp <.> "logs") (renderNormal logs)
+            
+            
+            fail (show doc)
 
 
 
@@ -259,7 +253,13 @@ rmain n =
     quickCheckWith stdArgs{QC.maxSize=n,maxSuccess=50} 
     (prop_specs_refine (undefined :: WithLogs SpecE) 7 10  "__")
 
-cmain unused n = do
+cmain unused seedInt n = do
+
+    int <- case seedInt of 
+            Just i  -> return i 
+            Nothing -> randomRIO (1,2^31)
+
+    seed <- return $ mkQCGen int
 
     c <- getCurrentTime
     let (y,m,d) = toGregorian $ utctDay c
@@ -268,13 +268,14 @@ cmain unused n = do
 
     let dir = home </> "__" </> "logs" </> "cmain"
             </> ( intercalate "-" [show y, padShowInt 2 m, padShowInt 2 d] )
+            </> (show date)
 
     createDirectoryIfMissing True dir
 
     res <- quickCheckWithResult stdArgs{QC.maxSize=n,maxSuccess=2000} 
-        (prop_specs_type_check (unused  ))
+        (prop_typeCheckSave (dir </> "spec.essence") unused  ) 
     case res of
-        Failure{reason, output} ->
-            writeFile (dir </> (show date) <.> "output") output
-
+        f@Failure{reason, output} -> do
+            writeFile (dir </> "spec.output")  (output ++ "\nseed: " ++ (show int) ++ "\n" ++ show f{output=""})
+            putStrLn $ "seed: " ++ (show int)
         _ -> return ()
