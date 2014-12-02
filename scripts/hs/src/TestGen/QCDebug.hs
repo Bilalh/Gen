@@ -53,7 +53,7 @@ myUseFunc2 _             = True
 newtype S3 = S3 SpecE
     deriving Show  
 
-instance Arbitrary S3 where
+instance Arbitrary S3  where
     arbitrary = arbitraryDef undefined
 
 instance ArbSpec S3 where
@@ -65,4 +65,6 @@ instance ArbSpec S3 where
         ,   gen_atype   = atype_only [TInt, TBool, TFunc TInt TBool, TSet TAny]  
         ,   gen_dom     = dom_only [boolDomChoice, setDomChoice ]
         }
+
+
 

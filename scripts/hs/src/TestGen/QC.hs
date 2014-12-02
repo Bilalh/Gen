@@ -194,9 +194,13 @@ generateSpecs unused TArgs{..} = do
                         putStrLn "Time up"
                         return results'
 
-                    (_, True)  -> do
+                    (f@Failure{reason}, True)  -> do
                         saveFailures results' (tmpdir </> (show after) <.> "txt")
+                        writeFile (baseDirectory_ </> reason </> "spec.qc")  ( show f{output=""})
                         helper startTime results'
+                        
+                    (_, True) -> do
+                      helper startTime results'
 
     addResults :: Result ->  [String] -> [String]
     addResults Failure{reason} arr = (reason) : arr

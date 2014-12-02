@@ -30,7 +30,7 @@ argsDef  = TArgs_
              , total_time     = def &= help "Total time to use" &= name "t"
              , per_spec_time  = def &= help "Total time to spend on each spec"
              , rseed          = def &= help "Seed to Use"
-             , size           = def &= help "Max Size "
+             , size           = def &= help "Max depth (5 should be large enough) "
              , cores          = def &= help "Cores to use"
              , typecheck_only = def &= help "Only typechecks the generated specs" &= name "y"
              }

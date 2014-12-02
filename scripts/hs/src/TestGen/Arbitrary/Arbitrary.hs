@@ -64,6 +64,9 @@ spec' :: Depth -> Gen (SpecE, LogsTree)
 spec' = flip spec'' def
 
 
+specwithLogs :: Depth -> Generators -> Gen (WithLogs SpecE)
+specwithLogs depth gens  =  uncurry WithLogs  <$> spec'' depth gens
+
 spec'' :: Depth -> Generators -> Gen (SpecE, LogsTree) 
 spec'' depth _ | depth < 0 = error "spec'' depth < 0"
 spec'' depth gens  = do

@@ -18,7 +18,7 @@ import TestGen.Arbitrary.Arbitrary
 import TestGen.Helpers.Runner(runRefine)
 import TestGen.Helpers.Args(TArgs(..))
 import TestGen.Helpers.Runner(SettingI(..), RefineR)
-import TestGen.Prelude(SpecState, Generators,Domain, listOfBounds,SS(depth_),FG ,ArbSpec(..))
+import TestGen.Prelude
 
 
 import Data.Time
@@ -48,6 +48,7 @@ import TestGen.Arbitrary.Arbitrary(spec'', WithLogs)
 import TestGen.Arbitrary.Type(atype_only)
 
 import TestGen.QC
+import TestGen.QCDebug
 
 
 
@@ -122,3 +123,32 @@ main1 = do
         case failed of
             Just x -> putStrLn $ "The input that failed was:\n" ++ (show $ pretty x)
             Nothing -> putStrLn "The test passed"
+
+
+prop2 dir n gen= do
+    let fp = ""
+    forAll (specwithLogs n gen) $ \(WithLogs specE logs) -> do 
+        let sp        = toSpec specE
+        let (res,doc) = typeChecks sp
+        monadicIO $ do
+            if res then
+                return ()
+            else do
+                -- run $ print . pretty $ doc
+                ts <- run timestamp >>= return . show
+                -- num <- run (randomRIO (10,99) :: IO Int)  >>= return . show
+                let uname  =  (ts)
+                run $ createDirectoryIfMissing True ( dir </> uname)
+                let fp = dir </> uname </> "spec.essence"
+                
+                -- run $ print . pretty $ sp
+                run $ writeSpec fp sp 
+                run $ writeFile (fp <.> "error") (renderWide (doc <+> vcat ["---", prettySpecDebug $ sp] ) )
+                run $ writeFile (fp <.> "specE") (show specE ++ "\n\n" ++ groom specE)
+                run $ writeFile (fp <.> "logs") (renderNormal logs)
+            
+            
+                fail (show doc)
+    
+    
+runprop2 dir n gen  = quickCheckWith stdArgs{QC.maxSize=5,maxSuccess=2000} (prop2 dir n gen)
