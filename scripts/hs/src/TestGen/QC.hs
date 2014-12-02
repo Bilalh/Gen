@@ -264,7 +264,7 @@ cmain unused seedInt n = do
             Just i  -> return i 
             Nothing -> randomRIO (1,2^31)
 
-    seed <- return $ mkQCGen int
+    replay <- return $ Just (mkQCGen int, n)
 
     c <- getCurrentTime
     let (y,m,d) = toGregorian $ utctDay c
@@ -277,10 +277,11 @@ cmain unused seedInt n = do
 
     createDirectoryIfMissing True dir
 
-    res <- quickCheckWithResult stdArgs{QC.maxSize=n,maxSuccess=2000} 
+    res <- quickCheckWithResult stdArgs{QC.maxSize=n,maxSuccess=2000, replay} 
         (prop_typeCheckSave (dir </> "spec.essence") unused  ) 
     case res of
-        f@Failure{reason, output} -> do
+        f@Failure{reason, output, usedSize} -> do
             writeFile (dir </> "spec.output")  (output ++ "\nseed: " ++ (show int) ++ "\n" ++ show f{output=""})
             putStrLn $ "seed: " ++ (show int)
+            putStrLn $ "usedSize: " ++ (show usedSize)
         _ -> return ()
