@@ -4,7 +4,7 @@ set -o nounset
 base=$1;
 shift;
 
-echo "testSample before ${testSample:-testSample}"
+echo "testSample before ${testSample:-}"
 export testSample=${testSample:-testSample}
 
 mkdir -p "$base"
