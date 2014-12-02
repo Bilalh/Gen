@@ -33,7 +33,7 @@ instance ArbSpec S1 where
         , gen_dom   = dom_only [boolDomChoice, setDomChoice
                                , (1 + 1 + 0, myFuncDom)
                                ]
-        , gen_useFunc = myUseFunc
+        , gen_useFunc = myUseFunc2
         }
     
 -- Only return domains like function tuple(Any) -> Int
@@ -48,11 +48,20 @@ myFuncDom = do
 
 -- Allows specifying which function to generate
 -- see TestGen.Arbitrary.Data for full list
-myUseFunc :: FuncsNames -> Bool 
-myUseFunc Amax   = False
-myUseFunc Aparty = False
-myUseFunc Aunion = False
-myUseFunc Aubar  = False
-myUseFunc _      = True
 
+-- These all cause some kind of typechecking error
+myUseFunc2 Atogether     = False
+myUseFunc2 Aapart        = False
+myUseFunc2 Aparticipants = False
+myUseFunc2 Aparty        = False
+myUseFunc2 AtoMSet       = False
+myUseFunc2 Ahist         = False
+myUseFunc2 Aubar         = False
+myUseFunc2 Amin          = False
+myUseFunc2 Amax          = False
+myUseFunc2 Adiff         = False
+myUseFunc2 Aunion        = False
+myUseFunc2 Aintersect    = False
+myUseFunc2 Aimage        = False
+myUseFunc2 _             = True
 
