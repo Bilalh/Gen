@@ -49,6 +49,7 @@ import TestGen.Arbitrary.Type(atype_only)
 
 import TestGen.QC
 import TestGen.QCDebug
+import Test.QuickCheck.Random(mkQCGen)
 
 
 
@@ -150,5 +151,112 @@ prop2 dir n gen= do
             
                 fail (show doc)
     
+     
+
     
 runprop2 dir n gen  = quickCheckWith stdArgs{QC.maxSize=5,maxSuccess=2000} (prop2 dir n gen)
+
+prop3 :: Depth -> Cores ->  Int -> FilePath -> Generators -> Property
+prop3 n cores time out gen = do
+    
+    forAll (specwithLogs n gen) $ \(WithLogs specE logs) -> do 
+        
+        let sp = toSpec specE
+        fst (typeChecks sp) ==>
+            monadicIO $ do
+                ts <- run timestamp >>= return . show
+                num <- run (randomRIO (10,99) :: IO Int)  >>= return . show
+                let uname  =  (ts ++ "_" ++ num )
+                run $ createDirectoryIfMissing True (out </> uname)
+                run $  writeFile (out </> uname </> "spec.logs" ) (renderNormal logs)
+                run $  writeFile (out </> uname </> "spec.specE" ) (show specE)
+            
+
+
+                result <- run $ runRefine' cores sp (out </> uname ) time
+                case successful_ result of
+                    True  -> return ()
+                    False -> fail uname
+
+
+
+generateSpecs2 :: TArgs -> Generators -> IO ()
+generateSpecs2 TArgs{..} gen = do
+    let maxSuccess = totalTime_  `div` perSpecTime_
+    
+    createDirectoryIfMissing  True tmpdir
+    case typecheckOnly_ of 
+        (Just times) -> do
+            error "no typecheckOnly_"
+        
+        Nothing -> do
+            putStrLn "Generating specs, with depth up to size 5"
+            startTime <- round `fmap` getPOSIXTime
+            failed <- helper startTime []
+            saveFailures failed (baseDirectory_ </> "failures.txt")
+
+
+    where
+
+    replay = case rseed_ of 
+        Just iseed ->  Just (mkQCGen iseed, size_)
+        Nothing    -> Nothing
+    
+    
+    tmpdir  = baseDirectory_ </> "temp"
+    
+
+    saveFailures :: [String] -> FilePath -> IO ()
+    saveFailures  = saveFailures' "spec.essence"
+   
+    saveFailures' :: String -> [String] -> FilePath -> IO ()
+    saveFailures' name failed fp  = do 
+        let paths = map (\fn -> baseDirectory_ </> fn </> name) failed
+        print ("Current Failures found" :: String)
+        putStrLn (unlines paths)
+        writeToFile ( fp ) paths             
+    
+    writeToFile name arr =
+      do h <- openFile (name) WriteMode
+         mapM_ (hPutStrLn h) arr
+         hClose h
+
+    helper :: Int -> [String] -> IO [String]
+    helper startTime results = do
+        before <- round `fmap` getPOSIXTime
+
+        let maxSuccess = (totalTime_ - (before - startTime)) `div` perSpecTime_
+
+        case maxSuccess <= 0 of
+            True  -> return results
+            False -> do
+
+                r <- quickCheckWithResult stdArgs{QC.maxSize=size_,maxSuccess, replay}
+                    (prop3 size_ cores_ perSpecTime_ baseDirectory_ gen)
+                let results'  = addResults r results
+
+
+                after <- round `fmap` getPOSIXTime
+                putStrLn $ "Running for " ++ (show $ after - startTime ) ++ " s"
+
+                case (r, after - startTime < totalTime_) of
+
+                    (GaveUp{}, _ ) -> do
+                        putStrLn "Gaveup"
+                        return results'
+
+                    (_, False) -> do
+                        putStrLn "Time up"
+                        return results'
+
+                    (f@Failure{reason}, True)  -> do
+                        saveFailures results' (tmpdir </> (show after) <.> "txt")
+                        writeFile (baseDirectory_ </> reason </> "spec.qc")  ( show f{output=""})
+                        helper startTime results'
+                        
+                    (_, True) -> do
+                      helper startTime results'
+
+    addResults :: Result ->  [String] -> [String]
+    addResults Failure{reason} arr = (reason) : arr
+    addResults _ arr = arr
