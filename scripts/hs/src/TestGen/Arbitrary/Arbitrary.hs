@@ -70,7 +70,7 @@ specwithLogs depth gens  =  uncurry WithLogs  <$> spec'' depth gens
 spec'' :: Depth -> Generators -> Gen (SpecE, LogsTree) 
 spec'' depth _ | depth < 0 = error "spec'' depth < 0"
 spec'' depth gens  = do
-    let state =  def{depth_= depth `div` 2, generators_=gens} 
+    let state =  def{depth_= (depth+1) `div` 2, generators_=gens} 
     
     
     let domsCount = (1, min ((depth+1)*2) 10)
@@ -119,10 +119,10 @@ spec'' depth gens  = do
         name i =  T.pack $  "var" ++  (show  i)
         addDepth s= do
             d <- gets depth_
-            addLog "depth" [nn s d]
+            addLog s [pretty d]
         --
         addStateLog es = do
             ss <- get
-            addLog "final State" [pretty ss]
+            addLog "finalState" [pretty ss]
             return es
     
