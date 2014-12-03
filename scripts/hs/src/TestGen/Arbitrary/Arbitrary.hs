@@ -70,11 +70,13 @@ specwithLogs depth gens  =  uncurry WithLogs  <$> spec'' depth gens
 spec'' :: Depth -> Generators -> Gen (SpecE, LogsTree) 
 spec'' depth _ | depth < 0 = error "spec'' depth < 0"
 spec'' depth gens  = do
-    let state = def{depth_= depth `div` 2, generators_=gens}
+    let state =  def{depth_= depth `div` 2, generators_=gens} 
+    
+    
     let domsCount = (1, min ((depth+1)*2) 10)
     let exprCount = (0, min ((depth+1)*2) 10)
     
-    (doms,state') <- runStateT  ( listOfBounds domsCount dom) state
+    (doms,state') <- runStateT (addDepth "domDepth" >> listOfBounds domsCount dom) state
 
 
     let withNames =  zipWith (\d i -> (name i , Find d)) doms [1 :: Int ..]
@@ -82,7 +84,12 @@ spec'' depth gens  = do
 
 
     let state'' =  state'{doms_=mappings, depth_ =depth, nextNum_ = length doms + 1}
-    (exprs,sfinal) <- runStateT (listOfBounds exprCount expr) state''
+    (exprs,sfinal) <- runStateT 
+            (  addDepth "exprDepth" 
+            >> listOfBounds exprCount expr
+            >>= addStateLog
+            ) 
+        state''
 
     if length withNames == 0 then
         error . show $  vcat . map pretty  $ 
@@ -108,7 +115,14 @@ spec'' depth gens  = do
     else 
         return $ (SpecE mappings exprs, logs_ sfinal)
 
-    where name i =  T.pack $  "var" ++  (show  i)
-
-
+    where 
+        name i =  T.pack $  "var" ++  (show  i)
+        addDepth s= do
+            d <- gets depth_
+            addLog "depth" [nn s d]
+        --
+        addStateLog es = do
+            ss <- get
+            addLog "final State" [pretty ss]
+            return es
     
