@@ -380,11 +380,11 @@ reachableToType d oty@(TSet ity) =  do
                 customM  (TFunc a nb) [ preImage nb **| useFunc ApreImage ]
                     ++| a == ity
                     && d - (fromInteger $ max (depthOf a ) (depthOf nb) ) > 2
-            ,do
-                na <- purgeAny a
-                customM (TFunc na b ) [image na  **| useFunc Aimage ]
-                    ++| b == ity
-                    && d - (fromInteger $ max (depthOf na ) (depthOf b) ) > 2
+            -- ,do
+                -- na <- purgeAny a
+                -- customM (TFunc na b ) [image na  **| useFunc Aimage ]
+                --     ++| b == ity
+                --     && d - (fromInteger $ max (depthOf na ) (depthOf b) ) > 2
 
             ]
 
@@ -393,11 +393,12 @@ reachableToType d oty@(TSet ity) =  do
         preImage pb = do
             ep <- withDepthDec (exprOf pb)
             return $ raise $ (EProc . (flip PpreImage) ep, 1)
-
-        image :: PType -> GG (ToTypeFn, Depth)
-        image pa = do
-            ep <- withDepthDec (exprOf $ TSet pa)
-            return $ raise $ (EProc . Pimage ep, 1)
+        
+        -- Other image `does not exist`
+        -- image :: PType -> GG (ToTypeFn, Depth)
+        -- image pa = do
+        --     ep <- withDepthDec (exprOf $ TSet pa)
+        --     return $ raise $ (EProc . Pimage ep, 1)
 
     process ty = ggError "reachableToType missing"
         ["ty" <+> pretty ty, "oty" <+> pretty oty ]
