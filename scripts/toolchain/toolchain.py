@@ -76,7 +76,7 @@ if __name__ == "__main__":
     startTime = time.time()
     # Make the eprimes
     (essence_refine,refine_wall_time) = run.run_refine_essence(
-        op=op,random=op.num_cores)
+        op=op,random=op.num_cores-1)
     endTime = time.time()
     logger.info("essence_refine: %s", pformat(essence_refine))
     
