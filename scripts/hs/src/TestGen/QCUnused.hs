@@ -8,7 +8,7 @@
 
 module TestGen.QCUnused where
 
-import AST.SpecE 
+import AST.SpecE
 import Language.E hiding(trace)
 import Language.E.Pipeline.ReadIn(writeSpec)
 
@@ -260,3 +260,14 @@ generateSpecs2 TArgs{..} gen = do
     addResults :: Result ->  [String] -> [String]
     addResults Failure{reason} arr = (reason) : arr
     addResults _ arr = arr
+    
+computeSize' a n d
+          -- e.g. with maxSuccess = 250, maxSize = 100, goes like this:
+          -- 0, 1, 2, ..., 99, 0, 1, 2, ..., 99, 0, 2, 4, ..., 98.
+          | n `roundTo` QC.maxSize a +  QC.maxSize a <= maxSuccess a ||
+            n >= maxSuccess a ||
+            maxSuccess a `mod`  QC.maxSize a == 0 = (n `mod`  QC.maxSize a + d `div` 10) `min`  QC.maxSize a
+          | otherwise =
+            ((n `mod`  QC.maxSize a) *  QC.maxSize a `div` (maxSuccess a `mod`  QC.maxSize a) + d `div` 10) `min`  QC.maxSize a
+
+n `roundTo` m = (n `div` m) * m    

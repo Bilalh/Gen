@@ -13,6 +13,7 @@ data TArgs_ = TArgs_{base_directory  :: Maybe FilePath
                  , size           :: Maybe Int
                  , cores          :: Maybe Int
                  , typecheck_only :: Maybe Int
+                 , run_tool_chain :: Bool
                 }  deriving (Show, Data, Typeable)
 
 data TArgs  = TArgs{baseDirectory_  :: FilePath
@@ -22,6 +23,7 @@ data TArgs  = TArgs{baseDirectory_  :: FilePath
                  , size_            :: Int
                  , cores_           :: Int
                  , typecheckOnly_   :: Maybe Int
+                 , runToolchain_    :: Bool
                 }  deriving (Show, Data, Typeable)
 
 argsDef :: TArgs_
@@ -33,6 +35,8 @@ argsDef  = TArgs_
              , size           = def &= help "Max depth (5 should be large enough) "
              , cores          = def &= help "Cores to use"
              , typecheck_only = def &= help "Only typechecks the generated specs" &= name "y"
+             , run_tool_chain = def &= help "Run Conjure(refine) + SR + Minion + translate + validate + consistently checking"
+                                    &= name "a"
              }
          &= summary (unlines ["TestSample Version 1.0"
                              , "Git version: " ++ autoVersion
@@ -51,9 +55,10 @@ parseArgs = do
     let size_           = f size "size"
     let cores_          = f cores          "cores"
     let typecheckOnly_  = typecheck_only 
+    let runToolchain_   = run_tool_chain
 
-
-    return $ TArgs{baseDirectory_,totalTime_, perSpecTime_,rseed_,cores_, typecheckOnly_, size_}
+    return $ TArgs{baseDirectory_,totalTime_, perSpecTime_,rseed_,cores_
+                  , typecheckOnly_, size_, runToolchain_}
 
     where
     f Nothing n = error $ "--" ++ n ++ " needs to be specified"

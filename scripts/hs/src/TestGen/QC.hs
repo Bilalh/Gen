@@ -15,9 +15,9 @@ import Language.E.Pipeline.ReadIn(writeSpec)
 import Common.Helpers(timestamp)
 
 import TestGen.Arbitrary.Arbitrary
-import TestGen.Helpers.Runner(runRefine)
+import TestGen.Helpers.Runner(runRefine,runToolChain1)
 import TestGen.Helpers.Args(TArgs(..))
-import TestGen.Helpers.Runner(SettingI(..), RefineR)
+import TestGen.Helpers.Runner(SettingI(..), RefineR, SolveR)
 import TestGen.Prelude(SpecState, Generators,Domain, listOfBounds,SS(depth_),FG ,ArbSpec(..))
 
 
@@ -42,7 +42,8 @@ import Text.Groom(groom)
 import TestGen.QCDebug
 
 type Cores = Int
-prop_specs_refine :: ArbSpec a => WithLogs a -> Cores ->  Int -> FilePath -> WithLogs a -> Property
+prop_specs_refine :: ArbSpec a => 
+    WithLogs a -> Cores ->  Int -> FilePath -> WithLogs a -> Property
 prop_specs_refine  _ cores time out (WithLogs arb logs) = do
     let specE = getSpec arb
         sp    = toSpec specE
@@ -61,6 +62,31 @@ prop_specs_refine  _ cores time out (WithLogs arb logs) = do
             case successful_ result of
                 True  -> return ()
                 False -> fail uname
+
+prop_specs_toolchain :: ArbSpec a => 
+    WithLogs a -> Cores ->  Int -> FilePath -> WithLogs a -> Property
+prop_specs_toolchain  _ cores time out (WithLogs arb logs) = do
+    let specE = getSpec arb
+        sp    = toSpec specE
+    fst (typeChecks sp) ==>
+        monadicIO $ do
+            ts <- run timestamp >>= return . show
+            num <- run (randomRIO (10,99) :: IO Int)  >>= return . show
+            let uname  =  (ts ++ "_" ++ num )
+            run $ createDirectoryIfMissing True (out </> uname)
+            run $  writeFile (out </> uname </> "spec.logs" ) (renderNormal logs)
+            run $  writeFile (out </> uname </> "spec.specE" ) (show specE)
+            
+
+
+            result <- run $ runToolchain' cores sp (out </> uname ) time
+            case result of
+                (Left SettingI{successful_=False })        -> fail uname
+                ( Right (_, SettingI{successful_=False}) ) -> fail uname
+                -- TODO uneeded?
+                ( Right (_, SettingI{consistent_=False}) ) -> fail uname
+                _  -> return ()
+
 
 
 prop_specs_type_check ::  ArbSpec a => a -> a -> Property
@@ -108,6 +134,13 @@ generateSpecs unused TArgs{..} = do
 
 
     where
+
+    prop_run = 
+        if runToolchain_ then
+            prop_specs_toolchain
+        else
+            prop_specs_refine
+    
 
     replay = case rseed_ of 
         Just iseed ->  Just (mkQCGen iseed, size_)
@@ -176,7 +209,7 @@ generateSpecs unused TArgs{..} = do
             False -> do
 
                 r <- quickCheckWithResult stdArgs{QC.maxSize=size_,maxSuccess, replay}
-                    (prop_specs_refine unused 
+                    (prop_run unused 
                         cores_ perSpecTime_ baseDirectory_)
                 let results'  = addResults r results
 
@@ -205,25 +238,6 @@ generateSpecs unused TArgs{..} = do
     addResults :: Result ->  [String] -> [String]
     addResults Failure{reason} arr = (reason) : arr
     addResults _ arr = arr
-
-takeFileName' :: FilePath -> FilePath
-takeFileName' fp = case reverse fp of
-    ('/': xs) -> takeFileName (reverse xs)
-    _         -> takeFileName fp
-
-runRefine' :: Int -> Spec -> FilePath -> Int -> IO RefineR
-runRefine' cores spec dir specTime = do
-    print . pretty $ spec
-
-    createDirectoryIfMissing True  dir
-
-    let name = (dir </> "spec" <.> ".essence")
-    writeSpec name spec
-
-    let specLim = specTime
-    result <- runRefine cores name dir specLim
-    putStrLn . groom $  result
-    return result
 
 
 quickTypeCheck1 :: (ArbSpec a) => WithLogs a -> FilePath -> Args ->  IO (Maybe (Int, String))
@@ -258,6 +272,41 @@ prop_typeCheckSave fp _  (WithLogs arb logs) = do
 
 
 
+takeFileName' :: FilePath -> FilePath
+takeFileName' fp = case reverse fp of
+    ('/': xs) -> takeFileName (reverse xs)
+    _         -> takeFileName fp
+
+runRefine' :: Int -> Spec -> FilePath -> Int -> IO RefineR
+runRefine' cores spec dir specTime = do
+    print . pretty $ spec
+
+    createDirectoryIfMissing True  dir
+
+    let name = (dir </> "spec" <.> ".essence")
+    writeSpec name spec
+
+    let specLim = specTime
+    result <- runRefine cores name dir specLim
+    putStrLn . groom $  result
+    return result
+
+
+runToolchain' :: Int -> Spec -> FilePath -> Int -> IO  (Either RefineR (RefineR, SolveR ) )
+runToolchain' cores spec dir specTime = do
+    print . pretty $ spec
+
+    createDirectoryIfMissing True  dir
+
+    let name = (dir </> "spec" <.> ".essence")
+    writeSpec name spec
+
+    let specLim = specTime
+    result <- runToolChain1 cores name dir specLim
+    putStrLn . groom $  result
+    return result
+
+
 rmain n =
     quickCheckWith stdArgs{QC.maxSize=n,maxSuccess=50} 
     (prop_specs_refine (undefined :: WithLogs SpecE) 7 10  "__")
@@ -289,3 +338,5 @@ cmain unused seedInt n = do
             putStrLn $ "seed: " ++ (show int)
             putStrLn $ "usedSize: " ++ (show usedSize)
         _ -> return ()
+
+

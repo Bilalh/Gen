@@ -92,10 +92,14 @@ getJSON fp = do
         return Nothing
 
 runToolChain :: FilePath -> FilePath -> Int -> IO (Either RefineR (RefineR, SolveR ) )
-runToolChain spec dir timeou = do
+runToolChain = runToolChain1 4
+
+runToolChain1 :: Int -> FilePath -> FilePath -> Int -> IO (Either RefineR (RefineR, SolveR ) )
+runToolChain1 cores spec dir timeou = do
     pg <- getEnv "PARAM_GEN_SCRIPTS"
     let toolchain= pg </> "toolchain" </> "toolchain.py"
-        args = [spec, "--outdir", dir , "--timeout", show timeou]
+        args = [spec, "--outdir", dir 
+               ,"--timeout", show timeou, "--num_cores", (show cores)]
     putStrLn $ "cmd: " ++ toolchain ++ " " ++ foldl1 (\a b -> a ++ " " ++ b) args
     _       <- rawSystem toolchain args
     refineF <- getJSON $ dir </> "refine_essence.json"
