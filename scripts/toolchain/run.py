@@ -7,7 +7,7 @@ import shlex
 import itertools
 import hashlib
 
-import commands
+import conjureOld
 
 from datetime import datetime
 from pathlib import Path
@@ -32,14 +32,15 @@ def hash_path(path):
 # global function for run_refine_essence
 # because nested function can't be pickled
 def run_refine(kwargs,i):
+    commands = conjureOld
     if i == 0:
         eprime =  kwargs['outdir'] / "comp.eprime"
         c=shlex.split(commands.ConjureCompact.format(
             eprime=eprime, **kwargs))
-    else:   
+    else:
         eprime = kwargs['outdir'] / "{:04}.eprime".format(i)
         c=shlex.split(commands.ConjureRandom.format(eprime=eprime, **kwargs))
-        
+
     logger.warn("running %s", c)
     (res, output) = run_with_timeout(kwargs['itimeout'], c)
     return ((eprime.stem,res.__dict__), " ".join(c) + "\n" + output)
@@ -93,6 +94,7 @@ def run_solve(op, limit, eprime):
     essence_solution = eprime.with_suffix(".solution")
     minion           = eprime.with_suffix(".minion")
 
+    commands = conjureOld
     cmds = [commands.ParamRefine, commands.SR, commands.UP, commands.Vaildate]
     results=[]
     outputs=[]

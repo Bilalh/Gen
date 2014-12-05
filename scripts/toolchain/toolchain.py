@@ -20,10 +20,8 @@ from enum import Enum
 
 import args
 import run
-import commands
 
 from run import Status
-from commands import ParamRefine, SR, UP, Vaildate
 import time
 
 logger = logging.getLogger(__name__)
@@ -79,7 +77,7 @@ if __name__ == "__main__":
         op=op,random=op.num_cores-1)
     endTime = time.time()
     logger.info("essence_refine: %s", pformat(essence_refine))
-    
+
 
     successful =  all(  res['status_'] in [Status.success, Status.timeout]
             for res in essence_refine.values() )
@@ -88,17 +86,17 @@ if __name__ == "__main__":
             successful=successful, consistent=True)
     with (op.outdir / "refine_essence.json" ).open("w") as f:
         f.write(json.dumps(settings, indent=True,sort_keys=True,default=obj_to_json ))
-    
+
 
     if op.refine_only:
         sys.exit(0)
 
     # Use the sum of all wall time used by all processorss
     # limit = op.timeout - refine_wall_time
-    
-    # use clock time 
+
+    # use clock time
     limit = op.timeout - (startTime - endTime)
-    
+
     if limit <=0:
         logger.warn("No time left after refine")
         sys.exit(2)
