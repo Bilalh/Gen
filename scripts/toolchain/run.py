@@ -53,8 +53,7 @@ def run_refine_essence(*,op,compact=True,random=3):
 
     rr = partial(run_refine,mapping)
     pool = Pool()
-    rnds = list(pool.map(rr,range(0,random)))
-
+    rnds = list(pool.map(rr,range(0,random+1)))
     (results,outputs) =list(zip( *(  rnds ) ))
 
     with (op.outdir / "_refine.output").open("w") as f:
