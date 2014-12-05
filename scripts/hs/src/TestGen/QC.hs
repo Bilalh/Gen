@@ -116,7 +116,7 @@ prop_specs_toolchain  _ cores time out (WithLogs arb logs) = do
                 return mvDir
 
         a <- run $ M.traverseWithKey f ms
-        run $ removeDirectory (out </> uname)
+        run $ removeDirectoryRecursive (out </> uname)
 
         fail (M.elems a !! 0)
 
