@@ -28,7 +28,8 @@ import qualified Data.Text as T
 import qualified Test.QuickCheck as QC
 import qualified Test.QuickCheck.Property as QC
 
-import System.Directory(createDirectoryIfMissing, getHomeDirectory, doesFileExist, renameDirectory, removeDirectory)
+import System.Directory(createDirectoryIfMissing, getHomeDirectory, doesFileExist
+                       ,renameDirectory, removeDirectory,removeDirectoryRecursive)
 import System.FilePath((</>), (<.>), takeFileName)
 import System.IO(IOMode(..),hPutStrLn, openFile, hClose)
 import System.Random(randomRIO)
