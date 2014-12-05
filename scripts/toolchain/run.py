@@ -52,7 +52,7 @@ def run_refine_essence(*,op,compact=True,random=3):
     mapping['itimeout'] = int(math.ceil(limit))
 
     rr = partial(run_refine,mapping)
-    pool = Pool()
+    pool = Pool(random+1)
     rnds = list(pool.map(rr,range(0,random+1)))
     (results,outputs) =list(zip( *(  rnds ) ))
 
