@@ -95,9 +95,6 @@ prop_specs_toolchain  _ cores time out (WithLogs arb logs) = do
 
             result <- run $ runToolchain' cores sp (out </> uname ) time
             classifyError uname result
-                -- (Left SettingI{successful_=False })        -> fail uname
-                -- ( Right (_, SettingI{successful_=False}) ) -> fail uname
-                -- ( Right (_, SettingI{consistent_=False}) ) -> fail uname
 
     where
     errdir  = out </> "_errors"
@@ -110,16 +107,18 @@ prop_specs_toolchain  _ cores time out (WithLogs arb logs) = do
     classifyError uname (Right (_, SettingI{successful_=False,data_=SolveM ms })) = do
 
         let
+            f _ ResultI{last_status=Success_} = return ""
             f k ResultI{last_status} = do
                 let mvDir = errdir </> (show last_status)
                 createDirectoryIfMissing True mvDir
                 system $ concat $ intersperse " " ["cp -r", esc (out </> uname ), esc mvDir  ]
                 return mvDir
 
+
         a <- run $ M.traverseWithKey f ms
         run $ removeDirectoryRecursive (out </> uname)
 
-        fail (M.elems a !! 0)
+        fail ( (M.elems . M.filter (/= "") ) a !! 0)
 
     --TODO check
     classifyError uname (Right (_, SettingI{consistent_=False})) = do
