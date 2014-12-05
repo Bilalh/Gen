@@ -1,4 +1,4 @@
-{-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
+    {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
 
 {-# LANGUAGE RecordWildCards, NamedFieldPuns, ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
@@ -15,9 +15,8 @@ import Language.E.Pipeline.ReadIn(writeSpec)
 import Common.Helpers(timestamp)
 
 import TestGen.Arbitrary.Arbitrary
-import TestGen.Helpers.Runner(runRefine,runToolChain1)
+import TestGen.Helpers.Runner
 import TestGen.Helpers.Args(TArgs(..))
-import TestGen.Helpers.Runner(SettingI(..), RefineR, SolveR)
 import TestGen.Prelude(SpecState, Generators,Domain, listOfBounds,SS(depth_),FG ,ArbSpec(..))
 
 
@@ -29,10 +28,11 @@ import qualified Data.Text as T
 import qualified Test.QuickCheck as QC
 import qualified Test.QuickCheck.Property as QC
 
-import System.Directory(createDirectoryIfMissing, getHomeDirectory, doesFileExist)
+import System.Directory(createDirectoryIfMissing, getHomeDirectory, doesFileExist, renameDirectory, removeDirectory)
 import System.FilePath((</>), (<.>), takeFileName)
 import System.IO(IOMode(..),hPutStrLn, openFile, hClose)
 import System.Random(randomRIO)
+import System.Process(system)
 
 import Test.QuickCheck
 import Test.QuickCheck.Random(mkQCGen)
@@ -40,6 +40,8 @@ import Test.QuickCheck.Monadic (assert, monadicIO, run)
 import Text.Groom(groom)
 
 import TestGen.QCDebug
+
+import Data.Traversable(for)
 
 type Cores = Int
 prop_specs_refine :: ArbSpec a => 
@@ -52,16 +54,27 @@ prop_specs_refine  _ cores time out (WithLogs arb logs) = do
             ts <- run timestamp >>= return . show
             num <- run (randomRIO (10,99) :: IO Int)  >>= return . show
             let uname  =  (ts ++ "_" ++ num )
-            run $ createDirectoryIfMissing True (out </> uname)
-            run $  writeFile (out </> uname </> "spec.logs" ) (renderNormal logs)
-            run $  writeFile (out </> uname </> "spec.specE" ) (show specE)
+            let outdir =  (out </> uname)
+            run $ createDirectoryIfMissing True outdir
+            run $  writeFile (outdir </> "spec.logs" ) (renderNormal logs)
+            run $  writeFile (outdir </> "spec.specE" ) (show specE)
             
-
-
             result <- run $ runRefine' cores sp (out </> uname ) time
+                        
             case successful_ result of
                 True  -> return ()
-                False -> fail uname
+                False -> classifyError outdir result
+
+    where 
+    errdir  = out </> "_errors"
+    classifyError uname result = do
+        let mvDir = errdir </> "refine" </> uname
+        run $ createDirectoryIfMissing True mvDir
+        run $ renameDirectory (out </> uname) mvDir
+        fail $ mvDir
+
+
+esc s = "'" ++ s ++ "'"
 
 prop_specs_toolchain :: ArbSpec a => 
     WithLogs a -> Cores ->  Int -> FilePath -> WithLogs a -> Property
@@ -73,21 +86,48 @@ prop_specs_toolchain  _ cores time out (WithLogs arb logs) = do
             ts <- run timestamp >>= return . show
             num <- run (randomRIO (10,99) :: IO Int)  >>= return . show
             let uname  =  (ts ++ "_" ++ num )
-            run $ createDirectoryIfMissing True (out </> uname)
-            run $  writeFile (out </> uname </> "spec.logs" ) (renderNormal logs)
-            run $  writeFile (out </> uname </> "spec.specE" ) (show specE)
+            let outdir =  (out </> uname)
+            run $ createDirectoryIfMissing True outdir
+            run $  writeFile (outdir </> "spec.logs" ) (renderNormal logs)
+            run $  writeFile (outdir </> "spec.specE" ) (show specE)
             
 
-
             result <- run $ runToolchain' cores sp (out </> uname ) time
-            case result of
-                (Left SettingI{successful_=False })        -> fail uname
-                ( Right (_, SettingI{successful_=False}) ) -> fail uname
-                -- TODO uneeded?
-                ( Right (_, SettingI{consistent_=False}) ) -> fail uname
-                _  -> return ()
+            classifyError uname result
+                -- (Left SettingI{successful_=False })        -> fail uname
+                -- ( Right (_, SettingI{successful_=False}) ) -> fail uname
+                -- ( Right (_, SettingI{consistent_=False}) ) -> fail uname
 
+    where
+    errdir  = out </> "_errors"
+    classifyError uname (Left SettingI{successful_=False }) = do
+        let mvDir = errdir </> "refine" </> uname
+        run $ createDirectoryIfMissing True mvDir
+        run $ renameDirectory (out </> uname ) mvDir
+        fail $ mvDir
 
+    classifyError uname (Right (_, SettingI{successful_=False,data_=SolveM ms })) = do
+
+        let
+            f k ResultI{last_status} = do
+                let mvDir = errdir </> (show last_status)
+                createDirectoryIfMissing True mvDir
+                system $ concat $ intersperse " " ["cp -r", esc (out </> uname ), esc mvDir  ]
+                return mvDir
+
+        a <- run $ M.traverseWithKey f ms
+        run $ removeDirectory (out </> uname)
+
+        fail (M.elems a !! 0)
+
+    --TODO check
+    classifyError uname (Right (_, SettingI{consistent_=False})) = do
+        let mvDir = errdir </> "not_consistent" </> uname
+        run $ createDirectoryIfMissing True mvDir
+        run $ renameDirectory (out </> uname) mvDir
+        fail $ mvDir
+
+    classifyError _ _ =  return ()
 
 prop_specs_type_check ::  ArbSpec a => a -> a -> Property
 prop_specs_type_check _ arb = do
@@ -148,6 +188,7 @@ generateSpecs unused TArgs{..} = do
     
     
     tmpdir  = baseDirectory_ </> "temp"
+    errdir  = baseDirectory_ </> "_errors"
     
 
     saveFailures :: [String] -> FilePath -> IO ()
@@ -307,15 +348,17 @@ runToolchain' cores spec dir specTime = do
     return result
 
 
+rmain :: Int -> IO ()
 rmain n =
     quickCheckWith stdArgs{QC.maxSize=n,maxSuccess=50} 
     (prop_specs_refine (undefined :: WithLogs SpecE) 7 10  "__")
 
+cmain :: ArbSpec a => WithLogs a -> Maybe Int -> Int -> IO ()
 cmain unused seedInt n = do
 
-    int <- case seedInt of 
+    int :: Int <- case seedInt of 
             Just i  -> return i 
-            Nothing -> randomRIO (1,2^31)
+            Nothing -> randomRIO (1 :: Int,2^31)
 
     replay <- return $ Just (mkQCGen int, n)
 
