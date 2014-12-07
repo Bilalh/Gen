@@ -62,9 +62,13 @@ def run_refine_essence(*, op, commands, random):
 
 
     results_unique = {}
-    for result in results:
+    for (result, output) in zip(results, outputs):
         (eprime_name, _) = result
         ep = (op.outdir/ eprime_name).with_suffix(".eprime")
+        log = ep.with_suffix('.output')
+        with log.open('w') as f:
+            f.write(output)
+
         if not ep.exists():
             results_unique[eprime_name] = result
             continue
@@ -76,6 +80,7 @@ def run_refine_essence(*, op, commands, random):
                     eprime_name, results_unique[hf][0] )
             ep.unlink()
             ep.with_suffix(".eprime.logs").unlink()
+            ep.with_suffix(".output").unlink()
 
 
     return (dict(results_unique.values()), sum( data['real_time']
