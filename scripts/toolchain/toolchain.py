@@ -21,6 +21,8 @@ from enum import Enum
 import args
 import run
 
+import command
+
 from run import Status
 import time
 
@@ -60,8 +62,18 @@ if __name__ == "__main__":
 
 
     setup_logging(op.outdir)
+
     logger.info("info")
     logger.warn("warn")
+
+
+    if op.new_conjure:
+        # commands = command.conjure_new
+        assert False
+    else:
+        commands = command.conjure_old
+
+
 
     def obj_to_json(obj):
         if isinstance(obj, Enum):
@@ -74,7 +86,7 @@ if __name__ == "__main__":
     startTime = time.time()
     # Make the eprimes
     (essence_refine,refine_wall_time) = run.run_refine_essence(
-        op=op,random=op.num_cores-1)
+        op=op,commands=commands, random=op.num_cores-1)
     endTime = time.time()
     logger.info("essence_refine: %s", pformat(essence_refine))
 
@@ -102,7 +114,7 @@ if __name__ == "__main__":
         sys.exit(2)
 
     # Run the SR Minion translate and vaildate
-    solve_op = partial(run.run_solve, op, limit)
+    solve_op = partial(run.run_solve, op, commands, limit)
     eprimes = op.outdir.glob('*.eprime')
 
     pool = Pool()

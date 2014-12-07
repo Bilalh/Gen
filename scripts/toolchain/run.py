@@ -1,24 +1,21 @@
 import logging
 import math
 import os
-import sys
 import subprocess
 import shlex
-import itertools
 import hashlib
 
-import conjureOld
 
 from datetime import datetime
-from pathlib import Path
 from pprint import pprint, pformat
 
 from collections import namedtuple
-from enum import Enum,IntEnum, unique
+from enum import Enum, unique
 from functools import partial
 from multiprocessing import Pool
 from textwrap import indent
 
+from command import K
 
 logger = logging.getLogger(__name__)
 
@@ -31,31 +28,31 @@ def hash_path(path):
 
 # global function for run_refine_essence
 # because nested function can't be pickled
-def run_refine(kwargs,i):
-    commands = conjureOld
+def run_refine(commands, kwargs, i):
     if i == 0:
-        eprime =  kwargs['outdir'] / "comp.eprime"
-        c=shlex.split(commands.ConjureCompact.format(
-            eprime=eprime, **kwargs))
+        eprime = kwargs['outdir'] / "comp.eprime"
+        (cmd_kind, cmd_template) = commands.refine_compact
     else:
         eprime = kwargs['outdir'] / "{:04}.eprime".format(i)
-        c=shlex.split(commands.ConjureRandom.format(eprime=eprime, **kwargs))
+        (cmd_kind, cmd_template) = commands.refine_random
 
-    logger.warn("running %s", c)
-    (res, output) = run_with_timeout(kwargs['itimeout'], c)
-    return ((eprime.stem,res.__dict__), " ".join(c) + "\n" + output)
+    cmd_arr=shlex.split(cmd_template.format(eprime=eprime, **kwargs))
 
-def run_refine_essence(*,op,compact=True,random=3):
+    logger.warn("running %s:  %s", cmd_kind, cmd_arr)
+    (res, output) = run_with_timeout(kwargs['itimeout'], cmd_kind, cmd_arr)
+    return ((eprime.stem, res.__dict__), " ".join(cmd_arr) + "\n" + output)
+
+def run_refine_essence(*, op, commands, random):
     limit = op.timeout
     date_start = datetime.utcnow()
 
-    mapping = dict(essence=op.essence,outdir=op.outdir)
+    mapping = dict(essence=op.essence, outdir=op.outdir)
     mapping['itimeout'] = int(math.ceil(limit))
 
-    rr = partial(run_refine,mapping)
-    pool = Pool(random+1)
-    rnds = list(pool.map(rr,range(0,random+1)))
-    (results,outputs) =list(zip( *(  rnds ) ))
+    rr = partial(run_refine, commands, mapping)
+    pool = Pool(random + 1)
+    rnds = list(pool.map(rr, range(0, random + 1)))
+    (results, outputs) =list(zip( *(  rnds ) ))
 
     with (op.outdir / "_refine.output").open("w") as f:
         f.write("\n".join(outputs))
@@ -66,7 +63,7 @@ def run_refine_essence(*,op,compact=True,random=3):
 
     results_unique = {}
     for result in results:
-        (eprime_name,_) = result
+        (eprime_name, _) = result
         ep = (op.outdir/ eprime_name).with_suffix(".eprime")
         if not ep.exists():
             results_unique[eprime_name] = result
@@ -82,10 +79,10 @@ def run_refine_essence(*,op,compact=True,random=3):
 
 
     return (dict(results_unique.values()), sum( data['real_time']
-                for (_,data) in results  ) )
+                for (_, data) in results  ) )
 
 
-def run_solve(op, limit, eprime):
+def run_solve(op, commands, limit, eprime):
     essence          = op.essence
     essence_param    = op.param
     eprime_param     = eprime.with_suffix(".eprime-param")
@@ -94,8 +91,7 @@ def run_solve(op, limit, eprime):
     essence_solution = eprime.with_suffix(".solution")
     minion           = eprime.with_suffix(".minion")
 
-    commands = conjureOld
-    cmds = [commands.ParamRefine, commands.SR, commands.UP, commands.Vaildate]
+    cmds = [commands.refine_param, commands.savilerow, commands.translate_up, commands.validate]
     results=[]
     outputs=[]
     total_cpu_time=0
@@ -106,23 +102,23 @@ def run_solve(op, limit, eprime):
     last_status=Status.success
 
 
-    for (i,cmd) in enumerate(cmds):
+    for i, (cmd_kind, cmd_template) in enumerate(cmds):
 
         # always perform solution translation and vaildation
-        if cmd in {commands.UP, commands.Vaildate}:
+        if cmd_kind in {"translate_up", "validate"}:
             limit = max([limit, 10])
 
         if limit <= 0:
-            logger.warn("### NO_TIME_LEFT before cmd %s", c)
+            logger.warn("### NO_TIME_LEFT before cmd %s %s", cmd_kind, cmd_template)
             all_finished=False
             break
 
         itimeout=int(math.ceil(limit))
-        mstimeout=itimeout*1000
+        mstimeout=itimeout * 1000
 
-        c=shlex.split(cmd.format(**locals()))
+        c=shlex.split(cmd_template.format(**locals()))
         logger.warn("running %s", c)
-        (res, output) = run_with_timeout(limit, c)
+        (res, output) = run_with_timeout(limit, cmd_kind, c)
 
         dres = res.__dict__
         results.append(dres)
@@ -137,36 +133,36 @@ def run_solve(op, limit, eprime):
 
         if res.status_ == Status.timeout:
             logger.warn("###TIMEDOUT(%0.2f) for cmd \n%s\n%s", otimeout,
-                    " ".join(c), indent(output," \t") )
+                    " ".join(c), indent(output, " \t") )
             all_finished=False
             break
         elif res.status_ != Status.success:
             logger.warn("###ERROR %s for cmd \n%s\n%s",
-                    res.status_, " ".join(c), indent(output," \t") )
+                    res.status_, " ".join(c), indent(output, " \t") )
             erroed=i
             all_finished=False
             last_status = res.status_
             break
-        elif cmd == commands.UP:
+        elif cmd_kind == K.translateUp:
             solving_finished=True
 
-        if cmd == commands.SR and not eprime_solution.exists():
+        if cmd_kind == K.savilerow and not eprime_solution.exists():
             logger.info("No eprime solution")
             solving_finished=True
-            break;
+            break
 
     ret = dict(results=results,
-                total_cpu_time=total_cpu_time,
-                total_real_time=total_real_time,
-                all_finished=all_finished,
-                solving_finished=solving_finished,
-                erroed=erroed,
-                last_status=last_status)
+            total_cpu_time=total_cpu_time,
+            total_real_time=total_real_time,
+            all_finished=all_finished,
+            solving_finished=solving_finished,
+            erroed=erroed,
+            last_status=last_status)
 
     with eprime.with_suffix(".output").open("w") as f:
         f.write("\n".join(outputs))
 
-    return (eprime.stem,ret)
+    return (eprime.stem, ret)
 
 
 @unique
@@ -179,7 +175,7 @@ class Status(Enum):
 
 errors_not_useful = {Status.numberToLarge}
 
-def classify_error(c,e):
+def classify_error(c, e):
     if "savilerow" in c:
         if "java.lang.NumberFormatException: For input string: " in e.output:
             return Status.numberToLarge
@@ -188,8 +184,8 @@ def classify_error(c,e):
 
     return Status.errorUnknown
 
-Results = namedtuple("Results", "rcode cpu_time real_time timeout finished cmd, status_")
-def run_with_timeout(timeout, cmd):
+Results = namedtuple("Results", "rcode cpu_time real_time timeout finished cmd status_ kind")
+def run_with_timeout(timeout, kind, cmd):
     code = 0
     finished = True
     status = Status.success
@@ -203,7 +199,7 @@ def run_with_timeout(timeout, cmd):
         output = e.output
         code = e.returncode
         finished = False
-        status = classify_error(cmd,e)
+        status = classify_error(cmd, e)
 
     # does not work with Pool.map
     end_usr = os.times().children_user
@@ -215,27 +211,28 @@ def run_with_timeout(timeout, cmd):
     cputime_taken = (end_usr - start_usr) + (end_sys - start_sys)
 
 
-    if "conjure" in cmd and "Timed out" in output:
+    if (kind == K.refineCompact or kind == K.refineRandom) \
+            and "Timed out" in output:
         status=Status.timeout
         finished=False
 
     # Might be simpler to run SR and minion our self
-    if code == 0 and "savilerow" in cmd:
+    if code == 0 and kind == K.savilerow:
         if "Savile Row timed out" in output:
             finished = False
             status=Status.timeout
         else:
             with open(cmd[13]) as f:
-                (m_timeout,m_total,sr_real)  = [float(l.split(":")[1])
+                (m_timeout, m_total, sr_real)  = [float(l.split(":")[1])
                         for l in f.readlines()
                     if l.split(":")[0] in
-                         {"MinionTimeOut","MinionTotalTime","SavileRowTotalTime"}]
+                        {"MinionTimeOut", "MinionTotalTime", "SavileRowTotalTime"}]
                 if int(m_timeout) == 1:
-                    if cputime_taken == 0: #Best we can do at this point
-                        #because some killed processes don't return cputime
+                    if cputime_taken == 0:  # Best we can do at this point
+                        # because some killed processes don't return cputime
                         logger.warn("Adding %2.0f to cpu_taken(%2.0f) cpu timeout",
                             m_total, cputime_taken)
-                        cputime_taken +=  sr_real
+                        cputime_taken += sr_real
                     cputime_taken+=m_total
                     finished=False
                     status=Status.timeout
@@ -247,5 +244,5 @@ def run_with_timeout(timeout, cmd):
 
     return (Results(rcode=code,
                   cpu_time=cputime_taken, real_time=diff.total_seconds(),
-                  timeout=timeout, finished=finished,cmd=cmd, status_=status)
-           ,output)
+                  timeout=timeout, finished=finished,
+                  cmd=cmd, status_=status, kind=kind), output)

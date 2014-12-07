@@ -3,23 +3,48 @@
 import logging
 logger = logging.getLogger(__name__)
 
-ConjureCompact = """
+from enum import Enum, unique
+
+@unique
+class K(Enum):
+    refineCompact = 0,
+    refineRandom  = 2,
+    refineParam   = 3,
+    savilerow     = 4,
+    translateUp   = 5,
+    validate      = 6
+
+
+class Commands(object):
+	"""Functions for Old Conjure"""
+	def __init__(self, *, refine_compact, refine_random, refine_param, savilerow, translate_up, validate):
+		super(Commands, self).__init__()
+		self.refine_compact = (K.refineCompact, refine_compact)
+		self.refine_random = (K.refineRandom, refine_random)
+		self.refine_param = (K.refineParam, refine_param)
+		self.savilerow = (K.savilerow, savilerow)
+		self.translate_up = (K.translateUp, translate_up)
+		self.validate = (K.validate, validate)
+
+
+conjure_old = Commands(
+refine_compact="""
 time conjure
     --mode compact
     --in-essence {essence}
     --out-eprime {eprime}
     --timelimit  {itimeout}
-"""
+""",
 
-ConjureRandom = """
+refine_random="""
 time conjure
     --mode random
     --in-essence {essence}
     --out-eprime {eprime}
     --timelimit  {itimeout}
-"""
+""",
 
-ParamRefine="""
+refine_param="""
 time conjure
     --mode       refineParam
     --in-essence       {essence}
@@ -27,9 +52,9 @@ time conjure
     --in-essence-param {essence_param}
     --out-eprime-param {eprime_param}
     --timelimit        {itimeout}
-"""
+""",
 
-SR ="""
+savilerow="""
 time savilerow  -mode Normal
     -in-eprime                   {eprime}
     -in-param                    {eprime_param}
@@ -39,9 +64,9 @@ time savilerow  -mode Normal
     -run-solver
     -timelimit                   {mstimeout}
     -solver-options '-timelimit {itimeout}'
-"""
+""",
 
-UP = """
+translate_up="""
 time conjure
     --mode translateSolution
     --in-essence            {essence}
@@ -51,12 +76,13 @@ time conjure
     --in-essence-param      {essence_param}
     --in-eprime-param       {eprime_param}
     --timelimit             {itimeout}
-"""
+""",
 
-Vaildate= """
+validate="""
 time conjure --mode validateSolution
              --in-essence       {essence}
              --in-solution      {essence_solution}
              --in-param         {essence_param}
              --timelimit        {itimeout}
 """
+)
