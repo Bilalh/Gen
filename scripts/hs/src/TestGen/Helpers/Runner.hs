@@ -27,6 +27,16 @@ data StatusI =
     | HeapSpace_
     deriving (Show,Eq,Enum,Generic)
 
+data KindI =
+      RefineCompact_
+    | RefineRandom_
+    | RefineParam_
+    | Savilerow_
+    | TranslateUp_
+    | Validate_
+    deriving (Show,Eq,Enum,Generic)
+
+
 data ResultI = ResultI {
          erroed          :: Maybe Int
         ,last_status     :: StatusI
@@ -42,6 +52,7 @@ data CmdI = CmdI {
     ,finished  :: Bool
     ,timeout   :: Float
     ,status_   :: StatusI
+    ,kind_     :: KindI  
     ,cmd       :: [String]
 
 } deriving(Show, Generic)
@@ -69,6 +80,9 @@ instance ToJSON   CmdI
 
 instance FromJSON StatusI
 instance ToJSON   StatusI
+
+instance FromJSON KindI
+instance ToJSON   KindI
 
 newtype RefineM = RefineM (Map String CmdI) deriving Show
 instance FromJSON RefineM where

@@ -189,7 +189,7 @@ def classify_error(c, e):
 
     return Status.errorUnknown
 
-Results = namedtuple("Results", "rcode cpu_time real_time timeout finished cmd status_ kind")
+Results = namedtuple("Results", "rcode cpu_time real_time timeout finished cmd status_ kind_")
 def run_with_timeout(timeout, kind, cmd):
     code = 0
     finished = True
@@ -250,4 +250,4 @@ def run_with_timeout(timeout, kind, cmd):
     return (Results(rcode=code,
                   cpu_time=cputime_taken, real_time=diff.total_seconds(),
                   timeout=timeout, finished=finished,
-                  cmd=cmd, status_=status, kind=kind), output)
+                  cmd=cmd, status_=status, kind_=kind), output)
