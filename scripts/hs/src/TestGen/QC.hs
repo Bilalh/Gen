@@ -110,9 +110,10 @@ prop_specs_toolchain  _ cores time out (WithLogs arb logs) = do
             allow :: String -> FilePath -> Bool
             allow k f  
                 | k `isPrefixOf` f      = True
-                | "json" `isSuffixOf` f  = True
-                | "_" `isPrefixOf` f     = True
-                | otherwise              = False
+                | "spec" `isPrefixOf` f = True
+                | "json" `isSuffixOf` f = True
+                | "_" `isPrefixOf` f    = True
+                | otherwise             = False
         
             f k CmdI{status_, kind_ } = do
                 let mvDir = errdir </> (show kind_) </> (show status_) </> uname
@@ -142,9 +143,10 @@ prop_specs_toolchain  _ cores time out (WithLogs arb logs) = do
             allow :: String -> FilePath -> Bool
             allow k f  
                 | k `isPrefixOf` f      = True
-                | "json" `isSuffixOf` f  = True
-                | "_" `isPrefixOf` f     = True
-                | otherwise              = False
+                | "spec" `isPrefixOf` f = True
+                | "json" `isSuffixOf` f = True
+                | "_" `isPrefixOf` f    = True
+                | otherwise             = False
         
             f k ResultI{last_status, erroed= Just index, results } = do
                 let kind = kind_ (results !! index)
