@@ -115,7 +115,7 @@ if __name__ == "__main__":
     # limit = op.timeout - refine_wall_time
 
     # use clock time
-    limit = op.timeout - (startTime - endTime)
+    limit = op.timeout - (endTime - startTime )
 
     if limit <=0:
         logger.warn("No time left after refine")
