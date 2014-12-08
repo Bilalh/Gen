@@ -29,7 +29,8 @@ import qualified Test.QuickCheck as QC
 import qualified Test.QuickCheck.Property as QC
 
 import System.Directory(createDirectoryIfMissing, getHomeDirectory, doesFileExist
-                       ,renameDirectory, removeDirectory,removeDirectoryRecursive)
+                       ,renameDirectory, removeDirectory,removeDirectoryRecursive
+                       ,getDirectoryContents, copyFile)
 import System.FilePath((</>), (<.>), takeFileName)
 import System.IO(IOMode(..),hPutStrLn, openFile, hClose)
 import System.Random(randomRIO)
@@ -98,34 +99,72 @@ prop_specs_toolchain  _ cores time out (WithLogs arb logs) = do
 
     where
     errdir  = out </> "_errors"
-    classifyError uname (Left SettingI{successful_=False }) = do
-        let mvDir = errdir </> "refine" </> uname
-        run $ createDirectoryIfMissing True mvDir
-        run $ renameDirectory (out </> uname ) mvDir
-        fail $ mvDir
+
+    classifyError uname (Left SettingI{successful_=False,data_=RefineM ms  }) = do
+        let inErrDir = errdir </> "zall" </> uname
+        run $ createDirectoryIfMissing True inErrDir
+        run $ renameDirectory (out </> uname ) inErrDir
+        
+        
+        let
+            allow :: String -> FilePath -> Bool
+            allow k f  
+                | k `isPrefixOf` f      = True
+                | "json" `isSuffixOf` f  = True
+                | "_" `isPrefixOf` f     = True
+                | otherwise              = False
+        
+            f k CmdI{status_, kind_ } = do
+                let mvDir = errdir </> (show kind_) </> (show status_)
+                createDirectoryIfMissing True mvDir                
+                fps <- getDirectoryContents inErrDir
+                let needed =  filter (allow k) fps
+
+                forM needed $ \f -> do
+                    copyFile (inErrDir </> f) (mvDir </> f)
+                
+                return mvDir                
+
+        run $ M.traverseWithKey f ms
+
+        fail inErrDir
+    
 
     classifyError uname (Right (_, SettingI{successful_=False,data_=SolveM ms })) = do
 
+        let inErrDir = errdir </> "zall" </> uname
+        run $ createDirectoryIfMissing True inErrDir
+        run $ renameDirectory (out </> uname ) inErrDir
+        
+
         let
-            f _ ResultI{last_status=Success_} = return ""
-            f k ResultI{last_status} = do
-                let mvDir = errdir </> (show last_status)
+        
+            allow :: String -> FilePath -> Bool
+            allow k f  
+                | k `isPrefixOf` f      = True
+                | "json" `isSuffixOf` f  = True
+                | "_" `isPrefixOf` f     = True
+                | otherwise              = False
+        
+            f k ResultI{last_status, erroed= Just index, results } = do
+                let kind = kind_ (results !! index)
+                let mvDir = errdir </> (show kind) </> (show last_status)
                 createDirectoryIfMissing True mvDir
-                system $ concat $ intersperse " " ["cp -r", esc (out </> uname ), esc mvDir  ]
+                
+                fps <- getDirectoryContents inErrDir
+                let needed =  filter (allow k) fps
+
+                forM needed $ \f -> do
+                    copyFile (inErrDir </> f) (mvDir </> f)
+                
                 return mvDir
+                
 
+            f _ _ = return ""
 
-        a <- run $ M.traverseWithKey f ms
-        run $ removeDirectoryRecursive (out </> uname)
+        run $ M.traverseWithKey f ms
 
-        fail ( (M.elems . M.filter (/= "") ) a !! 0)
-
-    --TODO check
-    classifyError uname (Right (_, SettingI{consistent_=False})) = do
-        let mvDir = errdir </> "not_consistent" </> uname
-        run $ createDirectoryIfMissing True mvDir
-        run $ renameDirectory (out </> uname) mvDir
-        fail $ mvDir
+        fail inErrDir 
 
     classifyError _ _ =  return ()
 
@@ -162,16 +201,15 @@ generateSpecs unused TArgs{..} = do
             saveFailures' "gen.error" ourErrors (baseDirectory_ </> "genErrors.txt")
         
         Nothing -> do
-            --  Sanity check
-            putStrLn "Typechecking 2000 random specs, with depth up to size 5"
-            quickCheckWith stdArgs{QC.maxSize=size_,maxSuccess=2000, replay}
-                (prop_specs_type_check unused )
+            -- --  Sanity check
+            -- putStrLn "Typechecking 2000 random specs, with depth up to size 5"
+            -- quickCheckWith stdArgs{QC.maxSize=size_,maxSuccess=2000, replay}
+            --     (prop_specs_type_check unused )
             putStrLn "Generating specs, with depth up to size 5"
             startTime <- round `fmap` getPOSIXTime
     
             failed <- helper startTime []
             saveFailures failed (baseDirectory_ </> "failures.txt")
-
 
     where
 
