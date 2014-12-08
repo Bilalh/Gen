@@ -17,6 +17,7 @@ from pathlib import Path
 from pprint import pprint, pformat
 from multiprocessing import Pool
 from enum import Enum
+from shutil import which
 
 import args
 import run
@@ -25,6 +26,7 @@ import command
 
 from run import Status
 import time
+import random
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +44,7 @@ def with_settings(results, *, op, time_taken, successful, consistent):
 if __name__ == "__main__":
 
     op = args.do_args()
+
     def setup_logging(outdir):
         p = outdir / "_toolchain.log"
 
@@ -65,13 +68,19 @@ if __name__ == "__main__":
 
     logger.info("info")
     logger.warn("warn")
+    random.seed(op.seed)
 
 
-    if op.new_conjure:
-        # commands = command.conjure_new
-        assert False
-    else:
-        commands = command.conjure_old
+    commands = command.conjure_new
+    # if op.new_conjure:
+    #     if not which('conjureNew'):
+    #         print('conjureNew not in $PATH')
+    #         sys.exit(5)
+
+    #     commands = command.conjure_new
+
+    # else:
+    #     commands = command.conjure_old
 
 
 
@@ -85,19 +94,19 @@ if __name__ == "__main__":
 
     startTime = time.time()
     # Make the eprimes
-    (essence_refine,refine_wall_time) = run.run_refine_essence(
-        op=op,commands=commands, random=op.num_cores-1)
+    (essence_refine, refine_wall_time) = run.run_refine_essence(
+        op=op, commands=commands, random=op.num_cores - 1)
     endTime = time.time()
     logger.info("essence_refine: %s", pformat(essence_refine))
 
 
-    successful =  all(  res['status_'] in [Status.success, Status.timeout]
+    successful = all(  res['status_'] in [Status.success, Status.timeout]
             for res in essence_refine.values() )
-    settings = with_settings(essence_refine,op=op,
+    settings = with_settings(essence_refine, op=op,
             time_taken=refine_wall_time,
             successful=successful, consistent=True)
     with (op.outdir / "refine_essence.json" ).open("w") as f:
-        f.write(json.dumps(settings, indent=True,sort_keys=True,default=obj_to_json ))
+        f.write(json.dumps(settings, indent=True, sort_keys=True, default=obj_to_json ))
 
 
     if op.refine_only:
@@ -121,25 +130,25 @@ if __name__ == "__main__":
     solve_results = dict(pool.map(solve_op, eprimes))
     logger.info("solve_results: %s", pformat(essence_refine))
 
-    solve_wall_time = sum(  res['total_real_time'] for res in  solve_results.values()  )
-    successful = all(  not res['erroed']  for res in  solve_results.values() )
+    solve_wall_time = sum(  res['total_real_time'] for res in solve_results.values()  )
+    successful = all( not res['erroed'] for res in solve_results.values() )
 
 
     # checks that all eprimes that were solved either have a solution
     # or don't have a solution
     def is_consistent():
-        fin_names = [ k for (k,v) in solve_results.items()
+        fin_names = [ k for (k, v) in solve_results.items()
                         if not v['erroed'] and v['solving_finished'] ]
         sol_exist = [ (op.outdir / name).with_suffix(".solution").exists()
                         for name in fin_names ]
         return all(sol_exist) or all( [ not b for b in sol_exist])
 
     settings = with_settings(solve_results, op=op,
-            time_taken=solve_wall_time, successful=successful,consistent=is_consistent())
+            time_taken=solve_wall_time, successful=successful, consistent=is_consistent())
 
     with (op.outdir / "solve_eprime.json" ).open("w") as f:
         f.write(json.dumps(settings,
-            indent=True,sort_keys=True,default=obj_to_json ))
+            indent=True, sort_keys=True, default=obj_to_json ))
 
 # logger.info("\033[1;31mtotal_cpu_time:%0.2f  total_real_time:%0.2f\033[1;0m",
 #         total_cpu_time, total_real_time)

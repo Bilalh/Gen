@@ -86,3 +86,60 @@ time conjure --mode validateSolution
              --timelimit        {itimeout}
 """
 )
+
+conjure_new = Commands(
+refine_compact="""
+time conjureNew {essence}
+    -q f -a r
+    --numbering-start {index}
+    --limit-time      {itimeout}
+    --seed            {seed}
+    --verbose-trail
+""",
+
+refine_random="""
+time conjureNew {essence}
+    -q f -a r
+    --output-directory {outdir}
+    --numbering-start  {index}
+    --limit-time       {itimeout}
+    --seed             {seed}
+    --verbose-trail
+""",
+
+refine_param="""
+time conjureNew refine-param
+    --eprime        {eprime}
+    --essence-param {essence_param}
+    --eprime-param  {eprime_param}
+""",
+
+savilerow="""
+time savilerow  -mode Normal
+    -in-eprime                   {eprime}
+    -in-param                    {eprime_param}
+    -out-minion                  {minion}
+    -out-solution                {eprime_solution}
+    -out-info                    {eprime_info}
+    -run-solver
+    -timelimit                   {mstimeout}
+    -solver-options '-timelimit  {itimeout}'
+""",
+
+translate_up="""
+time conjureNew translate-solution
+    --eprime           {eprime}
+    --essence-param    {essence_param}
+    --eprime-solution  {eprime_solution}
+    --essence-solution {essence_solution}
+""",
+
+validate="""
+time conjureNew validate-solution
+             --essence      {essence}
+             --param        {essence_param}
+             --solution     {essence_solution}
+"""
+)
+
+

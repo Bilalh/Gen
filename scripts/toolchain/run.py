@@ -16,6 +16,8 @@ from multiprocessing import Pool
 from textwrap import indent
 
 from command import K
+import command
+import random
 
 logger = logging.getLogger(__name__)
 
@@ -36,9 +38,10 @@ def run_refine(commands, kwargs, i):
         eprime = kwargs['outdir'] / "model{:06}.eprime".format(i)
         (cmd_kind, cmd_template) = commands.refine_random
 
-    cmd_arr=shlex.split(cmd_template.format(eprime=eprime, **kwargs))
+    seed = kwargs['seed_base'] + i
+    cmd_arr=shlex.split(cmd_template.format(eprime=eprime, index=i, seed=seed, **kwargs))
 
-    logger.warn("running %s:  %s", cmd_kind, cmd_arr)
+    logger.warn("running %s:  %s\n\t%s", cmd_kind, cmd_arr, " ".join(cmd_arr))
     (res, output) = run_with_timeout(kwargs['itimeout'], cmd_kind, cmd_arr)
     return ((eprime.stem, res.__dict__), " ".join(cmd_arr) + "\n" + output)
 
@@ -47,7 +50,8 @@ def run_refine_essence(*, op, commands, random):
     date_start = datetime.utcnow()
 
     mapping = dict(essence=op.essence, outdir=op.outdir)
-    mapping['itimeout'] = int(math.ceil(limit))
+    mapping['itimeout']  = int(math.ceil(limit))
+    mapping['seed_base'] = uniform_int(0, 2 ** 24)
 
     rr = partial(run_refine, commands, mapping)
     pool = Pool(random + 1)
@@ -79,13 +83,17 @@ def run_refine_essence(*, op, commands, random):
             logger.warn("Removing eprime %s it a duplicate of %s",
                     eprime_name, results_unique[hf][0] )
             ep.unlink()
-            ep.with_suffix(".eprime.logs").unlink()
+
+            if commands == command.conjure_old:
+                ep.with_suffix(".eprime.logs").unlink()
             ep.with_suffix(".output").unlink()
 
 
     return (dict(results_unique.values()), sum( data['real_time']
                 for (_, data) in results  ) )
 
+def uniform_int(l, u):
+    return math.ceil(random.uniform(l - 1, u))
 
 def run_solve(op, commands, limit, eprime):
     essence          = op.essence
