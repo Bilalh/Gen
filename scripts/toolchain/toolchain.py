@@ -71,16 +71,15 @@ if __name__ == "__main__":
     random.seed(op.seed)
 
 
-    commands = command.conjure_new
-    # if op.new_conjure:
-    #     if not which('conjureNew'):
-    #         print('conjureNew not in $PATH')
-    #         sys.exit(5)
+    if op.new_conjure:
+        if not which('conjureNew'):
+            print('conjureNew not in $PATH')
+            sys.exit(5)
 
-    #     commands = command.conjure_new
+        commands = command.conjure_new
 
-    # else:
-    #     commands = command.conjure_old
+    else:
+        commands = command.conjure_old
 
 
 
