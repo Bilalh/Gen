@@ -30,10 +30,10 @@ def hash_path(path):
 # because nested function can't be pickled
 def run_refine(commands, kwargs, i):
     if i == 0:
-        eprime = kwargs['outdir'] / "comp.eprime"
+        eprime = kwargs['outdir'] / "model000000.eprime"
         (cmd_kind, cmd_template) = commands.refine_compact
     else:
-        eprime = kwargs['outdir'] / "{:04}.eprime".format(i)
+        eprime = kwargs['outdir'] / "model{:06}.eprime".format(i)
         (cmd_kind, cmd_template) = commands.refine_random
 
     cmd_arr=shlex.split(cmd_template.format(eprime=eprime, **kwargs))
@@ -180,11 +180,12 @@ class Status(Enum):
 
 errors_not_useful = {Status.numberToLarge}
 
-def classify_error(c, e):
-    if "savilerow" in c:
+def classify_error(kind, c, e):
+    if kind == K.savilerow:
         if "java.lang.NumberFormatException: For input string: " in e.output:
             return Status.numberToLarge
-    if "conjure" in c and e.returncode == 252:
+    if kind in {K.refineRandom, K.refineCompact, K.refineParam, K.translateUp, K.validate} \
+            and e.returncode == 252:
         return Status.heapSpace
 
     return Status.errorUnknown
@@ -204,7 +205,7 @@ def run_with_timeout(timeout, kind, cmd):
         output = e.output
         code = e.returncode
         finished = False
-        status = classify_error(cmd, e)
+        status = classify_error(kind, cmd, e)
 
     # does not work with Pool.map
     end_usr = os.times().children_user
