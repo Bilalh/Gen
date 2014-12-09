@@ -83,7 +83,7 @@ spec'' depth gens  = do
     let mappings  = M.fromList withNames
 
 
-    let state'' =  state'{doms_=mappings, depth_ =depth, nextNum_ = length doms + 1}
+    let state'' =  state'{doms_=mappings, depth_ =depth + 1, nextNum_ = length doms + 1}
     (exprs,sfinal) <- runStateT 
             (  addDepth "exprDepth" 
             >> listOfBounds exprCount expr
