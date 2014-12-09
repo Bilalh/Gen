@@ -115,11 +115,13 @@ runToolChain1 :: Bool -> Int -> FilePath -> FilePath -> Int
 runToolChain1 newConjure cores spec dir timeou  = do
     seed <- randomRIO (0,2^24) :: IO Int
     
+    let nc = if newConjure then "--new_conjure" else ""
+    
     pg <- getEnv "PARAM_GEN_SCRIPTS"
     let toolchain= pg </> "toolchain" </> "toolchain.py"
         args = [spec, "--outdir", dir 
                ,"--timeout", show timeou
-               , "--num_cores", (show cores), "--seed", (show seed)]
+               , "--num_cores", (show cores), "--seed", (show seed), nc]
     putStrLn $ "cmd: " ++ toolchain ++ " " ++ foldl1 (\a b -> a ++ " " ++ b) args
     _       <- rawSystem toolchain args
     refineF <- getJSON $ dir </> "refine_essence.json"
@@ -131,14 +133,18 @@ runToolChain1 newConjure cores spec dir timeou  = do
         (r, s)            -> error . show $ (r,s)
 
 runRefine :: Int -> FilePath -> FilePath -> Int -> IO RefineR
-runRefine cores spec dir timeou = do
+runRefine = runRefine1 False
+
+runRefine1 :: Bool -> Int -> FilePath -> FilePath -> Int -> IO RefineR
+runRefine1 newConjure cores spec dir timeou = do
     seed <- randomRIO (0,2^24) :: IO Int
+    let nc = if newConjure then "--new_conjure" else ""
     
     pg <- getEnv "PARAM_GEN_SCRIPTS"
     let toolchain= pg </> "toolchain" </> "toolchain.py"
         args = [spec, "--refine_only", "--outdir", dir
                , "--timeout", show timeou
-               , "--num_cores", (show cores), "--seed", (show seed)]
+               , "--num_cores", (show cores), "--seed", (show seed), nc]
     putStrLn $ "cmd: " ++ toolchain ++ " " ++ foldl1 (\a b -> a ++ " " ++ b) args
     _       <- rawSystem toolchain args
     refineF <- getJSON $ dir </> "refine_essence.json"

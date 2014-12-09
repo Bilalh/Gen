@@ -50,8 +50,8 @@ import System.Random(RandomGen(split),setStdGen, mkStdGen)
 type Cores = Int
 
 prop_specs_refine :: ArbSpec a => 
-    WithLogs a -> Cores ->  Int -> FilePath -> WithLogs a -> Property
-prop_specs_refine  _ cores time out (WithLogs arb logs) = do
+    WithLogs a -> Cores ->  Int -> FilePath -> Bool -> WithLogs a -> Property
+prop_specs_refine  _ cores time out newConjure (WithLogs arb logs) = do
     let specE = getSpec arb
         sp    = toSpec specE
     fst (typeChecks sp) ==>
@@ -64,7 +64,7 @@ prop_specs_refine  _ cores time out (WithLogs arb logs) = do
             run $  writeFile (outdir </> "spec.logs" ) (renderNormal logs)
             run $  writeFile (outdir </> "spec.specE" ) (show specE)
             
-            result <- run $ runRefine' cores sp (out </> uname ) time
+            result <- run $ runRefine' cores sp (out </> uname ) time newConjure
                         
             case successful_ result of
                 True  -> return ()
@@ -209,7 +209,7 @@ generateSpecs unused TArgs{..} = do
         if runToolchain_ then
             prop_specs_toolchain unused cores_ perSpecTime_ baseDirectory_ newConjure_
         else
-            prop_specs_refine unused cores_ perSpecTime_ baseDirectory_
+            prop_specs_refine unused cores_ perSpecTime_ baseDirectory_ newConjure_
     
     
     tmpdir  = baseDirectory_ </> "temp"
@@ -352,8 +352,8 @@ takeFileName' fp = case reverse fp of
     ('/': xs) -> takeFileName (reverse xs)
     _         -> takeFileName fp
 
-runRefine' :: Int -> Spec -> FilePath -> Int -> IO RefineR
-runRefine' cores spec dir specTime = do
+runRefine' :: Int -> Spec -> FilePath -> Int -> Bool -> IO RefineR
+runRefine' cores spec dir specTime newConjure = do
     print . pretty $ spec
 
     createDirectoryIfMissing True  dir
@@ -362,7 +362,7 @@ runRefine' cores spec dir specTime = do
     writeSpec name spec
 
     let specLim = specTime
-    result <- runRefine cores name dir specLim
+    result <- runRefine1 newConjure cores name dir specLim
     putStrLn . groom $  result
     return result
 
