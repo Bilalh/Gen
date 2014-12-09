@@ -10,7 +10,7 @@ import System.Console.CmdArgs.Implicit
 data TArgs_ = TArgs_{base_directory  :: Maybe FilePath
                  , total_time     :: Maybe Int
                  , per_spec_time  :: Maybe Int
-                 , rseed          :: Maybe Int
+                 , seed           :: Maybe Int
                  , size           :: Maybe Int
                  , cores          :: Maybe Int
                  , typecheck_only :: Maybe Int
@@ -35,7 +35,7 @@ argsDef  = TArgs_
              , total_time     = def &= help "Total time to use" 
                                     &= name "t"
              , per_spec_time  = def &= help "Total time to spend on each spec"
-             , rseed          = def &= help "Seed to Use"
+             , seed           = def &= help "Seed to Use"
              , size           = def &= help "Max depth (5 should be large enough) "
              , cores          = def &= help "Cores to use"
              , typecheck_only = def &= help "Only typechecks the generated specs" 
@@ -59,7 +59,7 @@ parseArgs = do
     let baseDirectory_  = f base_directory "base-directory"
     let totalTime_      = f total_time     "total-time"
     let perSpecTime_    = f per_spec_time  "per-spec-time"
-    let rseed_          = rseed
+    let rseed_          = seed
     let size_           = f size "size"
     let cores_          = f cores          "cores"
     let typecheckOnly_  = typecheck_only 

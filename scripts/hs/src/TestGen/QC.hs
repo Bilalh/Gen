@@ -1,4 +1,4 @@
-    {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
+{-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
 
 {-# LANGUAGE RecordWildCards, NamedFieldPuns, ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
@@ -18,7 +18,7 @@ import TestGen.Arbitrary.Arbitrary
 import TestGen.Helpers.Runner
 import TestGen.Helpers.Args(TArgs(..))
 import TestGen.Prelude(SpecState, Generators,Domain, listOfBounds,SS(depth_),FG ,ArbSpec(..))
-
+import TestGen.Helpers.QuickCheck2(quickCheckWithResult2)
 
 import Data.Time
 import Data.Time.Clock.POSIX(getPOSIXTime)
@@ -37,7 +37,7 @@ import System.Random(randomRIO)
 import System.Process(system)
 
 import Test.QuickCheck
-import Test.QuickCheck.Random(mkQCGen)
+import Test.QuickCheck.Random(mkQCGen,QCGen)
 import Test.QuickCheck.Monadic (assert, monadicIO, run)
 import Text.Groom(groom)
 
@@ -45,7 +45,10 @@ import TestGen.QCDebug
 
 import Data.Traversable(for)
 
+import System.Random(RandomGen(split),setStdGen, mkStdGen)
+
 type Cores = Int
+
 prop_specs_refine :: ArbSpec a => 
     WithLogs a -> Cores ->  Int -> FilePath -> WithLogs a -> Property
 prop_specs_refine  _ cores time out (WithLogs arb logs) = do
@@ -166,35 +169,26 @@ prop_specs_toolchain  _ cores time out newConjure (WithLogs arb logs) = do
 
     classifyError _ _ =  return ()
 
-prop_specs_type_check ::  ArbSpec a => a -> a -> Property
-prop_specs_type_check _ arb = do
-    let specE = getSpec arb
-        sp = toSpec specE
-        (res,doc) = typeChecks sp
-    counterexample
-        (show doc ++ (show $ pretty sp) )
-        (res)
-
-typeChecks :: Spec -> (Bool, Doc)
-typeChecks sp = case fst $ runCompESingle "Error while type checking." $
-    typeCheckSpec sp of
-        Left  e  -> (False, e)
-            -- trace (show e ++ (show . pretty $ sp)) False
-        Right () -> (True, "")
-
-
 
 generateSpecs :: ArbSpec a => WithLogs a -> TArgs -> IO ()
 generateSpecs unused TArgs{..} = do
     let maxSuccess = totalTime_  `div` perSpecTime_
     
     createDirectoryIfMissing  True tmpdir
+    
+    rgenS <- case rseed_ of 
+            Nothing    -> return Nothing
+            Just iseed -> do 
+                setStdGen (mkStdGen iseed)
+                return $ Just $ mkQCGen iseed
+
+    
     case typecheckOnly_ of 
         (Just times) -> do
             putStrLn $ "Type checking " ++ (show times) ++ 
                 " random specs, with depth up to size 5"
             
-            (failed, ourErrors) <- typecheckHelper times [] [] 0
+            (failed, ourErrors) <- typecheckHelper rgenS times [] [] 0
             saveFailures failed (baseDirectory_ </> "failures.txt")
             saveFailures' "gen.error" ourErrors (baseDirectory_ </> "genErrors.txt")
         
@@ -206,7 +200,7 @@ generateSpecs unused TArgs{..} = do
             putStrLn "Generating specs, with depth up to size 5"
             startTime <- round `fmap` getPOSIXTime
     
-            failed <- helper startTime []
+            failed <- helper rgenS startTime []
             saveFailures failed (baseDirectory_ </> "failures.txt")
 
     where
@@ -216,11 +210,6 @@ generateSpecs unused TArgs{..} = do
             prop_specs_toolchain unused cores_ perSpecTime_ baseDirectory_ newConjure_
         else
             prop_specs_refine unused cores_ perSpecTime_ baseDirectory_
-    
-
-    replay = case rseed_ of 
-        Just iseed ->  Just (mkQCGen iseed, size_)
-        Nothing    -> Nothing
     
     
     tmpdir  = baseDirectory_ </> "temp"
@@ -242,8 +231,15 @@ generateSpecs unused TArgs{..} = do
          mapM_ (hPutStrLn h) arr
          hClose h
 
-    helper :: Int -> [String] -> IO [String]
-    helper startTime results = do
+    splitGen :: Maybe QCGen -> (Maybe QCGen, Maybe QCGen)
+    splitGen Nothing = (Nothing, Nothing)
+    splitGen (Just rnd) = let (a,b) = split rnd in
+        (Just a, Just b)
+
+    helper :: Maybe QCGen -> Int -> [String] -> IO [String]
+    helper rgenS startTime results = do
+        let (rgen, rgenN) =  splitGen rgenS
+        
         before <- round `fmap` getPOSIXTime
 
         let maxSuccess = (totalTime_ - (before - startTime)) `div` perSpecTime_
@@ -252,10 +248,9 @@ generateSpecs unused TArgs{..} = do
             True  -> return results
             False -> do
 
-                r <- quickCheckWithResult stdArgs{QC.maxSize=size_,maxSuccess, replay}
+                r <- quickCheckWithResult2 rgen stdArgs{QC.maxSize=size_,maxSuccess}
                     prop_run
                 let results'  = addResults r results
-
 
                 after <- round `fmap` getPOSIXTime
                 putStrLn $ "Running for " ++ (show $ after - startTime ) ++ " s"
@@ -273,27 +268,30 @@ generateSpecs unused TArgs{..} = do
                     (f@Failure{reason}, True)  -> do
                         saveFailures results' (tmpdir </> (show after) <.> "txt")
                         writeFile (baseDirectory_ </> reason </> "spec.qc")  ( show f{output=""})
-                        helper startTime results'
+                        helper rgenN startTime results'
                         
                     (_, True) -> do
-                      helper startTime results'
+                        helper rgenN startTime results'
 
     addResults :: Result ->  [String] -> [String]
     addResults Failure{reason} arr = (reason) : arr
     addResults _ arr = arr
 
 
-    typecheckHelper :: Int -> [String] -> [String] -> Int -> IO ([String], [String])
-    typecheckHelper left results ourErrors index = do 
+    typecheckHelper :: Maybe QCGen -> Int -> [String] -> [String] -> Int 
+        -> IO ([String], [String])
+    typecheckHelper rgenS left results ourErrors index = do 
+        let (rgen, rgenN) =  splitGen rgenS
+        
         putStrLn $ "left: " ++ (show left)
         
         let indexStr = padShowInt 4 index
             dir = baseDirectory_ </> (indexStr)
         createDirectoryIfMissing True dir
         
-        r <- quickTypeCheck1 unused 
+        r <- quickTypeCheck1 rgen unused 
             (dir </> "spec.essence")
-            stdArgs{QC.maxSize=size_,maxSuccess=left, replay}
+            stdArgs{QC.maxSize=size_,maxSuccess=left}
         case r of
             (Nothing) -> do
                 return (results, ourErrors)
@@ -311,16 +309,16 @@ generateSpecs unused TArgs{..} = do
                                 
                 let leftAfter = left - count
                 if leftAfter > 0 then
-                    typecheckHelper (leftAfter) results' ourErrors' (index+1)
+                    typecheckHelper rgenN (leftAfter) results' ourErrors' (index+1)
                 else
                     return (results', ourErrors')
     
 
 
-quickTypeCheck1 :: (ArbSpec a) => WithLogs a -> FilePath -> Args ->  IO (Maybe (Int, String))
-quickTypeCheck1 unused fp args = do
+quickTypeCheck1 :: (ArbSpec a) => Maybe QCGen -> WithLogs a -> FilePath -> Args ->  IO (Maybe (Int, String))
+quickTypeCheck1 rgen unused fp args = do
     
-    result <- quickCheckWithResult args{chatty=False} (prop_typeCheckSave fp unused)
+    result <- quickCheckWithResult2 rgen args{chatty=False} (prop_typeCheckSave fp unused)
     case result of 
         Failure {numTests,reason, output} -> do
             return (Just (numTests, output ))
@@ -382,6 +380,23 @@ runToolchain' cores spec dir specTime newConjure = do
     result <- runToolChain1 newConjure cores name dir specLim 
     putStrLn . groom $  result
     return result
+
+
+prop_specs_type_check ::  ArbSpec a => a -> a -> Property
+prop_specs_type_check _ arb = do
+    let specE = getSpec arb
+        sp = toSpec specE
+        (res,doc) = typeChecks sp
+    counterexample
+        (show doc ++ (show $ pretty sp) )
+        (res)
+
+typeChecks :: Spec -> (Bool, Doc)
+typeChecks sp = case fst $ runCompESingle "Error while type checking." $
+    typeCheckSpec sp of
+        Left  e  -> (False, e)
+            -- trace (show e ++ (show . pretty $ sp)) False
+        Right () -> (True, "")
 
 
 rmain :: Int -> IO ()

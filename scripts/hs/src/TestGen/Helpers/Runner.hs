@@ -17,6 +17,8 @@ import System.Process(rawSystem)
 import qualified Data.Aeson as A
 import qualified Data.ByteString.Lazy as B
 
+import System.Random(randomRIO)
+
 -- For reading json from toolchain.py
 
 data StatusI =
@@ -111,10 +113,13 @@ runToolChain = runToolChain1 False 4
 runToolChain1 :: Bool -> Int -> FilePath -> FilePath -> Int  
     -> IO (Either RefineR (RefineR, SolveR ) )
 runToolChain1 newConjure cores spec dir timeou  = do
+    seed <- randomRIO (0,2^24) :: IO Int
+    
     pg <- getEnv "PARAM_GEN_SCRIPTS"
     let toolchain= pg </> "toolchain" </> "toolchain.py"
         args = [spec, "--outdir", dir 
-               ,"--timeout", show timeou, "--num_cores", (show cores)]
+               ,"--timeout", show timeou
+               , "--num_cores", (show cores), "--seed", (show seed)]
     putStrLn $ "cmd: " ++ toolchain ++ " " ++ foldl1 (\a b -> a ++ " " ++ b) args
     _       <- rawSystem toolchain args
     refineF <- getJSON $ dir </> "refine_essence.json"
@@ -127,10 +132,13 @@ runToolChain1 newConjure cores spec dir timeou  = do
 
 runRefine :: Int -> FilePath -> FilePath -> Int -> IO RefineR
 runRefine cores spec dir timeou = do
+    seed <- randomRIO (0,2^24) :: IO Int
+    
     pg <- getEnv "PARAM_GEN_SCRIPTS"
     let toolchain= pg </> "toolchain" </> "toolchain.py"
         args = [spec, "--refine_only", "--outdir", dir
-               , "--timeout", show timeou, "--num_cores", (show cores)]
+               , "--timeout", show timeou
+               , "--num_cores", (show cores), "--seed", (show seed)]
     putStrLn $ "cmd: " ++ toolchain ++ " " ++ foldl1 (\a b -> a ++ " " ++ b) args
     _       <- rawSystem toolchain args
     refineF <- getJSON $ dir </> "refine_essence.json"
