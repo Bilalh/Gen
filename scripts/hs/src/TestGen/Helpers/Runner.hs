@@ -106,10 +106,11 @@ getJSON fp = do
         return Nothing
 
 runToolChain :: FilePath -> FilePath -> Int -> IO (Either RefineR (RefineR, SolveR ) )
-runToolChain = runToolChain1 4
+runToolChain = runToolChain1 False 4 
 
-runToolChain1 :: Int -> FilePath -> FilePath -> Int -> IO (Either RefineR (RefineR, SolveR ) )
-runToolChain1 cores spec dir timeou = do
+runToolChain1 :: Bool -> Int -> FilePath -> FilePath -> Int  
+    -> IO (Either RefineR (RefineR, SolveR ) )
+runToolChain1 newConjure cores spec dir timeou  = do
     pg <- getEnv "PARAM_GEN_SCRIPTS"
     let toolchain= pg </> "toolchain" </> "toolchain.py"
         args = [spec, "--outdir", dir 

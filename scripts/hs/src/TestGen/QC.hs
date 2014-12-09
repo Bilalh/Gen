@@ -76,11 +76,9 @@ prop_specs_refine  _ cores time out (WithLogs arb logs) = do
         fail $ mvDir
 
 
-esc s = "'" ++ s ++ "'"
-
 prop_specs_toolchain :: ArbSpec a => 
-    WithLogs a -> Cores ->  Int -> FilePath -> WithLogs a -> Property
-prop_specs_toolchain  _ cores time out (WithLogs arb logs) = do
+    WithLogs a -> Cores ->  Int -> FilePath -> Bool -> WithLogs a -> Property
+prop_specs_toolchain  _ cores time out newConjure (WithLogs arb logs) = do
     let specE = getSpec arb
         sp    = toSpec specE
     fst (typeChecks sp) ==>
@@ -94,7 +92,7 @@ prop_specs_toolchain  _ cores time out (WithLogs arb logs) = do
             run $  writeFile (outdir </> "spec.specE" ) (show specE)
             
 
-            result <- run $ runToolchain' cores sp (out </> uname ) time
+            result <- run $ runToolchain' cores sp (out </> uname ) time newConjure
             classifyError uname result
 
     where
@@ -136,10 +134,8 @@ prop_specs_toolchain  _ cores time out (WithLogs arb logs) = do
         let inErrDir = errdir </> "zall" </> uname
         run $ createDirectoryIfMissing True inErrDir
         run $ renameDirectory (out </> uname ) inErrDir
-        
 
         let
-        
             allow :: String -> FilePath -> Bool
             allow k f  
                 | k `isPrefixOf` f      = True
@@ -217,9 +213,9 @@ generateSpecs unused TArgs{..} = do
 
     prop_run = 
         if runToolchain_ then
-            prop_specs_toolchain
+            prop_specs_toolchain unused cores_ perSpecTime_ baseDirectory_ newConjure_
         else
-            prop_specs_refine
+            prop_specs_refine unused cores_ perSpecTime_ baseDirectory_
     
 
     replay = case rseed_ of 
@@ -245,6 +241,47 @@ generateSpecs unused TArgs{..} = do
       do h <- openFile (name) WriteMode
          mapM_ (hPutStrLn h) arr
          hClose h
+
+    helper :: Int -> [String] -> IO [String]
+    helper startTime results = do
+        before <- round `fmap` getPOSIXTime
+
+        let maxSuccess = (totalTime_ - (before - startTime)) `div` perSpecTime_
+
+        case maxSuccess <= 0 of
+            True  -> return results
+            False -> do
+
+                r <- quickCheckWithResult stdArgs{QC.maxSize=size_,maxSuccess, replay}
+                    prop_run
+                let results'  = addResults r results
+
+
+                after <- round `fmap` getPOSIXTime
+                putStrLn $ "Running for " ++ (show $ after - startTime ) ++ " s"
+
+                case (r, after - startTime < totalTime_) of
+
+                    (GaveUp{}, _ ) -> do
+                        putStrLn "Gaveup"
+                        return results'
+
+                    (_, False) -> do
+                        putStrLn "Time up"
+                        return results'
+
+                    (f@Failure{reason}, True)  -> do
+                        saveFailures results' (tmpdir </> (show after) <.> "txt")
+                        writeFile (baseDirectory_ </> reason </> "spec.qc")  ( show f{output=""})
+                        helper startTime results'
+                        
+                    (_, True) -> do
+                      helper startTime results'
+
+    addResults :: Result ->  [String] -> [String]
+    addResults Failure{reason} arr = (reason) : arr
+    addResults _ arr = arr
+
 
     typecheckHelper :: Int -> [String] -> [String] -> Int -> IO ([String], [String])
     typecheckHelper left results ourErrors index = do 
@@ -277,48 +314,7 @@ generateSpecs unused TArgs{..} = do
                     typecheckHelper (leftAfter) results' ourErrors' (index+1)
                 else
                     return (results', ourErrors')
-
-
-    helper :: Int -> [String] -> IO [String]
-    helper startTime results = do
-        before <- round `fmap` getPOSIXTime
-
-        let maxSuccess = (totalTime_ - (before - startTime)) `div` perSpecTime_
-
-        case maxSuccess <= 0 of
-            True  -> return results
-            False -> do
-
-                r <- quickCheckWithResult stdArgs{QC.maxSize=size_,maxSuccess, replay}
-                    (prop_run unused 
-                        cores_ perSpecTime_ baseDirectory_)
-                let results'  = addResults r results
-
-
-                after <- round `fmap` getPOSIXTime
-                putStrLn $ "Running for " ++ (show $ after - startTime ) ++ " s"
-
-                case (r, after - startTime < totalTime_) of
-
-                    (GaveUp{}, _ ) -> do
-                        putStrLn "Gaveup"
-                        return results'
-
-                    (_, False) -> do
-                        putStrLn "Time up"
-                        return results'
-
-                    (f@Failure{reason}, True)  -> do
-                        saveFailures results' (tmpdir </> (show after) <.> "txt")
-                        writeFile (baseDirectory_ </> reason </> "spec.qc")  ( show f{output=""})
-                        helper startTime results'
-                        
-                    (_, True) -> do
-                      helper startTime results'
-
-    addResults :: Result ->  [String] -> [String]
-    addResults Failure{reason} arr = (reason) : arr
-    addResults _ arr = arr
+    
 
 
 quickTypeCheck1 :: (ArbSpec a) => WithLogs a -> FilePath -> Args ->  IO (Maybe (Int, String))
@@ -373,8 +369,8 @@ runRefine' cores spec dir specTime = do
     return result
 
 
-runToolchain' :: Int -> Spec -> FilePath -> Int -> IO  (Either RefineR (RefineR, SolveR ) )
-runToolchain' cores spec dir specTime = do
+runToolchain' :: Int -> Spec -> FilePath -> Int -> Bool -> IO  (Either RefineR (RefineR, SolveR))
+runToolchain' cores spec dir specTime newConjure = do
     print . pretty $ spec
 
     createDirectoryIfMissing True  dir
@@ -383,7 +379,7 @@ runToolchain' cores spec dir specTime = do
     writeSpec name spec
 
     let specLim = specTime
-    result <- runToolChain1 cores name dir specLim
+    result <- runToolChain1 newConjure cores name dir specLim 
     putStrLn . groom $  result
     return result
 
