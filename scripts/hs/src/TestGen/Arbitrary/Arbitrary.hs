@@ -14,7 +14,16 @@ import qualified Data.Map as M
 import qualified Data.Text as T
 import Data.List
 
+import qualified Test.QuickCheck as QC
+
 data WithLogs a = WithLogs a LogsTree
+data WithExtra a = WithExtra {
+        inner_ :: a
+        , wlogs_  :: LogsTree
+        , ts_int_ :: Int
+        , run_seed_ :: Int
+        }
+
 
 arbitraryDef :: ArbSpec a => a -> Gen a
 arbitraryDef unused = fmap (wrapSpec . fst) <$> sized $ (flip  spec'') (tyGens unused)
@@ -36,6 +45,30 @@ instance (Arbitrary a, ArbSpec a) => Arbitrary (WithLogs a) where
         needed :: ArbSpec a => a -> Gen (WithLogs a)
         needed unused = fmap (\(sp,t) -> WithLogs (wrapSpec sp) t ) 
                      <$> sized $ (flip  spec'') (tyGens unused)
+
+
+instance (ArbSpec a, Show a, Arbitrary a) => ArbSpec (WithExtra a) where
+    getSpec WithExtra{..}    = getSpec inner_
+    tyGens  aa              = tyGens aa
+    wrapSpec                = error "wrapSpec, would not have extra state" 
+    
+instance (Show a) => Show (WithExtra a) where
+    show WithExtra{..} =
+        "WithExtra( " ++ show inner_ ++ " )"
+
+instance (Arbitrary a, ArbSpec a) => Arbitrary (WithExtra a) where
+    arbitrary = needed undefined
+        
+        where 
+        needed :: ArbSpec a => a -> Gen (WithExtra a)
+        needed unused = sized $ genn (tyGens unused)
+
+        genn gens size = do
+            (sp,t)    <- spec'' size gens
+            ts_int_   <- QC.choose (10,99)
+            run_seed_ <- QC.choose (0,2^24)
+            
+            return WithExtra{inner_=wrapSpec sp, wlogs_= t, ts_int_, run_seed_ }
 
 
 instance Arbitrary SpecE where
