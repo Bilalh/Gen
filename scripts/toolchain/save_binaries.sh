@@ -32,7 +32,10 @@ cp "$(which testSample)" .
 cp "$(which essenceGivensToFinds)" .
 cp "$(which essenceLettingsToJson)" .
 cp "$(which essenceGivensToJson2)" .
-# cp -r "$repos_dir/instancegen/scripts/hs/bin" ig_bin
+cp "$(which testSampleExample)" .
+cp "$(which testSampleOnlySets)" .
+cp "$(which "${testSample:-}")" .
+cp "$(which conjureNew)" .
 
 popd
 tar -c binaries | pigz -c -p ${NUM_JOBS:-4} > binaries.tar.gz

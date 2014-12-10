@@ -46,6 +46,9 @@ fi
 
 echo "conjure" >> "${fp}.versions"
 conjure 2>&1 | grep Version  >> "${fp}.versions"
+echo "conjureNew" >> "${fp}.versions"
+conjureNew --version 2>&1   >> "${fp}.versions"
+
 echo "" >> "${fp}.versions"
 minion 2>&1	 | egrep 'HG version|Minion Version' >> "${fp}.versions"
 echo "" >> "${fp}.versions"
@@ -74,12 +77,14 @@ for repo in "${repos[@]}"; do
         git describe --always    >> "${fp}.versions"
         echoing git branch  >> "${fp}.versions"
         echo "" >> "${fp}.versions"
+        echoing git diff  2>&1 >>   "${fp}.versions"
     elif [ -d ".hg" ]; then
         echo "$repo(hg) version" >> "${fp}.versions"
         hg log -r . --template "{latesttag}-{latesttagdistance}-{node|short}" >> "${fp}.versions"
         echo "" >> "${fp}.versions"
         echoing hg branch  >> "${fp}.versions"
         echo "" >> "${fp}.versions"
+        echoing hg diff 2>&1 >>   "${fp}.versions"
     fi
 
     echo "" >> "${fp}.versions"
