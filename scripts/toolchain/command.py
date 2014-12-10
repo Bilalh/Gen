@@ -100,6 +100,7 @@ class ConjureNew(Commands):
                 refine_compact="""
                 time conjureNew {essence}
                     -q f -a r
+                    --output-directory {outdir}
                     --numbering-start {index}
                     --limit-time      {itimeout}
                     --seed            {seed}
