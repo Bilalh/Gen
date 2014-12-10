@@ -30,6 +30,7 @@ import qualified Data.Text as T
 import qualified Test.QuickCheck as QC
 import qualified Test.QuickCheck.Property as QC
 
+
 import System.Directory(createDirectoryIfMissing, getHomeDirectory, doesFileExist)
 import System.FilePath((</>), (<.>), takeFileName)
 import System.IO(IOMode(..),hPutStrLn, openFile, hClose)
@@ -52,6 +53,9 @@ import TestGen.QCDebug
 import Test.QuickCheck.Random(mkQCGen)
 
 
+import  Test.QuickCheck.State
+import Test.QuickCheck.Property hiding(Result)
+import Test.QuickCheck.Text
 
 quickTypeCheck :: (ArbSpec a) => a -> Args ->  IO (Maybe (a, Doc,Int))
 quickTypeCheck _ args = do
@@ -271,3 +275,19 @@ computeSize' a n d
             ((n `mod`  QC.maxSize a) *  QC.maxSize a `div` (maxSuccess a `mod`  QC.maxSize a) + d `div` 10) `min`  QC.maxSize a
 
 n `roundTo` m = (n `div` m) * m    
+
+
+ab b = do
+    b < 100000
+
+-- | Prints out the generated testcase every time the property is tested.
+-- Only variables quantified over /inside/ the 'verbose' are printed.
+vv :: Testable prop => prop -> Property
+vv = mapResult (\res -> res { callbacks = newCallbacks (callbacks res) })
+  where newCallbacks cbs =
+          -- PostTest Counterexample (\st res -> putLine (terminal st) (status res ++ ":")):
+          -- []
+          [ PostTest Counterexample f | PostFinalFailure Counterexample f <- cbs ]
+        status MkResult{ok = Just True} = "Passed"
+        status MkResult{ok = Just False} = "Failed"
+        status MkResult{ok = Nothing} = "Skipped (precondition false)"
