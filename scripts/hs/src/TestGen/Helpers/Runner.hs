@@ -36,6 +36,7 @@ data KindI =
     | Savilerow_
     | TranslateUp_
     | Validate_
+    | ValidateOld_
     deriving (Show,Eq,Enum,Generic)
 
 

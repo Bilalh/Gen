@@ -76,10 +76,10 @@ if __name__ == "__main__":
             print('conjureNew not in $PATH')
             sys.exit(5)
 
-        commands = command.conjure_new
+        commands = command.ConjureNew()
 
     else:
-        commands = command.conjure_old
+        commands = command.ConjureOld()
 
 
 

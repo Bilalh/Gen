@@ -108,13 +108,6 @@ prop_specs_toolchain  _ cores time out newConjure (WithLogs arb logs) = do
         
         
         let
-            allow :: String -> FilePath -> Bool
-            allow k f  
-                | k `isPrefixOf` f      = True
-                | "spec" `isPrefixOf` f = True
-                | "json" `isSuffixOf` f = True
-                | "_" `isPrefixOf` f    = True
-                | otherwise             = False
         
             f k CmdI{status_, kind_ } = do
                 let mvDir = errdir </> (show kind_) </> (show status_) </> uname
@@ -138,15 +131,7 @@ prop_specs_toolchain  _ cores time out newConjure (WithLogs arb logs) = do
         run $ createDirectoryIfMissing True inErrDir
         run $ renameDirectory (out </> uname ) inErrDir
 
-        let
-            allow :: String -> FilePath -> Bool
-            allow k f  
-                | k `isPrefixOf` f      = True
-                | "spec" `isPrefixOf` f = True
-                | "json" `isSuffixOf` f = True
-                | "_" `isPrefixOf` f    = True
-                | otherwise             = False
-        
+        let        
             f k ResultI{last_status, erroed= Just index, results } = do
                 let kind = kind_ (results !! index)
                 let mvDir = errdir </> (show kind) </> (show last_status) </> uname
@@ -169,6 +154,14 @@ prop_specs_toolchain  _ cores time out newConjure (WithLogs arb logs) = do
 
     classifyError _ _ =  return ()
 
+allow :: String -> FilePath -> Bool
+allow k f  
+    | k `isPrefixOf` f       = True
+    | "json" `isSuffixOf` f  = True
+    | "param" `isSuffixOf` f = True
+    | "spec" `isPrefixOf` f  = True
+    | "_" `isPrefixOf` f     = True
+    | otherwise              = False
 
 generateSpecs :: ArbSpec a => WithLogs a -> TArgs -> IO ()
 generateSpecs unused TArgs{..} = do

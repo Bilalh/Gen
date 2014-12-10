@@ -84,7 +84,7 @@ def run_refine_essence(*, op, commands, random):
                     eprime_name, results_unique[hf][0] )
             ep.unlink()
 
-            if commands == command.conjure_old:
+            if isinstance(commands, command.ConjureOld):
                 ep.with_suffix(".eprime.logs").unlink()
             ep.with_suffix(".output").unlink()
 
@@ -104,7 +104,7 @@ def run_solve(op, commands, limit, eprime):
     essence_solution = eprime.with_suffix(".solution")
     minion           = eprime.with_suffix(".minion")
 
-    cmds = [commands.refine_param, commands.savilerow, commands.translate_up, commands.validate]
+    cmds = commands.sovlve_cmds
     results=[]
     outputs=[]
     total_cpu_time=0
