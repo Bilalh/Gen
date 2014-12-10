@@ -1,4 +1,4 @@
-{-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
+{-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns, TupleSections #-}
 
 {-# LANGUAGE RecordWildCards, NamedFieldPuns, ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
@@ -47,6 +47,8 @@ import Data.Traversable(for)
 
 import System.Random(RandomGen(split),setStdGen, mkStdGen)
 
+import Data.Maybe(fromJust)
+
 type Cores = Int
 
 prop_specs_refine :: ArbSpec a => 
@@ -65,19 +67,35 @@ prop_specs_refine  _ cores time out newConjure (WithLogs arb logs) = do
             run $  writeFile (outdir </> "spec.specE" ) (show specE)
             
             result <- run $ runRefine' cores sp (out </> uname ) time newConjure
-                        
-            case successful_ result of
-                True  -> return ()
-                False -> classifyError outdir result
+
+            classifyError uname result
 
     where 
     errdir  = out </> "_errors"
-    classifyError uname result = do
-        let mvDir = errdir </> "refine" </> uname
-        run $ createDirectoryIfMissing True mvDir
-        run $ renameDirectory (out </> uname) mvDir
-        fail $ mvDir
+    classifyError uname (SettingI{successful_=False,data_=RefineM ms  }) = do
+        let inErrDir = errdir </> "zall" </> uname
+        run $ createDirectoryIfMissing True inErrDir
+        run $ renameDirectory (out </> uname ) inErrDir
+        
+        
+        let
+        
+            f k CmdI{status_, kind_ } = do
+                let mvDir = errdir </> (show kind_) </> (show status_) </> uname
+                createDirectoryIfMissing True mvDir                
+                fps <- getDirectoryContents inErrDir
+                let needed =  filter (allow k) fps
 
+                forM needed $ \f -> do
+                    copyFile (inErrDir </> f) (mvDir </> f)
+                
+                return mvDir                
+
+        run $ M.traverseWithKey f ms
+
+        fail inErrDir
+    
+    classifyError _ _ = return ()
 
 prop_specs_toolchain :: ArbSpec a => 
     WithLogs a -> Cores ->  Int -> FilePath -> Bool -> WithLogs a -> Property
@@ -169,11 +187,10 @@ generateSpecs unused TArgs{..} = do
     
     createDirectoryIfMissing  True tmpdir
     
-    rgenS <- case rseed_ of 
-            Nothing    -> return Nothing
-            Just iseed -> do 
-                setStdGen (mkStdGen iseed)
-                return $ Just $ mkQCGen iseed
+    rgenS <- createGen rseed_
+    case rseed_ of 
+        Just i -> setStdGen (mkStdGen i)
+        Nothing ->return ()
 
     
     case typecheckOnly_ of 
@@ -224,6 +241,12 @@ generateSpecs unused TArgs{..} = do
          mapM_ (hPutStrLn h) arr
          hClose h
 
+    createGen r = 
+        case r of 
+            Nothing    -> return Nothing
+            Just iseed -> do 
+                return $ Just $ mkQCGen iseed
+         
     splitGen :: Maybe QCGen -> (Maybe QCGen, Maybe QCGen)
     splitGen Nothing = (Nothing, Nothing)
     splitGen (Just rnd) = let (a,b) = split rnd in
@@ -231,7 +254,10 @@ generateSpecs unused TArgs{..} = do
 
     helper :: Maybe QCGen -> Int -> [String] -> IO [String]
     helper rgenS startTime results = do
-        let (rgen, rgenN) =  splitGen rgenS
+        let (next,rgen) = case rgenS of  
+                Just r -> (\(a,b) -> ((a + fromJust rseed_) `mod` (2^24) ,Just b)) $ 
+                    randomR (0 :: Int ,(2 ^ 24 ))  r
+                Nothing -> (0, Nothing)
         
         before <- round `fmap` getPOSIXTime
 
@@ -261,10 +287,14 @@ generateSpecs unused TArgs{..} = do
                     (f@Failure{reason}, True)  -> do
                         saveFailures results' (tmpdir </> (show after) <.> "txt")
                         writeFile (baseDirectory_ </> reason </> "spec.qc")  ( show f{output=""})
-                        helper rgenN startTime results'
+                        nseed <- createGen $ (+next) <$> rseed_
+                        helper nseed startTime results'
+                        return results
                         
                     (_, True) -> do
-                        helper rgenN startTime results'
+                        nseed <- createGen $ (+next) <$> rseed_
+                        helper nseed startTime results'
+                        return results
 
     addResults :: Result ->  [String] -> [String]
     addResults Failure{reason} arr = (reason) : arr
@@ -400,11 +430,10 @@ rmain n =
 cmain :: ArbSpec a => WithLogs a -> Maybe Int -> Int -> IO ()
 cmain unused seedInt n = do
 
-    int :: Int <- case seedInt of 
-            Just i  -> return i 
-            Nothing -> randomRIO (1 :: Int,2^31)
+    rgen  <- case seedInt of 
+            Just i  -> return $ Just $ mkQCGen i
+            Nothing -> return Nothing
 
-    replay <- return $ Just (mkQCGen int, n)
 
     c <- getCurrentTime
     let (y,m,d) = toGregorian $ utctDay c
@@ -417,13 +446,11 @@ cmain unused seedInt n = do
 
     createDirectoryIfMissing True dir
 
-    res <- quickCheckWithResult stdArgs{QC.maxSize=n,maxSuccess=2000, replay} 
+    res <- quickCheckWithResult2 rgen stdArgs{QC.maxSize=n,maxSuccess=3000} 
         (prop_typeCheckSave (dir </> "spec.essence") unused  ) 
     case res of
         f@Failure{reason, output, usedSize} -> do
-            writeFile (dir </> "spec.output")  (output ++ "\nseed: " ++ (show int) ++ "\n" ++ show f{output=""})
-            putStrLn $ "seed: " ++ (show int)
+            writeFile (dir </> "spec.output")  (output ++ "\nseed: " ++ (show seedInt) ++ "\n" ++ show f{output=""})
+            putStrLn $ "seed: " ++ (show seedInt)
             putStrLn $ "usedSize: " ++ (show usedSize)
         _ -> return ()
-
-
