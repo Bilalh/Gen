@@ -30,6 +30,13 @@ import random
 
 logger = logging.getLogger(__name__)
 
+import hashlib
+
+def sha1_file(filepath):
+    with filepath.open('rb') as f:
+        return hashlib.sha1(f.read()).hexdigest()
+
+
 def with_settings(results, *, op, time_taken, successful, consistent):
     return dict(
         data_       = results,
@@ -68,6 +75,10 @@ if __name__ == "__main__":
 
     logger.info("info")
     logger.warn("warn")
+    logger.warn("args %s", op)
+    logger.warn("@@output_dir:%s", op.outdir)
+    logger.warn("@@sha1_spec.essence:%s", sha1_file(op.essence))
+
     random.seed(op.seed)
 
 
