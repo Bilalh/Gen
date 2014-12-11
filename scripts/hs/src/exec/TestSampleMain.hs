@@ -1,6 +1,6 @@
 module Main where
 
-import TestGen.Arbitrary.Arbitrary(WithLogs)
+import TestGen.Arbitrary.Arbitrary(WithLogs,WithExtra)
 import TestGen.Helpers.Args(parseArgs)
 import TestGen.QC
 import TestGen.Prelude(SpecE)
@@ -10,5 +10,5 @@ main = do
     args <- parseArgs
     print args
 
-    generateSpecs (undefined :: WithLogs SpecE) args
+    generateSpecs (undefined :: WithExtra SpecE) args
     putStrLn "<<Finished>>"

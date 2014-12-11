@@ -177,7 +177,7 @@ prop3 n cores time out gen = do
             
 
 
-                result <- run $ runRefine' cores sp (out </> uname ) time False
+                result <- run $ runRefine' 3 cores sp (out </> uname ) time False
                 case successful_ result of
                     True  -> return ()
                     False -> fail uname

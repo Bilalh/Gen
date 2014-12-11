@@ -109,13 +109,13 @@ getJSON fp = do
         return Nothing
 
 runToolChain :: FilePath -> FilePath -> Int -> IO (Either RefineR (RefineR, SolveR ) )
-runToolChain = runToolChain1 False 4 
-
-runToolChain1 :: Bool -> Int -> FilePath -> FilePath -> Int  
-    -> IO (Either RefineR (RefineR, SolveR ) )
-runToolChain1 newConjure cores spec dir timeou  = do
+runToolChain spec dir timeou  = do
     seed <- randomRIO (0,2^24) :: IO Int
-    
+    runToolChain1 seed False 4 spec dir timeou
+
+runToolChain1 :: Int -> Bool -> Int -> FilePath -> FilePath -> Int  
+    -> IO (Either RefineR (RefineR, SolveR ) )
+runToolChain1 seed newConjure cores spec dir timeou  = do    
     let nc = if newConjure then ["--new_conjure"] else []
     
     pg <- getEnv "PARAM_GEN_SCRIPTS"
@@ -134,11 +134,12 @@ runToolChain1 newConjure cores spec dir timeou  = do
         (r, s)            -> error . show $ (r,s)
 
 runRefine :: Int -> FilePath -> FilePath -> Int -> IO RefineR
-runRefine = runRefine1 False
-
-runRefine1 :: Bool -> Int -> FilePath -> FilePath -> Int -> IO RefineR
-runRefine1 newConjure cores spec dir timeou = do
+runRefine  cores spec dir timeou = do
     seed <- randomRIO (0,2^24) :: IO Int
+    runRefine1 seed False cores spec dir timeou
+
+runRefine1 :: Int -> Bool -> Int -> FilePath -> FilePath -> Int -> IO RefineR
+runRefine1 seed newConjure cores spec dir timeou = do
     let nc = if newConjure then ["--new_conjure"] else []
     
     pg <- getEnv "PARAM_GEN_SCRIPTS"

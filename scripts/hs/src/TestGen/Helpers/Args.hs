@@ -54,7 +54,8 @@ argsDef  = TArgs_
 
 parseArgs :: IO TArgs
 parseArgs = do
-    TArgs_{..} <- cmdArgs argsDef
+    a@TArgs_{..} <- cmdArgs argsDef
+    print a
 
     let baseDirectory_  = f base_directory "base-directory"
     let totalTime_      = f total_time     "total-time"
@@ -66,8 +67,13 @@ parseArgs = do
     let runToolchain_   = run_tool_chain
     let newConjure_     = new_conjure
 
-    return $ TArgs{baseDirectory_,totalTime_, perSpecTime_,rseed_,cores_
+
+
+    let res = TArgs{baseDirectory_,totalTime_, perSpecTime_,rseed_,cores_
                   , typecheckOnly_, size_, runToolchain_, newConjure_}
+    print res
+    return res
+
 
     where
     f Nothing n = error $ "--" ++ n ++ " needs to be specified"

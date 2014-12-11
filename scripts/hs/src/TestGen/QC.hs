@@ -33,7 +33,6 @@ import System.Directory(createDirectoryIfMissing, getHomeDirectory, doesFileExis
                        ,getDirectoryContents, copyFile)
 import System.FilePath((</>), (<.>), takeFileName)
 import System.IO(IOMode(..),hPutStrLn, openFile, hClose)
-import System.Random(randomRIO)
 import System.Process(system)
 
 import Test.QuickCheck
@@ -49,24 +48,28 @@ import System.Random(RandomGen(split),setStdGen, mkStdGen)
 
 import Data.Maybe(fromJust)
 
+import TestGen.Prelude(nn)
+
 type Cores = Int
+type Seed  = Int
 
 prop_specs_refine :: ArbSpec a => 
-    WithLogs a -> Cores ->  Int -> FilePath -> Bool -> WithLogs a -> Property
-prop_specs_refine  _ cores time out newConjure (WithLogs arb logs) = do
-    let specE = getSpec arb
+    WithExtra a -> Cores ->  Int -> FilePath -> Bool -> WithExtra a -> Property
+prop_specs_refine  _ cores time out newConjure WithExtra{..} = do
+    let specE = getSpec inner_
         sp    = toSpec specE
     fst (typeChecks sp) ==>
         monadicIO $ do
             ts <- run timestamp >>= return . show
-            num <- run (randomRIO (10,99) :: IO Int)  >>= return . show
+            -- num <- run (randomRIO (10,99) :: IO Int)  >>= return . show
+            let num = show ts_int_
             let uname  =  (ts ++ "_" ++ num )
             let outdir =  (out </> uname)
             run $ createDirectoryIfMissing True outdir
-            run $  writeFile (outdir </> "spec.logs" ) (renderNormal logs)
+            run $  writeFile (outdir </> "spec.logs" ) (renderNormal wlogs_)
             run $  writeFile (outdir </> "spec.specE" ) (show specE)
             
-            result <- run $ runRefine' cores sp (out </> uname ) time newConjure
+            result <- run $ runRefine' run_seed_ cores sp (out </> uname ) time newConjure
 
             classifyError uname result
 
@@ -98,22 +101,23 @@ prop_specs_refine  _ cores time out newConjure (WithLogs arb logs) = do
     classifyError _ _ = return ()
 
 prop_specs_toolchain :: ArbSpec a => 
-    WithLogs a -> Cores ->  Int -> FilePath -> Bool -> WithLogs a -> Property
-prop_specs_toolchain  _ cores time out newConjure (WithLogs arb logs) = do
-    let specE = getSpec arb
+    WithExtra a -> Cores ->  Int -> FilePath -> Bool -> WithExtra a -> Property
+prop_specs_toolchain  _ cores time out newConjure WithExtra{..} = do
+    let specE = getSpec inner_
         sp    = toSpec specE
     fst (typeChecks sp) ==>
         monadicIO $ do
             ts <- run timestamp >>= return . show
-            num <- run (randomRIO (10,99) :: IO Int)  >>= return . show
+            -- num <- run (randomRIO (10,99) :: IO Int)  >>= return . show
+            let num = show ts_int_
             let uname  =  (ts ++ "_" ++ num )
             let outdir =  (out </> uname)
             run $ createDirectoryIfMissing True outdir
-            run $  writeFile (outdir </> "spec.logs" ) (renderNormal logs)
+            run $  writeFile (outdir </> "spec.logs" ) (renderNormal wlogs_)
             run $  writeFile (outdir </> "spec.specE" ) (show specE)
             
 
-            result <- run $ runToolchain' cores sp (out </> uname ) time newConjure
+            result <- run $ runToolchain' run_seed_ cores sp (out </> uname ) time newConjure
             classifyError uname result
 
     where
@@ -181,17 +185,23 @@ allow k f
     | "_" `isPrefixOf` f     = True
     | otherwise              = False
 
-generateSpecs :: ArbSpec a => WithLogs a -> TArgs -> IO ()
-generateSpecs unused TArgs{..} = do
+generateSpecs :: ArbSpec a => WithExtra a -> TArgs -> IO ()
+generateSpecs unused r@TArgs{..} = do
+    sss <- round `fmap` getPOSIXTime
+    putStrLn . groom $ r 
+    putStrLn . show . vcat $ [ nn "Ωrseed_Start" (show rseed_), nn "ΩStartTime" (show sss) ]
+    
     let maxSuccess = totalTime_  `div` perSpecTime_
     
     createDirectoryIfMissing  True tmpdir
     
-    rgenS <- createGen rseed_
     case rseed_ of 
         Just i -> setStdGen (mkStdGen i)
-        Nothing ->return ()
+        Nothing -> return ()
 
+    rgenS <- createGen rseed_
+    putStrLn . show . vcat $ [ nn "ΩrgenS_Start" (show rgenS) ]
+    
     
     case typecheckOnly_ of 
         (Just times) -> do
@@ -203,10 +213,6 @@ generateSpecs unused TArgs{..} = do
             saveFailures' "gen.error" ourErrors (baseDirectory_ </> "genErrors.txt")
         
         Nothing -> do
-            -- --  Sanity check
-            -- putStrLn "Typechecking 2000 random specs, with depth up to size 5"
-            -- quickCheckWith stdArgs{QC.maxSize=size_,maxSuccess=2000, replay}
-            --     (prop_specs_type_check unused )
             putStrLn "Generating specs, with depth up to size 5"
             startTime <- round `fmap` getPOSIXTime
     
@@ -245,7 +251,10 @@ generateSpecs unused TArgs{..} = do
         case r of 
             Nothing    -> return Nothing
             Just iseed -> do 
-                return $ Just $ mkQCGen iseed
+                let g = mkQCGen iseed
+                putStrLn . show . vcat $ [ nn "Ωiseed" iseed,  nn "ΩcreateGen" (show g) ] 
+                
+                return $ Just $ g
          
     splitGen :: Maybe QCGen -> (Maybe QCGen, Maybe QCGen)
     splitGen Nothing = (Nothing, Nothing)
@@ -258,6 +267,7 @@ generateSpecs unused TArgs{..} = do
                 Just r -> (\(a,b) -> ((a + fromJust rseed_) `mod` (2^24) ,Just b)) $ 
                     randomR (0 :: Int ,(2 ^ 24 ))  r
                 Nothing -> (0, Nothing)
+        putStrLn . show . vcat $ [ "Ω-------" , nn "ΩrgenS" (show rgenS),  nn "Ωnext" next, nn "Ωrgen" (show rgen)] 
         
         before <- round `fmap` getPOSIXTime
 
@@ -338,7 +348,7 @@ generateSpecs unused TArgs{..} = do
     
 
 
-quickTypeCheck1 :: (ArbSpec a) => Maybe QCGen -> WithLogs a -> FilePath -> Args ->  IO (Maybe (Int, String))
+quickTypeCheck1 :: (ArbSpec a) => Maybe QCGen -> WithExtra a -> FilePath -> Args ->  IO (Maybe (Int, String))
 quickTypeCheck1 rgen unused fp args = do
     
     result <- quickCheckWithResult2 rgen args{chatty=False} (prop_typeCheckSave fp unused)
@@ -349,9 +359,9 @@ quickTypeCheck1 rgen unused fp args = do
 
     where
 
-prop_typeCheckSave :: (ArbSpec a) => FilePath -> WithLogs a -> WithLogs a -> Property
-prop_typeCheckSave fp _  (WithLogs arb logs) = do
-    let specE = getSpec arb
+prop_typeCheckSave :: (ArbSpec a) => FilePath -> WithExtra a -> WithExtra a -> Property
+prop_typeCheckSave fp _  WithExtra{..} = do
+    let specE = getSpec inner_
         sp = toSpec specE
         (res,doc) = typeChecks sp
     monadicIO $ do
@@ -363,7 +373,7 @@ prop_typeCheckSave fp _  (WithLogs arb logs) = do
             run $ writeSpec fp sp 
             run $ writeFile (fp <.> "error") (renderWide (doc <+> vcat ["---", prettySpecDebug $ sp] ) )
             run $ writeFile (fp <.> "specE") (show specE ++ "\n\n" ++ groom specE)
-            run $ writeFile (fp <.> "logs") (renderNormal logs)
+            run $ writeFile (fp <.> "logs") (renderNormal wlogs_)
             
             
             fail (show doc)
@@ -375,8 +385,8 @@ takeFileName' fp = case reverse fp of
     ('/': xs) -> takeFileName (reverse xs)
     _         -> takeFileName fp
 
-runRefine' :: Int -> Spec -> FilePath -> Int -> Bool -> IO RefineR
-runRefine' cores spec dir specTime newConjure = do
+runRefine' :: Seed -> Cores -> Spec -> FilePath -> Int -> Bool -> IO RefineR
+runRefine' seed cores spec dir specTime newConjure = do
     print . pretty $ spec
 
     createDirectoryIfMissing True  dir
@@ -385,13 +395,13 @@ runRefine' cores spec dir specTime newConjure = do
     writeSpec name spec
 
     let specLim = specTime
-    result <- runRefine1 newConjure cores name dir specLim
+    result <- runRefine1 seed newConjure cores name dir specLim
     putStrLn . groom $  result
     return result
 
 
-runToolchain' :: Int -> Spec -> FilePath -> Int -> Bool -> IO  (Either RefineR (RefineR, SolveR))
-runToolchain' cores spec dir specTime newConjure = do
+runToolchain' :: Seed -> Int -> Spec -> FilePath -> Int -> Bool -> IO  (Either RefineR (RefineR, SolveR))
+runToolchain' seed cores spec dir specTime newConjure = do
     print . pretty $ spec
 
     createDirectoryIfMissing True  dir
@@ -400,7 +410,7 @@ runToolchain' cores spec dir specTime newConjure = do
     writeSpec name spec
 
     let specLim = specTime
-    result <- runToolChain1 newConjure cores name dir specLim 
+    result <- runToolChain1 seed newConjure cores name dir specLim 
     putStrLn . groom $  result
     return result
 
@@ -425,9 +435,9 @@ typeChecks sp = case fst $ runCompESingle "Error while type checking." $
 rmain :: Int -> IO ()
 rmain n =
     quickCheckWith stdArgs{QC.maxSize=n,maxSuccess=50} 
-    (prop_specs_refine (undefined :: WithLogs SpecE) 7 10  "__")
+    (prop_specs_refine (undefined :: WithExtra SpecE) 7 10  "__")
 
-cmain :: ArbSpec a => WithLogs a -> Maybe Int -> Int -> IO ()
+cmain :: ArbSpec a => WithExtra a -> Maybe Int -> Int -> IO ()
 cmain unused seedInt n = do
 
     rgen  <- case seedInt of 

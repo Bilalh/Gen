@@ -3,7 +3,7 @@ module Main where
 
 import TestGen.Prelude
 
-import TestGen.Arbitrary.Arbitrary(WithLogs, arbitraryDef)
+import TestGen.Arbitrary.Arbitrary(WithLogs, arbitraryDef,WithExtra)
 import TestGen.Arbitrary.Domain
 import TestGen.Arbitrary.Type(atype_only)
 import TestGen.Helpers.Args(parseArgs)
@@ -14,7 +14,7 @@ main = do
     args <- parseArgs
     print args
     
-    generateSpecs (undefined :: WithLogs S1) args
+    generateSpecs (undefined :: WithExtra S1) args
     putStrLn "<<Finished>>"
 
 
