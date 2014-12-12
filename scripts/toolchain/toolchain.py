@@ -36,6 +36,13 @@ def sha1_file(filepath):
     with filepath.open('rb') as f:
         return hashlib.sha1(f.read()).hexdigest()
 
+def obj_to_json(obj):
+    if isinstance(obj, Enum):
+        s = obj.name
+        return s[0].upper() + s[1:] + "_"
+    else:
+        return str(obj)
+
 
 def with_settings(results, *, op, time_taken, successful, consistent):
     return dict(
@@ -94,18 +101,11 @@ if __name__ == "__main__":
 
 
 
-    def obj_to_json(obj):
-        if isinstance(obj, Enum):
-            s = obj.name
-            return s[0].upper() + s[1:] + "_"
-        else:
-            return str(obj)
-
 
     startTime = time.time()
     # Make the eprimes
     (essence_refine, refine_wall_time) = run.run_refine_essence(
-        op=op, commands=commands, random=op.num_cores - 1)
+        op=op, commands=commands, random=op.num_cores - 1, cores=op.num_cores)
     endTime = time.time()
     logger.info("essence_refine: %s", pformat(essence_refine))
 
@@ -136,9 +136,9 @@ if __name__ == "__main__":
     solve_op = partial(run.run_solve, op, commands, limit)
     eprimes = op.outdir.glob('*.eprime')
 
-    pool = Pool()
+    pool = Pool(op.num_cores)
     solve_results = dict(pool.map(solve_op, eprimes))
-    logger.info("solve_results: %s", pformat(essence_refine))
+    logger.info("solve_results: %s", pformat(solve_results))
 
     solve_wall_time = sum(  res['total_real_time'] for res in solve_results.values()  )
     successful = all( not res['erroed'] for res in solve_results.values() )
@@ -165,3 +165,7 @@ if __name__ == "__main__":
 
     logger.warn("completed")
     sys.exit(0)
+
+
+
+

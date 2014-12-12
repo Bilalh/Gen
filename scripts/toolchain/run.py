@@ -45,7 +45,7 @@ def run_refine(commands, kwargs, i):
     (res, output) = run_with_timeout(kwargs['itimeout'], cmd_kind, cmd_arr)
     return ((eprime.stem, res.__dict__), " ".join(cmd_arr) + "\n" + output)
 
-def run_refine_essence(*, op, commands, random):
+def run_refine_essence(*, op, commands, random, cores):
     limit = op.timeout
     date_start = datetime.utcnow()
 
@@ -54,11 +54,11 @@ def run_refine_essence(*, op, commands, random):
     mapping['seed_base'] = uniform_int(0, 2 ** 24)
 
     rr = partial(run_refine, commands, mapping)
-    pool = Pool(random + 1)
+    pool = Pool(cores)
     rnds = list(pool.map(rr, range(0, random + 1)))
     (results, outputs) =list(zip( *(  rnds ) ))
 
-    with (op.outdir / "_refine.output").open("w") as f:
+    with (op.outdir / "_refine.outputs").open("w") as f:
         f.write("\n".join(outputs))
 
     date_end=datetime.utcnow()
@@ -69,7 +69,7 @@ def run_refine_essence(*, op, commands, random):
     for (result, output) in zip(results, outputs):
         (eprime_name, _) = result
         ep = (op.outdir/ eprime_name).with_suffix(".eprime")
-        log = ep.with_suffix('.output')
+        log = ep.with_suffix('.refine-output')
         with log.open('w') as f:
             f.write(output)
 
@@ -86,7 +86,7 @@ def run_refine_essence(*, op, commands, random):
 
             if isinstance(commands, command.ConjureOld):
                 ep.with_suffix(".eprime.logs").unlink()
-            ep.with_suffix(".output").unlink()
+            ep.with_suffix(".refine-output").unlink()
 
 
     return (dict(results_unique.values()), sum( data['real_time']
