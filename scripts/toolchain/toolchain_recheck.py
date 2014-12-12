@@ -95,7 +95,8 @@ with (op.indir / "refine_essence.json").open() as f:
     refine_json=json.load(f)
 
 oldBase = Path(refine_json['outdir_'])
-newBase = op.outdir / (oldBase.name)
+# newBase = op.outdir / (oldBase.name)
+newBase = op.outdir
 os.makedirs(str(newBase), exist_ok=True)
 essence=Path(newBase / "spec.essence")
 
@@ -174,6 +175,14 @@ def rerun_solve(outdir, limit, kv):
 
         outputs.append(" ".join(cmd_arr))
         outputs.append(output)
+
+        if res.status_ != Status.success:
+            logger.warn("###ERROR %s for cmd \n%s\n%s",
+                    res.status_, " ".join(cmd_aarr), indent(output, " \t") )
+            erroed=i
+            all_finished=False
+            last_status = res.status_
+            break
 
 
     ret = dict(results=results,
