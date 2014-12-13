@@ -104,7 +104,6 @@ class ConjureNew(Commands):
                     --numbering-start {index}
                     --limit-time      {itimeout}
                     --seed            {seed}
-                    --verbose-trail
                 """,
 
                 refine_random="""
@@ -114,7 +113,6 @@ class ConjureNew(Commands):
                     --numbering-start  {index}
                     --limit-time       {itimeout}
                     --seed             {seed}
-                    --verbose-trail
                 """,
 
                 refine_param="""
