@@ -50,8 +50,7 @@ import Data.Maybe(fromJust)
 
 import TestGen.Prelude(nn)
 
-type Cores = Int
-type Seed  = Int
+
 
 prop_specs_refine :: ArbSpec a => 
     WithExtra a -> Cores ->  Int -> FilePath -> Bool -> WithExtra a -> Property
@@ -385,34 +384,7 @@ takeFileName' fp = case reverse fp of
     ('/': xs) -> takeFileName (reverse xs)
     _         -> takeFileName fp
 
-runRefine' :: Seed -> Cores -> Spec -> FilePath -> Int -> Bool -> IO RefineR
-runRefine' seed cores spec dir specTime newConjure = do
-    print . pretty $ spec
 
-    createDirectoryIfMissing True  dir
-
-    let name = (dir </> "spec" <.> ".essence")
-    writeSpec name spec
-
-    let specLim = specTime
-    result <- runRefine1 seed newConjure cores name dir specLim
-    putStrLn . groom $  result
-    return result
-
-
-runToolchain' :: Seed -> Int -> Spec -> FilePath -> Int -> Bool -> IO  (Either RefineR (RefineR, SolveR))
-runToolchain' seed cores spec dir specTime newConjure = do
-    print . pretty $ spec
-
-    createDirectoryIfMissing True  dir
-
-    let name = (dir </> "spec" <.> ".essence")
-    writeSpec name spec
-
-    let specLim = specTime
-    result <- runToolChain1 seed newConjure cores name dir specLim 
-    putStrLn . groom $  result
-    return result
 
 
 prop_specs_type_check ::  ArbSpec a => a -> a -> Property

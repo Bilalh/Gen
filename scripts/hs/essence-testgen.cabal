@@ -51,6 +51,7 @@ Library
                      , TestGen.QC
                      , TestGen.QCDebug
                      , TestGen.QCUnused
+                     , TestGen.Reduce.Reduce
     
     
     build-depends    : base

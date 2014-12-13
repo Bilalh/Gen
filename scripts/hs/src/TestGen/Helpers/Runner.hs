@@ -11,13 +11,21 @@ import Data.Map(Map)
 import GHC.Generics (Generic)
 import System.Directory(doesFileExist)
 import System.Environment(getEnv)
-import System.FilePath((</>))
+import System.FilePath((</>), (<.>))
 import System.Process(rawSystem)
+import System.Directory(createDirectoryIfMissing)
 
 import qualified Data.Aeson as A
 import qualified Data.ByteString.Lazy as B
 
 import System.Random(randomRIO)
+
+import Language.E(Spec,pretty)
+import Language.E.Pipeline.ReadIn(writeSpec)
+import Text.Groom(groom)
+
+type Cores = Int
+type Seed  = Int
 
 -- For reading json from toolchain.py
 
@@ -154,3 +162,32 @@ runRefine1 seed newConjure cores spec dir timeou = do
     return $ case (refineF) of
         Just r  ->  r
         Nothing -> error $ "script error" ++  "cmd: " ++ toolchain ++ " " ++ foldl1 (\a b -> a ++ " " ++ b) args
+
+runRefine' :: Seed -> Cores -> Spec -> FilePath -> Int -> Bool -> IO RefineR
+runRefine' seed cores spec dir specTime newConjure = do
+    print . pretty $ spec
+
+    createDirectoryIfMissing True  dir
+
+    let name = (dir </> "spec" <.> ".essence")
+    writeSpec name spec
+
+    let specLim = specTime
+    result <- runRefine1 seed newConjure cores name dir specLim
+    putStrLn . groom $  result
+    return result
+
+
+runToolchain' :: Seed -> Int -> Spec -> FilePath -> Int -> Bool -> IO  (Either RefineR (RefineR, SolveR))
+runToolchain' seed cores spec dir specTime newConjure = do
+    print . pretty $ spec
+
+    createDirectoryIfMissing True  dir
+
+    let name = (dir </> "spec" <.> ".essence")
+    writeSpec name spec
+
+    let specLim = specTime
+    result <- runToolChain1 seed newConjure cores name dir specLim 
+    putStrLn . groom $  result
+    return result

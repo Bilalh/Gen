@@ -15,7 +15,7 @@ import Language.E.Pipeline.ReadIn(writeSpec)
 import Common.Helpers(timestamp)
 
 import TestGen.Arbitrary.Arbitrary
-import TestGen.Helpers.Runner(runRefine)
+import TestGen.Helpers.Runner
 import TestGen.Helpers.Args(TArgs(..))
 import TestGen.Helpers.Runner(SettingI(..), RefineR)
 import TestGen.Prelude
