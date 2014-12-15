@@ -18,6 +18,7 @@ import qualified Test.QuickCheck as QC
 
 import TestGen.QCDebug(specE1)
 
+import System.Random(randomIO)
 
 class Reduce a where
     reduce :: a -> [a]
@@ -45,31 +46,54 @@ reduceMain :: SpecE -> IO SpecE
 reduceMain s1 = do
     -- s1 <- removeConstraints sp
     s2 <- simplyConstraints s1
-    return s2
+    
+    sfin <- return s2 
+
+    putStrLn "----"    
+    putStrLn "Start"
+    print . pretty $ s1
+    putStrLn "----"    
+    putStrLn "Final"
+    print . pretty $ sfin
+    putStrLn "----"    
+    
+    return sfin
 
     
 simplyConstraints :: SpecE -> IO SpecE
 simplyConstraints (SpecE ds es) = do
     fin <- process (map simplyConstraint es)
-    return (SpecE ds fin)
+    if fin == [] then
+        return (SpecE ds es)
+    else
+        return (SpecE ds fin)
     
     where
     process :: [[Expr]] -> IO [Expr]
     process []  = error "process empty list"
     
-    process xs | all (singleElem) xs = return $ map head xs
-        where
-        singleElem [x] = True
-        singleElem _   = False
+    process xs | all (singleElem) xs = do
+        let fix = map head xs
+        res <- runSpec (SpecE ds fix)
+        if res then do
+            return fix
+        else
+            return []
         
     process esR = do
         fix <- choose esR
         res <- runSpec (SpecE ds fix)
         if res then do
-            process (map simplyConstraint fix )
-            
+            inner <- process (map simplyConstraint fix )
+            if inner == [] then
+                return fix
+            else 
+                return inner
         else 
             process (map tailR esR)
+    
+    singleElem [x] = True
+    singleElem _   = False
     
     tailR :: [a] -> [a]    
     tailR []     = error "tailR empty list"
@@ -93,7 +117,8 @@ removeUnusedDomain sp = undefined
 -- True means error still happens
 runSpec :: SpecE -> IO Bool
 runSpec sp = do
-    print $ pretty sp
-    return True 
+    stillErroed :: Bool <- randomIO 
+    print $ (stillErroed, pretty sp)
+    return stillErroed
 
 -- wrap in a type to stop eval?
