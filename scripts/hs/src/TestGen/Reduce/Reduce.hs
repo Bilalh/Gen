@@ -19,6 +19,7 @@ import qualified Test.QuickCheck as QC
 import TestGen.QCDebug(specE1)
 
 import System.Random(randomIO)
+import Control.Arrow((&&&))
 
 class Reduce a where
     reduce :: a -> [a]
@@ -121,4 +122,25 @@ runSpec sp = do
     print $ (stillErroed, pretty sp)
     return stillErroed
 
--- wrap in a type to stop eval?
+
+_reduce e = 
+    case  fromEssence e of 
+        Left err -> error . show .  (pretty &&& pretty . groom) $ err
+        Right ee -> do
+            let res = reduce ee
+            print . (map $ pretty . toEssence) $ res
+            return res
+
+
+-- a r= a r +1
+--
+-- ts = [1, 2,3,a 4]
+--
+-- func tt =
+--     let a = tt !! 0
+--         b = tt !! 3
+--         c = [b, a]
+--     in c !! 1
+
+
+
