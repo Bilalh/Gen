@@ -1,6 +1,7 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables, FlexibleInstances #-}
+{-# LANGUAGE LambdaCase, MultiParamTypeClasses #-}
 
 module TestGen.Reduce.Reduce where
 
@@ -27,15 +28,16 @@ class Reduce a where
 
 instance Reduce Expr where
     reduce (EBinOp op) = single op ++ map EBinOp (reduce op) 
-    reduce b = [b]
+    reduce b = [] -- no reductions possible   
 
-    single a = error "a"
+    single a = error "no default of single"
 
 instance Reduce BinOp where
-    reduce (BOr a b) = map ( uncurry BOr ) $ 
-        [ (a, etrue), (a,efalse), (etrue,b), (efalse, b) ]
+    reduce (BOr a b) = map ( uncurry BOr ) $  catMaybes
+        [ (a, etrue) *| simpler etrue b , (a,efalse)  *| simpler efalse b
+        , (etrue,b)  *| simpler etrue a , (efalse, b) *| simpler efalse a ]
 
-    reduce b = [b]
+    reduce b = []
     single b = [etrue,  efalse]
 
 etrue  = ELit (EB True)
@@ -64,14 +66,19 @@ reduceMain s1 = do
 simplyConstraints :: SpecE -> IO SpecE
 simplyConstraints (SpecE ds es) = do
     fin <- process (map simplyConstraint es)
-    if fin == [] then
+    if fin == [] then do 
+        runSpec (SpecE ds []) >>= \case
+            True  -> return (SpecE ds [])
+            False -> return (SpecE ds es)
+            
         return (SpecE ds es)
     else
         return (SpecE ds fin)
     
     where
     process :: [[Expr]] -> IO [Expr]
-    process []  = error "process empty list"
+    -- cannot simply any futher
+    process xs | any (== []) xs = return []
     
     process xs | all (singleElem) xs = do
         let fix = map head xs
@@ -106,7 +113,7 @@ simplyConstraints (SpecE ds es) = do
         mapM rndExpr esR
         
     rndExpr :: [Expr] -> IO Expr
-    rndExpr [] = error "empty"
+    rndExpr [] = error "rndExpr emptyList"
     rndExpr xs = return (xs !! 0)
 
 simplyConstraint :: Expr -> [Expr]
@@ -125,10 +132,10 @@ runSpec sp = do
 
 _reduce e = 
     case  fromEssence e of 
-        Left err -> error . show .  (pretty &&& pretty . groom) $ err
+        Left err -> error . show .  (pretty &&& pretty . groom)  $ err
         Right ee -> do
             let res = reduce ee
-            print . (map $ pretty . toEssence) $ res
+            mapM (print  . pretty . toEssence)  res
             return res
 
 
@@ -143,4 +150,39 @@ _reduce e =
 --     in c !! 1
 
 
+-- True if a1 is less simpler then a2
+class Simpler a b where
+    simpler :: (ToEssence a, Eq a, ToEssence b, Eq b) => a -> b -> Bool
 
+instance Simpler Expr Expr where
+    simpler (ELit a ) (ELit b)   = simpler a b
+    simpler (ELit a)  (EBinOp b) = simpler a b 
+    
+    -- simpler _ _ = False
+    simpler a b = error . show . vcat . map (pretty)  $ [toEssence a, toEssence b ]
+
+instance Simpler Literal Literal where
+    simpler (EB _) (EB _) = False
+    simpler (EB _) _      = True
+    
+    -- simpler _ _ = False
+    simpler a b = error . show . vcat . map (pretty)  $ [toEssence a, toEssence b ]
+
+instance Simpler Literal BinOp where
+    simpler (EB _) _ = True
+    simpler (EI _) _ = True
+
+    -- simpler _ _ = False
+    simpler a b = error . show . vcat . map (pretty)  $ [toEssence a, toEssence b ]
+    
+
+infixl 1 *|
+(*|) :: a -> Bool -> Maybe a
+a  *| c | c = Just a
+_  *| _    = Nothing
+
+ 
+_e :: FromEssence a => E -> a
+_e e =  case fromEssence e of 
+        Left err -> error . show .  (pretty &&& pretty . groom) $ err
+        Right ee -> ee
