@@ -1,30 +1,28 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables, FlexibleInstances #-}
-{-# LANGUAGE LambdaCase, MultiParamTypeClasses #-}
+{-# LANGUAGE LambdaCase #-}
 
 module TestGen.Reduce.Reduce where
 
+import TestGen.Reduce.Data
+import TestGen.Reduce.Runner
+import TestGen.Reduce.Simpler
+
 import TestGen.Prelude
+import TestGen.Helpers.Runner(KindI(..))
+import TestGen.QCDebug(specE1)
+
 import qualified TestGen.Arbitrary.Arbitrary as A
 import qualified TestGen.Arbitrary.Domain as A
 import qualified TestGen.Arbitrary.Expr as A
-import TestGen.Arbitrary.Data
 
 import qualified Data.Map as M
-import qualified Data.Text as T
-import Data.List
-
 import qualified Test.QuickCheck as QC
 
-import TestGen.QCDebug(specE1)
-
-import System.Random(randomIO)
 import Control.Arrow((&&&))
+import System.Random(randomIO)
 
-import TestGen.Helpers.Runner
-
-import System.Directory(createDirectoryIfMissing, removeDirectoryRecursive)
 
 class Reduce a where
     reduce   :: a -> [a]    -- list of smaller exprs
@@ -64,9 +62,6 @@ instance Reduce BinOp where
 
     subterms a = error . show . vcat   
         $ ["subterms missing case", pretty $ toEssence a, pretty $ groom a ]
-
-etrue  = ELit (EB True)
-efalse = ELit (EB False)
 
 
 reduceMain :: SpecE -> IO SpecE 
@@ -136,7 +131,7 @@ simplyConstraints (SpecE ds es) = do
     choose esR = do
         return $ map pickFirst esR
         
-        where
+        where 
         pickFirst []    = error "pickfirst empty"
         pickFirst [x]   = x
         pickFirst (x:_) = x 
@@ -147,85 +142,22 @@ simplyConstraints (SpecE ds es) = do
     doConstraints (x:xs)  = (reduce x) : map (\y -> y : reduce y) xs
            
 
-singleElem :: [a] -> Bool
-singleElem [x] = True
-singleElem _   = False
+    singleElem :: [a] -> Bool
+    singleElem [x] = True
+    singleElem _   = False
     
-removeNext :: [[a]] -> IO [[a]]
-removeNext []                     = error "removeNext empty"
-removeNext xs | all singleElem xs = return xs
-removeNext xs | any null xs       = error "removeNext sub empty"
+    removeNext :: [[a]] -> IO [[a]]
+    removeNext []                     = error "removeNext empty"
+    removeNext xs | all singleElem xs = return xs
+    removeNext xs | any null xs       = error "removeNext sub empty"
 
-removeNext ([x]:xs)    = ([x]:)  <$> removeNext xs
-removeNext ((_:fs):xs) = return $ fs:xs
-removeNext (x:xs )     = (x:) <$> removeNext xs
+    removeNext ([x]:xs)    = ([x]:)  <$> removeNext xs
+    removeNext ((_:fs):xs) = return $ fs:xs
+    removeNext (x:xs )     = (x:) <$> removeNext xs
     
 removeUnusedDomain :: SpecE -> IO SpecE    
 removeUnusedDomain sp = undefined  
 
--- True means error still happens
-runSpec :: SpecE -> IO Bool
-runSpec spE = do
-    let sp = toSpec spE
-    let path = "/Users/bilalh/CS/break_conjure/fixed/46c3d2b43f4e/2014-12-10_02-01_1418176894/_errors/Validate_/ErrorUnknown_/1418178864_89/out"
-    
-    -- removeDirectoryRecursive breaks if dir eixsts
-    createDirectoryIfMissing True path >> removeDirectoryRecursive path
-    
-    res <- runToolchain' 33 4 sp (path) 120 True
-    let stillErroed  = sameError res
-     
-    print $ (stillErroed, pretty sp)
-    return stillErroed
-
-    where 
-    -- This would be a different error
-    sameError (Left SettingI{successful_=False}) = False
-    sameError (Right (_, SettingI{successful_=False,data_=SolveM ms })) = 
-        
-        let
-            f ResultI{last_status, erroed= Just index, results } = 
-                let kind = kind_ (results !! index)
-                in kind
-        
-            kinds = M.toList $  M.map f ms
-        in any (\(name,kind) -> kind == Validate_) kinds
- 
-    sameError _ = False
-
--- True if a1 is less simpler then a2
-class Simpler a b where
-    simpler :: (ToEssence a, Eq a, ToEssence b, Eq b) => a -> b -> Bool
-
--- instance Simpler a b where
---     simpler _ _ = True
-
-instance Simpler Expr Expr where
-    simpler (ELit a ) (ELit b)   = simpler a b
-    simpler (ELit a)  (EBinOp b) = simpler a b
-
-    -- simpler _ _ = False
-    simpler a b = error . show . vcat . map (pretty)  $ [toEssence a, toEssence b ]
-
-instance Simpler Literal Literal where
-    simpler (EB _) (EB _) = False
-    simpler (EB _) _      = True
-
-    -- simpler _ _ = False
-    simpler a b = error . show . vcat . map (pretty)  $ [toEssence a, toEssence b ]
-
-instance Simpler Literal BinOp where
-    simpler (EB _) _ = True
-    simpler (EI _) _ = True
-
-    -- simpler _ _ = False
-    simpler a b = error . show . vcat . map (pretty)  $ [toEssence a, toEssence b ]
-
-
-infixl 1 *|
-(*|) :: a -> Bool -> Maybe a
-a  *| c | c = Just a
-_  *| _    = Nothing
 
 
 _reduce e = 
@@ -240,3 +172,18 @@ _e :: FromEssence a => E -> a
 _e e =  case fromEssence e of 
         Left err -> error . show .  (pretty &&& pretty . groom) $ err
         Right ee -> ee
+
+
+_tempRR = RState{oErrKind_         =Validate_
+                ,oErrEprime_       = "/Users/bilalh/CS/break_conjure/fixed/46c3d2b43f4e/2014-12-10_02-01_1418176894/_errors/Validate_/ErrorUnknown_/1418178864_89/model000001.eprime"
+                ,mostReduced_      = Nothing
+                ,mostReducedFP_    = Nothing
+                ,otherErrorsFound_ = []
+                ,rgen_             = mkrGen 1}
+
+
+
+aa :: RR Int 
+aa = rndRangeM (1,5)
+
+

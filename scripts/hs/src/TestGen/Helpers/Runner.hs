@@ -20,7 +20,7 @@ import qualified Data.ByteString.Lazy as B
 
 import System.Random(randomRIO)
 
-import Language.E(Spec,pretty)
+import Language.E(Spec,pretty, Pretty)
 import Language.E.Pipeline.ReadIn(writeSpec)
 import Text.Groom(groom)
 
@@ -37,6 +37,9 @@ data StatusI =
     | HeapSpace_
     deriving (Show,Eq,Enum,Generic)
 
+instance Pretty StatusI where 
+    pretty = pretty . show
+
 data KindI =
       RefineCompact_
     | RefineRandom_
@@ -48,6 +51,10 @@ data KindI =
     deriving (Show,Eq,Enum,Generic)
 
 
+instance Pretty KindI where 
+    pretty = pretty . show
+
+
 data ResultI = ResultI {
          erroed          :: Maybe Int
         ,last_status     :: StatusI
@@ -55,6 +62,8 @@ data ResultI = ResultI {
         ,total_cpu_time  :: Float
         ,total_real_time :: Float
     } deriving(Show, Generic)
+
+
 
 data CmdI = CmdI {
      rcode     :: Int
