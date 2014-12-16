@@ -89,7 +89,7 @@ reduceMain s1 = do
     
 simplyConstraints :: SpecE -> IO SpecE
 simplyConstraints (SpecE ds es) = do
-    fin <- process (map simplyConstraint es)
+    fin <- process (doConstraints es)
     if fin == [] then do 
         runSpec (SpecE ds []) >>= \case
             True  -> return (SpecE ds [])
@@ -116,32 +116,49 @@ simplyConstraints (SpecE ds es) = do
         fix <- choose esR
         res <- runSpec (SpecE ds fix)
         if res then do
-            inner <- process (map simplyConstraint fix )
+            inner <- process (doConstraints fix )
             if inner == [] then
                 return fix
             else 
                 return inner
         else 
-            process (map tailR esR)
+            removeNext esR >>= process
     
-    singleElem [x] = True
-    singleElem _   = False
+
     
     tailR :: [a] -> [a]    
     tailR []     = error "tailR empty list"
     tailR [x]    = [x]
     tailR (_:xs) = xs
-        
+    
+    -- Fix the next constraint
     choose :: [[Expr]] -> IO [Expr]
     choose esR = do
-        mapM rndExpr esR
+        return $ map pickFirst esR
         
-    rndExpr :: [Expr] -> IO Expr
-    rndExpr [] = error "rndExpr emptyList"
-    rndExpr xs = return (xs !! 0)
+        where
+        pickFirst []    = error "pickfirst empty"
+        pickFirst [x]   = x
+        pickFirst (x:_) = x 
+        
+    -- Keep the orginal exprs apart from the first
+    doConstraints :: [Expr] -> [[Expr]]
+    doConstraints []      = [[]]  
+    doConstraints (x:xs)  = (reduce x) : map (\y -> y : reduce y) xs
+           
 
-simplyConstraint :: Expr -> [Expr]
-simplyConstraint e =  reduce e    
+singleElem :: [a] -> Bool
+singleElem [x] = True
+singleElem _   = False
+    
+removeNext :: [[a]] -> IO [[a]]
+removeNext []                     = error "removeNext empty"
+removeNext xs | all singleElem xs = return xs
+removeNext xs | any null xs       = error "removeNext sub empty"
+
+removeNext ([x]:xs)    = ([x]:)  <$> removeNext xs
+removeNext ((_:fs):xs) = return $ fs:xs
+removeNext (x:xs )     = (x:) <$> removeNext xs
     
 removeUnusedDomain :: SpecE -> IO SpecE    
 removeUnusedDomain sp = undefined  
