@@ -42,6 +42,7 @@ instance Pretty StatusI where
 
 data KindI =
       RefineCompact_
+    | RefineAll_
     | RefineRandom_
     | RefineParam_
     | Savilerow_
@@ -128,18 +129,19 @@ getJSON fp = do
 runToolChain :: FilePath -> FilePath -> Int -> IO (Either RefineR (RefineR, SolveR ) )
 runToolChain spec dir timeou  = do
     seed <- randomRIO (0,2^24) :: IO Int
-    runToolChain1 seed False 4 spec dir timeou
+    runToolChain1 seed False False 4 spec dir timeou
 
-runToolChain1 :: Int -> Bool -> Int -> FilePath -> FilePath -> Int  
+runToolChain1 :: Int -> Bool -> Bool -> Int -> FilePath -> FilePath -> Int  
     -> IO (Either RefineR (RefineR, SolveR ) )
-runToolChain1 seed newConjure cores spec dir timeou  = do    
+runToolChain1 seed newConjure refineAll cores spec dir timeou  = do    
     let nc = if newConjure then ["--new_conjure"] else []
+    let ra = if refineAll then ["--refine_all"] else []
     
     pg <- getEnv "PARAM_GEN_SCRIPTS"
     let toolchain= pg </> "toolchain" </> "toolchain.py"
         args = [spec, "--outdir", dir 
                ,"--timeout", show timeou
-               , "--num_cores", (show cores), "--seed", (show seed)] ++ nc
+               , "--num_cores", (show cores), "--seed", (show seed)] ++ nc ++ ra
     putStrLn $ "cmd: " ++ toolchain ++ " " ++ foldl1 (\a b -> a ++ " " ++ b) args
     _       <- rawSystem toolchain args
     refineF <- getJSON $ dir </> "refine_essence.json"
@@ -187,8 +189,8 @@ runRefine' seed cores spec dir specTime newConjure = do
     return result
 
 
-runToolchain' :: Seed -> Int -> Spec -> FilePath -> Int -> Bool -> IO  (Either RefineR (RefineR, SolveR))
-runToolchain' seed cores spec dir specTime newConjure = do
+runToolchain' :: Seed -> Int -> Spec -> FilePath -> Int -> Bool -> Bool -> IO  (Either RefineR (RefineR, SolveR))
+runToolchain' seed cores spec dir specTime newConjure refineAll= do
     print . pretty $ spec
 
     createDirectoryIfMissing True  dir
@@ -197,6 +199,6 @@ runToolchain' seed cores spec dir specTime newConjure = do
     writeSpec name spec
 
     let specLim = specTime
-    result <- runToolChain1 seed newConjure cores name dir specLim 
+    result <- runToolChain1 seed newConjure refineAll cores name dir specLim 
     putStrLn . groom $  result
     return result

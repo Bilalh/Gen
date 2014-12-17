@@ -116,7 +116,7 @@ prop_specs_toolchain  _ cores time out newConjure WithExtra{..} = do
             run $  writeFile (outdir </> "spec.specE" ) (show specE)
             
 
-            result <- run $ runToolchain' run_seed_ cores sp (out </> uname ) time newConjure
+            result <- run $ runToolchain' run_seed_ cores sp (out </> uname ) time newConjure False
             classifyError uname result
 
     where

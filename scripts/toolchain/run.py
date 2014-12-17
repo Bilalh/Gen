@@ -60,7 +60,8 @@ def run_refine_all_essence(*, op, commands):
     cmd_arr=shlex.split(cmd_template.format(**mapping))
 
     logger.warn("running %s:  %s\n\t%s", cmd_kind, cmd_arr, " ".join(cmd_arr))
-    (res, output) = run_with_timeout(mapping['itimeout'], cmd_kind, cmd_arr)
+    (res, output0) = run_with_timeout(mapping['itimeout'], cmd_kind, cmd_arr)
+    output = " ".join(cmd_arr) + "\n" + output0
 
     date_end=datetime.utcnow()
     diff = date_end - date_start

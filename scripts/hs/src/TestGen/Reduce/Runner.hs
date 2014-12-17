@@ -24,7 +24,8 @@ runSpec spE = do
     liftIO $ createDirectoryIfMissing True path >> removeDirectoryRecursive path
     
     seed <- rndRangeM (0, 2^24)
-    res <- liftIO $  runToolchain' seed 4 sp (path) 120 True
+    -- TODO follow logs
+    res <- liftIO $  runToolchain' seed 4 sp (path) 120 True True
     
 
     errorKind <- gets oErrKind_
@@ -53,4 +54,5 @@ runSpec spE = do
 modelRefineError :: KindI -> Bool
 modelRefineError RefineCompact_ = True
 modelRefineError RefineRandom_  = True
+modelRefineError RefineAll_     = True
 modelRefineError _              = False
