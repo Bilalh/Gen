@@ -45,6 +45,36 @@ def run_refine(commands, kwargs, i):
     (res, output) = run_with_timeout(kwargs['itimeout'], cmd_kind, cmd_arr)
     return ((eprime.stem, res.__dict__), " ".join(cmd_arr) + "\n" + output)
 
+
+def run_refine_all_essence(*, op, commands):
+    limit = op.timeout
+    date_start = datetime.utcnow()
+
+    mapping = dict(essence=op.essence, outdir=op.outdir)
+    mapping['itimeout']  = int(math.ceil(limit))
+    mapping['seed'] = uniform_int(0, 2 ** 24)
+
+
+    (cmd_kind, cmd_template) = commands.refine_all
+
+    cmd_arr=shlex.split(cmd_template.format(**mapping))
+
+    logger.warn("running %s:  %s\n\t%s", cmd_kind, cmd_arr, " ".join(cmd_arr))
+    (res, output) = run_with_timeout(mapping['itimeout'], cmd_kind, cmd_arr)
+
+    date_end=datetime.utcnow()
+    diff = date_end - date_start
+
+    with (op.outdir / "_refine.outputs").open("w") as f:
+        f.write(output)
+
+    with (op.outdir / "all.refine-output").open("w") as f:
+        f.write(output)
+
+    return (dict(all=res.__dict__), res.real_time)
+
+
+
 def run_refine_essence(*, op, commands, random, cores):
     limit = op.timeout
     date_start = datetime.utcnow()

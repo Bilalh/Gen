@@ -103,9 +103,16 @@ if __name__ == "__main__":
 
 
     startTime = time.time()
+
     # Make the eprimes
-    (essence_refine, refine_wall_time) = run.run_refine_essence(
-        op=op, commands=commands, random=op.num_cores - 1, cores=op.num_cores)
+    if op.refine_all:
+        (essence_refine, refine_wall_time) = run.run_refine_all_essence(
+            op=op, commands=commands)
+    else:
+        (essence_refine, refine_wall_time) = run.run_refine_essence(
+            op=op, commands=commands, random=op.num_cores - 1, cores=op.num_cores)
+
+
     endTime = time.time()
     logger.info("essence_refine: %s", pformat(essence_refine))
 

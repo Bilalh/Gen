@@ -8,20 +8,22 @@ from enum import Enum, unique
 @unique
 class K(Enum):
     refineCompact = 0,
+    refineAll     = 1,
     refineRandom  = 2,
     refineParam   = 3,
     savilerow     = 4,
     translateUp   = 5,
-    validate      = 6
+    validate      = 6,
     validateOld   = 7
 
 
 class Commands(object):
     """Functions for Old Conjure"""
-    def __init__(self, *, refine_compact, refine_random, refine_param,
+    def __init__(self, *, refine_compact, refine_all, refine_random, refine_param,
                  savilerow, translate_up, validate):
         super(Commands, self).__init__()
         self.refine_compact = (K.refineCompact, refine_compact)
+        self.refine_all=(K.refineAll, refine_all)
         self.refine_random = (K.refineRandom, refine_random)
         self.refine_param = (K.refineParam, refine_param)
         self.savilerow = (K.savilerow, savilerow)
@@ -37,6 +39,14 @@ class ConjureOld(Commands):
                     --in-essence {essence}
                     --out-eprime {eprime}
                     --timelimit  {itimeout}
+                """,
+
+                refine_all="""
+                time conjure
+                    --mode df
+                    --in-essence       {essence}
+                    --output-directory {outdir}
+                    --timelimit        {itimeout}
                 """,
 
                 refine_random="""
@@ -94,6 +104,7 @@ class ConjureOld(Commands):
                             self.translate_up, self.validate]
 
 
+
 class ConjureNew(Commands):
     def __init__(self):
         super(ConjureNew, self).__init__(
@@ -104,6 +115,14 @@ class ConjureNew(Commands):
                     --numbering-start {index}
                     --limit-time      {itimeout}
                     --seed            {seed}
+                """,
+
+                refine_all="""
+                time conjureNew        {essence}
+                    -q f -a x
+                    --output-directory {outdir}
+                    --limit-time       {itimeout}
+                    --seed             {seed}
                 """,
 
                 refine_random="""
