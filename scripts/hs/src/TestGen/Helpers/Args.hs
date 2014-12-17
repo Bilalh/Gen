@@ -41,7 +41,7 @@ argsDef  = TArgs_
              , typecheck_only = def &= help "Only typechecks the generated specs" 
                                     &= name "y"
              , run_tool_chain = def &= help "Run Conjure(refine) + SR + Minion + translate + validate + consistently checking"
-                                    &= name "a"
+                                    &= name "w"
              , new_conjure    = def &= help "Use new conjure, must be called conjureNew"
                                     &= name "n"
              }
