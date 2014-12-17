@@ -1,5 +1,5 @@
 name:                essence-testgen
-version:             0.6
+version:             0.7
 synopsis:            .
 description:         .
 License:             AllRightsReserved
@@ -51,7 +51,11 @@ Library
                      , TestGen.QC
                      , TestGen.QCDebug
                      , TestGen.QCUnused
+                     , TestGen.Reduce.Data
                      , TestGen.Reduce.Reduce
+                     , TestGen.Reduce.Reduction
+                     , TestGen.Reduce.Runner
+                     , TestGen.Reduce.Simpler
     
     
     build-depends    : base
@@ -81,6 +85,8 @@ Library
                      , time
                      , transformers
                      , unordered-containers
+                     , tf-random
+                     
    ghc-prof-options:
        -auto-all
        -caf-all

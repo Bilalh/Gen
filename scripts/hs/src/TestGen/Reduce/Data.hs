@@ -45,7 +45,7 @@ mkrGen = mkTFGen
 
 
 rndRangeM :: Random a => (a,a) -> RR a
-rndRangeM    ins = do
+rndRangeM ins = do
     rgen  <- gets rgen_
     let (num,rgen') = randomR ins rgen
     modify $ \st -> st{rgen_=rgen' }

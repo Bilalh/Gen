@@ -38,17 +38,22 @@ import Development.Placeholders as X (placeholder,notImplemented,todo)
 import Language.E as X
 
 import Control.Monad as X(filterM, guard)
-import Control.Monad.State.Strict as X (evalStateT,StateT)
+import Control.Monad.State.Strict as X (evalStateT,execStateT, StateT)
+
 import Data.Default as X ( Default, def )
 import Data.Set as X (Set)
 import Data.Time
 import Data.Time.Clock.POSIX(getPOSIXTime)
+
 import System.Directory(getHomeDirectory, createDirectoryIfMissing)
 import System.FilePath((</>), (<.>))
+
 import Test.QuickCheck as X (quickCheckWith, quickCheckWithResult
     , quickCheckResult, quickCheck, Gen,generate, sample'
     , Arbitrary(..), CoArbitrary(..), elements, sized)
+
 import Text.Groom as X (groom)
+
 
 
 

@@ -7,7 +7,8 @@ module TestGen.Reduce.Reduce where
 
 import TestGen.Reduce.Data
 import TestGen.Reduce.Runner
-import TestGen.Reduce.Simpler
+import TestGen.Reduce.Reduction
+
 
 import TestGen.Prelude
 import TestGen.Helpers.Runner(KindI(..))
@@ -24,52 +25,15 @@ import Control.Arrow((&&&))
 import System.Random(randomIO)
 
 
-class Reduce a where
-    reduce   :: a -> [a]    -- list of smaller exprs
-    single   :: a -> [Expr] -- smallest literal e.g  [true, false] for  a /\ b
-    subterms :: a -> [Expr] -- a /\ b  -->   [a, b]
-
-    -- reduce a   = error "no default reduce"
-    -- single a   = error "no default of single"
-    -- subterms a = error "no default of subterms"
-
-instance Reduce Expr where
-    reduce (EBinOp op) = single op ++ subterms op ++ map EBinOp (reduce op) 
-    
-    reduce a   = [] -- no reductions possible   
-    
-    single a   = error "no single expr"
-    subterms a = [] 
-    
-
-instance Reduce BinOp where
-    reduce (BOr a b) = map ( uncurry BOr ) $  catMaybes
-        [ (a, etrue) *| simpler etrue b , (a,efalse)  *| simpler efalse b
-        , (etrue,b)  *| simpler etrue a , (efalse, b) *| simpler efalse a ]
-
-    reduce b = []
-    
-    single (BOr _ _) = [etrue,  efalse]
-    single (BEQ _ _) = [etrue,  efalse]
-    
-    single a = error . show . vcat   
-        $ ["single missing case", pretty $ toEssence a, pretty $ groom a ]
-    
-
-    subterms (BOr a b) = [a,b] 
-    subterms (BEQ a b) = [a,b] 
-    
-
-    subterms a = error . show . vcat   
-        $ ["subterms missing case", pretty $ toEssence a, pretty $ groom a ]
-
-
 reduceMain :: SpecE -> IO SpecE 
 reduceMain s1 = do
-    -- s1 <- removeConstraints sp
-    s2 <- simplyConstraints s1
     
-    sfin <- return s2 
+    (sfin,state) <- (flip runStateT) _tempRR $ do
+        -- s1 <- removeConstraints sp
+        s2 <- simplyConstraints s1
+    
+        sfin <- return s2 
+        return sfin 
 
     putStrLn "----"    
     putStrLn "Start"
@@ -82,7 +46,7 @@ reduceMain s1 = do
     return sfin
 
     
-simplyConstraints :: SpecE -> IO SpecE
+simplyConstraints :: SpecE -> RR SpecE
 simplyConstraints (SpecE ds es) = do
     fin <- process (doConstraints es)
     if fin == [] then do 
@@ -95,7 +59,8 @@ simplyConstraints (SpecE ds es) = do
         return (SpecE ds fin)
     
     where
-    process :: [[Expr]] -> IO [Expr]
+    process :: [[Expr]] -> RR [Expr]
+    
     -- cannot simply any futher
     process xs | any (== []) xs = return []
     
@@ -119,15 +84,8 @@ simplyConstraints (SpecE ds es) = do
         else 
             removeNext esR >>= process
     
-
-    
-    tailR :: [a] -> [a]    
-    tailR []     = error "tailR empty list"
-    tailR [x]    = [x]
-    tailR (_:xs) = xs
-    
     -- Fix the next constraint
-    choose :: [[Expr]] -> IO [Expr]
+    choose :: [[Expr]] -> RR [Expr]
     choose esR = do
         return $ map pickFirst esR
         
@@ -141,12 +99,7 @@ simplyConstraints (SpecE ds es) = do
     doConstraints []      = [[]]  
     doConstraints (x:xs)  = (reduce x) : map (\y -> y : reduce y) xs
            
-
-    singleElem :: [a] -> Bool
-    singleElem [x] = True
-    singleElem _   = False
-    
-    removeNext :: [[a]] -> IO [[a]]
+    removeNext :: [[a]] -> RR [[a]]
     removeNext []                     = error "removeNext empty"
     removeNext xs | all singleElem xs = return xs
     removeNext xs | any null xs       = error "removeNext sub empty"
@@ -155,17 +108,29 @@ simplyConstraints (SpecE ds es) = do
     removeNext ((_:fs):xs) = return $ fs:xs
     removeNext (x:xs )     = (x:) <$> removeNext xs
     
-removeUnusedDomain :: SpecE -> IO SpecE    
+    
+removeUnusedDomain :: SpecE -> RR SpecE    
 removeUnusedDomain sp = undefined  
 
 
+    
+tailR :: [a] -> [a]    
+tailR []     = error "tailR empty list"
+tailR [x]    = [x]
+tailR (_:xs) = xs
+    
+singleElem :: [a] -> Bool
+singleElem [x] = True
+singleElem _   = False
+    
 
+_reduce :: (Reduce a, ToEssence a, FromEssence a) => E -> IO [a]
 _reduce e = 
     case  fromEssence e of 
         Left err -> error . show .  (pretty &&& pretty . groom)  $ err
         Right ee -> do
             let res = reduce ee
-            mapM (print  . pretty . toEssence)  res
+            mapM_ (print  . pretty . toEssence)  res
             return res
  
 _e :: FromEssence a => E -> a
@@ -174,16 +139,11 @@ _e e =  case fromEssence e of
         Right ee -> ee
 
 
+_tempRR :: RState
 _tempRR = RState{oErrKind_         =Validate_
                 ,oErrEprime_       = "/Users/bilalh/CS/break_conjure/fixed/46c3d2b43f4e/2014-12-10_02-01_1418176894/_errors/Validate_/ErrorUnknown_/1418178864_89/model000001.eprime"
                 ,mostReduced_      = Nothing
                 ,mostReducedFP_    = Nothing
                 ,otherErrorsFound_ = []
-                ,rgen_             = mkrGen 1}
-
-
-
-aa :: RR Int 
-aa = rndRangeM (1,5)
-
+                ,rgen_             = mkrGen 6}
 
