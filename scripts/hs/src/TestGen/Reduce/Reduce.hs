@@ -25,12 +25,13 @@ import Control.Arrow((&&&))
 import System.Random(randomIO)
 
 
+
 reduceMain :: SpecE -> IO SpecE 
 reduceMain sp = do
     
     (sfin,state) <- (flip runStateT) _tempRR $
         removeUnusedDomain sp 
-        >>= simplyConstraints
+        -- >>= simplyConstraints
 
     putStrLn "----"    
     putStrLn "Start"
@@ -43,8 +44,37 @@ reduceMain sp = do
     return sfin
 
 removeUnusedDomain :: SpecE -> RR SpecE    
-removeUnusedDomain (SpecE doms constraints) = undefined
-      
+removeUnusedDomain sp@(SpecE ods es) = do
+    let unusedNames = unusedDomains sp
+    
+    nds <- process (choices ods unusedNames)
+    -- runSpec (SpecE nds es) >>= \case
+    --     True  -> return (SpecE nds es)
+    --     False -> return (SpecE ods es)
+    case nds of 
+        Just ds ->  return (SpecE ds es)
+        Nothing -> return (SpecE ods es)
+
+    where
+    choices :: Doms -> [Text] -> [Doms] 
+    choices ds ts = 
+        let ways = reverse $ tail $ subsequences ts
+            res = fmap (\wy -> M.filterWithKey (\k _ -> k `notElem` wy) ds ) ways
+        in res
+        
+    process :: [Doms]-> RR (Maybe Doms)
+    process []  = return Nothing 
+    process [x] =runSpec (SpecE y es) >>= \case
+        True  -> return $ Just y
+        False -> return   Nothing
+        
+        where y = enusreADomain x
+        
+    -- process ds  = error . show . vcat $ map (pretty . mkDomains) ds
+    
+    enusreADomain :: Doms -> Doms
+    enusreADomain ds | M.null ds = M.insert ("unused") (Find DBool) ds
+    enusreADomain ds = ds 
 
     
 simplyConstraints :: SpecE -> RR SpecE
