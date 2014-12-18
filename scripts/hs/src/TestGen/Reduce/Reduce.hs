@@ -30,7 +30,7 @@ reduceMain :: SpecE -> IO SpecE
 reduceMain sp = do
     
     (sfin,state) <- (flip runStateT) _tempRR $
-        removeUnusedDomain sp 
+        removeUnusedDomains sp 
         >>= simplyConstraints
 
     putStrLn "----"    
@@ -43,14 +43,11 @@ reduceMain sp = do
     
     return sfin
 
-removeUnusedDomain :: SpecE -> RR SpecE    
-removeUnusedDomain sp@(SpecE ods es) = do
+removeUnusedDomains :: SpecE -> RR SpecE    
+removeUnusedDomains sp@(SpecE ods es) = do
     let unusedNames = unusedDomains sp
     
     nds <- process (choices ods unusedNames)
-    -- runSpec (SpecE nds es) >>= \case
-    --     True  -> return (SpecE nds es)
-    --     False -> return (SpecE ods es)
     case nds of 
         Just ds ->  return (SpecE ds es)
         Nothing -> return (SpecE ods es)
