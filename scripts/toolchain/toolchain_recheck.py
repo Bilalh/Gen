@@ -24,6 +24,7 @@ import time
 
 import argparse
 from distutils import file_util
+from textwrap import indent
 
 
 logger = logging.getLogger(__name__)
@@ -178,7 +179,7 @@ def rerun_solve(outdir, limit, kv):
 
         if res.status_ != Status.success:
             logger.warn("###ERROR %s for cmd \n%s\n%s",
-                    res.status_, " ".join(cmd_aarr), indent(output, " \t") )
+                    res.status_, " ".join(cmd_arr), indent(output, " \t") )
             erroed=i
             all_finished=False
             last_status = res.status_
