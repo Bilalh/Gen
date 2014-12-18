@@ -31,7 +31,7 @@ reduceMain sp = do
     
     (sfin,state) <- (flip runStateT) _tempRR $
         removeUnusedDomain sp 
-        -- >>= simplyConstraints
+        >>= simplyConstraints
 
     putStrLn "----"    
     putStrLn "Start"
