@@ -8,7 +8,7 @@ module TestGen.Reduce.Reduce where
 import TestGen.Reduce.Data
 import TestGen.Reduce.Runner
 import TestGen.Reduce.Reduction
-
+import TestGen.Reduce.UnusedDomains
 
 import TestGen.Prelude
 import TestGen.Helpers.Runner(KindI(..))
@@ -26,18 +26,15 @@ import System.Random(randomIO)
 
 
 reduceMain :: SpecE -> IO SpecE 
-reduceMain s1 = do
+reduceMain sp = do
     
-    (sfin,state) <- (flip runStateT) _tempRR $ do
-        -- s1 <- removeConstraints sp
-        s2 <- simplyConstraints s1
-    
-        sfin <- return s2 
-        return sfin 
+    (sfin,state) <- (flip runStateT) _tempRR $
+        removeUnusedDomain sp 
+        >>= simplyConstraints
 
     putStrLn "----"    
     putStrLn "Start"
-    print . pretty $ s1
+    print . pretty $ sp
     putStrLn "----"    
     putStrLn "Final"
     print . pretty $ sfin
@@ -45,16 +42,18 @@ reduceMain s1 = do
     
     return sfin
 
+removeUnusedDomain :: SpecE -> RR SpecE    
+removeUnusedDomain (SpecE doms constraints) = undefined
+      
+
     
 simplyConstraints :: SpecE -> RR SpecE
 simplyConstraints (SpecE ds es) = do
     fin <- process (doConstraints es)
-    if fin == [] then do 
+    if fin == [] then 
         runSpec (SpecE ds []) >>= \case
             True  -> return (SpecE ds [])
             False -> return (SpecE ds es)
-            
-        return (SpecE ds es)
     else
         return (SpecE ds fin)
     
@@ -108,10 +107,6 @@ simplyConstraints (SpecE ds es) = do
     removeNext ((_:fs):xs) = return $ fs:xs
     removeNext (x:xs )     = (x:) <$> removeNext xs
     
-    
-removeUnusedDomain :: SpecE -> RR SpecE    
-removeUnusedDomain sp = undefined  
-
 
     
 tailR :: [a] -> [a]    
@@ -127,7 +122,7 @@ singleElem _   = False
 _reduce :: (Reduce a, ToEssence a, FromEssence a) => E -> IO [a]
 _reduce e = 
     case  fromEssence e of 
-        Left err -> error . show .  (pretty &&& pretty . groom)  $ err
+        Left er -> error . show .  (pretty &&& pretty . groom)  $ er
         Right ee -> do
             let res = reduce ee
             mapM_ (print  . pretty . toEssence)  res
@@ -135,7 +130,7 @@ _reduce e =
  
 _e :: FromEssence a => E -> a
 _e e =  case fromEssence e of 
-        Left err -> error . show .  (pretty &&& pretty . groom) $ err
+        Left er -> error . show .  (pretty &&& pretty . groom) $ er
         Right ee -> ee
 
 
