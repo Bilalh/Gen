@@ -145,5 +145,7 @@ _tempRR = RState{oErrKind_         =Validate_
                 ,mostReduced_      = Nothing
                 ,mostReducedFP_    = Nothing
                 ,otherErrorsFound_ = []
-                ,rgen_             = mkrGen 6}
+                ,outputdir_        = "/Users/bilalh/CS/break_conjure/fixed/46c3d2b43f4e/2014-12-10_02-01_1418176894/_errors/Validate_/ErrorUnknown_/1418178864_89/reduce/"
+                ,rgen_             = mkrGen 6
+                }
 

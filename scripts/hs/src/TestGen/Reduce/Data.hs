@@ -23,6 +23,7 @@ data RState = RState
     , oErrEprime_       :: FilePath
     , mostReduced_      :: Maybe SpecE
     , mostReducedFP_    :: Maybe FilePath
+    , outputdir_        :: FilePath
     , otherErrorsFound_ :: [FilePath]
     , rgen_             :: TFGen
     } deriving (Show)

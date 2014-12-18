@@ -9,8 +9,11 @@ import TestGen.Reduce.Data
 
 import TestGen.Helpers.Runner
 
+import Common.Helpers(timestamp)
+
 import qualified Data.Map as M
 
+import System.FilePath((</>), (<.>), takeFileName)
 import System.Directory(createDirectoryIfMissing, removeDirectoryRecursive)
 
 
@@ -18,14 +21,19 @@ import System.Directory(createDirectoryIfMissing, removeDirectoryRecursive)
 runSpec :: SpecE -> RR Bool
 runSpec spE = do
     let sp = toSpec spE
-    let path = "/Users/bilalh/CS/break_conjure/fixed/46c3d2b43f4e/2014-12-10_02-01_1418176894/_errors/Validate_/ErrorUnknown_/1418178864_89/out"
+    outdir <- gets outputdir_
+
+    ts <- liftIO $ timestamp >>= return . show
+    ts_num <- rndRangeM (100 :: Int, 999) >>= return . show
+    
+    let path = outdir </> (ts ++ "_" ++ ts_num)
     
     -- removeDirectoryRecursive breaks if dir eixsts
-    liftIO $ createDirectoryIfMissing True path >> removeDirectoryRecursive path
+    -- liftIO $ createDirectoryIfMissing True path >> removeDirectoryRecursive path
     
     seed <- rndRangeM (0, 2^24)
     -- TODO follow logs
-    res <- liftIO $  runToolchain' seed 4 sp (path) 120 True True
+    res <- liftIO $  runToolchain' seed 4 sp path 20 True True
     
 
     errorKind <- gets oErrKind_
