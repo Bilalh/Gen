@@ -211,21 +211,56 @@ def run_solve(op, commands, limit, eprime):
 
 @unique
 class Status(Enum):
-    success       = 0,
-    errorUnknown  = 1,
-    timeout       = 2,
-    numberToLarge = 3,
-    heapSpace     = 4
+    success          = 0,
+    errorUnknown     = 1,
+    timeout          = 2,
+    numberToLarge    = 3,
+    heapSpace        = 4,
+    cannotEvaluate   = 5,
+    valueNotInDom    = 6,
+    parseError       = 7,
+    typeChecking     = 8,
+    varDuplicated    = 9,
+    negativeExponent = 10,
+    divideByZero     = 11,
+    conjureNA        = 12,
+    conjureInvalid   = 13
 
 errors_not_useful = {Status.numberToLarge}
 
+
 def classify_error(kind, c, e):
+    kind_conjure = {K.refineRandom, K.refineCompact, K.refineParam, K.translateUp, K.validate, K.validateOld}
     if kind == K.savilerow:
         if "java.lang.NumberFormatException: For input string: " in e.output:
             return Status.numberToLarge
-    if kind in {K.refineRandom, K.refineCompact, K.refineParam, K.translateUp, K.validate} \
-            and e.returncode == 252:
-        return Status.heapSpace
+        if "Failed when parsing rest of structure following" in e.output:
+            return Status.parseError
+        if 'Failed type checking' in e.output:
+            return Status.typeChecking
+        if 'declared more than once.' in e.output:
+            return Status.varDuplicated
+
+    if kind in kind_conjure:
+        if e.returncode == 252:
+            return Status.heapSpace
+
+    if kind == K.validateOld and 'Value not in' in e.output:
+        return Status.valueNotInDom
+
+    if kind == K.validate:
+        if ': negativeExponent' in e.output:
+            return Status.negativeExponent
+        if ': divideByZero' in e.output:
+            return Status.divideByZero
+        if ': Invalid' in e.output:
+            return Status.conjureInvalid
+
+    if kind in kind_conjure:
+        if 'Cannot fully evaluate' in e.output:
+            return Status.cannotEvaluate
+        if 'N/A:' in e.output:
+            return Status.conjureNA
 
     return Status.errorUnknown
 

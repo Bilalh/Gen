@@ -35,6 +35,15 @@ data StatusI =
     | ErrorUnknown_
     | NumberToLarge_
     | HeapSpace_
+    | CannotEvaluate_   
+    | ValueNotInDom_    
+    | ParseError_       
+    | TypeChecking_     
+    | VarDuplicated_    
+    | NegativeExponent_ 
+    | DivideByZero_     
+    | ConjureNA_        
+    | ConjureInvalid_
     deriving (Show,Eq,Enum,Generic)
 
 instance Pretty StatusI where 
