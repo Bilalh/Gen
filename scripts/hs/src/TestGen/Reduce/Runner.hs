@@ -16,6 +16,16 @@ import qualified Data.Map as M
 import System.FilePath((</>), (<.>), takeFileName)
 import System.Directory(createDirectoryIfMissing, removeDirectoryRecursive)
 
+import qualified Data.Text as T
+import qualified Data.Text.IO as T
+
+-- reads a .specE file
+readSpecE :: FilePath -> IO SpecE
+readSpecE fp = do
+    con <- T.readFile fp
+    let st = T.unpack $ con
+    return . read $ st 
+    
 
 -- True means error still happens
 runSpec :: SpecE -> RR Bool
@@ -27,6 +37,8 @@ runSpec spE = do
     ts_num <- rndRangeM (100 :: Int, 999) >>= return . show
     
     let path = outdir </> (ts ++ "_" ++ ts_num)
+    liftIO $ createDirectoryIfMissing True  path
+    liftIO $ writeFile (path </> "spec.specE" ) (show spE)
     
     -- removeDirectoryRecursive breaks if dir eixsts
     -- liftIO $ createDirectoryIfMissing True path >> removeDirectoryRecursive path
@@ -39,8 +51,8 @@ runSpec spE = do
     errorKind <- gets oErrKind_
     let 
         sameError (Left SettingI{successful_=False}) | modelRefineError errorKind = True 
-        sameError (Right (_, SettingI{successful_=False,data_=SolveM ms })) = 
         
+        sameError (Right (_, SettingI{successful_=False,data_=SolveM ms })) = 
             let
                 f ResultI{last_status, erroed= Just index, results } = 
                     let kind = kind_ (results !! index)
@@ -54,7 +66,8 @@ runSpec spE = do
     
     let stillErroed  = sameError res
      
-    liftIO $ print $ (stillErroed, pretty sp)
+    liftIO $ print $ ("HasError?", stillErroed)
+    liftIO $ putStrLn "\n---\n"
     return stillErroed
 
 

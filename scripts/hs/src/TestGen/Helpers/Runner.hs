@@ -147,7 +147,8 @@ runToolChain1 seed newConjure refineAll cores spec dir timeou  = do
     let ra = if refineAll then ["--refine_all"] else []
     
     pg <- getEnv "PARAM_GEN_SCRIPTS"
-    let toolchain= pg </> "toolchain" </> "toolchain.py"
+    -- let toolchain= pg </> "toolchain" </> "toolchain.py"
+    let toolchain= pg </> "toolchain" </> "toolchain_null_output.sh"
         args = [spec, "--outdir", dir 
                ,"--timeout", show timeou
                , "--num_cores", (show cores), "--seed", (show seed)] ++ nc ++ ra
@@ -209,5 +210,5 @@ runToolchain' seed cores spec dir specTime newConjure refineAll= do
 
     let specLim = specTime
     result <- runToolChain1 seed newConjure refineAll cores name dir specLim 
-    putStrLn . groom $  result
+    -- putStrLn . groom $  result
     return result

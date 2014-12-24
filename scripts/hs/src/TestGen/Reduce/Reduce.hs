@@ -25,11 +25,14 @@ import Control.Arrow((&&&))
 import System.Random(randomIO)
 
 
-
-reduceMain :: SpecE -> IO SpecE 
-reduceMain sp = do
+reduceMain :: SpecE -> RState -> IO SpecE 
+reduceMain sp rr  = do
+    putStrLn "Starting with"    
+    print . pretty $ sp
+    putStrLn "----"    
     
-    (sfin,state) <- (flip runStateT) _tempRR $
+    
+    (sfin,state) <- (flip runStateT) rr $
         removeUnusedDomains sp 
         >>= simplyConstraints
 
@@ -134,7 +137,7 @@ simplyConstraints (SpecE ds es) = do
     removeNext ((_:fs):xs) = return $ fs:xs
     removeNext (x:xs )     = (x:) <$> removeNext xs
     
-
+  
     
 tailR :: [a] -> [a]    
 tailR []     = error "tailR empty list"
@@ -161,13 +164,21 @@ _e e =  case fromEssence e of
         Right ee -> ee
 
 
+_k = do
+    let fp = "/Users/bilalh/CS/break_conjure/misc/1419393045_122/spec.specE"
+    spe <- readSpecE fp
+    reduceMain spe 
+           def{oErrKind_   = RefineCompact_                 
+              ,oErrEprime_ = Nothing
+              ,outputdir_  = "/Users/bilalh/CS/break_conjure/out"
+              ,rgen_       = mkrGen 3
+              }
+    
+
 _tempRR :: RState
-_tempRR = RState{oErrKind_         =Validate_
-                ,oErrEprime_       = "/Users/bilalh/CS/break_conjure/fixed/46c3d2b43f4e/2014-12-10_02-01_1418176894/_errors/Validate_/ErrorUnknown_/1418178864_89/model000001.eprime"
-                ,mostReduced_      = Nothing
-                ,mostReducedFP_    = Nothing
-                ,otherErrorsFound_ = []
-                ,outputdir_        = "/Users/bilalh/CS/break_conjure/fixed/46c3d2b43f4e/2014-12-10_02-01_1418176894/_errors/Validate_/ErrorUnknown_/1418178864_89/reduce/"
-                ,rgen_             = mkrGen 6
-                }
+_tempRR  = def{oErrKind_   = Validate_                 
+              ,oErrEprime_ = Just "/Users/bilalh/CS/break_conjure/fixed/46c3d2b43f4e/2014-12-10_02-01_1418176894/_errors/Validate_/ErrorUnknown_/1418178864_89/model000001.eprime"
+              ,outputdir_  = "/Users/bilalh/CS/break_conjure/fixed/46c3d2b43f4e/2014-12-10_02-01_1418176894/_errors/Validate_/ErrorUnknown_/1418178864_89/reduce/"
+              ,rgen_       = mkrGen 6
+              }
 

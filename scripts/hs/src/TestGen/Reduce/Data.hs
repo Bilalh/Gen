@@ -18,16 +18,16 @@ efalse = ELit (EB False)
 
 type RR a =  StateT RState IO a
 
+--FIXME 
 data RState = RState
     { oErrKind_         :: KindI
-    , oErrEprime_       :: FilePath
+    , oErrEprime_       :: Maybe FilePath  
     , mostReduced_      :: Maybe SpecE
     , mostReducedFP_    :: Maybe FilePath
     , outputdir_        :: FilePath
     , otherErrorsFound_ :: [FilePath]
     , rgen_             :: TFGen
     } deriving (Show)
-
 
 instance Pretty RState where
     pretty RState{..} = 
@@ -40,6 +40,18 @@ instance Pretty RState where
                 , nn "otherErrorsFound_ =" (vcat $ map pretty otherErrorsFound_)
                 , nn "rgen_ =" (show rgen_)
                 ])
+
+instance Default RState where
+    def =  RState{oErrKind_         = error "need oErrKind_"
+                 
+                 ,oErrEprime_       = Nothing
+                 ,outputdir_        = error "need outputdir_"
+                 ,mostReduced_      = Nothing
+                 ,mostReducedFP_    = Nothing
+                 ,otherErrorsFound_ = []
+                 ,rgen_             = error "need rgen_"
+                 }
+
 
 mkrGen :: Int -> TFGen
 mkrGen = mkTFGen

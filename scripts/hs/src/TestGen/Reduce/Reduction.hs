@@ -43,17 +43,18 @@ instance Reduce BinOp where
 
     reduce b = []
     
-    single (BOr _ _) = [etrue,  efalse]
-    single (BEQ _ _) = [etrue,  efalse]
+    single (BOr _ _)  = [etrue,  efalse]
+    single (BEQ _ _)  = [etrue,  efalse]
+    single (BNEQ _ _) = [etrue,  efalse]
     
     single a = error . show . vcat   
         $ ["single missing case", pretty $ toEssence a, pretty $ groom a ]
     
 
-    subterms (BOr a b) = [a,b] 
-    subterms (BEQ a b) = [a,b] 
+    subterms (BOr a b)  = [a,b] 
+    subterms (BEQ a b)  = [a,b] 
+    subterms (BNEQ a b) = [a,b] 
     
-
     subterms a = error . show . vcat   
         $ ["subterms missing case", pretty $ toEssence a, pretty $ groom a ]
 
