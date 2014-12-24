@@ -141,7 +141,13 @@ if __name__ == "__main__":
 
     # Run the SR Minion translate and vaildate
     solve_op = partial(run.run_solve, op, commands, limit)
-    eprimes = op.outdir.glob('*.eprime')
+    eprimes = list(op.outdir.glob('*.eprime'))
+
+    if not eprimes:
+        logger.warn("No eprimes produced exiting..")
+        sys.exit(6)
+    else:
+        logger.warn("running %s", eprimes)
 
     pool = Pool(op.num_cores)
     solve_results = dict(pool.map(solve_op, eprimes))
