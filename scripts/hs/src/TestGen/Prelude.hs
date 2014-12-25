@@ -16,6 +16,7 @@ module TestGen.Prelude (
     , _gen
     , renderSmall
     , _ss
+    , prettyBrackets
 ) where
 
 import AST.Imports as X
@@ -188,3 +189,7 @@ renderSmall = P.renderStyle (P.style { P.lineLength = 74 }) . pretty
 
 _ss :: Depth -> SS
 _ss d = def{depth_=d}
+
+
+prettyBrackets :: Pretty a => a -> Doc
+prettyBrackets = P.brackets . pretty

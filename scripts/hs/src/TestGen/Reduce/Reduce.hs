@@ -33,8 +33,9 @@ reduceMain sp rr  = do
     
     
     (sfin,state) <- (flip runStateT) rr $
-        removeUnusedDomains sp 
-        >>= simplyConstraints
+        return sp
+        >>= removeUnusedDomains
+        -- >>= simplyConstraints
 
     putStrLn "----"    
     putStrLn "Start"
@@ -49,32 +50,32 @@ reduceMain sp rr  = do
 removeUnusedDomains :: SpecE -> RR SpecE    
 removeUnusedDomains sp@(SpecE ods es) = do
     let unusedNames = unusedDomains sp
-    
+
     nds <- process (choices ods unusedNames)
     case nds of 
-        Just ds ->  return (SpecE ds es)
+        Just ds -> return (SpecE ds es)
         Nothing -> return (SpecE ods es)
 
     where
     choices :: Doms -> [Text] -> [Doms] 
     choices ds ts = 
-        let ways = reverse $ tail $ subsequences ts
+        -- remove [] and reversing to get largest first 
+        let ways = reverse . tail . sortBy (comparing length) . subsequences $ ts
             res = fmap (\wy -> M.filterWithKey (\k _ -> k `notElem` wy) ds ) ways
         in res
         
     process :: [Doms]-> RR (Maybe Doms)
-    process []  = return Nothing 
-    process [x] =runSpec (SpecE y es) >>= \case
+    process []     = return Nothing 
+    process (x:xs) = runSpec (SpecE y es) >>= \case
         True  -> return $ Just y
-        False -> return   Nothing
+        False -> process xs
         
-        where y = enusreADomain x
-        
-    -- process ds  = error . show . vcat $ map (pretty . mkDomains) ds
+        where y = ensureADomain x
     
-    enusreADomain :: Doms -> Doms
-    enusreADomain ds | M.null ds = M.insert ("unused") (Find DBool) ds
-    enusreADomain ds = ds 
+    
+    ensureADomain :: Doms -> Doms
+    ensureADomain ds | M.null ds = M.insert ("unused") (Find DBool) ds
+    ensureADomain ds = ds 
 
     
 simplyConstraints :: SpecE -> RR SpecE

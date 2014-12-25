@@ -11,8 +11,8 @@ import qualified Data.HashSet as S
 unusedDomains :: SpecE -> [Text]
 unusedDomains spe = 
     case runCompESingle "f" (unusedDomainsOC (toSpec spe)  ) of
-        ((Right ts),_)  -> ts
-        ((Left doc),_) -> error . show . vcat $ ["unusedDomains error", doc]
+        ((Right ts),_) -> ts
+        ((Left doc),lg) -> error . show . vcat $ ["unusedDomains error", doc,pretty lg]
 
 --TODO don't use old conjure
 unusedDomainsOC
@@ -23,12 +23,9 @@ unusedDomainsOC (Spec v statements) = go statements
     where
         go (StatementAndNext this next) = do
             let maybeName = case this of
-                    [xMatch| [Prim (S nm)] := topLevel.declaration.find .name.reference
-                           | [d]           := topLevel.declaration.find .domain
-                           |] | domainNeedsRepresentation d -> Just nm
-                    [xMatch| [Prim (S nm)] := topLevel.declaration.given.name.reference
-                           | [d]           := topLevel.declaration.given.domain
-                           |] | domainNeedsRepresentation d -> Just nm
+                    [xMatch| [Prim (S nm)] := topLevel.declaration.find.name.reference
+                           | [d]           := topLevel.declaration.find.domain
+                           |] -> Just nm
                     _ -> Nothing
             next' <- go next
             case maybeName of
