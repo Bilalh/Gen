@@ -17,6 +17,7 @@ module TestGen.Prelude (
     , renderSmall
     , _ss
     , prettyBrackets
+    , nub2
 ) where
 
 import AST.Imports as X
@@ -55,7 +56,7 @@ import Test.QuickCheck as X (quickCheckWith, quickCheckWithResult
 
 import Text.Groom as X (groom)
 
-
+import qualified Data.Set as S
 
 
 import qualified Control.Exception as C
@@ -193,3 +194,12 @@ _ss d = def{depth_=d}
 
 prettyBrackets :: Pretty a => a -> Doc
 prettyBrackets = P.brackets . pretty
+
+-- Might want to use a hash set at some point
+-- nub is O(N^2) this is O(NlogN)
+nub2 :: (Ord a, Hashable a) => [a] -> [a]
+nub2 l = go S.empty l
+  where
+    go _ [] = []
+    go s (x:xs) = if x `S.member` s then go s xs
+                                      else x : go (S.insert x s) xs

@@ -35,7 +35,8 @@ reduceMain sp rr  = do
     (sfin,state) <- (flip runStateT) rr $
         return sp
         >>= removeUnusedDomains
-        -- >>= simplyConstraints
+        >>= removeConstraints
+        >>= simplyConstraints
 
     putStrLn "----"    
     putStrLn "Start"
@@ -59,7 +60,8 @@ removeUnusedDomains sp@(SpecE ods es) = do
     where
     choices :: Doms -> [Text] -> [Doms] 
     choices ds ts = 
-        -- remove [] and reversing to get largest first 
+        -- remove [] and reversing to get largest first
+        -- meaning res would be [ [a], [b], [a,b],  ... ] 
         let ways = reverse . tail . sortBy (comparing length) . subsequences $ ts
             res = fmap (\wy -> M.filterWithKey (\k _ -> k `notElem` wy) ds ) ways
         in res
@@ -77,6 +79,28 @@ removeUnusedDomains sp@(SpecE ods es) = do
     ensureADomain ds | M.null ds = M.insert ("unused") (Find DBool) ds
     ensureADomain ds = ds 
 
+    
+removeConstraints :: SpecE -> RR SpecE
+removeConstraints (SpecE ds oes) = do
+    let nubbed = nub2 oes
+    nes <- process (choices nubbed)
+    case nes of 
+        Just es -> return (SpecE ds es)
+        Nothing -> return (SpecE ds nubbed)
+    
+    where
+        
+    choices :: [Expr] -> [[Expr]]
+    choices ts = 
+        let ways = sortBy (comparing length) . subsequences $ ts
+        in  ways
+    
+    process :: [[Expr]] -> RR (Maybe [Expr])
+    process (x:xs) = runSpec (SpecE ds x) >>= \case
+        True  -> return $ Just x 
+        False -> process xs
+    
+    -- process ts = error . show . prettyBrackets . vcat $ map (prettyBrackets .  vcat . map pretty) ts
     
 simplyConstraints :: SpecE -> RR SpecE
 simplyConstraints (SpecE ds es) = do
@@ -166,7 +190,8 @@ _e e =  case fromEssence e of
 
 
 _k = do
-    let fp = "/Users/bilalh/CS/break_conjure/misc/1419393045_122/spec.specE"
+    -- let fp = "/Users/bilalh/CS/break_conjure/misc/1419393045_122/spec.specE"
+    let fp = "/Users/bilalh/CS/break_conjure/2014-12-19_04-19_1418962766/RefineCompact_/ErrorUnknown_/1418964459_41/spec.specE"
     spe <- readSpecE fp
     reduceMain spe 
            def{oErrKind_   = RefineCompact_                 
