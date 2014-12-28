@@ -5,7 +5,7 @@
 module TestGen.Reduce.Data where
 
 import TestGen.Prelude
-import TestGen.Helpers.Runner(KindI)
+import TestGen.Helpers.Runner(KindI, StatusI)
 
 import System.Random
 import System.Random.TF
@@ -18,9 +18,10 @@ efalse = ELit (EB False)
 
 type RR a =  StateT RState IO a
 
---FIXME 
+
 data RState = RState
     { oErrKind_         :: KindI
+    , oErrStatus_       :: StatusI
     , oErrEprime_       :: Maybe FilePath  
     , mostReduced_      :: Maybe SpecE
     , mostReducedFP_    :: Maybe FilePath
@@ -34,6 +35,7 @@ instance Pretty RState where
         "SS" <+> Pr.braces (
             Pr.sep 
                 [ nn "oErrKind_ = "  oErrKind_
+                , nn "oErrStatus_ =" oErrStatus_
                 , nn "oErrEprime_ =" oErrEprime_
                 , nn "mostReduced_ =" mostReduced_
                 , nn "mostReducedFP_ =" mostReducedFP_
@@ -43,7 +45,7 @@ instance Pretty RState where
 
 instance Default RState where
     def =  RState{oErrKind_         = error "need oErrKind_"
-                 
+                 ,oErrStatus_       = error "need oErrStatus_"
                  ,oErrEprime_       = Nothing
                  ,outputdir_        = error "need outputdir_"
                  ,mostReduced_      = Nothing

@@ -48,9 +48,16 @@ runSpec spE = do
     res <- liftIO $  runToolchain' seed 4 sp path 20 True True
     
 
-    errorKind <- gets oErrKind_
+    errorKind   <- gets oErrKind_
+    errorStatus <- gets oErrStatus_
+    
     let 
-        sameError (Left SettingI{successful_=False}) | modelRefineError errorKind = True 
+        sameError (Left SettingI{successful_=False, data_=RefineM ms}) 
+            | modelRefineError errorKind = 
+            
+            let statuses = M.toList $  M.map (status_) ms
+            in any (\(name,status) -> status == errorStatus) statuses
+            
         
         sameError (Right (_, SettingI{successful_=False,data_=SolveM ms })) = 
             let

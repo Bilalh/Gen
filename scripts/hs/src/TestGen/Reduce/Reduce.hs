@@ -11,7 +11,7 @@ import TestGen.Reduce.Reduction
 import TestGen.Reduce.UnusedDomains
 
 import TestGen.Prelude
-import TestGen.Helpers.Runner(KindI(..))
+import TestGen.Helpers.Runner(KindI(..), StatusI(..))
 import TestGen.QCDebug(specE1)
 
 import qualified TestGen.Arbitrary.Arbitrary as A
@@ -37,6 +37,7 @@ reduceMain sp rr  = do
         >>= removeUnusedDomains
         >>= removeConstraints
         >>= simplyConstraints
+        >>= removeUnusedDomains
 
     putStrLn "----"    
     putStrLn "Start"
@@ -191,20 +192,21 @@ _e e =  case fromEssence e of
 
 _k = do
     -- let fp = "/Users/bilalh/CS/break_conjure/misc/1419393045_122/spec.specE"
-    let fp = "/Users/bilalh/CS/break_conjure/2014-12-19_04-19_1418962766/RefineCompact_/ErrorUnknown_/1418964459_41/spec.specE"
+    -- let fp = "/Users/bilalh/CS/break_conjure/2014-12-19_04-19_1418962766/RefineCompact_/ErrorUnknown_/1418964459_41/spec.specE"
+    let fp = "/Users/bilalh/CS/break_conjure/2014-12-19_04-19_1418962766/RefineCompact_/ErrorUnknown_/1418965624_49/spec.specE"
     spe <- readSpecE fp
     reduceMain spe 
            def{oErrKind_   = RefineCompact_                 
+              ,oErrStatus_ = ErrorUnknown_
               ,oErrEprime_ = Nothing
               ,outputdir_  = "/Users/bilalh/CS/break_conjure/out"
               ,rgen_       = mkrGen 3
               }
     
 
-_tempRR :: RState
-_tempRR  = def{oErrKind_   = Validate_                 
-              ,oErrEprime_ = Just "/Users/bilalh/CS/break_conjure/fixed/46c3d2b43f4e/2014-12-10_02-01_1418176894/_errors/Validate_/ErrorUnknown_/1418178864_89/model000001.eprime"
-              ,outputdir_  = "/Users/bilalh/CS/break_conjure/fixed/46c3d2b43f4e/2014-12-10_02-01_1418176894/_errors/Validate_/ErrorUnknown_/1418178864_89/reduce/"
-              ,rgen_       = mkrGen 6
-              }
-
+-- _tempRR :: RState
+-- _tempRR  = def{oErrKind_   = Validate_
+--               ,oErrEprime_ = Just "/Users/bilalh/CS/break_conjure/fixed/46c3d2b43f4e/2014-12-10_02-01_1418176894/_errors/Validate_/ErrorUnknown_/1418178864_89/model000001.eprime"
+--               ,outputdir_  = "/Users/bilalh/CS/break_conjure/fixed/46c3d2b43f4e/2014-12-10_02-01_1418176894/_errors/Validate_/ErrorUnknown_/1418178864_89/reduce/"
+--               ,rgen_       = mkrGen 6
+--               }
