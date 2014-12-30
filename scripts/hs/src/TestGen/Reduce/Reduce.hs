@@ -9,6 +9,7 @@ import TestGen.Reduce.Data
 import TestGen.Reduce.Runner
 import TestGen.Reduce.Reduction
 import TestGen.Reduce.UnusedDomains
+import TestGen.Helpers.TypeOf
 
 import TestGen.Prelude
 import TestGen.Helpers.Runner(KindI(..), StatusI(..))
@@ -27,27 +28,30 @@ import System.Random(randomIO)
 
 reduceMain :: SpecE -> RState -> IO SpecE 
 reduceMain sp rr  = do
-    putStrLn "Starting with"    
-    print . pretty $ sp
-    putStrLn "----"    
-    
+    noteFormat "Starting with" [pretty sp]
     
     (sfin,state) <- (flip runStateT) rr $
         return sp
-        >>= removeUnusedDomains
-        >>= removeConstraints
-        >>= simplyConstraints
-        >>= removeUnusedDomains
+        >>= (note "removeUnusedDomains") removeUnusedDomains
+        >>= (note "removeConstraints")   removeConstraints
+        >>= (note "simplyConstraints")   simplyConstraints
+        >>= (note "removeUnusedDomains") removeUnusedDomains
 
-    putStrLn "----"    
-    putStrLn "Start"
-    print . pretty $ sp
-    putStrLn "----"    
-    putStrLn "Final"
-    print . pretty $ sfin
-    putStrLn "----"    
+
+    noteFormat "State" [pretty state]    
+    noteFormat "Start" [pretty sp]
+    noteFormat "Final" [pretty sfin]
     
     return sfin
+
+    where 
+    note tx f sp = do
+        noteFormat ("@" <+> tx <+> "Start") []
+        
+        newSp <- f sp
+        noteFormat ("@" <+> tx <+> "End") [pretty newSp]
+        
+        return newSp
 
 removeUnusedDomains :: SpecE -> RR SpecE    
 removeUnusedDomains sp@(SpecE ods es) = do
@@ -97,6 +101,7 @@ removeConstraints (SpecE ds oes) = do
         in  ways
     
     process :: [[Expr]] -> RR (Maybe [Expr])
+    process []     = return Nothing 
     process (x:xs) = runSpec (SpecE ds x) >>= \case
         True  -> return $ Just x 
         False -> process xs
@@ -193,11 +198,12 @@ _e e =  case fromEssence e of
 _k = do
     -- let fp = "/Users/bilalh/CS/break_conjure/misc/1419393045_122/spec.specE"
     -- let fp = "/Users/bilalh/CS/break_conjure/2014-12-19_04-19_1418962766/RefineCompact_/ErrorUnknown_/1418964459_41/spec.specE"
-    let fp = "/Users/bilalh/CS/break_conjure/2014-12-19_04-19_1418962766/RefineCompact_/ErrorUnknown_/1418965624_49/spec.specE"
+    -- let fp = "/Users/bilalh/CS/break_conjure/2014-12-19_04-19_1418962766/RefineCompact_/ErrorUnknown_/1418965624_49/spec.specE"
+    let fp = "/Users/bilalh/CS/break_conjure/2014-12-19_04-19_1418962766/Savilerow_/ParseError_/1418964183_16/spec.specE"
     spe <- readSpecE fp
     reduceMain spe 
-           def{oErrKind_   = RefineCompact_                 
-              ,oErrStatus_ = ErrorUnknown_
+           def{oErrKind_   = Savilerow_                 
+              ,oErrStatus_ = ParseError_
               ,oErrEprime_ = Nothing
               ,outputdir_  = "/Users/bilalh/CS/break_conjure/out"
               ,rgen_       = mkrGen 3
