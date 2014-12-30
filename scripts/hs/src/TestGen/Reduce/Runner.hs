@@ -29,6 +29,7 @@ readSpecE fp = do
 
 -- True means error still happens
 runSpec :: SpecE -> RR Bool
+-- runSpec spE = rndRangeM (False, True)
 runSpec spE = do
     let sp = toSpec spE
     outdir <- gets outputdir_
@@ -62,11 +63,11 @@ runSpec spE = do
         sameError (Right (_, SettingI{successful_=False,data_=SolveM ms })) = 
             let
                 f ResultI{last_status, erroed= Just index, results } = 
-                    let kind = kind_ (results !! index)
-                    in kind
+                    let ix = results !! index
+                    in (kind_ ix, status_ ix)
         
-                kinds = M.toList $  M.map f ms
-            in any (\(name,kind) -> kind == errorKind) kinds
+                kss = M.toList $  M.map f ms
+            in any (\(name,ks) -> ks == (errorKind,errorStatus) ) kss
  
         sameError _ = False
     
@@ -74,7 +75,7 @@ runSpec spE = do
     let stillErroed  = sameError res
      
     liftIO $ print $ ("HasError?", stillErroed)
-    liftIO $ putStrLn "\n---\n"
+    liftIO $ putStrLn "\n\n"
     return stillErroed
 
 

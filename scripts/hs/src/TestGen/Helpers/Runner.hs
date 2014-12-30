@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 module TestGen.Helpers.Runner where
 
+import TestGen.Prelude(renderSmall,nest,vcat)
 
 
 import Data.Aeson(FromJSON(..),ToJSON(..))
@@ -201,7 +202,7 @@ runRefine' seed cores spec dir specTime newConjure = do
 
 runToolchain' :: Seed -> Int -> Spec -> FilePath -> Int -> Bool -> Bool -> IO  (Either RefineR (RefineR, SolveR))
 runToolchain' seed cores spec dir specTime newConjure refineAll= do
-    print . pretty $ spec
+    putStrLn . renderSmall . nest 4 . vcat $ ["Running", pretty spec]
 
     createDirectoryIfMissing True  dir
 

@@ -18,6 +18,8 @@ module TestGen.Prelude (
     , _ss
     , prettyBrackets
     , nub2
+    , renderSized
+    , noteFormat
 ) where
 
 import AST.Imports as X
@@ -186,6 +188,11 @@ _gen e ss  = do
 renderSmall :: Pretty a => a -> String
 renderSmall = P.renderStyle (P.style { P.lineLength = 74 }) . pretty
 
+renderSized :: Pretty a => Int -> a -> String
+renderSized n  = P.renderStyle (P.style { P.lineLength = n }) . pretty
+
+noteFormat :: MonadIO m => Doc -> [Doc] -> m ()
+noteFormat tx pr = liftIO . putStrLn . renderSized 90 $ hang tx 4 (vcat  pr)
 
 
 _ss :: Depth -> SS
