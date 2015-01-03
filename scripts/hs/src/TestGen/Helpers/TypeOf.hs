@@ -2,8 +2,9 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
 
-module TestGen.Helpers.TypeOf where
+module TestGen.Helpers.TypeOf(WithDoms(..), TypeOf(..)) where
 
 import TestGen.Prelude
 import TestGen.Arbitrary.Type(typeOfDom)
@@ -39,26 +40,37 @@ instance WithDoms m => TypeOf Domain m where
 
 
 instance WithDoms m => TypeOf Expr m where
-  ttypeOf (ELit x) = ttypeOf x
-  ttypeOf (EDom x) = ttypeOf x
-  -- ttypeOf (EVar x) = 
-  -- ttypeOf (EQVar x) = _ttypeOf_body
-  ttypeOf (EBinOp x) = ttypeOf x
-  -- ttypeOf (EUniOp x) = _ttypeOf_body
-  -- ttypeOf (EProc x) = _ttypeOf_body
+  ttypeOf (ELit x)        = ttypeOf x
+  ttypeOf (EDom x)        = ttypeOf x
+  ttypeOf (EBinOp x)      = ttypeOf x
+  ttypeOf (EUniOp x)      = ttypeOf x
+  ttypeOf (EProc x)       = ttypeOf x
   ttypeOf (EQuan _ _ _ _) = return TBool
-  ttypeOf EEmptyGuard = return TBool
+  ttypeOf EEmptyGuard     = return TBool
 
+  ttypeOf (EQVar x) = typeOfVar x >>= \case
+    Nothing -> error . show . vcat $ ["ttypeOf EVar no domain", pretty x  ]
+    Just ty -> return ty
+
+  ttypeOf (EVar x) = typeOfVar x >>= \case
+    Nothing -> error . show . vcat $ ["ttypeOf EVar no domain", pretty x  ]
+    Just ty -> return ty
+
+
+instance WithDoms m => TypeOf UniOp m where
+  ttypeOf (UBar e) = ttypeOf e
+  ttypeOf (UNeg e) = ttypeOf e
+  
 
 instance WithDoms m => TypeOf BinOp m where
-  ttypeOf (BIn _ _)       = return TBool
-  ttypeOf (BOver x1 _)    = return undefined
-  ttypeOf (BEQ _ _)       = return TBool
-  ttypeOf (BNEQ _ _)      = return TBool
-  ttypeOf (BLT _ _)       = return TBool
-  ttypeOf (BLTE _ _)      = return TBool
-  ttypeOf (BGT _ _)       = return TBool
-  ttypeOf (BGTE _ _)      = return TBool
+  ttypeOf (BIn _ _)    = return TBool
+  ttypeOf (BOver _ _) = error "withDoms Bover missing"
+  ttypeOf (BEQ _ _)    = return TBool
+  ttypeOf (BNEQ _ _)   = return TBool
+  ttypeOf (BLT _ _)    = return TBool
+  ttypeOf (BLTE _ _)   = return TBool
+  ttypeOf (BGT _ _)    = return TBool
+  ttypeOf (BGTE _ _)   = return TBool
 
   ttypeOf (BDiff x1 _) = ttypeOf x1
   ttypeOf (BPlus x1 _) = ttypeOf x1
@@ -121,3 +133,64 @@ instance WithDoms m => TypeOf Literal m where
       firstOrAny (x:_) = x
   
   ttypeOf (EExpr x) = ttypeOf x
+
+instance WithDoms m => TypeOf Proc m where 
+  ttypeOf (PallDiff x)  = ttypeOf x
+  ttypeOf (Pindex _ x2) = ttypeOf x2
+  ttypeOf (Papply x1 _) = ttypeOf x1 >>= \case
+    TFunc _ b -> return b
+    other -> error . show . vcat $ ["Papply type is not TFunc ", pretty other]
+    
+    
+  ttypeOf (Pfreq _ _)       = return TInt
+  ttypeOf (Phist _ _)       = return $ TMatix TInt
+  ttypeOf (Pmax x)          = ttypeOf x
+  ttypeOf (Pmin x)          = ttypeOf x
+  ttypeOf (PtoInt _)        = return TInt
+  ttypeOf (Ptogether _ _ _) = return TBool
+  ttypeOf (Pinverse _ _)    = return TBool 
+  ttypeOf (Papart _ _ _)    = return TBool
+
+  ttypeOf (PtoRelation x) = do
+    TFunc a b <- ttypeOf x
+    return $ TRel [a,b]
+
+  ttypeOf (PtoMSet x) = pure TMSet <*> (fmap innerTyForSets . ttypeOf) x
+  ttypeOf (PtoSet x)  = pure TSet  <*> (fmap innerTyForSets . ttypeOf) x
+  
+  ttypeOf (Pdefined x1 ) = do
+    TFunc t1 _ <- ttypeOf x1
+    return $ TSet t1
+    
+  ttypeOf (Pimage x1 _) = do
+    TFunc _ b <- ttypeOf x1
+    return b
+    
+  ttypeOf (PpreImage x1 _) = do
+    TFunc a _ <- ttypeOf x1
+    return a
+    
+  ttypeOf (Prange x) = do
+    TFunc _ b <- ttypeOf x
+    return b
+
+  ttypeOf (Pparts x) = do
+    TPar inn <- ttypeOf x
+    return $ TSet $ TSet $ inn 
+    
+  ttypeOf (Pparty _ x2) = do
+    TPar inn <- ttypeOf x2
+    return $ TSet inn
+    
+  ttypeOf (Pparticipants x) = do
+    TPar inn <- ttypeOf x
+    return $ TSet inn
+
+
+innerTyForSets :: Type -> Type 
+innerTyForSets  (TSet ty)   = ty
+innerTyForSets  (TMSet ty)  = ty
+innerTyForSets  (TRel xs)   = TTuple xs
+innerTyForSets  (TFunc a b) = TTuple [a,b]
+innerTyForSets ty = error . show . vcat $ ["innerTyForSets other type given ", pretty ty]
+
