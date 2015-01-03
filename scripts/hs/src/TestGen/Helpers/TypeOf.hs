@@ -40,13 +40,14 @@ instance WithDoms m => TypeOf Domain m where
 
 
 instance WithDoms m => TypeOf Expr m where
-  ttypeOf (ELit x)        = ttypeOf x
-  ttypeOf (EDom x)        = ttypeOf x
-  ttypeOf (EBinOp x)      = ttypeOf x
-  ttypeOf (EUniOp x)      = ttypeOf x
-  ttypeOf (EProc x)       = ttypeOf x
-  ttypeOf (EQuan _ _ _ _) = return TBool
-  ttypeOf EEmptyGuard     = return TBool
+  ttypeOf (ELit x)          = ttypeOf x
+  ttypeOf (EDom x)          = ttypeOf x
+  ttypeOf (EBinOp x)        = ttypeOf x
+  ttypeOf (EUniOp x)        = ttypeOf x
+  ttypeOf (EProc x)         = ttypeOf x
+  ttypeOf (EQuan Sum _ _ _) = return TInt
+  ttypeOf (EQuan _ _ _ _)   = return TBool
+  ttypeOf EEmptyGuard       = return TBool
 
   ttypeOf (EQVar x) = typeOfVar x >>= \case
     Nothing -> error . show . vcat $ ["ttypeOf EVar no domain", pretty x  ]
