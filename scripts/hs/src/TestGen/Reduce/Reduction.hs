@@ -10,12 +10,12 @@ import TestGen.Reduce.Simpler
 
 import TestGen.Prelude
 
-import qualified TestGen.Arbitrary.Arbitrary as A
-import qualified TestGen.Arbitrary.Domain as A
-import qualified TestGen.Arbitrary.Expr as A
+-- import qualified TestGen.Arbitrary.Arbitrary as A
+-- import qualified TestGen.Arbitrary.Domain as A
+-- import qualified TestGen.Arbitrary.Expr as A
 
-import qualified Data.Map as M
-import qualified Test.QuickCheck as QC
+-- import qualified Data.Map as M
+-- import qualified Test.QuickCheck as QC
 
 
 class Reduce a where

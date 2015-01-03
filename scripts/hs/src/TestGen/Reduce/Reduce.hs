@@ -2,6 +2,7 @@
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables, FlexibleInstances #-}
 {-# LANGUAGE LambdaCase #-}
+{-# OPTIONS_GHC -fno-warn-unused-imports #-}
 
 module TestGen.Reduce.Reduce where
 
@@ -25,6 +26,8 @@ import qualified Test.QuickCheck as QC
 import Control.Arrow((&&&))
 import System.Random(randomIO)
 
+
+  
 
 reduceMain :: SpecE -> RState -> IO SpecE 
 reduceMain sp rr  = do
@@ -216,3 +219,7 @@ _k = do
 --               ,outputdir_  = "/Users/bilalh/CS/break_conjure/fixed/46c3d2b43f4e/2014-12-10_02-01_1418176894/_errors/Validate_/ErrorUnknown_/1418178864_89/reduce/"
 --               ,rgen_       = mkrGen 6
 --               }
+
+
+  
+

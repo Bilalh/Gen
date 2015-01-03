@@ -6,7 +6,7 @@ module TestGen.Arbitrary.TypeConversions(toTypeWithConversions) where
 
 import TestGen.Prelude
 import TestGen.Arbitrary.Expr
-import TestGen.Arbitrary.Literal
+-- import TestGen.Arbitrary.Literal
 import TestGen.Arbitrary.Type
 
 

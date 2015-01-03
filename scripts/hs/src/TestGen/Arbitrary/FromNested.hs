@@ -10,7 +10,7 @@ import TestGen.Arbitrary.Type
 import TestGen.Arbitrary.Op
 
 import qualified Data.Map as M
-import Data.Maybe(isJust)
+-- import Data.Maybe(isJust)
 
 
 -- returns a Ref to var that be reached with the remaining depth

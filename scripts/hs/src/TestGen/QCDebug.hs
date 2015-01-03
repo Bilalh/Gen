@@ -11,12 +11,12 @@ import TestGen.Arbitrary.Domain
 import TestGen.Arbitrary.Type(atype_only)
 import TestGen.Prelude
 
-import qualified Data.Map as M
-import qualified Data.Text as T
-import qualified Test.QuickCheck as QC
-import qualified Test.QuickCheck.Property as QC
+-- import qualified Data.Map as M
+-- import qualified Data.Text as T
+-- import qualified Test.QuickCheck as QC
+-- import qualified Test.QuickCheck.Property as QC
 
-import Text.Groom(groom)
+-- import Text.Groom(groom)
 
 
 newtype S2 = S2 SpecE
