@@ -13,7 +13,6 @@ import TestGen.Arbitrary.Data
 import qualified Data.Map as M
 
 
---FIXME better placce
 class (Monad a, Applicative a) => WithDoms a where
   domainOfVar :: Text -> a (Maybe Domain)
   getSpecEWithDoms :: a SpecE
@@ -31,8 +30,6 @@ class (Monad a, Applicative a) => WithDoms a where
 
 
 
-instance WithDoms (StateT SpecE Identity) where
-  getSpecEWithDoms = get
 
 
 class WithDoms m => TypeOf a m where

@@ -112,8 +112,9 @@ removeConstraints (SpecE ds oes) = do
     -- process ts = error . show . prettyBrackets . vcat $ map (prettyBrackets .  vcat . map pretty) ts
     
 simplyConstraints :: SpecE -> RR SpecE
-simplyConstraints (SpecE ds es) = do
-    fin <- process (doConstraints es)
+simplyConstraints sp@(SpecE ds es) = do
+    csToDo <- doConstraints es
+    fin <- process csToDo
     if fin == [] then 
         runSpec (SpecE ds []) >>= \case
             True  -> return (SpecE ds [])
@@ -139,7 +140,8 @@ simplyConstraints (SpecE ds es) = do
         fix <- choose esR
         res <- runSpec (SpecE ds fix)
         if res then do
-            inner <- process (doConstraints fix )
+            innerToDo <- doConstraints fix
+            inner <- process innerToDo
             if inner == [] then
                 return fix
             else 
@@ -158,10 +160,15 @@ simplyConstraints (SpecE ds es) = do
         pickFirst (x:_) = x 
         
     -- Keep the orginal exprs apart from the first
-    doConstraints :: [Expr] -> [[Expr]]
-    doConstraints []      = [[]]  
-    doConstraints (x:xs)  = (reduce x) : map (\y -> y : reduce y) xs
-           
+    doConstraints :: [Expr] -> RR [[Expr]]
+    doConstraints [] = return [[]]
+    doConstraints (x:xs) = do
+        rx <- runReduce sp x
+        rs <- mapM (\y -> do { ys <- runReduce sp y; return $ y : ys } ) xs
+        return $ rx : rs
+    
+
+
     removeNext :: [[a]] -> RR [[a]]
     removeNext []                     = error "removeNext empty"
     removeNext xs | all singleElem xs = return xs
@@ -183,14 +190,14 @@ singleElem [x] = True
 singleElem _   = False
     
 
-_reduce :: (Reduce a, ToEssence a, FromEssence a) => E -> IO [a]
-_reduce e = 
-    case  fromEssence e of 
-        Left er -> error . show .  (pretty &&& pretty . groom)  $ er
-        Right ee -> do
-            let res = reduce ee
-            mapM_ (print  . pretty . toEssence)  res
-            return res
+-- _reduce :: (Reduce a, ToEssence a, FromEssence a) => E -> IO [a]
+-- _reduce e = 
+--     case  fromEssence e of 
+--         Left er -> error . show .  (pretty &&& pretty . groom)  $ er
+--         Right ee -> do
+--             let res = reduce ee
+--             mapM_ (print  . pretty . toEssence)  res
+--             return res
  
 _e :: FromEssence a => E -> a
 _e e =  case fromEssence e of 

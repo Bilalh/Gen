@@ -2,6 +2,7 @@
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module TestGen.Reduce.Data where
 
@@ -56,6 +57,12 @@ instance Default RState where
                  }
 
 
+infixl 1 *|
+(*|) :: a -> Bool -> Maybe a
+a  *| c | c = Just a
+_  *| _    = Nothing
+
+
 mkrGen :: Int -> TFGen
 mkrGen = mkTFGen
 
@@ -77,7 +84,26 @@ rndRangeM ins = do
     return num
 
 
-infixl 1 *|
-(*|) :: a -> Bool -> Maybe a
-a  *| c | c = Just a
-_  *| _    = Nothing
+data EState = EState
+  { spec_ :: SpecE
+  , sgen_ :: TFGen
+  }
+
+type ES a = StateT EState Identity a
+
+instance WithDoms (StateT EState Identity) where
+  getSpecEWithDoms = gets spec_
+
+instance HasGen (StateT EState Identity) where
+  getGen   = gets sgen_
+  putGen g = modify $ \st -> st{sgen_=g }
+ 
+
+instance WithDoms (StateT SpecE Identity) where
+  getSpecEWithDoms = get
+
+newEState :: HasGen m => SpecE -> m EState
+newEState sp = do
+  newSeed <- rndRangeM (0 :: Int ,2^(24:: Int) )
+  return $ EState{spec_=sp,sgen_=mkrGen newSeed}
+

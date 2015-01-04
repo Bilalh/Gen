@@ -2,8 +2,9 @@
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables, FlexibleInstances #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
-module TestGen.Reduce.Reduction(Reduce(..)) where
+module TestGen.Reduce.Reduction(Reduce(..), runReduce) where
 
 import TestGen.Reduce.Data
 import TestGen.Reduce.Simpler
@@ -18,28 +19,34 @@ import TestGen.Prelude
 -- import qualified Test.QuickCheck as QC
 
 
-class Reduce a where
-    reduce   :: a -> [a]    -- list of smaller exprs
-    single   :: a -> [Expr] -- smallest literal e.g  [true, false] for  a /\ b
-    subterms :: a -> [Expr] -- a /\ b  -->   [a, b]
+class (HasGen m, WithDoms m) => Reduce a m where
+    reduce   :: a -> m [a]    -- list of smaller exprs
+    single   :: a -> m [Expr] -- smallest literal e.g  [true, false] for  a /\ b
+    subterms :: a -> m [Expr] -- a /\ b  -->   [a, b]
 
     -- reduce a   = error "no default reduce"
     -- single a   = error "no default of single"
     -- subterms a = error "no default of subterms"
 
-instance Reduce Expr where
-    reduce (EBinOp op) = single op ++ subterms op ++ map EBinOp (reduce op) 
+instance (HasGen m, WithDoms m) =>  Reduce Expr m where
+    reduce (EBinOp op) = do
+      -- single op ++ subterms op ++ map EBinOp (reduce op) 
+      a1 <- single op
+      a2 <- subterms op
+      a3 <- reduce op 
+      return $ a1 ++ a2 ++ (map EBinOp a3)
+      
     
-    reduce _   = [] -- no reductions possible   
+    reduce _   = return [] -- no reductions possible   
     single _   = error "no single expr"
-    subterms _ = [] 
+    subterms _ = return [] 
     
 
-instance Reduce BinOp where
-    reduce (BOr x1 x2)    = reduceBoolBinOP BOr x1 x2
-    reduce (BAnd x1 x2)   = reduceBoolBinOP BAnd x1 x2
-    reduce (Bimply x1 x2) = reduceBoolBinOP Bimply x1 x2
-    reduce (Biff x1 x2)   = reduceBoolBinOP Biff x1 x2
+instance (HasGen m, WithDoms m) =>  Reduce BinOp m where
+    reduce (BOr x1 x2)    = return $ reduceBoolBinOP BOr x1 x2
+    reduce (BAnd x1 x2)   = return $ reduceBoolBinOP BAnd x1 x2
+    reduce (Bimply x1 x2) = return $ reduceBoolBinOP Bimply x1 x2
+    reduce (Biff x1 x2)   = return $ reduceBoolBinOP Biff x1 x2
 
     -- reduce (BIn x1 x2) = _h
     -- reduce (BOver x1 x2) = _h
@@ -66,14 +73,14 @@ instance Reduce BinOp where
     -- reduce (BlexGT x1 x2) = _h
     -- reduce (BlexGTE x1 x2) = _h
 
-    reduce _ = []
+    reduce _ = return $ []
     -- reduce a = error . show . vcat   
     --     $ ["reduce missing case", pretty $ toEssence a, pretty $ groom a ]
     
-    single (BAnd _ _)   = [etrue,  efalse]
-    single (BOr _ _)    = [etrue,  efalse]
-    single (Bimply _ _) = [etrue,  efalse]
-    single (Biff _ _)   = [etrue,  efalse]
+    single (BAnd _ _)   = return $ [etrue,  efalse]
+    single (BOr _ _)    = return $ [etrue,  efalse]
+    single (Bimply _ _) = return $ [etrue,  efalse]
+    single (Biff _ _)   = return $ [etrue,  efalse]
 
     single (BEQ x1 x2)  = singleEq x1 x2
     single (BNEQ x1 x2) = singleEq x1 x2
@@ -105,10 +112,10 @@ instance Reduce BinOp where
         $ ["single missing case", pretty $ toEssence a, pretty $ groom a ]
 
 
-    subterms (BAnd x1 x2)   = [x1, x2]
-    subterms (BOr x1 x2)    = [x1, x2]
-    subterms (Bimply x1 x2) = [x1, x2]
-    subterms (Biff x1 x2)   = [x1, x2]
+    subterms (BAnd x1 x2)   = return [x1, x2]
+    subterms (BOr x1 x2)    = return [x1, x2]
+    subterms (Bimply x1 x2) = return [x1, x2]
+    subterms (Biff x1 x2)   = return [x1, x2]
  
 
     -- subterms (BIn x1 x2) = _k
@@ -135,7 +142,7 @@ instance Reduce BinOp where
     -- subterms (BlexLTE x1 x2) = _k
     -- subterms (BlexGT x1 x2) = _k
     -- subterms (BlexGTE x1 x2) = _k
-
+    
     subterms a = error . show . vcat   
         $ ["subterms missing case", pretty $ toEssence a, pretty $ groom a ]
 
@@ -146,7 +153,7 @@ reduceBoolBinOP t a b= map ( uncurry t ) $  catMaybes
         , (etrue,b)  *| simpler etrue a , (efalse, b) *| simpler efalse a ]
 
 
-singleEq ::  Expr -> Expr -> [b]
+singleEq :: (HasGen m, WithDoms m) => Expr -> Expr -> m [b]
 singleEq a b = undefined 
 
 
@@ -166,5 +173,7 @@ singleLit = undefined
 -- singleLit (TEnum x) = _x
 -- singleLit TAny = _x
 
- 
- 
+
+runReduce spe x = do
+  state <- newEState spe
+  return $ runIdentity $ flip evalStateT state $ reduce x 
