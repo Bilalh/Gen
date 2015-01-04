@@ -1,6 +1,7 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 module TestGen.Reduce.Data where
 
@@ -16,7 +17,7 @@ etrue, efalse :: Expr
 etrue  = ELit (EB True)
 efalse = ELit (EB False)
 
-type RR a =  StateT RState IO a
+type RR a = StateT RState IO a
 
 
 data RState = RState
@@ -59,11 +60,20 @@ mkrGen :: Int -> TFGen
 mkrGen = mkTFGen
 
 
-rndRangeM :: Random a => (a,a) -> RR a
+class (Monad r, Applicative r) => HasGen r where
+  getGen :: r TFGen
+  putGen :: TFGen -> r ()
+
+instance HasGen (StateT RState IO) where
+  getGen = gets rgen_
+  putGen g = modify $ \st -> st{rgen_=g }
+  
+
+rndRangeM :: (Random a, HasGen m) => (a,a) -> m a
 rndRangeM ins = do
-    rgen  <- gets rgen_
+    rgen  <- getGen
     let (num,rgen') = randomR ins rgen
-    modify $ \st -> st{rgen_=rgen' }
+    putGen rgen'
     return num
 
 

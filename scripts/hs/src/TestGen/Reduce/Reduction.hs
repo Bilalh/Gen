@@ -75,10 +75,11 @@ instance Reduce BinOp where
     single (Bimply _ _) = [etrue,  efalse]
     single (Biff _ _)   = [etrue,  efalse]
 
+    single (BEQ x1 x2)  = singleEq x1 x2
+    single (BNEQ x1 x2) = singleEq x1 x2
+
     -- single (BIn x1 x2) = _e
     -- single (BOver x1 x2) = _e
-    -- single (BEQ x1 x2) = _e
-    -- single (BNEQ x1 x2) = _e
     -- single (BLT x1 x2) = _e
     -- single (BLTE x1 x2) = _e
     -- single (BGT x1 x2) = _e
@@ -144,3 +145,26 @@ reduceBoolBinOP t a b= map ( uncurry t ) $  catMaybes
         [ (a, etrue) *| simpler etrue b , (a,efalse)  *| simpler efalse b
         , (etrue,b)  *| simpler etrue a , (efalse, b) *| simpler efalse a ]
 
+
+singleEq ::  Expr -> Expr -> [b]
+singleEq a b = undefined 
+
+
+-- return the simplest literals
+singleLit :: Type -> Expr
+singleLit = undefined
+-- singleLit TInt = [-2, 10]
+-- singleLit TBool = _x
+-- singleLit (TMatix x) = _x
+-- singleLit (TSet x) = _x
+-- singleLit (TMSet x) = _x
+-- singleLit (TFunc x1 x2) = _x
+-- singleLit (TTuple x) = _x
+-- singleLit (TRel x) = _x
+-- singleLit (TPar x) = _x
+-- singleLit (TUnamed x) = _x
+-- singleLit (TEnum x) = _x
+-- singleLit TAny = _x
+
+ 
+ 

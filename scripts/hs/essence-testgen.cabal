@@ -47,6 +47,8 @@ Library
                      , TestGen.Helpers.QuickCheck2
                      , TestGen.Helpers.Runner
                      , TestGen.Helpers.SizeOf
+                     , TestGen.Helpers.StandardImports
+                     , TestGen.Helpers.TypeOf
                      , TestGen.Prelude
                      , TestGen.QC
                      , TestGen.QCDebug
@@ -56,6 +58,8 @@ Library
                      , TestGen.Reduce.Reduction
                      , TestGen.Reduce.Runner
                      , TestGen.Reduce.Simpler
+                     , TestGen.Reduce.UnusedDomains
+                     
     
     
     build-depends    : base
@@ -293,6 +297,9 @@ Executable testGen
                      , template-haskell
                      , unordered-containers
                      , dlist
+                     , pretty
+                     , data-default
+                     , mtl
     ghc-prof-options:
         -auto-all
         -caf-all

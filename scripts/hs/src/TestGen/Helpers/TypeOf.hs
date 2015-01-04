@@ -3,14 +3,17 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards, NamedFieldPuns #-}
 
-module TestGen.Helpers.TypeOf(WithDoms(..), TypeOf(..)) where
+module TestGen.Helpers.TypeOf(WithDoms(..), TypeOf(..), typeOfDom) where
 
-import TestGen.Prelude
-import TestGen.Arbitrary.Type(typeOfDom)
+import TestGen.Helpers.StandardImports
+import TestGen.Arbitrary.Data
 
 import qualified Data.Map as M
 
+
+--FIXME better placce
 class (Monad a, Applicative a) => WithDoms a where
   domainOfVar :: Text -> a (Maybe Domain)
   getSpecEWithDoms :: a SpecE
@@ -25,7 +28,8 @@ class (Monad a, Applicative a) => WithDoms a where
     domainOfVar  t >>= \case
       Nothing -> return Nothing
       Just d  -> ttypeOf d >>= return . Just
-         
+
+
 
 instance WithDoms (StateT SpecE Identity) where
   getSpecEWithDoms = get
@@ -34,7 +38,6 @@ instance WithDoms (StateT SpecE Identity) where
 class WithDoms m => TypeOf a m where
     ttypeOf :: a -> m Type
 
- 
 instance WithDoms m => TypeOf Domain m where
   ttypeOf = return . typeOfDom
 
@@ -194,4 +197,20 @@ innerTyForSets  (TMSet ty)  = ty
 innerTyForSets  (TRel xs)   = TTuple xs
 innerTyForSets  (TFunc a b) = TTuple [a,b]
 innerTyForSets ty = error . show . vcat $ ["innerTyForSets other type given ", pretty ty]
+
+
+typeOfDom :: Domain -> Type
+typeOfDom  DInt{} = TInt
+typeOfDom  DBool  = TBool
+
+typeOfDom DMat{inner}  = TMatix (typeOfDom inner)
+typeOfDom DSet{inner}  = TSet   (typeOfDom inner)
+typeOfDom DMSet{inner} = TMSet  (typeOfDom inner)
+typeOfDom DPar{inner}  = TPar  (typeOfDom inner)
+
+typeOfDom DRel{inners} = TRel (map typeOfDom inners)
+typeOfDom DFunc{innerFrom,innerTo} =
+    TFunc (typeOfDom innerFrom) (typeOfDom innerTo)
+
+typeOfDom DTuple{inners} = TTuple (map typeOfDom inners)
 

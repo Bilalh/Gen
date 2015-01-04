@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE LambdaCase #-}
 
 module TestGen.Prelude (
       module X
@@ -22,7 +23,7 @@ module TestGen.Prelude (
     , noteFormat
 ) where
 
-import AST.Imports as X
+import TestGen.Helpers.StandardImports as X
 
 import Common.Helpers as X
 
@@ -37,26 +38,11 @@ import TestGen.Helpers.Debug as X
 import TestGen.Helpers.Helpers as X
 import TestGen.Helpers.QuickCheck2 as X
 
-import Development.Placeholders as X (placeholder,notImplemented,todo)
-
-import Language.E as X
-
-import Control.Monad as X(filterM, guard)
-import Control.Monad.State.Strict as X (evalStateT,execStateT, StateT)
-
-import Data.Default as X ( Default, def )
-import Data.Set as X (Set)
 import Data.Time
 import Data.Time.Clock.POSIX(getPOSIXTime)
 
 import System.Directory(getHomeDirectory, createDirectoryIfMissing)
 import System.FilePath((</>), (<.>))
-
-import Test.QuickCheck as X (quickCheckWith, quickCheckWithResult
-    , quickCheckResult, quickCheck, Gen,generate, sample'
-    , Arbitrary(..), CoArbitrary(..), elements, sized)
-
-import Text.Groom as X (groom)
 
 import qualified Data.Set as S
 
@@ -66,6 +52,7 @@ import qualified Text.PrettyPrint as P
 
 import qualified Data.Map as M
 
+import TestGen.Helpers.TypeOf as X
 
 withDepth :: Depth -> GG a -> GG a
 withDepth newDepth f = do
@@ -186,13 +173,13 @@ _gen e ss  = do
             P.$+$ ( pretty r )
 
 renderSmall :: Pretty a => a -> String
-renderSmall = P.renderStyle (P.style { P.lineLength = 74 }) . pretty
+renderSmall = P.renderStyle (P.style { P.lineLength = 120 }) . pretty
 
 renderSized :: Pretty a => Int -> a -> String
 renderSized n  = P.renderStyle (P.style { P.lineLength = n }) . pretty
 
 noteFormat :: MonadIO m => Doc -> [Doc] -> m ()
-noteFormat tx pr = liftIO . putStrLn . renderSized 90 $ hang tx 4 (vcat  pr)
+noteFormat tx pr = liftIO . putStrLn . renderSized 120 $ hang tx 4 (vcat  pr)
 
 
 _ss :: Depth -> SS
@@ -210,3 +197,4 @@ nub2 l = go S.empty l
     go _ [] = []
     go s (x:xs) = if x `S.member` s then go s xs
                                       else x : go (S.insert x s) xs
+
