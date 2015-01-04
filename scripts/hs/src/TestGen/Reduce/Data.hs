@@ -98,12 +98,13 @@ instance HasGen (StateT EState Identity) where
   getGen   = gets sgen_
   putGen g = modify $ \st -> st{sgen_=g }
  
-
-instance WithDoms (StateT SpecE Identity) where
-  getSpecEWithDoms = get
-
 newEState :: HasGen m => SpecE -> m EState
 newEState sp = do
   newSeed <- rndRangeM (0 :: Int ,2^(24:: Int) )
   return $ EState{spec_=sp,sgen_=mkrGen newSeed}
 
+
+instance WithDoms (StateT SpecE Identity) where
+  getSpecEWithDoms = get
+
+                     
