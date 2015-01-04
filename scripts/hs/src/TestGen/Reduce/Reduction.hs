@@ -2,7 +2,9 @@
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables, FlexibleInstances #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module TestGen.Reduce.Reduction(Reduce(..), runReduce) where
 
@@ -43,10 +45,10 @@ instance (HasGen m, WithDoms m) =>  Reduce Expr m where
     
 
 instance (HasGen m, WithDoms m) =>  Reduce BinOp m where
-    reduce (BOr x1 x2)    = return $ reduceBoolBinOP BOr x1 x2
-    reduce (BAnd x1 x2)   = return $ reduceBoolBinOP BAnd x1 x2
-    reduce (Bimply x1 x2) = return $ reduceBoolBinOP Bimply x1 x2
-    reduce (Biff x1 x2)   = return $ reduceBoolBinOP Biff x1 x2
+    reduce (BOr x1 x2)    = return $ reduceBoolBop BOr x1 x2
+    reduce (BAnd x1 x2)   = return $ reduceBoolBop BAnd x1 x2
+    reduce (Bimply x1 x2) = return $ reduceBoolBop Bimply x1 x2
+    reduce (Biff x1 x2)   = return $ reduceBoolBop Biff x1 x2
 
     -- reduce (BIn x1 x2) = _h
     -- reduce (BOver x1 x2) = _h
@@ -82,31 +84,35 @@ instance (HasGen m, WithDoms m) =>  Reduce BinOp m where
     single (Bimply _ _) = return $ [etrue,  efalse]
     single (Biff _ _)   = return $ [etrue,  efalse]
 
-    single (BEQ x1 x2)  = singleEq x1 x2
-    single (BNEQ x1 x2) = singleEq x1 x2
+    single (BEQ _ _)  = return $ [etrue,  efalse]
+    single (BNEQ _ _) = return $ [etrue,  efalse]
 
+    single (BLT _ _)  = return $ [etrue,  efalse]
+    single (BLTE _ _) = return $ [etrue,  efalse]
+    single (BGT _ _)  = return $ [etrue,  efalse]
+    single (BGTE _ _) = return $ [etrue,  efalse]
+
+    single (Bsubset _ _)   = return $ [etrue,  efalse]
+    single (BsubsetEq _ _) = return $ [etrue,  efalse]
+    single (Bsupset _ _)   = return $ [etrue,  efalse]
+    single (BsupsetEq _ _) = return $ [etrue,  efalse]
+                             
+    single (BlexLT _ _)  = return $ [etrue,  efalse]
+    single (BlexLTE _ _) = return $ [etrue,  efalse]
+    single (BlexGT _ _)  = return $ [etrue,  efalse]
+    single (BlexGTE _ _) = return $ [etrue,  efalse]
+                             
     -- single (BIn x1 x2) = _e
     -- single (BOver x1 x2) = _e
-    -- single (BLT x1 x2) = _e
-    -- single (BLTE x1 x2) = _e
-    -- single (BGT x1 x2) = _e
-    -- single (BGTE x1 x2) = _e
     -- single (BDiff x1 x2) = _e
     -- single (BPlus x1 x2) = _e
     -- single (BMult x1 x2) = _e
     -- single (BDiv x1 x2) = _e
     -- single (BPow x1 x2) = _e
     -- single (BMod x1 x2) = _e
-    -- single (Bsubset x1 x2) = _e
-    -- single (BsubsetEq x1 x2) = _e
-    -- single (Bsupset x1 x2) = _e
-    -- single (BsupsetEq x1 x2) = _e
+
     -- single (Bintersect x1 x2) = _e
     -- single (Bunion x1 x2) = _e
-    -- single (BlexLT x1 x2) = _e
-    -- single (BlexLTE x1 x2) = _e
-    -- single (BlexGT x1 x2) = _e
-    -- single (BlexGTE x1 x2) = _e
     
     single a = error . show . vcat   
         $ ["single missing case", pretty $ toEssence a, pretty $ groom a ]
@@ -116,50 +122,56 @@ instance (HasGen m, WithDoms m) =>  Reduce BinOp m where
     subterms (BOr x1 x2)    = return [x1, x2]
     subterms (Bimply x1 x2) = return [x1, x2]
     subterms (Biff x1 x2)   = return [x1, x2]
- 
+
+    subterms (BEQ x1 x2)  = subtermsBoolBop x1 x2
+    subterms (BNEQ x1 x2) = subtermsBoolBop x1 x2
+                            
+    subterms (BLT x1 x2)  = subtermsBoolBop x1 x2
+    subterms (BLTE x1 x2) = subtermsBoolBop x1 x2
+    subterms (BGT x1 x2)  = subtermsBoolBop x1 x2
+    subterms (BGTE x1 x2) = subtermsBoolBop x1 x2
+
+    subterms (Bsubset _ _)   = return []
+    subterms (BsubsetEq _ _) = return []
+    subterms (Bsupset _ _)   = return []
+    subterms (BsupsetEq _ _) = return []
+
+    subterms (BlexLT _ _)  = return []
+    subterms (BlexLTE _ _) = return []
+    subterms (BlexGT _ _)  = return []
+    subterms (BlexGTE _ _) = return []
+
 
     -- subterms (BIn x1 x2) = _k
     -- subterms (BOver x1 x2) = _k
-    -- subterms (BEQ x1 x2) = _k
-    -- subterms (BNEQ x1 x2) = _k
-    -- subterms (BLT x1 x2) = _k
-    -- subterms (BLTE x1 x2) = _k
-    -- subterms (BGT x1 x2) = _k
-    -- subterms (BGTE x1 x2) = _k
     -- subterms (BDiff x1 x2) = _k
     -- subterms (BPlus x1 x2) = _k
     -- subterms (BMult x1 x2) = _k
     -- subterms (BDiv x1 x2) = _k
     -- subterms (BPow x1 x2) = _k
     -- subterms (BMod x1 x2) = _k
-    -- subterms (Bsubset x1 x2) = _k
-    -- subterms (BsubsetEq x1 x2) = _k
-    -- subterms (Bsupset x1 x2) = _k
-    -- subterms (BsupsetEq x1 x2) = _k
     -- subterms (Bintersect x1 x2) = _k
     -- subterms (Bunion x1 x2) = _k
-    -- subterms (BlexLT x1 x2) = _k
-    -- subterms (BlexLTE x1 x2) = _k
-    -- subterms (BlexGT x1 x2) = _k
-    -- subterms (BlexGTE x1 x2) = _k
     
     subterms a = error . show . vcat   
         $ ["subterms missing case", pretty $ toEssence a, pretty $ groom a ]
 
 
-reduceBoolBinOP :: (Expr -> Expr -> b) -> Expr -> Expr -> [b]
-reduceBoolBinOP t a b= map ( uncurry t ) $  catMaybes
+reduceBoolBop :: (Expr -> Expr -> b) -> Expr -> Expr -> [b]
+reduceBoolBop t a b= map ( uncurry t ) $  catMaybes
         [ (a, etrue) *| simpler etrue b , (a,efalse)  *| simpler efalse b
         , (etrue,b)  *| simpler etrue a , (efalse, b) *| simpler efalse a ]
 
 
-singleEq :: (HasGen m, WithDoms m) => Expr -> Expr -> m [b]
-singleEq a b = undefined 
+subtermsBoolBop :: (WithDoms m) => Expr -> Expr ->  m [Expr]
+subtermsBoolBop a b = ttypeOf a >>= \case
+                      TBool -> return [a,b]
+                      _     -> return []
 
-
+                               
 -- return the simplest literals
 singleLit :: Type -> Expr
-singleLit = undefined
+singleLit = $notImplemented
 -- singleLit TInt = [-2, 10]
 -- singleLit TBool = _x
 -- singleLit (TMatix x) = _x
