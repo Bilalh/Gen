@@ -170,9 +170,14 @@ subtermsBoolBop a b = ttypeOf a >>= \case
 
                                
 -- return the simplest literals
-singleLit :: Type -> Expr
-singleLit = $notImplemented
--- singleLit TInt = [-2, 10]
+singleLit :: (HasGen m) => Type -> m [Expr]
+singleLit TInt = do
+  p <- rndRangeM (1,5)
+  n <- rndRangeM (-5, -1)
+  let nums = [0, p, n]
+  return $ map ( ELit . EI ) nums
+  
+  
 -- singleLit TBool = _x
 -- singleLit (TMatix x) = _x
 -- singleLit (TSet x) = _x
@@ -184,8 +189,9 @@ singleLit = $notImplemented
 -- singleLit (TUnamed x) = _x
 -- singleLit (TEnum x) = _x
 -- singleLit TAny = _x
+singleLit _ = $notImplemented
 
-
+              
 runReduce spe x = do
   state <- newEState spe
   return $ runIdentity $ flip evalStateT state $ reduce x 

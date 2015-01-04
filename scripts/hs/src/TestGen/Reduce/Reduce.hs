@@ -193,17 +193,19 @@ singleElem _   = False
 -- _reduce :: forall a.
 --          (Reduce a (StateT EState Identity), ToEssence a, FromEssence a) =>
 --          E -> IO [a]
-_reduce e = 
+_parts f e = 
     case  fromEssence e of 
         Left er -> error . show .  (pretty &&& pretty . groom)  $ er
         Right ee -> do
             let spe   :: SpecE  = undefined
                 seed            = 32 
                 state :: EState = EState{spec_=spe,sgen_=mkrGen seed}
-                res             = runIdentity $ flip evalStateT state $ reduce ee
+                res             = runIdentity $ flip evalStateT state $ f ee
             mapM_ (print  . pretty . toEssence)  res 
             return res
- 
+
+
+                   
 _e :: FromEssence a => E -> a
 _e e =  case fromEssence e of 
         Left er -> error . show .  (pretty &&& pretty . groom) $ er
@@ -234,4 +236,3 @@ _k = do
 
 
   
-
