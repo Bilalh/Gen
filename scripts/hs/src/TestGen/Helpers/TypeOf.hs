@@ -107,7 +107,7 @@ instance WithDoms m => TypeOf Literal m where
   ttypeOf (EMatrix (x:_) _) = pure TMatix <*> ttypeOf x
   ttypeOf (ESet [])         = return $ TSet TAny
   ttypeOf (ESet (x:_))      = pure TSet <*> ttypeOf x
-  ttypeOf (EMSet [])        = return $ TAny
+  ttypeOf (EMSet [])        = return $ TMSet TAny
   ttypeOf (EMSet (x:_))     = pure TMSet <*> ttypeOf x
 
   ttypeOf (EFunction [])            = return $ TFunc TAny TAny

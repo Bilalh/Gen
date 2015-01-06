@@ -107,12 +107,12 @@ instance (HasGen m, WithDoms m) =>  Reduce Literal m where
     single t = ttypeOf t >>= singleLitExpr
 
 instance (HasGen m, WithDoms m) =>  Reduce BinOp m where
-    reduce (BOr x1 x2)    = return $ reduceBoolBop BOr x1 x2
-    reduce (BAnd x1 x2)   = return $ reduceBoolBop BAnd x1 x2
-    reduce (Bimply x1 x2) = return $ reduceBoolBop Bimply x1 x2
-    reduce (Biff x1 x2)   = return $ reduceBoolBop Biff x1 x2
+    reduce (BOr x1 x2)    = reduceBop BOr x1 x2
+    reduce (BAnd x1 x2)   = reduceBop BAnd x1 x2
+    reduce (Bimply x1 x2) = reduceBop Bimply x1 x2
+    reduce (Biff x1 x2)   = reduceBop Biff x1 x2
 
-    reduce (BEQ x1 x2) = reduceBop BEQ x1 x2
+    reduce (BEQ x1 x2)  = reduceBop BEQ x1 x2
     reduce (BNEQ x1 x2) = reduceBop BNEQ x1 x2
     -- reduce (BLT x1 x2) = _h
     -- reduce (BLTE x1 x2) = _h
@@ -225,10 +225,11 @@ instance (HasGen m, WithDoms m) =>  Reduce BinOp m where
 
 
 
-reduceBoolBop :: (Expr -> Expr -> b) -> Expr -> Expr -> [b]
-reduceBoolBop t a b= map ( uncurry t ) $  catMaybes
-        [ (a, etrue) *| simpler etrue b , (a,efalse)  *| simpler efalse b
-        , (etrue,b)  *| simpler etrue a , (efalse, b) *| simpler efalse a ]
+-- reduceBoolBop :: (Expr -> Expr -> b) -> Expr -> Expr -> [b]
+-- reduceBoolBop t a b= map ( uncurry t ) $  catMaybes
+--         [ (a, etrue) *| simpler etrue b , (a,efalse)  *| simpler efalse b
+--         , (etrue,b)  *| simpler etrue a , (efalse, b) *| simpler efalse a
+--         ]
 
 
 subtermsBoolBop :: (WithDoms m) => Expr -> Expr ->  m [Expr]
@@ -247,10 +248,11 @@ reduceBop t a b=  fmap (  map (uncurry t) . catMaybes ) . sequence $
 
 
 infixl 1 -|
-(-|) :: (Simpler a e, HasGen m) => (a -> (c,d) ) -> (m a, e) -> m (Maybe ((c,d)))
+(-|) :: (Simpler a e, HasGen m, WithDoms m) =>
+        (a -> (c,d) ) -> (m a, e) -> m (Maybe ((c,d)))
 f  -| (a,e) = do
    aa <-a
-   case  simpler aa e of
+   simpler aa e >>= \case
      True  -> return $ Just (f aa)
      False -> return Nothing
 
@@ -267,42 +269,43 @@ singleLit TInt = do
 singleLit TBool = oneofR [EB True, EB False] >>= return . (: [])
 
 -- of TAny are empty
+singleLit (TMatix TAny) = error "ddsdsdds"
 singleLit (TSet TAny)  = return [ESet []]
 singleLit (TMSet TAny) = return [EMSet []]
 
 -- TODO empty matrix
 singleLit (TMatix x) = do
   s <- singleLit x
-  let si = EMatrix s (dintRange 1 (genericLength s))
+  let si = EMatrix (map (EExpr . ELit) s) (dintRange 1 (genericLength s))
   let res = case s of -- Return the other combination
              []    -> error "singleLit empty matrix"
-             [e]   -> [si,  EMatrix [e,e] (dintRange 1 2)]
-             (e:_) -> [EMatrix [e] (dintRange 1 1), si]
+             [e]   -> [si,  EMatrix (map (EExpr . ELit) [e,e]) (dintRange 1 2)]
+             (e:_) -> [EMatrix [(EExpr . ELit) e] (dintRange 1 1), si]
 
   return res
 
 singleLit (TSet x) = do
-  si <- pure ESet <*> singleLit x
+  si <- pure ESet <*> (singleLit x >>= (return . map (EExpr . ELit)))
   return [ESet [], si]
 
 singleLit (TMSet x) = do
-  si <- pure ESet <*> singleLit x
-  d <- singleLit x
-  let dupped =ESet $ concat $ replicate 2 d
+  si <- pure EMSet <*> (singleLit x >>= (return . map (EExpr . ELit)))
+  d <- (singleLit x >>= (return . map (EExpr . ELit)))
+  let dupped =EMSet $ concat $ replicate 2 d
   chosen <- oneofR [si,dupped]
-  return [ESet [], chosen ]
+  return [EMSet [], chosen ]
 
 singleLit (TFunc x1 x2) = do
   let empty = EFunction []
-  as <- singleLit x1
-  bs <- singleLit x2
+  as <- singleLit x1 >>= (return . map (EExpr . ELit))
+  bs <- singleLit x2 >>= (return . map (EExpr . ELit))
   let mu = EFunction (zip as bs)
   return [empty, mu]
 
 singleLit (TTuple x) = do
   lits <- mapM singleLit x
   picked <- mapM oneofR lits
-  return [ETuple picked]
+  return [ETuple ( map (EExpr . ELit) picked)]
 
 singleLit (TRel x) = do
   let empty = ERelation []
@@ -310,8 +313,8 @@ singleLit (TRel x) = do
 
   let minLength = minimum $ map length lits
       lits'     = map (take minLength) lits
-      tuples    = map ETuple $ transpose lits'
-  return [empty, ERelation tuples]
+      tuples    = map ETuple $ map (map (EExpr . ELit)) $ transpose lits'
+  return [empty, ERelation $ map (EExpr . ELit) tuples]
 
 
 singleLit (TPar x) = do
@@ -319,11 +322,12 @@ singleLit (TPar x) = do
   lits <- concatMapM (singleLit) [x,x]
   let lits' = take 3 $  nub2 lits
   chooseR (True,False) >>= \case
-          True  -> return $ [empty, EPartition [lits] ]
+          True  -> return $ [empty, EPartition [ map (EExpr . ELit) lits] ]
           False -> do
               point <- chooseR (0,length lits')
               let (as,bs) = splitAt point lits'
-              return $ [empty, EPartition [as, bs]]
+              return $ [empty, EPartition
+                                 [map (EExpr . ELit) as, map (EExpr . ELit) bs]]
 
 
 -- singleLit (TUnamed x) = _x
