@@ -284,6 +284,9 @@ instance ToEssence Expr where
 instance Pretty Expr where
     pretty =   pretty  . toEssence
 
+instance Pretty BinOp where
+    pretty =   pretty  . toEssence
+
 
 instance FromEssence BinOp where
     fromEssence [eMatch| &x + &y |] = BPlus <$> fromEssence x <*> fromEssence y

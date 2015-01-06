@@ -12,3 +12,4 @@ instance ToEssence Expr
 instance FromEssence Expr
 
 instance Pretty Expr
+instance Pretty BinOp
