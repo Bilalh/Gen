@@ -1,0 +1,31 @@
+
+⌥: runs the command eval-expression, which is an interactive compiled
+
+
+^X 3 runs the command split-window-right
+
+^X 2 runs the command split-window-below
+
+^H K runs the command describe-key, which is an interactive compi
+
+^U ^Z  delete buffer in helm
+
+
+^C ^L runs the command haskell-process-load-or-reload,  (i.e loads ghci)
+
+^U ⌥ T  instance def
+
+⌥ T case split
+
+
+⌘E runs the command ghc-display-errors,
+
+
+⌥N runs the command ghc-goto-next-error
+⌥P runs the command ghc-goto-prev-error
+
+^C  does above with type holes
+
+
+^X ^SPC runs the command pop-global-mark, which is an interactive compiled Lisp function in `simple.el'.
+It is also bound to ^X ^@

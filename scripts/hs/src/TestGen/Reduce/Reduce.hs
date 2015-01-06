@@ -190,7 +190,7 @@ singleElem [_] = True
 singleElem _   = False
     
 
--- _reduce :: forall a.
+-- _parts :: forall a.
 --          (Reduce a (StateT EState Identity), ToEssence a, FromEssence a) =>
 --          E -> IO [a]
 _parts f e = 

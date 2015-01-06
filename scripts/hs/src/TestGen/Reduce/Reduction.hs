@@ -6,6 +6,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE TupleSections #-}
 
 -- module TestGen.Reduce.Reduction(Reduce(..), runReduce) where
 module TestGen.Reduce.Reduction where
@@ -55,9 +56,7 @@ instance (HasGen m, WithDoms m) =>  Reduce BinOp m where
     reduce (Bimply x1 x2) = return $ reduceBoolBop Bimply x1 x2
     reduce (Biff x1 x2)   = return $ reduceBoolBop Biff x1 x2
 
-    -- reduce (BIn x1 x2) = _h
-    -- reduce (BOver x1 x2) = _h
-    -- reduce (BEQ x1 x2) = _h
+    reduce (BEQ x1 x2) = reduceBop BEQ x1 x2
     -- reduce (BNEQ x1 x2) = _h
     -- reduce (BLT x1 x2) = _h
     -- reduce (BLTE x1 x2) = _h
@@ -80,6 +79,9 @@ instance (HasGen m, WithDoms m) =>  Reduce BinOp m where
     -- reduce (BlexGT x1 x2) = _h
     -- reduce (BlexGTE x1 x2) = _h
 
+    -- reduce (BIn x1 x2) = _h
+    -- reduce (BOver x1 x2) = _h
+                            
     reduce _ = return $ []
     -- reduce a = error . show . vcat   
     --     $ ["reduce missing case", pretty $ toEssence a, pretty $ groom a ]
@@ -167,6 +169,7 @@ instance (HasGen m, WithDoms m) =>  Reduce BinOp m where
         $ ["subterms missing case", pretty $ toEssence a, pretty $ groom a ]
 
 
+          
 reduceBoolBop :: (Expr -> Expr -> b) -> Expr -> Expr -> [b]
 reduceBoolBop t a b= map ( uncurry t ) $  catMaybes
         [ (a, etrue) *| simpler etrue b , (a,efalse)  *| simpler efalse b
@@ -179,6 +182,23 @@ subtermsBoolBop a b = ttypeOf a >>= \case
                       _     -> return []
 
 
+reduceBop :: (WithDoms m, HasGen m) =>
+             (Expr -> Expr -> BinOp) -> Expr -> Expr -> m [BinOp]
+reduceBop t a b=  fmap (  map (uncurry t) . catMaybes ) . sequence $
+       [  
+         (a, )  -| (single b >>= oneofR , b)
+       , (, b)  -| (single a >>= oneofR , a)
+       ]
+
+                
+infixl 1 -|
+(-|) :: (Simpler a e, HasGen m) => (a -> (c,d) ) -> (m a, e) -> m (Maybe ((c,d)))
+f  -| (a,e) = do
+   aa <-a
+   case  simpler aa e of
+     True  -> return $ Just (f aa)
+     False -> return Nothing
+ 
                                
 -- | return the simplest literals, two at most
 singleLit :: (HasGen m) => Type -> m [Literal]

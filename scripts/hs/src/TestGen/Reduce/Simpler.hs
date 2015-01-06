@@ -8,10 +8,10 @@ module TestGen.Reduce.Simpler where
 import TestGen.Prelude
 
 -- True if a1 is less simpler then a2
-class Simpler a b where
-    simpler :: (ToEssence a, Eq a, ToEssence b, Eq b) => a -> b -> Bool
+class (ToEssence a, Eq a, ToEssence b, Eq b) => Simpler a b where
+    simpler :: a -> b -> Bool
 
-instance Simpler a b where
+instance (ToEssence a, Eq a, ToEssence b, Eq b) => Simpler a b where
     simpler _ _ = True
 
 -- instance Simpler Expr Expr where
