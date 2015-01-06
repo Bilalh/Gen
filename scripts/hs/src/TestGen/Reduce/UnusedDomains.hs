@@ -1,15 +1,12 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
-{-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE LambdaCase #-}
-
 module TestGen.Reduce.UnusedDomains(unusedDomains) where
 
 import TestGen.Prelude
 import qualified Data.HashSet as S
 
 unusedDomains :: SpecE -> [Text]
-unusedDomains spe = 
+unusedDomains spe =
     case runCompESingle "f" (unusedDomainsOC (toSpec spe)  ) of
         ((Right ts),_) -> ts
         ((Left doc),lg) -> error . show . vcat $ ["unusedDomains error", doc,pretty lg]
@@ -19,12 +16,12 @@ unusedDomainsOC
     :: MonadConjure m
     => Spec
     -> m [Text]
-unusedDomainsOC (Spec v statements) = go statements
+unusedDomainsOC (Spec _ statements) = go statements
     where
         go (StatementAndNext this next) = do
             let maybeName = case this of
                     [xMatch| [Prim (S nm)] := topLevel.declaration.find.name.reference
-                           | [d]           := topLevel.declaration.find.domain
+                           | [_]           := topLevel.declaration.find.domain
                            |] -> Just nm
                     _ -> Nothing
             next' <- go next
@@ -32,12 +29,12 @@ unusedDomainsOC (Spec v statements) = go statements
                 Nothing -> do
                     return next'
                 Just name -> do
-                    if name `S.member` identifiersIn next
+                    if name == "unused" || name `S.member` identifiersIn next
                         then do
                             return next'
                         else do
                             return (name :  next')
-        go p = return []
+        go _ = return []
 
 identifiersIn :: E -> S.HashSet Text
 identifiersIn e =
@@ -45,4 +42,3 @@ identifiersIn e =
                | [xMatch| [Prim (S s)] := reference |] <- universe e
                , let (base, _, _) = identifierSplit s
                ]
-
