@@ -10,15 +10,15 @@
 
 -- module TestGen.Reduce.Reduction(Reduce(..), runReduce) where
 module TestGen.Reduce.Reduction where
-    
+
 import TestGen.Reduce.Data
 import TestGen.Reduce.Simpler
- 
+
 import TestGen.Prelude
 
 import Data.List(transpose)
 
-    
+
 -- import qualified TestGen.Arbitrary.Arbitrary as A
 -- import qualified TestGen.Arbitrary.Domain as A
 -- import qualified TestGen.Arbitrary.Expr as A
@@ -37,18 +37,37 @@ class (HasGen m, WithDoms m) => Reduce a m where
     -- subterms a = error "no default of subterms"
 
 instance (HasGen m, WithDoms m) =>  Reduce Expr m where
+    reduce (ELit t) = do
+      lits <- reduce t
+      return $ map ELit lits
+
+    reduce (EVar t) = typeOfVar t >>= \case
+        Just ty -> singleLitExpr ty
+        Nothing -> error . show . vcat $ ["Evar not found",pretty t]
+    -- reduce (EQVar t) = _h
+    -- reduce (EUniOp t) = _h
+    -- reduce (EProc t) = _h
+    -- reduce (EDom t) = _h
+    -- reduce (EQuan t1 t2 t3 t4) = _h
+
     reduce (EBinOp op) = do
-      -- single op ++ subterms op ++ map EBinOp (reduce op) 
+      -- single op ++ subterms op ++ map EBinOp (reduce op)
       a1 <- single op
       a2 <- subterms op
-      a3 <- reduce op 
+      a3 <- reduce op
       return $ a1 ++ a2 ++ (map EBinOp a3)
-      
-    
-    reduce _   = return [] -- no reductions possible   
-    single _   = error "no single expr"
-    subterms _ = return [] 
-    
+
+    reduce EEmptyGuard = return []
+
+    single t   = error . show .vcat $
+                 ["no single expr", pretty t, pretty $ groom t]
+    subterms _ = return []
+
+instance (HasGen m, WithDoms m) =>  Reduce Literal m where
+    reduce t = ttypeOf t >>= singleLit
+
+    subterms _ = return []
+    single t = ttypeOf t >>= singleLitExpr
 
 instance (HasGen m, WithDoms m) =>  Reduce BinOp m where
     reduce (BOr x1 x2)    = return $ reduceBoolBop BOr x1 x2
@@ -81,11 +100,11 @@ instance (HasGen m, WithDoms m) =>  Reduce BinOp m where
 
     -- reduce (BIn x1 x2) = _h
     -- reduce (BOver x1 x2) = _h
-                            
+
     reduce _ = return $ []
-    -- reduce a = error . show . vcat   
+    -- reduce a = error . show . vcat
     --     $ ["reduce missing case", pretty $ toEssence a, pretty $ groom a ]
-    
+
     single (BAnd _ _)   = return $ [etrue,  efalse]
     single (BOr _ _)    = return $ [etrue,  efalse]
     single (Bimply _ _) = return $ [etrue,  efalse]
@@ -103,27 +122,27 @@ instance (HasGen m, WithDoms m) =>  Reduce BinOp m where
     single (BsubsetEq _ _) = return $ [etrue,  efalse]
     single (Bsupset _ _)   = return $ [etrue,  efalse]
     single (BsupsetEq _ _) = return $ [etrue,  efalse]
-                             
+
     single (BlexLT _ _)  = return $ [etrue,  efalse]
     single (BlexLTE _ _) = return $ [etrue,  efalse]
     single (BlexGT _ _)  = return $ [etrue,  efalse]
     single (BlexGTE _ _) = return $ [etrue,  efalse]
-                                                        
-    single (BPlus x1 _) = ttypeOf x1 >>= singleLitExpr 
-    single (BMult x1 _) = ttypeOf x1 >>= singleLitExpr 
-    single (BDiv x1 _)  = ttypeOf x1 >>= singleLitExpr 
-    single (BPow x1 _)  = ttypeOf x1 >>= singleLitExpr 
-    single (BMod x1 _)  = ttypeOf x1 >>= singleLitExpr 
 
-    single (Bintersect x1 _) = ttypeOf x1 >>= singleLitExpr 
-    single (Bunion x1 _)     = ttypeOf x1 >>= singleLitExpr 
-    single (BDiff x1  _)     = ttypeOf x1 >>= singleLitExpr 
+    single (BPlus x1 _) = ttypeOf x1 >>= singleLitExpr
+    single (BMult x1 _) = ttypeOf x1 >>= singleLitExpr
+    single (BDiv x1 _)  = ttypeOf x1 >>= singleLitExpr
+    single (BPow x1 _)  = ttypeOf x1 >>= singleLitExpr
+    single (BMod x1 _)  = ttypeOf x1 >>= singleLitExpr
 
-                               
+    single (Bintersect x1 _) = ttypeOf x1 >>= singleLitExpr
+    single (Bunion x1 _)     = ttypeOf x1 >>= singleLitExpr
+    single (BDiff x1  _)     = ttypeOf x1 >>= singleLitExpr
+
+
     -- single (BIn x1 x2) = _e
     -- single (BOver x1 x2) = _e
-                           
-    single a = error . show . vcat   
+
+    single a = error . show . vcat
         $ ["single missing case", pretty $ toEssence a, pretty $ groom a ]
 
 
@@ -134,7 +153,7 @@ instance (HasGen m, WithDoms m) =>  Reduce BinOp m where
 
     subterms (BEQ x1 x2)  = subtermsBoolBop x1 x2
     subterms (BNEQ x1 x2) = subtermsBoolBop x1 x2
-                            
+
     subterms (BLT x1 x2)  = subtermsBoolBop x1 x2
     subterms (BLTE x1 x2) = subtermsBoolBop x1 x2
     subterms (BGT x1 x2)  = subtermsBoolBop x1 x2
@@ -160,16 +179,16 @@ instance (HasGen m, WithDoms m) =>  Reduce BinOp m where
 
     subterms (Bintersect x1 x2) = return [x1, x2]
     subterms (Bunion x1 x2)     = return [x1, x2]
-                             
+
     -- subterms (BIn x1 x2) = _k
     -- subterms (BOver x1 x2) = _k
 
-    
-    subterms a = error . show . vcat   
+
+    subterms a = error . show . vcat
         $ ["subterms missing case", pretty $ toEssence a, pretty $ groom a ]
 
 
-          
+
 reduceBoolBop :: (Expr -> Expr -> b) -> Expr -> Expr -> [b]
 reduceBoolBop t a b= map ( uncurry t ) $  catMaybes
         [ (a, etrue) *| simpler etrue b , (a,efalse)  *| simpler efalse b
@@ -185,12 +204,12 @@ subtermsBoolBop a b = ttypeOf a >>= \case
 reduceBop :: (WithDoms m, HasGen m) =>
              (Expr -> Expr -> BinOp) -> Expr -> Expr -> m [BinOp]
 reduceBop t a b=  fmap (  map (uncurry t) . catMaybes ) . sequence $
-       [  
+       [
          (a, )  -| (single b >>= oneofR , b)
        , (, b)  -| (single a >>= oneofR , a)
        ]
 
-                
+
 infixl 1 -|
 (-|) :: (Simpler a e, HasGen m) => (a -> (c,d) ) -> (m a, e) -> m (Maybe ((c,d)))
 f  -| (a,e) = do
@@ -198,8 +217,8 @@ f  -| (a,e) = do
    case  simpler aa e of
      True  -> return $ Just (f aa)
      False -> return Nothing
- 
-                               
+
+
 -- | return the simplest literals, two at most
 singleLit :: (HasGen m) => Type -> m [Literal]
 singleLit TInt = do
@@ -208,7 +227,7 @@ singleLit TInt = do
   -- let nums = [0, p, n]
   -- return $ map ( EI ) nums
   pure EI <*> chooseR (-5, 5) >>= return . (: [])
-  
+
 singleLit TBool = oneofR [EB True, EB False] >>= return . (: [])
 
 -- TODO empty matrix
@@ -219,32 +238,32 @@ singleLit (TMatix x) = do
              []    -> error "singleLit empty matrix"
              [e]   -> [si,  EMatrix [e,e] (dintRange 1 2)]
              (e:_) -> [EMatrix [e] (dintRange 1 1), si]
-             
+
   return res
-    
+
 singleLit (TSet x) = do
-  si <- pure ESet <*> singleLit x 
+  si <- pure ESet <*> singleLit x
   return [ESet [], si]
-  
+
 singleLit (TMSet x) = do
   si <- pure ESet <*> singleLit x
   d <- singleLit x
   let dupped =ESet $ concat $ replicate 2 d
   chosen <- oneofR [si,dupped]
-  return [ESet [], chosen ]  
-                      
+  return [ESet [], chosen ]
+
 singleLit (TFunc x1 x2) = do
   let empty = EFunction []
   as <- singleLit x1
   bs <- singleLit x2
   let mu = EFunction (zip as bs)
   return [empty, mu]
-              
+
 singleLit (TTuple x) = do
   lits <- mapM singleLit x
   picked <- mapM oneofR lits
   return [ETuple picked]
-  
+
 singleLit (TRel x) = do
   let empty = ERelation []
   lits <- mapM singleLit x
@@ -253,19 +272,19 @@ singleLit (TRel x) = do
       lits'     = map (take minLength) lits
       tuples    = map ETuple $ transpose lits'
   return [empty, ERelation tuples]
-  
-  
+
+
 singleLit (TPar x) = do
   let empty = EPartition []
   lits <- concatMapM (singleLit) [x,x]
-  let lits' = take 3 $  nub2 lits 
+  let lits' = take 3 $  nub2 lits
   chooseR (True,False) >>= \case
           True  -> return $ [empty, EPartition [lits] ]
-          False -> do            
+          False -> do
               point <- chooseR (0,length lits')
               let (as,bs) = splitAt point lits'
               return $ [empty, EPartition [as, bs]]
-  
+
 
 -- singleLit (TUnamed x) = _x
 -- singleLit (TEnum x) = _x
@@ -275,8 +294,8 @@ singleLit _ = $notImplemented
 
 singleLitExpr :: (HasGen m) => Type -> m [Expr]
 singleLitExpr = fmap (map ELit) . singleLit
-             
-              
+
+
 runReduce spe x = do
   state <- newEState spe
-  return $ runIdentity $ flip evalStateT state $ reduce x 
+  return $ runIdentity $ flip evalStateT state $ reduce x
