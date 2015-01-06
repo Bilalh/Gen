@@ -59,14 +59,51 @@ instance (HasGen m, WithDoms m) =>  Reduce Expr m where
 
     reduce EEmptyGuard = return []
 
+    single (EVar t) = typeOfVar t >>= \case
+        Just ty -> singleLitExpr ty
+        Nothing -> error . show . vcat $ ["Evar not found",pretty t]
+
+    single (EQVar t) = typeOfVar t >>= \case
+        Just ty -> singleLitExpr ty
+        Nothing -> error . show . vcat $ ["Evar not found",pretty t]
+
+    single (ELit t)   = reduce t >>= return . map ELit
+    single (EBinOp t) = reduce t >>= return . map EBinOp
+    -- single (EUniOp t) = _t
+    -- single (EProc t)  = _t
+    -- single (EDom t)   = _t
+
+    -- single (EQuan t1 t2 t3 t4) = _t
+    single EEmptyGuard = return []
+
     single t   = error . show .vcat $
                  ["no single expr", pretty t, pretty $ groom t]
-    subterms _ = return []
+
+    subterms (EVar t)  = return []
+    subterms (EQVar t) = return []
+
+    subterms (ELit t)   = subterms t
+    subterms (EBinOp t) = subterms t
+    -- subterms (EUniOp t) = _h
+    -- subterms (EProc t)  = _h
+    -- subterms (EDom t)   = _h
+
+    -- subterms (EQuan t1 t2 t3 t4) = _h
+    subterms EEmptyGuard = return []
+
+    subterms t = error . show .vcat $
+                 ["no single expr", pretty t, pretty $ groom t]
 
 instance (HasGen m, WithDoms m) =>  Reduce Literal m where
+    reduce (EExpr t) = do
+      es <- reduce t
+      return $ map EExpr es
+
     reduce t = ttypeOf t >>= singleLit
 
     subterms _ = return []
+
+    single (EExpr t) = single t
     single t = ttypeOf t >>= singleLitExpr
 
 instance (HasGen m, WithDoms m) =>  Reduce BinOp m where
@@ -76,7 +113,7 @@ instance (HasGen m, WithDoms m) =>  Reduce BinOp m where
     reduce (Biff x1 x2)   = return $ reduceBoolBop Biff x1 x2
 
     reduce (BEQ x1 x2) = reduceBop BEQ x1 x2
-    -- reduce (BNEQ x1 x2) = _h
+    reduce (BNEQ x1 x2) = reduceBop BNEQ x1 x2
     -- reduce (BLT x1 x2) = _h
     -- reduce (BLTE x1 x2) = _h
     -- reduce (BGT x1 x2) = _h
@@ -101,9 +138,8 @@ instance (HasGen m, WithDoms m) =>  Reduce BinOp m where
     -- reduce (BIn x1 x2) = _h
     -- reduce (BOver x1 x2) = _h
 
-    reduce _ = return $ []
-    -- reduce a = error . show . vcat
-    --     $ ["reduce missing case", pretty $ toEssence a, pretty $ groom a ]
+    reduce a = error . show . vcat
+        $ ["reduce missing case", pretty $ toEssence a, pretty $ groom a ]
 
     single (BAnd _ _)   = return $ [etrue,  efalse]
     single (BOr _ _)    = return $ [etrue,  efalse]
@@ -229,6 +265,10 @@ singleLit TInt = do
   pure EI <*> chooseR (-5, 5) >>= return . (: [])
 
 singleLit TBool = oneofR [EB True, EB False] >>= return . (: [])
+
+-- of TAny are empty
+singleLit (TSet TAny)  = return [ESet []]
+singleLit (TMSet TAny) = return [EMSet []]
 
 -- TODO empty matrix
 singleLit (TMatix x) = do
