@@ -106,17 +106,18 @@ instance (HasGen m, WithDoms m) =>  Reduce BinOp m where
     single (BlexLTE _ _) = return $ [etrue,  efalse]
     single (BlexGT _ _)  = return $ [etrue,  efalse]
     single (BlexGTE _ _) = return $ [etrue,  efalse]
-                             
-    -- single (BDiff x1 x2) = _e
-    -- single (BPlus x1 x2) = _e
-    -- single (BMult x1 x2) = _e
-    -- single (BDiv x1 x2) = _e
-    -- single (BPow x1 x2) = _e
-    -- single (BMod x1 x2) = _e
+                                                        
+    single (BPlus x1 _) = ttypeOf x1 >>= singleLitExpr 
+    single (BMult x1 _) = ttypeOf x1 >>= singleLitExpr 
+    single (BDiv x1 _)  = ttypeOf x1 >>= singleLitExpr 
+    single (BPow x1 _)  = ttypeOf x1 >>= singleLitExpr 
+    single (BMod x1 _)  = ttypeOf x1 >>= singleLitExpr 
 
-    -- single (Bintersect x1 x2) = _e
-    -- single (Bunion x1 x2) = _e
+    single (Bintersect x1 _) = ttypeOf x1 >>= singleLitExpr 
+    single (Bunion x1 _)     = ttypeOf x1 >>= singleLitExpr 
+    single (BDiff x1  _)     = ttypeOf x1 >>= singleLitExpr 
 
+                               
     -- single (BIn x1 x2) = _e
     -- single (BOver x1 x2) = _e
                            
@@ -177,9 +178,9 @@ subtermsBoolBop a b = ttypeOf a >>= \case
                       TBool -> return [a,b]
                       _     -> return []
 
+
                                
--- return the simplest literals
--- two at most
+-- | return the simplest literals, two at most
 singleLit :: (HasGen m) => Type -> m [Literal]
 singleLit TInt = do
   -- p <- chooseR (1,5)
@@ -252,6 +253,9 @@ singleLit (TPar x) = do
 singleLit TAny = error "singleLit of TAny"
 singleLit _ = $notImplemented
 
+singleLitExpr :: (HasGen m) => Type -> m [Expr]
+singleLitExpr = fmap (map ELit) . singleLit
+             
               
 runReduce spe x = do
   state <- newEState spe
