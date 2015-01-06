@@ -29,13 +29,13 @@ readSpecE fp = do
 
 -- True means error still happens
 runSpec :: SpecE -> RR Bool
--- runSpec spE = rndRangeM (False, True)
+-- runSpec spE = chooseR (False, True)
 runSpec spE = do
     let sp = toSpec spE
     outdir <- gets outputdir_
 
     ts <- liftIO $ timestamp >>= return . show
-    ts_num <- rndRangeM (100 :: Int, 999) >>= return . show
+    ts_num <- chooseR (100 :: Int, 999) >>= return . show
     
     let path = outdir </> (ts ++ "_" ++ ts_num)
     liftIO $ createDirectoryIfMissing True  path
@@ -44,7 +44,7 @@ runSpec spE = do
     -- removeDirectoryRecursive breaks if dir eixsts
     -- liftIO $ createDirectoryIfMissing True path >> removeDirectoryRecursive path
     
-    seed <- rndRangeM (0, 2^24)
+    seed <- chooseR (0, 2^24)
     -- TODO follow logs
     res <- liftIO $  runToolchain' seed 4 sp path 20 True True
     

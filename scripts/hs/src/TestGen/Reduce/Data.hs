@@ -76,14 +76,21 @@ instance HasGen (StateT RState IO) where
   putGen g = modify $ \st -> st{rgen_=g }
   
 
-rndRangeM :: (Random a, HasGen m) => (a,a) -> m a
-rndRangeM ins = do
+chooseR :: (Random a, HasGen m) => (a,a) -> m a
+chooseR ins = do
     rgen  <- getGen
     let (num,rgen') = randomR ins rgen
     putGen rgen'
     return num
 
-
+-- | Randomly chooses one of the elements
+oneofR :: HasGen m  => [a] -> m a
+oneofR [] = error "oneOfE used with empty list"
+oneofR gs = do
+  ix <- chooseR (0,length gs - 1)
+  return $ gs !! ix
+         
+           
 data EState = EState
   { spec_ :: SpecE
   , sgen_ :: TFGen
@@ -100,7 +107,7 @@ instance HasGen (StateT EState Identity) where
  
 newEState :: HasGen m => SpecE -> m EState
 newEState sp = do
-  newSeed <- rndRangeM (0 :: Int ,2^(24:: Int) )
+  newSeed <- chooseR (0 :: Int ,2^(24:: Int) )
   return $ EState{spec_=sp,sgen_=mkrGen newSeed}
 
 
@@ -108,3 +115,9 @@ instance WithDoms (StateT SpecE Identity) where
   getSpecEWithDoms = get
 
                      
+
+instance HasGen (StateT TFGen Identity) where
+  getGen  = get
+  putGen  = put
+
+            

@@ -205,6 +205,7 @@ _parts f e =
             return res
 
 
+
                    
 _e :: FromEssence a => E -> a
 _e e =  case fromEssence e of 

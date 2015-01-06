@@ -5,14 +5,19 @@
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE MultiWayIf #-}
 
-module TestGen.Reduce.Reduction(Reduce(..), runReduce) where
-
+-- module TestGen.Reduce.Reduction(Reduce(..), runReduce) where
+module TestGen.Reduce.Reduction where
+    
 import TestGen.Reduce.Data
 import TestGen.Reduce.Simpler
  
 import TestGen.Prelude
 
+import Data.List(transpose)
+
+    
 -- import qualified TestGen.Arbitrary.Arbitrary as A
 -- import qualified TestGen.Arbitrary.Domain as A
 -- import qualified TestGen.Arbitrary.Expr as A
@@ -102,8 +107,6 @@ instance (HasGen m, WithDoms m) =>  Reduce BinOp m where
     single (BlexGT _ _)  = return $ [etrue,  efalse]
     single (BlexGTE _ _) = return $ [etrue,  efalse]
                              
-    -- single (BIn x1 x2) = _e
-    -- single (BOver x1 x2) = _e
     -- single (BDiff x1 x2) = _e
     -- single (BPlus x1 x2) = _e
     -- single (BMult x1 x2) = _e
@@ -113,7 +116,10 @@ instance (HasGen m, WithDoms m) =>  Reduce BinOp m where
 
     -- single (Bintersect x1 x2) = _e
     -- single (Bunion x1 x2) = _e
-    
+
+    -- single (BIn x1 x2) = _e
+    -- single (BOver x1 x2) = _e
+                           
     single a = error . show . vcat   
         $ ["single missing case", pretty $ toEssence a, pretty $ groom a ]
 
@@ -142,16 +148,19 @@ instance (HasGen m, WithDoms m) =>  Reduce BinOp m where
     subterms (BlexGTE _ _) = return []
 
 
+    subterms (BPlus x1 x2) = return [x1, x2]
+    subterms (BMult x1 x2) = return [x1, x2]
+    subterms (BDiv x1 x2)  = return [x1, x2]
+    subterms (BPow x1 x2)  = return [x1, x2]
+    subterms (BMod x1 x2)  = return [x1, x2]
+    subterms (BDiff x1 x2) = return [x1, x2]
+
+    subterms (Bintersect x1 x2) = return [x1, x2]
+    subterms (Bunion x1 x2)     = return [x1, x2]
+                             
     -- subterms (BIn x1 x2) = _k
     -- subterms (BOver x1 x2) = _k
-    -- subterms (BDiff x1 x2) = _k
-    -- subterms (BPlus x1 x2) = _k
-    -- subterms (BMult x1 x2) = _k
-    -- subterms (BDiv x1 x2) = _k
-    -- subterms (BPow x1 x2) = _k
-    -- subterms (BMod x1 x2) = _k
-    -- subterms (Bintersect x1 x2) = _k
-    -- subterms (Bunion x1 x2) = _k
+
     
     subterms a = error . show . vcat   
         $ ["subterms missing case", pretty $ toEssence a, pretty $ groom a ]
@@ -170,25 +179,77 @@ subtermsBoolBop a b = ttypeOf a >>= \case
 
                                
 -- return the simplest literals
-singleLit :: (HasGen m) => Type -> m [Expr]
+-- two at most
+singleLit :: (HasGen m) => Type -> m [Literal]
 singleLit TInt = do
-  p <- rndRangeM (1,5)
-  n <- rndRangeM (-5, -1)
-  let nums = [0, p, n]
-  return $ map ( ELit . EI ) nums
+  -- p <- chooseR (1,5)
+  -- n <- chooseR (-5, -1)
+  -- let nums = [0, p, n]
+  -- return $ map ( EI ) nums
+  pure EI <*> chooseR (-5, 5) >>= return . (: [])
+  
+singleLit TBool = oneofR [EB True, EB False] >>= return . (: [])
+
+-- TODO empty matrix
+singleLit (TMatix x) = do
+  s <- singleLit x
+  let si = EMatrix s (dintRange 1 (genericLength s))
+  let res = case s of -- Return the other combination
+             []    -> error "singleLit empty matrix"
+             [e]   -> [si,  EMatrix [e,e] (dintRange 1 2)]
+             (e:_) -> [EMatrix [e] (dintRange 1 1), si]
+             
+  return res
+    
+singleLit (TSet x) = do
+  si <- pure ESet <*> singleLit x 
+  return [ESet [], si]
+  
+singleLit (TMSet x) = do
+  si <- pure ESet <*> singleLit x
+  d <- singleLit x
+  let dupped =ESet $ concat $ replicate 2 d
+  chosen <- oneofR [si,dupped]
+  return [ESet [], chosen ]  
+                      
+singleLit (TFunc x1 x2) = do
+  let empty = EFunction []
+  as <- singleLit x1
+  bs <- singleLit x2
+  let mu = EFunction (zip as bs)
+  return [empty, mu]
+              
+singleLit (TTuple x) = do
+  lits <- mapM singleLit x
+  picked <- mapM oneofR lits
+  return [ETuple picked]
+  
+singleLit (TRel x) = do
+  let empty = ERelation []
+  lits <- mapM singleLit x
+
+  let minLength = minimum $ map length lits
+      lits'     = map (take minLength) lits
+      tuples    = map ETuple $ transpose lits'
+  return [empty, ERelation tuples]
   
   
--- singleLit TBool = _x
--- singleLit (TMatix x) = _x
--- singleLit (TSet x) = _x
--- singleLit (TMSet x) = _x
--- singleLit (TFunc x1 x2) = _x
--- singleLit (TTuple x) = _x
--- singleLit (TRel x) = _x
--- singleLit (TPar x) = _x
+singleLit (TPar x) = do
+  let empty = EPartition []
+  lits <- concatMapM (singleLit) [x,x]
+  let lits' = take 3 $  nub2 lits 
+  chooseR (True,False) >>= \case
+          True  -> return $ [empty, EPartition [lits] ]
+          False -> do            
+              point <- chooseR (0,length lits')
+              let (as,bs) = splitAt point lits'
+              return $ [empty, EPartition [as, bs]]
+  
+
 -- singleLit (TUnamed x) = _x
 -- singleLit (TEnum x) = _x
--- singleLit TAny = _x
+
+singleLit TAny = error "singleLit of TAny"
 singleLit _ = $notImplemented
 
               
