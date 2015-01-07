@@ -11,7 +11,7 @@ import TestGen.Arbitrary.Type(typesUnify)
 
 -- True if a1 is less simpler then a2
 class (Pretty a, Eq a, Pretty b, Eq b) => Simpler a b where
-    simpler :: (WithDoms m) => a -> b -> m Bool
+    simpler :: (WithDoms m, HasLogger m) => a -> b -> m Bool
 
 instance Simpler Type Type where
     simpler TBool TBool = return False
@@ -45,8 +45,8 @@ instance Simpler Type Type where
     simpler TAny TAny  = return False
     simpler TAny _     = return True
 
-    simpler a b = error . show . vcat  $
-                  ["simpler", pretty $ a, pretty $  b
+    simpler a b = rrError "simpler"
+                  [pretty $ a, pretty $  b
                   , pretty $ groom a, pretty $ groom b ]
 
 instance Simpler Expr Expr where
@@ -78,8 +78,8 @@ instance Simpler Expr Expr where
 
 
     -- simpler _ _ = False
-    simpler a b = error . show . vcat  $
-                  ["simpler", pretty $ a, pretty $  b
+    simpler a b = rrError "simpler"
+                  [pretty $ a, pretty $  b
                   , pretty $ groom a, pretty $ groom b ]
 
 
@@ -171,8 +171,8 @@ instance Simpler Literal Literal where
 
 
     -- simpler _ _ = False
-    simpler a b = error . show . vcat  $
-                  ["simpler", pretty $ a, pretty $  b
+    simpler a b = rrError "simpler"
+                  [pretty $ a, pretty $  b
                   , pretty $ groom a, pretty $ groom b ]
 
 instance Simpler Literal BinOp where
@@ -180,6 +180,6 @@ instance Simpler Literal BinOp where
     simpler (EI _) _ = return True
 
     -- simpler _ _ = False
-    simpler a b = error . show . vcat  $
-                  ["simpler", pretty $ a, pretty $  b
+    simpler a b = rrError "simpler"
+                  [pretty $ a, pretty $  b
                   , pretty $ groom a, pretty $ groom b ]

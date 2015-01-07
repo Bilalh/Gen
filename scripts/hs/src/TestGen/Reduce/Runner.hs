@@ -26,7 +26,7 @@ readSpecE fp = do
     return . read $ st
 
 
--- True means error still happens
+-- True means rrError still happens
 runSpec :: SpecE -> RR Bool
 -- runSpec spE = chooseR (False, True)
 runSpec spE = do
@@ -52,39 +52,39 @@ runSpec spE = do
         res <- liftIO $  runToolchain' seed 4 sp path 20 True True
 
 
-        errorKind   <- gets oErrKind_
-        errorStatus <- gets oErrStatus_
+        rrErrorKind   <- gets oErrKind_
+        rrErrorStatus <- gets oErrStatus_
 
         let
-            sameError (Left SettingI{successful_=False, data_=RefineM ms})
-                | modelRefineError errorKind =
+            samerrError (Left SettingI{successful_=False, data_=RefineM ms})
+                | modelRefinerrError rrErrorKind =
 
                 let statuses = M.toList $  M.map (status_) ms
-                in any (\(name,status) -> status == errorStatus) statuses
+                in any (\(name,status) -> status == rrErrorStatus) statuses
 
 
-            sameError (Right (_, SettingI{successful_=False,data_=SolveM ms })) =
+            samerrError (Right (_, SettingI{successful_=False,data_=SolveM ms })) =
                 let
                     f ResultI{last_status, erroed= Just index, results } =
                         let ix = results !! index
                         in (kind_ ix, status_ ix)
 
                     kss = M.toList $  M.map f ms
-                in any (\(name,ks) -> ks == (errorKind,errorStatus) ) kss
+                in any (\(name,ks) -> ks == (rrErrorKind,rrErrorStatus) ) kss
 
-            sameError _ = False
+            samerrError _ = False
 
 
-        let stillErroed  = sameError res
+        let stillErroed  = samerrError res
 
-        liftIO $ print $ ("HasError?", stillErroed)
+        liftIO $ print $ ("HasrrError?", stillErroed)
         liftIO $ putStrLn "\n\n"
         return stillErroed
 
 
 
-modelRefineError :: KindI -> Bool
-modelRefineError RefineCompact_ = True
-modelRefineError RefineRandom_  = True
-modelRefineError RefineAll_     = True
-modelRefineError _              = False
+modelRefinerrError :: KindI -> Bool
+modelRefinerrError RefineCompact_ = True
+modelRefinerrError RefineRandom_  = True
+modelRefinerrError RefineAll_     = True
+modelRefinerrError _              = False

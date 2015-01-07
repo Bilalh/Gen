@@ -27,7 +27,7 @@ import Data.List(transpose)
 -- import qualified Test.QuickCheck as QC
 
 
-class (HasGen m, WithDoms m) => Reduce a m where
+class (HasGen m, WithDoms m, HasLogger m) => Reduce a m where
     reduce   :: a -> m [a]    -- list of smaller exprs
     single   :: a -> m [Expr] -- smallest literal e.g  [true, false] for  a /\ b
     subterms :: a -> m [Expr] -- a /\ b  -->   [a, b]
@@ -37,7 +37,7 @@ class (HasGen m, WithDoms m) => Reduce a m where
     -- subterms a = error "no default of subterms"
 
 
-instance (HasGen m, WithDoms m) =>  Reduce Expr m where
+instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
     reduce (ELit t) = do
       lits <- reduce t
       return $ map ELit lits
@@ -95,7 +95,7 @@ instance (HasGen m, WithDoms m) =>  Reduce Expr m where
     subterms t = error . show .vcat $
                  ["no single expr", pretty t, pretty $ groom t]
 
-instance (HasGen m, WithDoms m) =>  Reduce Literal m where
+instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Literal m where
 
     subterms _ = return []
     single (EExpr t) = single t
@@ -117,7 +117,8 @@ instance (HasGen m, WithDoms m) =>  Reduce Literal m where
     reduce (EMSet (t:ts)) = return [EMSet [t], EMSet ts ]
 
     -- FIXME indexes
-    reduce (EMatrix [] _ )     = return []
+    reduce (EMatrix [] _ )     = error "reduce empty matrix"
+    reduce (EMatrix [_] _ )    = return []
     reduce (EMatrix (t:ts) _ ) = return
                                  [ EMatrix [t] (dintRange 1 1)
                                  , EMatrix ts (dintRange 1 (genericLength ts))]
@@ -147,7 +148,7 @@ instance (HasGen m, WithDoms m) =>  Reduce Literal m where
     -- reduce (EPartition t) = _h
 
 
-instance (HasGen m, WithDoms m) =>  Reduce BinOp m where
+instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce BinOp m where
     reduce (BOr x1 x2)    = reduceBop BOr x1 x2
     reduce (BAnd x1 x2)   = reduceBop BAnd x1 x2
     reduce (Bimply x1 x2) = reduceBop Bimply x1 x2
@@ -278,7 +279,7 @@ subtermsBoolBop a b = ttypeOf a >>= \case
                       TBool -> return [a,b]
                       _     -> return []
 
-reduceBop :: (WithDoms m, HasGen m) =>
+reduceBop :: (WithDoms m, HasGen m, HasLogger m) =>
              (Expr -> Expr -> BinOp) -> Expr -> Expr -> m [BinOp]
 reduceBop t a b=  fmap (  map (uncurry t) . catMaybes ) . sequence $
        [
@@ -306,7 +307,7 @@ reduceBop t a b=  fmap (  map (uncurry t) . catMaybes ) . sequence $
 
 
 infixl 1 -|
-(-|) :: (Simpler a e, HasGen m, WithDoms m) =>
+(-|) :: (Simpler a e, HasGen m, WithDoms m, HasLogger m) =>
         (a -> (c,d) ) -> (m a, e) -> m (Maybe ((c,d)))
 f  -| (a,e) = do
    aa <-a
@@ -316,7 +317,7 @@ f  -| (a,e) = do
 
 
 -- | return the simplest literals, two at most
-singleLit :: (HasGen m) => Type -> m [Literal]
+singleLit :: (HasGen m, HasLogger m) => Type -> m [Literal]
 singleLit TInt = do
   -- p <- chooseR (1,5)
   -- n <- chooseR (-5, -1)
@@ -393,10 +394,14 @@ singleLit (TPar x) = do
 singleLit TAny = error "singleLit of TAny"
 singleLit _ = error "singleLit TAny"
 
-singleLitExpr :: (HasGen m) => Type -> m [Expr]
+singleLitExpr :: (HasGen m, HasLogger m) => Type -> m [Expr]
 singleLitExpr = fmap (map ELit) . singleLit
 
 
 runReduce spe x = do
-  state <- newEState spe
-  return $ runIdentity $ flip evalStateT state $ reduce x
+  addLog "runReduce" []
+  state <- (newEState spe)
+  olg <- getLog
+  (res,resState) <- runIdentityT $ flip runStateT state{elogs_=olg} $ reduce x
+  putLog (elogs_ resState)
+  return res

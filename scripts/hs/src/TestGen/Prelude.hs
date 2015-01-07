@@ -21,6 +21,7 @@ module TestGen.Prelude (
     , nub2
     , renderSized
     , noteFormat
+    , rrError
 ) where
 
 import TestGen.Helpers.StandardImports as X
@@ -100,8 +101,20 @@ withQuan f = do
     return res
 
 
-ggError :: String -> [Doc] -> GG a
+rrError :: (HasLogger m)  => String -> [Doc] -> m a
+rrError title docs = do
+    lg <- getLog
+    -- addLog "ggError" ["Last log"]
+    error . show $ ( P.text $ padRight 15 ' ' title  )
+        P.$+$ ""
+#ifndef NO_GGERROR_LOGS
+        P.$+$ nest 16 "==Logs=="
+        P.$+$ (pretty (lg) )
+#endif
+
+-- ggError :: (HasLogger m, Pretty a, MonadState b m)  => String -> [Doc] -> m a
 ggError title docs = do
+    lg <- getLog
     -- addLog "ggError" ["Last log"]
     st <- get
     error . show $ ( P.text $ padRight 15 ' ' title  )
@@ -109,7 +122,7 @@ ggError title docs = do
         P.$+$ ""
 #ifndef NO_GGERROR_LOGS
         P.$+$ nest 16 "==Logs=="
-        P.$+$ (pretty (logs_ st) )
+        P.$+$ (pretty (lg) )
 #endif
 
 ggAssert :: Bool -> GG ()

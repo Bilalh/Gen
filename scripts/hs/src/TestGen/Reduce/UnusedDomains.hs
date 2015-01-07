@@ -9,7 +9,7 @@ unusedDomains :: SpecE -> [Text]
 unusedDomains spe =
     case runCompESingle "f" (unusedDomainsOC (toSpec spe)  ) of
         ((Right ts),_) -> ts
-        ((Left doc),lg) -> error . show . vcat $ ["unusedDomains error", doc,pretty lg]
+        ((Left doc),lg) -> error . show . vcat $ ["unusedDomains rrError", doc,pretty lg]
 
 --TODO don't use old conjure
 unusedDomainsOC

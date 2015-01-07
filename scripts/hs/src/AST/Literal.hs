@@ -79,4 +79,5 @@ instance FromEssence Literal where
         where
             helper [xMatch| ys  := part |] = mapM fromEssence ys
             helper x = Left x
+
     fromEssence x = Left x

@@ -109,7 +109,7 @@ removeConstraints (SpecE ds oes) = do
         True  -> return $ Just x
         False -> process xs
 
-    -- process ts = error . show . prettyBrackets . vcat $ map (prettyBrackets .  vcat . map pretty) ts
+    -- process ts = rrError . show . prettyBrackets . vcat $ map (prettyBrackets .  vcat . map pretty) ts
 
 simplyConstraints :: SpecE -> RR SpecE
 simplyConstraints sp@(SpecE ds es) = do
@@ -170,9 +170,9 @@ simplyConstraints sp@(SpecE ds es) = do
 
 
     removeNext :: [[a]] -> RR [[a]]
-    removeNext []                     = error "removeNext empty"
+    removeNext []                     = rrError "removeNext empty" []
     removeNext xs | all singleElem xs = return xs
-    removeNext xs | any null xs       = error "removeNext sub empty"
+    removeNext xs | any null xs       = rrError "removeNext sub empty" []
 
     removeNext ([x]:xs)    = ([x]:)  <$> removeNext xs
     removeNext ((_:fs):xs) = return $ fs:xs
@@ -194,12 +194,12 @@ singleElem _   = False
 --          (Reduce a (StateT EState Identity), ToEssence a, FromEssence a) =>
 --          E -> IO [a]
 _parts f e =
-    case  fromEssence e of
+    case  fromEssence (e :: E) of
         Left er -> error . show .  (pretty &&& pretty . groom)  $ er
         Right ee -> do
             let spe   :: SpecE  = undefined
                 seed            = 32
-                state :: EState = EState{spec_=spe,sgen_=mkrGen seed}
+                state :: EState = EState{spec_=spe,sgen_=mkrGen seed,elogs_=LSEmpty}
                 res             = runIdentity $ flip evalStateT state $ f ee
             mapM_ (print  . pretty . toEssence)  res
             return res
@@ -207,7 +207,7 @@ _parts f e =
 _partse f e = do
     let spe   :: SpecE  = undefined
         seed            = 32
-        state :: EState = EState{spec_=spe,sgen_=mkrGen seed}
+        state :: EState = EState{spec_=spe,sgen_=mkrGen seed, elogs_=LSEmpty}
         res             = runIdentity $ flip evalStateT state $ f e
     mapM_ (print  . pretty . toEssence)  res
     return res
@@ -221,10 +221,12 @@ _e e =  case fromEssence e of
 
 _k = do
     -- let fp = "/Users/bilalh/CS/break_conjure/misc/1419393045_122/spec.specE"
-    -- let fp = "/Users/bilalh/CS/break_conjure/2014-12-19_04-19_1418962766/RefineCompact_/ErrorUnknown_/1418964459_41/spec.specE"
-    -- let fp = "/Users/bilalh/CS/break_conjure/2014-12-19_04-19_1418962766/RefineCompact_/ErrorUnknown_/1418965624_49/spec.specE"
+    -- let fp = "/Users/bilalh/CS/break_conjure/2014-12-19_04-19_1418962766/RefineCompact_/rrErrorUnknown_/1418964459_41/spec.specE"
+    -- let fp = "/Users/bilalh/CS/break_conjure/2014-12-19_04-19_1418962766/RefineCompact_/rrErrorUnknown_/1418965624_49/spec.specE"
     let fp = "/Users/bilalh/CS/break_conjure/2014-12-19_04-19_1418962766/Savilerow_/ParseError_/1418964183_16/spec.specE"
     -- let fp = "/Users/bilalh/CS/break_conjure/misc/1418964183_16_r/spec.specE"
+    -- let fp = "/Users/bilalh/CS/break_conjure/out/1420607973_828/spec.specE"
+
     spe <- readSpecE fp
     reduceMain spe
            def{oErrKind_   = Savilerow_
@@ -237,8 +239,8 @@ _k = do
 
 -- _tempRR :: RState
 -- _tempRR  = def{oErrKind_   = Validate_
---               ,oErrEprime_ = Just "/Users/bilalh/CS/break_conjure/fixed/46c3d2b43f4e/2014-12-10_02-01_1418176894/_errors/Validate_/ErrorUnknown_/1418178864_89/model000001.eprime"
---               ,outputdir_  = "/Users/bilalh/CS/break_conjure/fixed/46c3d2b43f4e/2014-12-10_02-01_1418176894/_errors/Validate_/ErrorUnknown_/1418178864_89/reduce/"
+--               ,oErrEprime_ = Just "/Users/bilalh/CS/break_conjure/fixed/46c3d2b43f4e/2014-12-10_02-01_1418176894/_rrErrors/Validate_/rrErrorUnknown_/1418178864_89/model000001.eprime"
+--               ,outputdir_  = "/Users/bilalh/CS/break_conjure/fixed/46c3d2b43f4e/2014-12-10_02-01_1418176894/_rrErrors/Validate_/rrErrorUnknown_/1418178864_89/reduce/"
 --               ,rgen_       = mkrGen 6
 --               }
 -- hellod

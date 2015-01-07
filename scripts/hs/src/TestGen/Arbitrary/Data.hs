@@ -16,6 +16,8 @@ module TestGen.Arbitrary.Data (
     , Type(..)
     , ArbSpec(..)
     , FuncsNames(..)
+    , HasLogger(..)
+    , addLogsTree
     ) where
 
 import AST.Imports
@@ -52,9 +54,9 @@ data SS = SS
     , logs_       :: LogsTree
     , __lc        :: Int
     , beConstant_ :: Bool  -- when true only generate constrant expressions
-    
+
     , generators_ :: Generators
-    
+
     }
 
 type SpecState=SS
@@ -66,7 +68,7 @@ data Generators = Generators
     ,   gen_useFunc    :: FuncsNames -> Bool
     }
 
-class (Arbitrary a, Show a) => ArbSpec a where 
+class (Arbitrary a, Show a) => ArbSpec a where
     tyGens  :: a -> Generators
     getSpec :: a -> SpecE
     wrapSpec :: SpecE -> a
@@ -125,16 +127,29 @@ instance Pretty Type where
 instance Pretty [Type] where
     pretty  =  pretty . groom
 
-addLog :: String -> [Doc] ->  GG ()
+
+addLog :: HasLogger m => String -> [Doc] ->  m ()
 addLog nm docs = do
-    lc <- gets __lc
     -- case makeLog nm  ( ("__lc" <+> pretty lc) : docs) of
+    ls <- getLog
     case makeLog nm  docs of
         Nothing -> return ()
-        Just l -> modify $ \st -> st{
-            logs_ = LSMultiple (logs_ st) (LSSingle l),
-            __lc   = lc + 1
-        }
+        Just l -> putLog $ LSMultiple ls (LSSingle l)
+
+addLogsTree :: HasLogger m => LogsTree -> m ()
+addLogsTree ls = do
+  lg <- getLog
+  let nlg = LSMultiple ls lg
+  putLog nlg
+
+class (Monad m, Applicative m) => HasLogger m where
+    getLog :: m LogsTree
+    putLog :: LogsTree -> m ()
+
+instance HasLogger (StateT SpecState Gen)  where
+    getLog = gets logs_
+    putLog lg = modify $ \st -> st{ logs_=lg}
+
 
 
 data FuncsNames  = AallDiff

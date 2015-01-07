@@ -17,6 +17,8 @@ import qualified Text.PrettyPrint as Pr
 import Data.IntSet(IntSet)
 import qualified Data.IntSet as IS
 
+import Control.Monad.Trans.Identity(IdentityT)
+
 etrue, efalse :: Expr
 etrue  = ELit (EB True)
 efalse = ELit (EB False)
@@ -42,9 +44,10 @@ data RState = RState
     , mostReduced_      :: Maybe SpecE
     , mostReducedFP_    :: Maybe FilePath
     , outputdir_        :: FilePath
-    , otherErrorsFound_ :: [FilePath]
+    , otherrrErrorsFound_ :: [FilePath]
     , rgen_             :: TFGen
     , hashes_           :: IntSet
+    , rlogs_            :: LogsTree
     } deriving (Show)
 
 instance Pretty RState where
@@ -56,7 +59,7 @@ instance Pretty RState where
                 , nn "oErrEprime_ =" oErrEprime_
                 , nn "mostReduced_ =" mostReduced_
                 , nn "mostReducedFP_ =" mostReducedFP_
-                , nn "otherErrorsFound_ =" (vcat $ map pretty otherErrorsFound_)
+                , nn "otherrrErrorsFound_ =" (vcat $ map pretty otherrrErrorsFound_)
                 , nn "rgen_ =" (show rgen_)
                 , nn "hashes_ =" (show hashes_)
                 ])
@@ -68,9 +71,10 @@ instance Default RState where
                  ,outputdir_        = error "need outputdir_"
                  ,mostReduced_      = Nothing
                  ,mostReducedFP_    = Nothing
-                 ,otherErrorsFound_ = []
+                 ,otherrrErrorsFound_ = []
                  ,rgen_             = error "need rgen_"
                  ,hashes_           = IS.empty
+                 ,rlogs_            = LSEmpty
                  }
 
 
@@ -102,16 +106,17 @@ chooseR ins = do
     return num
 
 -- | Randomly chooses one of the elements
-oneofR :: HasGen m  => [a] -> m a
-oneofR [] = error "oneOfR used with empty list"
+oneofR :: (HasGen m, HasLogger m)  => [a] -> m a
+oneofR [] = rrError "oneOfR used with empty list" []
 oneofR gs = do
   ix <- chooseR (0,length gs - 1)
   return $ gs !! ix
 
 
 data EState = EState
-  { spec_ :: SpecE
-  , sgen_ :: TFGen
+  { spec_  :: SpecE
+  , sgen_  :: TFGen
+  , elogs_ :: LogsTree
   }
 
 type ES a = StateT EState Identity a
@@ -126,14 +131,35 @@ instance HasGen (StateT EState Identity) where
 newEState :: HasGen m => SpecE -> m EState
 newEState sp = do
   newSeed <- chooseR (0 :: Int ,2^(24:: Int) )
-  return $ EState{spec_=sp,sgen_=mkrGen newSeed}
+  return $ EState{spec_=sp,sgen_=mkrGen newSeed,elogs_=LSEmpty}
 
 
 instance WithDoms (StateT SpecE Identity) where
   getSpecEWithDoms = get
 
 
-
 instance HasGen (StateT TFGen Identity) where
   getGen  = get
   putGen  = put
+
+
+instance HasLogger (StateT RState IO)  where
+    getLog = gets rlogs_
+    putLog lg = modify $ \st -> st{ rlogs_=lg}
+
+
+instance HasLogger (StateT EState Identity)  where
+    getLog = gets elogs_
+    putLog lg = modify $ \st -> st{ elogs_=lg}
+
+
+instance (HasLogger (StateT EState (IdentityT (StateT RState IO)))) where
+    getLog = gets elogs_
+    putLog lg = modify $ \st -> st{ elogs_=lg}
+
+instance (HasGen (StateT EState (IdentityT (StateT RState IO)))) where
+  getGen   = gets sgen_
+  putGen g = modify $ \st -> st{sgen_=g }
+
+instance (WithDoms (StateT EState (IdentityT (StateT RState IO)))) where
+  getSpecEWithDoms = gets spec_
