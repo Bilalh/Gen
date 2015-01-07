@@ -6,7 +6,6 @@
 module TestGen.Reduce.Simpler where
 
 import TestGen.Prelude
-import TestGen.Prelude
 
 import TestGen.Arbitrary.Type(typesUnify)
 

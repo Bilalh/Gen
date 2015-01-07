@@ -197,4 +197,3 @@ nub2 l = go S.empty l
     go _ [] = []
     go s (x:xs) = if x `S.member` s then go s xs
                                       else x : go (S.insert x s) xs
-

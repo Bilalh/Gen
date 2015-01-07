@@ -14,28 +14,43 @@ import System.Random.TF
 
 import qualified Text.PrettyPrint as Pr
 
+import Data.IntSet(IntSet)
+import qualified Data.IntSet as IS
+
 etrue, efalse :: Expr
 etrue  = ELit (EB True)
 efalse = ELit (EB False)
 
 type RR a = StateT RState IO a
 
+-- | Check if the spec's hash is contained, (add it if it is not)
+containHashAdd :: SpecE -> RR Bool
+containHashAdd newE= do
+  let newHash = hash (pretty newE)
+  is <- gets hashes_
+  case newHash `IS.member` is of
+    True -> return True
+    False -> do
+        let is' = newHash `IS.insert` is
+        modify (\st -> st{ hashes_=is'} )
+        return False
 
 data RState = RState
     { oErrKind_         :: KindI
     , oErrStatus_       :: StatusI
-    , oErrEprime_       :: Maybe FilePath  
+    , oErrEprime_       :: Maybe FilePath
     , mostReduced_      :: Maybe SpecE
     , mostReducedFP_    :: Maybe FilePath
     , outputdir_        :: FilePath
     , otherErrorsFound_ :: [FilePath]
     , rgen_             :: TFGen
+    , hashes_           :: IntSet
     } deriving (Show)
 
 instance Pretty RState where
-    pretty RState{..} = 
+    pretty RState{..} =
         "SS" <+> Pr.braces (
-            Pr.sep 
+            Pr.sep
                 [ nn "oErrKind_ = "  oErrKind_
                 , nn "oErrStatus_ =" oErrStatus_
                 , nn "oErrEprime_ =" oErrEprime_
@@ -43,6 +58,7 @@ instance Pretty RState where
                 , nn "mostReducedFP_ =" mostReducedFP_
                 , nn "otherErrorsFound_ =" (vcat $ map pretty otherErrorsFound_)
                 , nn "rgen_ =" (show rgen_)
+                , nn "hashes_ =" (show hashes_)
                 ])
 
 instance Default RState where
@@ -54,7 +70,9 @@ instance Default RState where
                  ,mostReducedFP_    = Nothing
                  ,otherErrorsFound_ = []
                  ,rgen_             = error "need rgen_"
+                 ,hashes_           = IS.empty
                  }
+
 
 
 infixl 1 *|
@@ -74,7 +92,7 @@ class (Monad r, Applicative r) => HasGen r where
 instance HasGen (StateT RState IO) where
   getGen = gets rgen_
   putGen g = modify $ \st -> st{rgen_=g }
-  
+
 
 chooseR :: (Random a, HasGen m) => (a,a) -> m a
 chooseR ins = do
@@ -85,12 +103,12 @@ chooseR ins = do
 
 -- | Randomly chooses one of the elements
 oneofR :: HasGen m  => [a] -> m a
-oneofR [] = error "oneOfE used with empty list"
+oneofR [] = error "oneOfR used with empty list"
 oneofR gs = do
   ix <- chooseR (0,length gs - 1)
   return $ gs !! ix
-         
-           
+
+
 data EState = EState
   { spec_ :: SpecE
   , sgen_ :: TFGen
@@ -104,7 +122,7 @@ instance WithDoms (StateT EState Identity) where
 instance HasGen (StateT EState Identity) where
   getGen   = gets sgen_
   putGen g = modify $ \st -> st{sgen_=g }
- 
+
 newEState :: HasGen m => SpecE -> m EState
 newEState sp = do
   newSeed <- chooseR (0 :: Int ,2^(24:: Int) )
@@ -114,10 +132,8 @@ newEState sp = do
 instance WithDoms (StateT SpecE Identity) where
   getSpecEWithDoms = get
 
-                     
+
 
 instance HasGen (StateT TFGen Identity) where
   getGen  = get
   putGen  = put
-
-            

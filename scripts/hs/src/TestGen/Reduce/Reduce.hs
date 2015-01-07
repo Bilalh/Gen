@@ -204,7 +204,13 @@ _parts f e =
             mapM_ (print  . pretty . toEssence)  res
             return res
 
-
+_partse f e = do
+    let spe   :: SpecE  = undefined
+        seed            = 32
+        state :: EState = EState{spec_=spe,sgen_=mkrGen seed}
+        res             = runIdentity $ flip evalStateT state $ f e
+    mapM_ (print  . pretty . toEssence)  res
+    return res
 
 
 _e :: FromEssence a => E -> a
@@ -235,3 +241,4 @@ _k = do
 --               ,outputdir_  = "/Users/bilalh/CS/break_conjure/fixed/46c3d2b43f4e/2014-12-10_02-01_1418176894/_errors/Validate_/ErrorUnknown_/1418178864_89/reduce/"
 --               ,rgen_       = mkrGen 6
 --               }
+-- hellod

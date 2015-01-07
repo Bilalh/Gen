@@ -29,3 +29,9 @@
 
 ^X ^SPC runs the command pop-global-mark, which is an interactive compiled Lisp function in `simple.el'.
 It is also bound to ^X ^@
+
+C-h b -- runs describe-binding
+C-h k -- runs describe-key
+C-h f -- runs describe-function
+C-h v -- runs describe-variable
+C-h a -- Apropos search functions

@@ -36,6 +36,7 @@ class (HasGen m, WithDoms m) => Reduce a m where
     -- single a   = error "no default of single"
     -- subterms a = error "no default of subterms"
 
+
 instance (HasGen m, WithDoms m) =>  Reduce Expr m where
     reduce (ELit t) = do
       lits <- reduce t
@@ -74,13 +75,13 @@ instance (HasGen m, WithDoms m) =>  Reduce Expr m where
     -- single (EDom t)   = _t
 
     -- single (EQuan t1 t2 t3 t4) = _t
-    single EEmptyGuard = return []
+    -- single EEmptyGuard = return []
 
     single t   = error . show .vcat $
                  ["no single expr", pretty t, pretty $ groom t]
 
-    subterms (EVar t)  = return []
-    subterms (EQVar t) = return []
+    subterms (EVar _)  = return []
+    subterms (EQVar _) = return []
 
     subterms (ELit t)   = subterms t
     subterms (EBinOp t) = subterms t
@@ -95,16 +96,56 @@ instance (HasGen m, WithDoms m) =>  Reduce Expr m where
                  ["no single expr", pretty t, pretty $ groom t]
 
 instance (HasGen m, WithDoms m) =>  Reduce Literal m where
+
+    subterms _ = return []
+    single (EExpr t) = single t
+    single t = ttypeOf t >>= singleLitExpr
+
     reduce (EExpr t) = do
       es <- reduce t
       return $ map EExpr es
 
-    reduce t = ttypeOf t >>= singleLit
+    reduce (EB _) = return []
+    reduce (EI _) = return []
 
-    subterms _ = return []
+    reduce (ESet [])     = return []
+    -- reduce (ESet [_])    = return [ESet []]
+    reduce (ESet (t:ts)) = return [ESet [t], ESet ts ]
 
-    single (EExpr t) = single t
-    single t = ttypeOf t >>= singleLitExpr
+    reduce (EMSet [])     = return []
+    -- reduce (EMSet [_])    = return [EMSet []]
+    reduce (EMSet (t:ts)) = return [EMSet [t], EMSet ts ]
+
+    -- FIXME indexes
+    reduce (EMatrix [] _ )     = return []
+    reduce (EMatrix (t:ts) _ ) = return
+                                 [ EMatrix [t] (dintRange 1 1)
+                                 , EMatrix ts (dintRange 1 (genericLength ts))]
+
+
+    reduce (ETuple t) = do
+      ts <- mapM (reduce) t
+      case ts of
+        [] -> return []
+        _  -> do
+          let f l (xs,_) | length xs == l = xs
+              f l (xs,r)                  = xs ++ (replicate (l - length xs ) r)
+
+          let maxLength = maximum $ map length ts
+              ts' = map (f maxLength) (zip ts t)
+          -- -- FIXME shuffle?
+          let ts'' = take 3 . filter ((==) (length t) . length) . transpose $ ts'
+          return $ map ETuple ts''
+          -- error . show . vcat $ [pretty maxLength
+          --                       , pretty . groom $ ts
+          --                       , pretty . groom $ ts']
+
+
+
+    -- reduce (EFunction t) = _h
+    -- reduce (ERelation t) = _h
+    -- reduce (EPartition t) = _h
+
 
 instance (HasGen m, WithDoms m) =>  Reduce BinOp m where
     reduce (BOr x1 x2)    = reduceBop BOr x1 x2
@@ -237,14 +278,31 @@ subtermsBoolBop a b = ttypeOf a >>= \case
                       TBool -> return [a,b]
                       _     -> return []
 
-
 reduceBop :: (WithDoms m, HasGen m) =>
              (Expr -> Expr -> BinOp) -> Expr -> Expr -> m [BinOp]
 reduceBop t a b=  fmap (  map (uncurry t) . catMaybes ) . sequence $
        [
          (a, )  -| (single b >>= oneofR , b)
        , (, b)  -| (single a >>= oneofR , a)
+       , rr
        ]
+
+   where
+     rr = do
+       ra <- reduce a
+       rb <- reduce b
+       case (ra, rb) of
+        ([], []) -> return Nothing
+        ([], xs) -> do
+            x <- oneofR xs
+            return $ Just (a,x)
+        (xs,[]) -> do
+            x <- oneofR xs
+            return $ Just (x,b)
+        (as,bs) -> do
+            na <- oneofR as
+            nb <- oneofR bs
+            return $ Just (na,nb)
 
 
 infixl 1 -|
@@ -269,11 +327,10 @@ singleLit TInt = do
 singleLit TBool = oneofR [EB True, EB False] >>= return . (: [])
 
 -- of TAny are empty
-singleLit (TMatix TAny) = error "ddsdsdds"
+singleLit (TMatix TAny) = error "singleLit TMatix TAny"
 singleLit (TSet TAny)  = return [ESet []]
 singleLit (TMSet TAny) = return [EMSet []]
 
--- TODO empty matrix
 singleLit (TMatix x) = do
   s <- singleLit x
   let si = EMatrix (map (EExpr . ELit) s) (dintRange 1 (genericLength s))
@@ -327,14 +384,14 @@ singleLit (TPar x) = do
               point <- chooseR (0,length lits')
               let (as,bs) = splitAt point lits'
               return $ [empty, EPartition
-                                 [map (EExpr . ELit) as, map (EExpr . ELit) bs]]
+                        [map (EExpr . ELit) as, map (EExpr . ELit) bs]]
 
 
 -- singleLit (TUnamed x) = _x
 -- singleLit (TEnum x) = _x
 
 singleLit TAny = error "singleLit of TAny"
-singleLit _ = $notImplemented
+singleLit _ = error "singleLit TAny"
 
 singleLitExpr :: (HasGen m) => Type -> m [Expr]
 singleLitExpr = fmap (map ELit) . singleLit
