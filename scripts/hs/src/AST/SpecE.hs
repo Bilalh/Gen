@@ -28,7 +28,6 @@ data SpecE = SpecE Doms [Expr]
 
 
 
-
 data FG = Find Domain
         | Given Domain
     deriving(Show, Generic, Typeable, Read)

@@ -312,7 +312,7 @@ instance FromEssence BinOp where
     fromEssence x = Left x
 
 instance FromEssence UniOp where
-    fromEssence [eMatch| - &x |] = UNeg <$> fromEssence x
+    fromEssence [eMatch| -&x |]  = UNeg <$> fromEssence x
     fromEssence [eMatch| |&x| |] = UBar <$> fromEssence x
     fromEssence x = Left x
 

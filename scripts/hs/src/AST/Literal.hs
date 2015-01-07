@@ -45,17 +45,23 @@ instance Pretty Literal where
 instance FromEssence Literal where
     fromEssence (Prim (B x)) = return $ EB x
     fromEssence (Prim (I x)) = return $ EI x
+    fromEssence [xMatch| [(Prim (I x))] := unaryOp.negate.value.literal |] =
+        return $ EI (-x)
     fromEssence [xMatch| [x] := value.literal |] = fromEssence x
     fromEssence [xMatch| xs  := value.matrix.values
                        | [r] := value.matrix.indexrange |]
                        | Right jr <- fromEssence r  =
                            EMatrix <$> mapM fromEssence xs <*> return jr
 
-    fromEssence [xMatch| xs := value.tuple.values |] = ETuple <$> mapM fromEssence xs
-    fromEssence [xMatch| xs := value.set.values |]   = ESet <$> mapM fromEssence xs
-    fromEssence [xMatch| xs := value.mset.values |] = EMSet <$> mapM fromEssence xs
+    fromEssence [xMatch| xs := value.tuple.values |] =
+        ETuple <$> mapM fromEssence xs
+    fromEssence [xMatch| xs := value.set.values |]   =
+        ESet <$> mapM fromEssence xs
+    fromEssence [xMatch| xs := value.mset.values |] =
+        EMSet <$> mapM fromEssence xs
 
-    fromEssence [xMatch| xs := value.function.values |] = EFunction <$> mapM helper xs
+    fromEssence [xMatch| xs := value.function.values |] =
+        EFunction <$> mapM helper xs
         where
             helper [xMatch| [a,b] := mapping |] =
                 (,) <$> fromEssence a <*> fromEssence b
