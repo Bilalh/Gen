@@ -17,6 +17,7 @@ import TestGen.Reduce.Simpler
 import TestGen.Prelude
 
 import Data.List(transpose)
+import Control.Monad.Trans.Identity(IdentityT)
 
 
 -- import qualified TestGen.Arbitrary.Arbitrary as A
@@ -429,12 +430,15 @@ singleLitExpr ty = do
   addLog "singleLitExpr" [nn "ty" ty]
   fmap (map ELit) . singleLit $ ty
 
-
+-- runReduce ::  (HasLogger m, Reduce a m, Normalise a) =>  SpecE -> a -> m [a]
 runReduce spe x = do
   addLog "runReduce" []
   state <- (newEState spe)
   olg <- getLog
-  (res,resState) <- runIdentityT $ flip runStateT state{elogs_=olg} $ reduce x
+  (res,resState) <- runIdentityT $ flip runStateT state{elogs_=olg} $ do
+                    nx <- normalise x
+                    reduce nx
+
   putLog (elogs_ resState)
   addLog "endReduce" []
   return res

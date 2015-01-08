@@ -18,6 +18,7 @@ import System.Directory(createDirectoryIfMissing)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 
+
 -- reads a .specE file
 readSpecE :: FilePath -> IO SpecE
 readSpecE fp = do

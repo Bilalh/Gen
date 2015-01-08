@@ -5,6 +5,8 @@ module TestGen.Helpers.Normalise where
 import TestGen.Helpers.StandardImports
 import TestGen.Arbitrary.Data
 
+import qualified Data.Traversable as V
+
 class (Pretty a, Eq a, Show a) => Normalise a  where
     normalise :: (HasLogger m) => a -> m a
 
@@ -12,12 +14,15 @@ instance Normalise Type where
     normalise = return
 
 instance Normalise Expr where
-    normalise (EDom y)   = pure EDom <*> normalise y
-    normalise (ELit y)   = pure ELit <*> normalise y
-    normalise (EBinOp y) = pure EBinOp <*> normalise y
 
-    normalise (EUniOp y) = pure EUniOp <*> normalise y
-    normalise (EProc y)  = pure EProc <*> normalise y
+    normalise (ELit (EExpr (ELit y) )) = pure ELit    <*> normalise y
+
+    normalise (ELit y)   = pure ELit    <*> normalise y
+    normalise (EDom y)   = pure EDom    <*> normalise y
+
+    normalise (EBinOp y) = pure EBinOp  <*> normalise y
+    normalise (EUniOp y) = pure EUniOp  <*> normalise y
+    normalise (EProc y)  = pure EProc   <*> normalise y
 
     normalise (EQuan y1 y2 y3 y4) = pure EQuan
                        <*> normalise y1
@@ -71,7 +76,8 @@ instance Normalise UniOp where
 instance Normalise Proc where
     normalise (PallDiff x)         = pure PallDiff       <*> normalise x
     normalise (Pindex x1 x2)       = pure Pindex         <*> normalise x1 <*> normalise x2
-    normalise (Papply x1 x2)       = pure Papply         <*> normalise x1 <*> mapM normalise x2
+    normalise (Papply x1 x2)       = pure Papply         <*> normalise x1
+                                                         <*> mapM normalise x2
     normalise (Pfreq x1 x2)        = pure Pfreq          <*> normalise x1 <*> normalise x2
     normalise (Phist x1 x2)        = pure Phist          <*> normalise x1 <*> normalise x2
     normalise (Pmax x)             = pure Pmax           <*> normalise x
@@ -86,36 +92,47 @@ instance Normalise Proc where
     normalise (PpreImage x1 x2)    = pure PpreImage      <*> normalise x1 <*> normalise x2
     normalise (Prange x)           = pure Prange         <*> normalise x
     normalise (Papart x1 x2 x3)    = pure Papart         <*> normalise x1 <*> normalise x2
-                                                        <*> normalise x3
+                                                         <*> normalise x3
     normalise (Pparts x)           = pure Pparts         <*> normalise x
     normalise (Pparty x1 x2)       = pure Pparty         <*> normalise x1 <*> normalise x2
     normalise (Pparticipants x)    = pure Pparticipants  <*> normalise x
     normalise (Ptogether x1 x2 x3) = pure Ptogether      <*> normalise x1 <*> normalise x2
-                                                        <*> normalise x3
+                                                         <*> normalise x3
 
 instance Normalise Literal where
     normalise (EB x)          = return $ EB x
     normalise (EI x)          = return $ EI x
 
-    normalise (ETuple xs)     = pure ETuple <*> mapM normalise xs
-    normalise (EMatrix x1 x2) = pure EMatrix <*> mapM normalise x1 <*> normalise x2
-    normalise (ESet x)        = pure ESet <*> mapM normalise x
-    normalise (EMSet x)       = pure EMSet <*> mapM normalise x
+    normalise (ETuple xs)     = pure ETuple       <*> mapM normalise xs
+    normalise (EMatrix x1 x2) = pure EMatrix      <*> mapM normalise x1 <*> normalise x2
+    normalise (ESet x)        = pure ESet         <*> mapM normalise x
+    normalise (EMSet x)       = pure EMSet        <*> mapM normalise x
 
-    normalise (EFunction (xs)) = pure EFunction <*> mapM normalise xs
-    normalise (ERelation xs)   = pure ERelation <*> mapM normalise xs
-    normalise (EPartition xs)  = pure EPartition <*> mapM nor xs
+    normalise (EFunction (xs)) = pure EFunction   <*> mapM normalise xs
+    normalise (ERelation xs)   = pure ERelation   <*> mapM normalise xs
+    normalise (EPartition xs)  = pure EPartition  <*> mapM nor xs
         where
           nor = mapM normalise
 
-    normalise (EExpr (ELit l)) = return l
-    normalise (EExpr x)  = pure EExpr <*> normalise x
+    normalise (EExpr (ELit l)) = normalise l
+    normalise (EExpr x)        = pure EExpr <*> normalise x
 
 instance Normalise (Literal,Literal) where
     normalise (x,y) = do
       a <- normalise x
-      b <-normalise y
+      b <- normalise y
       return (a,b)
 
 instance Normalise Domain where
     normalise x = return x  --FIXME when adding expr to domains
+
+
+instance Normalise FG where
+    normalise (Find x)  = pure Find  <*> normalise x
+    normalise (Given x) = pure Given <*> normalise x
+
+instance Normalise Doms where
+    normalise = V.traverse normalise
+
+instance Normalise SpecE where
+    normalise (SpecE x1 x2) = pure SpecE <*> normalise x1 <*> mapM normalise x2

@@ -24,13 +24,13 @@ import Data.Typeable
 
 type Doms = Map Text FG
 data SpecE = SpecE Doms [Expr]
-    deriving(Show, Generic, Typeable, Read)
+    deriving(Show, Generic, Typeable, Read, Eq)
 
 
 
 data FG = Find Domain
         | Given Domain
-    deriving(Show, Generic, Typeable, Read)
+    deriving(Show, Generic, Typeable, Read, Eq)
 
 instance Hashable FG
 
