@@ -13,3 +13,4 @@ instance FromEssence Expr
 
 instance Pretty Expr
 instance Pretty BinOp
+instance Pretty UniOp

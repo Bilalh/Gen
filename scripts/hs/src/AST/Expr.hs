@@ -287,6 +287,16 @@ instance Pretty Expr where
 instance Pretty BinOp where
     pretty =   pretty  . toEssence
 
+instance Pretty UniOp where
+    pretty =   pretty  . toEssence
+
+instance Pretty Proc where
+    pretty =   pretty  . toEssence
+
+instance Pretty QType where
+    pretty =   pretty  . toEssence
+
+
 
 instance FromEssence BinOp where
     fromEssence [eMatch| &x + &y |] = BPlus <$> fromEssence x <*> fromEssence y

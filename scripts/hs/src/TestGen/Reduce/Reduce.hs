@@ -214,6 +214,12 @@ _partse f e = do
     mapM_ (print  . pretty . toEssence)  res
     return res
 
+_partsf  = do
+    let spe   :: SpecE  = undefined
+        seed            = 32
+        state :: EState = EState{spec_=spe,sgen_=mkrGen seed, elogs_=LSEmpty}
+        res             = runIdentity  . flip evalStateT state
+    res
 
 _e :: FromEssence a => E -> a
 _e e =  case fromEssence e of
@@ -225,9 +231,9 @@ _k = do
     -- let fp = "/Users/bilalh/CS/break_conjure/misc/1419393045_122/spec.specE"
     -- let fp = "/Users/bilalh/CS/break_conjure/2014-12-19_04-19_1418962766/RefineCompact_/rrErrorUnknown_/1418964459_41/spec.specE"
     -- let fp = "/Users/bilalh/CS/break_conjure/2014-12-19_04-19_1418962766/RefineCompact_/rrErrorUnknown_/1418965624_49/spec.specE"
-    -- let fp = "/Users/bilalh/CS/break_conjure/2014-12-19_04-19_1418962766/Savilerow_/ParseError_/1418964183_16/spec.specE"
+    let fp = "/Users/bilalh/CS/break_conjure/2014-12-19_04-19_1418962766/Savilerow_/ParseError_/1418964183_16/spec.specE"
     -- let fp = "/Users/bilalh/CS/break_conjure/misc/1418964183_16_r/spec.specE"
-    let fp = "/Users/bilalh/CS/break_conjure/out/1420607973_828/spec.specE"
+    -- let fp = "/Users/bilalh/CS/break_conjure/out/1420607973_828/spec.specE"
 
     spe <- readSpecE fp
     reduceMain spe
