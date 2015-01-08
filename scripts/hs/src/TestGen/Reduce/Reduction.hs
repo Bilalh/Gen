@@ -69,9 +69,10 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
         Nothing -> error . show . vcat $ ["Evar not found",pretty t]
 
     single (ELit t)   = do
-      addLog "single ELit" [nn "t" t]
-      reduce t >>= return . map ELit
-    single (EBinOp t) = reduce t >>= return . map EBinOp
+      addLog "singleELit" [nn "t" t]
+      single t
+
+    single (EBinOp t) = single t
     -- single (EUniOp t) = _t
     -- single (EProc t)  = _t
     -- single (EDom t)   = _t
@@ -269,7 +270,7 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce BinOp m where
 
 
 
--- reduceBoolBop :: (Expr -> Expr -> b) -> Expr -> Expr -> [b]
+-- reduceBoolBop :: (Expr -> Expr -> b) -> Expr -> Expr -> [b]TestGen.Reduce.Reduction_QC
 -- reduceBoolBop t a b= map ( uncurry t ) $  catMaybes
 --         [ (a, etrue) *| simpler etrue b , (a,efalse)  *| simpler efalse b
 --         , (etrue,b)  *| simpler etrue a , (efalse, b) *| simpler efalse a
@@ -331,7 +332,7 @@ singleLit TInt = do
   -- n <- chooseR (-5, -1)
   -- let nums = [0, p, n]
   -- return $ map ( EI ) nums
-  pure EI <*> chooseR (-5, 5) >>= return . (: [])
+  pure EI <*> chooseR (-5, 5) >>= (\a -> return [a])
 
 singleLit TBool = oneofR [EB True, EB False] >>= return . (: [])
 
@@ -403,7 +404,9 @@ singleLit TAny = error "singleLit of TAny"
 singleLit _ = error "singleLit TAny"
 
 singleLitExpr :: (HasGen m, HasLogger m) => Type -> m [Expr]
-singleLitExpr = fmap (map ELit) . singleLit
+singleLitExpr ty = do
+  addLog "singleLitExpr" [nn "ty" ty]
+  fmap (map ELit) . singleLit $ ty
 
 
 runReduce spe x = do

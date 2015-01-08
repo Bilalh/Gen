@@ -107,6 +107,7 @@ rrError title docs = do
     lg <- getLog
     -- addLog "ggError" ["Last log"]
     error . show $ ( P.text $ padRight 15 ' ' title  )
+        P.$+$ (nest 4 $ vcat (docs ))
         P.$+$ ""
 #ifndef NO_GGERROR_LOGS
         P.$+$ nest 16 "==Logs=="

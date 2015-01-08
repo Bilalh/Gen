@@ -13,6 +13,7 @@ import TestGen.Arbitrary.Type(typesUnify)
 class (Pretty a, Eq a, Pretty b, Eq b) => Simpler a b where
     simpler :: (WithDoms m, HasLogger m) => a -> b -> m Bool
 
+
 instance Simpler Type Type where
     simpler TBool TBool = return False
     simpler TBool _     = return True
@@ -139,6 +140,9 @@ instance Simpler Literal Literal where
     simpler (EI _) (EI _) = return False
     simpler (EI _) _      = return True
 
+    simpler (EExpr (ELit x)) y =  simpler x y
+    simpler x (EExpr (ELit y)) =  simpler x y
+
     simpler (EExpr x) (EExpr y) =  simpler x y
 
     simpler (ETuple x) (ETuple y) = do
@@ -173,7 +177,7 @@ instance Simpler Literal Literal where
 
 
     -- simpler _ _ = False
-    simpler a b = rrError "simpler"
+    simpler a b = rrError "simpler Missing case Literal"
                   [pretty $ a, pretty $  b
                   , pretty $ groom a, pretty $ groom b ]
 
