@@ -98,8 +98,9 @@ data Expr =
   | EUniOp UniOp
   | EProc Proc  -- e.g alldiff
   | EDom Domain
-  | EQuan QType BinOp Expr Expr
+  | ETyped Domain Expr
   | EEmptyGuard
+  | EQuan QType BinOp Expr Expr
   deriving (Show, Generic, Typeable, Eq, Ord, Read)
 
 data QType = ForAll

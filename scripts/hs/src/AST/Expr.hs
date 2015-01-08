@@ -257,6 +257,11 @@ instance ToEssence Expr where
 
     toEssence (EDom x)   = toEssence x
 
+    toEssence (ETyped dom x) = [eMake| (&x' : `&dom'`) |]
+        where
+          x'   = toEssence x
+          dom' = toEssence dom
+
     toEssence (EQuan qt (BIn v dom) g b)  =
                 [eMake| &qt' &v' in &dom' , &g' . &b' |] where
                 qt'  = toEssence qt
@@ -349,6 +354,8 @@ instance FromEssence Expr where
     fromEssence x@[xMatch| _ := unaryOp |]  = EUniOp <$> fromEssence x
     fromEssence x@[xMatch| _ := operator |] = EProc  <$> fromEssence x
 
+    fromEssence [eMatch| (&expr : `&dom` ) |] = ETyped <$> fromEssence dom
+                                                       <*> fromEssence expr
 
     fromEssence [eMatch| &qt &qvar in &dom , &g . &b |] = do
         qt'   <- fromEssence qt
