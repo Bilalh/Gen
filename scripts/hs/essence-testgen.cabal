@@ -43,6 +43,7 @@ Library
                      , TestGen.Helpers.Debug
                      , TestGen.Helpers.Helpers
                      , TestGen.Helpers.Log
+                     , TestGen.Helpers.Normalise
                      , TestGen.Helpers.OrderedType
                      , TestGen.Helpers.QuickCheck2
                      , TestGen.Helpers.Runner
@@ -56,6 +57,7 @@ Library
                      , TestGen.Reduce.Data
                      , TestGen.Reduce.Reduce
                      , TestGen.Reduce.Reduction
+                     , TestGen.Reduce.Reduction_QC
                      , TestGen.Reduce.Runner
                      , TestGen.Reduce.Simpler
                      , TestGen.Reduce.UnusedDomains

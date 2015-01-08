@@ -9,131 +9,16 @@ import TestGen.Prelude
 
 import TestGen.Arbitrary.Type(typesUnify)
 
-class (Pretty a, Eq a, Show a) => Normlise a  where
-    normlise :: (HasLogger m) => a -> m a
-
-instance Normlise Type where
-    normlise = return
-
-instance Normlise Expr where
-    normlise (EDom y)   = pure EDom <*> normlise y
-    normlise (ELit y)   = pure ELit <*> normlise y
-    normlise (EBinOp y) = pure EBinOp <*> normlise y
-
-    normlise (EUniOp y) = pure EUniOp <*> normlise y
-    normlise (EProc y)  = pure EProc <*> normlise y
-
-    normlise (EQuan y1 y2 y3 y4) = pure EQuan
-                       <*> normlise y1
-                       <*> normlise y2
-                       <*> normlise y3
-                       <*> normlise y4
-
-
-    normlise x@(EVar _)    = return x
-    normlise x@(EQVar _)   = return x
-    normlise x@EEmptyGuard = return x
-
-instance Normlise QType where
-    normlise = return
-
-
-instance Normlise BinOp where
-    normlise (BIn t1 t2)        = pure BIn         <*> normlise t1 <*> normlise t2
-    normlise (BOver t1 t2)      = pure BOver       <*> normlise t1 <*> normlise t2
-    normlise (BEQ t1 t2)        = pure BEQ         <*> normlise t1 <*> normlise t2
-    normlise (BNEQ t1 t2)       = pure BNEQ        <*> normlise t1 <*> normlise t2
-    normlise (BLT t1 t2)        = pure BLT         <*> normlise t1 <*> normlise t2
-    normlise (BLTE t1 t2)       = pure BLTE        <*> normlise t1 <*> normlise t2
-    normlise (BGT t1 t2)        = pure BGT         <*> normlise t1 <*> normlise t2
-    normlise (BGTE t1 t2)       = pure BGTE        <*> normlise t1 <*> normlise t2
-    normlise (BDiff t1 t2)      = pure BDiff       <*> normlise t1 <*> normlise t2
-    normlise (BPlus t1 t2)      = pure BPlus       <*> normlise t1 <*> normlise t2
-    normlise (BMult t1 t2)      = pure BMult       <*> normlise t1 <*> normlise t2
-    normlise (BDiv t1 t2)       = pure BDiv        <*> normlise t1 <*> normlise t2
-    normlise (BPow t1 t2)       = pure BPow        <*> normlise t1 <*> normlise t2
-    normlise (BMod t1 t2)       = pure BMod        <*> normlise t1 <*> normlise t2
-    normlise (BAnd t1 t2)       = pure BAnd        <*> normlise t1 <*> normlise t2
-    normlise (BOr t1 t2)        = pure BOr         <*> normlise t1 <*> normlise t2
-    normlise (Bimply t1 t2)     = pure Bimply      <*> normlise t1 <*> normlise t2
-    normlise (Biff t1 t2)       = pure Biff        <*> normlise t1 <*> normlise t2
-    normlise (Bsubset t1 t2)    = pure Bsubset     <*> normlise t1 <*> normlise t2
-    normlise (BsubsetEq t1 t2)  = pure BsupsetEq   <*> normlise t1 <*> normlise t2
-    normlise (Bsupset t1 t2)    = pure Bsupset     <*> normlise t1 <*> normlise t2
-    normlise (BsupsetEq t1 t2)  = pure BsupsetEq   <*> normlise t1 <*> normlise t2
-    normlise (Bintersect t1 t2) = pure Bintersect  <*> normlise t1 <*> normlise t2
-    normlise (Bunion t1 t2)     = pure Bunion      <*> normlise t1 <*> normlise t2
-    normlise (BlexLT t1 t2)     = pure BlexLT      <*> normlise t1 <*> normlise t2
-    normlise (BlexLTE t1 t2)    = pure BlexLTE     <*> normlise t1 <*> normlise t2
-    normlise (BlexGT t1 t2)     = pure BlexGT      <*> normlise t1 <*> normlise t2
-    normlise (BlexGTE t1 t2)    = pure BlexGTE     <*> normlise t1 <*> normlise t2
-
-instance Normlise UniOp where
-    normlise (UBar x) = pure UBar <*> normlise x
-    normlise (UNeg x) = pure UNeg <*> normlise x
-
-instance Normlise Proc where
-    normlise (PallDiff x)         = pure PallDiff       <*> normlise x
-    normlise (Pindex x1 x2)       = pure Pindex         <*> normlise x1 <*> normlise x2
-    normlise (Papply x1 x2)       = pure Papply         <*> normlise x1 <*> mapM normlise x2
-    normlise (Pfreq x1 x2)        = pure Pfreq          <*> normlise x1 <*> normlise x2
-    normlise (Phist x1 x2)        = pure Phist          <*> normlise x1 <*> normlise x2
-    normlise (Pmax x)             = pure Pmax           <*> normlise x
-    normlise (Pmin x)             = pure Pmin           <*> normlise x
-    normlise (PtoInt x)           = pure PtoInt         <*> normlise x
-    normlise (PtoMSet x)          = pure PtoMSet        <*> normlise x
-    normlise (PtoRelation x)      = pure PtoRelation    <*> normlise x
-    normlise (PtoSet x)           = pure PtoSet         <*> normlise x
-    normlise (Pdefined x)         = pure Pdefined       <*> normlise x
-    normlise (Pimage x1 x2)       = pure Pimage         <*> normlise x1 <*> normlise x2
-    normlise (Pinverse x1 x2)     = pure Pinverse       <*> normlise x1 <*> normlise x2
-    normlise (PpreImage x1 x2)    = pure PpreImage      <*> normlise x1 <*> normlise x2
-    normlise (Prange x)           = pure Prange         <*> normlise x
-    normlise (Papart x1 x2 x3)    = pure Papart         <*> normlise x1 <*> normlise x2
-                                                        <*> normlise x3
-    normlise (Pparts x)           = pure Pparts         <*> normlise x
-    normlise (Pparty x1 x2)       = pure Pparty         <*> normlise x1 <*> normlise x2
-    normlise (Pparticipants x)    = pure Pparticipants  <*> normlise x
-    normlise (Ptogether x1 x2 x3) = pure Ptogether      <*> normlise x1 <*> normlise x2
-                                                        <*> normlise x3
-
-instance Normlise Literal where
-    normlise (EB x)          = return $ EB x
-    normlise (EI x)          = return $ EI x
-
-    normlise (ETuple xs)     = pure ETuple <*> mapM normlise xs
-    normlise (EMatrix x1 x2) = pure EMatrix <*> mapM normlise x1 <*> normlise x2
-    normlise (ESet x)        = pure ESet <*> mapM normlise x
-    normlise (EMSet x)       = pure EMSet <*> mapM normlise x
-
-    normlise (EFunction (xs)) = pure EFunction <*> mapM normlise xs
-    normlise (ERelation xs)   = pure ERelation <*> mapM normlise xs
-    normlise (EPartition xs)  = pure EPartition <*> mapM nor xs
-        where
-          nor = mapM normlise
-
-    normlise (EExpr (ELit l)) = return l
-    normlise (EExpr x)  = pure EExpr <*> normlise x
-
-instance Normlise (Literal,Literal) where
-    normlise (x,y) = do
-      a <- normlise x
-      b <-normlise y
-      return (a,b)
-
-instance Normlise Domain where
-    normlise x = return x  --FIXME when adding expr to domains
-
 
 -- True if a1 is simpler then a2
-class (Pretty a, Eq a, Show a, Pretty b, Eq b, Show b, Normlise a, Normlise b) => Simpler a b where
+class (Pretty a, Eq a, Show a, Pretty b, Eq b, Show b, Normalise a, Normalise b) => Simpler a b where
     simplerImp :: (WithDoms m, HasLogger m) => a -> b -> m Bool
     simpler :: (WithDoms m, HasLogger m) => a -> b -> m Bool
 
     simpler a b = do
       -- addLog "simplerStart" [nn "a" a, nn "b" b]
-      na <- normlise a
-      nb <- normlise b
+      na <- normalise a
+      nb <- normalise b
       res <- simplerImp na nb
       addLog "simpler" [nn "a" a, nn "b" b
                        , nn "res" res
