@@ -121,10 +121,26 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Literal m where
 
     -- FIXME indexes
     reduce (EMatrix [] _ )     = error "reduce empty matrix"
-    reduce (EMatrix [_] _ )    = return []
-    reduce (EMatrix (t:ts) _ ) = return
-                                 [ EMatrix [t] (dintRange 1 1)
-                                 , EMatrix ts (dintRange 1 (genericLength ts))]
+    reduce (EMatrix [a] d )    = do
+      reduce a >>= \case
+             [] -> return []
+             xs -> do
+               x <- oneofR xs
+               return $ [EMatrix [x] d]
+
+    reduce (EMatrix [a,_] d )  = return $ [EMatrix [a] d]
+    reduce (EMatrix (t:ts) _ ) = do
+      nts <- mapM (reduce) ts
+      case filter (/= []) nts of
+        [] -> return [ EMatrix [t] (dintRange 1 1)
+                 -- , EMatrix [nts] (dintRange 1 (genericLength nts))
+                 , EMatrix ts (dintRange 1 (genericLength ts))]
+
+        nt -> do
+          ns <- mapM oneofR nt
+          return [ EMatrix [t] (dintRange 1 1)
+                 , EMatrix ns (dintRange 1 (genericLength ns))
+                 , EMatrix ts (dintRange 1 (genericLength ts))]
 
 
     reduce (ETuple t) = do
@@ -353,21 +369,24 @@ singleLit (TMatix x) = do
 
 singleLit (TSet x) = do
   si <- pure ESet <*> (singleLit x >>= (return . map (EExpr . ELit)))
-  return [ESet [], si]
+  -- return [ESet [], si]
+  return [si]
 
 singleLit (TMSet x) = do
   si <- pure EMSet <*> (singleLit x >>= (return . map (EExpr . ELit)))
   d <- (singleLit x >>= (return . map (EExpr . ELit)))
   let dupped =EMSet $ concat $ replicate 2 d
   chosen <- oneofR [si,dupped]
-  return [EMSet [], chosen ]
+  -- return [EMSet [], chosen ]
+  return [chosen ]
 
 singleLit (TFunc x1 x2) = do
   let empty = EFunction []
   as <- singleLit x1 >>= (return . map (EExpr . ELit))
   bs <- singleLit x2 >>= (return . map (EExpr . ELit))
   let mu = EFunction (zip as bs)
-  return [empty, mu]
+  -- return [empty, mu]
+  return [mu]
 
 singleLit (TTuple x) = do
   lits <- mapM singleLit x
@@ -381,7 +400,8 @@ singleLit (TRel x) = do
   let minLength = minimum $ map length lits
       lits'     = map (take minLength) lits
       tuples    = map ETuple $ map (map (EExpr . ELit)) $ transpose lits'
-  return [empty, ERelation $ map (EExpr . ELit) tuples]
+  -- return [empty, ERelation $ map (EExpr . ELit) tuples]
+  return [ERelation $ map (EExpr . ELit) tuples]
 
 
 singleLit (TPar x) = do
@@ -393,7 +413,8 @@ singleLit (TPar x) = do
           False -> do
               point <- chooseR (0,length lits')
               let (as,bs) = splitAt point lits'
-              return $ [empty, EPartition
+              -- return $ [empty, EPartition
+              return $ [EPartition
                         [map (EExpr . ELit) as, map (EExpr . ELit) bs]]
 
 
