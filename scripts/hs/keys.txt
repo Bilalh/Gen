@@ -35,3 +35,8 @@ C-h k -- runs describe-key
 C-h f -- runs describe-function
 C-h v -- runs describe-variable
 C-h a -- Apropos search functions
+
+C-c<
+Make the indentation of the region shallower.
+C-c>
+Make the indentation of the region deeper.

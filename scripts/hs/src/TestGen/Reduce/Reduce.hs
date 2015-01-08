@@ -190,9 +190,9 @@ singleElem [_] = True
 singleElem _   = False
 
 
--- _parts :: forall a.
---          (Reduce a (StateT EState Identity), ToEssence a, FromEssence a) =>
---          E -> IO [a]
+_parts ::
+        (ToEssence a1, FromEssence a) =>
+        (a -> StateT EState Identity [a1]) -> E -> IO [a1]
 _parts f e =
     case  fromEssence (e :: E) of
         Left er -> error . show .  (pretty &&& pretty . groom)  $ er
@@ -204,6 +204,8 @@ _parts f e =
             mapM_ (print  . pretty . toEssence)  res
             return res
 
+_partse :: ToEssence a =>
+         (t -> StateT EState Identity [a]) -> t -> IO [a]
 _partse f e = do
     let spe   :: SpecE  = undefined
         seed            = 32
@@ -218,14 +220,14 @@ _e e =  case fromEssence e of
         Left er -> error . show .  (pretty &&& pretty . groom) $ er
         Right ee -> ee
 
-
+_k :: IO SpecE
 _k = do
     -- let fp = "/Users/bilalh/CS/break_conjure/misc/1419393045_122/spec.specE"
     -- let fp = "/Users/bilalh/CS/break_conjure/2014-12-19_04-19_1418962766/RefineCompact_/rrErrorUnknown_/1418964459_41/spec.specE"
     -- let fp = "/Users/bilalh/CS/break_conjure/2014-12-19_04-19_1418962766/RefineCompact_/rrErrorUnknown_/1418965624_49/spec.specE"
-    let fp = "/Users/bilalh/CS/break_conjure/2014-12-19_04-19_1418962766/Savilerow_/ParseError_/1418964183_16/spec.specE"
+    -- let fp = "/Users/bilalh/CS/break_conjure/2014-12-19_04-19_1418962766/Savilerow_/ParseError_/1418964183_16/spec.specE"
     -- let fp = "/Users/bilalh/CS/break_conjure/misc/1418964183_16_r/spec.specE"
-    -- let fp = "/Users/bilalh/CS/break_conjure/out/1420607973_828/spec.specE"
+    let fp = "/Users/bilalh/CS/break_conjure/out/1420607973_828/spec.specE"
 
     spe <- readSpecE fp
     reduceMain spe

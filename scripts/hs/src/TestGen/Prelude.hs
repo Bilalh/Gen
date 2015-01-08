@@ -22,6 +22,7 @@ module TestGen.Prelude (
     , renderSized
     , noteFormat
     , rrError
+    , logArr
 ) where
 
 import TestGen.Helpers.StandardImports as X
@@ -210,3 +211,8 @@ nub2 l = go S.empty l
     go _ [] = []
     go s (x:xs) = if x `S.member` s then go s xs
                                       else x : go (S.insert x s) xs
+
+logArr :: (HasLogger m, Pretty a) => String -> [a] -> m [a]
+logArr text arr = do
+  addLog text [nn "arr" (prettyArr arr)]
+  return arr

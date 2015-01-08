@@ -18,6 +18,7 @@ module TestGen.Arbitrary.Data (
     , FuncsNames(..)
     , HasLogger(..)
     , addLogsTree
+    , prettyArr
     ) where
 
 import AST.Imports
@@ -129,6 +130,7 @@ instance Pretty [Type] where
 
 
 addLog :: HasLogger m => String -> [Doc] ->  m ()
+-- addLog nm docs = return ()
 addLog nm docs = do
     -- case makeLog nm  ( ("__lc" <+> pretty lc) : docs) of
     ls <- getLog

@@ -68,7 +68,9 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
         Just ty -> singleLitExpr ty
         Nothing -> error . show . vcat $ ["Evar not found",pretty t]
 
-    single (ELit t)   = reduce t >>= return . map ELit
+    single (ELit t)   = do
+      addLog "single ELit" [nn "t" t]
+      reduce t >>= return . map ELit
     single (EBinOp t) = reduce t >>= return . map EBinOp
     -- single (EUniOp t) = _t
     -- single (EProc t)  = _t
@@ -278,20 +280,26 @@ subtermsBoolBop :: (WithDoms m) => Expr -> Expr ->  m [Expr]
 subtermsBoolBop a b = ttypeOf a >>= \case
                       TBool -> return [a,b]
                       _     -> return []
-
+--  src/TestGen/Reduce/Data.hs
 reduceBop :: (WithDoms m, HasGen m, HasLogger m) =>
              (Expr -> Expr -> BinOp) -> Expr -> Expr -> m [BinOp]
-reduceBop t a b=  fmap (  map (uncurry t) . catMaybes ) . sequence $
+reduceBop t a b=  do
+  addLog "reduceBop" [nn "a" a, nn "b" b]
+  fmap (  map (uncurry t) . catMaybes ) . sequence $
        [
-         (a, )  -| (single b >>= oneofR , b)
-       , (, b)  -| (single a >>= oneofR , a)
+         (a, )  -| (single b >>= logArr "reduceBopSingle 1" >>= oneofR, b)
+       , (, b)  -| (single a >>= logArr "reduceBopSingle 2" >>= oneofR , a)
        , rr
        ]
 
    where
+     rr :: (WithDoms m, HasGen m, HasLogger m) => m (Maybe (Expr, Expr))
      rr = do
+       addLog "rr" []
        ra <- reduce a
+       addLog "rr" [nn "ra" (vcat $ map pretty ra)]
        rb <- reduce b
+       addLog "rr" [nn "rb" (vcat $ map pretty rb)]
        case (ra, rb) of
         ([], []) -> return Nothing
         ([], xs) -> do
@@ -404,4 +412,5 @@ runReduce spe x = do
   olg <- getLog
   (res,resState) <- runIdentityT $ flip runStateT state{elogs_=olg} $ reduce x
   putLog (elogs_ resState)
+  addLog "endReduce" []
   return res

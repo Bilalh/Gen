@@ -145,7 +145,8 @@ instance Simpler Literal Literal where
         res <- zipWithM simpler x y
         return $ and res
 
-    simpler (EMatrix x _) (EMatrix y _) = do
+    simpler a@(EMatrix x _) b@(EMatrix y _) = do
+      addLog "simpler" [nn "a" a, nn "b" b]
       tx <- ttypeOf x
       ty <- ttypeOf y
       res <- zipWithM simpler x y
@@ -153,7 +154,8 @@ instance Simpler Literal Literal where
       return $ (and res) || ( (typesUnify tx ty) && length x < length y )
 
 
-    simpler (ESet x) (ESet y)             =  do
+    simpler a@(ESet x) b@(ESet y)             =  do
+        addLog "simpler" [nn "a" a, nn "b" b]
         res <- zipWithM simpler x y
         return $ and res
 
