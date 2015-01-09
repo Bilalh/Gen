@@ -1,8 +1,6 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
-{-# LANGUAGE ConstraintKinds, FlexibleContexts, NamedFieldPuns #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-{-# OPTIONS_GHC -fno-warn-unused-imports #-}
 
 -- Use deriving instance Show  instead of deriving Show
 module AST.Expr where
@@ -10,12 +8,11 @@ module AST.Expr where
 import AST.ToEssence(ToEssence(..))
 import AST.FromEssence(FromEssence(..))
 import AST.Data
-import {-# SOURCE #-} AST.Literal
-import {-# SOURCE #-} AST.Domain
+import {-# SOURCE #-} AST.Literal()
+import {-# SOURCE #-} AST.Domain()
 import AST.Type()
 
 import Language.E
-import Text.Groom(groom)
 
 instance ToEssence BinOp where
 
@@ -135,10 +132,6 @@ instance ToEssence BinOp where
               "toEssence Bover missing case"
         ]
 
-    -- toEssence missing = error . show . vcat $ [
-    --           "toEssence BinOP missing case"
-    --         ,pretty . show $ missing
-    --     ]
 
 instance ToEssence UniOp where
     toEssence (UBar x) = [eMake| |&x'| |] where
@@ -335,8 +328,8 @@ instance FromEssence Proc where
     fromEssence [eMatch| &ele[&indexer] |] =
         Pindex <$> fromEssence ele <*> fromEssence indexer
 
-    fromEssence [eMatch| toInt(&inner) |] =
-        PtoInt <$> fromEssence inner
+    fromEssence [eMatch| toInt(&inn) |] =
+        PtoInt <$> fromEssence inn
 
     fromEssence x = Left x
 
@@ -354,18 +347,9 @@ instance FromEssence Expr where
     fromEssence x@[xMatch| _ := unaryOp |]  = EUniOp <$> fromEssence x
     fromEssence x@[xMatch| _ := operator |] = EProc  <$> fromEssence x
 
-    -- fromEssence [eMatch| (&expr : `&ty` ) |] = error . groom $ ty
-
-    -- fromEssence (Tagged (Tag "typed")
-    --               [Tagged (Tag "left") l],
-    --               [Tagged (Tag "right) _]
-    --              )= undefined
-
     fromEssence [xMatch| [l] := typed.left
                        | [r] := typed.right |] = ETyped <$> fromEssence r <*> fromEssence l
 
-    -- fromEssence [eMatch| (&expr : `&ty` ) |] = ETyped <$> fromEssence ty
-    --                                                   <*> fromEssence expr
 
     fromEssence [eMatch| &qt &qvar in &dom , &g . &b |] = do
         qt'   <- fromEssence qt

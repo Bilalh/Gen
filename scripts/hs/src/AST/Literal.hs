@@ -1,9 +1,5 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
-{-# LANGUAGE ConstraintKinds, FlexibleContexts, NamedFieldPuns #-}
-{-# LANGUAGE DeriveGeneric, DeriveDataTypeable #-}
-{-# LANGUAGE StandaloneDeriving #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-{-# OPTIONS_GHC -fno-warn-unused-imports #-}
 
 module AST.Literal where
 
@@ -11,8 +7,8 @@ module AST.Literal where
 import AST.ToEssence(ToEssence(..))
 import AST.FromEssence(FromEssence(..))
 import AST.Data
-import {-# SOURCE #-} AST.Domain
-import {-# SOURCE #-} AST.Expr
+import {-# SOURCE #-} AST.Domain()
+import {-# SOURCE #-} AST.Expr()
 import Language.E
 
 

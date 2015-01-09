@@ -1,24 +1,19 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
-{-# LANGUAGE ConstraintKinds, FlexibleContexts, FlexibleInstances #-}
-{-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
-{-# LANGUAGE DeriveGeneric, DeriveDataTypeable #-}
-{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-{-# OPTIONS_GHC -fno-warn-unused-imports #-}
 
 module AST.Range where
 
 import AST.FromEssence(FromEssence(..))
 import AST.ToEssence(ToEssence(..))
 import AST.Data
-import {-# Source #-} AST.Expr
-import {-# Source #-} AST.Literal
+import {-# Source #-} AST.Expr()
+import {-# Source #-} AST.Literal()
 
 import Language.E
 
-
 instance ToEssence (Range Expr) where
-    toEssence (RFromTo l u) = [xMake| range.fromTo := [toEssence l, toEssence u  ] |]
+    toEssence (RFromTo l u) = [xMake| range.fromTo  := [toEssence l, toEssence u  ] |]
     toEssence (RSingle i  ) = [xMake| range.single  := [toEssence i ] |]
 
 instance FromEssence (Range Expr) where

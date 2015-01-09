@@ -1,10 +1,6 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
-{-# LANGUAGE ConstraintKinds, FlexibleContexts, FlexibleInstances #-}
-{-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
-{-# LANGUAGE DeriveGeneric, DeriveDataTypeable #-}
-{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-{-# OPTIONS_GHC -fno-warn-unused-imports #-}
 
 module AST.Type where
 
@@ -12,7 +8,6 @@ import AST.Data
 import AST.FromEssence(FromEssence(..))
 import AST.ToEssence(ToEssence(..))
 import Language.E
-import Text.Groom(groom)
 
 instance ToEssence Type where
     toEssence TInt          = [dMake| int |]

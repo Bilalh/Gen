@@ -1,8 +1,6 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
-{-# LANGUAGE ConstraintKinds, FlexibleContexts, NamedFieldPuns #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE DeriveGeneric, DeriveDataTypeable #-}
-{-# OPTIONS_GHC -fno-warn-unused-imports #-}
 
 module AST.SpecE where
 
@@ -10,8 +8,7 @@ import qualified Data.Map as M
 import Data.Map (Map)
 
 import AST.Data
-import AST.Domain
-import AST.Expr
+import AST.Expr()
 import AST.Helper
 import AST.ToEssence
 import AST.FromEssence
@@ -38,9 +35,11 @@ instance FromEssence (Text,FG) where
     fromEssence [xMatch| [Prim (S n)] := find.name.reference
                        | [dom]        := find.domain |] =
                            (\x -> (n,Find x)) <$> fromEssence dom
+
     fromEssence [xMatch| [Prim (S n)] := given.name.reference
                        | [dom]        := given.domain |] =
                            (\x -> (n,Given x)) <$> fromEssence dom
+
     fromEssence x = Left x
 
 fromSpec :: Spec -> Either E SpecE
@@ -48,6 +47,7 @@ fromSpec (Spec _ x) = do
   decs' <- mapM fromEssence decs
   cons' <- mapM fromEssence cons
   return $ SpecE (M.fromList decs') cons'
+
   where decs = mapMaybe df $ statementAsList x
         cons = concat . mapMaybe cf $ statementAsList x
         df [xMatch| [y] := topLevel.declaration |] = Just y
