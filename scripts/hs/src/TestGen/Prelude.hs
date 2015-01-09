@@ -39,7 +39,7 @@ import TestGen.Helpers.SizeOf as X
 import TestGen.Helpers.Debug as X
 import TestGen.Helpers.Helpers as X
 import TestGen.Helpers.QuickCheck2 as X
-import TestGen.Helpers.Normalise as X
+import TestGen.Helpers.Standardise as X
 
 import Data.Time
 import Data.Time.Clock.POSIX(getPOSIXTime)

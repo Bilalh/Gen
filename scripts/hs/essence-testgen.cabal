@@ -42,12 +42,12 @@ Library
                      , TestGen.Helpers.Debug
                      , TestGen.Helpers.Helpers
                      , TestGen.Helpers.Log
-                     , TestGen.Helpers.Normalise
                      , TestGen.Helpers.OrderedType
                      , TestGen.Helpers.QuickCheck2
                      , TestGen.Helpers.Runner
                      , TestGen.Helpers.SizeOf
                      , TestGen.Helpers.StandardImports
+                     , TestGen.Helpers.Standardise
                      , TestGen.Helpers.TypeOf
                      , TestGen.Prelude
                      , TestGen.QC
@@ -60,6 +60,7 @@ Library
                      , TestGen.Reduce.Runner
                      , TestGen.Reduce.Simpler
                      , TestGen.Reduce.UnusedDomains
+                     
     
     build-depends    : base
                      , aeson

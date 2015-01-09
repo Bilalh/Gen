@@ -435,13 +435,13 @@ singleLitExpr ty = do
   addLog "singleLitExpr" [nn "ty" ty]
   fmap (map ELit) . singleLit $ ty
 
--- runReduce ::  (HasLogger m, Reduce a m, Normalise a) =>  SpecE -> a -> m [a]
+-- runReduce ::  (HasLogger m, Reduce a m, Standardise a) =>  SpecE -> a -> m [a]
 runReduce spe x = do
   addLog "runReduce" []
   state <- (newEState spe)
   olg <- getLog
   (res,resState) <- runIdentityT $ flip runStateT state{elogs_=olg} $ do
-                    nx <- normalise x
+                    nx <- standardise x
                     reduce nx
 
   putLog (elogs_ resState)
