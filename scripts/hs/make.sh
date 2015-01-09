@@ -37,15 +37,6 @@ echo "LLVM            : ${LLVM}"
 echo "BIN_DIR         : ${BIN_DIR}"
 echo "CONJURE_REPO"   : ${CONJURE_REPO}
 
-if  [ ! -d ../../../essenceAST/ ]; then
-	echo ""
-	echo "Requires 'essenceAST' at ../../../essenceAST/"
-	echo "i.e. next to the 'instancegen' repo"
-	echo "url of 'essenceAST':"
-	echo "hg clone ssh://hg@bitbucket.org/stacs_cp/essenceast essenceAST"
-	exit 4
-fi
-
 
 if [ $LLVM = "llvm-on" ]; then
     LLVM='--ghc-options="-fllvm"'
