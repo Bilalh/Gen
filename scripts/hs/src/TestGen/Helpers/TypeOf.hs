@@ -8,7 +8,7 @@
 module TestGen.Helpers.TypeOf(WithDoms(..), TypeOf(..), typeOfDom) where
 
 import TestGen.Helpers.StandardImports
-import TestGen.Arbitrary.Data
+-- import TestGen.Arbitrary.Data
 
 import qualified Data.Map as M
 

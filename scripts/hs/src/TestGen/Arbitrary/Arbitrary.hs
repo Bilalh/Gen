@@ -6,8 +6,8 @@
 module TestGen.Arbitrary.Arbitrary where
 
 import TestGen.Prelude
-import TestGen.Arbitrary.Data
-import TestGen.Arbitrary.Domain
+-- import TestGen.Arbitrary.Data
+-- import TestGen.Arbitrary.Domain
 import TestGen.Arbitrary.Expr
 
 import qualified Data.Map as M

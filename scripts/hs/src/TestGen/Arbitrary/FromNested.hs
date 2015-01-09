@@ -6,7 +6,7 @@ module TestGen.Arbitrary.FromNested where
 
 import TestGen.Prelude
 import TestGen.Arbitrary.Expr
-import TestGen.Arbitrary.Type
+-- import TestGen.Arbitrary.Type
 import TestGen.Arbitrary.Op
 
 import qualified Data.Map as M
@@ -164,12 +164,12 @@ nextt cur tyFrom tyTo  = gets depth_ >>= \d -> if
 
 nextt' cur tyFrom tyTo | tyFrom == tyTo = return [ (cur, tyTo) ]
 nextt' cur tyFrom tyTo = do
-
     addLog "next'" [pretty tyFrom, pretty tyTo]
 
     ff tyFrom tyTo
 
-    where -- :: from to -> choices
+    where
+    -- :: from to -> choices
     ff :: Type -> Type -> GG [(Expr, Type)]
     ff TBool TInt  = do
         return [ ( EProc $ PtoInt cur , TInt)  ]
