@@ -5,7 +5,7 @@ module AST.Range where
 
 import AST.ToEssence(ToEssence(..))
 import AST.FromEssence(FromEssence(..))
-import AST.Types
+import AST.Data
 import {-# SOURCE #-} AST.Expr
 
 import Language.E

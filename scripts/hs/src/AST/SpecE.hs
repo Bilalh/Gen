@@ -9,7 +9,7 @@ module AST.SpecE where
 import qualified Data.Map as M
 import Data.Map (Map)
 
-import AST.Types
+import AST.Data
 import AST.Domain
 import AST.Expr
 import AST.Helper

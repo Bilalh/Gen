@@ -4,7 +4,7 @@
 {-# LANGUAGE DeriveGeneric, DeriveDataTypeable #-}
 {-# LANGUAGE PatternSynonyms #-}
 
-module AST.Types where
+module AST.Data where
 
 
 import GHC.Generics
@@ -77,6 +77,7 @@ data Domain
 
 instance Hashable Domain
 instance Hashable (Range Expr)
+instance Hashable (Type)
 instance Hashable (Expr)
 instance Hashable (QType)
 instance Hashable (BinOp)
@@ -98,7 +99,7 @@ data Expr =
   | EUniOp UniOp
   | EProc Proc  -- e.g alldiff
   | EDom Domain
-  | ETyped Domain Expr
+  | ETyped Type Expr
   | EEmptyGuard
   | EQuan QType BinOp Expr Expr
   deriving (Show, Generic, Typeable, Eq, Ord, Read)
@@ -215,3 +216,18 @@ data Literal
     | EPartition  [[Literal]]          -- list of parts
     | EExpr Expr
     deriving (Show, Generic, Typeable, Eq, Ord, Read)
+
+data Type =
+      TInt
+    | TBool
+    | TMatix  Type
+    | TSet    Type
+    | TMSet   Type
+    | TFunc   Type Type
+    | TTuple  [Type]
+    | TRel    [Type]
+    | TPar    Type
+    | TUnamed Text   -- each unamed type is unique
+    | TEnum   Text   -- as are enums
+    | TAny
+  deriving (Show, Generic, Typeable, Eq, Ord, Read)

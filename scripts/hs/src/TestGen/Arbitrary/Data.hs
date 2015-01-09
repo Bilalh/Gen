@@ -107,27 +107,6 @@ prettyArr :: Pretty a => [a] -> Doc
 prettyArr [] = "[]"
 prettyArr vs = vcat $ map pretty vs
 
-data Type =
-      TInt
-    | TBool
-    | TMatix  Type
-    | TSet    Type
-    | TMSet   Type
-    | TFunc   Type Type
-    | TTuple  [Type]
-    | TRel    [Type]
-    | TPar    Type
-    | TUnamed Text   -- each unamed type is unique
-    | TEnum   Text   -- as are enums
-    | TAny
-    deriving(Show, Eq, Ord)
-
-instance Pretty Type where
-    pretty  =  pretty . groom
-
-instance Pretty [Type] where
-    pretty  =  pretty . groom
-
 
 addLog :: HasLogger m => String -> [Doc] ->  m ()
 -- addLog nm docs = return ()

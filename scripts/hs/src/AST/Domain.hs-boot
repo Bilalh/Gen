@@ -3,7 +3,7 @@ module AST.Domain where
 
 import AST.ToEssence(ToEssence(..))
 import AST.FromEssence(FromEssence(..))
-import AST.Types
+import AST.Data
 
 import Language.E
 

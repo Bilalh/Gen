@@ -15,7 +15,10 @@ instance Normalise Type where
 
 instance Normalise Expr where
 
-    normalise (ELit (EExpr (ELit y) )) = pure ELit    <*> normalise y
+    normalise (ELit (EExpr (ELit y) )) = pure ELit <*> normalise y
+    -- When we have expr in domains
+    -- normalise (EDom (DExpr (EDom y) )) = pure EDom <*> normalise y
+
 
     normalise (ELit y)   = pure ELit    <*> normalise y
     normalise (EDom y)   = pure EDom    <*> normalise y
@@ -30,10 +33,12 @@ instance Normalise Expr where
                        <*> normalise y3
                        <*> normalise y4
 
+    normalise (ETyped x y ) = pure ETyped <*> normalise x <*> normalise y
 
     normalise x@(EVar _)    = return x
     normalise x@(EQVar _)   = return x
     normalise x@EEmptyGuard = return x
+
 
 instance Normalise QType where
     normalise = return

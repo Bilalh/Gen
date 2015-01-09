@@ -4,7 +4,7 @@
 
 module AST.ExprHelpers where
 
-import AST.Types
+import AST.Data
 
 import Language.E
 

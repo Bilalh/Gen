@@ -9,13 +9,13 @@ module AST.Expr where
 
 import AST.ToEssence(ToEssence(..))
 import AST.FromEssence(FromEssence(..))
-import AST.Types
+import AST.Data
 import {-# SOURCE #-} AST.Literal
 import {-# SOURCE #-} AST.Domain
-
+import AST.Type()
 
 import Language.E
-
+import Text.Groom(groom)
 
 instance ToEssence BinOp where
 
@@ -257,10 +257,10 @@ instance ToEssence Expr where
 
     toEssence (EDom x)   = toEssence x
 
-    toEssence (ETyped dom x) = [eMake| (&x' : `&dom'`) |]
+    toEssence (ETyped ty x) = [eMake| (&x' : `&ty'`) |]
         where
           x'   = toEssence x
-          dom' = toEssence dom
+          ty' = toEssence ty
 
     toEssence (EQuan qt (BIn v dom) g b)  =
                 [eMake| &qt' &v' in &dom' , &g' . &b' |] where
@@ -354,8 +354,18 @@ instance FromEssence Expr where
     fromEssence x@[xMatch| _ := unaryOp |]  = EUniOp <$> fromEssence x
     fromEssence x@[xMatch| _ := operator |] = EProc  <$> fromEssence x
 
-    fromEssence [eMatch| (&expr : `&dom` ) |] = ETyped <$> fromEssence dom
-                                                       <*> fromEssence expr
+    -- fromEssence [eMatch| (&expr : `&ty` ) |] = error . groom $ ty
+
+    -- fromEssence (Tagged (Tag "typed")
+    --               [Tagged (Tag "left") l],
+    --               [Tagged (Tag "right) _]
+    --              )= undefined
+
+    fromEssence [xMatch| [l] := typed.left
+                       | [r] := typed.right |] = ETyped <$> fromEssence r <*> fromEssence l
+
+    -- fromEssence [eMatch| (&expr : `&ty` ) |] = ETyped <$> fromEssence ty
+    --                                                   <*> fromEssence expr
 
     fromEssence [eMatch| &qt &qvar in &dom , &g . &b |] = do
         qt'   <- fromEssence qt

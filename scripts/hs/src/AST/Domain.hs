@@ -11,7 +11,7 @@ module AST.Domain where
 
 import AST.FromEssence(FromEssence(..))
 import AST.ToEssence(ToEssence(..))
-import AST.Types
+import AST.Data
 import AST.Helper
 import {-# SOURCE #-} AST.Range
 

@@ -15,6 +15,7 @@ Library
     hs-source-dirs   : src
     
     exposed-modules  : Build_autoversion
+                     , AST.Data
                      , AST.Domain
                      , AST.Expr
                      , AST.ExprHelpers
@@ -26,7 +27,7 @@ Library
                      , AST.Range
                      , AST.SpecE
                      , AST.ToEssence
-                     , AST.Types
+                     , AST.Type
                      , Common.Helpers
                      , TestGen.Arbitrary.Arbitrary
                      , TestGen.Arbitrary.Common
@@ -61,6 +62,8 @@ Library
                      , TestGen.Reduce.Runner
                      , TestGen.Reduce.Simpler
                      , TestGen.Reduce.UnusedDomains
+                     
+                     
     
     
     build-depends    : base

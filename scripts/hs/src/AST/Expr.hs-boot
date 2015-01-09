@@ -4,7 +4,7 @@ module AST.Expr where
 
 import AST.ToEssence
 import AST.FromEssence
-import AST.Types
+import AST.Data
 
 import Language.E
 

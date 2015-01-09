@@ -17,7 +17,6 @@ import TestGen.Reduce.Simpler
 import TestGen.Prelude
 
 import Data.List(transpose)
-import Control.Monad.Trans.Identity(IdentityT)
 
 
 -- import qualified TestGen.Arbitrary.Arbitrary as A
@@ -46,11 +45,17 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
     reduce (EVar t) = typeOfVar t >>= \case
         Just ty -> singleLitExpr ty
         Nothing -> error . show . vcat $ ["Evar not found",pretty t]
-    -- reduce (EQVar t) = _h
+
+    reduce (EQVar t) = typeOfVar t >>= \case
+        Just ty -> singleLitExpr ty
+        Nothing -> error . show . vcat $ ["Evar not found",pretty t]
+
     -- reduce (EUniOp t) = _h
     -- reduce (EProc t) = _h
-    -- reduce (EDom t) = _h
-    -- reduce (EQuan t1 t2 t3 t4) = _h
+
+    reduce (EDom t) = do
+      ds <- reduce t
+      return $ map EDom ds
 
     reduce (EBinOp op) = do
       -- single op ++ subterms op ++ map EBinOp (reduce op)
@@ -60,6 +65,8 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
       return $ a1 ++ a2 ++ (map EBinOp a3)
 
     reduce EEmptyGuard = return []
+
+    -- reduce (EQuan t1 t2 t3 t4) = _h
 
     single (EVar t) = typeOfVar t >>= \case
         Just ty -> singleLitExpr ty
@@ -73,10 +80,10 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
       addLog "singleELit" [nn "t" t]
       single t
 
-    single (EBinOp t) = single t
+    single (EBinOp t)    = single t
     -- single (EUniOp t) = _t
     -- single (EProc t)  = _t
-    -- single (EDom t)   = _t
+    single (EDom t)      = single t
 
     -- single (EQuan t1 t2 t3 t4) = _t
     -- single EEmptyGuard = return []
@@ -87,11 +94,11 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
     subterms (EVar _)  = return []
     subterms (EQVar _) = return []
 
-    subterms (ELit t)   = subterms t
-    subterms (EBinOp t) = subterms t
+    subterms (ELit t)      = subterms t
+    subterms (EBinOp t)    = subterms t
     -- subterms (EUniOp t) = _h
     -- subterms (EProc t)  = _h
-    -- subterms (EDom t)   = _h
+    subterms (EDom t)      = subterms t
 
     -- subterms (EQuan t1 t2 t3 t4) = _h
     subterms EEmptyGuard = return []
@@ -286,12 +293,10 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce BinOp m where
         $ ["subterms missing case", pretty $ toEssence a, pretty $ groom a ]
 
 
-
--- reduceBoolBop :: (Expr -> Expr -> b) -> Expr -> Expr -> [b]TestGen.Reduce.Reduction_QC
--- reduceBoolBop t a b= map ( uncurry t ) $  catMaybes
---         [ (a, etrue) *| simpler etrue b , (a,efalse)  *| simpler efalse b
---         , (etrue,b)  *| simpler etrue a , (efalse, b) *| simpler efalse a
---         ]
+instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Domain m where
+    reduce _   = return []
+    single x   = return [EDom x]
+    subterms _ = return []
 
 
 subtermsBoolBop :: (WithDoms m) => Expr -> Expr ->  m [Expr]
@@ -368,10 +373,10 @@ singleLit (TMatix x) = do
 
   return res
 
-singleLit (TSet x) = do
+singleLit l@(TSet x) = do
+  ty <- ttypeOf l
   si <- pure ESet <*> (singleLit x >>= (return . map (EExpr . ELit)))
-  -- return [ESet [], si]
-  return [si]
+  return [ETyped  ESet [], si]
 
 singleLit (TMSet x) = do
   si <- pure EMSet <*> (singleLit x >>= (return . map (EExpr . ELit)))

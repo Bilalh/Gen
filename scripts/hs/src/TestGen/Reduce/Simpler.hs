@@ -22,8 +22,8 @@ class (Pretty a, Eq a, Show a, Pretty b, Eq b, Show b, Normalise a, Normalise b)
       res <- simplerImp na nb
       addLog "simpler" [nn "a" a, nn "b" b
                        , nn "res" res
-                       , nn "ga" (groom a), nn "gb" (groom b)
-                       , nn "ga" (groom na), nn "gb" (groom nb)
+                       -- , nn "ga" (groom a), nn "gb" (groom b)
+                       -- , nn "ga" (groom na), nn "gb" (groom nb)
                        ]
       return res
 
@@ -64,37 +64,40 @@ instance Simpler Type Type where
                   , pretty $ groom a, pretty $ groom b ]
 
 instance Simpler Expr Expr where
-    simplerImp (ELit a ) (ELit b)   = simpler a b
-    simplerImp (ELit a)  (EBinOp b) = simpler a b
+  simplerImp (ELit a ) (ELit b)   = simpler a b
+  simplerImp (ELit a)  (EBinOp b) = simpler a b
 
-    simplerImp a@(EVar _) b = do
-      tya <- ttypeOf a
-      tyb <- ttypeOf b
-      simplerImp tya tyb
+  simplerImp a@(EVar _) b = do
+    tya <- ttypeOf a
+    tyb <- ttypeOf b
+    simplerImp tya tyb
 
-    simplerImp a@(EQVar _) b = do
-      tya <- ttypeOf a
-      tyb <- ttypeOf b
-      simplerImp tya tyb
+  simplerImp a@(EQVar _) b = do
+    tya <- ttypeOf a
+    tyb <- ttypeOf b
+    simplerImp tya tyb
 
-    simplerImp (EBinOp a) (EBinOp b) = simpler a b
+  simplerImp (EBinOp a) (EBinOp b) = simpler a b
 
-    -- simplerImp (EUniOp a) b =_h
-    -- simplerImp (EProc a) b =_h
-    -- simplerImp (EDom a) b =_h
-    -- simplerImp (EQuan a1 a2 a3 a4) b =_h
-
-
-    simplerImp EEmptyGuard EEmptyGuard = return False
-    simplerImp EEmptyGuard b = do
-      tyb <- ttypeOf b
-      return $ tyb /= TBool
+  -- simplerImp (EUniOp a) b =_h
+  -- simplerImp (EProc a) b =_h
+  -- simplerImp (EDom a) b =_h
+  -- simplerImp (EQuan a1 a2 a3 a4) b =_h
 
 
-    -- simplerImp _ _ = False
-    simplerImp a b = rrError "simpler"
-                  [pretty $ a, pretty $  b
-                  , pretty $ groom a, pretty $ groom b ]
+  simplerImp EEmptyGuard EEmptyGuard = return False
+  simplerImp EEmptyGuard b = do
+    tyb <- ttypeOf b
+    return $ tyb /= TBool
+
+
+  simplerImp (ETyped _ x) (ETyped _ y) = simpler x y
+  simplerImp x (ETyped _ y)            = simpler x y
+  simplerImp (ETyped _ x) y            = simpler x y
+
+  simplerImp a b = rrError "simpler"
+                [pretty $ a, pretty $  b
+                , pretty $ groom a, pretty $ groom b ]
 
 
 instance WithDoms m => TypeOf [Literal] m where
@@ -143,7 +146,6 @@ instance Simpler BinOp BinOp where
     -- simplerImp (BlexLTE x1 x2) y    = _h
     -- simplerImp (BlexGT x1 x2) y     = _h
     -- simplerImp (BlexGTE x1 x2) y    = _h
-
 
 instance Simpler Literal Literal where
     simplerImp (EB _) (EB _) = return False

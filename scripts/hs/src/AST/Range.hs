@@ -10,7 +10,7 @@ module AST.Range where
 
 import AST.FromEssence(FromEssence(..))
 import AST.ToEssence(ToEssence(..))
-import AST.Types
+import AST.Data
 import {-# Source #-} AST.Expr
 import {-# Source #-} AST.Literal
 
