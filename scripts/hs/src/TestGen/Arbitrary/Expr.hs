@@ -85,8 +85,8 @@ quanOverExpr = withQuan $
         Nothing -> boolExpr  -- Nothing to quantify over
         Just gen -> do
             addLog "quanOverExpr" []
-            dom <- lift gen
-            let overType = typeOfDom dom
+            dm <- lift gen
+            let overType = typeOfDom dm
 
             let innerType = overType
             inName <-  nextQuanVarName
@@ -98,7 +98,7 @@ quanOverExpr = withQuan $
 
             -- FIXME Ensure with high prob that inName is actually used
             quanType <- elements2 [ ForAll, Exists ]
-            let quanTop = EQuan quanType (BOver (EQVar inName) (EDom dom))
+            let quanTop = EQuan quanType (BOver (EQVar inName) (EDom dm))
 
             d <- gets depth_
             let typeDepth = depthOf innerType
@@ -179,12 +179,11 @@ exprFromToType ref (TSet _) TInt = return $ EUniOp $ UBar $ EVar ref
 
 
 
-
 -- Return a expr of the specifed depth and type
 exprOf :: Type -> GG Expr
 exprOf ty = do
-    -- nestedOfType <-  maybeToList <$> nestedVarsOf ty
-    nestedOfType <-  return []
+    nestedOfType <-  maybeToList <$> nestedVarsOf ty
+    -- nestedOfType <-  return []
     ofType <-  varsOf ty
     tyCons <-   maybeToList <$> toTypeWithConversions ty
 
@@ -260,25 +259,26 @@ exprOf ty = do
 -- Remove one level of any
 -- e.g for sets
 deAny :: Type -> GG Type
-deAny TAny = do 
+deAny TAny = do
     d <- gets depth_
     addLog "deAny" [nn "depth" d]
     ty <- withSameDepth atype
     addLog "deAny" [nn "depth" d, nn "ty" ty]
     return ty
 
-deAny (TSet TAny)   = return TSet   <*> (withDepthDec atype)
-deAny (TMSet TAny)  = return TMSet  <*> (withDepthDec atype)
-deAny (TMatix TAny) = return TMatix <*> (withDepthDec atype)
-deAny (TPar TAny)   = return TPar   <*> (withDepthDec atype)
+deAny (TSet a)   = return TSet   <*> (withDepthDec $ deAny a)
+deAny (TMSet a)  = return TMSet  <*> (withDepthDec $ deAny a)
+deAny (TMatix a) = return TMatix <*> (withDepthDec $ deAny a)
+deAny (TPar a)   = return TPar   <*> (withDepthDec $ deAny a)
 
 deAny (TTuple ts) =  return TTuple <*> (mapM (withDepthDec . deAny) ts)
 deAny (TRel   ts) =  do
     d <- gets depth_
     return TRel  <*> (mapM (withDepth (d - 2) . deAny) ts)
 
-deAny (TFunc a b)   = return TFunc <*> (withDepthDec atype)
-                                   <*> (withDepthDec atype)
+deAny (TFunc a b)  = return TFunc
+                     <*> (withDepthDec $ deAny a)
+                     <*> (withDepthDec $ deAny b)
 
 deAny ty = return ty
 
