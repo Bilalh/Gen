@@ -51,9 +51,9 @@ con  to  = do
                 ]
             fs <- toFn
             (f, depthNeeded) <- elements2 fs
-            addLog "toType:choices" 
+            addLog "toType:choices"
                 [ nn "depthNeeded" depthNeeded  ]
-            
+
             fromExpr <- withDepth (d - depthNeeded) (exprOfPurgeAny fromTy)
             return $  Just $ f (return fromExpr)
 
@@ -80,25 +80,25 @@ reachableToTypeWithCommon d y =  do
         funcs >>= concatMapM (uncurry (processCommon d))
 
            | otherwise = return []
-               
-    funcs = do 
+
+    funcs = do
         addLog "reTyCommon" [ nn "y" y, nn "d" d  ]
-        catMaybes <$> sequence 
+        catMaybes <$> sequence
             [
                 do
                 nty <- TSet <$> purgeAny y
-                customM nty [min **| useFunc Amin , max **| useFunc Amax]
+                customM nty [minn **| useFunc Amin , maxx **| useFunc Amax]
                     ++| d - (fromInteger $ depthOf nty) >= 2
             ,   do
                 nty <- TMSet <$> purgeAny y
-                customM nty [min **| useFunc Amin , max **| useFunc Amax]
+                customM nty [minn **| useFunc Amin , maxx **| useFunc Amax]
                     ++| d - (fromInteger $ depthOf nty) >= 2
-            ] 
+            ]
 
-    min, max :: GG (ToTypeFn, Depth)
-    min = return $ raise $ (EProc . Pmin, 1)
-    max = return $ raise $ (EProc . Pmax, 1)
-    
+    minn, maxx :: GG (ToTypeFn, Depth)
+    minn = return $ raise $ (EProc . Pmin, 1)
+    maxx = return $ raise $ (EProc . Pmax, 1)
+
 
 
 reachableToType :: Depth -> Type -> GG [ (Type, GG [(ToTypeFn, Depth)] ) ]
@@ -216,7 +216,7 @@ reachableToType d oty@TInt = concatMapM process types
             [
               simpleM fty [ (EUniOp . UBar, 1) **| useFunc Aubar ]
                 ++| d - (fromInteger $ depthOf fty) >= 1
-            
+
             , do
                 nty@(TMSet ins) <- purgeAny fty
                 customM nty [ freq ins **| useFunc Afreq ]
@@ -298,7 +298,7 @@ reachableToType d oty@(TSet ity) =  do
             [
                 do
                 nty <- purgeAny fty
-                addLog "reachToTy:set:set" 
+                addLog "reachToTy:set:set"
                     [ nn "d" d
                     , nn "nty" nty
                     , nn "depth nty" (depthOf nty)
@@ -393,7 +393,7 @@ reachableToType d oty@(TSet ity) =  do
         preImage pb = do
             ep <- withDepthDec (exprOf pb)
             return $ raise $ (EProc . (flip PpreImage) ep, 1)
-        
+
         -- Other image `does not exist`
         -- image :: PType -> GG (ToTypeFn, Depth)
         -- image pa = do
@@ -443,8 +443,8 @@ reachableToType d oty@(TMSet ity) =  concatMapM process (types)
              simpleM fty [ (EProc . PtoMSet, 1) **| useFunc AtoMSet ]
                 ++| d - (fromInteger $ depthOf fty) >= 1
             ]
-            
-            
+
+
     process fty@(TRel _) = funcs >>=
         concatMapM (uncurry (processCommon d))
 
@@ -463,7 +463,7 @@ reachableToType d oty@(TMSet ity) =  concatMapM process (types)
 
         where
         funcs :: GG [ (Type, [(ToTypeFn, Depth)]) ]
-        funcs = catMaybes <$> sequence 
+        funcs = catMaybes <$> sequence
             -- 1 for func
             -- 1 usually for TFunc
             [
@@ -532,7 +532,7 @@ reachableToType d oty@(TFunc _ _ ) = concatMapM process types
             [
                 do
                 nty <- purgeAny fty
-                customM nty [intersect nty **| useFunc Aintersect 
+                customM nty [intersect nty **| useFunc Aintersect
                             , diff nty     **| useFunc Adiff ]
                     ++| d - (fromInteger $ depthOf nty) >= 1
             ]
@@ -675,11 +675,11 @@ _  *| _    = Nothing
 infixl 1 **|
 
 (**|) :: a -> GG Bool -> GG (Maybe a)
-a  **| c  = do 
+a  **| c  = do
     b <- c
-    if b then 
+    if b then
         return (Just a)
-    else 
+    else
         return Nothing
 
 
@@ -697,52 +697,51 @@ _  +| _    = return Nothing
 simpleM :: (Functor f, Monad f)
   =>  t -> [f (Maybe (Expr -> Expr, Depth))]
   ->  f (Maybe  (t, [(ToTypeFn, Depth)]) )
-simpleM ty vsM= do 
+simpleM ty vsM= do
     vs <- sequence vsM
     simpleM' ty (catMaybes vs)
-         
+
     where
     simpleM' _  []  = return Nothing
-    simpleM' ty val = (ty,) <$>  mapM ( return . raise) val >>= return . Just
+    simpleM' tyy val = (tyy,) <$>  mapM ( return . raise) val >>= return . Just
 
 customM :: (Functor f, Monad f)
   =>  t -> [f (  Maybe (f (ToTypeFn, Depth)) ) ]
   ->  f (Maybe  (t, [(ToTypeFn, Depth)]) )
-customM ty vsM= do 
+customM ty vsM= do
     vs <- sequence vsM
     customM' ty (catMaybes vs)
-    
+
     where
     customM' _  []  = return Nothing
-    customM' ty val = (ty,) <$>  sequence  val >>= return . Just
+    customM' tyy val = (tyy,) <$>  sequence  val >>= return . Just
 
 
 
-customM0 :: (Functor f, Monad f)
-  =>  t -> [Maybe (f (ToTypeFn, Depth)) ]
-  ->  f (Maybe  (t, [(ToTypeFn, Depth)]) )
-customM0 ty val= customM' ty (catMaybes val)
-    
-    where
-    customM' _  []  = return Nothing
-    customM' ty val = (ty,) <$>  sequence  val >>= return . Just    
+-- customM0 :: (Functor f, Monad f)
+--   =>  t -> [Maybe (f (ToTypeFn, Depth)) ]
+--   ->  f (Maybe  (t, [(ToTypeFn, Depth)]) )
+-- customM0 ty val= customM' ty (catMaybes val)
 
-simpleM0 :: (Functor f, Monad f)
-  =>  t -> [Maybe (Expr -> Expr, Depth)]
-  ->  f (Maybe  (t, [(ToTypeFn, Depth)]) )
-simpleM0 ty val=  simpleM' ty (catMaybes val)
-     
-    where
-    simpleM' _  []  = return Nothing
-    simpleM' ty val = (ty,) <$>  mapM ( return . raise) val >>= return . Just
-    
+--     where
+--     customM' _  []  = return Nothing
+--     customM' ty val = (ty,) <$>  sequence  val >>= return . Just
+
+-- simpleM0 :: (Functor f, Monad f)
+--   =>  t -> [Maybe (Expr -> Expr, Depth)]
+--   ->  f (Maybe  (t, [(ToTypeFn, Depth)]) )
+-- simpleM0 ty val=  simpleM' ty (catMaybes val)
+
+--     where
+--     simpleM' _  []  = return Nothing
+--     simpleM' ty val = (ty,) <$>  mapM ( return . raise) val >>= return . Just
+
 
 infixl 1 ++|
 (++|) :: Monad m =>  m (Maybe a) -> Bool -> m (Maybe a)
 _   ++| False =  return Nothing
-mxs ++| c = do
+mxs ++| _ = do
     xs <- mxs
-    case xs of 
-        Just xs -> return (Just xs)
+    case xs of
+        Just xx -> return (Just xx)
         Nothing -> return Nothing
-
