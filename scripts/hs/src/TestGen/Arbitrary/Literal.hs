@@ -6,7 +6,6 @@ module TestGen.Arbitrary.Literal where
 
 import TestGen.Prelude
 
-import TestGen.Arbitrary.Type
 import TestGen.Arbitrary.Domain
 
 import TestGen.Arbitrary.Expr(exprOf)
@@ -110,20 +109,20 @@ parLitOf innerType = do
     if
         | depth_ < 1 -> ggError "parLitOf depth <1" [pretty $ groom innerType]
         | otherwise -> do
-            
+
             let maxElems :: Int  = fromInteger $ sizeOfLimited 10 (TPar innerType)
-            
+
             numElems <- choose2 (1,  minimum [maxElems, 15,  2 *  depth_  ] )
             numParts <- choose2 (1, numElems)
-            
+
             parts <- mkParts numElems numParts (I.empty)
-            
+
             return $ ELit $ EPartition parts
 
     where
-        
-        mkParts 
-            :: Int  -- Number of elements to put in all parts 
+
+        mkParts
+            :: Int  -- Number of elements to put in all parts
             -> Int  -- Number of parts
             -> IntSet
             -> GG [[Literal]]
@@ -135,26 +134,20 @@ parLitOf innerType = do
             parts <- (mkParts (e - numElems) (p-1) done')
             return $ part : parts
 
-        mkPart 
-            :: Int         -- Number of elements 
-            -> IntSet 
+        mkPart
+            :: Int         -- Number of elements
+            -> IntSet
             -> GG ( [Literal], IntSet)
-        mkPart e done = do 
+        mkPart e done = do
             (es,done') <- expr e done
             return $ (map EExpr es, done')
-            
+
             where
             expr 0 seen = return ([], seen)
-            expr e seen = do
+            expr g seen = do
                 e1 <- withDepthDec $ exprOf innerType
-                if 
-                    -- | (hash e1) `I.member` seen -> expr e seen
-                    | otherwise          -> do 
-                        (es,seen') <- expr (e - 1) ((hash e1) `I.insert` seen)
+                if
+                    -- | (hash e1) `I.member` seen -> expr g seen
+                    | otherwise          -> do
+                        (es,seen') <- expr (g - 1) ((hash e1) `I.insert` seen)
                         return $ (e1 : es, seen' )
-        
-        mkPart1 ty = do
-            depth_ <- gets depth_
-            numElems <- choose2 (1, min 15 (2 * depth_) )
-            vs <- vectorOf2 numElems ( withDepthDec $ exprOf ty)
-            return $ map EExpr vs

@@ -18,12 +18,10 @@ Library
                      , AST.Data
                      , AST.Domain
                      , AST.Expr
-                     , AST.ExprHelpers
                      , AST.FromEssence
                      , AST.Helper
                      , AST.Imports
                      , AST.Literal
-                     , AST.OpName
                      , AST.Range
                      , AST.SpecE
                      , AST.ToEssence
@@ -62,9 +60,6 @@ Library
                      , TestGen.Reduce.Runner
                      , TestGen.Reduce.Simpler
                      , TestGen.Reduce.UnusedDomains
-                     
-                     
-    
     
     build-depends    : base
                      , aeson

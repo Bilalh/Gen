@@ -1,11 +1,6 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
-{-# LANGUAGE ConstraintKinds, FlexibleContexts, FlexibleInstances #-}
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
-{-# LANGUAGE DeriveGeneric, DeriveDataTypeable #-}
-{-# LANGUAGE PatternSynonyms #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-{-# OPTIONS_GHC -fno-warn-unused-imports #-}
-{-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 
 module AST.Domain where
 
@@ -13,27 +8,10 @@ import AST.FromEssence(FromEssence(..))
 import AST.ToEssence(ToEssence(..))
 import AST.Data
 import AST.Helper
-import {-# SOURCE #-} AST.Range
+import {-# SOURCE #-} AST.Range()
 
 import Language.E
 
-import GHC.Generics
-import Data.Typeable
-
---  We have two kinds of attrs
---  size       :: Maybe Integer
---  surjective :: Bool
---
---  It might be nice to able to act uniformly upon them
--- e.g
--- data Atrr = Val Integer
---           | Has Bool
---           | Void
--- Or we could have a hasAttr typeclass
--- so if have a list of attrs we filter the ones that are active
-
---data TestA_ = TestA_ Expr deriving(Show)
---_testb (TestA_ expr)  = toEssence expr
 
 dint, dset, dmset, dmat, dfunc, drel, dpar, dtuple  :: Domain
 dint  = DInt{ranges = undefined}
@@ -55,7 +33,9 @@ dpar = DPar{inner=undefined, size=Nothing, maxSize=Nothing, minSize=Nothing
 dtuple = DTuple{inners=undefined}
 
 dintRange :: Integer -> Integer -> Domain
-dintRange lower upper = dint{ranges= [RFromTo (ELit $ EI lower) (ELit $ EI upper)]}
+dintRange lower upper = dint{ranges= [RFromTo
+                                      (ELit $ EI lower)
+                                      (ELit $ EI upper)]}
 
 
 
@@ -161,7 +141,8 @@ instance FromEssence Domain where
         itv <- fromEssence ito
         let [sv,mx,mn] = map (fetchAttrValue as) ["size","maxSize","minSize"]
             [s,i,t]    = map (fetchAttr as) ["surjective","injective","total"]
-        return DFunc{innerFrom=ifv,innerTo=itv,size=sv,maxSize=mx,minSize=mn,surjective=s,injective=i,total=t}
+        return DFunc{innerFrom=ifv,innerTo=itv,size=sv,maxSize=mx,minSize=mn
+                    ,surjective=s,injective=i,total=t}
 
     -- Partition
     fromEssence [xMatch| [i]  := domain.partition.inner
@@ -171,8 +152,9 @@ instance FromEssence Domain where
                 ["size","maxSize","m,inSize","numParts","maxNumParts","minNumParts"
                 ,"partSize","maxPartSize","minPartSize"]
             [r,c]    = map (fetchAttr as) ["regular","complete"]
-        return DPar{inner=iv,size=sv,maxSize=mx,minSize=mn,numParts=np,maxNumParts=mxp,minNumParts=mnp
-                ,partSize=ps,minPartSize=mnps,maxPartSize=mxps,regular=r,complete=c}
+        return DPar{inner=iv,size=sv,maxSize=mx,minSize=mn,numParts=np
+                   ,maxNumParts=mxp,minNumParts=mnp,partSize=ps
+                   ,minPartSize=mnps,maxPartSize=mxps,regular=r,complete=c}
 
     -- Relation
     fromEssence [xMatch| is   := domain.relation.inners
@@ -190,33 +172,3 @@ instance FromEssence Domain where
         return DMat{inner=iv,innerIdx=ixv}
 
     fromEssence x = Left x
-
-
--- How to match domains
-_matchingDoms :: Domain -> IO ()
-_matchingDoms DSet{inner=DFunc{innerFrom=DInt{},innerTo=DInt{},total=True}}  =do
-    putStrLn "Matches only set of function(total) int(1..2) --> int(1..2) "
-    putStrLn "_matchingDoms $ dset{inner=dfunc{innerFrom=dintRange 1 2, innerTo=dintRange 1 2,total=True} }"
-    putStrLn "_matchingDoms $ fromJust $ fromEssence [dMake| set of function(total) int(1..2) --> int(1..2)  |]"
-
-_matchingDoms DMSet{inner=DFunc{innerFrom=DInt{},innerTo=DInt{}}}  =
-    putStrLn "Matches mset of function int(1..2) --> int(1..2) with any attrs"
-
--- _matchingDoms (Set_ (Func_ (Set_ DInt{}) (DInt{}) ) ) = do
---     putStrLn "Using pattens"
---     putStrLn "Matches set of function set of int(1..2) --> int(1..2)"
---     putStrLn "_matchingDoms $ dset{inner=dfunc{innerFrom=dset{inner=dintRange 1 2}, innerTo=dintRange 1 2}}"
---
--- _matchingDoms (Set_ DFunc{innerFrom=DInt{},innerTo=DInt{},surjective=True} ) = do
---     putStrLn "Using pattens and records"
---     putStrLn "Matches set of function(surjective) set of int(1..2) --> int(1..2)"
---     putStrLn "_matchingDoms $ dset{inner=dfunc{innerFrom=dintRange 1 2, innerTo=dintRange 1 2,surjective=True}}"
-
--- -- A patten is a type level convenience, for patten matching
--- pattern Set_ a=
---     DSet{size = Nothing, minSize = Nothing, maxSize = Nothing, inner = a}
--- pattern Func_ a b=
---     DFunc{size = Nothing, minSize = Nothing, maxSize = Nothing
---          ,injective=False, surjective=False, total=False
---          ,innerFrom=a, innerTo=b}
--- pattern Set_Set_ a = Set_ (Set_ a)
