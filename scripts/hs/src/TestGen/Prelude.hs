@@ -115,7 +115,7 @@ rrError title docs = do
         P.$+$ (pretty (lg) )
 #endif
 
--- ggError :: (HasLogger m, Pretty a, MonadState b m)  => String -> [Doc] -> m a
+
 ggError title docs = do
     lg <- getLog
     -- addLog "ggError" ["Last log"]
@@ -157,7 +157,7 @@ _genfile e ss  = do
     let (y,m,d) = toGregorian $ utctDay c
 
     home <- getHomeDirectory
-    date <- round `fmap` getPOSIXTime
+    date :: Integer<- round `fmap` getPOSIXTime
     let dir = home </> "__" </> "logs" </> "gen"
             </> ( intercalate "-" [show y, padShowInt 2 m, padShowInt 2 d] )
             </> (show date)

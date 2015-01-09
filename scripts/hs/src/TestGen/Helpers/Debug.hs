@@ -1,4 +1,3 @@
-{-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
 {-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -fno-warn-unused-binds #-}
 

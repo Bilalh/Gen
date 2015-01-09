@@ -48,10 +48,10 @@ reduceMain sp rr  = do
     return sfin
 
     where
-    note tx f sp = do
+    note tx f s = do
         noteFormat ("@" <+> tx <+> "Start") []
 
-        newSp <- f sp
+        newSp <- f s
         noteFormat ("@" <+> tx <+> "End") [pretty newSp]
 
         return newSp

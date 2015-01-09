@@ -38,7 +38,7 @@ typeFromType' ty@(TSet _) = oneof2 [
     where reachable = elements2 [ TInt ] -- with one step
 
 typeFromType' ty = return ty
-typeFromType' ty =  ggError "typeFromType' unmatched" [ pretty . show $ ty ]
+-- typeFromType' ty =  ggError "typeFromType' unmatched" [ pretty . show $ ty ]
 
 
 lookupType ::  Ref -> GG Type

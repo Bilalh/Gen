@@ -164,7 +164,6 @@ nextt cur tyFrom tyTo  = gets depth_ >>= \d -> if
 
 nextt' cur tyFrom tyTo | tyFrom == tyTo = return [ (cur, tyTo) ]
 nextt' cur tyFrom tyTo = do
-    d <-  gets depth_
 
     addLog "next'" [pretty tyFrom, pretty tyTo]
 

@@ -32,13 +32,13 @@ data TArgs  = TArgs{baseDirectory_  :: FilePath
 argsDef :: TArgs_
 argsDef  = TArgs_
              { base_directory = def &= help "Base Directory"
-             , total_time     = def &= help "Total time to use" 
+             , total_time     = def &= help "Total time to use"
                                     &= name "t"
              , per_spec_time  = def &= help "Total time to spend on each spec"
              , seed           = def &= help "Seed to Use"
              , size           = def &= help "Max depth (5 should be large enough) "
              , cores          = def &= help "Cores to use"
-             , typecheck_only = def &= help "Only typechecks the generated specs" 
+             , typecheck_only = def &= help "Only typechecks the generated specs"
                                     &= name "y"
              , run_tool_chain = def &= help "Run Conjure(refine) + SR + Minion + translate + validate + consistently checking"
                                     &= name "w"
@@ -63,7 +63,7 @@ parseArgs = do
     let rseed_          = seed
     let size_           = f size "size"
     let cores_          = f cores          "cores"
-    let typecheckOnly_  = typecheck_only 
+    let typecheckOnly_  = typecheck_only
     let runToolchain_   = run_tool_chain
     let newConjure_     = new_conjure
 

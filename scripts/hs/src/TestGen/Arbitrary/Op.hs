@@ -8,7 +8,6 @@ module TestGen.Arbitrary.Op where
 import TestGen.Prelude
 
 import TestGen.Arbitrary.Expr
-import TestGen.Arbitrary.Type
 
 
 type Bop = (Expr -> Expr -> BinOp)

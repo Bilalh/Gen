@@ -29,7 +29,6 @@ import Test.QuickCheck
 import Data.Map(Map)
 import Text.Groom
 
-import qualified Data.Map as M
 import qualified Text.PrettyPrint as Pr
 
 import Control.Monad.State.Strict(StateT)

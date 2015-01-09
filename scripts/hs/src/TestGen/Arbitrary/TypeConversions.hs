@@ -122,7 +122,7 @@ reachableToType d oty@TBool = do
         ]
 
     process :: Type -> GG [ (Type, GG [(ToTypeFn,Depth)] ) ]
-    process fty@(TAny) = funcs >>=
+    process TAny = funcs >>=
         concatMapM (uncurry (processCommon d))
 
         where
@@ -681,17 +681,6 @@ a  **| c  = do
         return (Just a)
     else
         return Nothing
-
-
-
-infixl 1 +|
-(+|) :: Monad m =>  m a -> Bool -> m (Maybe a)
-xs +| c | c = do
-    x <- xs
-    return (Just x)
-
-_  +| _    = return Nothing
-
 
 
 simpleM :: (Functor f, Monad f)

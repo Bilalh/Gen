@@ -1,12 +1,14 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
 {-# LANGUAGE MultiWayIf #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module TestGen.Arbitrary.Generators(
       atype
     , dom
     , useFunc
     , Default(..)
+    , useFunc_def
     ) where
 
 import TestGen.Prelude
@@ -16,7 +18,7 @@ import TestGen.Arbitrary.Domain(dom_def)
 import qualified Data.Map as M
 
 
-atype :: GG Type 
+atype :: GG Type
 atype = gets generators_ >>= \m -> gen_atype m
 
 dom :: GG Domain
@@ -46,8 +48,8 @@ instance Default Generators where
         , gen_useFunc = const True
         }
 
-useFunc_def :: FuncsNames -> Bool 
-useFunc_def AtoInt = True 
-useFunc_def Aparts = True 
-useFunc_def Amin   = True 
+useFunc_def :: FuncsNames -> Bool
+useFunc_def AtoInt = True
+useFunc_def Aparts = True
+useFunc_def Amin   = True
 useFunc_def _      = False

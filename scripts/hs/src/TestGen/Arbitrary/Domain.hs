@@ -7,7 +7,7 @@ module TestGen.Arbitrary.Domain
 (
       dom_def
     , dom_only
-    
+
     , intDomChoice
     , setDomChoice
     , msetDomChoice
@@ -17,7 +17,7 @@ module TestGen.Arbitrary.Domain
     , parDomChoice
     , tupleDomChoice
     , boolDomChoice
-    
+
     , intDom
     , setDom
     , msetDom
@@ -26,7 +26,7 @@ module TestGen.Arbitrary.Domain
     , relDom
     , parDom
     , tupleDom
-    
+
     , rangeComp
     , intFromDint
 ) where
@@ -54,13 +54,13 @@ tupleDomChoice = (1, parDom)
 
 
 dom_only :: [(Int,GG Domain)] -> GG Domain
-dom_only ds = do 
+dom_only ds = do
     addLog "dom_only" ["start"]
-    
+
     d <- gets depth_
     if | d < 0  -> ggError "dom_only invalid depth" []
-       | otherwise -> do 
-    
+       | otherwise -> do
+
         let inDepth = map snd . filter (\(i,_) -> i <= d ) $ ds
         choice <- oneof2 inDepth
         addLog "dom_only" [nn "choice" choice, nn "depth_" d]

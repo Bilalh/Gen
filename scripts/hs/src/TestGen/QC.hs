@@ -3,12 +3,12 @@
 {-# LANGUAGE RecordWildCards, NamedFieldPuns, ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}
-{-# OPTIONS_GHC -fno-cse #-} 
+{-# OPTIONS_GHC -fno-cse #-}
 -- cse means output is not outputted
 
 module TestGen.QC where
 
-import AST.SpecE 
+import AST.SpecE
 import Language.E hiding(trace)
 import Language.E.Pipeline.ReadIn(writeSpec)
 
@@ -52,7 +52,7 @@ import TestGen.Prelude(nn)
 
 
 
-prop_specs_refine :: ArbSpec a => 
+prop_specs_refine :: ArbSpec a =>
     WithExtra a -> Cores ->  Int -> FilePath -> Bool -> WithExtra a -> Property
 prop_specs_refine  _ cores time out newConjure WithExtra{..} = do
     let specE = getSpec inner_
@@ -67,39 +67,39 @@ prop_specs_refine  _ cores time out newConjure WithExtra{..} = do
             run $ createDirectoryIfMissing True outdir
             run $  writeFile (outdir </> "spec.logs" ) (renderNormal wlogs_)
             run $  writeFile (outdir </> "spec.specE" ) (show specE)
-            
+
             result <- run $ runRefine' run_seed_ cores sp (out </> uname ) time newConjure
 
             classifyError uname result
 
-    where 
+    where
     errdir  = out </> "_errors"
     classifyError uname (SettingI{successful_=False,data_=RefineM ms  }) = do
         let inErrDir = errdir </> "zall" </> uname
         run $ createDirectoryIfMissing True inErrDir
         run $ renameDirectory (out </> uname ) inErrDir
-        
-        
+
+
         let
-        
+
             f k CmdI{status_, kind_ } = do
                 let mvDir = errdir </> (show kind_) </> (show status_) </> uname
-                createDirectoryIfMissing True mvDir                
+                createDirectoryIfMissing True mvDir
                 fps <- getDirectoryContents inErrDir
                 let needed =  filter (allow k) fps
 
-                forM needed $ \f -> do
-                    copyFile (inErrDir </> f) (mvDir </> f)
-                
-                return mvDir                
+                void $ forM needed $ \g -> do
+                    copyFile (inErrDir </> g) (mvDir </> g)
 
-        run $ M.traverseWithKey f ms
+                return mvDir
+
+        void $ run $ M.traverseWithKey f ms
 
         fail inErrDir
-    
+
     classifyError _ _ = return ()
 
-prop_specs_toolchain :: ArbSpec a => 
+prop_specs_toolchain :: ArbSpec a =>
     WithExtra a -> Cores ->  Int -> FilePath -> Bool -> WithExtra a -> Property
 prop_specs_toolchain  _ cores time out newConjure WithExtra{..} = do
     let specE = getSpec inner_
@@ -114,7 +114,7 @@ prop_specs_toolchain  _ cores time out newConjure WithExtra{..} = do
             run $ createDirectoryIfMissing True outdir
             run $  writeFile (outdir </> "spec.logs" ) (renderNormal wlogs_)
             run $  writeFile (outdir </> "spec.specE" ) (show specE)
-            
+
 
             result <- run $ runToolchain' run_seed_ cores sp (out </> uname ) time newConjure False
             classifyError uname result
@@ -126,25 +126,25 @@ prop_specs_toolchain  _ cores time out newConjure WithExtra{..} = do
         let inErrDir = errdir </> "zall" </> uname
         run $ createDirectoryIfMissing True inErrDir
         run $ renameDirectory (out </> uname ) inErrDir
-        
-        
+
+
         let
-        
+
             f k CmdI{status_, kind_ } = do
                 let mvDir = errdir </> (show kind_) </> (show status_) </> uname
-                createDirectoryIfMissing True mvDir                
+                createDirectoryIfMissing True mvDir
                 fps <- getDirectoryContents inErrDir
                 let needed =  filter (allow k) fps
 
                 forM needed $ \f -> do
                     copyFile (inErrDir </> f) (mvDir </> f)
-                
-                return mvDir                
+
+                return mvDir
 
         run $ M.traverseWithKey f ms
 
         fail inErrDir
-    
+
 
     classifyError uname (Right (_, SettingI{successful_=False,data_=SolveM ms })) = do
 
@@ -152,31 +152,31 @@ prop_specs_toolchain  _ cores time out newConjure WithExtra{..} = do
         run $ createDirectoryIfMissing True inErrDir
         run $ renameDirectory (out </> uname ) inErrDir
 
-        let        
+        let
             f k ResultI{last_status, erroed= Just index, results } = do
                 let kind = kind_ (results !! index)
                 let mvDir = errdir </> (show kind) </> (show last_status) </> uname
                 createDirectoryIfMissing True mvDir
-                
+
                 fps <- getDirectoryContents inErrDir
                 let needed =  filter (allow k) fps
 
                 forM needed $ \f -> do
                     copyFile (inErrDir </> f) (mvDir </> f)
-                
+
                 return mvDir
-                
+
 
             f _ _ = return ""
 
         run $ M.traverseWithKey f ms
 
-        fail inErrDir 
+        fail inErrDir
 
     classifyError _ _ =  return ()
 
 allow :: String -> FilePath -> Bool
-allow k f  
+allow k f
     | k `isPrefixOf` f       = True
     | "json" `isSuffixOf` f  = True
     | "param" `isSuffixOf` f = True
@@ -187,74 +187,74 @@ allow k f
 generateSpecs :: ArbSpec a => WithExtra a -> TArgs -> IO ()
 generateSpecs unused r@TArgs{..} = do
     sss <- round `fmap` getPOSIXTime
-    putStrLn . groom $ r 
+    putStrLn . groom $ r
     putStrLn . show . vcat $ [ nn "Ωrseed_Start" (show rseed_), nn "ΩStartTime" (show sss) ]
-    
+
     let maxSuccess = totalTime_  `div` perSpecTime_
-    
+
     createDirectoryIfMissing  True tmpdir
-    
-    case rseed_ of 
+
+    case rseed_ of
         Just i -> setStdGen (mkStdGen i)
         Nothing -> return ()
 
     rgenS <- createGen rseed_
     putStrLn . show . vcat $ [ nn "ΩrgenS_Start" (show rgenS) ]
-    
-    
-    case typecheckOnly_ of 
+
+
+    case typecheckOnly_ of
         (Just times) -> do
-            putStrLn $ "Type checking " ++ (show times) ++ 
+            putStrLn $ "Type checking " ++ (show times) ++
                 " random specs, with depth up to size 5"
-            
+
             (failed, ourErrors) <- typecheckHelper rgenS times [] [] 0
             saveFailures failed (baseDirectory_ </> "failures.txt")
             saveFailures' "gen.error" ourErrors (baseDirectory_ </> "genErrors.txt")
-        
+
         Nothing -> do
             putStrLn "Generating specs, with depth up to size 5"
             startTime <- round `fmap` getPOSIXTime
-    
+
             failed <- helper rgenS startTime []
             saveFailures failed (baseDirectory_ </> "failures.txt")
 
     where
 
-    prop_run = 
+    prop_run =
         if runToolchain_ then
             prop_specs_toolchain unused cores_ perSpecTime_ baseDirectory_ newConjure_
         else
             prop_specs_refine unused cores_ perSpecTime_ baseDirectory_ newConjure_
-    
-    
+
+
     tmpdir  = baseDirectory_ </> "temp"
     errdir  = baseDirectory_ </> "_errors"
-    
+
 
     saveFailures :: [String] -> FilePath -> IO ()
     saveFailures  = saveFailures' "spec.essence"
-   
+
     saveFailures' :: String -> [String] -> FilePath -> IO ()
-    saveFailures' name failed fp  = do 
+    saveFailures' name failed fp  = do
         let paths = map (\fn -> baseDirectory_ </> fn </> name) failed
         print ("Current Failures found" :: String)
         putStrLn (unlines paths)
-        writeToFile ( fp ) paths             
-    
+        writeToFile ( fp ) paths
+
     writeToFile name arr =
       do h <- openFile (name) WriteMode
          mapM_ (hPutStrLn h) arr
          hClose h
 
-    createGen r = 
-        case r of 
+    createGen r =
+        case r of
             Nothing    -> return Nothing
-            Just iseed -> do 
+            Just iseed -> do
                 let g = mkQCGen iseed
-                putStrLn . show . vcat $ [ nn "Ωiseed" iseed,  nn "ΩcreateGen" (show g) ] 
-                
+                putStrLn . show . vcat $ [ nn "Ωiseed" iseed,  nn "ΩcreateGen" (show g) ]
+
                 return $ Just $ g
-         
+
     splitGen :: Maybe QCGen -> (Maybe QCGen, Maybe QCGen)
     splitGen Nothing = (Nothing, Nothing)
     splitGen (Just rnd) = let (a,b) = split rnd in
@@ -262,12 +262,12 @@ generateSpecs unused r@TArgs{..} = do
 
     helper :: Maybe QCGen -> Int -> [String] -> IO [String]
     helper rgenS startTime results = do
-        let (next,rgen) = case rgenS of  
-                Just r -> (\(a,b) -> ((a + fromJust rseed_) `mod` (2^24) ,Just b)) $ 
+        let (next,rgen) = case rgenS of
+                Just r -> (\(a,b) -> ((a + fromJust rseed_) `mod` (2^24) ,Just b)) $
                     randomR (0 :: Int ,(2 ^ 24 ))  r
                 Nothing -> (0, Nothing)
-        putStrLn . show . vcat $ [ "Ω-------" , nn "ΩrgenS" (show rgenS),  nn "Ωnext" next, nn "Ωrgen" (show rgen)] 
-        
+        putStrLn . show . vcat $ [ "Ω-------" , nn "ΩrgenS" (show rgenS),  nn "Ωnext" next, nn "Ωrgen" (show rgen)]
+
         before <- round `fmap` getPOSIXTime
 
         let maxSuccess = (totalTime_ - (before - startTime)) `div` perSpecTime_
@@ -299,7 +299,7 @@ generateSpecs unused r@TArgs{..} = do
                         nseed <- createGen $ (+next) <$> rseed_
                         helper nseed startTime results'
                         return results
-                        
+
                     (_, True) -> do
                         nseed <- createGen $ (+next) <$> rseed_
                         helper nseed startTime results'
@@ -310,48 +310,48 @@ generateSpecs unused r@TArgs{..} = do
     addResults _ arr = arr
 
 
-    typecheckHelper :: Maybe QCGen -> Int -> [String] -> [String] -> Int 
+    typecheckHelper :: Maybe QCGen -> Int -> [String] -> [String] -> Int
         -> IO ([String], [String])
-    typecheckHelper rgenS left results ourErrors index = do 
+    typecheckHelper rgenS left results ourErrors index = do
         let (rgen, rgenN) =  splitGen rgenS
-        
+
         putStrLn $ "left: " ++ (show left)
-        
+
         let indexStr = padShowInt 4 index
             dir = baseDirectory_ </> (indexStr)
         createDirectoryIfMissing True dir
-        
-        r <- quickTypeCheck1 rgen unused 
+
+        r <- quickTypeCheck1 rgen unused
             (dir </> "spec.essence")
             stdArgs{QC.maxSize=size_,maxSuccess=left}
         case r of
             (Nothing) -> do
                 return (results, ourErrors)
-            (Just (count, output)) -> do 
-                                
+            (Just (count, output)) -> do
+
                 specExist <-  doesFileExist (dir </> "spec.essence")
-                when (not specExist) $ do 
-                    writeFile (dir </> "gen.error") output 
-                
-                let (results', ourErrors') =      
+                when (not specExist) $ do
+                    writeFile (dir </> "gen.error") output
+
+                let (results', ourErrors') =
                         if specExist then
                             ( indexStr : results, ourErrors)
-                        else 
+                        else
                             ( results, indexStr : ourErrors)
-                                
+
                 let leftAfter = left - count
                 if leftAfter > 0 then
                     typecheckHelper rgenN (leftAfter) results' ourErrors' (index+1)
                 else
                     return (results', ourErrors')
-    
+
 
 
 quickTypeCheck1 :: (ArbSpec a) => Maybe QCGen -> WithExtra a -> FilePath -> Args ->  IO (Maybe (Int, String))
 quickTypeCheck1 rgen unused fp args = do
-    
+
     result <- quickCheckWithResult2 rgen args{chatty=False} (prop_typeCheckSave fp unused)
-    case result of 
+    case result of
         Failure {numTests,reason, output} -> do
             return (Just (numTests, output ))
         _ -> return Nothing
@@ -369,12 +369,12 @@ prop_typeCheckSave fp _  WithExtra{..} = do
         else do
             -- run $ print . pretty $ doc
             run $ print . pretty $ sp
-            run $ writeSpec fp sp 
+            run $ writeSpec fp sp
             run $ writeFile (fp <.> "error") (renderWide (doc <+> vcat ["---", prettySpecDebug $ sp] ) )
             run $ writeFile (fp <.> "specE") (show specE ++ "\n\n" ++ groom specE)
             run $ writeFile (fp <.> "logs") (renderNormal wlogs_)
-            
-            
+
+
             fail (show doc)
 
 
@@ -406,13 +406,13 @@ typeChecks sp = case fst $ runCompESingle "Error while type checking." $
 
 rmain :: Int -> IO ()
 rmain n =
-    quickCheckWith stdArgs{QC.maxSize=n,maxSuccess=50} 
+    quickCheckWith stdArgs{QC.maxSize=n,maxSuccess=50}
     (prop_specs_refine (undefined :: WithExtra SpecE) 7 10  "__")
 
 cmain :: ArbSpec a => WithExtra a -> Maybe Int -> Int -> IO ()
 cmain unused seedInt n = do
 
-    rgen  <- case seedInt of 
+    rgen  <- case seedInt of
             Just i  -> return $ Just $ mkQCGen i
             Nothing -> return Nothing
 
@@ -428,8 +428,8 @@ cmain unused seedInt n = do
 
     createDirectoryIfMissing True dir
 
-    res <- quickCheckWithResult2 rgen stdArgs{QC.maxSize=n,maxSuccess=3000} 
-        (prop_typeCheckSave (dir </> "spec.essence") unused  ) 
+    res <- quickCheckWithResult2 rgen stdArgs{QC.maxSize=n,maxSuccess=3000}
+        (prop_typeCheckSave (dir </> "spec.essence") unused  )
     case res of
         f@Failure{reason, output, usedSize} -> do
             writeFile (dir </> "spec.output")  (output ++ "\nseed: " ++ (show seedInt) ++ "\n" ++ show f{output=""})

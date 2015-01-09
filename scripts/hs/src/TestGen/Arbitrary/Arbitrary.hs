@@ -27,47 +27,47 @@ data WithExtra a = WithExtra {
 
 arbitraryDef :: ArbSpec a => a -> Gen a
 arbitraryDef unused = fmap (wrapSpec . fst) <$> sized $ (flip  spec'') (tyGens unused)
-    
+
 
 instance (ArbSpec a, Show a, Arbitrary a) => ArbSpec (WithLogs a) where
     getSpec (WithLogs aa _) = getSpec aa
     tyGens  aa              = tyGens aa
-    wrapSpec                = error "wrapSpec, would not have logs" 
-    
+    wrapSpec                = error "wrapSpec, would not have logs"
+
 instance (Show a) => Show (WithLogs a) where
     show (WithLogs inner _) =
         "WithLogs( " ++ show inner ++ " )"
 
 instance (Arbitrary a, ArbSpec a) => Arbitrary (WithLogs a) where
     arbitrary = needed undefined
-        
-        where 
+
+        where
         needed :: ArbSpec a => a -> Gen (WithLogs a)
-        needed unused = fmap (\(sp,t) -> WithLogs (wrapSpec sp) t ) 
+        needed unused = fmap (\(sp,t) -> WithLogs (wrapSpec sp) t )
                      <$> sized $ (flip  spec'') (tyGens unused)
 
 
 instance (ArbSpec a, Show a, Arbitrary a) => ArbSpec (WithExtra a) where
     getSpec WithExtra{..}    = getSpec inner_
     tyGens  aa              = tyGens aa
-    wrapSpec                = error "wrapSpec, would not have extra state" 
-    
+    wrapSpec                = error "wrapSpec, would not have extra state"
+
 instance (Show a) => Show (WithExtra a) where
     show WithExtra{..} =
         "WithExtra( " ++ show inner_ ++ " )"
 
 instance (Arbitrary a, ArbSpec a) => Arbitrary (WithExtra a) where
     arbitrary = needed undefined
-        
-        where 
+
+        where
         needed :: ArbSpec a => a -> Gen (WithExtra a)
         needed unused = sized $ genn (tyGens unused)
 
         genn gens size = do
             (sp,t)    <- spec'' size gens
             ts_int_   <- QC.choose (10,99)
-            run_seed_ <- QC.choose (0,2^24)
-            
+            run_seed_ <- QC.choose (0,2^(24:: Integer ))
+
             return WithExtra{inner_=wrapSpec sp, wlogs_= t, ts_int_, run_seed_ }
 
 
@@ -77,11 +77,11 @@ instance Arbitrary SpecE where
         let sps = map (SpecE ds) (tails2 es)
         in sps
 
-instance ArbSpec SpecE where 
+instance ArbSpec SpecE where
     tyGens   = def
     getSpec  = id
     wrapSpec = id
-    
+
 
 tails2 :: [a] -> [[a]]
 tails2 [] = []
@@ -93,22 +93,22 @@ spec depth =  do
     (specE, _) <- spec' depth
     return specE
 
-spec' :: Depth -> Gen (SpecE, LogsTree) 
+spec' :: Depth -> Gen (SpecE, LogsTree)
 spec' = flip spec'' def
 
 
 specwithLogs :: Depth -> Generators -> Gen (WithLogs SpecE)
 specwithLogs depth gens  =  uncurry WithLogs  <$> spec'' depth gens
 
-spec'' :: Depth -> Generators -> Gen (SpecE, LogsTree) 
+spec'' :: Depth -> Generators -> Gen (SpecE, LogsTree)
 spec'' depth _ | depth < 0 = error "spec'' depth < 0"
 spec'' depth gens  = do
-    let state =  def{depth_= (depth+1) `div` 2, generators_=gens} 
-    
-    
+    let state =  def{depth_= (depth+1) `div` 2, generators_=gens}
+
+
     let domsCount = (1, min ((depth+1)*2) 10)
     let exprCount = (0, min ((depth+1)*2) 10)
-    
+
     (doms,state') <- runStateT (addDepth "domDepth" >> listOfBounds domsCount dom) state
 
 
@@ -117,15 +117,15 @@ spec'' depth gens  = do
 
 
     let state'' =  state'{doms_=mappings, depth_ =depth + 1, nextNum_ = length doms + 1}
-    (exprs,sfinal) <- runStateT 
-            (  addDepth "exprDepth" 
+    (exprs,sfinal) <- runStateT
+            (  addDepth "exprDepth"
             >> listOfBounds exprCount expr
             >>= addStateLog
-            ) 
+            )
         state''
 
     if length withNames == 0 then
-        error . show $  vcat . map pretty  $ 
+        error . show $  vcat . map pretty  $
             [ "~~------~~"
             , "both doms  zero length"
             , nn "depth" depth
@@ -138,17 +138,17 @@ spec'' depth gens  = do
             , nn "state" state
             , nn "state'" state'
             , nn "state''" state''
-            , nn "sfinal" sfinal            
+            , nn "sfinal" sfinal
             , nn "state" (show state)
             , nn "state'" (show state')
-            , nn "state''" (show state'')            
-            , nn "sfinal" (show sfinal) 
+            , nn "state''" (show state'')
+            , nn "sfinal" (show sfinal)
             , "|------|"
             ]
-    else 
+    else
         return $ (SpecE mappings exprs, logs_ sfinal)
 
-    where 
+    where
         name i =  T.pack $  "var" ++  (show  i)
         addDepth s= do
             d <- gets depth_
@@ -158,4 +158,3 @@ spec'' depth gens  = do
             ss <- get
             addLog "finalState" [pretty ss]
             return es
-    

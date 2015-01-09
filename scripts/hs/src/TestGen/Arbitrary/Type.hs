@@ -11,29 +11,29 @@ quanType_in :: Type -> Type
 quanType_in (TSet inner) = inner
 
 
-atype_only :: [Type] -> GG Type 
-atype_only tys = do 
+atype_only :: [Type] -> GG Type
+atype_only tys = do
     addLog "atype_only" ["start"]
-    
+
     d <- gets depth_
     if | d < 0  -> ggError "atype_only invalid depth" []
-       | otherwise -> do 
-    
+       | otherwise -> do
+
         let inDepth = filter (\t -> (fromInteger $ depthOf t) <= d ) tys
         choice <- oneof2 (map converted inDepth)
         return choice
 
-    where 
+    where
         converted :: Type -> GG Type
         converted (TMatix TAny)  = liftM TMatix (withDepthDec atype)
         converted (TSet TAny)    = liftM TSet (withDepthDec atype)
         converted (TMSet TAny)   = liftM TMSet (withDepthDec atype)
         converted (TPar TAny)    = liftM TPar (withDepthDec atype)
-        
+
         converted (TFunc TAny TAny) = return TFunc
                     `ap`  (withDepthDec atype)
                     `ap`  (withDepthDec atype)
-        
+
         converted (TFunc TAny b) = return TFunc
                     `ap`  (withDepthDec atype)
                     `ap`  (return b)
@@ -44,7 +44,7 @@ atype_only tys = do
 
         converted (TTuple [TAny]) = atuple
         converted (TRel   [TAny]) = arel
-        converted ty = return ty 
+        converted ty = return ty
 
 
 atype_def :: GG Type
