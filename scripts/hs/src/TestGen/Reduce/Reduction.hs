@@ -348,13 +348,13 @@ f  -| (a,e) = do
 
 
 -- | return the simplest literals, two at most
-singleLit :: (HasGen m, HasLogger m) => Type -> m [Literal]
+singleLit :: (HasGen m, HasLogger m, WithDoms m) => Type -> m [Literal]
 singleLit TInt = do
   -- p <- chooseR (1,5)
   -- n <- chooseR (-5, -1)
   -- let nums = [0, p, n]
   -- return $ map ( EI ) nums
-  pure EI <*> chooseR (-5, 5) >>= (\a -> return [a])
+  pure EI <*> chooseR (-5, 5) >>= return . (: [])
 
 singleLit TBool = oneofR [EB True, EB False] >>= return . (: [])
 
@@ -376,7 +376,7 @@ singleLit (TMatix x) = do
 singleLit l@(TSet x) = do
   ty <- ttypeOf l
   si <- pure ESet <*> (singleLit x >>= (return . map (EExpr . ELit)))
-  return [ETyped  ESet [], si]
+  return [ EExpr (ETyped ty (ELit $ ESet [])), si]
 
 singleLit (TMSet x) = do
   si <- pure EMSet <*> (singleLit x >>= (return . map (EExpr . ELit)))
@@ -430,7 +430,7 @@ singleLit (TPar x) = do
 singleLit TAny = error "singleLit of TAny"
 singleLit _ = error "singleLit TAny"
 
-singleLitExpr :: (HasGen m, HasLogger m) => Type -> m [Expr]
+singleLitExpr :: (HasGen m, HasLogger m, WithDoms m) => Type -> m [Expr]
 singleLitExpr ty = do
   addLog "singleLitExpr" [nn "ty" ty]
   fmap (map ELit) . singleLit $ ty

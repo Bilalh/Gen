@@ -11,7 +11,7 @@ import GHC.Generics
 import Data.Typeable
 
 import Data.Text (Text)
-import Data.Hashable ( Hashable(..), hash )
+import Data.Hashable ( Hashable(..) )
 
 data Domain
   = DSet
