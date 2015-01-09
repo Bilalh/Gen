@@ -8,8 +8,6 @@ Requires
 Firstly
 
 	git clone git@bitbucket.org:Bilalh/instancegen.git instancegen
-	hg ssh://hg@bitbucket.org/stacs_cp/essenceast  essenceAST
-
 
 To build (places `testSample` in ~/.cabal/bin)
 
