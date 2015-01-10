@@ -62,11 +62,11 @@ quickTypeCheck _ args = do
     input  <- newIORef Nothing
     outputp <- newIORef Nothing
 
-    result <- quickCheckWithResult args2 (tyWithLogs input outputp)
-    case result of
+    result1 <- quickCheckWithResult args2 (tyWithLogs input outputp)
+    case result1 of
         Failure {numTests,reason} -> do
             inn <- readIORef input
-            out <- readIORef outputp
+            -- out <- readIORef outputp
             let ret = do
                     jinn <- inn
                     return (jinn, pretty reason, numTests)
@@ -78,7 +78,7 @@ quickTypeCheck _ args = do
     where
     args2 = args{ chatty = True }
 
-    tyWithLogs input outputp x = monadicIO $ do
+    tyWithLogs input _outputp x = monadicIO $ do
         run $ atomicWriteIORef input (Just x)
 
         let specE = getSpec x
@@ -95,15 +95,15 @@ prop_specs_type_check_bool ::  ArbSpec a => a -> a -> Bool
 prop_specs_type_check_bool _ arb =
     let specE = getSpec arb
         sp = toSpec specE
-        (res,doc) = typeChecks sp
+        (res,_doc) = typeChecks sp
     in res
 
 
 quickCheckByBool :: (Arbitrary a, Show a) => Args -> (a -> Bool) -> IO (Maybe a, Int)
 quickCheckByBool args prop  = do
     input  <- newIORef Nothing
-    result <- quickCheckWithResult args2 (logInput input prop)
-    case result of
+    result1 <- quickCheckWithResult args2 (logInput input prop)
+    case result1 of
         Failure {numTests, output} -> do
             r <- readIORef input
             putStrLn "------"
@@ -117,21 +117,21 @@ quickCheckByBool args prop  = do
     where
     args2 = args{ chatty = True }
 
-    logInput input prop x = monadicIO $ do
+    logInput input propp x = monadicIO $ do
         run $ atomicWriteIORef input (Just x)
-        assert (prop x)
+        assert (propp x)
 
 main1 = do
-        (failed :: Maybe SpecE, _) <- quickCheckByBool
+        (faill :: Maybe SpecE, _) <- quickCheckByBool
             stdArgs{QC.maxSize=5,maxSuccess=2000}
             (prop_specs_type_check_bool (undefined :: SpecE))
-        case failed of
-            Just x -> putStrLn $ "The input that failed was:\n" ++ (show $ pretty x)
+        case faill of
+            Just x -> putStrLn $ "The input that faill was:\n" ++ (show $ pretty x)
             Nothing -> putStrLn "The test passed"
 
 
 prop2 dir n gen= do
-    let fp = ""
+    let _fp = "" :: String
     forAll (specwithLogs n gen) $ \(WithLogs specE logs) -> do
         let sp        = toSpec specE
         let (res,doc) = typeChecks sp
@@ -177,8 +177,8 @@ prop3 n cores time out gen = do
 
 
 
-                result <- run $ runRefine' 3 cores sp (out </> uname ) time False
-                case successful_ result of
+                result1 <- run $ runRefine' 3 cores sp (out </> uname ) time False
+                case successful_ result1 of
                     True  -> return ()
                     False -> fail uname
 
@@ -186,18 +186,18 @@ prop3 n cores time out gen = do
 
 generateSpecs2 :: TArgs -> Generators -> IO ()
 generateSpecs2 TArgs{..} gen = do
-    let maxSuccess = totalTime_  `div` perSpecTime_
+    let _maxSuccess = totalTime_  `div` perSpecTime_
 
     createDirectoryIfMissing  True tmpdir
     case typecheckOnly_ of
-        (Just times) -> do
+        (Just _times) -> do
             error "no typecheckOnly_"
 
         Nothing -> do
             putStrLn "Generating specs, with depth up to size 5"
             startTime <- round `fmap` getPOSIXTime
-            failed <- helper startTime []
-            saveFailures failed (baseDirectory_ </> "failures.txt")
+            faill <- helper startTime []
+            saveFailures faill (baseDirectory_ </> "failures.txt")
 
 
     where
@@ -214,8 +214,8 @@ generateSpecs2 TArgs{..} gen = do
     saveFailures  = saveFailures' "spec.essence"
 
     saveFailures' :: String -> [String] -> FilePath -> IO ()
-    saveFailures' name failed fp  = do
-        let paths = map (\fn -> baseDirectory_ </> fn </> name) failed
+    saveFailures' name faill fp  = do
+        let paths = map (\fn -> baseDirectory_ </> fn </> name) faill
         print ("Current Failures found" :: String)
         putStrLn (unlines paths)
         writeToFile ( fp ) paths
@@ -282,12 +282,12 @@ ab b = do
 
 -- | Prints out the generated testcase every time the property is tested.
 -- Only variables quantified over /inside/ the 'verbose' are printed.
-vv :: Testable prop => prop -> Property
+vv :: Testable propp => propp -> Property
 vv = mapResult (\res -> res { callbacks = newCallbacks (callbacks res) })
   where newCallbacks cbs =
           -- PostTest Counterexample (\st res -> putLine (terminal st) (status res ++ ":")):
           -- []
           [ PostTest Counterexample f | PostFinalFailure Counterexample f <- cbs ]
-        status MkResult{ok = Just True} = "Passed"
-        status MkResult{ok = Just False} = "Failed"
-        status MkResult{ok = Nothing} = "Skipped (precondition false)"
+        -- status MkResult{ok = Just True} = "Passed"
+        -- status MkResult{ok = Just False} = "Failed"
+        -- status MkResult{ok = Nothing} = "Skipped (precondition false)"

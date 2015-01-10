@@ -78,7 +78,7 @@ runSpec spE = do
 
         let stillErroed  = samerrError res
 
-        liftIO $ print $ ("HasrrError?", stillErroed)
+        liftIO $ print $ ("HasrrError?" :: String, stillErroed)
         liftIO $ putStrLn "\n\n"
         return stillErroed
 
