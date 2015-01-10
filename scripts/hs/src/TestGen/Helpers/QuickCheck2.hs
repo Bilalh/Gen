@@ -11,7 +11,7 @@ import Control.Monad.Trans.Class as X ( MonadTrans(lift) )
 import System.Random( Random )
 
 import Test.QuickCheck
-import Test.QuickCheck.Test 
+import Test.QuickCheck.Test
 import Test.QuickCheck.Text
 import Test.QuickCheck.Random
 import Test.QuickCheck.State(State(..))
@@ -60,14 +60,14 @@ listOfBounds :: (Int,Int) -> GG a -> GG [a]
 listOfBounds (l,u) gen = sized2 $ \n -> do
     k <- choose2 ( 0 `max` l, (u `min` n) `max` l )
     vectorOf2 k gen
-    
+
 
 -- | Generates one of the given values. The input list must be non-empty.
 elements2 :: [a] -> GG a
 elements2 as  = lift $ elements as
 
 
--- Test.QuickCheck.Test.quickCheckWithResult  allowing the seed to be changed 
+-- Test.QuickCheck.Test.quickCheckWithResult  allowing the seed to be changed
 -- without specifying the size
 quickCheckWithResult2 :: Testable prop => Maybe QCGen -> Args -> prop -> IO Result
 quickCheckWithResult2 rgen a p = (if chatty a then withStdioTerminal else withNullTerminal) $ \tm -> do
@@ -75,7 +75,7 @@ quickCheckWithResult2 rgen a p = (if chatty a then withStdioTerminal else withNu
               (Just (rnd,_),_)  -> return rnd
               (_, Just rnd)     -> return rnd
               _                 -> newQCGen
-              
+
      test MkState{ terminal                  = tm
                  , maxSuccessTests           = maxSuccess a
                  , maxDiscardedTests         = maxDiscardRatio a * maxSuccess a
@@ -101,9 +101,8 @@ quickCheckWithResult2 rgen a p = (if chatty a then withStdioTerminal else withNu
           | otherwise =
             ((n `mod` maxSize a) * maxSize a `div` (maxSuccess a `mod` maxSize a) + d `div` 10) `min` maxSize a
         n `roundTo` m = (n `div` m) * m
-        at0 f s 0 0 = s
-        at0 f s n d = f n d
-        property' p
-          | exhaustive p = once (property p)
-          | otherwise = property p
-
+        at0 _f s 0 0 = s
+        at0 f _s n d = f n d
+        property' q
+          | exhaustive q = once (property q)
+          | otherwise = property q
