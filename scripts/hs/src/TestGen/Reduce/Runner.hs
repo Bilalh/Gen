@@ -48,7 +48,7 @@ runSpec spE = do
         -- removeDirectoryRecursive breaks if dir eixsts
         -- liftIO $ createDirectoryIfMissing True path >> removeDirectoryRecursive path
 
-        seed <- chooseR (0, 2^24)
+        seed <- chooseR (0, 2^(24 :: Int))
         -- TODO follow logs
         res <- liftIO $  runToolchain' seed 4 sp path 20 True True
 
@@ -61,17 +61,17 @@ runSpec spE = do
                 | modelRefinerrError rrErrorKind =
 
                 let statuses = M.toList $  M.map (status_) ms
-                in any (\(name,status) -> status == rrErrorStatus) statuses
+                in any (\(_name,status) -> status == rrErrorStatus) statuses
 
 
             samerrError (Right (_, SettingI{successful_=False,data_=SolveM ms })) =
                 let
-                    f ResultI{last_status, erroed= Just index, results } =
+                    f ResultI{erroed= Just index, results } =
                         let ix = results !! index
                         in (kind_ ix, status_ ix)
 
                     kss = M.toList $  M.map f ms
-                in any (\(name,ks) -> ks == (rrErrorKind,rrErrorStatus) ) kss
+                in any (\(_name,ks) -> ks == (rrErrorKind,rrErrorStatus) ) kss
 
             samerrError _ = False
 
