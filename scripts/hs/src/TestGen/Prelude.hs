@@ -115,11 +115,11 @@ rrError title docs = do
         P.$+$ (pretty (lg) )
 #endif
 
-
+ggError ::  (HasLogger m, Pretty a, MonadState a m) => String -> [Doc] -> m b
 ggError title docs = do
     lg <- getLog
-    -- addLog "ggError" ["Last log"]
-    st <- get
+    addLog "ggError" ["Last log"]
+    st  <- get
     error . show $ ( P.text $ padRight 15 ' ' title  )
         P.$+$ (nest 4 $ vcat (docs ++ [pretty st] ))
         P.$+$ ""
