@@ -15,7 +15,7 @@ import Development.Placeholders as X (placeholder,notImplemented,todo)
 
 import Language.E as X
 
-import Control.Monad as X(filterM, guard)
+import Control.Monad as X (filterM, guard)
 import Control.Monad.State.Strict as X (evalStateT,execStateT, StateT)
 
 import Data.Default as X ( Default, def )

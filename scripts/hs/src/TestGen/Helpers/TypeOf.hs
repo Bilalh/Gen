@@ -99,6 +99,12 @@ instance WithDoms m => TypeOf BinOp m where
   ttypeOf (BlexGTE _ _) = return TBool
 
 
+
+
+instance WithDoms m => TypeOf [Literal] m where
+    ttypeOf []    = return TAny
+    ttypeOf (x:_) = ttypeOf x
+
 instance WithDoms m => TypeOf Literal m where
   ttypeOf (EB _) = return TBool
   ttypeOf (EI _) = return TInt

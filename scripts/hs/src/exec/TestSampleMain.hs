@@ -1,6 +1,6 @@
 module Main where
 
-import TestGen.Arbitrary.Arbitrary(WithLogs,WithExtra)
+import TestGen.Arbitrary.Arbitrary(WithExtra)
 import TestGen.Helpers.Args(parseArgs)
 import TestGen.QC
 import TestGen.Prelude(SpecE)

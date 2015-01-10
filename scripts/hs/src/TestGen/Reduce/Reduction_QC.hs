@@ -10,12 +10,12 @@
 
 module TestGen.Reduce.Reduction_QC where
 
-import TestGen.Prelude
-import Test.QuickCheck
+-- import TestGen.Prelude
+-- import Test.QuickCheck
 
-import TestGen.Reduce.Reduction
-import TestGen.Reduce.Data
-import TestGen.Reduce.Simpler
+-- import TestGen.Reduce.Reduction
+-- import TestGen.Reduce.Data
+-- import TestGen.Reduce.Simpler
 
 
-import TestGen.QCDebug
+-- import TestGen.QCDebug

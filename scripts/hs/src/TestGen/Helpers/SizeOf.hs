@@ -19,7 +19,7 @@ class DepthOf a where
 
 
 -- How many different unique values are in say a domain
--- return the given values if the a is large then it 
+-- return the given values if the a is large then it
 class SizeOfLimited a where
     sizeOfLimited:: Integer -> a  -> Integer
 
@@ -49,28 +49,27 @@ instance SizeOf Domain where
 
 instance SizeOfLimited Type where
     -- FIXME hardcoded
-    sizeOfLimited m TInt           = 20   
-    sizeOfLimited m TBool          = 2 
+    sizeOfLimited _ TInt           = 20
+    sizeOfLimited _ TBool          = 2
     sizeOfLimited m (TMatix inner) = minB m (sizeOfLimited m inner) (20 ^)
     sizeOfLimited m (TSet inner)   = minB m (sizeOfLimited m inner) (2 ^)
     sizeOfLimited m (TMSet inner)  = minB m (sizeOfLimited m inner) (2 ^)
     sizeOfLimited m (TTuple inners)= min m ( product (map (sizeOfLimited m) inners ) )
     sizeOfLimited m (TRel inners)  = sizeOfLimited m (TSet (TTuple inners) )
     sizeOfLimited m (TPar inner)   = sizeOfLimited m (TSet (TSet inner))
-    sizeOfLimited m TAny           = error "SizeOf Type called with TAny"
-    sizeOfLimited m (TUnamed _)    = error "SizeOf Type called with TUnamed"
-    sizeOfLimited m (TEnum _)      = error "SizeOf Type called with TUnamed"
-    
-    sizeOfLimited m (TFunc from to) = 
-        let toSize   = sizeOfLimited m to 
+    sizeOfLimited _ TAny           = error "SizeOf Type called with TAny"
+    sizeOfLimited _ (TUnamed _)    = error "SizeOf Type called with TUnamed"
+    sizeOfLimited _ (TEnum _)      = error "SizeOf Type called with TUnamed"
+
+    sizeOfLimited m (TFunc from to) =
+        let toSize   = sizeOfLimited m to
             fromSize = sizeOfLimited m from
         in if
            | (toSize + 1) >= m -> m
            | otherwise         -> min m ( (toSize + 1) ^ (fromSize) )
-    
 
-
-minB m v _ | v >= m = m 
+minB :: Integer -> Integer -> (Integer -> Integer) -> Integer
+minB (m :: Integer) v _ | v >= m = m
 minB m v f          = min m (f v)
 
 

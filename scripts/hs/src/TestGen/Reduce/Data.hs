@@ -1,4 +1,4 @@
-{-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE FlexibleInstances #-}

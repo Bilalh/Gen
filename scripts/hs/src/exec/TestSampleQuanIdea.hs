@@ -1,9 +1,8 @@
 module Main where
 
-import TestGen.Arbitrary.Arbitrary(WithLogs)
 import TestGen.Helpers.Args(parseArgs)
 import TestGen.QCUnused
-import TestGen.Prelude(SpecE,def)
+import TestGen.Prelude(def)
 
 main :: IO ()
 main = do
@@ -12,4 +11,3 @@ main = do
 
     generateSpecs2 args def
     putStrLn "<<Finished>>"
-

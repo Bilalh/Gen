@@ -3,7 +3,7 @@ module Main where
 
 import TestGen.Prelude
 
-import TestGen.Arbitrary.Arbitrary(WithLogs, arbitraryDef,WithExtra)
+import TestGen.Arbitrary.Arbitrary(arbitraryDef,WithExtra)
 import TestGen.Arbitrary.Domain
 import TestGen.Arbitrary.Type(atype_only)
 import TestGen.Helpers.Args(parseArgs)
@@ -13,13 +13,13 @@ main :: IO ()
 main = do
     args <- parseArgs
     print args
-    
+
     generateSpecs (undefined :: WithExtra S1) args
     putStrLn "<<Finished>>"
 
 
 newtype S1 = S1 SpecE
-    deriving Show  
+    deriving Show
 
 instance Arbitrary S1 where
     arbitrary = arbitraryDef undefined
@@ -27,7 +27,7 @@ instance Arbitrary S1 where
 instance ArbSpec S1 where
     getSpec (S1 sp) = sp
     wrapSpec sp     = S1 sp
-    
+
     tyGens _ = def{
           gen_atype = atype_only [ TInt, TBool, TSet TAny  ]
         , gen_dom   = dom_only [boolDomChoice, setDomChoice
@@ -35,10 +35,10 @@ instance ArbSpec S1 where
                                ]
         , gen_useFunc = myUseFunc2
         }
-    
+
 -- Only return domains like function tuple(Any) -> Int
 -- Any meaning any of the domains from `dom` i.e `gen_dom`
--- The function may be total 
+-- The function may be total
 myFuncDom :: GG Domain
 myFuncDom = do
     innerFrom <- withDepthDec intDom
@@ -65,4 +65,3 @@ myUseFunc2 Aunion        = False
 myUseFunc2 Aintersect    = False
 myUseFunc2 Aimage        = False
 myUseFunc2 _             = True
-

@@ -3,7 +3,6 @@
 {-# OPTIONS_GHC -fno-cse #-} -- stupid cmdargs?
 module TestGen.Helpers.Args(parseArgs, TArgs(..)) where
 
-
 import Build_autoversion(buildDateRFC2822,autoVersion)
 import System.Console.CmdArgs.Implicit
 

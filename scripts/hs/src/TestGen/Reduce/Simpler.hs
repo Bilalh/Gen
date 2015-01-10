@@ -99,11 +99,6 @@ instance Simpler Expr Expr where
                 [pretty $ a, pretty $  b
                 , pretty $ groom a, pretty $ groom b ]
 
-
-instance WithDoms m => TypeOf [Literal] m where
-    ttypeOf []    = return TAny
-    ttypeOf (x:_) = ttypeOf x
-
 instance Simpler BinOp BinOp where
     -- simplerImp (BIn x1 x2) y        = _h
     -- simplerImp (BOver x1 x2) y      = _h
