@@ -165,7 +165,7 @@ runToolChain1 seed newConjure refineAll cores spec dir timeou  = do
 
 runRefine :: Int -> FilePath -> FilePath -> Int -> IO RefineR
 runRefine  cores spec dir timeou = do
-    seed <- randomRIO (0,2^24) :: IO Int
+    seed <- randomRIO (0,2^(24:: Int)) :: IO Int
     runRefine1 seed False cores spec dir timeou
 
 runRefine1 :: Int -> Bool -> Int -> FilePath -> FilePath -> Int -> IO RefineR

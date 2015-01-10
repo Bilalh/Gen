@@ -7,6 +7,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE TupleSections #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 -- module TestGen.Reduce.Reduction(Reduce(..), runReduce) where
 module TestGen.Reduce.Reduction where
@@ -18,6 +19,7 @@ import TestGen.Prelude
 
 import Data.List(transpose)
 
+import Control.Monad.Trans.Identity(IdentityT)
 
 -- import qualified TestGen.Arbitrary.Arbitrary as A
 -- import qualified TestGen.Arbitrary.Domain as A
@@ -435,7 +437,8 @@ singleLitExpr ty = do
   addLog "singleLitExpr" [nn "ty" ty]
   fmap (map ELit) . singleLit $ ty
 
--- runReduce ::  (HasLogger m, Reduce a m, Standardise a) =>  SpecE -> a -> m [a]
+runReduce :: (HasGen m, Standardise a, HasLogger m, Reduce a (StateT EState (IdentityT m)) )
+             => SpecE -> a -> m [a]
 runReduce spe x = do
   addLog "runReduce" []
   state <- (newEState spe)

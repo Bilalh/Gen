@@ -158,7 +158,7 @@ instance Simpler Literal Literal where
         res <- zipWithM simplerImp x y
         return $ and res
 
-    simplerImp a@(EMatrix x _) b@(EMatrix y _) = do
+    simplerImp (EMatrix x _) (EMatrix y _) = do
       tx <- ttypeOf x
       ty <- ttypeOf y
       res <- zipWithM simplerImp x y
