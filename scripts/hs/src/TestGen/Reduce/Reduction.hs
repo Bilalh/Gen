@@ -25,10 +25,6 @@ import Control.Monad.Trans.Identity(IdentityT)
 -- import qualified TestGen.Arbitrary.Domain as A
 -- import qualified TestGen.Arbitrary.Expr as A
 
--- import qualified Data.Map as M
--- import qualified Test.QuickCheck as QC
-
-
 class (HasGen m, WithDoms m, HasLogger m) => Reduce a m where
     reduce   :: a -> m [a]    -- list of smaller exprs
     single   :: a -> m [Expr] -- smallest literal e.g  [true, false] for  a /\ b
@@ -40,6 +36,9 @@ class (HasGen m, WithDoms m, HasLogger m) => Reduce a m where
 
 
 instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
+
+    reduce EEmptyGuard = return []
+
     reduce (ELit t) = do
       lits <- reduce t
       return $ map ELit lits
@@ -66,9 +65,14 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
       a3 <- reduce op
       return $ a1 ++ a2 ++ (map EBinOp a3)
 
-    reduce EEmptyGuard = return []
+    reduce (ETyped t ex) = do
+      exs <- reduce ex
+      return $ map (ETyped t) exs
 
     -- reduce (EQuan t1 t2 t3 t4) = _h
+
+
+    single EEmptyGuard = return []
 
     single (EVar t) = typeOfVar t >>= \case
         Just ty -> singleLitExpr ty
@@ -82,25 +86,25 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
       addLog "singleELit" [nn "t" t]
       single t
 
+    single (EDom t) = single t
+
     single (EBinOp t)    = single t
     -- single (EUniOp t) = _t
     -- single (EProc t)  = _t
-    single (EDom t)      = single t
 
     -- single (EQuan t1 t2 t3 t4) = _t
-    -- single EEmptyGuard = return []
 
-    single t   = error . show .vcat $
-                 ["no single expr", pretty t, pretty $ groom t]
+    single t = error . show .vcat $
+               ["no single expr", pretty t, pretty $ groom t]
 
     subterms (EVar _)  = return []
     subterms (EQVar _) = return []
 
     subterms (ELit t)      = subterms t
+    subterms (EDom t)      = subterms t
     subterms (EBinOp t)    = subterms t
     -- subterms (EUniOp t) = _h
     -- subterms (EProc t)  = _h
-    subterms (EDom t)      = subterms t
 
     -- subterms (EQuan t1 t2 t3 t4) = _h
     subterms EEmptyGuard = return []
@@ -347,6 +351,8 @@ f  -| (a,e) = do
    simpler aa e >>= \case
      True  -> return $ Just (f aa)
      False -> return Nothing
+
+
 
 
 -- | return the simplest literals, two at most
