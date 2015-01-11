@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
 {-# LANGUAGE DeriveGeneric #-}
 module TestGen.Helpers.Runner where
@@ -25,6 +26,9 @@ import Language.E(Spec,pretty, Pretty)
 import Language.E.Pipeline.ReadIn(writeSpec)
 import Text.Groom(groom)
 
+import Data.Typeable(Typeable(..))
+import Data.Data(Data(..))
+
 type Cores = Int
 type Seed  = Int
 
@@ -45,7 +49,7 @@ data StatusI =
     | DivideByZero_
     | ConjureNA_
     | ConjureInvalid_
-    deriving (Show,Eq,Enum,Generic)
+    deriving (Show,Eq,Enum,Generic,Typeable, Data)
 
 instance Pretty StatusI where
     pretty = pretty . show
@@ -59,7 +63,7 @@ data KindI =
     | TranslateUp_
     | Validate_
     | ValidateOld_
-    deriving (Show,Eq,Enum,Generic)
+    deriving (Show,Eq,Enum,Generic,Typeable, Data)
 
 
 instance Pretty KindI where

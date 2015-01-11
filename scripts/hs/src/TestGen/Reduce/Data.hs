@@ -41,39 +41,56 @@ data RState = RState
     { oErrKind_         :: KindI
     , oErrStatus_       :: StatusI
     , oErrEprime_       :: Maybe FilePath
+    , outputDir_        :: FilePath
+    , specDir_          :: FilePath
+
+    , cores_            :: Int
+    , newConjure_       :: Bool
+
+    , rgen_             :: TFGen
+    -- def Initialised
     , mostReduced_      :: Maybe SpecE
     , mostReducedFP_    :: Maybe FilePath
-    , outputdir_        :: FilePath
-    , otherrrErrorsFound_ :: [FilePath]
-    , rgen_             :: TFGen
+    , otherErrorsFound_ :: [FilePath]
     , hashes_           :: IntSet
     , rlogs_            :: LogsTree
     } deriving (Show)
 
 instance Pretty RState where
     pretty RState{..} =
-        "SS" <+> Pr.braces (
+        "RState" <+> Pr.braces (
             Pr.sep
                 [ nn "oErrKind_ = "  oErrKind_
                 , nn "oErrStatus_ =" oErrStatus_
                 , nn "oErrEprime_ =" oErrEprime_
+
+                , nn "outputDir_" outputDir_
+                , nn "specDir_" specDir_
+
+                , nn "cores_" cores_
+                , nn "newConjure_" newConjure_
+
                 , nn "mostReduced_ =" mostReduced_
                 , nn "mostReducedFP_ =" mostReducedFP_
-                , nn "otherrrErrorsFound_ =" (vcat $ map pretty otherrrErrorsFound_)
+                , nn "otherErrorsFound_ =" (prettyArr otherErrorsFound_)
+
                 , nn "rgen_ =" (show rgen_)
-                , nn "hashes_ =" (show hashes_)
+                , nn "hashes_ =" (groom hashes_)
                 ])
 
 instance Default RState where
     def =  RState{oErrKind_         = error "need oErrKind_"
                  ,oErrStatus_       = error "need oErrStatus_"
-                 ,oErrEprime_       = Nothing
-                 ,outputdir_        = error "need outputdir_"
-                 ,mostReduced_      = Nothing
-                 ,mostReducedFP_    = Nothing
-                 ,otherrrErrorsFound_ = []
+                 ,oErrEprime_       = error "need oErrEprime"
+                 ,cores_            = error "need cores"
+                 ,newConjure_       = error "need newConjure_"
+                 ,outputDir_        = error "need outputDir_"
                  ,rgen_             = error "need rgen_"
+                 ,specDir_          = error "need specDir_"
                  ,hashes_           = IS.empty
+                 ,mostReducedFP_    = Nothing
+                 ,mostReduced_      = Nothing
+                 ,otherErrorsFound_ = []
                  ,rlogs_            = LSEmpty
                  }
 

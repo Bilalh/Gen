@@ -36,7 +36,7 @@ runSpec spE = do
       True -> return False
       False -> do
         let sp = toSpec spE
-        outdir <- gets outputdir_
+        outdir <- gets outputDir_
 
         ts <- liftIO $ timestamp >>= return . show
         ts_num <- chooseR (100 :: Int, 999) >>= return . show
