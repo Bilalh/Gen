@@ -26,7 +26,7 @@ import Language.E(Spec,pretty, Pretty)
 import Language.E.Pipeline.ReadIn(writeSpec)
 import Text.Groom(groom)
 
-import Data.Typeable(Typeable(..))
+import Data.Typeable(Typeable)
 import Data.Data(Data(..))
 
 type Cores = Int

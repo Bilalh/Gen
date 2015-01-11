@@ -5,15 +5,18 @@
 module TestGen.Reduce.Args(parseArgs) where
 
 import Build_autoversion(buildDateRFC2822,autoVersion)
-import System.Console.CmdArgs.Implicit
+import System.Console.CmdArgs.Implicit as I
 
 import qualified TestGen.Prelude as P
 import TestGen.Reduce.Data
 import TestGen.Helpers.Runner(KindI, StatusI)
 
+import Data.Data
+
+import System.Exit(exitSuccess)
 
 data RArgs_ = RArgs_
-                 { spec_directory   :: Maybe FilePath
+                 { spec_directory   :: FilePath
                  , output_directory :: Maybe FilePath
                  , per_spec_time    :: Maybe Int
                  , error_kind       :: Maybe KindI
@@ -21,13 +24,15 @@ data RArgs_ = RArgs_
                  , cores            :: Maybe Int
                  , new_conjure      :: Bool
                  , seed             :: Maybe Int
+                 , list_kinds       :: Bool
+                 , list_statuses    :: Bool
                 }  deriving (Show, Data, Typeable)
 
 
 argsDef :: RArgs_
 argsDef  = RArgs_
-             { spec_directory   = def &= help "{R} Directory of spec.essence"
-                                      &= name "b"
+             { spec_directory   = def &= typ "Spec.essence directory"
+                                      &= argPos 0
              , output_directory = def &= help "{R} Output directory"
                                       &= name "o"
              , per_spec_time    = def &= help "{R} Total time to spend on each spec"
@@ -45,6 +50,12 @@ argsDef  = RArgs_
                                       &= name "c"
              , new_conjure      = def &= help "Use new conjure, must be called conjureNew"
                                       &= name "n"
+             , list_kinds       = def &= help "Just list the kinds then exit"
+                                      &= explicit
+                                      &= name "list-kinds"
+             , list_statuses    = def &= help "Just list the statuses then exit"
+                                      &= explicit
+                                      &= name "list-statuses"
              }
 
          &= summary (unlines ["TestReduce, the test case simplifier"
@@ -58,22 +69,48 @@ argsDef  = RArgs_
 parseArgs :: IO RState
 parseArgs = do
     a@RArgs_{..} <- cmdArgs argsDef
+    putStrLn "Command line options passed"
     print a
-    let oErrKind_   = f error_kind "error_kind"
-        oErrStatus_ = f error_status "error_status"
-        oErrEprime_ = Nothing
-        cores_      = f cores "cores"
-        newConjure_ = new_conjure
-        outputDir_  = f output_directory "output_directory"
-        specDir_    = f spec_directory "spec_directory"
-        rgen_        = mkrGen (f seed "seed")
+    putStrLn ""
+
+    l1 <- doKinds list_kinds
+    l2 <- doStatuses list_statuses
+    if l1 || l2 then
+        exitSuccess
+    else do
+      let oErrKind_   = f error_kind "error_kind"
+          oErrStatus_ = f error_status "error_status"
+          oErrEprime_ = Nothing
+          cores_      = f cores "cores"
+          newConjure_ = new_conjure
+          outputDir_  = f output_directory "output_directory"
+          specDir_    = spec_directory
+          rgen_        = mkrGen (f seed "seed")
 
 
-    let res = P.def{oErrKind_, oErrStatus_, oErrEprime_, cores_
-                   ,newConjure_, outputDir_, specDir_, rgen_}
-    return res
+      let res = P.def{oErrKind_, oErrStatus_, oErrEprime_, cores_
+                     ,newConjure_, outputDir_, specDir_, rgen_}
+      return res
 
 
     where
     f Nothing n = error $ "--" ++ n ++ " needs to be specified"
-    f (Just v) _   = v
+    f (Just v) _ = v
+
+
+    doKinds False = return False
+    doKinds True  = do
+      let names = dataTypeConstrs . dataTypeOf $ (undefined :: KindI)
+      putStrLn "Kinds:"
+      mapM_ (putStrLn . show) names
+      putStrLn ""
+      return True
+
+
+    doStatuses False = return False
+    doStatuses True  = do
+      putStrLn "Statuses:"
+      let names = dataTypeConstrs . dataTypeOf $ (undefined :: StatusI)
+      mapM_ (putStrLn . show) names
+      putStrLn ""
+      return True
