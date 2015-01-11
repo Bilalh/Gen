@@ -446,7 +446,7 @@ singleLit (TPar x) = do
 -- singleLit (TEnum x) = _x
 
 singleLit TAny = rrError "singleLit of TAny" []
-singleLit ty = rrError "singleLit" [nn "ty" ty ]
+singleLit ty   = rrError "singleLit" [nn "ty" ty ]
 
 singleLitExpr :: (HasGen m, HasLogger m, WithDoms m) => Type -> m [Expr]
 singleLitExpr ty = do
