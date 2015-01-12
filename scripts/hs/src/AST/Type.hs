@@ -8,12 +8,13 @@ import AST.Data
 import AST.FromEssence(FromEssence(..))
 import AST.ToEssence(ToEssence(..))
 import Language.E
+import Text.Groom(groom)
 
 instance ToEssence Type where
     toEssence TInt          = [dMake| int |]
     toEssence TBool         = [dMake| bool |]
 
-    -- toEssence (TMatix t)    = [dMake| matrix of &t |] where t' = toEssence t
+    -- toEssence (TMatix t)    = error "No Matrix Type"
     toEssence (TSet t)      = [dMake| set of &t' |] where t' = toEssence t
     toEssence (TMSet t)     = [dMake| mset of &t' |] where t' = toEssence t
 
@@ -29,9 +30,9 @@ instance ToEssence Type where
     -- toEssence (TUnamed t)   = [dMake| t |]
     -- toEssence (TEnum t)     = [dMake| _a |] where t' = toEssence t
 
-    -- toEssence TAny          = [dMake| _a |]
+    -- toEssence TAny          =
 
-    toEssence x = error . show . vcat $ [ "fromEssence Type", "x=" <+> pretty x]
+    toEssence x = error . show . vcat $ [ "fromEssence Type", "x=" <+> (pretty .groom $ x)]
 
 
 instance FromEssence Type where
