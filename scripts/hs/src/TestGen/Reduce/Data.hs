@@ -25,17 +25,6 @@ efalse = ELit (EB False)
 
 type RR a = StateT RState IO a
 
--- | Check if the spec's hash is contained, (add it if it is not)
-containHashAdd :: SpecE -> RR Bool
-containHashAdd newE= do
-  let newHash = hash (pretty newE)
-  is <- gets hashes_
-  case newHash `IS.member` is of
-    True -> return True
-    False -> do
-        let is' = newHash `IS.insert` is
-        modify (\st -> st{ hashes_=is'} )
-        return False
 
 data RState = RState
     { oErrKind_         :: KindI
@@ -49,9 +38,8 @@ data RState = RState
 
     , rgen_             :: TFGen
     -- def Initialised
-    , mostReduced_      :: Maybe SpecE
-    , mostReducedFP_    :: Maybe FilePath
-    , otherErrorsFound_ :: [FilePath]
+    , mostReduced_      :: Maybe RunResult
+    , otherErrors_      :: [RunResult]
     , hashes_           :: IntSet
     , rlogs_            :: LogsTree
     } deriving (Show)
@@ -71,35 +59,55 @@ instance Pretty RState where
                 , nn "newConjure_" newConjure_
 
                 , nn "mostReduced_ =" mostReduced_
-                , nn "mostReducedFP_ =" mostReducedFP_
-                , nn "otherErrorsFound_ =" (prettyArr otherErrorsFound_)
+                , nn "otherErrors_ =" (prettyArr otherErrors_)
 
                 , nn "rgen_ =" (show rgen_)
                 , nn "hashes_ =" (groom hashes_)
                 ])
 
 instance Default RState where
-    def =  RState{oErrKind_         = error "need oErrKind_"
-                 ,oErrStatus_       = error "need oErrStatus_"
-                 ,oErrEprime_       = error "need oErrEprime"
-                 ,cores_            = error "need cores"
-                 ,newConjure_       = error "need newConjure_"
-                 ,outputDir_        = error "need outputDir_"
-                 ,rgen_             = error "need rgen_"
-                 ,specDir_          = error "need specDir_"
-                 ,hashes_           = IS.empty
-                 ,mostReducedFP_    = Nothing
-                 ,mostReduced_      = Nothing
-                 ,otherErrorsFound_ = []
-                 ,rlogs_            = LSEmpty
+    def =  RState{oErrKind_    = error "need oErrKind_"
+                 ,oErrStatus_  = error "need oErrStatus_"
+                 ,oErrEprime_  = error "need oErrEprime"
+                 ,cores_       = error "need cores"
+                 ,newConjure_  = error "need newConjure_"
+                 ,outputDir_   = error "need outputDir_"
+                 ,rgen_        = error "need rgen_"
+                 ,specDir_     = error "need specDir_"
+                 ,hashes_      = IS.empty
+                 ,mostReduced_ = Nothing
+                 ,otherErrors_ = []
+                 ,rlogs_       = LSEmpty
                  }
 
+
+-- | Check if the spec's hash is contained, (add it if it is not)
+containHashAdd :: SpecE -> RR Bool
+containHashAdd newE= do
+  let newHash = hash (pretty newE)
+  is <- gets hashes_
+  case newHash `IS.member` is of
+    True -> return True
+    False -> do
+        let is' = newHash `IS.insert` is
+        modify (\st -> st{ hashes_=is'} )
+        return False
+
+
+data RunResult = RunResult{
+      resDirectory_  :: FilePath
+    , resErrKind_   :: KindI
+    , resErrStatus_ :: StatusI
+    } deriving (Show)
+
+instance Pretty RunResult where
+    pretty = pretty . groom
 
 
 infixl 1 *|
 (*|) :: a -> Bool -> Maybe a
 a  *| c | c = Just a
-_  *| _    = Nothing
+_  *| _     = Nothing
 
 
 mkrGen :: Int -> TFGen
@@ -128,6 +136,7 @@ oneofR [] = rrError "oneOfR used with empty list" []
 oneofR gs = do
   ix <- chooseR (0,length gs - 1)
   return $ gs !! ix
+
 
 
 data EState = EState

@@ -1,6 +1,7 @@
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module TestGen.Reduce.Runner where
 
@@ -18,6 +19,8 @@ import System.Directory(createDirectoryIfMissing)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 
+import Control.Arrow((&&&))
+
 
 -- reads a .specE file
 readSpecE :: FilePath -> IO SpecE
@@ -27,19 +30,19 @@ readSpecE fp = do
     return . read $ st
 
 
--- True means rrError still happens
-runSpec :: SpecE -> RR Bool
--- runSpec spE = chooseR (False, True)
+-- Just means rrError still happens
+runSpec :: SpecE -> RR (Maybe RunResult)
 runSpec spE = do
 
     containHashAdd spE >>= \case
-      True -> return False
+      True -> return Nothing
       False -> do
         let sp = toSpec spE
         outdir <- gets outputDir_
 
         ts <- liftIO $ timestamp >>= return . show
-        ts_num <- chooseR (100 :: Int, 999) >>= return . show
+        -- My laptop is too fast
+        ts_num <- chooseR (1000 :: Int, 9999) >>= return . show
 
         let path = outdir </> (ts ++ "_" ++ ts_num)
         liftIO $ createDirectoryIfMissing True  path
@@ -56,31 +59,64 @@ runSpec spE = do
         rrErrorKind   <- gets oErrKind_
         rrErrorStatus <- gets oErrStatus_
 
+        addLog "runSpec" [nn "rrK" rrErrorKind
+                         ,nn "rrS" rrErrorStatus
+                         ,nn "res" (pretty . groom $ res)]
+
         let
-            samerrError (Left SettingI{successful_=False, data_=RefineM ms})
+            sameError :: Either RefineR (RefineR, SolveR) -> (Bool, Maybe RunResult)
+            sameError (Left SettingI{successful_=False, data_=RefineM ms})
                 | modelRefinerrError rrErrorKind =
 
-                let statuses = M.toList $  M.map (status_) ms
-                in any (\(_name,status) -> status == rrErrorStatus) statuses
+                let sks = M.toList $  M.map ( status_ &&& kind_) ms
+                in case any (\(_name,(status,_)) -> status == rrErrorStatus) sks of
+                  True  -> (True, Just $ RunResult{resDirectory_ = path
+                                                 ,resErrKind_   = rrErrorKind
+                                                 ,resErrStatus_ = rrErrorStatus})
+
+                  False -> (False, Just $ RunResult{resDirectory_ = path
+                                                   ,resErrKind_   = fstKind sks
+                                                   ,resErrStatus_ = fstStatus sks})
 
 
-            samerrError (Right (_, SettingI{successful_=False,data_=SolveM ms })) =
+            sameError (Right (_, SettingI{successful_=False,data_=SolveM ms })) =
                 let
                     f ResultI{erroed= Just index, results } =
                         let ix = results !! index
-                        in (kind_ ix, status_ ix)
+                        in Just (status_ ix, kind_ ix)
+                    f _ = Nothing
 
-                    kss = M.toList $  M.map f ms
-                in any (\(_name,ks) -> ks == (rrErrorKind,rrErrorStatus) ) kss
+                    sks = M.toList $  M.mapMaybe f ms
 
-            samerrError _ = False
+                in case any (\(_name,sk) -> sk == (rrErrorStatus,rrErrorKind) ) sks of
+                   True  -> (True, Just $ RunResult{resDirectory_ = path
+                                                   ,resErrKind_   = rrErrorKind
+                                                   ,resErrStatus_ = rrErrorStatus})
+                   False -> (False, Just $ RunResult{resDirectory_ = path
+                                                   ,resErrKind_   = fstKind sks
+                                                   ,resErrStatus_ = fstStatus sks})
+
+            sameError _ = (False, Nothing)
+
+            fstStatus []            = error "fstStatus no statuses"
+            fstStatus ((_,(s,_)):_) = s
+
+            fstKind []            = error "fstKind no kinds"
+            fstKind ((_,(_,k)):_) = k
 
 
-        let stillErroed  = samerrError res
+        let stillErroed  = sameError res
 
-        liftIO $ print $ ("HasrrError?" :: String, stillErroed)
+        liftIO $ print $ ("HasrrError?" :: String, fst stillErroed)
         liftIO $ putStrLn "\n\n"
-        return stillErroed
+        case stillErroed of
+          (True, Just r)   -> return $ Just $ r
+          (True, Nothing)  -> rrError "Same error but no result" []
+          (False, Just r)  -> do
+            addOtherError r
+            return Nothing
+
+          (False, Nothing) -> return Nothing
 
 
 
@@ -89,3 +125,9 @@ modelRefinerrError RefineCompact_ = True
 modelRefinerrError RefineRandom_  = True
 modelRefinerrError RefineAll_     = True
 modelRefinerrError _              = False
+
+
+addOtherError :: RunResult -> RR ()
+addOtherError r = do
+  return ()
+  -- modify $ \st -> st{otherErrors_ =r : otherErrors_ st }

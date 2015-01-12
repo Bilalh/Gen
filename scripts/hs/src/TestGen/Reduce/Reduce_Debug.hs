@@ -84,10 +84,17 @@ _k = do
               }
 
 
--- _tempRR :: RState
--- _tempRR  = def{oErrKind_   = Validate_
---               ,oErrEprime_ = Just "/Users/bilalh/CS/break_conjure/fixed/46c3d2b43f4e/2014-12-10_02-01_1418176894/_rrErrors/Validate_/rrErrorUnknown_/1418178864_89/model000001.eprime"
---               ,outputdir_  = "/Users/bilalh/CS/break_conjure/fixed/46c3d2b43f4e/2014-12-10_02-01_1418176894/_rrErrors/Validate_/rrErrorUnknown_/1418178864_89/reduce/"
---               ,rgen_       = mkrGen 6
---               }
--- hellod
+_j :: IO SpecE
+_j = do
+  let fp = "/Users/bilalh/CS/break_conjure/2014-12-19_04-19_1418962766/RefineCompact_/ErrorUnknown_/1418964459_41"
+
+  reduceMain def{
+       oErrKind_   = RefineRandom_
+     , oErrStatus_ = ErrorUnknown_
+     , outputDir_  = "/Users/bilalh/CS/break_conjure/2014-12-19_04-19_1418962766/RefineCompact_/ErrorUnknown_/1418964459_41/out"
+     , rgen_       = mkrGen 4
+     , cores_      = 4
+     , oErrEprime_ = Nothing
+     , specDir_    = fp
+     , newConjure_ = True
+     }

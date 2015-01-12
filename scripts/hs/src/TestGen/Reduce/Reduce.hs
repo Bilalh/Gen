@@ -32,8 +32,8 @@ reduceMain1 sp rr  = do
         return sp
         >>= (note "removeUnusedDomains") removeUnusedDomains
         >>= (note "removeConstraints")   removeConstraints
-        >>= (note "simplyConstraints")   simplyConstraints
-        >>= (note "removeUnusedDomains") removeUnusedDomains
+        -- >>= (note "simplyConstraints")   simplyConstraints
+        -- >>= (note "removeUnusedDomains") removeUnusedDomains
 
 
     noteFormat "State" [pretty state]
@@ -72,8 +72,10 @@ removeUnusedDomains sp@(SpecE ods es) = do
     process :: [Doms]-> RR (Maybe Doms)
     process []     = return Nothing
     process (x:xs) = runSpec (SpecE y es) >>= \case
-        True  -> return $ Just y
-        False -> process xs
+        Just r  -> do
+          recordResult r
+          return $ Just y
+        Nothing -> process xs
 
         where y = ensureADomain x
 
@@ -101,19 +103,25 @@ removeConstraints (SpecE ds oes) = do
     process :: [[Expr]] -> RR (Maybe [Expr])
     process []     = return Nothing
     process (x:xs) = runSpec (SpecE ds x) >>= \case
-        True  -> return $ Just x
-        False -> process xs
+        Just r  -> do
+          recordResult r
+          return $ Just x
+        Nothing -> process xs
 
     -- process ts = rrError . show . prettyBrackets . vcat $ map (prettyBrackets .  vcat . map pretty) ts
 
 simplyConstraints :: SpecE -> RR SpecE
 simplyConstraints sp@(SpecE ds es) = do
     csToDo <- doConstraints es
-    fin <- process csToDo
+    addLog "Got Constraints" []
+    fin    <- process csToDo
+    addLog "finished processing" []
     if fin == [] then
         runSpec (SpecE ds []) >>= \case
-            True  -> return (SpecE ds [])
-            False -> return (SpecE ds es)
+            Just r  -> do
+              recordResult r
+              return (SpecE ds [])
+            Nothing -> return (SpecE ds es)
     else
         return (SpecE ds fin)
 
@@ -124,29 +132,32 @@ simplyConstraints sp@(SpecE ds es) = do
     process xs | any (== []) xs = return []
 
     process xs | all (singleElem) xs = do
+        addLog "processsingleElem" []
         let fix = map head xs
-        res <- runSpec (SpecE ds fix)
-        if res then do
+        runSpec (SpecE ds fix) >>= \case
+          Just r -> do
+            recordResult r
             return fix
-        else
-            return []
+          Nothing -> return []
 
     process esR = do
+        addLog "process esR" []
         fix <- choose esR
-        res <- runSpec (SpecE ds fix)
-        if res then do
-            innerToDo <- doConstraints fix
-            inner <- process innerToDo
-            if inner == [] then
-                return fix
-            else
-                return inner
-        else
-            removeNext esR >>= process
+        runSpec (SpecE ds fix) >>= \case
+                Nothing -> removeNext esR >>= process
+                Just r  -> do
+                    recordResult r
+                    innerToDo <- doConstraints fix
+                    inner     <- process innerToDo
+                    if inner == [] then
+                        return fix
+                    else
+                        return inner
 
     -- Fix the next constraint
     choose :: [[Expr]] -> RR [Expr]
     choose esR = do
+        addLog "choose esR" []
         return $ map pickFirst esR
 
         where
@@ -158,6 +169,7 @@ simplyConstraints sp@(SpecE ds es) = do
     doConstraints :: [Expr] -> RR [[Expr]]
     doConstraints [] = return [[]]
     doConstraints (x:xs) = do
+        addLog "doConstraints xs" []
         rx <- runReduce sp x
         rs <- mapM (\y -> do { ys <- runReduce sp y; return $ y : ys } ) xs
         return $ rx : rs
@@ -183,3 +195,9 @@ tailR (_:xs) = xs
 singleElem :: [a] -> Bool
 singleElem [_] = True
 singleElem _   = False
+
+
+recordResult :: RunResult -> RR ()
+recordResult r= do
+  -- modify $ \st -> st{mostReduced_=Just r}
+  return ()
