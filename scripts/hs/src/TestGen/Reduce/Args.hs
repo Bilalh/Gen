@@ -38,13 +38,13 @@ argsDef  = RArgs_
                                       &= name "o"
              , per_spec_time    = def &= help "{R} Total time to spend on each spec"
                                       &= name "p"
-             , error_kind       = def &= help "{R} The Error kind e.g RefineRandom_"
+             , error_kind       = def &= help "{R} The error Kind e.g. RefineRandom_"
                                       &= explicit
                                       &= name "kind"
-             , error_status     = def &= help "{R} The Error status e.g. ParseError_"
+             , error_status     = def &= help "{R} The error Status e.g. ParseError_"
                                       &= explicit
                                       &= name "status"
-             , seed             = def &= help "{R} Seed to Use"
+             , seed             = def &= help "{R} Seed to use"
                                       &= explicit
                                       &= name "seed"
              , cores            = def &= help "{R} Cores to use"
@@ -59,14 +59,14 @@ argsDef  = RArgs_
                                       &= name "list-statuses"
              }
 
-         &= summary (unlines ["TestReduce, the test case simplifier"
+         &= summary (unlines ["testReduce, the test case simplifier"
                              , "Git version: " ++ autoVersion
                              , "Build date: "  ++ buildDateRFC2822
                              , "{R} required"
                              , "The input directory must have a file called spec.specE"
                              ])
          &= helpArg [name "h"]
-         &= program "testSample"
+         &= program "testReduce"
 
 parseArgs :: IO RState
 parseArgs = do
