@@ -75,7 +75,7 @@ _k = do
     -- let fp = "/Users/bilalh/CS/break_conjure/out/1420607973_828/spec.specE"
 
     spe <- readSpecE fp
-    reduceMain spe
+    reduceMain1 spe
            def{oErrKind_   = Savilerow_
               ,oErrStatus_ = ParseError_
               ,oErrEprime_ = Nothing

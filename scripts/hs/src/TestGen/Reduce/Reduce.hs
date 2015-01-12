@@ -11,12 +11,21 @@ import TestGen.Reduce.Reduction
 import TestGen.Reduce.UnusedDomains
 import TestGen.Prelude
 
+import System.FilePath((</>))
+
 import qualified Data.Map as M
 
 
+reduceMain :: RState -> IO SpecE
+reduceMain rs = do
+  let base = specDir_ rs
+      fp   =  base </> "spec.specE"
 
-reduceMain :: SpecE -> RState -> IO SpecE
-reduceMain sp rr  = do
+  sp <- readSpecE fp
+  reduceMain1 sp rs
+
+reduceMain1 :: SpecE -> RState -> IO SpecE
+reduceMain1 sp rr  = do
     noteFormat "Starting with" [pretty sp]
 
     (sfin,state) <- (flip runStateT) rr $

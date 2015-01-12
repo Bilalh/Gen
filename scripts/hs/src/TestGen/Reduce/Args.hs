@@ -31,9 +31,10 @@ data RArgs_ = RArgs_
 
 argsDef :: RArgs_
 argsDef  = RArgs_
-             { spec_directory   = def &= typ "Spec.essence directory"
+             { spec_directory   = def &= typ "SpecE_directory"
                                       &= argPos 0
              , output_directory = def &= help "{R} Output directory"
+                                      &= typDir
                                       &= name "o"
              , per_spec_time    = def &= help "{R} Total time to spend on each spec"
                                       &= name "p"
@@ -62,6 +63,7 @@ argsDef  = RArgs_
                              , "Git version: " ++ autoVersion
                              , "Build date: "  ++ buildDateRFC2822
                              , "{R} required"
+                             , "The input directory must have a file called spec.specE"
                              ])
          &= helpArg [name "h"]
          &= program "testSample"

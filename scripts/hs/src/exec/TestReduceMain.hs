@@ -8,4 +8,5 @@ main :: IO ()
 main = do
     args <- parseArgs
     putStrLn . show $ pretty $ args
+    sp <- reduceMain args
     putStrLn "<<Finished>>"
