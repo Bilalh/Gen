@@ -68,7 +68,7 @@ cabal configure                                                     \
     --disable-library-profiling --disable-executable-profiling      \
     ${LLVM} ${OPTIMISATION} --bindir="${BIN_DIR}"
 
-cabal build -j"${USE_CORES}"
+cabal build -j"${USE_CORES}" "$@"
 cabal copy                                  # install in ${BIN_DIR}
 
 
