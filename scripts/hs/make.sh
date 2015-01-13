@@ -60,12 +60,12 @@ fi
 
 cabal install                                                       \
     --only-dependencies                                             \
-    --disable-library-profiling --disable-executable-profiling      \
+    --disable-library-profiling --disable-profiling      \
     --force-reinstalls                                              \
  	${LLVM} ${OPTIMISATION} -j"${USE_CORES}"
 
 cabal configure                                                     \
-    --disable-library-profiling --disable-executable-profiling      \
+    --disable-library-profiling --disable-profiling      \
     ${LLVM} ${OPTIMISATION} --bindir="${BIN_DIR}"
 
 cabal build -j"${USE_CORES}" "$@"
