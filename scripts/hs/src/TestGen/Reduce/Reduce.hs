@@ -16,40 +16,36 @@ import System.FilePath((</>))
 import qualified Data.Map as M
 
 
-reduceMain :: RState -> IO SpecE
-reduceMain rs = do
-  let base = specDir_ rs
+reduceMain :: RState -> IO (SpecE, RState)
+reduceMain rr = do
+  let base = specDir_ rr
       fp   =  base </> "spec.specE"
 
   sp <- readSpecE fp
-  reduceMain1 sp rs
+  noteFormat "Starting with" [pretty sp]
 
-reduceMain1 :: SpecE -> RState -> IO SpecE
-reduceMain1 sp rr  = do
-    noteFormat "Starting with" [pretty sp]
-
-    (sfin,state) <- (flip runStateT) rr $
-        return sp
-        >>= (note "removeUnusedDomains") removeUnusedDomains
-        >>= (note "removeConstraints")   removeConstraints
-        -- >>= (note "simplyConstraints")   simplyConstraints
-        -- >>= (note "removeUnusedDomains") removeUnusedDomains
+  (sfin,state) <- (flip runStateT) rr $
+      return sp
+      >>= (note "removeUnusedDomains") removeUnusedDomains
+      >>= (note "removeConstraints")   removeConstraints
+      -- >>= (note "simplyConstraints")   simplyConstraints
+      -- >>= (note "removeUnusedDomains") removeUnusedDomains
 
 
-    noteFormat "State" [pretty state]
-    noteFormat "Start" [pretty sp]
-    noteFormat "Final" [pretty sfin]
+  noteFormat "State" [pretty state]
+  noteFormat "Start" [pretty sp]
+  noteFormat "Final" [pretty sfin]
 
-    return sfin
+  return (sfin,state)
 
-    where
-    note tx f s = do
-        noteFormat ("@" <+> tx <+> "Start") []
+  where
+  note tx f s = do
+      noteFormat ("@" <+> tx <+> "Start") []
 
-        newSp <- f s
-        noteFormat ("@" <+> tx <+> "End") [pretty newSp]
+      newSp <- f s
+      noteFormat ("@" <+> tx <+> "End") [pretty newSp]
 
-        return newSp
+      return newSp
 
 removeUnusedDomains :: SpecE -> RR SpecE
 removeUnusedDomains sp@(SpecE ods es) = do
@@ -199,5 +195,5 @@ singleElem _   = False
 
 recordResult :: RunResult -> RR ()
 recordResult r= do
-  -- modify $ \st -> st{mostReduced_=Just r}
+  modify $ \st -> st{mostReduced_=Just r}
   return ()

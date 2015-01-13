@@ -44,6 +44,12 @@ data RState = RState
     , rlogs_            :: LogsTree
     } deriving (Show)
 
+data RunResult = RunResult{
+      resDirectory_ :: FilePath
+    , resErrKind_   :: KindI
+    , resErrStatus_ :: StatusI
+    } deriving (Show)
+
 instance Pretty RState where
     pretty RState{..} =
         "RState" <+> Pr.braces (
@@ -94,11 +100,6 @@ containHashAdd newE= do
         return False
 
 
-data RunResult = RunResult{
-      resDirectory_  :: FilePath
-    , resErrKind_   :: KindI
-    , resErrStatus_ :: StatusI
-    } deriving (Show)
 
 instance Pretty RunResult where
     pretty = pretty . groom

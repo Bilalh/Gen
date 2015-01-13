@@ -130,4 +130,4 @@ modelRefinerrError _              = False
 addOtherError :: RunResult -> RR ()
 addOtherError r = do
   return ()
-  -- modify $ \st -> st{otherErrors_ =r : otherErrors_ st }
+  modify $ \st -> st{otherErrors_ =r : otherErrors_ st }

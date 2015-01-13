@@ -55,6 +55,7 @@ Library
                      , TestGen.QCUnused
                      , TestGen.Reduce.Args
                      , TestGen.Reduce.Data
+                     , TestGen.Reduce.FormatResults
                      , TestGen.Reduce.Reduce
                      , TestGen.Reduce.Reduce_Debug
                      , TestGen.Reduce.Reduction
@@ -62,6 +63,7 @@ Library
                      , TestGen.Reduce.Runner
                      , TestGen.Reduce.Simpler
                      , TestGen.Reduce.UnusedDomains
+                     
 
 
     build-depends    : base

@@ -65,36 +65,36 @@ _e e =  case fromEssence e of
         Left er -> error . show .  (pretty &&& pretty . groom) $ er
         Right ee -> ee
 
-_k :: IO SpecE
-_k = do
-    -- let fp = "/Users/bilalh/CS/break_conjure/misc/1419393045_122/spec.specE"
-    -- let fp = "/Users/bilalh/CS/break_conjure/2014-12-19_04-19_1418962766/RefineCompact_/rrErrorUnknown_/1418964459_41/spec.specE"
-    -- let fp = "/Users/bilalh/CS/break_conjure/2014-12-19_04-19_1418962766/RefineCompact_/rrErrorUnknown_/1418965624_49/spec.specE"
-    let fp = "/Users/bilalh/CS/break_conjure/2014-12-19_04-19_1418962766/Savilerow_/ParseError_/1418964183_16/spec.specE"
-    -- let fp = "/Users/bilalh/CS/break_conjure/misc/1418964183_16_r/spec.specE"
-    -- let fp = "/Users/bilalh/CS/break_conjure/out/1420607973_828/spec.specE"
+-- _k :: IO SpecE
+-- _k = do
+--     -- let fp = "/Users/bilalh/CS/break_conjure/misc/1419393045_122/spec.specE"
+--     -- let fp = "/Users/bilalh/CS/break_conjure/2014-12-19_04-19_1418962766/RefineCompact_/rrErrorUnknown_/1418964459_41/spec.specE"
+--     -- let fp = "/Users/bilalh/CS/break_conjure/2014-12-19_04-19_1418962766/RefineCompact_/rrErrorUnknown_/1418965624_49/spec.specE"
+--     let fp = "/Users/bilalh/CS/break_conjure/2014-12-19_04-19_1418962766/Savilerow_/ParseError_/1418964183_16/spec.specE"
+--     -- let fp = "/Users/bilalh/CS/break_conjure/misc/1418964183_16_r/spec.specE"
+--     -- let fp = "/Users/bilalh/CS/break_conjure/out/1420607973_828/spec.specE"
 
-    spe <- readSpecE fp
-    reduceMain1 spe
-           def{oErrKind_   = Savilerow_
-              ,oErrStatus_ = ParseError_
-              ,oErrEprime_ = Nothing
-              ,outputDir_  = "/Users/bilalh/CS/break_conjure/out"
-              ,rgen_       = mkrGen 3
-              }
+--     spe <- readSpecE fp
+--     reduceMain1 spe
+--            def{oErrKind_   = Savilerow_
+--               ,oErrStatus_ = ParseError_
+--               ,oErrEprime_ = Nothing
+--               ,outputDir_  = "/Users/bilalh/CS/break_conjure/out"
+--               ,rgen_       = mkrGen 3
+--               }
 
 
-_j :: IO SpecE
-_j = do
-  let fp = "/Users/bilalh/CS/break_conjure/2014-12-19_04-19_1418962766/RefineCompact_/ErrorUnknown_/1418964459_41"
+-- _j :: IO SpecE
+-- _j = do
+--   let fp = "/Users/bilalh/CS/break_conjure/2014-12-19_04-19_1418962766/RefineCompact_/ErrorUnknown_/1418964459_41"
 
-  reduceMain def{
-       oErrKind_   = RefineRandom_
-     , oErrStatus_ = ErrorUnknown_
-     , outputDir_  = "/Users/bilalh/CS/break_conjure/2014-12-19_04-19_1418962766/RefineCompact_/ErrorUnknown_/1418964459_41/out"
-     , rgen_       = mkrGen 4
-     , cores_      = 4
-     , oErrEprime_ = Nothing
-     , specDir_    = fp
-     , newConjure_ = True
-     }
+--   reduceMain def{
+--        oErrKind_   = RefineRandom_
+--      , oErrStatus_ = ErrorUnknown_
+--      , outputDir_  = "/Users/bilalh/CS/break_conjure/2014-12-19_04-19_1418962766/RefineCompact_/ErrorUnknown_/1418964459_41/out"
+--      , rgen_       = mkrGen 4
+--      , cores_      = 4
+--      , oErrEprime_ = Nothing
+--      , specDir_    = fp
+--      , newConjure_ = True
+--      }
