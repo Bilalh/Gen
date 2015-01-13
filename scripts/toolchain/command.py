@@ -170,15 +170,7 @@ class ConjureNew(Commands):
                 )
 
 
-        oldValidate="""
-        time conjure --mode validateSolution
-                     --in-essence       {essence}
-                     --in-solution      {essence_solution}
-                     --in-param         {essence_param}
-                     --timelimit        {itimeout}
-        """
-
         self.sovlve_cmds=[self.refine_param, self.savilerow, self.translate_up,
-                            self.validate, (K.validateOld, oldValidate) ]
+                            self.validate]
 
 

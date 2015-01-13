@@ -206,8 +206,15 @@ with (op.indir / "solve_eprime.json").open() as f:
 
 solve_op = partial(rerun_solve, newBase, solve_eprime_json['given_time_'])
 
+def check_kind(r):
+    if op.new_conjure and r['kind_'] == 'ValidateOld_':
+        return False
+    else:
+        return True
+
+
 def org_data(datas):
-    return [  (r['kind_'], update_cmd_paths(r)) for r in datas['results'] ]
+    return [  (r['kind_'], update_cmd_paths(r)) for r in datas['results'] if check_kind(r) ]
 
 
 sdatas = [ (k, org_data(v) ) for k, v in solve_eprime_json['data_'].items()  ]
@@ -250,6 +257,3 @@ if not solve_successful:
     sys.exit(3)
 
 sys.exit(0)
-
-
-
