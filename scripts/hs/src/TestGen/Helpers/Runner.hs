@@ -49,6 +49,7 @@ data StatusI =
     | DivideByZero_
     | ConjureNA_
     | ConjureInvalid_
+    | StatusAny_
     deriving (Show,Eq,Enum,Generic,Typeable, Data)
 
 instance Pretty StatusI where
@@ -63,6 +64,7 @@ data KindI =
     | TranslateUp_
     | Validate_
     | ValidateOld_
+    | KindAny_
     deriving (Show,Eq,Enum,Generic,Typeable, Data)
 
 

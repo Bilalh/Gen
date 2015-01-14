@@ -224,7 +224,8 @@ class Status(Enum):
     negativeExponent = 10,
     divideByZero     = 11,
     conjureNA        = 12,
-    conjureInvalid   = 13
+    conjureInvalid   = 13,
+    statusAny        = 14
 
 errors_not_useful = {Status.numberToLarge}
 

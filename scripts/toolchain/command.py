@@ -15,6 +15,7 @@ class K(Enum):
     translateUp   = 5,
     validate      = 6,
     validateOld   = 7
+    kindAny       = 8
 
 
 class Commands(object):
