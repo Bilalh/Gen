@@ -151,6 +151,10 @@ with ( newBase / "refine_essence.json" ).open("w") as f:
 if not successful:
     sys.exit(5)
 
+if not (op.indir / "solve_eprime.json").exists():
+    logger.warn("no solve_eprime.json")
+    sys.exit(0)
+
 # solve
 
 def rerun_solve(outdir, limit, kv):
@@ -202,9 +206,9 @@ def rerun_solve(outdir, limit, kv):
 
     return (eprime_name, ret)
 
+
 with (op.indir / "solve_eprime.json").open() as f:
     solve_eprime_json=json.load(f)
-
 
 
 solve_op = partial(rerun_solve, newBase, solve_eprime_json['given_time_'])
