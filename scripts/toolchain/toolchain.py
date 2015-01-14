@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.4
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Runs the whole toolchain (compact + rnd models >> SR + Minion)
