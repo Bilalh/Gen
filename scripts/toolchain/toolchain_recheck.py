@@ -148,6 +148,9 @@ with ( newBase / "refine_essence.json" ).open("w") as f:
     f.write(json.dumps(settings, indent=True, sort_keys=True, default=toolchain.obj_to_json ))
 
 
+if not successful:
+    sys.exit(5)
+
 # solve
 
 def rerun_solve(outdir, limit, kv):
