@@ -58,17 +58,22 @@ fi
 
 # install finally
 
-cabal install                                                       \
-    --only-dependencies                                             \
-    --disable-library-profiling --disable-profiling      \
-    --force-reinstalls                                              \
+if (cabal --version | grep 1.20 ); then
+    # profiling="--disable-library-profiling --disable-executable-profiling"
+    profiling="--disable-library-profiling"
+else
+    profiling="--disable-library-profiling --disable-profiling"
+fi
+
+cabal install           \
+    --only-dependencies \
+    ${profiling}	\
+    --force-reinstalls  \
  	${LLVM} ${OPTIMISATION} -j"${USE_CORES}"
 
-cabal configure                                                     \
-    --disable-library-profiling --disable-profiling      \
+cabal configure         \
+    ${profiling}	\
     ${LLVM} ${OPTIMISATION} --bindir="${BIN_DIR}"
 
 cabal build -j"${USE_CORES}" "$@"
 cabal copy                                  # install in ${BIN_DIR}
-
-
