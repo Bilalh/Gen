@@ -207,7 +207,7 @@ function mine(){
 	binPath="$(which "${name}")"
 	version="$("${name}" --version | grep 'Git version' | egrep -o "'\w+" | egrep -o '\w+')"
 
-	vd="$("${name}" --help | grep 'Build date' | egrep -o '\w+,.*')"
+	vd="$("${name}" --version | egrep 'Git version' | egrep -o '\w+,.*[0-9]' )"
 
 	if (sw_vers &>/dev/null); then
 		version_date="$(date -jf '%a, %d %b %Y %T %z' "${vd}" '+%Y-%m-%e %H:%M %z')"
