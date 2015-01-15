@@ -20,13 +20,13 @@ host_index=(
 
 function host_selector() {
 	case "$1" in
-		'eno')            return 0;;
-		'ferry')          return 0;;
-		'eno')            return 0;;
-		'lovelace')       return 1;;
-		'babbage')        return 1;;
-		'b.home')         return 3;;
-		'instancegen1')   return 2;;
+		eno*)            return 0;;
+		ferry*)          return 0;;
+		eno*)            return 0;;
+		lovelace*)       return 1;;
+		babbage*)        return 1;;
+		'b.home')        return 3;;
+		instancegen1*)   return 2;;
 
 		vpn*.cs.st-andrews.ac.uk)
 			return 3;;
