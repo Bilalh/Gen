@@ -18,6 +18,8 @@ host_index=(
 	"bh_laptop"
 )
 
+
+
 function host_selector() {
 	case "$1" in
 		eno*)            return 0;;
@@ -45,9 +47,13 @@ else
 fi
 
 set -o errexit
+now="$(date +'%F_%s')"
+
+tbase="${base}/date/${now}/${host_type}/"
+mkdir -p "${tbase}"
 
 ## Conjure
-cbase="${base}/conjureNew/${host_type}/"
+cbase="${base}/versions/conjureNew/${host_type}/"
 mkdir -p "${cbase}"
 
 conjureNewPath="$(which conjureNew)"
@@ -67,16 +73,20 @@ popd
 
 dateDir="${cbase}/date/${conjureNew_date}"
 mkdir -p "${dateDir}"
-
 pushd "${dateDir}"
 ln -sf "../../hash/${conjureNew_version}/conjure" conjure
 ln -sf "../../hash/${conjureNew_version}/conjure" conjureNew
 popd
 
+pushd "${tbase}"
+ln -sf "../../../versions/conjureNew/${host_type}/hash/${conjureNew_version}/conjure" conjure
+ln -sf "../../../versions/conjureNew/${host_type}/hash/${conjureNew_version}/conjure" conjureNew
+popd
+
 
 ## savilerow
 name=savilerow
-cbase="${base}/${name}/${host_type}/"
+cbase="${base}/versions/${name}/${host_type}/"
 mkdir -p "${cbase}"
 
 binPath="$(which ${name})"
@@ -107,7 +117,20 @@ cd "\$DIR"
 EOF
 
 chmod +x "./savilerow"
+popd
 
+pushd "${tbase}"
+
+ln -sf "../../../versions/${name}/${host_type}/hash/${version}/${name}" "${name}.jar"
+cat << EOF > savilerow
+#!/bin/bash
+DIR="\$( cd "\$( dirname "\$0" )" && pwd )"
+DIR="\${DIR}/../../../versions/${name}/${host_type}/hash/${version}/"
+cd "\$DIR"
+./savilerow "\$@"
+EOF
+
+chmod +x "./savilerow"
 popd
 
 
