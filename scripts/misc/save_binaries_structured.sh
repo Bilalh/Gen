@@ -165,4 +165,36 @@ pushd "${tbase}"
 ln -sf "../../../versions/${name}/${host_type}/hash/${version}/${name}" "${name}"
 popd
 
+
+#testReduce etc..
+
+function mine(){
+	name="$1"
+	cbase="${base}/versions/${name}/${host_type}/"
+	mkdir -p "${cbase}"
+
+	binPath="$(which "${name}")"
+	version="$(${name} --version | grep 'Git version' | egrep -o "'\w+" | egrep -o '\w+')"
+
+	newDstDir="${cbase}/hash/${version}"
+	mkdir -p "${newDstDir}"
+
+	cp "${binPath}" "${newDstDir}/${name}"
+
+	pushd "${newDstDir}"
+	ln -fs "../../../../../${tbase_}" date
+	echo  "../../../../..${tbase_}" >> dates
+	popd
+
+	pushd "${tbase}"
+
+	ln -sf "../../../versions/${name}/${host_type}/hash/${version}/${name}" "${name}"
+	popd
+}
+
+mine testReduce
+mine testSample
+
+
+
 set +x
