@@ -52,6 +52,23 @@ now="$(date +'%F_%s')"
 tbase_="date/${now}/${host_type}/"
 tbase="${base}/date/${now}/${host_type}/"
 mkdir -p "${tbase}"
+echo "name,scm,hash,ver_date,uname,whoami,host_type,hostname" > "${tbase}/data.csv"
+rest_line="$(uname),$(whoami),${host_type},$(hostname)"
+
+declare -a commands
+commands=(python python3 pip sqlite3 git hg perl parallel ruby ghc cabal gcc clang      pigz pip3 )
+for prog in "${commands[@]}"; do
+	val=$($prog --version  2>&1 | cat | head -n3)
+	printf "***${prog}\n%s\n" "${val}" >> "${tbase}/data_other.txt"
+	echo "+++" >> "${tbase}/data_other.txt"
+done
+
+# Java just had too be different
+prog=java
+val="$(java -version  2>&1 | cat)"
+printf "***${prog}\n%s\n" "${val}" >> "${tbase}/data_other.txt"
+echo "+++" >> "${tbase}/data_other.txt"
+
 
 ## Conjure
 cbase="${base}/versions/conjureNew/${host_type}/"
@@ -85,6 +102,9 @@ popd
 pushd "${tbase}"
 ln -sf "../../../versions/conjureNew/${host_type}/hash/${conjureNew_version}/conjure" conjure
 ln -sf "../../../versions/conjureNew/${host_type}/hash/${conjureNew_version}/conjure" conjureNew
+echo "conjureNew,git,${conjureNew_version},${conjureNew_date},${rest_line}" >> data.csv
+
+
 popd
 
 
@@ -129,6 +149,7 @@ chmod +x "./savilerow"
 popd
 
 pushd "${tbase}"
+echo "${name},hg,${version},${version_date},${rest_line}" >> data.csv
 
 ln -sf "../../../versions/${name}/${host_type}/hash/${version}/${name}" "${name}.jar"
 cat << EOF > savilerow
@@ -161,7 +182,7 @@ echo  "../../../../..${tbase_}" >> dates
 popd
 
 pushd "${tbase}"
-
+echo "${name},hg,${version},,${rest_line}" >> data.csv
 ln -sf "../../../versions/${name}/${host_type}/hash/${version}/${name}" "${name}"
 popd
 
@@ -202,6 +223,7 @@ function mine(){
 	popd
 
 	pushd "${tbase}"
+	echo "${name},git,${version},${version_date},${rest_line}" >> data.csv
 
 	ln -sf "../../../versions/${name}/${host_type}/hash/${version}/${name}" "${name}"
 	popd
