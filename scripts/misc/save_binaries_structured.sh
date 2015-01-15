@@ -12,8 +12,10 @@ fi
 base="$1"
 
 host_index=(
-	"eno_ferry"
-	"babbage_lovelace"
+	"eno"
+	"ferry"
+	"babbage"
+	"lovelace"
 	"azure"
 	"bh_laptop"
 )
@@ -23,15 +25,14 @@ host_index=(
 function host_selector() {
 	case "$1" in
 		eno*)            return 0;;
-		ferry*)          return 0;;
-		eno*)            return 0;;
-		lovelace*)       return 1;;
-		babbage*)        return 1;;
-		'b.home')        return 3;;
-		instancegen1*)   return 2;;
+		ferry*)          return 1;;
+		babbage*)        return 2;;
+		lovelace*)       return 3;;
+		'b.home')        return 5;;
+		instancegen1*)   return 4;;
 
 		vpn*.cs.st-andrews.ac.uk)
-			return 3;;
+			return 5;;
 		*)
 			export "HOST_TYPE=<some_name>"
 			exit 33
