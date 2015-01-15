@@ -195,6 +195,8 @@ function mine(){
 mine testReduce
 mine testSample
 
-
+if [ ! -z "${testSampleName:-}" ]; then
+	mine "${testSampleName}"
+fi
 
 set +x
