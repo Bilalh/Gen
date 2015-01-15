@@ -174,7 +174,10 @@ function mine(){
 	mkdir -p "${cbase}"
 
 	binPath="$(which "${name}")"
-	version="$(${name} --version | grep 'Git version' | egrep -o "'\w+" | egrep -o '\w+')"
+	version="$("${name}" --version | grep 'Git version' | egrep -o "'\w+" | egrep -o '\w+')"
+
+	vd="$("${name}" --help | grep 'Build date' | egrep -o ': .*')"
+	version_date="$(date -jf ': %a, %d %b %Y %T %z' "${vd}" '+%Y-%m-%e %H:%M %z')"
 
 	newDstDir="${cbase}/hash/${version}"
 	mkdir -p "${newDstDir}"
@@ -184,6 +187,13 @@ function mine(){
 	pushd "${newDstDir}"
 	ln -fs "../../../../../${tbase_}" date
 	echo  "../../../../..${tbase_}" >> dates
+	popd
+
+	dateDir="${cbase}/date/${version_date}"
+	mkdir -p "${dateDir}"
+
+	pushd "${dateDir}"
+	ln -sf "../../hash/${version}/${name}" "${name}"
 	popd
 
 	pushd "${tbase}"
