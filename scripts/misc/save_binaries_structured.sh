@@ -60,7 +60,6 @@ mkdir -p "${cbase}"
 conjureNewPath="$(which conjureNew)"
 
 conjureNew_version="$(conjureNew --version | egrep -o 'Version: \w+' | egrep -o ': \w+' | egrep -o '\w+')"
-
 conjureNew_date="$(conjureNew --version | egrep -o '201[0-9]-[0-9][0-9]-[0-9][0-9] [0-9]+:[0-9]+ \+[0-9]+')"
 
 newDstDir="${cbase}/hash/${conjureNew_version}"
@@ -97,7 +96,6 @@ mkdir -p "${cbase}"
 binPath="$(which ${name})"
 
 version="$(savilerow | egrep -o 'Version: \w+' | egrep -o ': \w+' | egrep -o '\w+')"
-
 version_date="$(savilerow  | egrep -o '201[0-9]-[0-9][0-9]-[0-9][0-9] [0-9]+:[0-9]+ \+[0-9]+')"
 
 
@@ -111,7 +109,6 @@ cp "$(dirname "${binPath}")/savilerow.jar" "${newDstDir}/${name}.jar"
 pushd "${newDstDir}"
 ln -fs "../../../../../${tbase_}" date
 echo  "../../../../..${tbase_}" >> dates
-
 popd
 
 dateDir="${cbase}/date/${version_date}"
@@ -145,5 +142,27 @@ EOF
 chmod +x "./savilerow"
 popd
 
+#Minion
+name=minion
+cbase="${base}/versions/${name}/${host_type}/"
+mkdir -p "${cbase}"
+
+binPath="$(which ${name})"
+version="$(minion | grep 'HG version:' | egrep -o '"\w+' | egrep -o '\w+')"
+
+newDstDir="${cbase}/hash/${version}"
+mkdir -p "${newDstDir}"
+
+cp "${binPath}" "${newDstDir}/${name}"
+
+pushd "${newDstDir}"
+ln -fs "../../../../../${tbase_}" date
+echo  "../../../../..${tbase_}" >> dates
+popd
+
+pushd "${tbase}"
+
+ln -sf "../../../versions/${name}/${host_type}/hash/${version}/${name}" "${name}"
+popd
 
 set +x
