@@ -57,7 +57,7 @@ else
 fi
 
 set -o errexit
-now="$(date +'%F_%s')"
+now="${DATE_PREFIX:-}$(date +'%F_%s')"
 
 tbase_="date/${now}/${host_type}/"
 tbase="${base}/date/${now}/${host_type}/"
