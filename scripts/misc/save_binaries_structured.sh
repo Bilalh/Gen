@@ -1,7 +1,16 @@
 #!/bin/bash
 set -o nounset
 
-# Save conjureNew
+# Save binaries of
+# conjureNew (conjure)
+# savilerow
+# minion
+# testReduce
+# testSample
+# ${testSampleName}
+#
+# by date and hash so that compatible versions of the binaries can be rerun.
+
 
 if [ -z "${1:-}" ]; then
 	echo "Usage:"
@@ -57,7 +66,7 @@ echo "name,scm,hash,ver_date,uname,whoami,host_type,hostname" > "${tbase}/data.c
 rest_line="$(uname),$(whoami),${host_type},$(hostname)"
 
 declare -a cmds
-cmds=(python python3 pip sqlite3 git hg perl parallel ruby ghc cabal gcc clang      pigz pip3 )
+cmds=(python python3 pip sqlite3 git hg perl parallel ruby ghc cabal gcc clang pigz pip3 )
 for prog in "${cmds[@]}"; do
 	val=$($prog --version  2>&1 | cat | head -n3)
 	printf "***${prog}\n%s\n" "${val}" >> "${tbase}/data_other.txt"
