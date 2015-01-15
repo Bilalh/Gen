@@ -97,7 +97,7 @@ mkdir -p "${dateDir}"
 
 pushd "${dateDir}"
 
-ln -sf "../../hash/${version}/${name}.jar" "${name}.jar"
+ln -sf "../../hash/${version}/savilerow.jar" "${name}.jar"
 cat << EOF > savilerow
 #!/bin/bash
 DIR="\$( cd "\$( dirname "\$0" )" && pwd )"
@@ -106,7 +106,7 @@ cd "\$DIR"
 ./savilerow "\$@"
 EOF
 
-chmod +x "${savilerow}"
+chmod +x "./savilerow"
 
 popd
 
