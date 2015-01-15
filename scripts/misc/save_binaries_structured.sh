@@ -49,6 +49,7 @@ fi
 set -o errexit
 now="$(date +'%F_%s')"
 
+tbase_="date/${now}/${host_type}/"
 tbase="${base}/date/${now}/${host_type}/"
 mkdir -p "${tbase}"
 
@@ -69,6 +70,10 @@ cp "${conjureNewPath}" "${newDstDir}/conjure"
 
 pushd "${newDstDir}"
 ln -sf conjure conjureNew
+
+ln -fs "../../../../../${tbase_}" date
+echo  "../../../../..${tbase_}" >> dates
+
 popd
 
 dateDir="${cbase}/date/${conjureNew_date}"
@@ -101,6 +106,13 @@ mkdir -p "${newDstDir}"
 
 cp "${binPath}" "${newDstDir}/${name}"
 cp "$(dirname "${binPath}")/savilerow.jar" "${newDstDir}/${name}.jar"
+
+
+pushd "${newDstDir}"
+ln -fs "../../../../../${tbase_}" date
+echo  "../../../../..${tbase_}" >> dates
+
+popd
 
 dateDir="${cbase}/date/${version_date}"
 mkdir -p "${dateDir}"
