@@ -11,6 +11,7 @@ fi
 
 base="$1"
 
+declare -a host_index
 host_index=(
 	"eno"
 	"ferry"
@@ -19,7 +20,6 @@ host_index=(
 	"azure"
 	"bh_laptop"
 )
-
 
 
 function host_selector() {
@@ -72,7 +72,7 @@ echo "+++" >> "${tbase}/data_other.txt"
 
 
 ## Conjure
-cbase="${base}/versions/conjureNew/${host_type}/"
+cbase="${base}/versions/conjureNew/"
 mkdir -p "${cbase}"
 
 conjureNewPath="$(which conjureNew)"
@@ -80,7 +80,7 @@ conjureNewPath="$(which conjureNew)"
 conjureNew_version="$(conjureNew --version | egrep -o 'Version: \w+' | egrep -o ': \w+' | egrep -o '\w+')"
 conjureNew_date="$(conjureNew --version | egrep -o '201[0-9]-[0-9][0-9]-[0-9][0-9] [0-9]+:[0-9]+ \+[0-9]+')"
 
-newDstDir="${cbase}/hash/${conjureNew_version}"
+newDstDir="${cbase}/hash/${conjureNew_version}/${host_type}"
 mkdir -p "${newDstDir}"
 
 cp "${conjureNewPath}" "${newDstDir}/conjure"
@@ -89,20 +89,20 @@ pushd "${newDstDir}"
 ln -sf conjure conjureNew
 
 ln -fs "../../../../../${tbase_}" date
-echo  "../../../../..${tbase_}" >> dates
+echo  "../../../../../${tbase_}" >> dates
 
 popd
 
-dateDir="${cbase}/date/${conjureNew_date}"
+dateDir="${cbase}/date/${conjureNew_date}/${host_type}"
 mkdir -p "${dateDir}"
 pushd "${dateDir}"
-ln -sf "../../hash/${conjureNew_version}/conjure" conjure
-ln -sf "../../hash/${conjureNew_version}/conjure" conjureNew
+ln -sf "../../../hash/${conjureNew_version}/${host_type}/conjure" conjure
+ln -sf "../../../hash/${conjureNew_version}/${host_type}/conjure" conjureNew
 popd
 
 pushd "${tbase}"
-ln -sf "../../../versions/conjureNew/${host_type}/hash/${conjureNew_version}/conjure" conjure
-ln -sf "../../../versions/conjureNew/${host_type}/hash/${conjureNew_version}/conjure" conjureNew
+ln -sf "../../../versions/conjureNew/hash/${conjureNew_version}/${host_type}/conjure" conjure
+ln -sf "../../../versions/conjureNew/hash/${conjureNew_version}/${host_type}/conjure" conjureNew
 echo "conjureNew,git,${conjureNew_version},${conjureNew_date},${rest_line}" >> data.csv
 
 
@@ -111,7 +111,7 @@ popd
 
 ## savilerow
 name=savilerow
-cbase="${base}/versions/${name}/${host_type}/"
+cbase="${base}/versions/${name}/"
 mkdir -p "${cbase}"
 
 binPath="$(which ${name})"
@@ -120,7 +120,7 @@ version="$(savilerow | egrep -o 'Version: \w+' | egrep -o ': \w+' | egrep -o '\w
 version_date="$(savilerow  | egrep -o '201[0-9]-[0-9][0-9]-[0-9][0-9] [0-9]+:[0-9]+ \+[0-9]+')"
 
 
-newDstDir="${cbase}/hash/${version}"
+newDstDir="${cbase}/hash/${version}/${host_type}"
 mkdir -p "${newDstDir}"
 
 cp "${binPath}" "${newDstDir}/${name}"
@@ -129,19 +129,19 @@ cp "$(dirname "${binPath}")/savilerow.jar" "${newDstDir}/${name}.jar"
 
 pushd "${newDstDir}"
 ln -fs "../../../../../${tbase_}" date
-echo  "../../../../..${tbase_}" >> dates
+echo  "../../../../../${tbase_}" >> dates
 popd
 
-dateDir="${cbase}/date/${version_date}"
+dateDir="${cbase}/date/${version_date}/${host_type}"
 mkdir -p "${dateDir}"
 
 pushd "${dateDir}"
 
-ln -sf "../../hash/${version}/savilerow.jar" "${name}.jar"
+ln -sf "../../../hash/${version}/${host_type}/savilerow.jar" "${name}.jar"
 cat << EOF > savilerow
 #!/bin/bash
 DIR="\$( cd "\$( dirname "\$0" )" && pwd )"
-DIR="\${DIR}/../../hash/${version}/"
+DIR="\${DIR}/../../../hash/${version}/${host_type}"
 cd "\$DIR"
 ./savilerow "\$@"
 EOF
@@ -152,11 +152,11 @@ popd
 pushd "${tbase}"
 echo "${name},hg,${version},${version_date},${rest_line}" >> data.csv
 
-ln -sf "../../../versions/${name}/${host_type}/hash/${version}/${name}" "${name}.jar"
+ln -sf "../../../versions/${name}/hash/${version}/${host_type}/${name}" "${name}.jar"
 cat << EOF > savilerow
 #!/bin/bash
 DIR="\$( cd "\$( dirname "\$0" )" && pwd )"
-DIR="\${DIR}/../../../versions/${name}/${host_type}/hash/${version}/"
+DIR="\${DIR}/../../../versions/${name}/hash/${version}/${host_type}/"
 cd "\$DIR"
 ./savilerow "\$@"
 EOF
@@ -166,25 +166,25 @@ popd
 
 #Minion
 name=minion
-cbase="${base}/versions/${name}/${host_type}/"
+cbase="${base}/versions/${name}/"
 mkdir -p "${cbase}"
 
 binPath="$(which ${name})"
 version="$(minion | grep 'HG version:' | egrep -o '"\w+' | egrep -o '\w+')"
 
-newDstDir="${cbase}/hash/${version}"
+newDstDir="${cbase}/hash/${version}/${host_type}"
 mkdir -p "${newDstDir}"
 
 cp "${binPath}" "${newDstDir}/${name}"
 
 pushd "${newDstDir}"
 ln -fs "../../../../../${tbase_}" date
-echo  "../../../../..${tbase_}" >> dates
+echo  "../../../../../${tbase_}" >> dates
 popd
 
 pushd "${tbase}"
 echo "${name},hg,${version},,${rest_line}" >> data.csv
-ln -sf "../../../versions/${name}/${host_type}/hash/${version}/${name}" "${name}"
+ln -sf "../../../versions/${name}/hash/${version}/${host_type}/${name}" "${name}"
 popd
 
 
@@ -192,7 +192,7 @@ popd
 
 function mine(){
 	name="$1"
-	cbase="${base}/versions/${name}/${host_type}/"
+	cbase="${base}/versions/${name}/"
 	mkdir -p "${cbase}"
 
 	binPath="$(which "${name}")"
@@ -206,27 +206,27 @@ function mine(){
 		version_date="$(date --date="${vd}" '+%Y-%m-%e %H:%M %z')"
 	fi
 
-	newDstDir="${cbase}/hash/${version}"
+	newDstDir="${cbase}/hash/${version}/${host_type}"
 	mkdir -p "${newDstDir}"
 
 	cp "${binPath}" "${newDstDir}/${name}"
 
 	pushd "${newDstDir}"
 	ln -fs "../../../../../${tbase_}" date
-	echo  "../../../../..${tbase_}" >> dates
+	echo  "../../../../../${tbase_}" >> dates
 	popd
 
-	dateDir="${cbase}/date/${version_date}"
+	dateDir="${cbase}/date/${version_date}/${host_type}"
 	mkdir -p "${dateDir}"
 
 	pushd "${dateDir}"
-	ln -sf "../../hash/${version}/${name}" "${name}"
+	ln -sf "../../../hash/${version}/${host_type}/${name}" "${name}"
 	popd
 
 	pushd "${tbase}"
 	echo "${name},git,${version},${version_date},${rest_line}" >> data.csv
 
-	ln -sf "../../../versions/${name}/${host_type}/hash/${version}/${name}" "${name}"
+	ln -sf "../../../versions/${name}/hash/${version}/${host_type}/${name}" "${name}"
 	popd
 }
 
