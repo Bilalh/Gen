@@ -46,6 +46,7 @@ fi
 
 set -o errexit
 
+## Conjure
 cbase="${base}/conjureNew/${host_type}/"
 mkdir -p "${cbase}"
 
@@ -71,5 +72,43 @@ pushd "${dateDir}"
 ln -sf "../../hash/${conjureNew_version}/conjure" conjure
 ln -sf "../../hash/${conjureNew_version}/conjure" conjureNew
 popd
+
+
+## savilerow
+name=savilerow
+cbase="${base}/${name}/${host_type}/"
+mkdir -p "${cbase}"
+
+binPath="$(which ${name})"
+
+version="$(savilerow | egrep -o 'Version: \w+' | egrep -o ': \w+' | egrep -o '\w+')"
+
+version_date="$(savilerow  | egrep -o '201[0-9]-[0-9][0-9]-[0-9][0-9] [0-9]+:[0-9]+ \+[0-9]+')"
+
+
+newDstDir="${cbase}/hash/${version}"
+mkdir -p "${newDstDir}"
+
+cp "${binPath}" "${newDstDir}/${name}"
+cp "$(dirname "${binPath}")/savilerow.jar" "${newDstDir}/${name}.jar"
+
+dateDir="${cbase}/date/${version_date}"
+mkdir -p "${dateDir}"
+
+pushd "${dateDir}"
+
+ln -sf "../../hash/${version}/${name}.jar" "${name}.jar"
+cat << EOF > savilerow
+#!/bin/bash
+DIR="\$( cd "\$( dirname "\$0" )" && pwd )"
+DIR="\${DIR}/../../hash/${version}/"
+cd "\$DIR"
+./savilerow "\$@"
+EOF
+
+chmod +x "${savilerow}"
+
+popd
+
 
 set +x
