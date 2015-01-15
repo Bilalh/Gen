@@ -56,9 +56,9 @@ mkdir -p "${tbase}"
 echo "name,scm,hash,ver_date,uname,whoami,host_type,hostname" > "${tbase}/data.csv"
 rest_line="$(uname),$(whoami),${host_type},$(hostname)"
 
-declare -a commands
-commands=(python python3 pip sqlite3 git hg perl parallel ruby ghc cabal gcc clang      pigz pip3 )
-for prog in "${commands[@]}"; do
+declare -a cmds
+cmds=(python python3 pip sqlite3 git hg perl parallel ruby ghc cabal gcc clang      pigz pip3 )
+for prog in "${cmds[@]}"; do
 	val=$($prog --version  2>&1 | cat | head -n3)
 	printf "***${prog}\n%s\n" "${val}" >> "${tbase}/data_other.txt"
 	echo "+++" >> "${tbase}/data_other.txt"
