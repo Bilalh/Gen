@@ -176,8 +176,13 @@ function mine(){
 	binPath="$(which "${name}")"
 	version="$("${name}" --version | grep 'Git version' | egrep -o "'\w+" | egrep -o '\w+')"
 
-	vd="$("${name}" --help | grep 'Build date' | egrep -o ': .*')"
-	version_date="$(date -jf ': %a, %d %b %Y %T %z' "${vd}" '+%Y-%m-%e %H:%M %z')"
+	vd="$("${name}" --help | grep 'Build date' | egrep -o '\w+,.*')"
+
+	if (sw_vers &>/dev/null); then
+		version_date="$(date -jf '%a, %d %b %Y %T %z' "${vd}" '+%Y-%m-%e %H:%M %z')"
+	else
+		version_date="$(date --date="${vd}" '+%Y-%m-%e %H:%M %z')"
+	fi
 
 	newDstDir="${cbase}/hash/${version}"
 	mkdir -p "${newDstDir}"
