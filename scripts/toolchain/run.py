@@ -266,7 +266,7 @@ def classify_error(kind, c, e):
     return Status.errorUnknown
 
 Results = namedtuple("Results", "rcode cpu_time real_time timeout finished cmd status_ kind_")
-def run_with_timeout(timeout, kind, cmd):
+def run_with_timeout(timeout, kind, cmd, extra_env={}):
     code = 0
     finished = True
     status = Status.success
@@ -274,8 +274,10 @@ def run_with_timeout(timeout, kind, cmd):
         date_start = datetime.utcnow()
         start_usr = os.times().children_user
         start_sys = os.times().children_system
+        my_env = os.environ
+        my_env.update(extra_env)
         output = subprocess.check_output(cmd,
-                stderr=subprocess.STDOUT, universal_newlines=True)
+                stderr=subprocess.STDOUT, universal_newlines=True, env=extra_env)
     except subprocess.CalledProcessError as e:
         output = e.output
         code = e.returncode

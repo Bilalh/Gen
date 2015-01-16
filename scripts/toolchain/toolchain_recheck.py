@@ -40,6 +40,8 @@ def do_args():
     parse_args.add_argument("--num_cores", type=int, default=1)
     parse_args.add_argument("--new_conjure", action='store_true',
             help='Use new conjure, must be called conjure-new')
+    parse_args.add_argument("--bin_dir", help='Use the specifed directory for binaries (give a full path)')
+
 
     args = parse_args.parse_args()
 
@@ -55,16 +57,16 @@ def do_args():
     return args
 
 
-def rerun_refine(itimeout, cmd_kind, data):
+def rerun_refine(extra_env, itimeout, cmd_kind, data):
     (eprime_name, cmd_arr) =data
     logger.warn("running:  %s\n", " ".join(cmd_arr))
-    (res, output) = run.run_with_timeout(itimeout, cmd_kind, cmd_arr)
+    (res, output) = run.run_with_timeout(itimeout, cmd_kind, cmd_arr, extra_env=extra_env)
     return ((eprime_name, res.__dict__), " ".join(cmd_arr) + "\n" + output)
 
 
-def rerun_refine_essence(*, outdir, limit, cores, datas):
+def rerun_refine_essence(*, extra_env, outdir, limit, cores, datas):
 
-    rr = partial(rerun_refine, int(math.ceil(limit)), K.refineRandom )
+    rr = partial(rerun_refine, extra_env, int(math.ceil(limit)), K.refineRandom )
     pool = Pool(cores)
     rnds = list(pool.map(rr, datas))
     (results, outputs) =list(zip( *(  rnds ) ))
@@ -92,6 +94,11 @@ op = do_args()
 pprint(op)
 print("")
 
+if op.bin_dir:
+    extra_env = dict(PATH= op.bin_dir + os.environ['PATH'])
+else:
+    extra_env = {}
+
 with (op.indir / "refine_essence.json").open() as f:
     refine_json=json.load(f)
 
@@ -114,7 +121,7 @@ startTime = time.time()
 (new_essence_refine, new_refine_wall_time) = rerun_refine_essence(
     outdir=newBase,
     limit=refine_json['given_time_'],
-    cores=op.num_cores, datas=datas)
+    cores=op.num_cores, datas=datas, extra_env=extra_env)
 
 endTime = time.time()
 logger.info("essence_refine: %s", pformat(new_essence_refine))
