@@ -95,7 +95,7 @@ pprint(op)
 print("")
 
 if op.bin_dir:
-    extra_env = dict(PATH= op.bin_dir + os.environ['PATH'])
+    extra_env = dict(PATH= op.bin_dir + ":" + os.environ['PATH'])
 else:
     extra_env = {}
 
