@@ -41,7 +41,8 @@ def do_args():
     parse_args.add_argument("--new_conjure", action='store_true',
             help='Use new conjure, must be called conjure-new')
     parse_args.add_argument("--bin_dir", help='Use the specifed directory for binaries (give a full path)')
-
+    parse_args.add_argument("--remove_time", action='store_true',
+            help='Remove time command prefixes')
 
     args = parse_args.parse_args()
 
@@ -93,6 +94,7 @@ def rerun_refine_essence(*, extra_env, outdir, limit, cores, datas):
 op = do_args()
 pprint(op)
 print("")
+REMOVE_TIME=op.remove_time
 
 if op.bin_dir:
     extra_env = dict(PATH= op.bin_dir + ":" + os.environ['PATH'])
@@ -112,7 +114,11 @@ copy_file(Path(op.indir / "spec.essence"), essence )
 copy_file(Path(op.indir / "empty.param"), Path(newBase / "empty.param") )
 
 def update_cmd_paths(v):
-    return [c.replace(str(oldBase), str(newBase)) for c in v['cmd'] ]
+    cs = v['cmd']
+    if REMOVE_TIME and len(cs) >= 2 and cs[0]=='time':
+        cs = cs[1:]
+
+    return [c.replace(str(oldBase), str(newBase)) for c in cs ]
 
 datas = [ (k, update_cmd_paths(v)) for k, v in refine_json['data_'].items()  ]
 
