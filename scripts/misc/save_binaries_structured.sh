@@ -87,7 +87,14 @@ mkdir -p "${cbase}"
 conjureNewPath="$(which conjureNew)"
 
 conjureNew_version="$(conjureNew --version | egrep -o 'Version: \w+' | egrep -o ': \w+' | egrep -o '\w+')"
-conjureNew_date="$(conjureNew --version | egrep -o '201[0-9]-[0-9][0-9]-[0-9][0-9] [0-9]+:[0-9]+ \+[0-9]+')"
+
+vd="$(conjureNew --version | egrep -o '201[0-9]-[0-9][0-9]-[0-9][0-9] [0-9]+:[0-9]+ \+[0-9]+')"
+
+if (sw_vers &>/dev/null); then
+	conjureNew_date="$(date -jf '%Y-%m-%e %H:%M %z' "${vd}" '+%F_%s')"
+else
+	conjureNew_date="$(date --date="${vd}" '+%F_%s')"
+fi
 
 newDstDir="${cbase}/hash/${conjureNew_version}/${host_type}"
 mkdir -p "${newDstDir}"
@@ -126,8 +133,13 @@ mkdir -p "${cbase}"
 binPath="$(which ${name})"
 
 version="$(savilerow | egrep -o 'Version: \w+' | egrep -o ': \w+' | egrep -o '\w+')"
-version_date="$(savilerow  | egrep -o '201[0-9]-[0-9][0-9]-[0-9][0-9] [0-9]+:[0-9]+ \+[0-9]+')"
+vd="$(savilerow  | egrep -o '201[0-9]-[0-9][0-9]-[0-9][0-9] [0-9]+:[0-9]+ \+[0-9]+')"
 
+if (sw_vers &>/dev/null); then
+	version_date="$(date -jf '%Y-%m-%e %H:%M %z' "${vd}" '+%F_%s')"
+else
+	version_date="$(date --date="${vd}" '+%F_%s')"
+fi
 
 newDstDir="${cbase}/hash/${version}/${host_type}"
 mkdir -p "${newDstDir}"
@@ -210,9 +222,9 @@ function mine(){
 	vd="$("${name}" --version | egrep 'Git version' | egrep -o '\w+,.*[0-9]' )"
 
 	if (sw_vers &>/dev/null); then
-		version_date="$(date -jf '%a, %d %b %Y %T %z' "${vd}" '+%Y-%m-%e %H:%M %z')"
+		version_date="$(date -jf '%a, %d %b %Y %T %z' "${vd}" '+%F_%s')"
 	else
-		version_date="$(date --date="${vd}" '+%Y-%m-%e %H:%M %z')"
+		version_date="$(date --date="${vd}" '+%F_%s')"
 	fi
 
 	newDstDir="${cbase}/hash/${version}/${host_type}"
