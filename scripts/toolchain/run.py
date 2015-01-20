@@ -42,9 +42,9 @@ def run_refine(extra_env, commands, kwargs, i):
     cmd_arr=shlex.split(cmd_template.format(eprime=eprime, index=i, seed=seed, **kwargs))
 
     logger.warn("running %s:  %s\n\t%s", cmd_kind, cmd_arr, " ".join(cmd_arr))
-    (res, output) = run_with_timeout(kwargs['itimeout'], cmd_kind, cmd_arr, extra_env=extra_env)
-
     vals = dict(eprime=eprime, index=i, seed=seed, **kwargs)
+    (res, output) = run_with_timeout(kwargs['itimeout'], cmd_kind, cmd_arr, extra_env=extra_env, vals=vals)
+
     dic = res.__dict__
     dic.update(vals=vals)
     return ((eprime.stem, dic), " ".join(cmd_arr) + "\n" + output)
@@ -64,7 +64,7 @@ def run_refine_all_essence(*, op, commands, extra_env):
     cmd_arr=shlex.split(cmd_template.format(**mapping))
 
     logger.warn("running %s:  %s\n\t%s", cmd_kind, cmd_arr, " ".join(cmd_arr))
-    (res, output0) = run_with_timeout(mapping['itimeout'], cmd_kind, cmd_arr, extra_env=extra_env)
+    (res, output0) = run_with_timeout(mapping['itimeout'], cmd_kind, cmd_arr, extra_env=extra_env, vals=mapping)
     output = " ".join(cmd_arr) + "\n" + output0
 
     date_end=datetime.utcnow()
@@ -169,10 +169,7 @@ def run_solve(extra_env, op, commands, limit, eprime):
 
         c=shlex.split(cmd_template.format(**locals()))
         logger.warn("running %s", c)
-        (res, output) = run_with_timeout(limit, cmd_kind, c, extra_env=extra_env)
-
-        dres = res.__dict__
-        dres['vals'] = dict(essence=essence,
+        vals = dict(essence=essence,
                             essence_param=essence_param,
                             eprime_solution=eprime_solution,
                             eprime_info=eprime_info,
@@ -180,7 +177,11 @@ def run_solve(extra_env, op, commands, limit, eprime):
                             minion=minion,
                             itimeout=itimeout,
                             mstimeout=mstimeout
-                            )
+                    )
+        (res, output) = run_with_timeout(limit, cmd_kind, c, extra_env=extra_env, vals=vals)
+
+        dres = res.__dict__
+        dres['vals'] = vals
 
         results.append(dres)
 
@@ -285,7 +286,7 @@ def classify_error(kind, c, e):
     return Status.errorUnknown
 
 Results = namedtuple("Results", "rcode cpu_time real_time timeout finished cmd status_ kind_")
-def run_with_timeout(timeout, kind, cmd, extra_env=None):
+def run_with_timeout(timeout, kind, cmd, *, extra_env, vals):
     code = 0
     finished = True
     status = Status.success
@@ -327,7 +328,7 @@ def run_with_timeout(timeout, kind, cmd, extra_env=None):
             finished = False
             status=Status.timeout
         else:
-            with open(cmd[13]) as f:
+            with vals['eprime_info'].open() as f:
                 (m_timeout, m_total, sr_real)  = [ float(l.split(":")[1])
                     for l in f.readlines() if l.split(":")[0]
                         in {"MinionTimeOut", "MinionTotalTime", "SavileRowTotalTime"}]
