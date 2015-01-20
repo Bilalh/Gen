@@ -35,7 +35,7 @@ class ConjureOld(Commands):
     def __init__(self):
         super(ConjureOld, self).__init__(
                 refine_compact="""
-                time conjure
+                conjure
                     --mode compact
                     --in-essence {essence}
                     --out-eprime {eprime}
@@ -43,7 +43,7 @@ class ConjureOld(Commands):
                 """,
 
                 refine_all="""
-                time conjure
+                conjure
                     --mode df
                     --in-essence       {essence}
                     --output-directory {outdir}
@@ -51,7 +51,7 @@ class ConjureOld(Commands):
                 """,
 
                 refine_random="""
-                time conjure
+                conjure
                     --mode random
                     --in-essence {essence}
                     --out-eprime {eprime}
@@ -59,7 +59,7 @@ class ConjureOld(Commands):
                 """,
 
                 refine_param="""
-                time conjure
+                conjure
                     --mode       refineParam
                     --in-essence       {essence}
                     --in-eprime        {eprime}
@@ -69,7 +69,7 @@ class ConjureOld(Commands):
                 """,
 
                 savilerow="""
-                time savilerow  -mode Normal
+                savilerow  -mode Normal
                     -in-eprime                   {eprime}
                     -in-param                    {eprime_param}
                     -out-minion                  {minion}
@@ -81,7 +81,7 @@ class ConjureOld(Commands):
                 """,
 
                 translate_up="""
-                time conjure
+                conjure
                     --mode translateSolution
                     --in-essence            {essence}
                     --out-solution          {essence_solution}
@@ -93,7 +93,7 @@ class ConjureOld(Commands):
                 """,
 
                 validate="""
-                time conjure --mode validateSolution
+                conjure --mode validateSolution
                              --in-essence       {essence}
                              --in-solution      {essence_solution}
                              --in-param         {essence_param}
@@ -110,16 +110,16 @@ class ConjureNew(Commands):
     def __init__(self):
         super(ConjureNew, self).__init__(
                 refine_compact="""
-                time conjureNew {essence}
+                conjureNew {essence}
                     -q f -a r
                     --output-directory {outdir}
-                    --numbering-start {index}
-                    --limit-time      {itimeout}
-                    --seed            {seed}
+                    --numbering-start  {index}
+                    --limit-time       {itimeout}
+                    --seed             {seed}
                 """,
 
                 refine_all="""
-                time conjureNew        {essence}
+                conjureNew             {essence}
                     -q f -a x
                     --output-directory {outdir}
                     --limit-time       {itimeout}
@@ -127,7 +127,7 @@ class ConjureNew(Commands):
                 """,
 
                 refine_random="""
-                time conjureNew {essence}
+                conjureNew {essence}
                     -q f -a r
                     --output-directory {outdir}
                     --numbering-start  {index}
@@ -136,14 +136,14 @@ class ConjureNew(Commands):
                 """,
 
                 refine_param="""
-                time conjureNew refine-param
+                conjureNew refine-param
                     --eprime        {eprime}
                     --essence-param {essence_param}
                     --eprime-param  {eprime_param}
                 """,
 
                 savilerow="""
-                time savilerow  -mode Normal
+                savilerow  -mode Normal
                     -in-eprime                   {eprime}
                     -in-param                    {eprime_param}
                     -out-minion                  {minion}
@@ -155,7 +155,7 @@ class ConjureNew(Commands):
                 """,
 
                 translate_up="""
-                time conjureNew translate-solution
+                conjureNew translate-solution
                     --eprime           {eprime}
                     --essence-param    {essence_param}
                     --eprime-solution  {eprime_solution}
@@ -163,7 +163,7 @@ class ConjureNew(Commands):
                 """,
 
                 validate="""
-                time conjureNew validate-solution
+                conjureNew validate-solution
                              --essence      {essence}
                              --param        {essence_param}
                              --solution     {essence_solution}
