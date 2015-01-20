@@ -62,7 +62,7 @@ atype_def = do
             let inner = withDepth 0
             oneof2 [
                   elements2 [TBool, TInt]
-                , liftM TMatix (inner atype_def)
+                -- , liftM TMatix (inner atype_def)
                 , liftM TSet  (inner atype_def)
                 , liftM TMSet (inner atype_def)
                 , liftM TPar  (inner atype_def)

@@ -14,7 +14,7 @@ instance ToEssence Type where
     toEssence TInt          = [dMake| int |]
     toEssence TBool         = [dMake| bool |]
 
-    -- toEssence (TMatix t)    = error "No Matrix Type"
+    -- toEssence (TMatix t)    = [dMake|  |]
     toEssence (TSet t)      = [dMake| set of &t' |] where t' = toEssence t
     toEssence (TMSet t)     = [dMake| mset of &t' |] where t' = toEssence t
 

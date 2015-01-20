@@ -75,7 +75,7 @@ dom_def =  gets depth_ >>= \case
         , intDom
         , setDom
         -- , msetDom
-        , matixDom
+        -- , matixDom
         , funcDom
         , parDom
         , tupleDom
@@ -85,7 +85,7 @@ dom_def =  gets depth_ >>= \case
         , intDom
         , setDom
         -- , msetDom
-        , matixDom
+        -- , matixDom
         , funcDom
         , relDom
         , parDom
