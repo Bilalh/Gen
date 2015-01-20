@@ -150,6 +150,7 @@ def run_solve(extra_env, op, commands, limit, eprime):
     solving_finished=False
     erroed = None
     last_status=Status.success
+    last_kind  = None
 
 
     for i, (cmd_kind, cmd_template) in enumerate(cmds):
@@ -202,6 +203,7 @@ def run_solve(extra_env, op, commands, limit, eprime):
             erroed=i
             all_finished=False
             last_status = res.status_
+            last_kind   = cmd_kind
             break
         elif cmd_kind == K.translateUp:
             solving_finished=True
@@ -217,7 +219,8 @@ def run_solve(extra_env, op, commands, limit, eprime):
             all_finished=all_finished,
             solving_finished=solving_finished,
             erroed=erroed,
-            last_status=last_status)
+            last_status=last_status,
+            last_kind=last_kind)
 
     with eprime.with_suffix(".output").open("w") as f:
         f.write("\n".join(outputs))

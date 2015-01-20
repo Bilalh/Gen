@@ -75,6 +75,7 @@ instance Pretty KindI where
 data ResultI = ResultI {
          erroed          :: Maybe Int
         ,last_status     :: StatusI
+        ,last_kind       :: KindI
         ,results         :: [CmdI]
         ,total_cpu_time  :: Float
         ,total_real_time :: Float

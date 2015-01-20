@@ -181,6 +181,7 @@ def rerun_solve(outdir, limit, kv):
     solving_finished=False
     erroed = None
     last_status=Status.success
+    last_kind=None
 
     for i, (cmd_kind, cmd_arr) in enumerate(data):
 
@@ -203,6 +204,7 @@ def rerun_solve(outdir, limit, kv):
             erroed=i
             all_finished=False
             last_status = res.status_
+            last_kind  = cmd_kind
             break
 
 
@@ -212,7 +214,8 @@ def rerun_solve(outdir, limit, kv):
             all_finished=all_finished,
             solving_finished=solving_finished,
             erroed=erroed,
-            last_status=last_status)
+            last_status=last_status,
+            last_kind=last_kind)
 
     with (outdir / eprime_name).with_suffix(".output").open("w") as f:
         f.write("\n".join(outputs))
