@@ -124,7 +124,7 @@ echo "conjureNew,git,${conjureNew_version},${conjureNew_date},${rest_line}" >> d
 popd
 
 ## conjureOld
-if ( which conjureOld > /dev/null ); then
+if ( which conjureOld &> /dev/null ); then
 	name=conjureOld
 	cbase="${base}/versions/${name}/"
 	mkdir -p "${cbase}"
