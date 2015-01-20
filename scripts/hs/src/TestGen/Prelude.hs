@@ -128,6 +128,7 @@ ggError title docs = do
         P.$+$ (pretty (lg) )
 #endif
 
+
 ggAssert :: Bool -> GG ()
 ggAssert b = return $ C.assert b ()
 

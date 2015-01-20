@@ -67,7 +67,7 @@ instance Pretty RState where
                 , nn "mostReduced_ =" mostReduced_
                 , nn "otherErrors_ =" (prettyArr otherErrors_)
 
-                , nn "rgen_ =" (show rgen_)
+                -- , nn "rgen_ =" (show rgen_)
                 , nn "hashes_ =" (groom hashes_)
                 ])
 

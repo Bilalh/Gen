@@ -65,6 +65,14 @@ _e e =  case fromEssence e of
         Left er -> error . show .  (pretty &&& pretty . groom) $ er
         Right ee -> ee
 
+_k :: FilePath -> FilePath -> IO (SpecE, RState)
+_k out inn= do
+  reduceMain def{oErrKind_=KindAny_, oErrStatus_=StatusAny_, cores_=1,newConjure_=True,oErrEprime_=Nothing ,rgen_= mkrGen 4, outputDir_=out, specDir_=inn}
+
+plogs :: (a,RState) -> Doc
+plogs (_,RState{rlogs_}) = pretty rlogs_
+
+
 -- _k :: IO SpecE
 -- _k = do
 --     -- let fp = "/Users/bilalh/CS/break_conjure/misc/1419393045_122/spec.specE"
