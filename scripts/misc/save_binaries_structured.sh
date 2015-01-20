@@ -121,8 +121,49 @@ ln -sf "../../../versions/conjureNew/hash/${conjureNew_version}/${host_type}/con
 ln -sf "../../../versions/conjureNew/hash/${conjureNew_version}/${host_type}/conjure" conjureNew
 echo "conjureNew,git,${conjureNew_version},${conjureNew_date},${rest_line}" >> data.csv
 
-
 popd
+
+## conjureOld
+if ( which conjureOld > /dev/null ); then
+	name=conjureOld
+	cbase="${base}/versions/${name}/"
+	mkdir -p "${cbase}"
+
+	binPath="$(which ${name})"
+
+	version="$(conjureOld  2>&1 | egrep -o 'Version: \w+' | egrep -o ': \w+' | egrep -o '\w+')"
+	vd="$(conjureOld 2>&1 | egrep -o '201[0-9]-[0-9][0-9]-[0-9][0-9] [0-9]+:[0-9]+ \+[0-9]+')"
+
+	if (sw_vers &>/dev/null); then
+		version_date="$(date -jf '%Y-%m-%e %H:%M %z' "${vd}" '+%F_%s')"
+	else
+		version_date="$(date --date="${vd}" '+%F_%s')"
+	fi
+
+	newDstDir="${cbase}/hash/${version}/${host_type}"
+	mkdir -p "${newDstDir}"
+
+	cp "${binPath}" "${newDstDir}/${name}"
+
+
+	pushd "${newDstDir}"
+	ln -fs "../../../../../${tbase_}" date
+	echo  "../../../../../${tbase_}" >> dates
+	popd
+
+	dateDir="${cbase}/date/${version_date}/${host_type}"
+	mkdir -p "${dateDir}"
+
+	pushd "${dateDir}"
+	ln -sf "../../../hash/${version}/${host_type}/" "${name}"
+	popd
+
+	pushd "${tbase}"
+	echo "${name},hg,${version},${version_date},${rest_line}" >> data.csv
+	ln -sf "../../../versions/${name}/hash/${version}/${host_type}/${name}" "${name}"
+	popd
+fi
+
 
 
 ## savilerow
