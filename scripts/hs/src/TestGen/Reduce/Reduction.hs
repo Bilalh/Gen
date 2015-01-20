@@ -424,8 +424,9 @@ singleLit l@(TRel x) = do
   return [rel, empty]
 
 
-singleLit (TPar x) = do
-  let empty = ELit $ EPartition []
+singleLit l@(TPar x) = do
+  ty <- ttypeOf l
+  let empty = ETyped ty (ELit $ EPartition [])
 
   lits <- concatMapM (singleLit) [x,x]
   let lits' = take 3 $  nub2 lits

@@ -1,6 +1,6 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
-{-# LANGUAGE ScopedTypeVariables, MultiWayIf #-}
+{-# LANGUAGE ScopedTypeVariables, MultiWayIf, LambdaCase #-}
 
 module TestGen.Arbitrary.Literal where
 
@@ -32,12 +32,13 @@ setLit = do
     innerType <- withDepthDec atype
     withDepthDec (setLitOf innerType)
 
---FIXME  Make the values in the set possibly unique
 setLitOf :: Type ->  GG Expr
 setLitOf innerType = do
     depth_ <- gets depth_
-    exprs <- listOfBounds (0,  min 15 (2 * depth_) ) (withDepthDec $ exprOf innerType)
-    return $ ELit $ ESet $ map EExpr $ exprs
+    listOfBounds (0,  min 15 (2 * depth_) ) (withDepthDec $ exprOf innerType) >>= \case
+                     [] -> return $ ETyped (TSet innerType) (ELit $ ESet [])
+                     xs -> return . ELit . ESet . map EExpr $ xs
+    --
 
 
 msetLit :: GG Expr
@@ -48,8 +49,9 @@ msetLit = do
 msetLitOf :: Type ->  GG Expr
 msetLitOf innerType = do
     depth_ <- gets depth_
-    exprs <- listOfBounds (0,  min 15 (2 * depth_) ) (withDepthDec $ exprOf innerType)
-    return $ ELit $ EMSet $ map EExpr $ exprs
+    listOfBounds (0,  min 15 (2 * depth_) ) (withDepthDec $ exprOf innerType) >>= \case
+                     [] -> return $ ETyped (TSet innerType) (ELit $ EMSet [])
+                     xs -> return . ELit . EMSet . map EExpr $ xs
 
 
 matrixLitOf :: Type -> GG Expr
@@ -67,9 +69,10 @@ funcLitOf fromType toType = do
     numElems <- choose2 (1, min 15 (2 * depth_) )
     froms <- vectorOf2 numElems  ( withDepthDec $ exprOf fromType)
     tos   <- vectorOf2 numElems  ( withDepthDec $ exprOf toType)
-    let vs = zipWith (\a b -> (EExpr $ a, EExpr $ b) ) froms tos
 
-    return $ ELit $ EFunction vs
+    case zipWith (\a b -> (EExpr $ a, EExpr $ b) ) froms tos of
+      [] -> return $ ETyped (TFunc fromType toType) $ (ELit $ EFunction [])
+      xs -> return $ ELit $ EFunction xs
 
 
 tupleLitOf :: [Type] -> GG Expr
@@ -92,8 +95,10 @@ relLitOf types = do
     if
         | depth_ < 2 -> ggError "relLitOf depth_ <2" [pretty $ groom types]
         | otherwise -> do
-            parts <-  vectorOf2 3 $ mkParts types
-            return $ ELit $ ERelation parts
+            parts <- vectorOf2 3 $ mkParts types
+            case parts of
+              [] -> return $ ETyped (TRel types)  (ELit $ ERelation [])
+              xs -> return $ ELit $ ERelation xs
 
     where
     mkParts tys = do
@@ -115,9 +120,9 @@ parLitOf innerType = do
             numElems <- choose2 (1,  minimum [maxElems, 15,  2 *  depth_  ] )
             numParts <- choose2 (1, numElems)
 
-            parts <- mkParts numElems numParts (I.empty)
-
-            return $ ELit $ EPartition parts
+            mkParts numElems numParts (I.empty) >>= \case
+                    [] -> return $ ETyped (TPar innerType) (ELit $ EPartition [])
+                    xs -> return $ ELit $ EPartition xs
 
     where
 
