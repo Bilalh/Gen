@@ -5,3 +5,4 @@ a.essence
 a.param
 .cabal-sandbox
 toolchain
+.cabal-sandbox-profile
