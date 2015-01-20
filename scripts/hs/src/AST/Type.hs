@@ -34,7 +34,7 @@ instance ToEssence Type where
 
     -- toEssence TAny          =
 
-    toEssence x = error . show . vcat $ [ "fromEssence Type", "x=" <+> (pretty .groom $ x)]
+    toEssence x = error . show . vcat $ [ "ToEssence Type", "x=" <+> (pretty .groom $ x)]
 
 
 instance FromEssence Type where
