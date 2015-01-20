@@ -148,7 +148,7 @@ instance WithDoms m => TypeOf Proc m where
   ttypeOf (Pindex _ x2) = ttypeOf x2
   ttypeOf (Papply x1 _) = ttypeOf x1 >>= \case
     TFunc _ b -> return b
-    other -> error . show . vcat $ ["Papply type is not TFunc ", pretty other]
+    other -> error . show . vcat $ ["Papply type is not TFunc ", pretty . show $ other]
 
 
   ttypeOf (Pfreq _ _)       = return TInt
@@ -201,7 +201,7 @@ innerTyForSets  (TSet ty)   = ty
 innerTyForSets  (TMSet ty)  = ty
 innerTyForSets  (TRel xs)   = TTuple xs
 innerTyForSets  (TFunc a b) = TTuple [a,b]
-innerTyForSets ty = error . show . vcat $ ["innerTyForSets other type given ", pretty ty]
+innerTyForSets ty = error . show . vcat $ ["innerTyForSets other type given ", pretty . show $  ty]
 
 
 typeOfDom :: Domain -> Type

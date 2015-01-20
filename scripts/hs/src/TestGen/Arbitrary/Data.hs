@@ -84,7 +84,7 @@ instance Show SS where
                 , ",doms_ = "
                 , pretty $ groom doms_
                 , ",newVars_ = "
-                , prettyArr newVars_
+                , prettyTypeArr newVars_
             ]
             )
 
@@ -97,10 +97,14 @@ instance Pretty SS where
                 , ",doms_ = "
                 , pretty doms_
                 , ",newVars_ = "
-                , prettyArr newVars_
+                , prettyTypeArr newVars_
                 , "__lc ="  <+> (pretty  __lc)
             ]
             )
+
+prettyTypeArr :: [(Text,Type)] -> Doc
+prettyTypeArr [] = "[]"
+prettyTypeArr vs = vcat $ map (\(a,b) -> pretty (a, show b) ) vs
 
 prettyArr :: Pretty a => [a] -> Doc
 prettyArr [] = "[]"

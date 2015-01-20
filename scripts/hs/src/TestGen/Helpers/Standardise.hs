@@ -1,6 +1,7 @@
 {-# LANGUAGE ScopedTypeVariables, FlexibleInstances #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module TestGen.Helpers.Standardise where
+module TestGen.Helpers.Standardise(Standardise(..)) where
 
 import TestGen.Helpers.StandardImports
 import TestGen.Arbitrary.Data
@@ -9,6 +10,9 @@ import qualified Data.Traversable as V
 
 class (Pretty a, Eq a, Show a) => Standardise a  where
     standardise :: (HasLogger m) => a -> m a
+
+instance Pretty Type where
+    pretty = pretty . show
 
 instance Standardise Type where
     standardise = return

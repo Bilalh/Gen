@@ -88,7 +88,7 @@ instance DepthOf Type where
     --FIXME what should the depth of any be?
     depthOf TAny             = 0
 
-    depthOf ty = docError [ "depthOf not implemented", pretty ty ]
+    depthOf ty = docError [ "depthOf not implemented", pretty . show $ ty ]
 
 nonEmpty :: ([t] -> Integer) -> [t] -> Integer
 nonEmpty _ [] = 0

@@ -58,9 +58,12 @@ instance FromEssence Type where
 
     fromEssence x = error . show . vcat $ [ "fromEssence Type", "x=" <+> pretty x]
 
+-- Having a Pretty instances is error prone,
+-- Since we might want  show or toEssence
+-- and toEssecne will break on TAny (as it should)
 
-instance Pretty Type where
-    pretty  =  pretty  . toEssence
+-- instance Pretty Type where
+--     pretty  =  pretty  . toEssence
 
-instance Pretty [Type] where
-    pretty  =  vcat . map pretty
+-- instance Pretty [Type] where
+--     pretty  =  vcat . map pretty
