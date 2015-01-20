@@ -66,17 +66,33 @@ runSpec spE = do
         let
             sameError :: Either RefineR (RefineR, SolveR) -> (Bool, Maybe RunResult)
             sameError (Left SettingI{successful_=False, data_=RefineM ms})
-                | modelRefinerrError rrErrorKind =
+                | modelRefineError rrErrorKind =
 
                 let sks = M.toList $  M.map ( status_ &&& kind_) ms
-                in case any (\(_name,(status,_)) -> status == rrErrorStatus) sks of
-                  True  -> (True, Just $ RunResult{resDirectory_ = path
-                                                 ,resErrKind_   = rrErrorKind
-                                                 ,resErrStatus_ = rrErrorStatus})
+                in case anyFirst (rrErrorStatus,rrErrorKind) sks of
+                  Just (resErrStatus_,resErrKind_) ->
+                      (True, Just $ RunResult{resDirectory_ = path
+                                              ,resErrKind_
+                                              ,resErrStatus_})
 
-                  False -> (False, Just $ RunResult{resDirectory_ = path
+                  Nothing -> (False, Just $ RunResult{resDirectory_ = path
                                                    ,resErrKind_   = fstKind sks
                                                    ,resErrStatus_ = fstStatus sks})
+
+                where
+                  anyFirst (StatusAny_,KindAny_) ((_,(x,y)):_) = Just (x,y)
+                  anyFirst (StatusAny_, ki)      ((_,(x,_)):_) = Just (x,ki)
+                  anyFirst (si,KindAny_)       v@((_,(_,y)):_) =
+                      if any (\(_,(s,_)) -> s == si ) v then
+                          Just (si,y)
+                      else
+                          Nothing
+
+                  anyFirst skIn sks =
+                      if any (\(_,sk) -> sk == skIn ) sks then
+                          Just skIn
+                      else
+                          Nothing
 
 
             sameError (Right (_, SettingI{successful_=False,data_=SolveM ms })) =
@@ -88,13 +104,36 @@ runSpec spE = do
 
                     sks = M.toList $  M.mapMaybe f ms
 
-                in case any (\(_name,sk) -> sk == (rrErrorStatus,rrErrorKind) ) sks of
-                   True  -> (True, Just $ RunResult{resDirectory_ = path
-                                                   ,resErrKind_   = rrErrorKind
-                                                   ,resErrStatus_ = rrErrorStatus})
-                   False -> (False, Just $ RunResult{resDirectory_ = path
-                                                   ,resErrKind_   = fstKind sks
-                                                   ,resErrStatus_ = fstStatus sks})
+                in case anyFirst (rrErrorStatus,rrErrorKind) sks of
+                   Just (resErrStatus_,resErrKind_)   ->
+                       (True, Just $ RunResult{resDirectory_ = path
+                                              ,resErrKind_
+                                              ,resErrStatus_})
+                   Nothing -> (False, Just $ RunResult{resDirectory_ = path
+                                                      ,resErrKind_   = fstKind sks
+                                                      ,resErrStatus_ = fstStatus sks})
+
+                where
+                  anyFirst (StatusAny_,KindAny_) ((_,(x,y)):_) = Just (x,y)
+                  anyFirst (StatusAny_,ki) v@((_,(x,_)):_) =
+                      if any (\(_,(_,k)) -> k == ki ) v then
+                          Just (x,ki)
+                      else
+                          Nothing
+
+                  anyFirst (si,KindAny_) v@((_,(_,y)):_) =
+                      if any (\(_,(s,_)) -> s == si ) v then
+                          Just (si,y)
+                      else
+                          Nothing
+
+                  anyFirst skIn sks =
+                      if any (\(_,sk) -> sk == skIn ) sks then
+                          Just skIn
+                      else
+                          Nothing
+
+
 
             sameError _ = (False, Nothing)
 
@@ -103,6 +142,7 @@ runSpec spE = do
 
             fstKind []            = error "fstKind no kinds"
             fstKind ((_,(_,k)):_) = k
+
 
 
         let stillErroed  = sameError res
@@ -120,11 +160,12 @@ runSpec spE = do
 
 
 
-modelRefinerrError :: KindI -> Bool
-modelRefinerrError RefineCompact_ = True
-modelRefinerrError RefineRandom_  = True
-modelRefinerrError RefineAll_     = True
-modelRefinerrError _              = False
+modelRefineError :: KindI -> Bool
+modelRefineError RefineCompact_ = True
+modelRefineError RefineRandom_  = True
+modelRefineError RefineAll_     = True
+modelRefineError KindAny_       = True
+modelRefineError _              = False
 
 
 addOtherError :: RunResult -> RR ()

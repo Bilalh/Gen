@@ -26,10 +26,11 @@ reduceMain rr = do
 
   (sfin,state) <- (flip runStateT) rr $
       return sp
-      >>= (note "removeUnusedDomains") removeUnusedDomains
-      >>= (note "removeConstraints")   removeConstraints
-      -- >>= (note "simplyConstraints")   simplyConstraints
-      -- >>= (note "removeUnusedDomains") removeUnusedDomains
+      >>= (note "tryRemoveConstraints") tryRemoveConstraints
+      >>= (note "removeUnusedDomains")  removeUnusedDomains
+      >>= (note "removeConstraints")    removeConstraints
+      >>= (note "simplyConstraints")    simplyConstraints
+      >>= (note "removeUnusedDomains")  removeUnusedDomains
 
 
   noteFormat "State" [pretty state]
@@ -46,6 +47,15 @@ reduceMain rr = do
       noteFormat ("@" <+> tx <+> "End") [pretty newSp]
 
       return newSp
+
+
+tryRemoveConstraints :: SpecE -> RR SpecE
+tryRemoveConstraints  sp@(SpecE ds _) = do
+  runSpec (SpecE ds []) >>= \case
+    Just r  -> do
+      recordResult r
+      return (SpecE ds [])
+    Nothing -> return sp
 
 removeUnusedDomains :: SpecE -> RR SpecE
 removeUnusedDomains sp@(SpecE ods es) = do
