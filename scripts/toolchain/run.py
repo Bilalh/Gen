@@ -43,7 +43,11 @@ def run_refine(extra_env, commands, kwargs, i):
 
     logger.warn("running %s:  %s\n\t%s", cmd_kind, cmd_arr, " ".join(cmd_arr))
     (res, output) = run_with_timeout(kwargs['itimeout'], cmd_kind, cmd_arr, extra_env=extra_env)
-    return ((eprime.stem, res.__dict__), " ".join(cmd_arr) + "\n" + output)
+
+    vals = dict(eprime=eprime, index=i, seed=seed, **kwargs)
+    dic = res.__dict__
+    dic.update(vals=vals)
+    return ((eprime.stem, dic), " ".join(cmd_arr) + "\n" + output)
 
 
 def run_refine_all_essence(*, op, commands, extra_env):
@@ -72,7 +76,9 @@ def run_refine_all_essence(*, op, commands, extra_env):
     with (op.outdir / "all.refine-output").open("w") as f:
         f.write(output)
 
-    return (dict(all=res.__dict__), res.real_time)
+    dic = res.__dict__
+    dic.update(vals=mapping)
+    return (dict(all=dic), res.real_time)
 
 
 
@@ -84,7 +90,7 @@ def run_refine_essence(*, op, commands, random, cores, extra_env):
     mapping['itimeout']  = int(math.ceil(limit))
     mapping['seed_base'] = uniform_int(0, 2 ** 24)
 
-    rr = partial(run_refine, commands, mapping)
+    rr = partial(run_refine, extra_env, commands, mapping)
     pool = Pool(cores)
     rnds = list(pool.map(rr, range(0, random + 1)))
     (results, outputs) =list(zip( *(  rnds ) ))
@@ -165,6 +171,16 @@ def run_solve(extra_env, op, commands, limit, eprime):
         (res, output) = run_with_timeout(limit, cmd_kind, c, extra_env=extra_env)
 
         dres = res.__dict__
+        dres['vals'] = dict(essence=essence,
+                            essence_param=essence_param,
+                            eprime_solution=eprime_solution,
+                            eprime_info=eprime_info,
+                            essence_solution=essence_param,
+                            minion=minion,
+                            itimeout=itimeout,
+                            mstimeout=mstimeout
+                            )
+
         results.append(dres)
 
         otimeout = limit
