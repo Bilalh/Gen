@@ -116,6 +116,9 @@ instance Pretty Domain where
     pretty p = pretty $ toEssence p
 
 instance FromEssence Domain where
+
+    fromEssence [dMatch|  bool |] = return DBool
+
     -- integers
     fromEssence [xMatch| r := domain.int.ranges |] = DInt <$> mapM fromEssence r
 
