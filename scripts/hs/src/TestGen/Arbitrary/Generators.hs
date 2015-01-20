@@ -49,7 +49,8 @@ instance Default Generators where
         }
 
 useFunc_def :: FuncsNames -> Bool
-useFunc_def AtoInt = True
-useFunc_def Aparts = True
-useFunc_def Amin   = True
-useFunc_def _      = False
+-- useFunc_def AtoInt = True
+-- useFunc_def Aparts = True
+-- useFunc_def Amin   = True
+useFunc_def Ahist  = True
+useFunc_def _      = True
