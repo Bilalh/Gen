@@ -14,7 +14,9 @@ instance ToEssence Type where
     toEssence TInt          = [dMake| int |]
     toEssence TBool         = [dMake| bool |]
 
-    toEssence (TMatix t)    = [dMake| matrix indexed by [int(1..1)] of &t' |] where t' = toEssence t
+    toEssence (TMatix t)    = [dMake| matrix indexed by [int(1..1)] of &t' |]
+        where t' = toEssence t
+
     toEssence (TSet t)      = [dMake| set of &t' |] where t' = toEssence t
     toEssence (TMSet t)     = [dMake| mset of &t' |] where t' = toEssence t
 

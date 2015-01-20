@@ -8,7 +8,7 @@ import TestGen.Prelude
 
 import TestGen.Arbitrary.Domain
 
-import TestGen.Arbitrary.Expr(exprOf)
+import TestGen.Arbitrary.Expr(exprOf,deAny)
 
 import qualified Data.IntSet as I
 import Data.IntSet(IntSet)
@@ -35,8 +35,9 @@ setLit = do
 setLitOf :: Type ->  GG Expr
 setLitOf innerType = do
     depth_ <- gets depth_
+    t2 <- deAny $ TSet innerType
     listOfBounds (0,  min 15 (2 * depth_) ) (withDepthDec $ exprOf innerType) >>= \case
-                     [] -> return $ ETyped (TSet innerType) (ELit $ ESet [])
+                     [] -> return $ ETyped t2 (ELit $ ESet [])
                      xs -> return . ELit . ESet . map EExpr $ xs
     --
 
@@ -49,8 +50,9 @@ msetLit = do
 msetLitOf :: Type ->  GG Expr
 msetLitOf innerType = do
     depth_ <- gets depth_
+    t2 <- deAny $ TMSet innerType
     listOfBounds (0,  min 15 (2 * depth_) ) (withDepthDec $ exprOf innerType) >>= \case
-                     [] -> return $ ETyped (TSet innerType) (ELit $ EMSet [])
+                     [] -> return $ ETyped t2 (ELit $ EMSet [])
                      xs -> return . ELit . EMSet . map EExpr $ xs
 
 
@@ -70,8 +72,9 @@ funcLitOf fromType toType = do
     froms <- vectorOf2 numElems  ( withDepthDec $ exprOf fromType)
     tos   <- vectorOf2 numElems  ( withDepthDec $ exprOf toType)
 
+    t2 <- deAny $ TFunc fromType toType
     case zipWith (\a b -> (EExpr $ a, EExpr $ b) ) froms tos of
-      [] -> return $ ETyped (TFunc fromType toType) $ (ELit $ EFunction [])
+      [] -> return $ ETyped t2 $ (ELit $ EFunction [])
       xs -> return $ ELit $ EFunction xs
 
 
@@ -96,8 +99,9 @@ relLitOf types = do
         | depth_ < 2 -> ggError "relLitOf depth_ <2" [pretty $ groom types]
         | otherwise -> do
             parts <- vectorOf2 3 $ mkParts types
+            t2 <- deAny $ TRel types
             case parts of
-              [] -> return $ ETyped (TRel types)  (ELit $ ERelation [])
+              [] -> return $ ETyped t2  (ELit $ ERelation [])
               xs -> return $ ELit $ ERelation xs
 
     where
@@ -119,9 +123,9 @@ parLitOf innerType = do
 
             numElems <- choose2 (1,  minimum [maxElems, 15,  2 *  depth_  ] )
             numParts <- choose2 (1, numElems)
-
+            t2 <- deAny $ TPar innerType
             mkParts numElems numParts (I.empty) >>= \case
-                    [] -> return $ ETyped (TPar innerType) (ELit $ EPartition [])
+                    [] -> return $ ETyped t2 (ELit $ EPartition [])
                     xs -> return $ ELit $ EPartition xs
 
     where
