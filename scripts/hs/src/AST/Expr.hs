@@ -303,19 +303,26 @@ instance FromEssence BinOp where
         y' <- fromEssence y
         return $  BDiff x' y'
 
-    fromEssence [eMatch| &x * &y |] = BMult <$> fromEssence x <*> fromEssence y
+    fromEssence [eMatch| &x * &y |]  = BMult <$> fromEssence x <*> fromEssence y
+    fromEssence [eMatch| &x ** &y |] = BPow <$> fromEssence x <*> fromEssence y
+    fromEssence [eMatch| &x % &y |]  = BMod <$> fromEssence x <*> fromEssence y
+
 
     fromEssence [eMatch| &x = &y |]  = BEQ  <$> fromEssence x <*> fromEssence y
     fromEssence [eMatch| &x != &y |] = BNEQ <$> fromEssence x <*> fromEssence y
-
-    fromEssence [eMatch| &x /\ &y |]  = BAnd <$> fromEssence x <*> fromEssence y
-    fromEssence [eMatch| &x \/ &y |]  = BOr  <$> fromEssence x <*> fromEssence y
 
     fromEssence [eMatch| &x < &y  |] = BLT  <$> fromEssence x <*> fromEssence y
     fromEssence [eMatch| &x <= &y |] = BLTE <$> fromEssence x <*> fromEssence y
 
     fromEssence [eMatch| &x >  &y |] = BGT  <$> fromEssence x <*> fromEssence y
     fromEssence [eMatch| &x >= &y |] = BGTE <$> fromEssence x <*> fromEssence y
+
+    fromEssence [eMatch| &x /\ &y |]  = BAnd <$> fromEssence x <*> fromEssence y
+    fromEssence [eMatch| &x \/ &y |]  = BOr  <$> fromEssence x <*> fromEssence y
+
+    fromEssence [eMatch| &x -> &y |]  = Bimply  <$> fromEssence x <*> fromEssence y
+    fromEssence [eMatch| &x <-> &y |]  = Biff    <$> fromEssence x <*> fromEssence y
+
 
     fromEssence x = Left x
 
