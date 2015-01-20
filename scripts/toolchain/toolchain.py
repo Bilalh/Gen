@@ -59,6 +59,11 @@ if __name__ == "__main__":
 
     op = args.do_args()
 
+    if op.bin_dir:
+        extra_env = dict(PATH= op.bin_dir + ":" + os.environ['PATH'])
+    else:
+        extra_env = {}
+
     def setup_logging(outdir):
         p = outdir / "_toolchain.log"
 
@@ -107,10 +112,11 @@ if __name__ == "__main__":
     # Make the eprimes
     if op.refine_all:
         (essence_refine, refine_wall_time) = run.run_refine_all_essence(
-            op=op, commands=commands)
+            op=op, commands=commands, extra_env=extra_env)
     else:
         (essence_refine, refine_wall_time) = run.run_refine_essence(
-            op=op, commands=commands, random=op.num_cores - 1, cores=op.num_cores)
+            op=op, commands=commands, random=op.num_cores - 1, cores=op.num_cores,
+            extra_env=extra_env)
 
 
     endTime = time.time()
@@ -140,7 +146,7 @@ if __name__ == "__main__":
         sys.exit(2)
 
     # Run the SR Minion translate and vaildate
-    solve_op = partial(run.run_solve, op, commands, limit)
+    solve_op = partial(run.run_solve, extra_env, op, commands, limit)
     eprimes = list(op.outdir.glob('*.eprime'))
 
     if not eprimes:

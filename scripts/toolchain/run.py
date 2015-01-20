@@ -30,7 +30,7 @@ def hash_path(path):
 
 # global function for run_refine_essence
 # because nested function can't be pickled
-def run_refine(commands, kwargs, i):
+def run_refine(extra_env, commands, kwargs, i):
     if i == 0:
         eprime = kwargs['outdir'] / "model000000.eprime"
         (cmd_kind, cmd_template) = commands.refine_compact
@@ -42,11 +42,11 @@ def run_refine(commands, kwargs, i):
     cmd_arr=shlex.split(cmd_template.format(eprime=eprime, index=i, seed=seed, **kwargs))
 
     logger.warn("running %s:  %s\n\t%s", cmd_kind, cmd_arr, " ".join(cmd_arr))
-    (res, output) = run_with_timeout(kwargs['itimeout'], cmd_kind, cmd_arr)
+    (res, output) = run_with_timeout(kwargs['itimeout'], cmd_kind, cmd_arr, extra_env=extra_env)
     return ((eprime.stem, res.__dict__), " ".join(cmd_arr) + "\n" + output)
 
 
-def run_refine_all_essence(*, op, commands):
+def run_refine_all_essence(*, op, commands, extra_env):
     limit = op.timeout
     date_start = datetime.utcnow()
 
@@ -60,7 +60,7 @@ def run_refine_all_essence(*, op, commands):
     cmd_arr=shlex.split(cmd_template.format(**mapping))
 
     logger.warn("running %s:  %s\n\t%s", cmd_kind, cmd_arr, " ".join(cmd_arr))
-    (res, output0) = run_with_timeout(mapping['itimeout'], cmd_kind, cmd_arr)
+    (res, output0) = run_with_timeout(mapping['itimeout'], cmd_kind, cmd_arr, extra_env=extra_env)
     output = " ".join(cmd_arr) + "\n" + output0
 
     date_end=datetime.utcnow()
@@ -76,7 +76,7 @@ def run_refine_all_essence(*, op, commands):
 
 
 
-def run_refine_essence(*, op, commands, random, cores):
+def run_refine_essence(*, op, commands, random, cores, extra_env):
     limit = op.timeout
     date_start = datetime.utcnow()
 
@@ -126,7 +126,7 @@ def run_refine_essence(*, op, commands, random, cores):
 def uniform_int(l, u):
     return math.ceil(random.uniform(l - 1, u))
 
-def run_solve(op, commands, limit, eprime):
+def run_solve(extra_env, op, commands, limit, eprime):
     essence          = op.essence
     essence_param    = op.param
     eprime_param     = eprime.with_suffix(".eprime-param")
@@ -162,7 +162,7 @@ def run_solve(op, commands, limit, eprime):
 
         c=shlex.split(cmd_template.format(**locals()))
         logger.warn("running %s", c)
-        (res, output) = run_with_timeout(limit, cmd_kind, c)
+        (res, output) = run_with_timeout(limit, cmd_kind, c, extra_env=extra_env)
 
         dres = res.__dict__
         results.append(dres)

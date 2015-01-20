@@ -19,6 +19,7 @@ def do_args():
     parse_args.add_argument("--seed", type=int)
     parse_args.add_argument("--refine_all", action='store_true',
             help='Produces all models')
+    parse_args.add_argument("--bin_dir", help='Use the specifed directory for binaries (give a full path)')
 
 
     args = parse_args.parse_args()
