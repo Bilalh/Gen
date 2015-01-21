@@ -168,7 +168,7 @@ def run_solve(extra_env, op, commands, limit, eprime):
         mstimeout=itimeout * 1000
 
         c=shlex.split(cmd_template.format(**locals()))
-        logger.warn("running %s", c)
+        logger.warn("running %s\n%s", c, " ".join(c))
         vals = dict(essence=essence,
                             essence_param=essence_param,
                             eprime_solution=eprime_solution,
