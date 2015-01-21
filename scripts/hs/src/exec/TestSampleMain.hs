@@ -9,6 +9,5 @@ main :: IO ()
 main = do
     args <- parseArgs
     print args
-
     generateSpecs (undefined :: WithExtra SpecE) args
     putStrLn "<<Finished>>"
