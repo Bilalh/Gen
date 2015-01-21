@@ -7,8 +7,9 @@ module TestGen.Helpers.SizeOf where
 import AST.Imports
 import TestGen.Arbitrary.Data
 import TestGen.Helpers.Debug
-import qualified Data.Set as S
 
+import qualified Data.Set as S
+import TestGen.Helpers.TypeOf(typeOfDom)
 
 -- How many different unique values are in say a domain
 class SizeOf a where
@@ -88,7 +89,100 @@ instance DepthOf Type where
     --FIXME what should the depth of any be?
     depthOf TAny             = 0
 
-    depthOf ty = docError [ "depthOf not implemented", pretty . show $ ty ]
+    depthOf ty@(TUnamed _) = docError [ "depthOf not implemented", pretty . show $ ty ]
+    depthOf ty@(TEnum _)   = docError [ "depthOf not implemented", pretty . show $ ty ]
+
+instance DepthOf Expr where
+    depthOf (ELit e)      = depthOf e
+    depthOf (EVar _)      = 0
+    depthOf (EQVar _)     = 0
+    depthOf (EBinOp e)    = depthOf e
+    depthOf (EUniOp e)    = depthOf e
+    depthOf (EProc e)     = depthOf e
+    depthOf (EDom e)      =  depthOf e
+    depthOf (ETyped _ e2) = depthOf e2
+    depthOf EEmptyGuard   = 0
+
+    depthOf (EQuan _ e2 e3 e4) = 1 + maximum ([depthOf e2, depthOf e3, depthOf e4])
+
+instance DepthOf UniOp where
+    depthOf (UBar u) = 1 + depthOf u
+    depthOf (UNeg u) = 1 + depthOf u
+
+instance DepthOf BinOp where
+    depthOf (BIn b1 b2)        = 1 +  max (depthOf b1) (depthOf b2)
+    depthOf (BOver b1 b2)      = 1 +  max (depthOf b1) (depthOf b2)
+    depthOf (BEQ b1 b2)        = 1 +  max (depthOf b1) (depthOf b2)
+    depthOf (BNEQ b1 b2)       = 1 +  max (depthOf b1) (depthOf b2)
+    depthOf (BLT b1 b2)        = 1 +  max (depthOf b1) (depthOf b2)
+    depthOf (BLTE b1 b2)       = 1 +  max (depthOf b1) (depthOf b2)
+    depthOf (BGT b1 b2)        = 1 +  max (depthOf b1) (depthOf b2)
+    depthOf (BGTE b1 b2)       = 1 +  max (depthOf b1) (depthOf b2)
+    depthOf (BDiff b1 b2)      = 1 +  max (depthOf b1) (depthOf b2)
+    depthOf (BPlus b1 b2)      = 1 +  max (depthOf b1) (depthOf b2)
+    depthOf (BMult b1 b2)      = 1 +  max (depthOf b1) (depthOf b2)
+    depthOf (BDiv b1 b2)       = 1 +  max (depthOf b1) (depthOf b2)
+    depthOf (BPow b1 b2)       = 1 +  max (depthOf b1) (depthOf b2)
+    depthOf (BMod b1 b2)       = 1 +  max (depthOf b1) (depthOf b2)
+    depthOf (BAnd b1 b2)       = 1 +  max (depthOf b1) (depthOf b2)
+    depthOf (BOr b1 b2)        = 1 +  max (depthOf b1) (depthOf b2)
+    depthOf (Bimply b1 b2)     = 1 +  max (depthOf b1) (depthOf b2)
+    depthOf (Biff b1 b2)       = 1 +  max (depthOf b1) (depthOf b2)
+    depthOf (Bsubset b1 b2)    = 1 +  max (depthOf b1) (depthOf b2)
+    depthOf (BsubsetEq b1 b2)  = 1 +  max (depthOf b1) (depthOf b2)
+    depthOf (Bsupset b1 b2)    = 1 +  max (depthOf b1) (depthOf b2)
+    depthOf (BsupsetEq b1 b2)  = 1 +  max (depthOf b1) (depthOf b2)
+    depthOf (Bintersect b1 b2) = 1 +  max (depthOf b1) (depthOf b2)
+    depthOf (Bunion b1 b2)     = 1 +  max (depthOf b1) (depthOf b2)
+    depthOf (BlexLT b1 b2)     = 1 +  max (depthOf b1) (depthOf b2)
+    depthOf (BlexLTE b1 b2)    = 1 +  max (depthOf b1) (depthOf b2)
+    depthOf (BlexGT b1 b2)     = 1 +  max (depthOf b1) (depthOf b2)
+    depthOf (BlexGTE b1 b2)    = 1 +  max (depthOf b1) (depthOf b2)
+
+instance DepthOf Literal where
+    depthOf (EB _)                = 0
+    depthOf (EI _)                = 0
+    depthOf (ETuple l)            = 1 + maximum (map depthOf l)
+    depthOf (EMatrix l1 _)        = 1 + depthOfOrZero l1
+    depthOf (ESet l)              = 1 + depthOfOrZero l
+    depthOf (EMSet l)             = 1 + depthOfOrZero l
+    depthOf (EFunction [])        = 1
+    depthOf (EFunction ((a,b):_)) = 1 + maximum [depthOf a, depthOf b]
+    depthOf (ERelation l)         = 1 + depthOfOrZero l
+    depthOf (EPartition [])       = 1
+    depthOf (EPartition xs)       = 1 + maximum (map (depthOfOrZero) xs)
+    depthOf (EExpr l)             = depthOf l
+
+instance DepthOf Proc where
+    depthOf (PallDiff p)         = 1 + depthOf p
+    depthOf (Pindex p1 p2)       = 1 + max  (depthOf p1) (depthOf p2)
+    depthOf (Papply p1 p2)       = 1 + max  (depthOf p1) (depthOfOrZero p2)
+    depthOf (Pfreq p1 p2)        = 1 + max  (depthOf p1) (depthOf p2)
+    depthOf (Phist p1 p2)        = 1 + max  (depthOf p1) (depthOf p2)
+    depthOf (Pmax p)             = 1 + depthOf p
+    depthOf (Pmin p)             = 1 + depthOf p
+    depthOf (PtoInt p)           = 1 + depthOf p
+    depthOf (PtoMSet p)          = 1 + depthOf p
+    depthOf (PtoRelation p)      = 1 + depthOf p
+    depthOf (PtoSet p)           = 1 + depthOf p
+    depthOf (Pdefined p)         = 1 + depthOf p
+    depthOf (Pimage p1 p2)       = 1 + max  (depthOf p1) (depthOf p2)
+    depthOf (Pinverse p1 p2)     = 1 + max  (depthOf p1) (depthOf p2)
+    depthOf (PpreImage p1 p2)    = 1 + max  (depthOf p1) (depthOf p2)
+    depthOf (Prange p)           = 1 + depthOf p
+    depthOf (Papart p1 p2 p3)    = 1 + maximum (map depthOf [p1,p2,p3])
+    depthOf (Pparts p)           = 1 + depthOf p
+    depthOf (Pparty p1 p2)       = 1 + max  (depthOf p1) (depthOf p2)
+    depthOf (Pparticipants p)    = 1 + depthOf p
+    depthOf (Ptogether p1 p2 p3) = 1 + maximum (map depthOf [p1,p2,p3])
+
+instance DepthOf Domain where
+    depthOf =  depthOf .  typeOfDom
+
+
+depthOfOrZero :: (DepthOf x) => [x] -> Integer
+depthOfOrZero []    = 0
+depthOfOrZero (x:_) = depthOf x
 
 nonEmpty :: ([t] -> Integer) -> [t] -> Integer
 nonEmpty _ [] = 0

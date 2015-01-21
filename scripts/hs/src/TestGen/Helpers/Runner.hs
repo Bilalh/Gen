@@ -50,7 +50,7 @@ data StatusI =
     | ConjureNA_
     | ConjureInvalid_
     | StatusAny_
-    deriving (Show,Eq,Enum,Generic,Typeable, Data)
+    deriving (Show,Eq,Enum,Generic,Typeable, Data, Read)
 
 instance Pretty StatusI where
     pretty = pretty . show
@@ -65,7 +65,7 @@ data KindI =
     | Validate_
     | ValidateOld_
     | KindAny_
-    deriving (Show,Eq,Enum,Generic,Typeable, Data)
+    deriving (Show,Eq,Enum,Generic,Typeable, Data, Read)
 
 
 instance Pretty KindI where
