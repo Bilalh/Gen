@@ -38,7 +38,9 @@ def data_convert_back(d):
         status = d['status_'][0].lower() + d['status_'][1:-1]
         d['status_'] = getattr(Status, status)
 
-    for n in ['eprime', 'essence', 'outdir', 'outdir_']:
+    for n in ['eprime', 'essence', 'eprime_info', 'eprime_param', 'minion',
+            'eprime_solution', 'essence_param', 'essence_solution',
+            'outdir', 'outdir_']:
         if n in d:
             d[n] = Path(d[n])
 
@@ -72,7 +74,6 @@ def do_args():
 
 
 def rerun_refine(extra_env, itimeout, data):
-    logger.warn(pformat(data))
     (eprime_name, cmd_data) =data
     cmd_arr = cmd_data['cmd']
 
@@ -108,8 +109,6 @@ def rerun_refine_essence(*, extra_env, outdir, limit, cores, datas):
                 for (_, data) in results  ) )
 
 
-
-
 op = do_args()
 pprint(op)
 print("")
@@ -130,7 +129,6 @@ with (op.indir / "refine_essence.json").open() as f:
     refine_json=json.load(f, object_hook=data_convert_back)
 
 oldBase = refine_json['outdir_']
-# newBase = op.outdir / (oldBase.name)
 newBase = op.outdir
 os.makedirs(str(newBase), exist_ok=True)
 essence=Path(newBase / "spec.essence")
@@ -140,9 +138,14 @@ copy_file(Path(op.indir / "empty.param"), Path(newBase / "empty.param") )
 
 
 def update_cmd_paths(v):
-    v['vals'].update(outdir=newBase,
-        eprime   = newBase / v['vals']['eprime'].name,
-        essence  = newBase / v['vals']['essence'].name )
+    v['vals'].update(outdir=newBase)
+
+    for name in ['eprime', 'essence', 'eprime_info', 'eprime_param', 'minion',
+            'eprime_solution', 'essence_param', 'essence_solution']:
+        if name in v['vals']:
+            v['vals'][name] = newBase / v['vals'][name].name
+
+
 
     (new_kind, new_cmd_) = Com.kind_to_template(v['kind_'])
     new_cmd = new_cmd_.format(**v['vals'])
@@ -193,7 +196,7 @@ with ( newBase / "refine_essence.json" ).open("w") as f:
 
 
 if not successful:
-    logger.warn("Not successful")
+    logger.warn("Not successful when refining")
     sys.exit(5)
 
 if not (op.indir / "solve_eprime.json").exists():
@@ -202,7 +205,7 @@ if not (op.indir / "solve_eprime.json").exists():
 
 # solve
 
-def rerun_solve(outdir, limit, kv):
+def rerun_solve(extra_env, outdir, limit, kv):
     eprime_name, data=kv
 
     results=[]
@@ -215,12 +218,17 @@ def rerun_solve(outdir, limit, kv):
     last_status=Status.success
     last_kind=None
 
-    for i, (cmd_kind, cmd_arr) in enumerate(data):
+
+    for i, (cmd_kind, cmd_data) in enumerate(data):
+
+        cmd_arr = cmd_data['cmd']
 
         logger.warn("running:  %s\n", " ".join(cmd_arr))
-        (res, output) = run.run_with_timeout(limit, cmd_kind, cmd_arr)
+        (res, output) = run.run_with_timeout(limit, cmd_kind, cmd_arr,
+            vals=cmd_data['vals'], extra_env=extra_env)
 
         dres = res.__dict__
+        dres['vals'] = cmd_data['vals']
         results.append(dres)
 
         limit -= res.cpu_time
@@ -256,10 +264,8 @@ def rerun_solve(outdir, limit, kv):
 
 
 with (op.indir / "solve_eprime.json").open() as f:
-    solve_eprime_json=json.load(f)
+    solve_eprime_json=json.load(f, object_hook=data_convert_back)
 
-
-solve_op = partial(rerun_solve, newBase, solve_eprime_json['given_time_'])
 
 def check_kind(r):
     if op.new_conjure and r['kind_'] == 'ValidateOld_':
@@ -273,7 +279,9 @@ def org_data(datas):
 
 
 sdatas = [ (k, org_data(v) ) for k, v in solve_eprime_json['data_'].items()  ]
+logger.warn("sdatas %s", pformat(sdatas))
 
+solve_op = partial(rerun_solve, extra_env, newBase, solve_eprime_json['given_time_'])
 
 pool = Pool(op.num_cores)
 solve_results = dict(pool.map(solve_op, sdatas))

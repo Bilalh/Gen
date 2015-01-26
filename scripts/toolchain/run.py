@@ -173,6 +173,8 @@ def run_solve(extra_env, op, commands, limit, eprime):
                             essence_param=essence_param,
                             eprime_solution=eprime_solution,
                             eprime_info=eprime_info,
+                            eprime_param=eprime_param,
+                            eprime=eprime,
                             essence_solution=essence_param,
                             minion=minion,
                             itimeout=itimeout,

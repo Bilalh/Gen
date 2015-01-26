@@ -132,16 +132,16 @@ class ConjureNew(Commands):
                 refine_compact="""
                 conjureNew {essence}
                     -q f -a r
-                    --output-directory {outdir}
+                    --output-directory '{outdir}'
                     --numbering-start  {index}
                     --limit-time       {itimeout}
                     --seed             {seed}
                 """,
 
                 refine_all="""
-                conjureNew             {essence}
+                conjureNew             '{essence}'
                     -q f -a x
-                    --output-directory {outdir}
+                    --output-directory '{outdir}'
                     --limit-time       {itimeout}
                     --seed             {seed}
                 """,
@@ -149,7 +149,7 @@ class ConjureNew(Commands):
                 refine_random="""
                 conjureNew {essence}
                     -q f -a r
-                    --output-directory {outdir}
+                    --output-directory '{outdir}'
                     --numbering-start  {index}
                     --limit-time       {itimeout}
                     --seed             {seed}
@@ -157,18 +157,18 @@ class ConjureNew(Commands):
 
                 refine_param="""
                 conjureNew refine-param
-                    --eprime        {eprime}
-                    --essence-param {essence_param}
-                    --eprime-param  {eprime_param}
+                    --eprime        '{eprime}'
+                    --essence-param '{essence_param}'
+                    --eprime-param  '{eprime_param}'
                 """,
 
                 savilerow="""
                 savilerow  -mode Normal
-                    -in-eprime                   {eprime}
-                    -in-param                    {eprime_param}
-                    -out-minion                  {minion}
-                    -out-solution                {eprime_solution}
-                    -out-info                    {eprime_info}
+                    -in-eprime                   '{eprime}'
+                    -in-param                    '{eprime_param}'
+                    -out-minion                  '{minion}'
+                    -out-solution                '{eprime_solution}'
+                    -out-info                    '{eprime_info}'
                     -run-solver
                     -timelimit                   {mstimeout}
                     -solver-options '-timelimit  {itimeout}'
@@ -176,17 +176,17 @@ class ConjureNew(Commands):
 
                 translate_up="""
                 conjureNew translate-solution
-                    --eprime           {eprime}
-                    --essence-param    {essence_param}
-                    --eprime-solution  {eprime_solution}
-                    --essence-solution {essence_solution}
+                    --eprime           '{eprime}'
+                    --essence-param    '{essence_param}'
+                    --eprime-solution  '{eprime_solution}'
+                    --essence-solution '{essence_solution}'
                 """,
 
                 validate="""
                 conjureNew validate-solution
-                             --essence      {essence}
-                             --param        {essence_param}
-                             --solution     {essence_solution}
+                             --essence      '{essence}'
+                             --param        '{essence_param}'
+                             --solution     '{essence_solution}'
                 """
                 )
 
