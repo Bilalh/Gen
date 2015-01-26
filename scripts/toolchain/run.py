@@ -171,11 +171,11 @@ def run_solve(extra_env, op, commands, limit, eprime):
         logger.warn("running %s\n%s", c, " ".join(c))
         vals = dict(essence=essence,
                             essence_param=essence_param,
+                            essence_solution=essence_solution,
                             eprime_solution=eprime_solution,
                             eprime_info=eprime_info,
                             eprime_param=eprime_param,
                             eprime=eprime,
-                            essence_solution=essence_param,
                             minion=minion,
                             itimeout=itimeout,
                             mstimeout=mstimeout
