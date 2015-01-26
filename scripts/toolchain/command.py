@@ -5,6 +5,8 @@ logger = logging.getLogger(__name__)
 
 from enum import Enum, unique
 
+import sys
+
 @unique
 class K(Enum):
     refineCompact = 0,
@@ -31,11 +33,29 @@ class Commands(object):
         self.translate_up = (K.translateUp, translate_up)
         self.validate = (K.validate, validate)
 
+    def kind_to_template(self, kind):
+        d = {
+        K.refineCompact: self.refine_compact,
+        K.refineAll: self.refine_all,
+        K.refineRandom: self.refine_random,
+        K.refineParam: self.refine_param,
+        K.savilerow: self.savilerow,
+        K.translateUp: self.translate_up,
+        K.validate: self.validate,
+        }
+
+        if kind in d:
+            return d[kind]
+        else:
+            print("%s not a vaild kind" % d )
+            sys.exit(6)
+
+
 class ConjureOld(Commands):
     def __init__(self):
         super(ConjureOld, self).__init__(
                 refine_compact="""
-                conjure
+                conjureOld
                     --mode compact
                     --in-essence {essence}
                     --out-eprime {eprime}
@@ -43,7 +63,7 @@ class ConjureOld(Commands):
                 """,
 
                 refine_all="""
-                conjure
+                conjureOld
                     --mode df
                     --in-essence       {essence}
                     --output-directory {outdir}
@@ -51,7 +71,7 @@ class ConjureOld(Commands):
                 """,
 
                 refine_random="""
-                conjure
+                conjureOld
                     --mode random
                     --in-essence {essence}
                     --out-eprime {eprime}
@@ -59,7 +79,7 @@ class ConjureOld(Commands):
                 """,
 
                 refine_param="""
-                conjure
+                conjureOld
                     --mode       refineParam
                     --in-essence       {essence}
                     --in-eprime        {eprime}
@@ -81,7 +101,7 @@ class ConjureOld(Commands):
                 """,
 
                 translate_up="""
-                conjure
+                conjureOld
                     --mode translateSolution
                     --in-essence            {essence}
                     --out-solution          {essence_solution}
@@ -93,7 +113,7 @@ class ConjureOld(Commands):
                 """,
 
                 validate="""
-                conjure --mode validateSolution
+                conjureOld --mode validateSolution
                              --in-essence       {essence}
                              --in-solution      {essence_solution}
                              --in-param         {essence_param}

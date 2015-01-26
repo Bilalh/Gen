@@ -17,7 +17,7 @@ from multiprocessing import Pool
 
 import run
 import toolchain
-from command import K
+from command import K, ConjureOld, ConjureNew
 
 from run import Status
 import time
@@ -25,9 +25,24 @@ import time
 import argparse
 from distutils import file_util
 from textwrap import indent
-
+import shlex
 
 logger = logging.getLogger(__name__)
+
+def data_convert_back(d):
+    if 'kind_' in d:
+        k = d['kind_'][0].lower()+ d['kind_'][1:-1]
+        d['kind_'] = getattr(K, k)
+
+    if 'status_' in d:
+        status = d['status_'][0].lower() + d['status_'][1:-1]
+        d['status_'] = getattr(Status, status)
+
+    for n in ['eprime', 'essence', 'outdir', 'outdir_']:
+        if n in d:
+            d[n] = Path(d[n])
+
+    return d
 
 
 def copy_file(path1, path2):
@@ -41,8 +56,6 @@ def do_args():
     parse_args.add_argument("--new_conjure", action='store_true',
             help='Use new conjure, must be called conjure-new')
     parse_args.add_argument("--bin_dir", help='Use the specifed directory for binaries (give a full path)')
-    parse_args.add_argument("--remove_time", action='store_true',
-            help='Remove time command prefixes')
 
     args = parse_args.parse_args()
 
@@ -58,16 +71,22 @@ def do_args():
     return args
 
 
-def rerun_refine(extra_env, itimeout, cmd_kind, data):
-    (eprime_name, cmd_arr) =data
-    logger.warn("running:  %s\n", " ".join(cmd_arr))
-    (res, output) = run.run_with_timeout(itimeout, cmd_kind, cmd_arr, extra_env=extra_env)
-    return ((eprime_name, res.__dict__), " ".join(cmd_arr) + "\n" + output)
+def rerun_refine(extra_env, itimeout, data):
+    logger.warn(pformat(data))
+    (eprime_name, cmd_data) =data
+    cmd_arr = cmd_data['cmd']
+
+
+    (res, output) = run.run_with_timeout(itimeout, cmd_data['kind_'], cmd_arr,
+        extra_env=extra_env, vals=cmd_data['vals'])
+    dic = res.__dict__
+    dic.update(vals=cmd_data['vals'])
+    return ((eprime_name, dic), " ".join(cmd_arr) + "\n" + output)
 
 
 def rerun_refine_essence(*, extra_env, outdir, limit, cores, datas):
 
-    rr = partial(rerun_refine, extra_env, int(math.ceil(limit)), K.refineRandom )
+    rr = partial(rerun_refine, extra_env, int(math.ceil(limit)))
     pool = Pool(cores)
     rnds = list(pool.map(rr, datas))
     (results, outputs) =list(zip( *(  rnds ) ))
@@ -94,7 +113,13 @@ def rerun_refine_essence(*, extra_env, outdir, limit, cores, datas):
 op = do_args()
 pprint(op)
 print("")
-REMOVE_TIME=op.remove_time
+
+
+if op.new_conjure:
+    Com = ConjureNew()
+else:
+    Com = ConjureOld()
+
 
 if op.bin_dir:
     extra_env = dict(PATH= op.bin_dir + ":" + os.environ['PATH'])
@@ -102,9 +127,9 @@ else:
     extra_env = {}
 
 with (op.indir / "refine_essence.json").open() as f:
-    refine_json=json.load(f)
+    refine_json=json.load(f, object_hook=data_convert_back)
 
-oldBase = Path(refine_json['outdir_'])
+oldBase = refine_json['outdir_']
 # newBase = op.outdir / (oldBase.name)
 newBase = op.outdir
 os.makedirs(str(newBase), exist_ok=True)
@@ -113,14 +138,20 @@ essence=Path(newBase / "spec.essence")
 copy_file(Path(op.indir / "spec.essence"), essence )
 copy_file(Path(op.indir / "empty.param"), Path(newBase / "empty.param") )
 
-def update_cmd_paths(v):
-    cs = v['cmd']
-    if REMOVE_TIME and len(cs) >= 2 and cs[0]=='time':
-        cs = cs[1:]
 
-    return [c.replace(str(oldBase), str(newBase)) for c in cs ]
+def update_cmd_paths(v):
+    v['vals'].update(outdir=newBase,
+        eprime   = newBase / v['vals']['eprime'].name,
+        essence  = newBase / v['vals']['essence'].name )
+
+    (new_kind, new_cmd_) = Com.kind_to_template(v['kind_'])
+    new_cmd = new_cmd_.format(**v['vals'])
+    v['cmd'] = shlex.split(new_cmd)
+    v['kind_'] = new_kind
+    return v
 
 datas = [ (k, update_cmd_paths(v)) for k, v in refine_json['data_'].items()  ]
+
 
 startTime = time.time()
 # Make the eprimes
@@ -130,7 +161,7 @@ startTime = time.time()
     cores=op.num_cores, datas=datas, extra_env=extra_env)
 
 endTime = time.time()
-logger.info("essence_refine: %s", pformat(new_essence_refine))
+logger.warn("essence_refine: %s", pformat(new_essence_refine))
 
 
 
@@ -162,6 +193,7 @@ with ( newBase / "refine_essence.json" ).open("w") as f:
 
 
 if not successful:
+    logger.warn("Not successful")
     sys.exit(5)
 
 if not (op.indir / "solve_eprime.json").exists():
