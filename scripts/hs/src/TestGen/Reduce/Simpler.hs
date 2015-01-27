@@ -154,6 +154,11 @@ instance Simpler Literal Literal where
 
     simplerImp (EExpr x) (EExpr y) =  simpler x y
 
+    simplerImp (EExpr x) l = simpler x l
+    simplerImp l (EExpr e) = do
+      res <- simpler e l
+      return $ not res
+
     simplerImp (ETuple x) (ETuple y) = do
         res <- zipWithM simplerImp x y
         return $ and res
@@ -180,14 +185,14 @@ instance Simpler Literal Literal where
         res <- zipWithM simplerImp x y
         return $ and res
 
-    -- simplerImp (EFunction x) (EFunction y)   =  and $ zipWith simpler x y
-    -- simplerImp (EPartition x) (EPartition y) =  and $ zipWith simpler x y
+    simplerImp a@(EFunction x) b@(EFunction y)   = simplerImpError a b
+    simplerImp a@(EPartition x) b@(EPartition y) =  simplerImpError a b
 
 
-    -- simplerImp _ _ = False
     simplerImp a b = rrError "simpler Missing case Literal"
                   [pretty $ a, pretty $  b
                   , pretty $ groom a, pretty $ groom b ]
+
 
 instance Simpler Literal BinOp where
     simplerImp (EB _) _ = return True
@@ -197,3 +202,40 @@ instance Simpler Literal BinOp where
     simplerImp a b = rrError "simpler"
                   [pretty $ a, pretty $  b
                   , pretty $ groom a, pretty $ groom b ]
+
+
+
+instance Simpler Expr Literal where
+    simplerImp EEmptyGuard _ = return True
+    simplerImp (ELit e) l    = simplerImp e l
+
+    simplerImp (EVar e) l = do
+      tyE :: Type <- typeOfVar e >>= \case
+             Just ty -> return ty
+             Nothing -> rrError "simpler no type of var" [nn "var" e]
+      tyl <- ttypeOf l
+      simplerImp (tyE) tyl
+
+    simplerImp (EQVar e) l = do
+      tyE :: Type <- typeOfVar e >>= \case
+             Just ty -> return ty
+             Nothing -> rrError "simpler no type of var" [nn "var" e]
+      tyl <- ttypeOf l
+      simplerImp (tyE) tyl
+
+    simplerImp (ETyped tyE e) l = do
+      tyl <- ttypeOf l
+      case typesUnify tyE tyl of
+        True  -> simplerImp e l
+        False -> simplerImp tyE tyl
+
+    simplerImp a@(EBinOp e) l          = simplerImpError a l
+    simplerImp a@(EUniOp e) l          = simplerImpError a l
+    simplerImp a@(EProc e) l           = simplerImpError a l
+    simplerImp a@(EQuan e1 e2 e3 e4) l = simplerImpError a l
+    simplerImp a@(EDom e) l            = simplerImpError a l
+
+simplerImpError :: (Simpler a b, HasLogger m) => a -> b -> m Bool
+simplerImpError a b = rrError "simplerImp"
+                      [pretty $ a, pretty $  b
+                      , pretty $ groom a, pretty $ groom b ]
