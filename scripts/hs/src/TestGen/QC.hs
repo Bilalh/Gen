@@ -50,7 +50,9 @@ import Data.Maybe(fromJust)
 
 import TestGen.Prelude(nn)
 
+import TestGen.Classify.Meta(mkMeta)
 
+import qualified Data.Aeson as A
 
 prop_specs_refine :: ArbSpec a =>
     WithExtra a -> Cores ->  Int -> FilePath -> Bool -> WithExtra a -> Property
@@ -67,6 +69,10 @@ prop_specs_refine  _ cores time out newConjure WithExtra{..} = do
             run $ createDirectoryIfMissing True outdir
             run $  writeFile (outdir </> "spec.logs" ) (renderNormal wlogs_)
             run $  writeFile (outdir </> "spec.specE" ) (show specE)
+
+            let meta = mkMeta specE
+            run $  writeFile (outdir </> "spec.meta" ) (show meta)
+            run $  writeJSON  (outdir </> "spec.meta.json" ) (meta)
 
             result <- run $ runRefine' run_seed_ cores sp (out </> uname ) time newConjure
 
@@ -115,6 +121,9 @@ prop_specs_toolchain  _ cores time out newConjure WithExtra{..} = do
             run $  writeFile (outdir </> "spec.logs" ) (renderNormal wlogs_)
             run $  writeFile (outdir </> "spec.specE" ) (show specE)
 
+            let meta = mkMeta specE
+            run $  writeFile (outdir </> "spec.meta" ) (show meta)
+            run $  writeJSON  (outdir </> "spec.meta.json" ) (meta)
 
             result <- run $ runToolchain' run_seed_ cores sp (out </> uname ) time newConjure False
             classifyError uname result

@@ -143,6 +143,12 @@ getJSON fp = do
     else
         return Nothing
 
+writeJSON :: ToJSON a => FilePath -> a -> IO ()
+writeJSON fp a  = do
+  let s = A.encode a
+  B.writeFile fp s
+
+
 runToolChain :: FilePath -> FilePath -> Int -> IO (Either RefineR (RefineR, SolveR ) )
 runToolChain spec dir timeou  = do
     seed <- randomRIO (0,2^(24 :: Int)) :: IO Int

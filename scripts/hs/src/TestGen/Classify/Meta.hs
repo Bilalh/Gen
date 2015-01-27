@@ -1,18 +1,12 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
-{-# LANGUAGE MultiWayIf #-}
-
 {-# LANGUAGE DeriveGeneric, DeriveDataTypeable #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-
 
 
 module TestGen.Classify.Meta where
 
 import TestGen.Prelude
 import TestGen.Classify.DomTypes
-
-import TestGen.Reduce.Data
 
 import GHC.Generics
 import Data.Typeable
@@ -48,20 +42,26 @@ instance ToJSON Feature
 instance FromJSON SpecMeta
 instance ToJSON SpecMeta
 
+instance Hashable Feature
+instance Hashable SpecMeta
 
-makeMeta :: (WithDoms m) => m SpecMeta
-makeMeta = do
+mkMeta :: (WithDoms m) => m SpecMeta
+mkMeta = do
   (SpecE ds cs) <- getSpecEWithDoms
 
   let doms              = map (domOfFG . snd) .  M.toList $ ds
-      constraint_depth_ = maximum (map depthOf cs)
-      dom_depth_        = maximum . (map depthOf) $ doms
+      constraint_depth_ = maximum' 0 (map depthOf cs)
+      dom_depth_        = maximum' 0 $ (map depthOf) doms
 
   dom_types_ <- domTypes
   features_   <- findFeatures
 
   let sp = SpecMeta{..}
   return sp
+
+maximum' :: Ord a => a -> [a] -> a
+maximum' a [] = a
+maximum' _ xs = maximum xs
 
 specE1 :: SpecE
 specE1= read $
@@ -73,7 +73,7 @@ findFeatures = do
     (SpecE _ cs)  <- getSpecEWithDoms
     cs' <- mapM standardise cs
     let fs =  concatMap getFeatures cs'
-    return $ nub fs  -- TODO use nub2
+    return $ nub fs
 
 class HasFeature e where
     getFeatures :: e -> [Feature]

@@ -38,6 +38,7 @@ Library
                      , TestGen.Arbitrary.Op
                      , TestGen.Arbitrary.Type
                      , TestGen.Arbitrary.TypeConversions
+                     , TestGen.Classify.DomTypes
                      , TestGen.Classify.Meta
                      , TestGen.Helpers.Args
                      , TestGen.Helpers.Debug
@@ -64,7 +65,7 @@ Library
                      , TestGen.Reduce.Runner
                      , TestGen.Reduce.Simpler
                      , TestGen.Reduce.UnusedDomains
-
+                     
 
     build-depends    : base
                      , aeson
