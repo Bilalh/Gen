@@ -160,6 +160,9 @@ newEState sp = do
   newSeed <- chooseR (0 :: Int ,2^(24:: Int) )
   return $ EState{spec_=sp,sgen_=mkrGen newSeed,elogs_=LSEmpty}
 
+newEStateWithSeed :: Int -> SpecE -> EState
+newEStateWithSeed seed sp = do
+  EState{spec_=sp,sgen_=mkrGen seed,elogs_=LSEmpty}
 
 instance WithDoms (StateT SpecE Identity) where
   getSpecEWithDoms = get

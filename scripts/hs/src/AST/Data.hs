@@ -1,5 +1,6 @@
 {-# LANGUAGE  FlexibleInstances #-}
 {-# LANGUAGE DeriveGeneric, DeriveDataTypeable #-}
+{-# LANGUAGE DeriveFunctor #-}
 
 module AST.Data where
 
@@ -9,6 +10,9 @@ import Data.Typeable
 
 import Data.Text (Text)
 import Data.Hashable ( Hashable(..) )
+
+import Data.Aeson(FromJSON(..),ToJSON(..))
+
 
 data Domain
   = DSet
@@ -228,3 +232,6 @@ data Type =
     | TEnum   Text   -- as are enums
     | TAny
   deriving (Show, Generic, Typeable, Eq, Ord, Read)
+
+instance FromJSON Type
+instance ToJSON Type

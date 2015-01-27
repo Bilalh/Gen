@@ -9,7 +9,7 @@ import TestGen.Arbitrary.Data
 import qualified Data.Traversable as V
 
 class (Pretty a, Eq a, Show a) => Standardise a  where
-    standardise :: (HasLogger m) => a -> m a
+    standardise :: (Monad m, Applicative m) => a -> m a
 
 instance Pretty Type where
     pretty = pretty . show

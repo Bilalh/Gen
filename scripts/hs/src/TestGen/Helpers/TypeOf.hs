@@ -28,6 +28,8 @@ class (Monad a, Applicative a) => WithDoms a where
       Nothing -> return Nothing
       Just d  -> ttypeOf d >>= return . Just
 
+instance WithDoms ((->) SpecE) where
+    getSpecEWithDoms e = e
 
 
 class WithDoms m => TypeOf a m where
@@ -35,6 +37,9 @@ class WithDoms m => TypeOf a m where
 
 instance WithDoms m => TypeOf Type m where
   ttypeOf t = return t
+
+instance WithDoms m => TypeOf FG m where
+  ttypeOf = return . typeOfDom . domOfFG
 
 instance WithDoms m => TypeOf Domain m where
   ttypeOf = return . typeOfDom
