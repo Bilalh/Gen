@@ -35,7 +35,7 @@ print("$PARAM_GEN_SCRIPTS/toolchain/toolchain.py {spec_dir}/spec.essence \
 --num_cores={cores} \
 --bin_dir={bin_base}/{bin_dir}/{host} \
 --new_conjure \
-	###toolchain".format(**data) )
+	###toolchain_run".format(**data) )
 
 
 print("\n###")
