@@ -1,7 +1,6 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns, TupleSections #-}
 
 {-# LANGUAGE RecordWildCards, NamedFieldPuns, ScopedTypeVariables #-}
-{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}
 {-# OPTIONS_GHC -fno-cse #-}
 -- cse means output is not outputted
@@ -94,8 +93,7 @@ prop_specs_refine  _ cores time out newConjure WithExtra{..} = do
                 fps <- getDirectoryContents inErrDir
                 let needed =  filter (allow k) fps
 
-                void $ forM needed $ \g -> do
-                    copyFile (inErrDir </> g) (mvDir </> g)
+                void $ copyFiles inErrDir mvDir needed
 
                 return mvDir
 
@@ -104,6 +102,13 @@ prop_specs_refine  _ cores time out newConjure WithExtra{..} = do
         fail inErrDir
 
     classifyError _ _ = return ()
+
+copyFiles inn out needed = forM needed $ \g -> do
+  case g of
+    "refine_essence.json" -> error "dsdes"
+    _ ->  copyFile (inn </> g) (out </> g)
+
+
 
 prop_specs_toolchain :: ArbSpec a =>
     WithExtra a -> Cores ->  Int -> FilePath -> Bool -> WithExtra a -> Property

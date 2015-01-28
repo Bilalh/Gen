@@ -144,7 +144,7 @@ getJSON fp = do
         return Nothing
 
 writeJSON :: ToJSON a => FilePath -> a -> IO ()
-writeJSON fp a  = do
+writeJSON fp a = do
   let s = A.encode a
   B.writeFile fp s
 
