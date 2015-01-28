@@ -28,23 +28,36 @@ with open(args.json, "r") as f:
 data = d[args.arg]
 data.update(args.__dict__)
 
-print("\n###toolchain")
+print("\n###")
 print("$PARAM_GEN_SCRIPTS/toolchain/toolchain.py {spec_dir}/spec.essence \
 --outdir={out_dir} \
 --timeout={timeout} \
 --num_cores={cores} \
 --bin_dir={bin_base}/{bin_dir}/{host} \
---new_conjure ".format(**data) )
+--new_conjure \
+	###toolchain".format(**data) )
 
 
-print("\n###toolchain rerun")
+print("\n###")
 print("$PARAM_GEN_SCRIPTS/toolchain/toolchain_recheck.py {spec_dir} \
 --outdir={out_dir} \
 --num_cores={cores} \
 --bin_dir={bin_base}/{bin_dir}/{host} \
---new_conjure ".format(**data) )
+--new_conjure \
+###toolchain_rerun".format(**data) )
 
-print("\n###reduce")
+# print("\n")
+# print("testReduce {spec_dir} \
+# -o {out_dir} \
+# -p {timeout}  \
+# -cores {cores} \
+# --new-conjure \
+# --kind KindAny_ \
+# --status StatusAny_ \
+# ###reduce_same".format(**data) )
+
+
+print("\n")
 print("testReduce {spec_dir} \
 -o {out_dir} \
 -p {timeout}  \
@@ -52,5 +65,5 @@ print("testReduce {spec_dir} \
 --new-conjure \
 --kind KindAny_ \
 --status StatusAny_ \
-	".format(**data) )
+###reduce_any".format(**data) )
 
