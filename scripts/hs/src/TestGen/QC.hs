@@ -26,12 +26,15 @@ import Data.Maybe(fromJust)
 import Data.Time
 import Data.Time.Clock.POSIX(getPOSIXTime)
 import Data.Traversable(for)
+import Data.Set(Set)
 
 import qualified Data.Map as M
 import qualified Data.Text as T
 import qualified Test.QuickCheck as QC
 import qualified Test.QuickCheck.Property as QC
 import qualified Data.Aeson as A
+import qualified Data.Set as S
+
 
 import System.Directory(createDirectoryIfMissing, getHomeDirectory, doesFileExist
                        ,renameDirectory, removeDirectory,removeDirectoryRecursive
@@ -43,7 +46,7 @@ import System.Random(RandomGen(split),setStdGen, mkStdGen)
 
 import Test.QuickCheck
 import Test.QuickCheck.Random(mkQCGen,QCGen)
-import Test.QuickCheck.Monadic (assert, monadicIO, run)
+import Test.QuickCheck.Monadic (assert, monadicIO, run, PropertyM(..))
 import Text.Groom(groom)
 
 import TestGen.QCDebug
@@ -72,35 +75,58 @@ prop_specs_refine  _ cores time out newConjure WithExtra{..} = do
 
             result <- run $ runRefine' run_seed_ cores sp (out </> uname ) time newConjure
 
-            classifyError uname result
+            classifySettingI errdir out uname result
 
     where
     errdir  = out </> "_errors"
-    classifyError uname (SettingI{successful_=False,data_=RefineM ms  }) = do
-        let inErrDir = errdir </> "zall" </> uname
-        run $ createDirectoryIfMissing True inErrDir
-        run $ renameDirectory (out </> uname ) inErrDir
+
+classifySettingI :: FilePath
+                    -> FilePath
+                    -> FilePath
+                    -> SettingI RefineM
+                    -> Test.QuickCheck.Monadic.PropertyM IO ()
+classifySettingI errdir out uname ee@SettingI{successful_=False,data_=RefineM ms  } = do
+    let inErrDir = errdir </> "zall" </> uname
+    run $ createDirectoryIfMissing True inErrDir
+    run $ renameDirectory (out </> uname ) inErrDir
 
 
-        let
+    rr <- run $ flip M.traverseWithKey ms $
+         \_ CmdI{status_, kind_ } -> do
+           let mvDirBase = errdir </> (show kind_) </> (show status_)
+           return $ mvDirBase
 
-            f k CmdI{status_, kind_ } = do
-                let mvDir = errdir </> (show kind_) </> (show status_) </> uname
-                createDirectoryIfMissing True mvDir
-                fps <- getDirectoryContents inErrDir
-                let needed =  filter (allow k) fps
+    let inDir = M.map S.fromList
+              . M.fromListWith (\a b -> a ++ b)
+              . map (\(a,b) -> (b, [a]))
+              . M.toList
+              $ rr
 
-                void $ copyFiles k inErrDir mvDir needed
+    let
+        unMaybe (Just a) = a
+        unMaybe Nothing = error  . show . pretty . vcat $ ["unMaybe: classifySettingI"
+                                                  , nn "uname" uname
+                                                  , nn "ee" (show ee)
+                                                  , nn "ee" (show rr)
+                                                  , nn "ee" (show inDir)]
 
-                return mvDir
+        f k CmdI{status_, kind_ } = do
+            let mvDirBase = errdir </> (show kind_) </> (show status_)
+            let mvDir = mvDirBase </> uname
 
-        void $ run $ M.traverseWithKey f ms
+            createDirectoryIfMissing True mvDir
+            fps <- getDirectoryContents inErrDir
+            let needed =  filter (allow k) fps
 
-        fail inErrDir
+            void $ copyFiles (unMaybe $ mvDirBase `M.lookup` inDir) inErrDir mvDir needed
 
-    classifyError _ _ = return ()
+            return mvDir
 
+    void $ run $ M.traverseWithKey f ms
 
+    fail inErrDir
+
+classifySettingI _ _ _ _ = return ()
 
 prop_specs_toolchain :: ArbSpec a =>
     WithExtra a -> Cores ->  Int -> FilePath -> Bool -> WithExtra a -> Property
@@ -128,45 +154,45 @@ prop_specs_toolchain  _ cores time out newConjure WithExtra{..} = do
     where
     errdir  = out </> "_errors"
 
-    classifyError uname (Left SettingI{successful_=False,data_=RefineM ms  }) = do
-        let inErrDir = errdir </> "zall" </> uname
-        run $ createDirectoryIfMissing True inErrDir
-        run $ renameDirectory (out </> uname ) inErrDir
+    classifyError uname (Left a) = classifySettingI errdir out uname a
 
-
-        let
-
-            f k CmdI{status_, kind_ } = do
-                let mvDir = errdir </> (show kind_) </> (show status_) </> uname
-                createDirectoryIfMissing True mvDir
-                fps <- getDirectoryContents inErrDir
-                let needed =  filter (allow k) fps
-
-                void $ copyFiles k inErrDir mvDir needed
-
-                return mvDir
-
-        void $ run $ M.traverseWithKey f ms
-
-        fail inErrDir
-
-
-    classifyError uname (Right (_, SettingI{successful_=False,data_=SolveM ms })) = do
+    classifyError uname ee@(Right (_, SettingI{successful_=False,data_=SolveM ms })) = do
 
         let inErrDir = errdir </> "zall" </> uname
         run $ createDirectoryIfMissing True inErrDir
         run $ renameDirectory (out </> uname ) inErrDir
 
+        rr <- run $ flip M.traverseWithKey (M.filter (isJust . erroed ) ms ) $
+             \_ ResultI{last_status, erroed= Just index, results } -> do
+               let kind = kind_ (results !! index)
+               let mvDirBase = errdir </> (show kind) </> (show last_status)
+               return $ mvDirBase
+
+        let inDir = M.map S.fromList
+                  . M.fromListWith (\a b -> a ++ b)
+                  . map (\(a,b) -> (b, [a]))
+                  . M.toList
+                  $ rr
+
+
         let
+            unMaybe (Just a) = a
+            unMaybe Nothing = error  . show . pretty . vcat $ ["unMaybe: classifyError"
+                                                  , nn "uname" uname
+                                                  , nn "ee" (show ee)
+                                                  , nn "ee" (show rr)
+                                                  , nn "ee" (show inDir)]
+
             f k ResultI{last_status, erroed= Just index, results } = do
-                let kind = kind_ (results !! index)
-                let mvDir = errdir </> (show kind) </> (show last_status) </> uname
+                let kind      = kind_ (results !! index)
+                let mvDirBase = errdir </> (show kind) </> (show last_status)
+                let mvDir     = mvDirBase </> uname
                 createDirectoryIfMissing True mvDir
 
                 fps <- getDirectoryContents inErrDir
                 let needed =  filter (allow k) fps
 
-                void $ copyFiles k inErrDir mvDir needed
+                void $ copyFiles (unMaybe $ mvDirBase `M.lookup` inDir) inErrDir mvDir needed
                 return mvDir
 
 
@@ -178,15 +204,16 @@ prop_specs_toolchain  _ cores time out newConjure WithExtra{..} = do
 
     classifyError _ _ =  return ()
 
+
 copyFiles :: Traversable t =>
-             String -> FilePath -> FilePath -> t FilePath -> IO (t ())
-copyFiles modelName inn out needed = forM needed $ \g -> do
+             Set String -> FilePath -> FilePath -> t FilePath -> IO (t ())
+copyFiles names inn out needed = forM needed $ \g -> do
   case g of
     "refine_essence.json" -> do
        getJSON (inn </> g) >>= \case
          Nothing -> error $ "Could not parse json of : "  ++ (inn </> g)
          Just (ss@SettingI{data_=RefineM ms } ) -> do
-           let ms' =  M.filterWithKey (\k _ -> k == modelName) ms
+           let ms' =  M.filterWithKey (\k _ ->  k `S.member` names) ms
                ss'      = ss{data_=RefineM ms'}
            writeJSON (out </> g) ss'
 
@@ -194,7 +221,7 @@ copyFiles modelName inn out needed = forM needed $ \g -> do
        getJSON (inn </> g) >>= \case
          Nothing -> error $ "Could not parse json of : "  ++ (inn </> g)
          Just (ss@SettingI{data_=SolveM ms } ) -> do
-           let ms' =  M.filterWithKey (\k _ -> k == modelName) ms
+           let ms' =  M.filterWithKey (\k _ ->  k `S.member` names) ms
                ss'      = ss{data_=SolveM ms'}
            writeJSON (out </> g) ss'
 

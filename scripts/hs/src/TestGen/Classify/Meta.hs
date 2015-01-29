@@ -44,7 +44,6 @@ instance ToJSON SpecMeta
 
 instance Hashable Feature
 instance Hashable SpecMeta
-
 mkMeta :: (WithDoms m) => m SpecMeta
 mkMeta = do
   (SpecE ds cs) <- getSpecEWithDoms
