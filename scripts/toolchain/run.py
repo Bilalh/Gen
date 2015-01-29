@@ -140,6 +140,7 @@ def run_solve(extra_env, op, commands, limit, eprime):
     eprime_info      = eprime.with_suffix(".eprime.info")
     essence_solution = eprime.with_suffix(".solution")
     minion           = eprime.with_suffix(".minion")
+    solve_log        = eprime.parent / "_solve.outputs"
 
     cmds = commands.sovlve_cmds
     results=[]
@@ -225,7 +226,11 @@ def run_solve(extra_env, op, commands, limit, eprime):
             last_status=last_status,
             last_kind=last_kind)
 
+
     with eprime.with_suffix(".output").open("w") as f:
+        f.write("\n".join(outputs))
+
+    with solve_log.open("a") as f:
         f.write("\n".join(outputs))
 
     return (eprime.stem, ret)

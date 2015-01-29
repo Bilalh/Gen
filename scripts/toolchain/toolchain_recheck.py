@@ -220,6 +220,7 @@ def rerun_solve(extra_env, outdir, limit, kv):
 
 
     for i, (cmd_kind, cmd_data) in enumerate(data):
+        solve_log        = cmd_data['vals']['eprime'].parent / "_solve.outputs"
 
         cmd_arr = cmd_data['cmd']
 
@@ -258,6 +259,9 @@ def rerun_solve(extra_env, outdir, limit, kv):
             last_kind=last_kind)
 
     with (outdir / eprime_name).with_suffix(".output").open("w") as f:
+        f.write("\n".join(outputs))
+
+    with solve_log.open("a") as f:
         f.write("\n".join(outputs))
 
     return (eprime_name, ret)
