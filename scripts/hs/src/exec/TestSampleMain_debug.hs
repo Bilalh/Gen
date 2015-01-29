@@ -8,10 +8,10 @@ import TestGen.Prelude(SpecE)
 run :: IO ()
 run = do
     let args= TArgs
-         { baseDirectory_   = "/Users/bilalh/bh246/_a"
-         , totalTime_       = 360
-         , perSpecTime_     = 120
-         , rseed_           = Just 1212
+         { baseDirectory_   = "/Users/bilalh/Desktop/Results/zzz"
+         , totalTime_       = 10
+         , perSpecTime_     = 2
+         , rseed_           = Just 434
          , size_            = 4
          , cores_           = 4
          , typecheckOnly_   = Nothing

@@ -1,6 +1,6 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns, TupleSections #-}
 
-{-# LANGUAGE RecordWildCards, NamedFieldPuns, ScopedTypeVariables #-}
+{-# LANGUAGE RecordWildCards, NamedFieldPuns, ScopedTypeVariables, LambdaCase #-}
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}
 {-# OPTIONS_GHC -fno-cse #-}
 -- cse means output is not outputted
@@ -8,24 +8,30 @@
 module TestGen.QC where
 
 import AST.SpecE
+import Common.Helpers(timestamp)
+
 import Language.E hiding(trace)
 import Language.E.Pipeline.ReadIn(writeSpec)
 
-import Common.Helpers(timestamp)
 
 import TestGen.Arbitrary.Arbitrary
-import TestGen.Helpers.Runner
+import TestGen.Classify.Meta(mkMeta)
 import TestGen.Helpers.Args(TArgs(..))
-import TestGen.Prelude(SpecState, Generators,Domain, listOfBounds,SS(depth_),FG ,ArbSpec(..))
 import TestGen.Helpers.QuickCheck2(quickCheckWithResult2)
+import TestGen.Helpers.Runner
+import TestGen.Prelude(SpecState, Generators,Domain, listOfBounds,SS(depth_),FG ,ArbSpec(..))
+import TestGen.Prelude(nn)
 
+import Data.Maybe(fromJust)
 import Data.Time
 import Data.Time.Clock.POSIX(getPOSIXTime)
+import Data.Traversable(for)
 
 import qualified Data.Map as M
 import qualified Data.Text as T
 import qualified Test.QuickCheck as QC
 import qualified Test.QuickCheck.Property as QC
+import qualified Data.Aeson as A
 
 import System.Directory(createDirectoryIfMissing, getHomeDirectory, doesFileExist
                        ,renameDirectory, removeDirectory,removeDirectoryRecursive
@@ -33,6 +39,7 @@ import System.Directory(createDirectoryIfMissing, getHomeDirectory, doesFileExis
 import System.FilePath((</>), (<.>), takeFileName)
 import System.IO(IOMode(..),hPutStrLn, openFile, hClose)
 import System.Process(system)
+import System.Random(RandomGen(split),setStdGen, mkStdGen)
 
 import Test.QuickCheck
 import Test.QuickCheck.Random(mkQCGen,QCGen)
@@ -41,17 +48,7 @@ import Text.Groom(groom)
 
 import TestGen.QCDebug
 
-import Data.Traversable(for)
-
-import System.Random(RandomGen(split),setStdGen, mkStdGen)
-
-import Data.Maybe(fromJust)
-
-import TestGen.Prelude(nn)
-
-import TestGen.Classify.Meta(mkMeta)
-
-import qualified Data.Aeson as A
+import Data.Traversable(Traversable)
 
 prop_specs_refine :: ArbSpec a =>
     WithExtra a -> Cores ->  Int -> FilePath -> Bool -> WithExtra a -> Property
@@ -93,7 +90,7 @@ prop_specs_refine  _ cores time out newConjure WithExtra{..} = do
                 fps <- getDirectoryContents inErrDir
                 let needed =  filter (allow k) fps
 
-                void $ copyFiles inErrDir mvDir needed
+                void $ copyFiles k inErrDir mvDir needed
 
                 return mvDir
 
@@ -102,11 +99,6 @@ prop_specs_refine  _ cores time out newConjure WithExtra{..} = do
         fail inErrDir
 
     classifyError _ _ = return ()
-
-copyFiles inn out needed = forM needed $ \g -> do
-  case g of
-    "refine_essence.json" -> error "dsdes"
-    _ ->  copyFile (inn </> g) (out </> g)
 
 
 
@@ -150,8 +142,7 @@ prop_specs_toolchain  _ cores time out newConjure WithExtra{..} = do
                 fps <- getDirectoryContents inErrDir
                 let needed =  filter (allow k) fps
 
-                forM_ needed $ \g -> do
-                    copyFile (inErrDir </> g) (mvDir </> g)
+                void $ copyFiles k inErrDir mvDir needed
 
                 return mvDir
 
@@ -175,9 +166,7 @@ prop_specs_toolchain  _ cores time out newConjure WithExtra{..} = do
                 fps <- getDirectoryContents inErrDir
                 let needed =  filter (allow k) fps
 
-                forM_ needed $ \g -> do
-                    copyFile (inErrDir </> g) (mvDir </> g)
-
+                void $ copyFiles k inErrDir mvDir needed
                 return mvDir
 
 
@@ -188,6 +177,29 @@ prop_specs_toolchain  _ cores time out newConjure WithExtra{..} = do
         fail inErrDir
 
     classifyError _ _ =  return ()
+
+copyFiles :: Traversable t =>
+             String -> FilePath -> FilePath -> t FilePath -> IO (t ())
+copyFiles modelName inn out needed = forM needed $ \g -> do
+  case g of
+    "refine_essence.json" -> do
+       getJSON (inn </> g) >>= \case
+         Nothing -> error $ "Could not parse json of : "  ++ (inn </> g)
+         Just (ss@SettingI{data_=RefineM ms } ) -> do
+           let ms' =  M.filterWithKey (\k _ -> k == modelName) ms
+               ss'      = ss{data_=RefineM ms'}
+           writeJSON (out </> g) ss'
+
+    "solve_eprime.json" -> do
+       getJSON (inn </> g) >>= \case
+         Nothing -> error $ "Could not parse json of : "  ++ (inn </> g)
+         Just (ss@SettingI{data_=SolveM ms } ) -> do
+           let ms' =  M.filterWithKey (\k _ -> k == modelName) ms
+               ss'      = ss{data_=SolveM ms'}
+           writeJSON (out </> g) ss'
+
+    _ ->  copyFile (inn </> g) (out </> g)
+
 
 allow :: String -> FilePath -> Bool
 allow k f
@@ -280,7 +292,8 @@ generateSpecs unused r@TArgs{..} = do
                 Just j -> (\(a,b) -> ((a + fromJust rseed_) `mod` (2^(24 :: Int)) ,Just b)) $
                     randomR (0 :: Int ,(2 ^ (24 :: Int) ))  j
                 Nothing -> (0, Nothing)
-        putStrLn . show . vcat $ [ "Ω-------" , nn "ΩrgenS" (show rgenS),  nn "Ωnext" next, nn "Ωrgen" (show rgen)]
+        putStrLn . show . vcat $ [ "Ω-------" , nn "ΩrgenS" (show rgenS)
+                                 ,  nn "Ωnext" next, nn "Ωrgen" (show rgen)]
 
         before <- round `fmap` getPOSIXTime
 
@@ -390,6 +403,8 @@ prop_typeCheckSave fp _  WithExtra{..} = do
 
 
             fail (show doc)
+
+
 
 
 

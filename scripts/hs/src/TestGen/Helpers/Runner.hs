@@ -92,6 +92,7 @@ data CmdI = CmdI {
     ,status_   :: StatusI
     ,kind_     :: KindI
     ,cmd       :: [String]
+    ,vals      :: ValsM
 
 } deriving(Show, Generic)
 
@@ -121,6 +122,13 @@ instance ToJSON   StatusI
 
 instance FromJSON KindI
 instance ToJSON   KindI
+
+newtype ValsM = ValsM (Map String A.Value) deriving Show
+instance FromJSON ValsM where
+  parseJSON val = ValsM <$> parseJSON val
+instance ToJSON ValsM where
+    toJSON (ValsM m) =  toJSON m
+
 
 newtype RefineM = RefineM (Map String CmdI) deriving Show
 instance FromJSON RefineM where
