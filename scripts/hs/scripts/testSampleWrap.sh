@@ -11,7 +11,7 @@ mkdir -p "$base"
 dat="$(date +%F_%H-%M_%s)"
 mkdir "${base}/${dat}"
 
-# "$PARAM_GEN_SCRIPTS/toolchain/save_version.sh" "${base}/${dat}/zver@"
+"$PARAM_GEN_SCRIPTS/toolchain/save_version.sh" "${base}/${dat}/zver@"
 cores=${CORES:-"$(parallel --number-of-cores)"}
 
 
