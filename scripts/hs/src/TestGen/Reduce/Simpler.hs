@@ -11,7 +11,8 @@ import TestGen.Arbitrary.Type(typesUnify)
 
 
 -- True if a1 is simpler then a2
-class (Pretty a, Eq a, Show a, Pretty b, Eq b, Show b, Standardise a, Standardise b) => Simpler a b where
+class (Pretty a, Eq a, Show a, Pretty b, Eq b, Show b, Standardise a, Standardise b)
+    => Simpler a b where
     simplerImp :: (WithDoms m, HasLogger m) => a -> b -> m Bool
     simpler :: (WithDoms m, HasLogger m) => a -> b -> m Bool
 

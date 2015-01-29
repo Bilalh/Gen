@@ -1,6 +1,7 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables, LambdaCase #-}
+{-# LANGUAGE DeriveDataTypeable #-}
 
 module TestGen.Classify.Sorter where
 
@@ -17,6 +18,9 @@ import TestGen.Helpers.Runner
 import Data.Maybe(fromJust)
 
 import System.Environment(getArgs)
+import Data.Data
+
+import qualified Data.Text as T
 
 
 data SArgs = SArgs{
@@ -29,10 +33,13 @@ data FuncType =
     | TcDepth
     | TdDepth
     | TdTypes
+    | TdTypesComplex
     | TFeatures
+    | Tlength
+    deriving (Data, Typeable)
 
 fall :: [FuncType]
-fall = [TcDepth, TdDepth, TdTypes, TFeatures]
+fall = map fromConstr $ dataTypeConstrs . dataTypeOf $ (undefined :: FuncType)
 
 sorterMain :: IO ()
 sorterMain = getArgs >>= f
@@ -71,7 +78,7 @@ getFunc TDepth = \SpecMeta{..} ->
                   ]
 
 getFunc TcDepth = \SpecMeta{..} ->
-                  ["cs_depth" </>
+                  ["constraints_depth" </>
                    zeroPad 2 (fromInteger constraint_depth_)
                   ]
 
@@ -81,10 +88,31 @@ getFunc TdDepth = \SpecMeta{..} ->
                   ]
 
 getFunc TdTypes = \SpecMeta{..} ->
-                  map ( ("dom_type" </>) .  show . pretty ) dom_types_
+                  map ( ("dom_type" </>) . prettyShowType ) dom_types_
 
 getFunc TFeatures = \SpecMeta{..} ->
                   map ( ("features" </>) .  show ) features_
+
+getFunc Tlength = \SpecMeta{..} ->
+                  [ "lengths" </> "constraints"  </> zeroPad 2  constraint_count_
+                  , "lengths" </> "dom" </> zeroPad 2  dom_count_
+                  ]
+
+getFunc TdTypesComplex = \SpecMeta{..} ->
+                  [ "dom_type_most_complex" </> prettyShowType dom_most_complex_ ]
+
+prettyShowType :: Type -> String
+prettyShowType ty =
+    let t   = T.pack . show . pretty . toEssence $ ty
+        res =
+              T.replace "  "  " "
+            . T.replace "  "  " "
+            . T.replace "\n" ""
+            $ t
+
+    in  T.unpack res
+
+
 
 ffind :: FilePath -> IO [FilePath]
 ffind path = do

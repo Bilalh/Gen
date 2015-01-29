@@ -1,6 +1,7 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
 {-# LANGUAGE FlexibleInstances, ConstraintKinds #-}
+{-# LANGUAGE RankNTypes, KindSignatures #-}
 {-# LANGUAGE CPP #-}
 
 module TestGen.Arbitrary.Data (
@@ -19,6 +20,7 @@ module TestGen.Arbitrary.Data (
     , HasLogger(..)
     , addLogsTree
     , prettyArr
+    , nullLogs
     ) where
 
 import AST.Imports
@@ -134,6 +136,12 @@ instance HasLogger (StateT SpecState Gen)  where
     getLog = gets logs_
     putLog lg = modify $ \st -> st{ logs_=lg}
 
+instance (Monad m, Functor m) => HasLogger (StateT () m)  where
+    getLog   = return LSEmpty
+    putLog _ = return ()
+
+nullLogs :: forall (m :: * -> *) a. Monad m => StateT () m a -> m a
+nullLogs f = evalStateT f ()
 
 
 data FuncsNames  = AallDiff

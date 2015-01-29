@@ -13,6 +13,7 @@ import TestGen.Helpers.StandardImports
 import qualified Data.Map as M
 
 
+
 class (Monad a, Applicative a) => WithDoms a where
   domainOfVar :: Text -> a (Maybe Domain)
   getSpecEWithDoms :: a SpecE
@@ -30,6 +31,9 @@ class (Monad a, Applicative a) => WithDoms a where
 
 instance WithDoms ((->) SpecE) where
     getSpecEWithDoms e = e
+
+instance WithDoms m => WithDoms (StateT () m)  where
+    getSpecEWithDoms = getSpecEWithDoms
 
 
 class WithDoms m => TypeOf a m where

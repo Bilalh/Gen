@@ -1,12 +1,13 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
-{-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
+{-# LANGUAGE NamedFieldPuns, RecordWildCards, LambdaCase, MultiWayIf #-}
 {-# LANGUAGE DeriveGeneric, DeriveDataTypeable #-}
-
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
 
 module TestGen.Classify.Meta where
 
 import TestGen.Prelude
 import TestGen.Classify.DomTypes
+import TestGen.Reduce.Simpler
 
 import GHC.Generics
 import Data.Typeable
@@ -15,24 +16,28 @@ import qualified Data.Map as M
 
 import Data.Aeson(FromJSON(..),ToJSON(..))
 
+import qualified Data.Foldable as F
+
 data Feature = Fquan
-              | Fliterals   -- literal apart from int and bool
-              | Fsum        -- quan sum
-              | Findexing   -- tuple indexing, matrix slices etc
-              | Fref        -- references variables
-              | Ftyped
-              | Fproc
               | FexprInLiteral
+              | Findexing       -- tuple indexing, matrix slices etc
+              | Fliterals       -- literal apart from int and bool
+              | FnoConstraints
+              | Fproc
+              | Fref            -- references variables
+              | Fsum            -- quan sum
+              | Ftyped
                 deriving(Show, Generic, Typeable, Eq, Read)
 
 data SpecMeta = SpecMeta
     {
-      constraint_depth_ :: Integer
-    , dom_depth_        :: Integer
-    -- , error_kind     :: KindI
-    -- , error_status_  :: StatusI
-       , dom_types_     :: [Type]
-    , features_         :: [Feature]
+        constraint_depth_ :: Integer
+      , constraint_count_ :: Int
+      , dom_count_        :: Int
+      , dom_depth_        :: Integer
+      , dom_most_complex_ :: Type
+      , dom_types_        :: [Type]
+      , features_         :: [Feature]
     }  deriving(Show, Generic, Typeable, Eq, Read)
 
 
@@ -44,6 +49,7 @@ instance ToJSON SpecMeta
 
 instance Hashable Feature
 instance Hashable SpecMeta
+
 mkMeta :: (WithDoms m) => m SpecMeta
 mkMeta = do
   (SpecE ds cs) <- getSpecEWithDoms
@@ -51,12 +57,47 @@ mkMeta = do
   let doms              = map (domOfFG . snd) .  M.toList $ ds
       constraint_depth_ = maximum' 0 (map depthOf cs)
       dom_depth_        = maximum' 0 $ (map depthOf) doms
+      constraint_count_ = length cs
+      dom_count_        = M.size ds
 
-  dom_types_ <- domTypes
-  features_   <- findFeatures
+  dom_types_        <- domTypes
+  features_         <- findFeatures
+  dom_most_complex_ <- maximumByM complex1 dom_types_
+
 
   let sp = SpecMeta{..}
   return sp
+
+
+complex1 :: (WithDoms m) => Type -> Type -> m Ordering
+complex1 t1 t2 = do
+  let a = depthOf t1
+      b = depthOf t2
+
+  if | a == b -> return EQ
+     | a <  b -> return LT
+     | a >  b -> return GT
+
+
+complex :: (WithDoms m) => Type -> Type -> m Ordering
+complex t1 t2 = do
+  a <- nullLogs $ simpler t1 t1
+  b <- nullLogs $ simpler t2 t1
+  case (a, b) of
+    (False, False) -> return EQ
+    (True,  True)  -> return EQ
+
+    (False, True)  -> return GT
+    (True,  False) -> return LT
+
+
+maximumByM :: (Monad m) => (a -> a -> m Ordering) -> [a] -> m a
+maximumByM _ [] = error "maximumByM empty list"
+maximumByM cmp l@(c:_) = F.foldrM max' c l
+  where max' x y = cmp x y >>= \case
+                        GT -> return x
+                        _  -> return y
+
 
 maximum' :: Ord a => a -> [a] -> a
 maximum' a [] = a
@@ -71,24 +112,31 @@ findFeatures :: (WithDoms m) => m [Feature]
 findFeatures = do
     (SpecE _ cs)  <- getSpecEWithDoms
     cs' <- mapM standardise cs
-    let fs =  concatMap getFeatures cs'
+    let fs = concatMap getFeatures cs' ++
+              case cs of
+                [] -> [FnoConstraints]
+                _  -> []
+
     return $ nub fs
 
 class HasFeature e where
     getFeatures :: e -> [Feature]
 
 instance HasFeature Expr where
-    getFeatures (ELit e)            = Fliterals : getFeatures e
-    getFeatures (EVar _)            = [Fref]
-    getFeatures (EQVar _)           = [Fref]
-    getFeatures (EBinOp e)          = getFeatures e
-    getFeatures (EUniOp e)          = getFeatures e
-    getFeatures (EProc e)           = Fproc : getFeatures e
-    getFeatures (EDom e)            = getFeatures e
-    getFeatures (ETyped _ e2)      = Ftyped : getFeatures e2
-    getFeatures EEmptyGuard         = []
-    getFeatures (EQuan _ e2 e3 e4) = Fquan : (concat
-                           [getFeatures  e2, getFeatures  e3, getFeatures e4] )
+    getFeatures (ELit e)             = Fliterals : getFeatures e
+    getFeatures (EVar _)             = [Fref]
+    getFeatures (EQVar _)            = [Fref]
+    getFeatures (EBinOp e)           = getFeatures e
+    getFeatures (EUniOp e)           = getFeatures e
+    getFeatures (EProc e)            = Fproc : getFeatures e
+    getFeatures (EDom e)             = getFeatures e
+    getFeatures (ETyped _ e2)        = Ftyped : getFeatures e2
+    getFeatures EEmptyGuard          = []
+    getFeatures (EQuan Sum e2 e3 e4) = Fsum : (concat
+          [getFeatures  e2, getFeatures  e3, getFeatures e4] )
+    getFeatures (EQuan _  e2 e3 e4)  = Fquan : (concat
+          [getFeatures  e2, getFeatures  e3, getFeatures e4] )
+
 
 
 instance HasFeature UniOp where
