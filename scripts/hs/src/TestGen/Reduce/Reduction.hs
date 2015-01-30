@@ -210,8 +210,8 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce BinOp m where
     reduce (BlexGT x1 x2)     = reduceBop BlexGT x1 x2
     reduce (BlexGTE x1 x2)    = reduceBop BlexGTE x1 x2
 
-    reduce a@(BIn _ _) =  error . show . vcat
-        $ ["reduce missing case", pretty $ toEssence a, pretty $ groom a ]
+    reduce (BIn x1 x2) = reduceBop BIn x1 x2
+
     reduce a@(BOver _ _) = error . show . vcat
         $ ["reduce missing case", pretty $ toEssence a, pretty $ groom a ]
 
@@ -247,13 +247,10 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce BinOp m where
     single (Bintersect x1 _) = ttypeOf x1 >>= singleLitExpr
     single (Bunion x1 _)     = ttypeOf x1 >>= singleLitExpr
     single (BDiff x1  _)     = ttypeOf x1 >>= singleLitExpr
-
-
-    single a@(BIn _ _) = error . show . vcat
-        $ ["single missing case", pretty $ toEssence a, pretty $ groom a ]
+    single (BIn _ _) = return $ [etrue,  efalse]
 
     single a@(BOver _ _) = error . show . vcat
-        $ ["single missing case", pretty $ toEssence a, pretty $ groom a ]
+        $ ["single BOver missing case", pretty $ toEssence a, pretty $ groom a ]
 
 
     subterms (BAnd x1 x2)   = return [x1, x2]
@@ -290,8 +287,7 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce BinOp m where
     subterms (Bintersect x1 x2) = return [x1, x2]
     subterms (Bunion x1 x2)     = return [x1, x2]
 
-    subterms a@(BIn _ _) =  error . show . vcat
-        $ ["subterms missing case", pretty $ toEssence a, pretty $ groom a ]
+    subterms (BIn _ _)     =  return []
     subterms a@(BOver _ _) =  error . show . vcat
         $ ["subterms missing case", pretty $ toEssence a, pretty $ groom a ]
 
