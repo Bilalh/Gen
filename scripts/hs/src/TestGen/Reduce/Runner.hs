@@ -53,7 +53,8 @@ runSpec spE = do
 
         seed <- chooseR (0, 2^(24 :: Int))
         -- TODO follow logs
-        res <- liftIO $  runToolchain' seed 4 sp path 20 True True
+        perSpec <- gets specTime_
+        res <- liftIO $  runToolchain' seed 4 sp path perSpec True True
 
 
         rrErrorKind   <- gets oErrKind_

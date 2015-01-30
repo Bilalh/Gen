@@ -97,11 +97,12 @@ parseArgs = do
           newConjure_ = new_conjure
           outputDir_  = f output_directory "output_directory"
           specDir_    = spec_directory
-          rgen_        = mkrGen (f seed "seed")
+          rgen_       = mkrGen (f seed "seed")
+          specTime_   = f per_spec_time "per_spec_time"
 
 
       let res = P.def{oErrKind_, oErrStatus_, oErrEprime_, cores_
-                     ,newConjure_, outputDir_, specDir_, rgen_}
+                     ,newConjure_, outputDir_, specDir_, rgen_,specTime_}
       return res
 
 

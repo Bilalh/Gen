@@ -37,6 +37,9 @@ data RState = RState
     , newConjure_       :: Bool
 
     , rgen_             :: TFGen
+    , specTime_         :: Int
+
+
     -- def Initialised
     , mostReduced_      :: Maybe RunResult
     , otherErrors_      :: [RunResult]
@@ -63,6 +66,7 @@ instance Pretty RState where
 
                 , nn "cores_" cores_
                 , nn "newConjure_" newConjure_
+                , nn "specTime_" specTime_
 
                 , nn "mostReduced_ =" mostReduced_
                 , nn "otherErrors_ =" (prettyArr otherErrors_)
@@ -72,18 +76,19 @@ instance Pretty RState where
                 ])
 
 instance Default RState where
-    def =  RState{oErrKind_    = error "need oErrKind_"
-                 ,oErrStatus_  = error "need oErrStatus_"
-                 ,oErrEprime_  = error "need oErrEprime"
-                 ,cores_       = error "need cores"
-                 ,newConjure_  = error "need newConjure_"
-                 ,outputDir_   = error "need outputDir_"
-                 ,rgen_        = error "need rgen_"
-                 ,specDir_     = error "need specDir_"
-                 ,hashes_      = IS.empty
-                 ,mostReduced_ = Nothing
-                 ,otherErrors_ = []
-                 ,rlogs_       = LSEmpty
+    def =  RState{oErrKind_      = error "need oErrKind_"
+                 ,oErrStatus_    = error "need oErrStatus_"
+                 ,oErrEprime_    = error "need oErrEprime"
+                 ,cores_         = error "need cores"
+                 ,newConjure_    = error "need newConjure_"
+                 ,outputDir_     = error "need outputDir_"
+                 ,rgen_          = error "need rgen_"
+                 ,specDir_       = error "need specDir_"
+                 ,specTime_      = error "need specTime_"
+                 ,hashes_        = IS.empty
+                 ,mostReduced_   = Nothing
+                 ,otherErrors_   = []
+                 ,rlogs_         = LSEmpty
                  }
 
 
