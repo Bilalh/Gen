@@ -4,7 +4,6 @@
 module TestGen.Helpers.Standardise(Standardise(..)) where
 
 import TestGen.Helpers.StandardImports
-import TestGen.Arbitrary.Data
 
 import qualified Data.Traversable as V
 
@@ -126,12 +125,6 @@ instance Standardise Literal where
     standardise (EExpr (ELit l)) = standardise l
     standardise (EExpr x)        = pure EExpr <*> standardise x
 
-instance Standardise (Literal,Literal) where
-    standardise (x,y) = do
-      a <- standardise x
-      b <- standardise y
-      return (a,b)
-
 instance Standardise Domain where
     standardise x = return x  --FIXME when adding expr to domains
 
@@ -144,4 +137,19 @@ instance Standardise Doms where
     standardise = V.traverse standardise
 
 instance Standardise SpecE where
-    standardise (SpecE x1 x2) = pure SpecE <*> standardise x1 <*> mapM standardise x2
+    standardise (SpecE x1 x2) = pure SpecE <*> standardise x1
+                                           <*> mapM standardise x2
+
+instance (Standardise a, Standardise b) =>  Standardise (a,b) where
+    standardise (a,b) = do
+      sa <- standardise a
+      sb <- standardise b
+      return (sa,sb)
+
+instance (Standardise a, Standardise b, Standardise c)
+    =>  Standardise (a,b,c) where
+    standardise (a,b,c) = do
+      sa <- standardise a
+      sb <- standardise b
+      sc <- standardise c
+      return (sa,sb, sc)

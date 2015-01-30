@@ -4,7 +4,8 @@
 {-# LANGUAGE LambdaCase #-}
 
 module TestGen.Helpers.StandardImports (
-      module X
+      module X,
+      Pretty(..)
 ) where
 
 import AST.Imports as X
@@ -28,3 +29,9 @@ import Test.QuickCheck as X (quickCheckWith, quickCheckWithResult
 import Text.Groom as X (groom)
 
 import Language.E as X
+
+import qualified Text.PrettyPrint as Pr
+
+
+instance (Pretty a, Pretty b, Pretty c) => Pretty (a,b,c) where
+    pretty (a,b,c) = prettyListDoc Pr.parens "," [pretty a, pretty b, pretty c]
