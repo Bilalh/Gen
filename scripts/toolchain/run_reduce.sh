@@ -19,8 +19,15 @@ function process (){
 	out_dir="${2/_errors/_reduced}"
 	num="${3}"
 
+	status="$( basename "$(dirname "${dir}")")"
+	kind="$(basename "$(dirname "$(dirname "${dir}")")" )"
+
+	status=${status/ErrorUnknown_/StatusAny_}
+
 	mkdir -p "$out_dir"
-	testReduce "$dir" -no "${out_dir}" -p"${TIME_OUT:-10}" -c"${CORES}" --seed "$((SEED_BASE + num))"
+	testReduce "$dir" -o "${out_dir}" -p"${TIME_OUT:-10}" -c"${CORES}" \
+		--seed "$((SEED_BASE + num))" --new-conjure \
+		--kind="${kind}" --status="${status}"
 }
 
 export -f process

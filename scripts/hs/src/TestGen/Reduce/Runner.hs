@@ -5,21 +5,18 @@
 
 module TestGen.Reduce.Runner where
 
+import TestGen.Classify.Meta(mkMeta)
+import TestGen.Helpers.Runner
 import TestGen.Prelude
 import TestGen.Reduce.Data
 
-import TestGen.Helpers.Runner
-
+import Control.Arrow((&&&))
+import System.Directory(createDirectoryIfMissing)
+import System.FilePath((</>))
 
 import qualified Data.Map as M
-
-import System.FilePath((</>))
-import System.Directory(createDirectoryIfMissing)
-
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
-
-import Control.Arrow((&&&))
 
 
 -- reads a .specE file
@@ -47,6 +44,10 @@ runSpec spE = do
         let path = outdir </> (ts ++ "_" ++ ts_num)
         liftIO $ createDirectoryIfMissing True  path
         liftIO $ writeFile (path </> "spec.specE" ) (show spE)
+
+        let meta = mkMeta spE
+        liftIO $  writeFile (path </> "spec.meta" ) (show meta)
+        liftIO $  writeJSON  (path </> "spec.meta.json" ) (meta)
 
         seed <- chooseR (0, 2^(24 :: Int))
         -- TODO follow logs
