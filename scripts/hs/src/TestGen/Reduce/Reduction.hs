@@ -1,13 +1,10 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables, FlexibleInstances #-}
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE MultiParamTypeClasses, FlexibleContexts #-}
+{-# LANGUAGE LambdaCase, MultiWayIf #-}
 {-# LANGUAGE PatternGuards #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE TupleSections #-}
-{-# LANGUAGE FlexibleContexts #-}
 
 -- module TestGen.Reduce.Reduction(Reduce(..), runReduce) where
 module TestGen.Reduce.Reduction where
@@ -21,18 +18,11 @@ import Data.List(transpose)
 
 import Control.Monad.Trans.Identity(IdentityT)
 
--- import qualified TestGen.Arbitrary.Arbitrary as A
--- import qualified TestGen.Arbitrary.Domain as A
--- import qualified TestGen.Arbitrary.Expr as A
 
 class (HasGen m, WithDoms m, HasLogger m) => Reduce a m where
     reduce   :: a -> m [a]    -- list of smaller exprs
     single   :: a -> m [Expr] -- smallest literal e.g  [true, false] for  a /\ b
     subterms :: a -> m [Expr] -- a /\ b  -->   [a, b]
-
-    -- reduce a   = error "no default reduce"
-    -- single a   = error "no default of single"
-    -- subterms a = error "no default of subterms"
 
 
 instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
@@ -51,15 +41,19 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
         Just ty -> singleLitExpr ty
         Nothing -> error . show . vcat $ ["Evar not found",pretty t]
 
-    -- reduce (EUniOp t) = _h
-    -- reduce (EProc t) = _h
+    reduce (EUniOp t) = do
+      ds <- reduce t
+      return $ map EUniOp ds
+
+    reduce (EProc t) = do
+      ds <- reduce t
+      return $ map EProc ds
 
     reduce (EDom t) = do
       ds <- reduce t
       return $ map EDom ds
 
     reduce (EBinOp op) = do
-      -- single op ++ subterms op ++ map EBinOp (reduce op)
       a1 <- single op
       a2 <- subterms op
       a3 <- reduce op
@@ -69,7 +63,11 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
       exs <- reduce ex
       return $ map (ETyped t) exs
 
-    -- reduce (EQuan t1 t2 t3 t4) = _h
+    reduce (EQuan t1 t2 t3 t4) = do
+      y3 <- reduce t3
+      y4 <- reduce t4
+
+      return $ zipWith (EQuan t1 t2) y3 y4
 
 
     single EEmptyGuard = return []
@@ -88,29 +86,33 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
 
     single (EDom t) = single t
 
-    single (EBinOp t)    = single t
-    -- single (EUniOp t) = _t
-    -- single (EProc t)  = _t
+    single (EBinOp t) = single t
+    single (EUniOp t) = single t
+    single (EProc t)  = single t
 
-    -- single (EQuan t1 t2 t3 t4) = _t
-
-    single t = error . show .vcat $
-               ["no single expr", pretty t, pretty $ groom t]
+    single (ETyped _ e)  = single e
+    single (EQuan t1 t2 t3 t4) = do
+        y3 <- single t3
+        y4 <- single t4
+        return $ zipWith (EQuan t1 t2) y3 y4
 
     subterms (EVar _)  = return []
     subterms (EQVar _) = return []
 
-    subterms (ELit t)      = subterms t
-    subterms (EDom t)      = subterms t
-    subterms (EBinOp t)    = subterms t
-    -- subterms (EUniOp t) = _h
-    -- subterms (EProc t)  = _h
+    subterms (ELit t)   = subterms t
+    subterms (EDom t)   = subterms t
+    subterms (EBinOp t) = subterms t
+    subterms (EUniOp t) = subterms t
+    subterms (EProc t)  = subterms t
+    subterms (ETyped _ t) = subterms t
 
-    -- subterms (EQuan t1 t2 t3 t4) = _h
     subterms EEmptyGuard = return []
 
-    subterms t = error . show .vcat $
-                 ["no single expr", pretty t, pretty $ groom t]
+    subterms (EQuan t1 t2 t3 t4) = do
+        y3 <- subterms t3
+        y4 <- subterms t4
+        return $ zipWith (EQuan t1 t2) y3 y4
+
 
 instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Literal m where
 
@@ -126,11 +128,9 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Literal m where
     reduce (EI _) = return []
 
     reduce (ESet [])     = return []
-    -- reduce (ESet [_])    = return [ESet []]
     reduce (ESet (t:ts)) = return [ESet [t], ESet ts ]
 
     reduce (EMSet [])     = return []
-    -- reduce (EMSet [_])    = return [EMSet []]
     reduce (EMSet (t:ts)) = return [EMSet [t], EMSet ts ]
 
     -- FIXME indexes
@@ -176,9 +176,9 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Literal m where
 
 
 
-    -- reduce (EFunction t) = _h
-    -- reduce (ERelation t) = _h
-    -- reduce (EPartition t) = _h
+    reduce (EFunction _)  = return []
+    reduce (ERelation _)  = return []
+    reduce (EPartition _) = return []
 
 
 instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce BinOp m where
@@ -187,33 +187,32 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce BinOp m where
     reduce (Bimply x1 x2) = reduceBop Bimply x1 x2
     reduce (Biff x1 x2)   = reduceBop Biff x1 x2
 
-    reduce (BEQ x1 x2)  = reduceBop BEQ x1 x2
-    reduce (BNEQ x1 x2) = reduceBop BNEQ x1 x2
-    -- reduce (BLT x1 x2) = _h
-    -- reduce (BLTE x1 x2) = _h
-    -- reduce (BGT x1 x2) = _h
-    -- reduce (BGTE x1 x2) = _h
-    -- reduce (BDiff x1 x2) = _h
-    -- reduce (BPlus x1 x2) = _h
-    -- reduce (BMult x1 x2) = _h
-    -- reduce (BDiv x1 x2) = _h
-    -- reduce (BPow x1 x2) = _h
-    -- reduce (BMod x1 x2) = _h
-    -- reduce (Bsubset x1 x2) = _h
-    -- reduce (BsubsetEq x1 x2) = _h
-    -- reduce (Bsupset x1 x2) = _h
-    -- reduce (BsupsetEq x1 x2) = _h
-    -- reduce (Bintersect x1 x2) = _h
-    -- reduce (Bunion x1 x2) = _h
-    -- reduce (BlexLT x1 x2) = _h
-    -- reduce (BlexLTE x1 x2) = _h
-    -- reduce (BlexGT x1 x2) = _h
-    -- reduce (BlexGTE x1 x2) = _h
+    reduce (BEQ x1 x2)        = reduceBop BEQ x1 x2
+    reduce (BNEQ x1 x2)       = reduceBop BNEQ x1 x2
+    reduce (BLT x1 x2)        = reduceBop BLT x1 x2
+    reduce (BLTE x1 x2)       = reduceBop BLTE x1 x2
+    reduce (BGT x1 x2)        = reduceBop BGT x1 x2
+    reduce (BGTE x1 x2)       = reduceBop BGTE x1 x2
+    reduce (BDiff x1 x2)      = reduceBop BDiff x1 x2
+    reduce (BPlus x1 x2)      = reduceBop BPlus x1 x2
+    reduce (BMult x1 x2)      = reduceBop BMult x1 x2
+    reduce (BDiv x1 x2)       = reduceBop BDiv x1 x2
+    reduce (BPow x1 x2)       = reduceBop BPow x1 x2
+    reduce (BMod x1 x2)       = reduceBop BMod x1 x2
+    reduce (Bsubset x1 x2)    = reduceBop Bsubset x1 x2
+    reduce (BsubsetEq x1 x2)  = reduceBop BsubsetEq x1 x2
+    reduce (Bsupset x1 x2)    = reduceBop Bsupset x1 x2
+    reduce (BsupsetEq x1 x2)  = reduceBop BsupsetEq x1 x2
+    reduce (Bintersect x1 x2) = reduceBop Bintersect x1 x2
+    reduce (Bunion x1 x2)     = reduceBop Bunion x1 x2
+    reduce (BlexLT x1 x2)     = reduceBop BlexLT x1 x2
+    reduce (BlexLTE x1 x2)    = reduceBop BlexLTE x1 x2
+    reduce (BlexGT x1 x2)     = reduceBop BlexGT x1 x2
+    reduce (BlexGTE x1 x2)    = reduceBop BlexGTE x1 x2
 
-    -- reduce (BIn x1 x2) = _h
-    -- reduce (BOver x1 x2) = _h
-
-    reduce a = error . show . vcat
+    reduce a@(BIn _ _) =  error . show . vcat
+        $ ["reduce missing case", pretty $ toEssence a, pretty $ groom a ]
+    reduce a@(BOver _ _) = error . show . vcat
         $ ["reduce missing case", pretty $ toEssence a, pretty $ groom a ]
 
     single (BAnd _ _)   = return $ [etrue,  efalse]
@@ -250,10 +249,10 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce BinOp m where
     single (BDiff x1  _)     = ttypeOf x1 >>= singleLitExpr
 
 
-    -- single (BIn x1 x2) = _e
-    -- single (BOver x1 x2) = _e
+    single a@(BIn _ _) = error . show . vcat
+        $ ["single missing case", pretty $ toEssence a, pretty $ groom a ]
 
-    single a = error . show . vcat
+    single a@(BOver _ _) = error . show . vcat
         $ ["single missing case", pretty $ toEssence a, pretty $ groom a ]
 
 
@@ -291,11 +290,9 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce BinOp m where
     subterms (Bintersect x1 x2) = return [x1, x2]
     subterms (Bunion x1 x2)     = return [x1, x2]
 
-    -- subterms (BIn x1 x2) = _k
-    -- subterms (BOver x1 x2) = _k
-
-
-    subterms a = error . show . vcat
+    subterms a@(BIn _ _) =  error . show . vcat
+        $ ["subterms missing case", pretty $ toEssence a, pretty $ groom a ]
+    subterms a@(BOver _ _) =  error . show . vcat
         $ ["subterms missing case", pretty $ toEssence a, pretty $ groom a ]
 
 
@@ -304,12 +301,21 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Domain m where
     single x   = return [EDom x]
     subterms _ = return []
 
+instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce UniOp m where
+    reduce _   = return []
+    single x   = ttypeOf x >>= singleLitExpr
+    subterms _ = return []
+
+instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Proc m where
+    reduce _   = return []
+    single x   = ttypeOf x >>= singleLitExpr
+    subterms _ = return []
 
 subtermsBoolBop :: (WithDoms m) => Expr -> Expr ->  m [Expr]
 subtermsBoolBop a b = ttypeOf a >>= \case
                       TBool -> return [a,b]
                       _     -> return []
---  src/TestGen/Reduce/Data.hs
+
 reduceBop :: (WithDoms m, HasGen m, HasLogger m) =>
              (Expr -> Expr -> BinOp) -> Expr -> Expr -> m [BinOp]
 reduceBop t a b=  do
