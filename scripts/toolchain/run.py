@@ -252,7 +252,10 @@ class Status(Enum):
     divideByZero     = 11,
     conjureNA        = 12,
     conjureInvalid   = 13,
-    statusAny        = 14
+    statusAny        = 14,
+    javaException    = 15,
+    notAHomoType     = 16,
+    forgetRepr       = 17
 
 errors_not_useful = {Status.numberToLarge}
 
@@ -268,6 +271,10 @@ def classify_error(kind, c, e):
             return Status.typeChecking
         if 'declared more than once.' in e.output:
             return Status.varDuplicated
+        if 'Exception in thread' in e.output:
+            return Status.javaException
+        if 'ERROR: Savile Row timed out' in e.output:
+            return Status.timeout
 
     if kind in kind_conjure:
         if e.returncode == 252:
@@ -279,16 +286,30 @@ def classify_error(kind, c, e):
     if kind == K.validate:
         if ': negativeExponent' in e.output:
             return Status.negativeExponent
+        if ': Negative exponent' in e.output:
+            return Status.negativeExponent
         if ': divideByZero' in e.output:
+            return Status.divideByZero
+        if ': divide by zero' in e.output:
             return Status.divideByZero
         if ': Invalid' in e.output:
             return Status.conjureInvalid
 
     if kind in kind_conjure:
+        if 'Shunting Yard failed' in e.output:
+            return Status.parseError
+
         if 'Cannot fully evaluate' in e.output:
             return Status.cannotEvaluate
+
+        if 'not a homoType' in e.output:
+            return Status.notAHomoType
+
         if 'N/A:' in e.output:
             return Status.conjureNA
+
+        if 'forgetRepr' in e.output:
+            return Status.forgetRepr
 
     return Status.errorUnknown
 

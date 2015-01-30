@@ -49,6 +49,9 @@ data StatusI =
     | DivideByZero_
     | ConjureNA_
     | ConjureInvalid_
+    | JavaException_
+    | NotAHomoType_
+    | ForgetRepr_
     | StatusAny_
     deriving (Show,Eq,Enum,Generic,Typeable, Data, Read)
 
