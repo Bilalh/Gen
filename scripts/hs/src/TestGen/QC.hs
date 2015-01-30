@@ -55,7 +55,7 @@ import Data.Traversable(Traversable)
 
 prop_specs_refine :: ArbSpec a =>
     WithExtra a -> Cores ->  Int -> FilePath -> Bool -> WithExtra a -> Property
-prop_specs_refine  _ cores time out newConjure WithExtra{..} = do
+prop_specs_refine  _ cores time outBase newConjure WithExtra{..} = do
     let specE = getSpec inner_
         sp    = toSpec specE
     fst (typeChecks sp) ==>
@@ -78,7 +78,8 @@ prop_specs_refine  _ cores time out newConjure WithExtra{..} = do
             classifySettingI errdir out uname result
 
     where
-    errdir  = out </> "_errors"
+    out     = outBase </> "_passing"
+    errdir  = outBase </> "_errors"
 
 classifySettingI :: FilePath
                     -> FilePath
@@ -130,7 +131,7 @@ classifySettingI _ _ _ _ = return ()
 
 prop_specs_toolchain :: ArbSpec a =>
     WithExtra a -> Cores ->  Int -> FilePath -> Bool -> WithExtra a -> Property
-prop_specs_toolchain  _ cores time out newConjure WithExtra{..} = do
+prop_specs_toolchain  _ cores time outBase newConjure WithExtra{..} = do
     let specE = getSpec inner_
         sp    = toSpec specE
     fst (typeChecks sp) ==>
@@ -152,7 +153,8 @@ prop_specs_toolchain  _ cores time out newConjure WithExtra{..} = do
             classifyError uname result
 
     where
-    errdir  = out </> "_errors"
+    out     = outBase </> "_passing"
+    errdir  = outBase </> "_errors"
 
     classifyError uname (Left a) = classifySettingI errdir out uname a
 
