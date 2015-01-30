@@ -48,9 +48,6 @@ runSpec spE = do
         liftIO $ createDirectoryIfMissing True  path
         liftIO $ writeFile (path </> "spec.specE" ) (show spE)
 
-        -- removeDirectoryRecursive breaks if dir eixsts
-        -- liftIO $ createDirectoryIfMissing True path >> removeDirectoryRecursive path
-
         seed <- chooseR (0, 2^(24 :: Int))
         -- TODO follow logs
         perSpec <- gets specTime_
@@ -65,7 +62,7 @@ runSpec spE = do
                          ,nn "res" (pretty . groom $ res)]
 
         let
-            sameError :: Either RefineR (RefineR, SolveR) -> (Bool, Maybe RunResult)
+            sameError :: Either RefineR (RefineR,SolveR) -> (Bool,Maybe RunResult)
             sameError (Left SettingI{successful_=False, data_=RefineM ms})
                 | modelRefineError rrErrorKind =
 
@@ -76,9 +73,10 @@ runSpec spE = do
                                               ,resErrKind_
                                               ,resErrStatus_})
 
-                  Nothing -> (False, Just $ RunResult{resDirectory_ = path
-                                                   ,resErrKind_   = fstKind sks
-                                                   ,resErrStatus_ = fstStatus sks})
+                  Nothing -> (False, Just $
+                                   RunResult{resDirectory_ = path
+                                            ,resErrKind_   = fstKind sks
+                                            ,resErrStatus_ = fstStatus sks})
 
                 where
                   anyFirst (StatusAny_,KindAny_) ((_,(x,y)):_) = Just (x,y)
@@ -110,9 +108,10 @@ runSpec spE = do
                        (True, Just $ RunResult{resDirectory_ = path
                                               ,resErrKind_
                                               ,resErrStatus_})
-                   Nothing -> (False, Just $ RunResult{resDirectory_ = path
-                                                      ,resErrKind_   = fstKind sks
-                                                      ,resErrStatus_ = fstStatus sks})
+                   Nothing -> (False, Just $
+                                    RunResult{resDirectory_ = path
+                                             ,resErrKind_   = fstKind sks
+                                             ,resErrStatus_ = fstStatus sks})
 
                 where
                   anyFirst (StatusAny_,KindAny_) ((_,(x,y)):_) = Just (x,y)
