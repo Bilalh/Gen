@@ -1,14 +1,14 @@
 {-# LANGUAGE ScopedTypeVariables, LambdaCase, OverloadedStrings #-}
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
 
-module TestGen.Reduce.FormatResults where
+module TestGen.Reduce.FormatResults(formatResults) where
 
 import TestGen.Reduce.Data
 -- import TestGen.Prelude
 
 import System.FilePath((</>), takeFileName)
 import System.Directory(createDirectoryIfMissing, renameDirectory
-                       ,getDirectoryContents,removeDirectoryRecursive)
+                       ,getDirectoryContents,removeDirectoryRecursive, copyFile)
 import Control.Monad(forM_)
 
 formatResults :: RState -> IO ()
@@ -17,7 +17,8 @@ formatResults RState{..} = do
     Just RunResult{..} -> do
       renameDirectory  resDirectory_ finalDir
 
-    Nothing -> return ()
+    Nothing -> do
+      copyDirectory specDir_ finalDir
 
   case otherErrors_ of
     []  -> return ()
@@ -39,3 +40,10 @@ formatResults RState{..} = do
       let newDir = othersDir </> (show resErrKind_) </> (show resErrStatus_)
       createDirectoryIfMissing True newDir
       renameDirectory resDirectory_ (newDir </> (takeFileName resDirectory_) )
+
+copyDirectory :: FilePath -> FilePath -> IO ()
+copyDirectory from to = do
+  createDirectoryIfMissing True to
+  fps <- (getDirectoryContents from)
+  forM_ (filter (`notElem` [".", ".."])  fps) $ \f -> do
+    copyFile (from </> f) (to </> f)

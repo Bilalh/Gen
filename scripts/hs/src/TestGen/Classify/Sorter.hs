@@ -62,7 +62,10 @@ sorter SArgs{fp_,types_} = do
 
   where
   relink (fp, meta) i = do
-    let dir    = (takeFileName . takeDirectory) fp ++ "#" ++ zeroPad 4 i
+    let dirName = case (takeFileName . takeDirectory) fp of
+                    "final" ->  (takeFileName . takeDirectory .takeDirectory) fp
+                    s       ->  s
+    let dir = dirName ++ "#" ++ zeroPad 4 i
 
     forM types_ $ \type_ -> do
       let newDir = map ("link" </>) (getFunc type_ $ meta)
