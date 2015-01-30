@@ -14,6 +14,7 @@ import Data.Hashable ( Hashable(..) )
 import Data.Aeson(FromJSON(..),ToJSON(..))
 
 
+
 data Domain
   = DSet
     { size        :: Maybe Integer

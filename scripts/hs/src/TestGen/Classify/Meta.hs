@@ -18,6 +18,8 @@ import Data.Aeson(FromJSON(..),ToJSON(..))
 
 import qualified Data.Foldable as F
 
+
+
 data Feature = Fquan
               | FexprInLiteral
               | Findexing       -- tuple indexing, matrix slices etc
@@ -83,12 +85,7 @@ complex :: (WithDoms m) => Type -> Type -> m Ordering
 complex t1 t2 = do
   a <- nullLogs $ simpler t1 t1
   b <- nullLogs $ simpler t2 t1
-  case (a, b) of
-    (False, False) -> return EQ
-    (True,  True)  -> return EQ
-
-    (False, True)  -> return GT
-    (True,  False) -> return LT
+  return $ chainCompare [a, b]
 
 
 maximumByM :: (Monad m) => (a -> a -> m Ordering) -> [a] -> m a

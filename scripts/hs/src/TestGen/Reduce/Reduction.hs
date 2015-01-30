@@ -348,7 +348,7 @@ infixl 1 -|
         (a -> (c,d) ) -> (m a, e) -> m (Maybe ((c,d)))
 f  -| (a,e) = do
    aa <-a
-   simpler aa e >>= \case
+   simpler1 aa e >>= \case
      True  -> return $ Just (f aa)
      False -> return Nothing
 

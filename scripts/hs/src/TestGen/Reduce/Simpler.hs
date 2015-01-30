@@ -13,28 +13,53 @@ import TestGen.Arbitrary.Type(typesUnify)
 -- True if a1 is simpler then a2
 class (Pretty a, Eq a, Show a, Pretty b, Eq b, Show b, Standardise a, Standardise b)
     => Simpler a b where
-    simplerImp :: (WithDoms m, HasLogger m) => a -> b -> m Bool
-    simpler :: (WithDoms m, HasLogger m) => a -> b -> m Bool
+  simplerImp :: (WithDoms m, HasLogger m) => a -> b -> m Ordering
+  simpler  :: (WithDoms m, HasLogger m) => a -> b -> m Ordering
+  simpler1 :: (WithDoms m, HasLogger m) => a -> b -> m Bool
 
-    simpler a b = do
-      -- addLog "simplerStart" [nn "a" a, nn "b" b]
-      na <- standardise a
-      nb <- standardise b
-      res <- simplerImp na nb
-      addLog "simpler" [nn "a" a, nn "b" b
-                       , nn "res" res
-                       -- , nn "ga" (groom a), nn "gb" (groom b)
-                       -- , nn "ga" (groom na), nn "gb" (groom nb)
-                       ]
-      return res
+  simpler a b = do
+    -- addLog "simplerStart" [nn "a" a, nn "b" b]
+    na <- standardise a
+    nb <- standardise b
+    res <- simplerImp na nb
+    addLog "simpler" [nn "a" a, nn "b" b
+                     , nn "res" (show res)
+                     -- , nn "ga" (groom a), nn "gb" (groom b)
+                     -- , nn "ga" (groom na), nn "gb" (groom nb)
+                     ]
+    return $ res
+
+  simpler1 a b= simpler a b >>= (return . (== LT))
+
+compareCombine :: Ordering -> Ordering -> Ordering
+compareCombine LT LT = LT
+compareCombine LT EQ = LT
+compareCombine LT GT = EQ
+compareCombine EQ LT = LT
+compareCombine EQ EQ = EQ
+compareCombine EQ GT = GT
+compareCombine GT LT = EQ
+compareCombine GT EQ = GT
+compareCombine GT GT = GT
+
+chainCompare :: [Ordering] -> Ordering
+chainCompare []  = EQ
+chainCompare [x] = x
+chainCompare xs  = foldl1 compareCombine  xs
+
+
+negOrder :: Ordering -> Ordering
+negOrder LT = GT
+negOrder EQ = EQ
+negOrder GT = LT
 
 instance Simpler Type Type where
-    simplerImp TBool TBool = return False
-    simplerImp TBool _     = return True
+    simplerImp TBool TBool = return EQ
+    simplerImp TBool _     = return LT
 
-    simplerImp TInt TBool  = return False
-    simplerImp TInt TInt   = return  False
-    simplerImp TInt _      = return  True
+    simplerImp TInt TBool  = return  GT
+    simplerImp TInt TInt   = return  EQ
+    simplerImp TInt _      = return  LT
 
     simplerImp (TSet x) (TSet y)     = simpler x y
     simplerImp (TMSet x) (TMSet y)   = simpler x y
@@ -44,21 +69,21 @@ instance Simpler Type Type where
     simplerImp (TFunc x1 x2) (TFunc y1 y2) = do
         a <- simplerImp x1 x2
         b <- simplerImp y1 y2
-        return $ a && b
+        return $ compareCombine a b
 
     simplerImp (TTuple x) (TTuple y) = do
         res <- zipWithM simplerImp x y
-        return $ and res
+        return $ chainCompare res
 
     simplerImp (TRel x) (TRel y) = do
         res <- zipWithM simplerImp x y
-        return $ and res
+        return $ chainCompare res
 
     -- simplerImp (TUnamed x) y = _h
     -- simplerImp (TEnum x) y = _h
-    simplerImp TAny TBool = return False
-    simplerImp TAny TAny  = return False
-    simplerImp TAny _     = return True
+    simplerImp TAny TBool = return GT
+    simplerImp TAny TAny  = return EQ
+    simplerImp TAny _     = return LT
 
     simplerImp a b = rrError "simpler"
                   [pretty $ a, pretty $  b
@@ -86,10 +111,10 @@ instance Simpler Expr Expr where
   -- simplerImp (EQuan a1 a2 a3 a4) b =_h
 
 
-  simplerImp EEmptyGuard EEmptyGuard = return False
+  simplerImp EEmptyGuard EEmptyGuard = return EQ
   simplerImp EEmptyGuard b = do
     tyb <- ttypeOf b
-    return $ tyb /= TBool
+    return $ if tyb == TBool then EQ else LT
 
 
   simplerImp (ETyped _ x) (ETyped _ y) = simpler x y
@@ -107,16 +132,13 @@ instance Simpler BinOp BinOp where
     simplerImp (BEQ x1 x2) (BEQ y1 y2)  = do
       r1 <- simplerImp x1 y1
       r2 <- simplerImp x2 y2
-      return $ (r1 && r2 )
-                 || (r1 && (x2 == y2) )
-                 || (r2 && (x1 == y1) )
+      return $ compareCombine r1 r2
 
     simplerImp (BNEQ x1 x2) (BNEQ y1 y2) = do
       r1 <- simplerImp x1 y1
       r2 <- simplerImp x2 y2
-      return $ (r1 && r2 )
-                 || (r1 && (x2 == y2) )
-                 || (r2 && (x1 == y1) )
+      return $ compareCombine r1 r2
+
 
     -- simplerImp (BLT x1 x2) y        = _h
     -- simplerImp (BLTE x1 x2) y       = _h
@@ -144,12 +166,12 @@ instance Simpler BinOp BinOp where
     -- simplerImp (BlexGTE x1 x2) y    = _h
 
 instance Simpler Literal Literal where
-    simplerImp (EB _) (EB _) = return False
-    simplerImp (EB _) _      = return True
+    simplerImp (EB _) (EB _) = return EQ
+    simplerImp (EB _) _      = return LT
 
-    simplerImp (EI _) (EB _) = return False
-    simplerImp (EI _) (EI _) = return False
-    simplerImp (EI _) _      = return True
+    simplerImp (EI _) (EB _) = return GT
+    simplerImp (EI _) (EI _) = return EQ
+    simplerImp (EI _) _      = return LT
 
     simplerImp x (EExpr (ELit y)) =  simpler x y
 
@@ -158,33 +180,38 @@ instance Simpler Literal Literal where
     simplerImp (EExpr x) l = simpler x l
     simplerImp l (EExpr e) = do
       res <- simpler e l
-      return $ not res
+      return $  res
 
     simplerImp (ETuple x) (ETuple y) = do
         res <- zipWithM simplerImp x y
-        return $ and res
+        return $ chainCompare res
 
     simplerImp (EMatrix x _) (EMatrix y _) = do
       tx <- ttypeOf x
       ty <- ttypeOf y
       res <- zipWithM simplerImp x y
 
-      let bo = (and res) || ( (typesUnify tx ty) && length x < length y )
+      let bo = case chainCompare res of
+                  EQ -> case (typesUnify tx ty) of
+                          True  -> compare (length x) (length y)
+                          False -> EQ
+                  t  -> t
+
       return bo
 
     simplerImp a@(ESet x) b@(ESet y)             =  do
         addLog "simplerImp" [nn "a" a, nn "b" b]
         res <- zipWithM simplerImp x y
-        return $ and res
+        return $ chainCompare res
 
     simplerImp (EMSet x) (EMSet y)           =  do
         res <- zipWithM simplerImp x y
-        return $ and res
+        return $ chainCompare res
 
 
     simplerImp (ERelation x) (ERelation y)   =  do
         res <- zipWithM simplerImp x y
-        return $ and res
+        return $ chainCompare res
 
     simplerImp a@(EFunction x) b@(EFunction y)   = simplerImpError a b
     simplerImp a@(EPartition x) b@(EPartition y) =  simplerImpError a b
@@ -196,18 +223,17 @@ instance Simpler Literal Literal where
 
 
 instance Simpler Literal BinOp where
-    simplerImp (EB _) _ = return True
-    simplerImp (EI _) _ = return True
+    simplerImp (EB _) _ = return LT
+    simplerImp (EI _) _ = return LT
 
-    -- simplerImp _ _ = False
-    simplerImp a b = rrError "simpler"
-                  [pretty $ a, pretty $  b
-                  , pretty $ groom a, pretty $ groom b ]
+    simplerImp a b = simplerImpError a b
 
 
 
 instance Simpler Expr Literal where
-    simplerImp EEmptyGuard _ = return True
+    simplerImp EEmptyGuard b = do
+      tyb <- ttypeOf b
+      return $ if tyb == TBool then EQ else LT
     simplerImp (ELit e) l    = simplerImp e l
 
     simplerImp (EVar e) l = do
@@ -236,7 +262,7 @@ instance Simpler Expr Literal where
     simplerImp a@(EQuan e1 e2 e3 e4) l = simplerImpError a l
     simplerImp a@(EDom e) l            = simplerImpError a l
 
-simplerImpError :: (Simpler a b, HasLogger m) => a -> b -> m Bool
+simplerImpError :: (Simpler a b, HasLogger m) => a -> b -> m Ordering
 simplerImpError a b = rrError "simplerImp"
                       [pretty $ a, pretty $  b
                       , pretty $ groom a, pretty $ groom b ]
