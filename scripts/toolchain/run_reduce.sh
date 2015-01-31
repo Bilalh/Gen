@@ -11,9 +11,6 @@ if [ ! -d "$base/_errors" ]; then
 fi
 
 function process (){
-	if [ "$2" = '.' ]; then
-		return 0
-	fi
 	path="$1"
 	dir="${2}"
 	out_dir="${2/_errors/_reduced}"
@@ -41,6 +38,6 @@ parallel -j1 --keep-order --linebuffer --halt 1  \
 	--rpl '{@} $Global::use{"File::Basename"} ||= eval "use File::Basename; 1;"; $_ = basename(dirname($_));' \
 	--tagstring '{@}' \
 	"process {} {//} {#}" ::: \
-	"$(find "$base/_errors/" -name 'spec.specE' ! -path '*zall*' )" \
-	2 >&1 | tee "$base/_reduced/_all.logged"
+	"$(find "$base/_errors/" -type f -name 'spec.specE' ! -path '*zall*' | sort )" \
+	2>&1 | tee "$base/_reduced/_all.logged"
 
