@@ -8,7 +8,8 @@ import TestGen.Reduce.Data
 
 import System.FilePath((</>), takeFileName)
 import System.Directory(createDirectoryIfMissing, renameDirectory
-                       ,getDirectoryContents,removeDirectoryRecursive, copyFile)
+                       ,getDirectoryContents,removeDirectoryRecursive
+                       , doesDirectoryExist, copyFile)
 import Control.Monad(forM_)
 
 formatResults :: RState -> IO ()
@@ -46,4 +47,6 @@ copyDirectory from to = do
   createDirectoryIfMissing True to
   fps <- (getDirectoryContents from)
   forM_ (filter (`notElem` [".", ".."])  fps) $ \f -> do
-    copyFile (from </> f) (to </> f)
+    doesDirectoryExist f >>= \case
+      True  -> return ()
+      False -> copyFile (from </> f) (to </> f)

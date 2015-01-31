@@ -88,11 +88,11 @@ runSpec spE = do
                       else
                           Nothing
 
-                  anyFirst skIn sks =
-                      if any (\(_,sk) -> sk == skIn ) sks then
-                          Just skIn
-                      else
-                          Nothing
+                  anyFirst skIn@(sIn, kIn) sks =
+                    if any (\(_,(ss,kk))-> ss==sIn && kindsEqual kk kIn) sks then
+                        Just skIn
+                    else
+                        Nothing
 
 
             sameError (Right (_, SettingI{successful_=False,data_=SolveM ms })) =
@@ -117,7 +117,7 @@ runSpec spE = do
                 where
                   anyFirst (StatusAny_,KindAny_) ((_,(x,y)):_) = Just (x,y)
                   anyFirst (StatusAny_,ki) v@((_,(x,_)):_) =
-                      if any (\(_,(_,k)) -> k == ki ) v then
+                      if any (\(_,(_,k)) -> kindsEqual k ki ) v then
                           Just (x,ki)
                       else
                           Nothing
@@ -128,11 +128,11 @@ runSpec spE = do
                       else
                           Nothing
 
-                  anyFirst skIn sks =
-                      if any (\(_,sk) -> sk == skIn ) sks then
-                          Just skIn
-                      else
-                          Nothing
+                  anyFirst skIn@(sIn, kIn) sks =
+                    if any (\(_,(ss,kk))-> ss==sIn && kindsEqual kk kIn) sks then
+                        Just skIn
+                    else
+                        Nothing
 
 
 
@@ -155,13 +155,13 @@ runSpec spE = do
           (True, Nothing)  -> rrError "Same error but no result" []
           (False, Just r)  -> do
             liftIO $ putStrLn . show $ res
-            liftIO $ print $ ("hasResult:" :: String,  pretty r)
+            liftIO $ putStrLn $ groom ("hasResult:" :: String,  pretty r)
             addOtherError r
             return Nothing
 
           (False, Nothing) -> do
              liftIO $ putStrLn . show $ res
-             liftIO $ print $ ("noResult:" :: String, fst stillErroed)
+             liftIO $ print $ ("noResult")
              return Nothing
 
 
@@ -173,6 +173,17 @@ modelRefineError RefineAll_     = True
 modelRefineError KindAny_       = True
 modelRefineError _              = False
 
+kindsEqual :: KindI -> KindI -> Bool
+kindsEqual KindAny_ _ = True
+kindsEqual _ KindAny_ = True
+
+kindsEqual RefineCompact_ RefineAll_ = True
+kindsEqual RefineRandom_  RefineAll_ = True
+
+kindsEqual RefineAll_ RefineCompact_  = True
+kindsEqual RefineAll_ RefineRandom_   = True
+
+kindsEqual a b = a == b
 
 addOtherError :: RunResult -> RR ()
 addOtherError r = do
