@@ -76,7 +76,6 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
     single (EVar t) = typeOfVar t >>= \case
         Just ty -> singleLitExpr ty
         Nothing -> do
-          se <- getSpecEWithDoms
           rrError "single EVar not found" [pretty t]
 
     single (EQVar t) = typeOfVar t >>= \case
@@ -95,11 +94,19 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
 
     single (ETyped _ e)  = single e
 
-    single a@(EQuan _ _ _ _) = return [a]
-    -- single (EQuan t1 t2 t3 t4) = do
-    --     y3 <- single t3
-    --     y4 <- single t4
-    --     return $ zipWith (EQuan t1 t2) y3 y4
+    single (EQuan Sum t2 t3 t4) = do
+      i1 <- singleLitExpr TInt >>= oneofR
+      i2 <- singleLitExpr TInt >>= oneofR
+      i3 <- singleLitExpr TInt >>= oneofR
+      return [i1
+            , EQuan Sum t2 EEmptyGuard i2
+            , EQuan Sum t2 t3 i3
+            , EQuan Sum t2 EEmptyGuard t4]
+
+    single (EQuan t1 t2 t3 t4) = do
+          return [EQuan t1 t2 EEmptyGuard etrue
+                 , EQuan t1 t2 t3 etrue
+                 , EQuan t1 t2 EEmptyGuard t4]
 
     subterms (EVar _)  = return []
     subterms (EQVar _) = return []
@@ -111,12 +118,9 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
     subterms (EProc t)  = subterms t
     subterms (ETyped _ t) = subterms t
 
-    subterms EEmptyGuard = return []
+    subterms (EQuan _ _ _ _) = return []
 
-    subterms (EQuan t1 t2 t3 t4) = do
-        y3 <- subterms t3
-        y4 <- subterms t4
-        return $ zipWith (EQuan t1 t2) y3 y4
+    subterms EEmptyGuard = return []
 
 
 instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Literal m where
