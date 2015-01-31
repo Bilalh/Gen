@@ -63,7 +63,7 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
       exs <- reduce ex
       return $ map (ETyped t) exs
 
-    reduce (EQuan _ _ _ _) = return []
+    reduce a@(EQuan _ _ _ _) = single a
     -- reduce (EQuan t1 t2 t3 t4) = do
     --   y3 <- reduce t3
     --   y4 <- reduce t4
