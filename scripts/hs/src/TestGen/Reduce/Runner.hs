@@ -157,7 +157,10 @@ runSpec spE = do
             addOtherError r
             return Nothing
 
-          (False, Nothing) -> return Nothing
+          (False, Nothing) -> do
+             liftIO $ putStrLn . show $ res
+             liftIO $ print $ ("HasrrError?" :: String, fst stillErroed)
+             return Nothing
 
 
 
