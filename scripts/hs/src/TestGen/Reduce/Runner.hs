@@ -154,12 +154,14 @@ runSpec spE = do
           (True, Just r)   -> return $ Just $ r
           (True, Nothing)  -> rrError "Same error but no result" []
           (False, Just r)  -> do
+            liftIO $ putStrLn . show $ res
+            liftIO $ print $ ("hasResult:" :: String,  pretty r)
             addOtherError r
             return Nothing
 
           (False, Nothing) -> do
              liftIO $ putStrLn . show $ res
-             liftIO $ print $ ("HasrrError?" :: String, fst stillErroed)
+             liftIO $ print $ ("noResult:" :: String, fst stillErroed)
              return Nothing
 
 
