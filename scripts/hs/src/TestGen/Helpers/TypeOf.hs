@@ -60,7 +60,7 @@ instance WithDoms m => TypeOf Expr m where
   ttypeOf EEmptyGuard       = return TBool
 
   ttypeOf (EQVar x) = typeOfVar x >>= \case
-    Nothing -> error . show . vcat $ ["ttypeOf EVar no domain", pretty x  ]
+    Nothing -> error . show . vcat $ ["ttypeOf EQVar no domain", pretty x  ]
     Just ty -> return ty
 
   ttypeOf (EVar x) = typeOfVar x >>= \case

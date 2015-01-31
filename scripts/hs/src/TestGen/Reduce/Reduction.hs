@@ -35,11 +35,11 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
 
     reduce (EVar t) = typeOfVar t >>= \case
         Just ty -> singleLitExpr ty
-        Nothing -> error . show . vcat $ ["Evar not found",pretty t]
+        Nothing -> rrError "reduce EVar not found" [pretty t]
 
     reduce (EQVar t) = typeOfVar t >>= \case
         Just ty -> singleLitExpr ty
-        Nothing -> error . show . vcat $ ["Evar not found",pretty t]
+        Nothing -> rrError "reduce EQVar not found" [pretty t]
 
     reduce (EUniOp t) = do
       ds <- reduce t
@@ -63,22 +63,25 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
       exs <- reduce ex
       return $ map (ETyped t) exs
 
-    reduce (EQuan t1 t2 t3 t4) = do
-      y3 <- reduce t3
-      y4 <- reduce t4
+    reduce (EQuan _ _ _ _) = return []
+    -- reduce (EQuan t1 t2 t3 t4) = do
+    --   y3 <- reduce t3
+    --   y4 <- reduce t4
 
-      return $ zipWith (EQuan t1 t2) y3 y4
+    --   return $ zipWith (EQuan t1 t2) y3 y4
 
 
     single EEmptyGuard = return []
 
     single (EVar t) = typeOfVar t >>= \case
         Just ty -> singleLitExpr ty
-        Nothing -> error . show . vcat $ ["Evar not found",pretty t]
+        Nothing -> do
+          se <- getSpecEWithDoms
+          rrError "single EVar not found" [pretty t]
 
     single (EQVar t) = typeOfVar t >>= \case
         Just ty -> singleLitExpr ty
-        Nothing -> error . show . vcat $ ["Evar not found",pretty t]
+        Nothing -> rrError "single EQVar not found" [pretty t]
 
     single (ELit t)   = do
       addLog "singleELit" [nn "t" t]
@@ -91,10 +94,12 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
     single (EProc t)  = single t
 
     single (ETyped _ e)  = single e
-    single (EQuan t1 t2 t3 t4) = do
-        y3 <- single t3
-        y4 <- single t4
-        return $ zipWith (EQuan t1 t2) y3 y4
+
+    single a@(EQuan _ _ _ _) = return [a]
+    -- single (EQuan t1 t2 t3 t4) = do
+    --     y3 <- single t3
+    --     y4 <- single t4
+    --     return $ zipWith (EQuan t1 t2) y3 y4
 
     subterms (EVar _)  = return []
     subterms (EQVar _) = return []
@@ -134,7 +139,7 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Literal m where
     reduce (EMSet (t:ts)) = return [EMSet [t], EMSet ts ]
 
     -- FIXME indexes
-    reduce (EMatrix [] _ )     = error "reduce empty matrix"
+    reduce (EMatrix [] _ )     = rrError "reduce empty matrix" []
     reduce (EMatrix [a] d )    = do
       reduce a >>= \case
              [] -> return []
@@ -212,8 +217,8 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce BinOp m where
 
     reduce (BIn x1 x2) = reduceBop BIn x1 x2
 
-    reduce a@(BOver _ _) = error . show . vcat
-        $ ["reduce missing case", pretty $ toEssence a, pretty $ groom a ]
+    reduce a@(BOver _ _) = rrError "reduce missing case"
+                           [pretty $ toEssence a, pretty $ groom a ]
 
     single (BAnd _ _)   = return $ [etrue,  efalse]
     single (BOr _ _)    = return $ [etrue,  efalse]
@@ -249,8 +254,8 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce BinOp m where
     single (BDiff x1  _)     = ttypeOf x1 >>= singleLitExpr
     single (BIn _ _) = return $ [etrue,  efalse]
 
-    single a@(BOver _ _) = error . show . vcat
-        $ ["single BOver missing case", pretty $ toEssence a, pretty $ groom a ]
+    single a@(BOver _ _) = rrError "single BOver missing case"
+                           [pretty $ toEssence a, pretty $ groom a ]
 
 
     subterms (BAnd x1 x2)   = return [x1, x2]
@@ -288,8 +293,8 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce BinOp m where
     subterms (Bunion x1 x2)     = return [x1, x2]
 
     subterms (BIn _ _)     =  return []
-    subterms a@(BOver _ _) =  error . show . vcat
-        $ ["subterms missing case", pretty $ toEssence a, pretty $ groom a ]
+    subterms a@(BOver _ _) =  rrError "subterms missing case"
+        [pretty $ toEssence a, pretty $ groom a ]
 
 
 instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Domain m where
@@ -365,7 +370,7 @@ singleLit TInt = do
 singleLit TBool = oneofR [EB True, EB False] >>= return . (\a ->  [ELit a ] )
 
 -- of TAny are empty
-singleLit (TMatix TAny) = error "singleLit TMatix TAny"
+singleLit (TMatix TAny) = rrError "singleLit TMatix TAny" []
 singleLit (TSet TAny)   = return [ELit $ ESet []]
 singleLit (TMSet TAny)  = return [ELit $ EMSet []]
 
