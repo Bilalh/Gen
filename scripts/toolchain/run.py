@@ -261,7 +261,8 @@ errors_not_useful = {Status.numberToLarge}
 
 
 def classify_error(kind, c, e):
-    kind_conjure = {K.refineRandom, K.refineCompact, K.refineParam, K.translateUp, K.validate, K.validateOld}
+    kind_conjure = {K.refineAll, K.refineRandom, K.refineCompact, K.refineParam,
+                    K.translateUp, K.validate, K.validateOld}
     if kind == K.savilerow:
         if "java.lang.NumberFormatException: For input string: " in e.output:
             return Status.numberToLarge
