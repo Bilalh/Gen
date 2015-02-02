@@ -31,6 +31,7 @@ reduceMain rr = do
       >>= (note "removeConstraints")    removeConstraints
       >>= (note "simplyConstraints")    simplyConstraints
       >>= (note "removeUnusedDomains")  removeUnusedDomains
+      >>= \ret -> get >>= \g -> addLog "FinalState" [pretty g] >> return ret
 
 
   noteFormat "State" [pretty state]

@@ -14,7 +14,6 @@ import Control.Monad(forM_)
 
 formatResults :: RState -> IO ()
 formatResults RState{..} = do
-  writeFile (outputDir_ </> "run.logs") (renderSized 120 rlogs_)
 
   case mostReduced_ of
     Just RunResult{..} -> do
@@ -26,14 +25,17 @@ formatResults RState{..} = do
        else
            copyDirectory specDir_ finalDir
 
+  writeFile (finalDir </> "zreduce.logs") (renderSized 120 rlogs_)
+
   case otherErrors_ of
     []  -> return ()
     xs  -> mapM_ classify xs
 
   files <- getDirectoryContents outputDir_
   let toDelete = flip filter files
-                 (`notElem` ["others", "final", "zsteps", ".", "..", "run.logs"] )
+                 (`notElem` ["others", "final", "zsteps", ".", "..", "zreduce.logs"] )
   createDirectoryIfMissing True stepsDir
+
   forM_ toDelete $ \d -> do
     -- removeDirectoryRecursive (outputDir_ </> d)
     renameDirectory (outputDir_ </> d) (stepsDir </> d)
