@@ -255,7 +255,9 @@ class Status(Enum):
     statusAny        = 14,
     javaException    = 15,
     notAHomoType     = 16,
-    forgetRepr       = 17
+    forgetRepr       = 17,
+    notRefined       = 18,
+    unknownLexeme    = 19
 
 errors_not_useful = {Status.numberToLarge}
 
@@ -311,6 +313,13 @@ def classify_error(kind, c, e):
 
         if 'forgetRepr' in e.output:
             return Status.forgetRepr
+
+        if 'Unknown lexeme' in e.output:
+            return Status.unknownLexeme
+
+        if 'Not refined:' in e.output:
+            return Status.notRefined
+
 
     return Status.errorUnknown
 

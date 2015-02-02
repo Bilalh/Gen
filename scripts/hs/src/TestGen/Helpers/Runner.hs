@@ -52,6 +52,8 @@ data StatusI =
     | JavaException_
     | NotAHomoType_
     | ForgetRepr_
+    | NotRefined_
+    | UnknownLexeme_
     | StatusAny_
     deriving (Show,Eq,Enum,Generic,Typeable, Data, Read)
 
