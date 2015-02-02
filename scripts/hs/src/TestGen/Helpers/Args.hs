@@ -3,7 +3,7 @@
 {-# OPTIONS_GHC -fno-cse #-} -- stupid cmdargs?
 module TestGen.Helpers.Args(parseArgs, TArgs(..)) where
 
-import Build_autoversion(buildDateRFC2822,autoVersion)
+import Build_autoversion(autoVersion)
 import System.Console.CmdArgs.Implicit
 
 data TArgs_ = TArgs_{base_directory  :: Maybe FilePath
@@ -46,7 +46,7 @@ argsDef  = TArgs_
              }
          &= summary (unlines ["TestSample, the generator of failing test cases"
                              , "Git version: " ++ autoVersion
-                             , "Build date: "  ++ buildDateRFC2822
+                             -- , "Build date: "  ++ buildDateRFC2822
                              ])
          &= helpArg [name "h"]
          &= program "testSample"

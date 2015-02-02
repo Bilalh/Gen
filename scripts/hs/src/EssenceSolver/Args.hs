@@ -6,7 +6,7 @@ import EssenceSolver.Data
 
 import Language.E.Pipeline.ReadIn(readSpecFromFile)
 
-import Build_autoversion(buildDateRFC2822,autoVersion)
+import Build_autoversion(autoVersion)
 
 import System.Console.CmdArgs.Implicit
 import System.FilePath( (<.>), dropExtension )
@@ -27,7 +27,7 @@ argsDef  = Args
              }
          &= summary (unlines ["EssenceSolver Version 1.0"
                              , "Git version: " ++ autoVersion
-                             , "Built date: "  ++ buildDateRFC2822
+                             -- , "Built date: "  ++ buildDateRFC2822
                              ])
          &= helpArg [name "h"]
 
@@ -54,4 +54,3 @@ parseArgs = do
     where
     _f Nothing n = error $ "--" ++ n ++ " needs to be specifed"
     _f (Just v) _   = v
-

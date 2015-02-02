@@ -4,7 +4,7 @@ module TestGen.Old.Args(parseArgs) where
 
 import TestGen.Old.Data
 
-import Build_autoversion(buildDateRFC2822,autoVersion)
+import Build_autoversion(autoVersion)
 import System.Console.CmdArgs.Implicit
 
 data Args = Args{base_directory  :: Maybe FilePath
@@ -23,7 +23,7 @@ argsDef  = Args
              }
          &= summary (unlines ["TestGen Version 1.0"
                              , "Git version: " ++ autoVersion
-                             , "Built date: "  ++ buildDateRFC2822
+                             -- , "Built date: "  ++ buildDateRFC2822
                              ])
          &= helpArg [name "h"]
 
@@ -44,4 +44,3 @@ parseArgs = do
     where
     f Nothing n = error $ "--" ++ n ++ " needs to be specifed"
     f (Just v) _   = v
-

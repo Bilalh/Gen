@@ -4,7 +4,7 @@
 {-# OPTIONS_GHC -fno-cse #-} -- stupid cmdargs?
 module TestGen.Reduce.Args(parseArgs) where
 
-import Build_autoversion(buildDateRFC2822,autoVersion)
+import Build_autoversion(autoVersion)
 import System.Console.CmdArgs.Implicit as I
 
 import qualified TestGen.Prelude as P
@@ -71,7 +71,7 @@ argsDef  = RArgs_
 
          &= summary (unlines ["testReduce, the test case simplifier"
                              , "Git version: " ++ autoVersion
-                             , "Build date: "  ++ buildDateRFC2822
+                             -- , "Build date: "  ++ buildDateRFC2822
                              , "{R} required"
                              , "The input directory must have a file called spec.specE"
                              ])
