@@ -58,9 +58,10 @@ runSpec spE = do
         rrErrorKind   <- gets oErrKind_
         rrErrorStatus <- gets oErrStatus_
 
-        addLog "runSpec" [nn "rrK" rrErrorKind
-                         ,nn "rrS" rrErrorStatus
-                         ,nn "res" (pretty . groom $ res)]
+        addLog "runSpec" [pretty spE]
+        addLog "runSpec_results" [nn "org_kind"   rrErrorKind
+                                 ,nn "org_status" rrErrorStatus
+                                 ,nn "res" (pretty . groom $ res)]
 
         let
             sameError :: Either RefineR (RefineR,SolveR) -> (Bool,Maybe RunResult)
@@ -148,19 +149,19 @@ runSpec spE = do
 
         let stillErroed  = sameError res
 
-        liftIO $ print $ ("HasrrError?" :: String, fst stillErroed)
+        liftIO $ print $ ("Hasr rError?" :: String, fst stillErroed)
         liftIO $ putStrLn "\n\n"
         case stillErroed of
           (True, Just r)   -> return $ Just $ r
           (True, Nothing)  -> rrError "Same error but no result" []
           (False, Just r)  -> do
-            liftIO $ putStrLn . show $ res
+            -- liftIO $ putStrLn . show $ res
             -- liftIO $ putStrLn $ groom ("hasResult:" :: String,  pretty r)
             addOtherError r
             return Nothing
 
           (False, Nothing) -> do
-             liftIO $ putStrLn . show $ res
+             -- liftIO $ putStrLn . show $ res
              -- liftIO $ print $ ("noResult")
              return Nothing
 
