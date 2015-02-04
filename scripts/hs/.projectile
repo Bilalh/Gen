@@ -1,0 +1,9 @@
+-dist
+-.cabal-sandbox
+-.cabal-sandbox-profile
+-.git
+-.hg
+-.hgcheck
+-dist
+-z
+-__
