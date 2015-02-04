@@ -132,8 +132,20 @@ if __name__ == "__main__":
         f.write(json.dumps(settings, indent=True, sort_keys=True, default=obj_to_json ))
 
 
+    if not successful:
+        sys.exit(3)
+
     if op.refine_only:
         sys.exit(0)
+
+
+    eprimes = list(op.outdir.glob('*.eprime'))
+
+    if not eprimes:
+        logger.warn("No eprimes produced exiting..")
+        sys.exit(6)
+    else:
+        logger.warn("running %s", eprimes)
 
     # Use the sum of all wall time used by all processorss
     # limit = op.timeout - refine_wall_time
@@ -147,21 +159,14 @@ if __name__ == "__main__":
 
     # Run the SR Minion translate and vaildate
     solve_op = partial(run.run_solve, extra_env, op, commands, limit)
-    eprimes = list(op.outdir.glob('*.eprime'))
-
-    if not eprimes:
-        logger.warn("No eprimes produced exiting..")
-        sys.exit(6)
-    else:
-        logger.warn("running %s", eprimes)
 
     pool = Pool(op.num_cores)
     solve_results = dict(pool.map(solve_op, eprimes))
     logger.info("solve_results: %s", pformat(solve_results))
 
     solve_wall_time = sum(  res['total_real_time'] for res in solve_results.values()  )
-    successful = all( not res['erroed'] for res in solve_results.values() )
-
+    
+    successful = all( res['erroed'] == None for res in solve_results.values() )
 
     # checks that all eprimes that were solved either have a solution
     # or don't have a solution
@@ -181,6 +186,9 @@ if __name__ == "__main__":
 
 # logger.info("\033[1;31mtotal_cpu_time:%0.2f  total_real_time:%0.2f\033[1;0m",
 #         total_cpu_time, total_real_time)
+
+    if not successful:
+        sys.exit(3)
 
     logger.warn("completed")
     sys.exit(0)

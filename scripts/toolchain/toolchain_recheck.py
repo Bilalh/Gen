@@ -292,7 +292,7 @@ solve_results = dict(pool.map(solve_op, sdatas))
 logger.info("solve_results: %s", pformat(solve_results))
 
 solve_wall_time = sum(  res['total_real_time'] for res in solve_results.values()  )
-solve_successful = all( not res['erroed'] for res in solve_results.values() )
+solve_successful = all( res['erroed'] == None for res in solve_results.values() )
 
 
 # checks that all eprimes that were solved either have a solution
