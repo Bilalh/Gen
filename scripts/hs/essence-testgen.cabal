@@ -38,6 +38,8 @@ Library
                      , TestGen.Arbitrary.Op
                      , TestGen.Arbitrary.Type
                      , TestGen.Arbitrary.TypeConversions
+                     , TestGen.Classify.AddMeta
+                     , TestGen.Classify.AddSpecE
                      , TestGen.Classify.DomTypes
                      , TestGen.Classify.Meta
                      , TestGen.Classify.Sorter
@@ -66,7 +68,6 @@ Library
                      , TestGen.Reduce.Simpler
                      , TestGen.Reduce.UnusedDomains
                      , UI.UI
-
 
     build-depends    : base
                      , aeson

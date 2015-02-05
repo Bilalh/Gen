@@ -11,7 +11,18 @@ import System.Console.CmdArgs hiding ( Default(..) )
 
 
 data UI
-  = Reduce
+  =
+    Essence
+      { output_directory :: FilePath
+      , limit_time       :: Maybe Int
+      }
+
+  | Instance
+      { output_directory :: FilePath
+      , limit_time       :: Maybe Int
+      }
+
+  | Reduce
       { spec_directory :: FilePath
       -- , error_kind     :: KindI
       -- , error_status   :: StatusI
@@ -29,7 +40,14 @@ data UI
       }
   | Link
       { directories :: [FilePath]
-
+      , limit_time :: Maybe Int
+      }
+  | Meta
+      { directories :: [FilePath]
+      , limit_time :: Maybe Int
+      }
+  | SpecEE
+      { directories :: [FilePath]
       , limit_time :: Maybe Int
       }
   deriving (Show, Data, Typeable)
@@ -70,6 +88,38 @@ ui  = modes
     } &= explicit
       &= name "link"
       &= help "Classify the specs by creating symlinks"
+
+  , Meta
+    {
+      directories = def &= typDir
+                        &= name "directory"
+                        &= name "d"
+                        &= explicit
+                        &= help "Directories containing spec.specE files "
+    , limit_time  = def &= name "limit-time"
+                        &= groupname "Other"
+                        &= explicit
+                        &= help "Time limit in seconds. (CPU time)."
+
+    } &= explicit
+      &= name "meta"
+      &= help "Create spec.meta.json files for each spec.specE file"
+
+  , SpecEE
+    {
+      directories = def &= typDir
+                        &= name "directory"
+                        &= name "d"
+                        &= explicit
+                        &= help "Directories containing spec.essence files "
+    , limit_time  = def &= name "limit-time"
+                        &= groupname "Other"
+                        &= explicit
+                        &= help "Time limit in seconds. (CPU time)."
+
+    } &= explicit
+      &= name "specE"
+      &= help "Create spec.specE files for each spec.essence file (not complete)"
 
   ] &= program "gen"
     &= summary "Gen the test case generator"
