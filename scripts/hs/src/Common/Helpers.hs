@@ -12,6 +12,8 @@ import System.Locale(defaultTimeLocale)
 import qualified Data.Set as S
 import qualified Data.Text as T
 
+import Language.E.Pipeline.ExplodeStructuralVars ( explodeStructuralVars )
+import Language.E.Pipeline.InlineLettings ( inlineLettings )
 
 mkSpec :: [E] -> Spec
 mkSpec es =
@@ -114,3 +116,47 @@ timestamp :: IO Int
 timestamp = do
     epochInt <- (read <$> formatTime defaultTimeLocale "%s" <$> getCurrentTime) :: IO Int
     return epochInt
+
+inlineParamAndLettings :: Spec -> Maybe Spec -> (Spec, LogTree)
+inlineParamAndLettings essence param =
+    let
+        (mresult, _logs) = runCompESingle "simplify solution" helper
+        in
+        case mresult of
+            Left  x      -> error . show $ x
+            Right b -> (b, _logs)
+
+    where
+    helper = do
+
+        case param of
+            Nothing -> return ()
+            Just (Spec _ s) -> mapM_ introduceStuff (statementAsList s)
+
+        bindersDoc >>= mkLog "binders 2"
+
+        let essenceCombined =
+                case (essence, param) of
+                    (Spec l s, Just (Spec _ p)) ->
+                        Spec l (listAsStatement $ statementAsList p ++ statementAsList s)
+                    _ -> essence
+
+        let pipeline0 = recordSpec "init"
+                >=> explodeStructuralVars   >=> recordSpec "explodeStructuralVars"
+                >=> inlineLettings          >=> recordSpec "inlineLettings"
+                >=> stripDecls              >=> recordSpec "stripDecls"
+                -- >=> return . atMostOneSuchThat True >=> recordSpec "atMostOneSuchThat"
+
+        inlined <- pipeline0 essenceCombined
+        return $ inlined
+
+
+stripDecls :: MonadConjure m => Spec -> m Spec
+stripDecls (Spec language stmt) = return $ Spec language $ listAsStatement
+    [ i
+    | i <- statementAsList stmt
+    , case i of
+        [xMatch| _ := topLevel.declaration.given |] -> False
+        [xMatch| _ := topLevel.letting.domain |] -> False
+        _ -> True
+    ]

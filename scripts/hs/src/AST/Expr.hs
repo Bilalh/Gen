@@ -333,11 +333,28 @@ instance FromEssence UniOp where
     fromEssence x = Left x
 
 instance FromEssence Proc where
-    fromEssence [eMatch| &ele[&indexer] |] =
-        Pindex <$> fromEssence ele <*> fromEssence indexer
+    fromEssence [eMatch| &ele[&indexer] |] = Pindex <$> fromEssence ele <*> fromEssence indexer
 
-    fromEssence [eMatch| toInt(&inn) |] =
-        PtoInt <$> fromEssence inn
+    fromEssence [eMatch| allDiff(&x) |]          = PallDiff     <$> fromEssence x
+    fromEssence [eMatch| freq(&x, &y) |]         = Pfreq        <$> fromEssence x <*> fromEssence y
+    fromEssence [eMatch| hist(&x, &y) |]         = Phist        <$> fromEssence x <*> fromEssence y
+    fromEssence [eMatch| min(&x) |]              = Pmin         <$> fromEssence x
+    fromEssence [eMatch| max(&x) |]              = Pmax         <$> fromEssence x
+    fromEssence [eMatch| toInt(&x) |]            = PtoInt       <$> fromEssence x
+    fromEssence [eMatch| toMset(&x) |]           = PtoMSet      <$> fromEssence x
+    fromEssence [eMatch| toRelation(&x) |]       = PtoRelation  <$> fromEssence x
+    fromEssence [eMatch| toSet(&x) |]            = PtoSet       <$> fromEssence x
+    fromEssence [eMatch| defined(&x) |]          = Pdefined     <$> fromEssence x
+    fromEssence [eMatch| image(&x, &y) |]        = Pimage       <$> fromEssence x <*> fromEssence y
+    fromEssence [eMatch| inverse(&x, &y) |]      = Pinverse     <$> fromEssence x <*> fromEssence y
+    fromEssence [eMatch| preImage(&x, &y) |]     = PpreImage    <$> fromEssence x <*> fromEssence y
+    fromEssence [eMatch| range(&x) |]            = Prange       <$> fromEssence x
+    fromEssence [eMatch| apart(&x, &y, &z) |]    = Papart       <$> fromEssence x <*> fromEssence y <*> fromEssence z
+    fromEssence [eMatch| parts(&x) |]            = Pparts       <$> fromEssence x
+    fromEssence [eMatch| party(&x, &y) |]        = Pparty       <$> fromEssence x <*> fromEssence y
+    fromEssence [eMatch| participants(&x) |]     = Pparticipants<$> fromEssence x
+    fromEssence [eMatch| together(&x, &y, &z) |] = Ptogether    <$> fromEssence x <*> fromEssence y <*> fromEssence z
+
 
     fromEssence x = Left x
 

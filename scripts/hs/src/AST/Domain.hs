@@ -175,4 +175,9 @@ instance FromEssence Domain where
         ixv <- fromEssence ix
         return DMat{inner=iv,innerIdx=ixv}
 
+    -- Tuple
+    fromEssence [xMatch| is   := domain.tuple.inners |] = do
+        iv <- mapM fromEssence is
+        return DTuple{inners=iv}
+
     fromEssence x = Left x

@@ -11,7 +11,6 @@ import TestGen.Prelude
 import Language.E.Pipeline.ReadIn(readSpecFromFile)
 import System.FilePath (replaceExtension, takeExtension)
 
-
 specEMain :: [FilePath] -> IO ()
 specEMain = \case
    []     ->  putStrLn "gen specE <dir+>"
@@ -28,7 +27,10 @@ addSpecE fp_ = do
 
   where
   f spec fp = do
-    let specE  = fromSpec spec
+    let inlined = fst $ inlineParamAndLettings spec Nothing
+        specE  = fromSpec inlined
+
+    print . pretty $ inlined
 
     case specE of
       Left r -> error . show . vcat $ ["Error for " <+> pretty spec
