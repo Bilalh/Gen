@@ -12,7 +12,7 @@ import AST.Imports as X
 
 import Common.Helpers as X
 
-import Development.Placeholders as X (placeholder,notImplemented,todo)
+import Common.Placeholders as X (placeholder,notImplemented,todo)
 
 import Language.E as X
 

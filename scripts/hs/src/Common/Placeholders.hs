@@ -5,7 +5,7 @@
 -- | This module defines placeholders that you can use while coding to
 -- allow incomplete code to compile. They work just like 'undefined',
 -- but with improved error messages and compile-time warnings.
-module Development.Placeholders (
+module Common.Placeholders (
     -- * Example
     -- $example
 
@@ -70,7 +70,7 @@ formatLoc loc = let file = loc_filename loc
 --
 -- > {-# LANGUAGE TemplateHaskell #-}
 -- >
--- > import Development.Placeholders
+-- > import Common.Placeholders
 -- >
 -- > theUltimateAnswer :: Int
 -- > theUltimateAnswer = $notImplemented
