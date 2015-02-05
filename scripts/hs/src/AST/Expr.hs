@@ -297,34 +297,35 @@ instance Pretty QType where
 
 
 instance FromEssence BinOp where
-    fromEssence [eMatch| &x + &y |] = BPlus <$> fromEssence x <*> fromEssence y
-    fromEssence [eMatch| &x - &y |] = do
-        x' <- fromEssence x
-        y' <- fromEssence y
-        return $  BDiff x' y'
+  fromEssence [eMatch| &x in &y |]        = BIn        <$> fromEssence x <*> fromEssence y
+  fromEssence [eMatch| &x - &y |]         = BDiff      <$> fromEssence x <*> fromEssence y
+  fromEssence [eMatch| &x = &y |]         = BEQ        <$> fromEssence x <*> fromEssence y
+  fromEssence [eMatch| &x != &y |]        = BNEQ       <$> fromEssence x <*> fromEssence y
+  fromEssence [eMatch| &x < &y |]         = BLT        <$> fromEssence x <*> fromEssence y
+  fromEssence [eMatch| &x <= &y |]        = BLTE       <$> fromEssence x <*> fromEssence y
+  fromEssence [eMatch| &x > &y |]         = BGT        <$> fromEssence x <*> fromEssence y
+  fromEssence [eMatch| &x >= &y |]        = BGTE       <$> fromEssence x <*> fromEssence y
+  fromEssence [eMatch| &x + &y |]         = BPlus      <$> fromEssence x <*> fromEssence y
+  fromEssence [eMatch| &x * &y |]         = BMult      <$> fromEssence x <*> fromEssence y
+  fromEssence [eMatch| &x / &y |]         = BDiv       <$> fromEssence x <*> fromEssence y
+  fromEssence [eMatch| &x ** &y |]        = BPow       <$> fromEssence x <*> fromEssence y
+  fromEssence [eMatch| &x % &y |]         = BMod       <$> fromEssence x <*> fromEssence y
+  fromEssence [eMatch| &x /\ &y |]        = BAnd       <$> fromEssence x <*> fromEssence y
+  fromEssence [eMatch| &x \/ &y |]        = BOr        <$> fromEssence x <*> fromEssence y
+  fromEssence [eMatch| &x -> &y |]        = Bimply     <$> fromEssence x <*> fromEssence y
+  fromEssence [eMatch| &x <-> &y |]       = Biff       <$> fromEssence x <*> fromEssence y
+  fromEssence [eMatch| &x subset &y |]    = Bsubset    <$> fromEssence x <*> fromEssence y
+  fromEssence [eMatch| &x subsetEq &y |]  = BsubsetEq  <$> fromEssence x <*> fromEssence y
+  fromEssence [eMatch| &x supset &y |]    = Bsupset    <$> fromEssence x <*> fromEssence y
+  fromEssence [eMatch| &x supsetEq &y |]  = BsupsetEq  <$> fromEssence x <*> fromEssence y
+  fromEssence [eMatch| &x intersect &y |] = Bintersect <$> fromEssence x <*> fromEssence y
+  fromEssence [eMatch| &x union &y |]     = Bunion     <$> fromEssence x <*> fromEssence y
+  fromEssence [eMatch| &x <lex &y |]      = BlexLT     <$> fromEssence x <*> fromEssence y
+  fromEssence [eMatch| &x <=lex &y |]     = BlexLTE    <$> fromEssence x <*> fromEssence y
+  fromEssence [eMatch| &x >lex &y |]      = BlexGT     <$> fromEssence x <*> fromEssence y
+  fromEssence [eMatch| &x >=lex &y |]     = BlexGTE    <$> fromEssence x <*> fromEssence y
 
-    fromEssence [eMatch| &x * &y |]  = BMult <$> fromEssence x <*> fromEssence y
-    fromEssence [eMatch| &x ** &y |] = BPow <$> fromEssence x <*> fromEssence y
-    fromEssence [eMatch| &x % &y |]  = BMod <$> fromEssence x <*> fromEssence y
-
-
-    fromEssence [eMatch| &x = &y |]  = BEQ  <$> fromEssence x <*> fromEssence y
-    fromEssence [eMatch| &x != &y |] = BNEQ <$> fromEssence x <*> fromEssence y
-
-    fromEssence [eMatch| &x < &y  |] = BLT  <$> fromEssence x <*> fromEssence y
-    fromEssence [eMatch| &x <= &y |] = BLTE <$> fromEssence x <*> fromEssence y
-
-    fromEssence [eMatch| &x >  &y |] = BGT  <$> fromEssence x <*> fromEssence y
-    fromEssence [eMatch| &x >= &y |] = BGTE <$> fromEssence x <*> fromEssence y
-
-    fromEssence [eMatch| &x /\ &y |]  = BAnd <$> fromEssence x <*> fromEssence y
-    fromEssence [eMatch| &x \/ &y |]  = BOr  <$> fromEssence x <*> fromEssence y
-
-    fromEssence [eMatch| &x -> &y |]  = Bimply  <$> fromEssence x <*> fromEssence y
-    fromEssence [eMatch| &x <-> &y |]  = Biff    <$> fromEssence x <*> fromEssence y
-
-
-    fromEssence x = Left x
+  fromEssence x = Left x
 
 instance FromEssence UniOp where
     fromEssence [eMatch| -&x |]  = UNeg <$> fromEssence x
@@ -350,9 +351,13 @@ instance FromEssence Expr where
     fromEssence [xMatch| [Prim (S n)] := reference |] = return $ EVar n
     fromEssence [xMatch| [Prim (S n)] := structural.single.reference |] = return $ EQVar n
 
+
     fromEssence x@[xMatch| _ := binOp |]    = EBinOp <$> fromEssence x
     fromEssence x@[xMatch| _ := unaryOp |]  = EUniOp <$> fromEssence x
-    fromEssence x@[xMatch| _ := operator |] = EProc  <$> fromEssence x
+    fromEssence x@[xMatch| _ := operator |] = f x where
+                 f [eMatch| |&y| |] = EUniOp . UBar <$> fromEssence y
+                 f _                = EProc   <$> fromEssence x
+
 
     fromEssence [xMatch| [l] := typed.left
                        | [r] := typed.right |] = ETyped <$> fromEssence r <*> fromEssence l
