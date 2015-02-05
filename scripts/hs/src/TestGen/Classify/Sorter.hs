@@ -42,13 +42,13 @@ fall :: [FuncType]
 fall = map fromConstr $ dataTypeConstrs . dataTypeOf $ (undefined :: FuncType)
 
 sorterMain :: IO ()
-sorterMain = getArgs >>= f
+sorterMain = getArgs >>= sorterMain'
 
-  where
-    f = \case
-       []     ->  putStrLn "sorterLink <dir+>"
-       [x]    ->  sorter SArgs{fp_=x,types_=fall}
-       (x:xs) ->  sorter SArgs{fp_=x,types_=fall} >> f xs
+sorterMain' :: [String] -> IO ()
+sorterMain' = \case
+   []     ->  putStrLn "sorterLink <dir+>"
+   [x]    ->  sorter SArgs{fp_=x,types_=fall}
+   (x:xs) ->  sorter SArgs{fp_=x,types_=fall} >> sorterMain' xs
 
 
 sorter :: SArgs -> IO ()
