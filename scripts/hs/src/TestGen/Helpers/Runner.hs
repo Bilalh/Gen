@@ -27,7 +27,7 @@ import Language.E.Pipeline.ReadIn(writeSpec)
 import Text.Groom(groom)
 
 import Data.Typeable(Typeable)
-import Data.Data(Data(..))
+import Data.Data
 
 type Cores = Int
 type Seed  = Int
@@ -238,3 +238,13 @@ runToolchain' seed cores spec dir specTime newConjure refineAll= do
     result <- runToolChain1 seed newConjure refineAll cores name dir specLim
     -- putStrLn . groom $  result
     return result
+
+kindsList :: [String]
+kindsList = do
+  let names = dataTypeConstrs . dataTypeOf $ (undefined :: KindI)
+  map show names
+
+statusesList :: [String]
+statusesList = do
+  let names = dataTypeConstrs . dataTypeOf $ (undefined :: StatusI)
+  map show names

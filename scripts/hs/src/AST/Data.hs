@@ -12,7 +12,7 @@ import Data.Text (Text)
 import Data.Hashable ( Hashable(..) )
 
 import Data.Aeson(FromJSON(..),ToJSON(..))
-
+import Data.Data
 
 
 data Domain

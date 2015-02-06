@@ -100,11 +100,11 @@ ui  = modes
      , limit_time       = Nothing    &= name "limit-time"
                                      &= groupname "Stats"
                                      &= explicit
-                                     &= help "Time limit in seconds. (CPU time)."
+                                     &= help "Time limit in seconds of CPU time of this program"
 
      } &= explicit
        &= name "reduce"
-       &= help "Reduce a essence spec"
+       &= help "Reduces a spec.specE file"
 
   , Link
     {
@@ -116,11 +116,11 @@ ui  = modes
     , limit_time  = def &= name "limit-time"
                         &= groupname "Other"
                         &= explicit
-                        &= help "Time limit in seconds. (CPU time)."
+                        &= help "Time limit in seconds of CPU time of this program"
 
     } &= explicit
       &= name "link"
-      &= help "Classify the specs by creating symlinks"
+      &= help "Classify the specs by creating symlinks (using .meta.json files)"
 
   , Meta
     {
@@ -132,7 +132,7 @@ ui  = modes
     , limit_time  = def &= name "limit-time"
                         &= groupname "Other"
                         &= explicit
-                        &= help "Time limit in seconds. (CPU time)."
+                        &= help "Time limit in seconds of CPU time of this program"
 
     } &= explicit
       &= name "meta"
@@ -148,7 +148,7 @@ ui  = modes
     , limit_time  = def &= name "limit-time"
                         &= groupname "Other"
                         &= explicit
-                        &= help "Time limit in seconds. (CPU time)."
+                        &= help "Time limit in seconds of CPU time of this program"
 
     } &= explicit
       &= name "specE"

@@ -9,6 +9,8 @@ import UI.UI
 import TestGen.Classify.Sorter(sorterMain')
 import TestGen.Classify.AddMeta(metaMain)
 import TestGen.Classify.AddSpecE(specEMain)
+import TestGen.Helpers.Runner(kindsList, statusesList)
+
 
 import System.Console.CmdArgs ( cmdArgs )
 import System.CPUTime ( getCPUTime )
@@ -16,12 +18,23 @@ import System.Timeout ( timeout )
 import Text.Printf ( printf )
 
 import System.Environment(getArgs, withArgs)
+import System.Exit(exitSuccess)
 
 main :: IO ()
 main = do
   getArgs >>= \case
     [] -> do
        void $ withArgs ["--help"] (cmdArgs ui)
+    [x] | x `elem` ["reduce", "link", "meta", "specE"] ->
+       void $ withArgs [x, "--help"] (cmdArgs ui)
+
+    ["reduce", "--list-kinds"] -> do
+        mapM_ (putStrLn) kindsList
+        exitSuccess
+    ["reduce", "--list-statuses"] -> do
+        mapM_ (putStrLn) statusesList
+        exitSuccess
+
     _ -> do
       input <- cmdArgs ui
 
@@ -43,7 +56,7 @@ main = do
                 -- after the integer part
                 cputimeInSeconds :: Double
                 cputimeInSeconds = fromInteger (cputime `div` 1000000000) / 1000
-              putStrLn $ printf "Timed ofromSpecut. Total CPU time is %.3f seconds." cputimeInSeconds
+              putStrLn $ printf "Timed out. Total CPU time is %.3f seconds." cputimeInSeconds
             Just () -> return ()
         _ -> workload
 
