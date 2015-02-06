@@ -116,7 +116,7 @@ instance Pretty Domain where
     pretty p = pretty $ toEssence p
 
 instance FromEssence Domain where
-
+    -- boolean
     fromEssence [dMatch|  bool |] = return DBool
 
     -- integers

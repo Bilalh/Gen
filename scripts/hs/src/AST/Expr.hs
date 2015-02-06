@@ -1,5 +1,5 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleInstances, ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 -- Use deriving instance Show  instead of deriving Show
@@ -147,6 +147,11 @@ instance ToEssence Proc where
     toEssence (Pindex ref@(EVar _) c ) = [eMake| &ref'[&c']  |] where
         ref' = toEssence ref
         c'   = toEssence c
+
+    toEssence (Pindex inn c ) = [eMake| &inner'[&c']  |] where
+        inner' = toEssence inn
+        c'     = toEssence c
+
 
     toEssence (Papply ref@(EVar _) es ) =
         [xMake| functionApply.actual := [ref']
@@ -354,11 +359,13 @@ instance FromEssence Proc where
     fromEssence [eMatch| inverse(&x, &y) |]      = Pinverse     <$> fromEssence x <*> fromEssence y
     fromEssence [eMatch| preImage(&x, &y) |]     = PpreImage    <$> fromEssence x <*> fromEssence y
     fromEssence [eMatch| range(&x) |]            = Prange       <$> fromEssence x
-    fromEssence [eMatch| apart(&x, &y, &z) |]    = Papart       <$> fromEssence x <*> fromEssence y <*> fromEssence z
+    fromEssence [eMatch| apart(&x, &y, &z) |]    = Papart       <$> fromEssence x <*> fromEssence y
+                                                                <*> fromEssence z
     fromEssence [eMatch| parts(&x) |]            = Pparts       <$> fromEssence x
     fromEssence [eMatch| party(&x, &y) |]        = Pparty       <$> fromEssence x <*> fromEssence y
     fromEssence [eMatch| participants(&x) |]     = Pparticipants<$> fromEssence x
-    fromEssence [eMatch| together(&x, &y, &z) |] = Ptogether    <$> fromEssence x <*> fromEssence y <*> fromEssence z
+    fromEssence [eMatch| together(&x, &y, &z) |] = Ptogether    <$> fromEssence x <*> fromEssence y
+                                                                <*> fromEssence z
 
 
     fromEssence x = Left x
@@ -396,12 +403,22 @@ instance FromEssence Expr where
     fromEssence [eMatch| &qt &qvar : &dom , &g . &b |] = do
         qt'   <- fromEssence qt
         qvar' <- fromEssence qvar
-        dom'  <- fromEssence dom
+        (dom')  <- fromEssence dom
         g'    <- fromEssence g
         b'    <- fromEssence b
         return $ EQuan qt' (BOver qvar' dom') g' b'
 
+    -- fromEssence [xMatch| [ref] := functionApply.actual
+    --                    | es    := functionApply.args |] = do
+    --     ref' <- fromEssence ref
+    --     es'  <- mapM fromEssence es
+    --     return $ EProc $ Papply ref' es'
+
+
+
     fromEssence (Tagged (Tag "emptyGuard") []) = return EEmptyGuard
+
+    fromEssence d@[xMatch| _ := domain |] = EDom <$> fromEssence d
     fromEssence x = case fromEssence x of
                                         Right l -> return $ ELit l
                                         Left l  -> Left l
@@ -411,6 +428,8 @@ instance FromEssence [Expr] where
         fromEssence x = Left x
 
 instance FromEssence Objective where
-    fromEssence [xMatch| [x] := topLevel.objective.maximising |] = Maximising <$> x'  where x' = fromEssence x
-    fromEssence [xMatch| [x] := topLevel.objective.minimising |] = Minimising <$> x'  where x' = fromEssence x
+    fromEssence [xMatch| [x] := topLevel.objective.maximising |] =
+        Maximising <$> x'  where x' = fromEssence x
+    fromEssence [xMatch| [x] := topLevel.objective.minimising |] =
+        Minimising <$> x'  where x' = fromEssence x
     fromEssence x = Left x

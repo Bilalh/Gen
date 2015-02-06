@@ -10,3 +10,6 @@ import Language.E
 instance ToEssence Domain
 instance FromEssence Domain
 instance Pretty Domain
+
+dint, dset, dmset, dmat, dfunc, drel, dpar, dtuple  :: Domain
+dintRange :: Integer -> Integer -> Domain
