@@ -11,6 +11,9 @@ import TestGen.Classify.AddMeta(metaMain)
 import TestGen.Classify.AddSpecE(specEMain)
 import TestGen.Helpers.Runner(kindsList, statusesList)
 
+import TestGen.Reduce.Data(RState(..),mkrGen)
+import TestGen.Reduce.Reduce(reduceMain)
+import TestGen.Reduce.FormatResults(formatResults)
 
 import System.Console.CmdArgs ( cmdArgs )
 import System.CPUTime ( getCPUTime )
@@ -19,6 +22,7 @@ import Text.Printf ( printf )
 
 import System.Environment(getArgs, withArgs)
 import System.Exit(exitSuccess)
+
 
 main :: IO ()
 main = do
@@ -62,7 +66,19 @@ main = do
 
 mainWithArgs :: UI -> IO ()
 mainWithArgs Reduce{..} = do
-  putStrLn "reducing"
+
+    let args = def{oErrKind_   = error_kind
+                  ,oErrStatus_ = error_status
+                  ,oErrEprime_ = Nothing
+                  ,outputDir_  = output_directory
+                  ,specDir_    = spec_directory
+                  ,cores_      = cores
+                  ,newConjure_ = not old_conjure
+                  ,rgen_       = mkrGen (seed)
+                  ,specTime_   = per_spec_time
+                  }
+    (_,state) <- reduceMain args
+    formatResults state
 
 mainWithArgs Link{..} = do
   sorterMain' directories

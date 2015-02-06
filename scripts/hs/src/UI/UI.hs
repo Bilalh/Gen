@@ -34,7 +34,7 @@ data UI
       , per_spec_time    :: Int
       , old_conjure      :: Bool
       , cores            :: Int
-      , seed             :: Maybe Int
+      , seed             :: Int
       , limit_time :: Maybe Int
       }
   | Link
