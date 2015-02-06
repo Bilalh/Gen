@@ -9,7 +9,7 @@ import TestGen.Prelude
 import TestGen.Classify.Meta
 
 import System.Directory (doesDirectoryExist, getDirectoryContents, createDirectoryIfMissing)
-import System.FilePath ((</>), takeFileName, takeDirectory)
+import System.FilePath ((</>), takeFileName, takeDirectory,takeExtensions)
 
 import System.Posix.Files(createSymbolicLink)
 
@@ -124,7 +124,7 @@ ffind path = do
 
   where
     p fp = do
-      return $ takeFileName fp == "spec.meta.json"
+      return $ (takeExtensions $ fp)  == ".meta.json"
 
 getRecursiveContents :: FilePath -> IO [FilePath]
 getRecursiveContents topdir = do

@@ -11,7 +11,7 @@ import TestGen.Helpers.Runner
 import TestGen.Prelude
 import TestGen.Reduce.Runner(readSpecE)
 
-import System.FilePath ((</>), takeFileName, takeDirectory)
+import System.FilePath (takeFileName, replaceExtension,takeExtension)
 
 metaMain :: [FilePath] -> IO ()
 metaMain = \case
@@ -30,10 +30,9 @@ addMeta fp_ = do
 
   where
   f spec fp = do
-    let outdir = takeDirectory fp
-        meta   = mkMeta spec
-    writeFile (outdir </> "spec.meta" ) (show meta)
-    writeJSON (outdir </> "spec.meta.json" ) (meta)
+    let meta = mkMeta spec
+    writeFile (replaceExtension fp ".meta" ) (show meta)
+    writeJSON (replaceExtension fp ".meta.json" ) (meta)
 
 
 ffind :: FilePath -> IO [FilePath]
@@ -43,4 +42,4 @@ ffind path = do
 
   where
     p fp = do
-      return $ takeFileName fp == "spec.specE"
+      return $ (takeExtension $ fp)  == ".specE"

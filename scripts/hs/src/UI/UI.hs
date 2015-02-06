@@ -24,18 +24,17 @@ data UI
 
   | Reduce
       { spec_directory :: FilePath
-      -- , error_kind     :: KindI
-      -- , error_status   :: StatusI
+      , error_kind     :: KindI
+      , error_status   :: StatusI
 
-      -- , list_kinds    :: Bool
-      -- , list_statuses :: Bool
+      , list_kinds    :: Bool
+      , list_statuses :: Bool
 
-      -- common
-      -- , per_spec_time    :: Int
       , output_directory :: FilePath
-      -- , old_conjure      :: Bool
-      -- , cores            :: Int
-      -- , seed             :: Maybe Int
+      , per_spec_time    :: Int
+      , old_conjure      :: Bool
+      , cores            :: Int
+      , seed             :: Maybe Int
       , limit_time :: Maybe Int
       }
   | Link
@@ -56,18 +55,52 @@ ui :: UI
 ui  = modes
 
   [ Reduce
-     { spec_directory   = def     &= typDir
-                                  &= argPos 0
-     , output_directory = def     &= typDir
-                                  &= name "output-directory"
-                                  &= name "o"
-                                  &= groupname "IO"
-                                  &= explicit
-                                  &= help "Output directory "
-     , limit_time       = Nothing &= name "limit-time"
-                                  &= groupname "Other"
-                                  &= explicit
-                                  &= help "Time limit in seconds. (CPU time)."
+     { spec_directory   = def        &= typDir
+                                     &= argPos 0
+     , error_status     = StatusAny_ &= name "status"
+                                     &= groupname "Reduction"
+                                     &= explicit
+                                     &= help "The error Kind e.g. RefineRandom_"
+     , error_kind       = KindAny_   &= name "kind"
+                                     &= groupname "Reduction"
+                                     &= explicit
+                                     &= help "The error Status e.g. ParseError_"
+     , list_statuses    = False      &= name "list-statuses"
+                                     &= groupname "Reduction"
+                                     &= explicit
+                                     &= help "Just list the statuses then exit"
+     , list_kinds       = False      &= name "list-kinds"
+                                     &= groupname "Reduction"
+                                     &= explicit
+                                     &= help "Just list the kinds then exit"
+     , output_directory = def        &= typDir
+                                     &= name "output-directory"
+                                     &= name "o"
+                                     &= groupname "Stats"
+                                     &= explicit
+                                     &= help "Output directory "
+     , per_spec_time    = def        &= name "per-spec-time"
+                                     &= name "p"
+                                     &= groupname "Stats"
+                                     &= explicit
+                                     &= help "Time per Spec"
+     , cores            = def        &= name "cores"
+                                     &= name "c"
+                                     &= groupname "Stats"
+                                     &= explicit
+                                     &= help "Number of cores to Use"
+     , seed             = def        &= name "seed"
+                                     &= groupname "Stats"
+                                     &= explicit
+                                     &= help "Random Seed to use"
+     , old_conjure      = False      &= name "old-conjure"
+                                     &= groupname "Stats"
+                                     &= explicit
+                                     &= help "Use old conjure"
+     , limit_time       = Nothing    &= name "limit-time"
+                                     &= groupname "Stats"
+                                     &= explicit
+                                     &= help "Time limit in seconds. (CPU time)."
 
      } &= explicit
        &= name "reduce"
@@ -103,7 +136,7 @@ ui  = modes
 
     } &= explicit
       &= name "meta"
-      &= help "Create spec.meta.json files for each spec.specE file"
+      &= help "Create .meta.json files for each .specE file"
 
   , SpecEE
     {
@@ -119,7 +152,7 @@ ui  = modes
 
     } &= explicit
       &= name "specE"
-      &= help "Create spec.specE files for each spec.essence file (not complete)"
+      &= help "Create .specE files for each .essence file (not complete)"
 
   ] &= program "gen"
     &= summary "Gen the test case generator"
