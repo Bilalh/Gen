@@ -13,6 +13,11 @@ import qualified Data.Map as M
 
 domTypes :: (WithDoms m) => m [Type]
 domTypes = do
-  (SpecE ds _)  <- getSpecEWithDoms
+  (SpecE ds _ x)  <- getSpecEWithDoms
   tys <-  T.mapM ttypeOf  ds
-  return . nub2 . map snd .  M.toList $ tys
+  m <- case x of
+    Nothing             -> return Nothing
+    Just (Maximising m) -> fmap Just $ ttypeOf m
+    Just (Minimising m) -> fmap Just $ ttypeOf m
+
+  return . nub2 $ (map snd .  M.toList $ tys) ++ maybeToList m

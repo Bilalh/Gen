@@ -20,8 +20,9 @@ import Data.Typeable
 
 
 type Doms = Map Text FG
-data SpecE = SpecE Doms [Expr]
+data SpecE = SpecE Doms [Expr] (Maybe Objective)
     deriving(Show, Generic, Typeable, Read, Eq)
+
 
 
 
@@ -46,7 +47,7 @@ fromSpec :: Spec -> Either E SpecE
 fromSpec (Spec _ x) = do
   decs' <- mapM fromEssence decs
   cons' <- mapM fromEssence cons
-  return $ SpecE (M.fromList decs') cons'
+  return $ SpecE (M.fromList decs') cons' Nothing
 
   where decs = mapMaybe df $ statementAsList x
         cons = concat . mapMaybe cf $ statementAsList x
@@ -60,7 +61,7 @@ domOfFG (Find d) = d
 domOfFG (Given d) = d
 
 toSpec :: SpecE -> Spec
-toSpec (SpecE fg exprs ) =
+toSpec (SpecE fg exprs obj) =
     let
         constraints = map mkConstraint exprs
         domains     = mkDomains fg
@@ -77,12 +78,12 @@ mkConstraint :: Expr -> E
 mkConstraint expr =  [xMake| topLevel.suchThat := [toEssence expr ] |]
 
 getFinds :: SpecE -> [(Text,Domain)]
-getFinds (SpecE ds _) = mapMaybe f $ M.assocs ds where
+getFinds (SpecE ds _ _) = mapMaybe f $ M.assocs ds where
     f (n,Find d) = Just (n,d)
     f _        = Nothing
 
 getGivens :: SpecE -> [(Text,Domain)]
-getGivens (SpecE ds _) = mapMaybe f $ M.assocs ds where
+getGivens (SpecE ds _ _) = mapMaybe f $ M.assocs ds where
     f (n,Given d) = Just (n,d)
     f _         = Nothing
 

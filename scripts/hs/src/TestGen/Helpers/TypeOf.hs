@@ -20,7 +20,7 @@ class (Monad a, Applicative a) => WithDoms a where
   typeOfVar :: Text -> a (Maybe Type)
 
   domainOfVar t = do
-    (SpecE ds _) <- getSpecEWithDoms
+    (SpecE ds _ _) <- getSpecEWithDoms
     let d =  fmap domOfFG $ t `M.lookup` ds
     return d
 

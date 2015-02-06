@@ -278,6 +278,10 @@ instance ToEssence Expr where
             ,pretty . show $ missing
         ]
 
+instance ToEssence Objective where
+    toEssence (Maximising x) = [xMake| topLevel.objective.maximising := [toEssence x] |]
+    toEssence (Minimising x) = [xMake| topLevel.objective.minimising := [toEssence x] |]
+
 
 instance Pretty Expr where
     pretty =   pretty  . toEssence
@@ -294,7 +298,8 @@ instance Pretty Proc where
 instance Pretty QType where
     pretty =   pretty  . toEssence
 
-
+instance Pretty Objective where
+    pretty =   pretty  . toEssence
 
 instance FromEssence BinOp where
   fromEssence [eMatch| &x in &y |]        = BIn        <$> fromEssence x <*> fromEssence y
@@ -404,3 +409,8 @@ instance FromEssence Expr where
 instance FromEssence [Expr] where
         fromEssence [xMatch| xs := suchThat |] = mapM fromEssence xs
         fromEssence x = Left x
+
+instance FromEssence Objective where
+    fromEssence [xMatch| [x] := topLevel.objective.maximising |] = Maximising <$> x'  where x' = fromEssence x
+    fromEssence [xMatch| [x] := topLevel.objective.minimising |] = Minimising <$> x'  where x' = fromEssence x
+    fromEssence x = Left x

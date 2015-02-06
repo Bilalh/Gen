@@ -179,6 +179,14 @@ instance DepthOf Proc where
 instance DepthOf Domain where
     depthOf =  depthOf .  typeOfDom
 
+instance DepthOf a => DepthOf (Maybe a) where
+    depthOf Nothing  = 0
+    depthOf (Just a) = depthOf a
+
+instance DepthOf Objective where
+    depthOf (Maximising a) = depthOf a
+    depthOf (Minimising a) = depthOf a
+
 
 depthOfOrZero :: (DepthOf x) => [x] -> Integer
 depthOfOrZero []    = 0

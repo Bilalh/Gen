@@ -51,21 +51,21 @@ reduceMain rr = do
 
 
 tryRemoveConstraints :: SpecE -> RR SpecE
-tryRemoveConstraints  sp@(SpecE ds _) = do
-  runSpec (SpecE ds []) >>= \case
+tryRemoveConstraints  sp@(SpecE ds _ obj) = do
+  runSpec (SpecE ds [] obj) >>= \case
     Just r  -> do
       recordResult r
-      return (SpecE ds [])
+      return (SpecE ds [] obj)
     Nothing -> return sp
 
 removeUnusedDomains :: SpecE -> RR SpecE
-removeUnusedDomains sp@(SpecE ods es) = do
+removeUnusedDomains sp@(SpecE ods es obj) = do
     let unusedNames = unusedDomains sp
 
     nds <- process (choices ods unusedNames)
     case nds of
-        Just ds -> return (SpecE ds es)
-        Nothing -> return (SpecE ods es)
+        Just ds -> return (SpecE ds es obj)
+        Nothing -> return (SpecE ods es obj)
 
     where
     choices :: Doms -> [Text] -> [Doms]
@@ -78,7 +78,7 @@ removeUnusedDomains sp@(SpecE ods es) = do
 
     process :: [Doms]-> RR (Maybe Doms)
     process []     = return Nothing
-    process (x:xs) = runSpec (SpecE y es) >>= \case
+    process (x:xs) = runSpec (SpecE y es obj) >>= \case
         Just r  -> do
           recordResult r
           return $ Just y
@@ -93,12 +93,12 @@ removeUnusedDomains sp@(SpecE ods es) = do
 
 
 removeConstraints :: SpecE -> RR SpecE
-removeConstraints (SpecE ds oes) = do
+removeConstraints (SpecE ds oes obj) = do
     let nubbed = nub2 oes
     nes <- process (choices nubbed)
     case nes of
-        Just es -> return (SpecE ds es)
-        Nothing -> return (SpecE ds nubbed)
+        Just es -> return (SpecE ds es obj)
+        Nothing -> return (SpecE ds nubbed obj)
 
     where
 
@@ -109,7 +109,7 @@ removeConstraints (SpecE ds oes) = do
 
     process :: [[Expr]] -> RR (Maybe [Expr])
     process []     = return Nothing
-    process (x:xs) = runSpec (SpecE ds x) >>= \case
+    process (x:xs) = runSpec (SpecE ds x obj) >>= \case
         Just r  -> do
           recordResult r
           return $ Just x
@@ -118,19 +118,19 @@ removeConstraints (SpecE ds oes) = do
     -- process ts = rrError . show . prettyBrackets . vcat $ map (prettyBrackets .  vcat . map pretty) ts
 
 simplyConstraints :: SpecE -> RR SpecE
-simplyConstraints sp@(SpecE ds es) = do
+simplyConstraints sp@(SpecE ds es obj) = do
     csToDo <- doConstraints es
     addLog "Got Constraints" []
     fin    <- process csToDo
     addLog "finished processing" []
     if fin == [] then
-        runSpec (SpecE ds []) >>= \case
+        runSpec (SpecE ds [] obj) >>= \case
             Just r  -> do
               recordResult r
-              return (SpecE ds [])
-            Nothing -> return (SpecE ds es)
+              return (SpecE ds [] obj)
+            Nothing -> return (SpecE ds es obj)
     else
-        return (SpecE ds fin)
+        return (SpecE ds fin obj)
 
     where
     process :: [[Expr]] -> RR [Expr]
@@ -141,7 +141,7 @@ simplyConstraints sp@(SpecE ds es) = do
     process xs | all (singleElem) xs = do
         addLog "processsingleElem" []
         let fix = map head xs
-        runSpec (SpecE ds fix) >>= \case
+        runSpec (SpecE ds fix obj) >>= \case
           Just r -> do
             recordResult r
             return fix
@@ -150,7 +150,7 @@ simplyConstraints sp@(SpecE ds es) = do
     process esR = do
         addLog "process esR" []
         fix <- choose esR
-        runSpec (SpecE ds fix) >>= \case
+        runSpec (SpecE ds fix obj) >>= \case
                 Nothing -> removeNext esR >>= process
                 Just r  -> do
                     recordResult r

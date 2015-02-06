@@ -30,12 +30,19 @@ addSpecE fp_ = do
     let inlined = fst $ inlineParamAndLettings spec Nothing
         specE  = fromSpec inlined
 
+    putStrLn "--"
+    putStrLn fp
     print . pretty $ inlined
 
     case specE of
       Left r -> error . show . vcat $ ["Error for " <+> pretty spec
-                                      , "msg"  <+> (pretty . groom $ r)  ]
-      Right r -> writeFile (replaceExtension fp ".specE" ) (show r)
+                                      , "msg"  <+> (pretty . groom $ r), "--"  ]
+      Right r -> do
+         putStrLn "back"
+         print . pretty $ r
+         putStrLn "--"
+         writeFile (replaceExtension fp ".specE" ) (show r)
+
 
 
 ffind :: FilePath -> IO [FilePath]

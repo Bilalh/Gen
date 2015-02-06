@@ -54,10 +54,10 @@ instance Hashable SpecMeta
 
 mkMeta :: (WithDoms m) => m SpecMeta
 mkMeta = do
-  (SpecE ds cs) <- getSpecEWithDoms
+  (SpecE ds cs obj) <- getSpecEWithDoms
 
   let doms              = map (domOfFG . snd) .  M.toList $ ds
-      constraint_depth_ = maximum' 0 (map depthOf cs)
+      constraint_depth_ = maximum' 0 (depthOf obj : map depthOf cs)
       dom_depth_        = maximum' 0 $ (map depthOf) doms
       constraint_count_ = length cs
       dom_count_        = M.size ds
@@ -107,12 +107,20 @@ specE1= read $
 
 findFeatures :: (WithDoms m) => m [Feature]
 findFeatures = do
-    (SpecE _ cs)  <- getSpecEWithDoms
+    (SpecE _ cs obj)  <- getSpecEWithDoms
     cs' <- mapM standardise cs
-    let fs = concatMap getFeatures cs' ++
-              case cs of
-                [] -> [FnoConstraints]
-                _  -> []
+    let objs = case obj of
+                 Nothing               -> []
+                 (Just (Maximising a)) -> getFeatures a
+                 (Just (Minimising a)) -> getFeatures a
+
+    let fs = concatMap getFeatures cs'
+             ++
+               objs
+             ++
+               case cs of
+                 [] -> [FnoConstraints]
+                 _  -> []
 
     return $ nub fs
 

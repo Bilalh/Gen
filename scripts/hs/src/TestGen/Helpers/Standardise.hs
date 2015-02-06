@@ -137,8 +137,13 @@ instance Standardise Doms where
     standardise = V.traverse standardise
 
 instance Standardise SpecE where
-    standardise (SpecE x1 x2) = pure SpecE <*> standardise x1
-                                           <*> mapM standardise x2
+    standardise (SpecE x1 x2 x3) = pure SpecE <*> standardise x1
+                                              <*> mapM standardise x2
+                                              <*> standardise x3
+
+instance Standardise Objective where
+    standardise (Maximising x) = pure Maximising <*> standardise x
+    standardise (Minimising x) = pure Minimising <*> standardise x
 
 instance (Standardise a, Standardise b) =>  Standardise (a,b) where
     standardise (a,b) = do
@@ -153,3 +158,7 @@ instance (Standardise a, Standardise b, Standardise c)
       sb <- standardise b
       sc <- standardise c
       return (sa,sb, sc)
+
+instance Standardise a => Standardise (Maybe a) where
+    standardise Nothing  = pure Nothing
+    standardise (Just a) = pure Just <*> standardise a

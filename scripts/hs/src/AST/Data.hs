@@ -236,3 +236,7 @@ data Type =
 
 instance FromJSON Type
 instance ToJSON Type
+
+data Objective = Maximising Expr
+               | Minimising Expr
+    deriving(Show, Generic, Typeable, Read, Eq)

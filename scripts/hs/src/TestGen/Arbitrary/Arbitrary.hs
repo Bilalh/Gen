@@ -73,9 +73,6 @@ instance (Arbitrary a, ArbSpec a) => Arbitrary (WithExtra a) where
 
 instance Arbitrary SpecE where
     arbitrary = sized spec
-    shrink (SpecE ds es) =
-        let sps = map (SpecE ds) (tails2 es)
-        in sps
 
 instance ArbSpec SpecE where
     tyGens   = def
@@ -146,7 +143,7 @@ spec'' depth gens  = do
             , "|------|"
             ]
     else
-        return $ (SpecE mappings exprs, logs_ sfinal)
+        return $ (SpecE mappings exprs Nothing, logs_ sfinal)
 
     where
         name i =  T.pack $  "var" ++  (show  i)
