@@ -11,7 +11,7 @@ import TestGen.Helpers.Runner
 import TestGen.Prelude
 import TestGen.Reduce.Runner(readSpecE)
 
-import System.FilePath (takeFileName, replaceExtension,takeExtension)
+import System.FilePath (replaceExtension,takeExtension)
 
 metaMain :: [FilePath] -> IO ()
 metaMain = \case
@@ -30,6 +30,7 @@ addMeta fp_ = do
 
   where
   f spec fp = do
+    putStrLn fp
     let meta = mkMeta spec
     writeFile (replaceExtension fp ".meta" ) (show meta)
     writeJSON (replaceExtension fp ".meta.json" ) (meta)

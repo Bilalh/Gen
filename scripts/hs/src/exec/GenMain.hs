@@ -21,7 +21,7 @@ import System.Timeout ( timeout )
 import Text.Printf ( printf )
 
 import System.Environment(getArgs, withArgs)
-import System.Exit(exitSuccess)
+import System.Exit(exitSuccess,exitFailure)
 
 
 main :: IO ()
@@ -67,18 +67,36 @@ main = do
 mainWithArgs :: UI -> IO ()
 mainWithArgs Reduce{..} = do
 
-    let args = def{oErrKind_   = error_kind
-                  ,oErrStatus_ = error_status
-                  ,oErrEprime_ = Nothing
-                  ,outputDir_  = output_directory
-                  ,specDir_    = spec_directory
-                  ,cores_      = cores
-                  ,newConjure_ = not old_conjure
-                  ,rgen_       = mkrGen (seed)
-                  ,specTime_   = per_spec_time
-                  }
-    (_,state) <- reduceMain args
-    formatResults state
+  let errors = catMaybes
+        [ aerr "spec-directory" (null spec_directory)
+        , aerr "-p|--per-spec-time" (per_spec_time == 0)
+        , aerr "-c|--cores" (cores == 0)
+        , aerr "--seed" (seed == 0)
+        ]
+
+  case errors of
+    [] -> return ()
+    xs -> mapM putStrLn xs >> exitFailure
+
+
+    -- error "directory required"
+    -- print "d"
+
+
+  let args = def{oErrKind_   = error_kind
+                ,oErrStatus_ = error_status
+                ,oErrEprime_ = Nothing
+                ,outputDir_  = output_directory
+                ,specDir_    = spec_directory
+                ,cores_      = cores
+                ,newConjure_ = not old_conjure
+                ,rgen_       = mkrGen (seed)
+                ,specTime_   = per_spec_time
+                }
+  (_,state) <- reduceMain args
+  formatResults state
+  return ()
+
 
 mainWithArgs Link{..} = do
   sorterMain' directories
@@ -88,3 +106,7 @@ mainWithArgs Meta{..} = do
 
 mainWithArgs SpecEE{..} = do
   specEMain directories
+
+aerr :: String -> Bool -> Maybe String
+aerr n b | b = Just $ n ++ " is required"
+aerr _ _     = Nothing
