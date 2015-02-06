@@ -414,6 +414,10 @@ instance FromEssence Expr where
     --     es'  <- mapM fromEssence es
     --     return $ EProc $ Papply ref' es'
 
+    -- fromEssence [eMatch|  (&expr : `&dom`)  |] = do
+    --   (ty :: Type)  <- fromEssence dom
+    --   (e :: Expr)  <- fromEssence expr
+    --   return $ ETyped ty e
 
 
     fromEssence (Tagged (Tag "emptyGuard") []) = return EEmptyGuard

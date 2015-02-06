@@ -81,4 +81,6 @@ instance FromEssence Literal where
             helper [xMatch| ys  := part |] = mapM fromEssence ys
             helper x = Left x
 
-    fromEssence x = Left x
+    -- fromEssence x = case fromEssence x of
+    --                       Right l -> return $ EExpr l
+    --                       Left l  -> Left l

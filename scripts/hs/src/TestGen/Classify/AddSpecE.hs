@@ -31,7 +31,7 @@ addSpecE fp_ = do
         specE  = fromSpec inlined
 
     -- putStrLn "--"
-    -- putStrLn fp
+    putStrLn fp
     -- print . pretty $ inlined
 
     case specE of

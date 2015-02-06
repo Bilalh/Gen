@@ -47,7 +47,7 @@ instance FromEssence Type where
     fromEssence [dMatch| mset of &t|] = TMSet <$> fromEssence t
 
     fromEssence [dMatch| function &t1 --> &t2 |] = TFunc <$> fromEssence t1
-                                                         <*> fromEssence t2
+                                                        <*> fromEssence t2
 
     fromEssence [dMatch| partition from &t |] = TPar <$> fromEssence t
 
