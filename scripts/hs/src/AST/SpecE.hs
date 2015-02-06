@@ -47,14 +47,27 @@ fromSpec :: Spec -> Either E SpecE
 fromSpec (Spec _ x) = do
   decs' <- mapM fromEssence decs
   cons' <- mapM fromEssence cons
-  return $ SpecE (M.fromList decs') cons' Nothing
+  return $ SpecE (M.fromList decs') cons' (toObj obj)
 
-  where decs = mapMaybe df $ statementAsList x
-        cons = concat . mapMaybe cf $ statementAsList x
-        df [xMatch| [y] := topLevel.declaration |] = Just y
-        df _ = Nothing
-        cf [xMatch| y := topLevel.suchThat |] = Just y
-        cf _ = Nothing
+  where
+    decs = mapMaybe df $ statementAsList x
+    cons = concat . mapMaybe cf $ statementAsList x
+
+    df [xMatch| [y] := topLevel.declaration |] = Just y
+    df _ = Nothing
+
+    cf [xMatch| y := topLevel.suchThat |] = Just y
+    cf _ = Nothing
+
+    toObj Nothing  = Nothing
+    toObj (Just v) = case fromEssence v of
+                       Right o -> Just (o :: Objective)
+                       Left  _ -> Nothing
+
+    obj = listToMaybe . mapMaybe f $ statementAsList x
+        where
+          f y@[xMatch| _ := topLevel.objective |] = Just y
+          f _ = Nothing
 
 domOfFG :: FG -> Domain
 domOfFG (Find d) = d
@@ -65,8 +78,11 @@ toSpec (SpecE fg exprs obj) =
     let
         constraints = map mkConstraint exprs
         domains     = mkDomains fg
+        obje        = case obj of
+                        Nothing -> []
+                        Just x  -> [toEssence x]
     in
-        mkSpec $  domains ++ constraints
+        mkSpec $  domains ++ constraints ++ obje
 
 mkDomains :: Map Text FG -> [E]
 mkDomains = map f .  M.toList
