@@ -107,13 +107,15 @@ getFunc TdTypesComplex = \SpecMeta{..} ->
 prettyShowType :: Type -> String
 prettyShowType ty =
     let t   = T.pack . show . pretty . toEssence $ ty
-        res =
-              T.replace "  "  " "
-            . T.replace "  "  " "
+        res = T.unpack
+            . T.take 150
+            . T.unwords
+            . T.words
             . T.replace "\n" ""
             $ t
 
-    in  T.unpack res
+    in res
+
 
 
 
