@@ -14,6 +14,10 @@ import AST.Type()
 
 import Language.E
 
+import Control.Arrow((&&&))
+import Text.Groom(groom)
+
+
 instance ToEssence BinOp where
 
     toEssence (BIn x y) = [eMake| &x' in &y' |] where
@@ -372,7 +376,7 @@ instance FromEssence Proc where
 
 instance FromEssence QType where
     fromEssence [xMatch| [Prim (S "forAll")] := reference |] = return ForAll
-    fromEssence [xMatch| [Prim (S "exist")] := reference |]  = return Exists
+    fromEssence [xMatch| [Prim (S "exists")] := reference |]  = return Exists
     fromEssence [xMatch| [Prim (S "sum")] := reference |]    = return Sum
     fromEssence x = Left x
 
@@ -408,32 +412,22 @@ instance FromEssence Expr where
         b'    <- fromEssence b
         return $ EQuan qt' (BOver qvar' dom') g' b'
 
-    -- fromEssence [xMatch| [ref] := functionApply.actual
-    --                    | es    := functionApply.args |] = do
-    --     ref' <- fromEssence ref
-    --     es'  <- mapM fromEssence es
-    --     return $ EProc $ Papply ref' es'
 
-    -- fromEssence [eMatch|  (&expr : `&dom`)  |] = do
-    --   (ty :: Type)  <- fromEssence dom
-    --   (e :: Expr)  <- fromEssence expr
-    --   return $ ETyped ty e
-
+    fromEssence x@[xMatch| _ := functionApply |] = EProc <$> fromEssence x
+    fromEssence d@[xMatch| _ := domain |]        = EDom  <$> fromEssence d
+    fromEssence x@[xMatch| _ := value |]         = ELit  <$> fromEssence x
 
     fromEssence (Tagged (Tag "emptyGuard") []) = return EEmptyGuard
-
-    fromEssence d@[xMatch| _ := domain |] = EDom <$> fromEssence d
-    fromEssence x = case fromEssence x of
-                                        Right l -> return $ ELit l
-                                        Left l  -> Left l
+    -- fromEssence x = error $ "expr: " ++ (groom $ (pretty &&& id) x)
+    fromEssence x = Left x
 
 instance FromEssence [Expr] where
         fromEssence [xMatch| xs := suchThat |] = mapM fromEssence xs
-        fromEssence x = Left x
+        fromEssence x = error $ "exprs: " ++ (groom $ (pretty &&& id) x)
 
 instance FromEssence Objective where
     fromEssence [xMatch| [x] := topLevel.objective.maximising |] =
         Maximising <$> x'  where x' = fromEssence x
     fromEssence [xMatch| [x] := topLevel.objective.minimising |] =
         Minimising <$> x'  where x' = fromEssence x
-    fromEssence x = Left x
+    fromEssence x = error $ "obj: " ++ (groom $ (pretty &&& id) x)

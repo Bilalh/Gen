@@ -11,6 +11,8 @@ import {-# SOURCE #-} AST.Domain(dintRange)
 import {-# SOURCE #-} AST.Expr()
 import Language.E
 
+import Control.Arrow((&&&))
+import Text.Groom(groom)
 
 instance ToEssence Literal where
     toEssence (EB x)      = [xMake| value.literal      := [Prim (B x)] |]
@@ -81,6 +83,4 @@ instance FromEssence Literal where
             helper [xMatch| ys  := part |] = mapM fromEssence ys
             helper x = Left x
 
-    -- fromEssence x = case fromEssence x of
-    --                       Right l -> return $ EExpr l
-    --                       Left l  -> Left l
+    fromEssence x = EExpr <$> fromEssence x
