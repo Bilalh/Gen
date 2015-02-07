@@ -35,19 +35,19 @@ data UI
       , old_conjure      :: Bool
       , cores            :: Int
       , seed             :: Int
-      , limit_time :: Maybe Int
+      , limit_time       :: Maybe Int
       }
   | Link
       { directories :: [FilePath]
-      , limit_time :: Maybe Int
+      , limit_time  :: Maybe Int
       }
   | Meta
       { directories :: [FilePath]
-      , limit_time :: Maybe Int
+      , limit_time  :: Maybe Int
       }
   | SpecEE
       { directories :: [FilePath]
-      , limit_time :: Maybe Int
+      , limit_time  :: Maybe Int
       }
   deriving (Show, Data, Typeable)
 

@@ -118,7 +118,6 @@ prettyShowType ty =
 
 
 
-
 ffind :: FilePath -> IO [FilePath]
 ffind path = do
   names <- getRecursiveContents path
