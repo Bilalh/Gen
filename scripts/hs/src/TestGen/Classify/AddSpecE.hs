@@ -30,20 +30,40 @@ addSpecE fp_ = do
     let inlined = fst $ inlineParamAndLettings spec Nothing
         specE  = fromSpec inlined
 
-    -- putStrLn "--"
     putStrLn fp
-    -- print . pretty $ inlined
 
     case specE of
       Left r -> error . show . vcat $ ["Error for " <+> (pretty fp)
                                       , "spec " <+> pretty spec
-                                      , "msg"  <+> (pretty . groom $ r), "--"  ]
+                                      , "msg"  <+> (pretty r)
+                                      , "msg"  <+> (pretty . groom $ r)
+                                      , "groom" <+> (prettySpecDebug $ spec)
+                                      , "--"  ]
       Right r -> do
-         -- putStrLn "back"
-         -- print . pretty $ r
-         -- putStrLn "--"
+         -- b <- (compareSpecs r inlined)
+         -- if not  b then do
+         --     putStrLn "--mismatched--"
+         --     putStrLn fp
+         --     putStrLn . show . pretty $ inlined
+         --     putStrLn . show . pretty $ r
+         --     putStrLn . groom $ r
+
+         --     putStrLn "--end--"
+         -- else
+         --     return ()
+
          writeFile (replaceExtension fp ".specE" ) (show r)
 
+
+compareSpecs :: SpecE -> Spec -> IO Bool
+compareSpecs specE  (Spec _ v2) = do
+    let (Spec lang v1) = toSpec specE
+        s1 = (Spec lang v1)
+        s2 = (Spec lang v2)
+    case hash s1 == hash s2 of
+      True  -> return True
+      False -> do
+        return False
 
 
 ffind :: FilePath -> IO [FilePath]
