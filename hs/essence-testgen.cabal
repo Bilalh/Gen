@@ -98,6 +98,7 @@ Library
                      , unordered-containers
                      , tf-random
                      , unix
+                     , uniplate
 
    ghc-options:
        -fwarn-incomplete-patterns
