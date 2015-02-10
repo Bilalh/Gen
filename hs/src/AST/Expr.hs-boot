@@ -6,7 +6,6 @@ import AST.ToEssence
 import AST.FromEssence
 import AST.Data
 
-import Language.E
 
 instance ToEssence Expr
 instance FromEssence Expr

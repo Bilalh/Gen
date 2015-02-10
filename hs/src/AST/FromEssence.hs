@@ -1,6 +1,7 @@
 module AST.FromEssence where
 
-import Language.E
+import Conjure.Prelude
+import Conjure.Language.Definition(Expression)
 
 class FromEssence a where
-  fromEssence :: E -> Either E a
+  fromEssence :: Expression -> Either Expression a

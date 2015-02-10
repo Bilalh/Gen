@@ -8,13 +8,12 @@ module TestGen.Helpers.StandardImports (
       Pretty(..)
 ) where
 
+import Conjure.Prelude as X
 import AST.Imports as X
 
-import Common.Helpers as X
 
 import Common.Placeholders as X (placeholder,notImplemented,todo)
 
-import Language.E as X
 
 import Control.Monad as X (filterM, guard)
 import Control.Monad.State.Strict as X (evalStateT,execStateT, StateT)
@@ -26,9 +25,6 @@ import Test.QuickCheck as X (quickCheckWith, quickCheckWithResult
     , quickCheckResult, quickCheck, Gen,generate, sample'
     , Arbitrary(..), CoArbitrary(..), elements, sized)
 
-import Text.Groom as X (groom)
-
-import Language.E as X
 
 import qualified Text.PrettyPrint as Pr
 

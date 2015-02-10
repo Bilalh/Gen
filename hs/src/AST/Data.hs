@@ -4,16 +4,7 @@
 
 module AST.Data where
 
-
-import GHC.Generics
-import Data.Typeable
-
-import Data.Text (Text)
-import Data.Hashable ( Hashable(..) )
-
-import Data.Aeson(FromJSON(..),ToJSON(..))
-import Data.Data
-
+import Conjure.Prelude
 
 data Domain
   = DSet

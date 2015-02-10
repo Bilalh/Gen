@@ -11,7 +11,7 @@ import AST.Data
 import AST.Helper
 import {-# SOURCE #-} AST.Range()
 
-import Language.E
+import Conjure.Prelude
 
 
 dint, dset, dmset, dmat, dfunc, drel, dpar, dtuple  :: Domain

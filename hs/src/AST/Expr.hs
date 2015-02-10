@@ -12,7 +12,7 @@ import {-# SOURCE #-} AST.Literal()
 import {-# SOURCE #-} AST.Domain()
 import AST.Type()
 
-import Language.E
+import Conjure.Prelude
 
 import Control.Arrow((&&&))
 import Text.Groom(groom)
@@ -20,115 +20,115 @@ import Text.Groom(groom)
 
 instance ToEssence BinOp where
 
-    toEssence (BIn x y) = [eMake| &x' in &y' |] where
+    toEssence (BIn x y) = [essence| &x' in &y' |] where
         x' = toEssence x
         y' = toEssence y
 
-    toEssence (BDiff x y) = [eMake| &x' - &y' |] where
+    toEssence (BDiff x y) = [essence| &x' - &y' |] where
             x' = toEssence x
             y' = toEssence y
 
-    toEssence (BEQ x y) = [eMake| &x' = &y' |] where
+    toEssence (BEQ x y) = [essence| &x' = &y' |] where
         x' = toEssence x
         y' = toEssence y
 
-    toEssence (BNEQ x y) = [eMake| &x' != &y' |] where
-        x' = toEssence x
-        y' = toEssence y
-
-
-    toEssence (BLT x y) = [eMake| &x' < &y' |] where
-        x' = toEssence x
-        y' = toEssence y
-
-    toEssence (BLTE x y) = [eMake| &x' <= &y' |] where
-        x' = toEssence x
-        y' = toEssence y
-
-    toEssence (BGT x y) = [eMake| &x' > &y' |] where
-        x' = toEssence x
-        y' = toEssence y
-
-    toEssence (BGTE x y) = [eMake| &x' >= &y' |] where
+    toEssence (BNEQ x y) = [essence| &x' != &y' |] where
         x' = toEssence x
         y' = toEssence y
 
 
-    toEssence (BPlus x y) = [eMake| &x' + &y' |] where
+    toEssence (BLT x y) = [essence| &x' < &y' |] where
         x' = toEssence x
         y' = toEssence y
 
-    toEssence (BMult x y) = [eMake| &x' * &y' |] where
+    toEssence (BLTE x y) = [essence| &x' <= &y' |] where
         x' = toEssence x
         y' = toEssence y
 
-    toEssence (BDiv x y) = [eMake| &x' / &y' |] where
+    toEssence (BGT x y) = [essence| &x' > &y' |] where
         x' = toEssence x
         y' = toEssence y
 
-    toEssence (BPow x y) = [eMake| &x' ** &y' |] where
-        x' = toEssence x
-        y' = toEssence y
-
-    toEssence (BMod x y) = [eMake| &x' % &y' |] where
-        x' = toEssence x
-        y' = toEssence y
-
-    toEssence (BAnd x y) = [eMake| &x' /\ &y' |] where
-        x' = toEssence x
-        y' = toEssence y
-
-    toEssence (BOr x y) = [eMake| &x' \/ &y' |] where
+    toEssence (BGTE x y) = [essence| &x' >= &y' |] where
         x' = toEssence x
         y' = toEssence y
 
 
-    toEssence (Bimply x y) = [eMake| &x' -> &y' |] where
+    toEssence (BPlus x y) = [essence| &x' + &y' |] where
         x' = toEssence x
         y' = toEssence y
 
-    toEssence (Biff x y) = [eMake| &x' <-> &y' |] where
+    toEssence (BMult x y) = [essence| &x' * &y' |] where
+        x' = toEssence x
+        y' = toEssence y
+
+    toEssence (BDiv x y) = [essence| &x' / &y' |] where
+        x' = toEssence x
+        y' = toEssence y
+
+    toEssence (BPow x y) = [essence| &x' ** &y' |] where
+        x' = toEssence x
+        y' = toEssence y
+
+    toEssence (BMod x y) = [essence| &x' % &y' |] where
+        x' = toEssence x
+        y' = toEssence y
+
+    toEssence (BAnd x y) = [essence| &x' /\ &y' |] where
+        x' = toEssence x
+        y' = toEssence y
+
+    toEssence (BOr x y) = [essence| &x' \/ &y' |] where
         x' = toEssence x
         y' = toEssence y
 
 
-    toEssence (Bsubset x y) = [eMake| &x' subset &y' |] where
+    toEssence (Bimply x y) = [essence| &x' -> &y' |] where
         x' = toEssence x
         y' = toEssence y
 
-    toEssence (BsubsetEq x y) = [eMake| &x' subsetEq &y' |] where
+    toEssence (Biff x y) = [essence| &x' <-> &y' |] where
         x' = toEssence x
         y' = toEssence y
 
-    toEssence (Bsupset x y) = [eMake| &x' supset &y' |] where
+
+    toEssence (Bsubset x y) = [essence| &x' subset &y' |] where
         x' = toEssence x
         y' = toEssence y
 
-    toEssence (BsupsetEq x y) = [eMake| &x' supsetEq &y' |] where
+    toEssence (BsubsetEq x y) = [essence| &x' subsetEq &y' |] where
         x' = toEssence x
         y' = toEssence y
 
-    toEssence (Bintersect x y) = [eMake| &x' intersect &y' |] where
+    toEssence (Bsupset x y) = [essence| &x' supset &y' |] where
         x' = toEssence x
         y' = toEssence y
 
-    toEssence (Bunion x y) = [eMake| &x' union &y' |] where
+    toEssence (BsupsetEq x y) = [essence| &x' supsetEq &y' |] where
         x' = toEssence x
         y' = toEssence y
 
-    toEssence (BlexLT x y) = [eMake| &x' <lex &y' |] where
+    toEssence (Bintersect x y) = [essence| &x' intersect &y' |] where
         x' = toEssence x
         y' = toEssence y
 
-    toEssence (BlexLTE x y) = [eMake| &x' <=lex &y' |] where
+    toEssence (Bunion x y) = [essence| &x' union &y' |] where
         x' = toEssence x
         y' = toEssence y
 
-    toEssence (BlexGT x y) = [eMake| &x' >lex &y' |] where
+    toEssence (BlexLT x y) = [essence| &x' <lex &y' |] where
         x' = toEssence x
         y' = toEssence y
 
-    toEssence (BlexGTE x y) = [eMake| &x' >=lex &y' |] where
+    toEssence (BlexLTE x y) = [essence| &x' <=lex &y' |] where
+        x' = toEssence x
+        y' = toEssence y
+
+    toEssence (BlexGT x y) = [essence| &x' >lex &y' |] where
+        x' = toEssence x
+        y' = toEssence y
+
+    toEssence (BlexGTE x y) = [essence| &x' >=lex &y' |] where
         x' = toEssence x
         y' = toEssence y
 
@@ -138,21 +138,21 @@ instance ToEssence BinOp where
 
 
 instance ToEssence UniOp where
-    toEssence (UBar x) = [eMake| |&x'| |] where
+    toEssence (UBar x) = [essence| |&x'| |] where
         x' = toEssence x
-    toEssence (UNeg x) = [eMake| -&x' |] where
+    toEssence (UNeg x) = [essence| -&x' |] where
         x' = toEssence x
 
 instance ToEssence Proc where
 
-    toEssence (PallDiff x ) = [eMake| allDiff(&x') |] where
+    toEssence (PallDiff x ) = [essence| allDiff(&x') |] where
         x' = toEssence x
 
-    toEssence (Pindex ref@(EVar _) c ) = [eMake| &ref'[&c']  |] where
+    toEssence (Pindex ref@(EVar _) c ) = [essence| &ref'[&c']  |] where
         ref' = toEssence ref
         c'   = toEssence c
 
-    toEssence (Pindex inn c ) = [eMake| &inner'[&c']  |] where
+    toEssence (Pindex inn c ) = [essence| &inner'[&c']  |] where
         inner' = toEssence inn
         c'     = toEssence c
 
@@ -165,70 +165,70 @@ instance ToEssence Proc where
         es'  = map toEssence es
 
 
-    toEssence (Pfreq x y) = [eMake| freq(&x', &y') |] where
+    toEssence (Pfreq x y) = [essence| freq(&x', &y') |] where
         x' = toEssence x
         y' = toEssence y
 
-    toEssence (Phist x y) = [eMake| hist(&x', &y') |] where
+    toEssence (Phist x y) = [essence| hist(&x', &y') |] where
         x' = toEssence x
         y' = toEssence y
 
 
-    toEssence (Pmin x) = [eMake| min(&x') |] where
+    toEssence (Pmin x) = [essence| min(&x') |] where
         x' = toEssence x
 
-    toEssence (Pmax x) = [eMake| max(&x') |] where
-        x' = toEssence x
-
-
-    toEssence (PtoInt x) = [eMake| toInt(&x') |] where
-        x' = toEssence x
-
-    toEssence (PtoMSet x) = [eMake| toMset(&x') |] where
-        x' = toEssence x
-
-    toEssence (PtoRelation x) = [eMake| toRelation(&x') |] where
-        x' = toEssence x
-
-    toEssence (PtoSet x) = [eMake| toSet(&x') |] where
+    toEssence (Pmax x) = [essence| max(&x') |] where
         x' = toEssence x
 
 
-    toEssence (Pdefined x) = [eMake| defined(&x') |] where
+    toEssence (PtoInt x) = [essence| toInt(&x') |] where
         x' = toEssence x
 
-    toEssence (Pimage x y) = [eMake| image(&x', &y') |] where
+    toEssence (PtoMSet x) = [essence| toMset(&x') |] where
         x' = toEssence x
-        y' = toEssence y
 
-    toEssence (Pinverse x y) = [eMake| inverse(&x', &y') |] where
+    toEssence (PtoRelation x) = [essence| toRelation(&x') |] where
+        x' = toEssence x
+
+    toEssence (PtoSet x) = [essence| toSet(&x') |] where
+        x' = toEssence x
+
+
+    toEssence (Pdefined x) = [essence| defined(&x') |] where
+        x' = toEssence x
+
+    toEssence (Pimage x y) = [essence| image(&x', &y') |] where
         x' = toEssence x
         y' = toEssence y
 
-    toEssence (PpreImage x y) = [eMake| preImage(&x', &y') |] where
+    toEssence (Pinverse x y) = [essence| inverse(&x', &y') |] where
         x' = toEssence x
         y' = toEssence y
 
-    toEssence (Prange x) = [eMake| range(&x') |] where
+    toEssence (PpreImage x y) = [essence| preImage(&x', &y') |] where
+        x' = toEssence x
+        y' = toEssence y
+
+    toEssence (Prange x) = [essence| range(&x') |] where
         x' = toEssence x
 
 
-    toEssence (Papart x y z) = [eMake| apart(&x', &y', &z') |] where
+    toEssence (Papart x y z) = [essence| apart(&x', &y', &z') |] where
         x' = toEssence x
         y' = toEssence y
         z' = toEssence z
 
-    toEssence (Pparts x) = [eMake| parts(&x') |] where
+    toEssence (Pparts x) = [essence| parts(&x') |] where
         x' = toEssence x
 
-    toEssence (Pparty x y) = [eMake| party(&x', &y') |] where
+    toEssence (Pparty x y) = [essence| party(&x', &y') |] where
         x' = toEssence x
         y' = toEssence y
 
-    toEssence (Pparticipants x) = [eMake| participants(&x') |] where
+    toEssence (Pparticipants x) = [essence| participants(&x') |] where
         x' = toEssence x
 
-    toEssence (Ptogether x y z) = [eMake| together(&x', &y', &z') |] where
+    toEssence (Ptogether x y z) = [essence| together(&x', &y', &z') |] where
         x' = toEssence x
         y' = toEssence y
         z' = toEssence z
@@ -259,13 +259,13 @@ instance ToEssence Expr where
 
     toEssence (EDom x)   = toEssence x
 
-    toEssence (ETyped ty x) = [eMake| (&x' : `&ty'`) |]
+    toEssence (ETyped ty x) = [essence| (&x' : `&ty'`) |]
         where
           x'   = toEssence x
           ty' = toEssence ty
 
     toEssence (EQuan qt (BIn v dom) g b)  =
-                [eMake| &qt' &v' in &dom' , &g' . &b' |] where
+                [essence| &qt' &v' in &dom' , &g' . &b' |] where
                 qt'  = toEssence qt
                 v'   = toEssence v
                 dom' = toEssence dom
@@ -273,7 +273,7 @@ instance ToEssence Expr where
                 b'   = toEssence b
 
     toEssence (EQuan qt (BOver v dom) g b)=
-                [eMake| &qt' &v' : &dom' , &g' . &b' |] where
+                [essence| &qt' &v' : &dom' , &g' . &b' |] where
                 qt'  = toEssence qt
                 v'   = toEssence v
                 dom' = toEssence dom
@@ -311,64 +311,64 @@ instance Pretty Objective where
     pretty =   pretty  . toEssence
 
 instance FromEssence BinOp where
-  fromEssence [eMatch| &x in &y |]        = BIn        <$> fromEssence x <*> fromEssence y
-  fromEssence [eMatch| &x - &y |]         = BDiff      <$> fromEssence x <*> fromEssence y
-  fromEssence [eMatch| &x = &y |]         = BEQ        <$> fromEssence x <*> fromEssence y
-  fromEssence [eMatch| &x != &y |]        = BNEQ       <$> fromEssence x <*> fromEssence y
-  fromEssence [eMatch| &x < &y |]         = BLT        <$> fromEssence x <*> fromEssence y
-  fromEssence [eMatch| &x <= &y |]        = BLTE       <$> fromEssence x <*> fromEssence y
-  fromEssence [eMatch| &x > &y |]         = BGT        <$> fromEssence x <*> fromEssence y
-  fromEssence [eMatch| &x >= &y |]        = BGTE       <$> fromEssence x <*> fromEssence y
-  fromEssence [eMatch| &x + &y |]         = BPlus      <$> fromEssence x <*> fromEssence y
-  fromEssence [eMatch| &x * &y |]         = BMult      <$> fromEssence x <*> fromEssence y
-  fromEssence [eMatch| &x / &y |]         = BDiv       <$> fromEssence x <*> fromEssence y
-  fromEssence [eMatch| &x ** &y |]        = BPow       <$> fromEssence x <*> fromEssence y
-  fromEssence [eMatch| &x % &y |]         = BMod       <$> fromEssence x <*> fromEssence y
-  fromEssence [eMatch| &x /\ &y |]        = BAnd       <$> fromEssence x <*> fromEssence y
-  fromEssence [eMatch| &x \/ &y |]        = BOr        <$> fromEssence x <*> fromEssence y
-  fromEssence [eMatch| &x -> &y |]        = Bimply     <$> fromEssence x <*> fromEssence y
-  fromEssence [eMatch| &x <-> &y |]       = Biff       <$> fromEssence x <*> fromEssence y
-  fromEssence [eMatch| &x subset &y |]    = Bsubset    <$> fromEssence x <*> fromEssence y
-  fromEssence [eMatch| &x subsetEq &y |]  = BsubsetEq  <$> fromEssence x <*> fromEssence y
-  fromEssence [eMatch| &x supset &y |]    = Bsupset    <$> fromEssence x <*> fromEssence y
-  fromEssence [eMatch| &x supsetEq &y |]  = BsupsetEq  <$> fromEssence x <*> fromEssence y
-  fromEssence [eMatch| &x intersect &y |] = Bintersect <$> fromEssence x <*> fromEssence y
-  fromEssence [eMatch| &x union &y |]     = Bunion     <$> fromEssence x <*> fromEssence y
-  fromEssence [eMatch| &x <lex &y |]      = BlexLT     <$> fromEssence x <*> fromEssence y
-  fromEssence [eMatch| &x <=lex &y |]     = BlexLTE    <$> fromEssence x <*> fromEssence y
-  fromEssence [eMatch| &x >lex &y |]      = BlexGT     <$> fromEssence x <*> fromEssence y
-  fromEssence [eMatch| &x >=lex &y |]     = BlexGTE    <$> fromEssence x <*> fromEssence y
+  fromEssence [essence| &x in &y |]        = BIn        <$> fromEssence x <*> fromEssence y
+  fromEssence [essence| &x - &y |]         = BDiff      <$> fromEssence x <*> fromEssence y
+  fromEssence [essence| &x = &y |]         = BEQ        <$> fromEssence x <*> fromEssence y
+  fromEssence [essence| &x != &y |]        = BNEQ       <$> fromEssence x <*> fromEssence y
+  fromEssence [essence| &x < &y |]         = BLT        <$> fromEssence x <*> fromEssence y
+  fromEssence [essence| &x <= &y |]        = BLTE       <$> fromEssence x <*> fromEssence y
+  fromEssence [essence| &x > &y |]         = BGT        <$> fromEssence x <*> fromEssence y
+  fromEssence [essence| &x >= &y |]        = BGTE       <$> fromEssence x <*> fromEssence y
+  fromEssence [essence| &x + &y |]         = BPlus      <$> fromEssence x <*> fromEssence y
+  fromEssence [essence| &x * &y |]         = BMult      <$> fromEssence x <*> fromEssence y
+  fromEssence [essence| &x / &y |]         = BDiv       <$> fromEssence x <*> fromEssence y
+  fromEssence [essence| &x ** &y |]        = BPow       <$> fromEssence x <*> fromEssence y
+  fromEssence [essence| &x % &y |]         = BMod       <$> fromEssence x <*> fromEssence y
+  fromEssence [essence| &x /\ &y |]        = BAnd       <$> fromEssence x <*> fromEssence y
+  fromEssence [essence| &x \/ &y |]        = BOr        <$> fromEssence x <*> fromEssence y
+  fromEssence [essence| &x -> &y |]        = Bimply     <$> fromEssence x <*> fromEssence y
+  fromEssence [essence| &x <-> &y |]       = Biff       <$> fromEssence x <*> fromEssence y
+  fromEssence [essence| &x subset &y |]    = Bsubset    <$> fromEssence x <*> fromEssence y
+  fromEssence [essence| &x subsetEq &y |]  = BsubsetEq  <$> fromEssence x <*> fromEssence y
+  fromEssence [essence| &x supset &y |]    = Bsupset    <$> fromEssence x <*> fromEssence y
+  fromEssence [essence| &x supsetEq &y |]  = BsupsetEq  <$> fromEssence x <*> fromEssence y
+  fromEssence [essence| &x intersect &y |] = Bintersect <$> fromEssence x <*> fromEssence y
+  fromEssence [essence| &x union &y |]     = Bunion     <$> fromEssence x <*> fromEssence y
+  fromEssence [essence| &x <lex &y |]      = BlexLT     <$> fromEssence x <*> fromEssence y
+  fromEssence [essence| &x <=lex &y |]     = BlexLTE    <$> fromEssence x <*> fromEssence y
+  fromEssence [essence| &x >lex &y |]      = BlexGT     <$> fromEssence x <*> fromEssence y
+  fromEssence [essence| &x >=lex &y |]     = BlexGTE    <$> fromEssence x <*> fromEssence y
 
   fromEssence x = Left x
 
 instance FromEssence UniOp where
-    fromEssence [eMatch| -&x |]  = UNeg <$> fromEssence x
-    fromEssence [eMatch| |&x| |] = UBar <$> fromEssence x
+    fromEssence [essence| -&x |]  = UNeg <$> fromEssence x
+    fromEssence [essence| |&x| |] = UBar <$> fromEssence x
     fromEssence x = Left x
 
 instance FromEssence Proc where
-    fromEssence [eMatch| &ele[&indexer] |] = Pindex <$> fromEssence ele <*> fromEssence indexer
+    fromEssence [essence| &ele[&indexer] |] = Pindex <$> fromEssence ele <*> fromEssence indexer
 
-    fromEssence [eMatch| allDiff(&x) |]          = PallDiff     <$> fromEssence x
-    fromEssence [eMatch| freq(&x, &y) |]         = Pfreq        <$> fromEssence x <*> fromEssence y
-    fromEssence [eMatch| hist(&x, &y) |]         = Phist        <$> fromEssence x <*> fromEssence y
-    fromEssence [eMatch| min(&x) |]              = Pmin         <$> fromEssence x
-    fromEssence [eMatch| max(&x) |]              = Pmax         <$> fromEssence x
-    fromEssence [eMatch| toInt(&x) |]            = PtoInt       <$> fromEssence x
-    fromEssence [eMatch| toMset(&x) |]           = PtoMSet      <$> fromEssence x
-    fromEssence [eMatch| toRelation(&x) |]       = PtoRelation  <$> fromEssence x
-    fromEssence [eMatch| toSet(&x) |]            = PtoSet       <$> fromEssence x
-    fromEssence [eMatch| defined(&x) |]          = Pdefined     <$> fromEssence x
-    fromEssence [eMatch| image(&x, &y) |]        = Pimage       <$> fromEssence x <*> fromEssence y
-    fromEssence [eMatch| inverse(&x, &y) |]      = Pinverse     <$> fromEssence x <*> fromEssence y
-    fromEssence [eMatch| preImage(&x, &y) |]     = PpreImage    <$> fromEssence x <*> fromEssence y
-    fromEssence [eMatch| range(&x) |]            = Prange       <$> fromEssence x
-    fromEssence [eMatch| apart(&x, &y, &z) |]    = Papart       <$> fromEssence x <*> fromEssence y
+    fromEssence [essence| allDiff(&x) |]          = PallDiff     <$> fromEssence x
+    fromEssence [essence| freq(&x, &y) |]         = Pfreq        <$> fromEssence x <*> fromEssence y
+    fromEssence [essence| hist(&x, &y) |]         = Phist        <$> fromEssence x <*> fromEssence y
+    fromEssence [essence| min(&x) |]              = Pmin         <$> fromEssence x
+    fromEssence [essence| max(&x) |]              = Pmax         <$> fromEssence x
+    fromEssence [essence| toInt(&x) |]            = PtoInt       <$> fromEssence x
+    fromEssence [essence| toMset(&x) |]           = PtoMSet      <$> fromEssence x
+    fromEssence [essence| toRelation(&x) |]       = PtoRelation  <$> fromEssence x
+    fromEssence [essence| toSet(&x) |]            = PtoSet       <$> fromEssence x
+    fromEssence [essence| defined(&x) |]          = Pdefined     <$> fromEssence x
+    fromEssence [essence| image(&x, &y) |]        = Pimage       <$> fromEssence x <*> fromEssence y
+    fromEssence [essence| inverse(&x, &y) |]      = Pinverse     <$> fromEssence x <*> fromEssence y
+    fromEssence [essence| preImage(&x, &y) |]     = PpreImage    <$> fromEssence x <*> fromEssence y
+    fromEssence [essence| range(&x) |]            = Prange       <$> fromEssence x
+    fromEssence [essence| apart(&x, &y, &z) |]    = Papart       <$> fromEssence x <*> fromEssence y
                                                                 <*> fromEssence z
-    fromEssence [eMatch| parts(&x) |]            = Pparts       <$> fromEssence x
-    fromEssence [eMatch| party(&x, &y) |]        = Pparty       <$> fromEssence x <*> fromEssence y
-    fromEssence [eMatch| participants(&x) |]     = Pparticipants<$> fromEssence x
-    fromEssence [eMatch| together(&x, &y, &z) |] = Ptogether    <$> fromEssence x <*> fromEssence y
+    fromEssence [essence| parts(&x) |]            = Pparts       <$> fromEssence x
+    fromEssence [essence| party(&x, &y) |]        = Pparty       <$> fromEssence x <*> fromEssence y
+    fromEssence [essence| participants(&x) |]     = Pparticipants<$> fromEssence x
+    fromEssence [essence| together(&x, &y, &z) |] = Ptogether    <$> fromEssence x <*> fromEssence y
                                                                 <*> fromEssence z
 
 
@@ -388,7 +388,7 @@ instance FromEssence Expr where
     fromEssence x@[xMatch| _ := binOp |]    = EBinOp <$> fromEssence x
     fromEssence x@[xMatch| _ := unaryOp |]  = EUniOp <$> fromEssence x
     fromEssence x@[xMatch| _ := operator |] = f x where
-                 f [eMatch| |&y| |] = EUniOp . UBar <$> fromEssence y
+                 f [essence| |&y| |] = EUniOp . UBar <$> fromEssence y
                  f _                = EProc   <$> fromEssence x
 
 
@@ -396,7 +396,7 @@ instance FromEssence Expr where
                        | [r] := typed.right |] = ETyped <$> fromEssence r <*> fromEssence l
 
 
-    fromEssence [eMatch| &qt &qvar in &dom , &g . &b |] = do
+    fromEssence [essence| &qt &qvar in &dom , &g . &b |] = do
         qt'   <- fromEssence qt
         qvar' <- fromEssence qvar
         dom'  <- fromEssence dom
@@ -404,7 +404,7 @@ instance FromEssence Expr where
         b'    <- fromEssence b
         return $ EQuan qt' (BIn qvar' dom') g' b'
 
-    fromEssence [eMatch| &qt &qvar : &dom , &g . &b |] = do
+    fromEssence [essence| &qt &qvar : &dom , &g . &b |] = do
         qt'   <- fromEssence qt
         qvar' <- fromEssence qvar
         (dom')  <- fromEssence dom

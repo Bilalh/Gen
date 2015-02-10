@@ -35,7 +35,7 @@ echo "USE_CORES       : ${USE_CORES}"
 echo "OPTIMISATION    : ${OPTIMISATION}"
 echo "LLVM            : ${LLVM}"
 echo "BIN_DIR         : ${BIN_DIR}"
-echo "CONJURE_REPO"   : ${CONJURE_REPO}
+echo "CONJURE_LIB"    : ${CONJURE_LIB}
 
 
 if [ $LLVM = "llvm-on" ]; then
@@ -53,7 +53,7 @@ if [ -f cabal.sandbox.config ]; then
 else
     echo "Initialising cabal sandbox."
     cabal sandbox init
-    cabal sandbox add-source $CONJURE_REPO
+    cabal sandbox add-source $CONJURE_LIB
 fi
 
 # install finally
