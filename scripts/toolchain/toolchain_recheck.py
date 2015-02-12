@@ -239,13 +239,19 @@ def rerun_solve(extra_env, outdir, limit, kv):
         outputs.append(" ".join(cmd_arr))
         outputs.append(output)
 
+
         if res.status_ != Status.success:
             logger.warn("###ERROR %s for cmd \n%s\n%s",
                     res.status_, " ".join(cmd_arr), indent(output, " \t") )
             erroed=i
             all_finished=False
             last_status = res.status_
-            last_kind  = cmd_kind
+            last_kind = cmd_kind
+            break
+
+        if cmd_kind == K.savilerow and not cmd_data['vals']['eprime_solution'].exists():
+            logger.info("No eprime solution")
+            solving_finished=True
             break
 
 
@@ -315,7 +321,7 @@ with (newBase / "solve_eprime.json" ).open("w") as f:
         indent=True, sort_keys=True, default=toolchain.obj_to_json ))
 
 
-logger.warn("completed")
+logger.warn("completed successful?: %s", (successful and solve_successful) )
 
 if not successful:
     sys.exit(2)
