@@ -11,7 +11,7 @@ import qualified Data.Traversable as T
 
 import qualified Data.Map as M
 
-domTypes :: (WithDoms m) => m [Type]
+domTypes :: (WithDoms m) => m [TType]
 domTypes = do
   (SpecE ds _ x)  <- getSpecEWithDoms
   tys <-  T.mapM ttypeOf  ds

@@ -367,7 +367,7 @@ f  -| (a,e) = do
 
 
 -- | return the simplest literals, two at most
-singleLit :: (HasGen m, HasLogger m, WithDoms m) => Type -> m [Expr]
+singleLit :: (HasGen m, HasLogger m, WithDoms m) => TType -> m [Expr]
 singleLit TInt = do
   pure EI <*> chooseR (-5, 5) >>= return . (\a ->  [ELit a ] )
 
@@ -460,7 +460,7 @@ singleLit l@(TPar x) = do
 singleLit TAny = rrError "singleLit of TAny" []
 singleLit ty   = rrError "singleLit" [nn "ty" ty ]
 
-singleLitExpr :: (HasGen m, HasLogger m, WithDoms m) => Type -> m [Expr]
+singleLitExpr :: (HasGen m, HasLogger m, WithDoms m) => TType -> m [Expr]
 singleLitExpr ty = do
   addLog "singleLitExpr" [nn "ty" ty]
   singleLit $ ty

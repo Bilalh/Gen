@@ -69,5 +69,5 @@ instance FromEssence Type TType where
 -- instance Pretty TType where
 --     pretty  =  pretty  . toEssence
 
--- instance Pretty [Type] where
+-- instance Pretty [TType] where
 --     pretty  =  vcat . map pretty

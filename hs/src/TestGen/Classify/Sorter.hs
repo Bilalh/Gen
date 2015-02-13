@@ -104,7 +104,7 @@ getFunc Tlength = \SpecMeta{..} ->
 getFunc TdTypesComplex = \SpecMeta{..} ->
                   [ "dom_type_most_complex" </> prettyShowType dom_most_complex_ ]
 
-prettyShowType :: Type -> String
+prettyShowType :: TType -> String
 prettyShowType ty =
     let t   = T.pack . show . pretty . toEssence $ ty
         res = T.unpack

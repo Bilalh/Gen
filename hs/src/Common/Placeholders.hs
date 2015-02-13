@@ -6,16 +6,11 @@
 -- allow incomplete code to compile. They work just like 'undefined',
 -- but with improved error messages and compile-time warnings.
 module Common.Placeholders (
-    -- * Example
-    -- $example
-
-    -- * Placeholders
     notImplemented,
     todo,
     placeholder,
     placeholderNoWarning,
-
-    -- * Exceptions
+    never,
     PlaceholderException(..)
 ) where
 
@@ -41,6 +36,10 @@ notImplemented = placeholder "Unimplemented feature"
 -- @$(todo msg) = $(placeholder (\"TODO: \" ++ msg))@
 todo :: String -> Q Exp
 todo msg = placeholder $ "TODO: " ++ msg
+
+-- | replacement for when undefined is needed
+never :: Q Exp
+never = placeholderNoWarning "Should never Happen"
 
 -- | Generates an expression of any type that, if evaluated at runtime will
 -- throw a 'PlaceholderException'. It is therefore similar to 'error', except

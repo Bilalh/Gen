@@ -104,6 +104,8 @@ Library
         NoImplicitPrelude
         OverloadedStrings
         ScopedTypeVariables
+        LambdaCase
+        TemplateHaskell
 
    ghc-options:
        -fwarn-incomplete-patterns

@@ -1,6 +1,4 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE LambdaCase #-}
-
 module TestGen.Prelude (
       module X
     , withDepth

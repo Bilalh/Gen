@@ -1,5 +1,5 @@
-{-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
-{-# LANGUAGE NamedFieldPuns, RecordWildCards, LambdaCase, MultiWayIf #-}
+{-# LANGUAGE QuasiQuotes, ViewPatterns #-}
+{-# LANGUAGE NamedFieldPuns, RecordWildCards, MultiWayIf #-}
 {-# LANGUAGE DeriveGeneric, DeriveDataTypeable #-}
 {-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
 
@@ -9,13 +9,7 @@ import TestGen.Prelude
 import TestGen.Classify.DomTypes
 import TestGen.Reduce.Simpler
 
-import GHC.Generics
-import Data.Typeable
-
 import qualified Data.Map as M
-
-import Data.Aeson(FromJSON(..),ToJSON(..))
-
 import qualified Data.Foldable as F
 
 
@@ -37,8 +31,8 @@ data SpecMeta = SpecMeta
       , constraint_count_ :: Int
       , dom_count_        :: Int
       , dom_depth_        :: Integer
-      , dom_most_complex_ :: Type
-      , dom_types_        :: [Type]
+      , dom_most_complex_ :: TType
+      , dom_types_        :: [TType]
       , features_         :: [Feature]
     }  deriving(Show, Generic, Typeable, Eq, Read)
 
@@ -71,7 +65,7 @@ mkMeta = do
   return sp
 
 
-complex1 :: (WithDoms m) => Type -> Type -> m Ordering
+complex1 :: (WithDoms m) => TType -> TType -> m Ordering
 complex1 t1 t2 = do
   let a = depthOf t1
       b = depthOf t2
@@ -81,7 +75,7 @@ complex1 t1 t2 = do
      | a >  b -> return GT
 
 
-complex :: (WithDoms m) => Type -> Type -> m Ordering
+complex :: (WithDoms m) => TType -> TType -> m Ordering
 complex t1 t2 = do
   a <- nullLogs $ simpler t1 t1
   b <- nullLogs $ simpler t2 t1
@@ -101,7 +95,7 @@ maximum' a [] = a
 maximum' _ xs = maximum xs
 
 specE1 :: SpecE
-specE1= read $
+specE1= readNote "SpecE1" $
     "SpecE (fromList [(\"var1\",Find (DSet {size = Nothing, minSize = Nothing, maxSize = Nothing, inner = DBool}))]) [EBinOp (BOr (EBinOp (BEQ (ELit (ESet [EExpr (ELit (EB True))])) (ELit (ESet [EExpr (ELit (EB True)),EExpr (ELit (EB True))])))) (ELit (EB False)))]"
 
 
@@ -218,5 +212,5 @@ instance HasFeature Literal where
     getFeatures (EExpr l)      = FexprInLiteral : getFeatures l
 
 
-instance HasFeature Domain where
+instance HasFeature DDomain where
   getFeatures _ = []

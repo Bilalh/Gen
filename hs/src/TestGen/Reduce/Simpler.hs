@@ -1,12 +1,11 @@
-{-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
+{-# LANGUAGE QuasiQuotes, ViewPatterns #-}
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
-{-# LANGUAGE ScopedTypeVariables, FlexibleInstances #-}
-{-# LANGUAGE LambdaCase, MultiParamTypeClasses #-}
+{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances #-}
 
 module TestGen.Reduce.Simpler where
 
 import TestGen.Prelude
-
+import Data.List(foldl1)
 import TestGen.Arbitrary.Type(typesUnify)
 
 
@@ -19,9 +18,9 @@ class (Pretty a, Eq a, Show a, Pretty b, Eq b, Show b, Standardise a, Standardis
 
   simpler a b = do
     -- addLog "simplerStart" [nn "a" a, nn "b" b]
-    na <- standardise a
-    nb <- standardise b
-    res <- simplerImp na nb
+    ea <- standardise a
+    eb <- standardise b
+    res <- simplerImp ea eb
     addLog "simpler" [nn "a" a, nn "b" b
                      , nn "res" (show res)
                      -- , nn "ga" (groom a), nn "gb" (groom b)
@@ -32,7 +31,7 @@ class (Pretty a, Eq a, Show a, Pretty b, Eq b, Show b, Standardise a, Standardis
   simpler1 a b= simpler a b >>= (return . (== LT))
 
 
-instance Simpler Type Type where
+instance Simpler TType TType where
     simplerImp TBool TBool = return EQ
     simplerImp TBool _     = return LT
     simplerImp  _ TBool    = return GT
@@ -272,14 +271,14 @@ instance Simpler Expr Literal where
     simplerImp (ELit e) l    = simplerImp e l
 
     simplerImp (EVar e) l = do
-      tyE :: Type <- typeOfVar e >>= \case
+      tyE :: TType <- typeOfVar e >>= \case
              Just ty -> return ty
              Nothing -> rrError "simplerImp no type of var" [nn "var" e]
       tyl <- ttypeOf l
       simplerImp (tyE) tyl
 
     simplerImp (EQVar e) l = do
-      tyE :: Type <- typeOfVar e >>= \case
+      tyE :: TType <- typeOfVar e >>= \case
              Just ty -> return ty
              Nothing -> rrError "simplerImp no type of var" [nn "var" e]
       tyl <- ttypeOf l
@@ -364,6 +363,11 @@ instance (Simpler a c, Simpler b d, Simpler c e) => Simpler (a,b,c) (c,d,e)  whe
       r2 <- simplerImp x2 y2
       r3 <- simplerImp x3 y3
       return $ chainCompare [r1,r2,r3]
+
+compareChain :: [Ordering] -> Ordering
+compareChain (EQ:xs) = compareChain xs
+compareChain (x :_ ) = x
+compareChain []      = EQ
 
 compareCombine :: Ordering -> Ordering -> Ordering
 compareCombine LT LT = LT
