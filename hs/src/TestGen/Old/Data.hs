@@ -38,7 +38,7 @@ data GenGlobal = GenGlobal
     {
          gSeed         :: Int
         ,gBase         :: FilePath
-        ,gTotalTime    :: Float
+        ,gTotalTime    :: Double
         ,gSpecTime     :: Int
         ,gErrorsRefine :: [RefineR]
         ,gErrorsSolve  :: [SolveR]

@@ -1,14 +1,14 @@
-{-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
+{-# LANGUAGE QuasiQuotes, ViewPatterns #-}
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
-{-# LANGUAGE ScopedTypeVariables, LambdaCase #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 
 module TestGen.Classify.AddSpecE where
 
+import Conjure.UI.IO(readModelFromFile)
 import TestGen.Classify.Sorter(getRecursiveContents)
 import TestGen.Prelude
 
-import Language.E.Pipeline.ReadIn(readSpecFromFile)
 import System.FilePath (replaceExtension, takeExtension)
 
 specEMain :: [FilePath] -> IO ()
@@ -21,7 +21,7 @@ specEMain = \case
 addSpecE :: FilePath -> IO ()
 addSpecE fp_ = do
   specs_ :: [FilePath] <- ffind fp_
-  specs  :: [Spec]    <- mapM readSpecFromFile specs_
+  specs  :: [Model]    <- mapM readModelFromFile specs_
 
   void $ zipWithM f specs specs_
 
@@ -55,15 +55,16 @@ addSpecE fp_ = do
          writeFile (replaceExtension fp ".specE" ) (show r)
 
 
-compareSpecs :: SpecE -> Spec -> IO Bool
-compareSpecs specE  (Spec _ v2) = do
-    let (Spec lang v1) = toSpec specE
-        s1 = (Spec lang v1)
-        s2 = (Spec lang v2)
-    case hash s1 == hash s2 of
-      True  -> return True
-      False -> do
-        return False
+compareSpecs :: SpecE -> Model -> IO Bool
+compareSpecs = error "compareSpecs"
+-- compareSpecs specE  (Spec _ v2) = do
+--     let (Spec lang v1) = toSpec specE
+--         s1 = (Spec lang v1)
+--         s2 = (Spec lang v2)
+--     case hash s1 == hash s2 of
+--       True  -> return True
+--       False -> do
+--         return False
 
 
 ffind :: FilePath -> IO [FilePath]

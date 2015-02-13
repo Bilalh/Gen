@@ -8,7 +8,7 @@ import Build_autoversion(autoVersion)
 import System.Console.CmdArgs.Implicit
 
 data Args = Args{base_directory  :: Maybe FilePath
-                 , total_time    :: Maybe Float
+                 , total_time    :: Maybe Double
                  , per_spec_time :: Maybe Int
                  , rseed         :: Maybe Int
                 }  deriving (Show, Data, Typeable)

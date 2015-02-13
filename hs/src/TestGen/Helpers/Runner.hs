@@ -1,32 +1,23 @@
 {-# LANGUAGE DeriveDataTypeable #-}
-{-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
+{-# LANGUAGE QuasiQuotes, ViewPatterns #-}
 {-# LANGUAGE DeriveGeneric #-}
 module TestGen.Helpers.Runner where
 
-import TestGen.Prelude(renderSmall,nest,vcat)
+import TestGen.Prelude
+import Conjure.Language.Definition(Model)
+import Conjure.UI.IO(writeModel)
 
-
-import Data.Aeson(FromJSON(..),ToJSON(..))
-import Data.Functor((<$>))
 import Data.Map(Map)
 
-import GHC.Generics (Generic)
-import System.Directory(doesFileExist)
 import System.Environment(getEnv)
-import System.FilePath((</>), (<.>))
+import System.FilePath((<.>))
 import System.Process(rawSystem)
-import System.Directory(createDirectoryIfMissing)
+
+import Data.List(foldl1)
 
 import qualified Data.Aeson as A
 import qualified Data.ByteString.Lazy as B
 
-import System.Random(randomRIO)
-
-import Language.E(Spec,pretty, Pretty)
-import Language.E.Pipeline.ReadIn(writeSpec)
-import Text.Groom(groom)
-
-import Data.Typeable(Typeable)
 import Data.Data
 
 type Cores = Int
@@ -82,18 +73,18 @@ data ResultI = ResultI {
         ,last_status     :: StatusI
         ,last_kind       :: KindI
         ,results         :: [CmdI]
-        ,total_cpu_time  :: Float
-        ,total_real_time :: Float
+        ,total_cpu_time  :: Double
+        ,total_real_time :: Double
     } deriving(Show, Generic)
 
 
 
 data CmdI = CmdI {
      rcode     :: Int
-    ,cpu_time  :: Float
-    ,real_time :: Float
+    ,cpu_time  :: Double
+    ,real_time :: Double
     ,finished  :: Bool
-    ,timeout   :: Float
+    ,timeout   :: Double
     ,status_   :: StatusI
     ,kind_     :: KindI
     ,cmd       :: [String]
@@ -105,10 +96,10 @@ type SolveR  = SettingI SolveM
 type RefineR = SettingI RefineM
 data SettingI a = SettingI {
          essence_    :: String
-        ,given_time_ :: Float
+        ,given_time_ :: Double
         ,outdir_     :: FilePath
         ,successful_ :: Bool
-        ,time_taken_ :: Float
+        ,time_taken_ :: Double
         ,data_       :: a
         ,consistent_ :: Bool
     } deriving (Show, Generic)
@@ -210,14 +201,14 @@ runRefine1 seed newConjure cores spec dir timeou = do
         Just r  ->  r
         Nothing -> error $ "script error" ++  "cmd: " ++ toolchain ++ " " ++ foldl1 (\a b -> a ++ " " ++ b) args
 
-runRefine' :: Seed -> Cores -> Spec -> FilePath -> Int -> Bool -> IO RefineR
+runRefine' :: Seed -> Cores -> Model -> FilePath -> Int -> Bool -> IO RefineR
 runRefine' seed cores spec dir specTime newConjure = do
     print . pretty $ spec
 
     createDirectoryIfMissing True  dir
 
     let name = (dir </> "spec" <.> ".essence")
-    writeSpec name spec
+    writeModel (Just name) spec
 
     let specLim = specTime
     result <- runRefine1 seed newConjure cores name dir specLim
@@ -225,14 +216,14 @@ runRefine' seed cores spec dir specTime newConjure = do
     return result
 
 
-runToolchain' :: Seed -> Int -> Spec -> FilePath -> Int -> Bool -> Bool -> IO  (Either RefineR (RefineR, SolveR))
+runToolchain' :: Seed -> Int -> Model -> FilePath -> Int -> Bool -> Bool -> IO  (Either RefineR (RefineR, SolveR))
 runToolchain' seed cores spec dir specTime newConjure refineAll= do
     putStrLn . renderSmall . nest 4 . vcat $ ["Running", pretty spec]
 
     createDirectoryIfMissing True  dir
 
     let name = (dir </> "spec" <.> ".essence")
-    writeSpec name spec
+    writeModel (Just name) spec
 
     let specLim = specTime
     result <- runToolChain1 seed newConjure refineAll cores name dir specLim
@@ -241,10 +232,10 @@ runToolchain' seed cores spec dir specTime newConjure refineAll= do
 
 kindsList :: [String]
 kindsList = do
-  let names = dataTypeConstrs . dataTypeOf $ (undefined :: KindI)
+  let names = dataTypeConstrs . dataTypeOf $ (error "kindI" :: KindI)
   map show names
 
 statusesList :: [String]
 statusesList = do
-  let names = dataTypeConstrs . dataTypeOf $ (undefined :: StatusI)
+  let names = dataTypeConstrs . dataTypeOf $ (error "StatusI" :: StatusI)
   map show names

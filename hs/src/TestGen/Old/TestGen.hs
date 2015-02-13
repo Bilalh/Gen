@@ -24,7 +24,7 @@ import System.Random(mkStdGen)
 import Text.Groom(groom)
 
 
-run :: (MonadIO m, MonadGG m) =>  StdGen -> Float -> m ()
+run :: (MonadIO m, MonadGG m) =>  StdGen -> Double -> m ()
 run _ limit | limit <= 0  = do
     liftIO $ putStrLn $ "RUN NO TIME LEFT"
 
@@ -147,7 +147,7 @@ main' gs = do
     return ()
 
 
-_main :: Float -> Int -> Int -> IO()
+_main :: Double -> Int -> Int -> IO()
 _main total perSpec seed = do
     let globalState = GenGlobal{
                        gBase = "__", gSeed = seed
