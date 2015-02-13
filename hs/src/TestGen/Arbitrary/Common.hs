@@ -60,6 +60,6 @@ nextQuanVarName = do
     modify (\s -> s{nextNum_=curNum + 1}  )
     return varName
 
-introduceVariable :: (Text,Type) -> GG ()
+introduceVariable :: (Text, TType) -> GG ()
 introduceVariable newVar =
     modify ( \st -> st{newVars_ = newVar : newVars_ st} )

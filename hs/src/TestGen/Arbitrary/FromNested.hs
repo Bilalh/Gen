@@ -1,6 +1,6 @@
-{-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns, ScopedTypeVariables#-}
+{-# LANGUAGE QuasiQuotes, ViewPatterns #-}
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
-{-# LANGUAGE LambdaCase, MultiWayIf, TemplateHaskell #-}
+{-# LANGUAGE MultiWayIf #-}
 
 module TestGen.Arbitrary.FromNested where
 
@@ -119,7 +119,7 @@ typeReachable _ _ = return Nothing
 
 
 -- returns a expr that contraints the Ref
-exprFromRefTo :: (Ref,Type) -> TType -> GG Expr
+exprFromRefTo :: (Ref,TType) -> TType -> GG Expr
 exprFromRefTo (ref,tyFrom) tyTo = do
     addLog "exprFromRefTo" []
     -- TODO inefficient
@@ -152,7 +152,7 @@ nextt, nextt' ::
     TType -> -- current's Type
     TType -> -- Final Destination type
     --TODO should be GG [ GG (Expr, Type) ] ?
-    GG [ (Expr, Type) ] -- A list of possible transformations + their type
+    GG [ (Expr, TType) ] -- A list of possible transformations + their type
 
 nextt cur tyFrom tyTo  = gets depth_ >>= \d -> if
     | d < 0 -> ggError "nextt depth <0 " $ ["cur tyFrom tyTo"
@@ -170,7 +170,7 @@ nextt' cur tyFrom tyTo = do
 
     where
     -- :: from to -> choices
-    ff :: TType -> TType -> GG [(Expr, Type)]
+    ff :: TType -> TType -> GG [(Expr, TType)]
     ff TBool TInt  = do
         return [ ( EProc $ PtoInt cur , TInt)  ]
 

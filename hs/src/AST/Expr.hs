@@ -1,4 +1,4 @@
-{-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
+{-# LANGUAGE QuasiQuotes, ViewPatterns #-}
 {-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
@@ -17,7 +17,6 @@ import {-# SOURCE #-} AST.Domain()
 import AST.Type()
 
 
-import Control.Arrow((&&&))
 
 
 instance ToEssence BinOp Expression where

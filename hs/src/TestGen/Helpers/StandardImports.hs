@@ -9,6 +9,7 @@ import AST.Imports as X
 
 import Common.Placeholders as X (placeholder,notImplemented,todo, never)
 import Control.Monad.State.Strict as X (execStateT)
+import Control.Monad.State.Strict as X ( MonadState(get, put))
 
 import Data.Set as X (Set)
 

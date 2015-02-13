@@ -39,7 +39,7 @@ instance (Show a) => Show (WithLogs a) where
         "WithLogs( " ++ show inner ++ " )"
 
 instance (Arbitrary a, ArbSpec a) => Arbitrary (WithLogs a) where
-    arbitrary = needed undefined
+    arbitrary = needed (error "Arbitrary (WithLogs a)")
 
         where
         needed :: ArbSpec a => a -> Gen (WithLogs a)
@@ -57,7 +57,7 @@ instance (Show a) => Show (WithExtra a) where
         "WithExtra( " ++ show inner_ ++ " )"
 
 instance (Arbitrary a, ArbSpec a) => Arbitrary (WithExtra a) where
-    arbitrary = needed undefined
+    arbitrary = needed (error "Arbitrary (WithExtra a)")
 
         where
         needed :: ArbSpec a => a -> Gen (WithExtra a)
@@ -109,7 +109,7 @@ spec'' depth gens  = do
     (doms,state') <- runStateT (addDepth "domDepth" >> listOfBounds domsCount dom) state
 
 
-    let withNames =  zipWith (\d i -> (name i , Find d)) doms [1 :: Int ..]
+    let withNames =  zipWith (\d i -> (name i , FFind d)) doms [1 :: Int ..]
     let mappings  = M.fromList withNames
 
 

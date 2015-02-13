@@ -1,6 +1,6 @@
-{-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns, ScopedTypeVariables#-}
+{-# LANGUAGE QuasiQuotes, ViewPatterns#-}
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
-{-# LANGUAGE LambdaCase, MultiWayIf, TemplateHaskell #-}
+{-# LANGUAGE MultiWayIf #-}
 
 module TestGen.Arbitrary.Expr where
 
@@ -320,7 +320,7 @@ exprOfPurgeAny ty  = do
 
 -- at most one element
 -- zero elements if beConstant_
-varsOf ::Type -> GG [GG Expr]
+varsOf :: TType -> GG [GG Expr]
 varsOf ty = gets beConstant_ >>= \case
     False -> return []
     True  -> map lift . maybeToList <$> varsOf' ty
@@ -338,7 +338,7 @@ varsOf' exprType = do
 
 
 
-domOf ::  [TType] -> GG (Maybe (Gen Domain))
+domOf ::  [TType] -> GG (Maybe (Gen DDomain))
 domOf exprTypes = do
     doms_ <- gets doms_
     return $ toGenExpr id  $ (map (domOfFG . snd) . M.toList  .
