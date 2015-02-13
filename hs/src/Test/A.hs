@@ -11,5 +11,5 @@ import Conjure.UI.Model
 aa :: IO Model
 aa = do
   a <- readModelFromFile "/Users/bilalh/Desktop/Results/__int/set_of_first.essence"
-  b <- ignoreLogs $ prologue a
-  return b
+  -- b <- ignoreLogs $ prologue a
+  return a
