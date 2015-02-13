@@ -1,7 +1,6 @@
-{-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns, TupleSections #-}
+{-# LANGUAGE QuasiQuotes, ViewPatterns, TupleSections #-}
 
-{-# LANGUAGE RecordWildCards, NamedFieldPuns, ScopedTypeVariables, LambdaCase #-}
-{-# OPTIONS_GHC -fno-warn-unused-imports #-}
+{-# LANGUAGE RecordWildCards, NamedFieldPuns #-}
 {-# OPTIONS_GHC -fno-cse #-}
 -- cse means output is not outputted
 
@@ -10,16 +9,14 @@ module TestGen.QC where
 import AST.SpecE
 import Common.Helpers(timestamp)
 
-import Language.E hiding(trace)
-import Language.E.Pipeline.ReadIn(writeSpec)
-
+import TestGen.Prelude
+import Conjure.UI.IO(writeModel)
 
 import TestGen.Arbitrary.Arbitrary
 import TestGen.Classify.Meta(mkMeta)
 import TestGen.Helpers.Args(TArgs(..))
 import TestGen.Helpers.QuickCheck2(quickCheckWithResult2)
 import TestGen.Helpers.Runner
-import TestGen.Prelude(SpecState, Generators,Domain, listOfBounds,SS(depth_),FG ,ArbSpec(..))
 import TestGen.Prelude(nn)
 
 import Data.Maybe(fromJust)
@@ -52,6 +49,10 @@ import Text.Groom(groom)
 import TestGen.QCDebug
 
 import Data.Traversable(Traversable)
+import GHC.Real(round)
+
+import System.Random  ( randomR )
+
 
 prop_specs_refine :: ArbSpec a =>
     WithExtra a -> Cores ->  Int -> FilePath -> Bool -> WithExtra a -> Property
@@ -66,7 +67,7 @@ prop_specs_refine  _ cores time outBase newConjure WithExtra{..} = do
             let uname  =  (ts ++ "_" ++ num )
             let outdir =  (out </> uname)
             run $ createDirectoryIfMissing True outdir
-            run $  writeFile (outdir </> "spec.logs" ) (renderNormal wlogs_)
+            run $  writeFile (outdir </> "spec.logs" ) (renderSized 120 wlogs_)
             run $  writeFile (outdir </> "spec.specE" ) (show specE)
 
             let meta = mkMeta specE
@@ -123,9 +124,10 @@ classifySettingI errdir out uname ee@SettingI{successful_=False,data_=RefineM ms
 
             return mvDir
 
-    void $ run $ M.traverseWithKey f ms
+    -- void $ run $ M.traverseWithKey f ms
 
-    fail inErrDir
+    -- fail (pretty inErrDir)
+    $(todo "fail in classify SettingsI")
 
 classifySettingI _ _ _ _ = return ()
 
@@ -142,7 +144,7 @@ prop_specs_toolchain  _ cores time outBase newConjure WithExtra{..} = do
             let uname  =  (ts ++ "_" ++ num )
             let outdir =  (out </> uname)
             run $ createDirectoryIfMissing True outdir
-            run $  writeFile (outdir </> "spec.logs" ) (renderNormal wlogs_)
+            run $  writeFile (outdir </> "spec.logs" ) (renderSized 120 wlogs_)
             run $  writeFile (outdir </> "spec.specE" ) (show specE)
 
             let meta = mkMeta specE
@@ -166,7 +168,8 @@ prop_specs_toolchain  _ cores time outBase newConjure WithExtra{..} = do
 
         rr <- run $ flip M.traverseWithKey (M.filter (isJust . erroed ) ms ) $
              \_ ResultI{last_status, erroed= Just index, results } -> do
-               let kind = kind_ (results !! index)
+               -- let kind = kind_ !! index
+               let kind = $(todo "kind") :: KindI
                let mvDirBase = errdir </> (show kind) </> (show last_status)
                return $ mvDirBase
 
@@ -181,12 +184,12 @@ prop_specs_toolchain  _ cores time outBase newConjure WithExtra{..} = do
             unMaybe (Just a) = a
             unMaybe Nothing = error  . show . pretty . vcat $ ["unMaybe: classifyError"
                                                   , nn "uname" uname
-                                                  , nn "ee" (show ee)
+                                                  -- , nn "ee" (show ee)
                                                   , nn "ee" (show rr)
                                                   , nn "ee" (show inDir)]
 
             f k ResultI{last_status, erroed= Just index, results } = do
-                let kind      = kind_ (results !! index)
+                let kind      = kind_ (results `at` index)
                 let mvDirBase = errdir </> (show kind) </> (show last_status)
                 let mvDir     = mvDirBase </> uname
                 createDirectoryIfMissing True mvDir
@@ -202,7 +205,8 @@ prop_specs_toolchain  _ cores time outBase newConjure WithExtra{..} = do
 
         void $ run $ M.traverseWithKey f ms
 
-        fail inErrDir
+        -- fail inErrDir
+        $(todo "fail somehow")
 
     classifyError _ _ =  return ()
 
@@ -425,13 +429,14 @@ prop_typeCheckSave fp _  WithExtra{..} = do
         else do
             -- run $ print . pretty $ doc
             run $ print . pretty $ sp
-            run $ writeSpec fp sp
-            run $ writeFile (fp <.> "error") (renderWide (doc <+> vcat ["---", prettySpecDebug $ sp] ) )
+            run $ writeModel (Just fp) sp
+            run $ writeFile (fp <.> "error") (renderSized 120 (doc <+> vcat ["---", (pretty . groom) $ sp] ) )
             run $ writeFile (fp <.> "specE") (show specE ++ "\n\n" ++ groom specE)
-            run $ writeFile (fp <.> "logs") (renderNormal wlogs_)
+            run $ writeFile (fp <.> "logs") (renderSized 120 wlogs_)
 
 
-            fail (show doc)
+            -- fail doc
+            $(todo "fail in typeCheck")
 
 
 
@@ -446,26 +451,28 @@ takeFileName' fp = case reverse fp of
 
 
 prop_specs_type_check ::  ArbSpec a => a -> a -> Property
-prop_specs_type_check _ arb = do
-    let specE = getSpec arb
-        sp = toSpec specE
-        (res,doc) = typeChecks sp
-    counterexample
-        (show doc ++ (show $ pretty sp) )
-        (res)
+prop_specs_type_check a b = $notImplemented
+-- prop_specs_type_check _ arb = do
+--     let specE = getSpec arb
+--         sp = toSpec specE
+--         (res,doc) = typeChecks sp
+--     counterexample
+--         (show doc ++ (show $ pretty sp) )
+--         (res)
 
-typeChecks :: Spec -> (Bool, Doc)
-typeChecks sp = case fst $ runCompESingle "Error while type checking." $
-    typeCheckSpec sp of
-        Left  e  -> (False, e)
-            -- trace (show e ++ (show . pretty $ sp)) False
-        Right () -> (True, "")
+-- typeChecks :: Model -> (Bool, Doc)
+typeChecks = $notImplemented
+-- typeChecks sp = case fst $ runCompESingle "Error while type checking." $
+--     typeCheckSpec sp of
+--         Left  e  -> (False, e)
+--             -- trace (show e ++ (show . pretty $ sp)) False
+--         Right () -> (True, "")
 
 
 rmain :: Int -> IO ()
 rmain n =
     quickCheckWith stdArgs{QC.maxSize=n,maxSuccess=50}
-    (prop_specs_refine (undefined :: WithExtra SpecE) 7 10  "__")
+    (prop_specs_refine ($never :: WithExtra SpecE) 7 10  "__")
 
 cmain :: ArbSpec a => WithExtra a -> Maybe Int -> Int -> IO ()
 cmain unused seedInt n = do
