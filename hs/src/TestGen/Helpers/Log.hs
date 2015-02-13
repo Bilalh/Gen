@@ -11,7 +11,7 @@ module TestGen.Helpers.Log(
 import Debug.Trace(trace)
 #endif
 
-import Language.E hiding(trace)
+import TestGen.Helpers.StandardImports
 
 import qualified Data.DList as DList
 import qualified Data.HashSet as S
