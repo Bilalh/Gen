@@ -32,7 +32,7 @@ setLit = do
     innerType <- withDepthDec atype
     withDepthDec (setLitOf innerType)
 
-setLitOf :: Type ->  GG Expr
+setLitOf :: TType ->  GG Expr
 setLitOf innerType = do
     depth_ <- gets depth_
     t2 <- deAny $ TSet innerType
@@ -47,7 +47,7 @@ msetLit = do
     innerType <-  withDepthDec atype
     withDepthDec (msetLitOf innerType)
 
-msetLitOf :: Type ->  GG Expr
+msetLitOf :: TType ->  GG Expr
 msetLitOf innerType = do
     depth_ <- gets depth_
     t2 <- deAny $ TMSet innerType
@@ -56,7 +56,7 @@ msetLitOf innerType = do
                      xs -> return . ELit . EMSet . map EExpr $ xs
 
 
-matrixLitOf :: Type -> GG Expr
+matrixLitOf :: TType -> GG Expr
 matrixLitOf innerType = do
     idx <-  withDepthDec intDom
     let numElems = sizeOf idx
@@ -65,7 +65,7 @@ matrixLitOf innerType = do
 
 
 -- FIXME from mappings should be distinct?
-funcLitOf :: Type -> Type -> GG Expr
+funcLitOf :: TType -> TType -> GG Expr
 funcLitOf fromType toType = do
     depth_ <- gets depth_
     numElems <- choose2 (1, min 15 (2 * depth_) )
@@ -78,7 +78,7 @@ funcLitOf fromType toType = do
       xs -> return $ ELit $ EFunction xs
 
 
-tupleLitOf :: [Type] -> GG Expr
+tupleLitOf :: [TType] -> GG Expr
 tupleLitOf tys = do
     depth_ <- gets depth_
     if
@@ -92,7 +92,7 @@ tupleLitOf tys = do
             e <- withDepthDec $ exprOf ty
             return $ EExpr  e
 
-relLitOf :: [Type] -> GG Expr
+relLitOf :: [TType] -> GG Expr
 relLitOf types = do
     depth_ <- gets depth_
     if
@@ -111,7 +111,7 @@ relLitOf types = do
 
 
 
-parLitOf :: Type -> GG Expr
+parLitOf :: TType -> GG Expr
 parLitOf innerType = do
     depth_ <- gets depth_
 

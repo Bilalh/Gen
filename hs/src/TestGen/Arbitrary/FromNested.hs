@@ -30,13 +30,13 @@ import qualified Data.Map as M
 
 -}
 
-nestedVarsOf :: Type -> GG (Maybe (GG Expr))
+nestedVarsOf :: TType -> GG (Maybe (GG Expr))
 -- nestedVarsOf  ty = return Nothing
 nestedVarsOf ty = gets beConstant_ >>= \case
     True  -> return Nothing
     False -> nestedVarsOf' ty  -- TODO too strict?
 
-nestedVarsOf' :: Type -> GG (Maybe (GG Expr))
+nestedVarsOf' :: TType -> GG (Maybe (GG Expr))
 nestedVarsOf' tyTo = do
     addLog "nestedVarsOf" []
 
@@ -68,7 +68,7 @@ nestedVarsOf' tyTo = do
 --TODO Make sure to handle Tany
 
 -- Returns the min number of steps to convert types
-typeReachable :: Type -> Type -> GG (Maybe Int)
+typeReachable :: TType -> TType -> GG (Maybe Int)
 typeReachable from to  | to == from =  return (Just 0)
 
 typeReachable TBool TInt     = return (Just 1) -- ToInt(bool)
@@ -119,7 +119,7 @@ typeReachable _ _ = return Nothing
 
 
 -- returns a expr that contraints the Ref
-exprFromRefTo :: (Ref,Type) -> Type -> GG Expr
+exprFromRefTo :: (Ref,Type) -> TType -> GG Expr
 exprFromRefTo (ref,tyFrom) tyTo = do
     addLog "exprFromRefTo" []
     -- TODO inefficient
@@ -149,8 +149,8 @@ exprFromRefTo (ref,tyFrom) tyTo = do
 
 nextt, nextt' ::
     Expr -> -- current  (starts as just the ref)
-    Type -> -- current's Type
-    Type -> -- Final Destination type
+    TType -> -- current's Type
+    TType -> -- Final Destination type
     --TODO should be GG [ GG (Expr, Type) ] ?
     GG [ (Expr, Type) ] -- A list of possible transformations + their type
 
@@ -170,7 +170,7 @@ nextt' cur tyFrom tyTo = do
 
     where
     -- :: from to -> choices
-    ff :: Type -> Type -> GG [(Expr, Type)]
+    ff :: TType -> TType -> GG [(Expr, Type)]
     ff TBool TInt  = do
         return [ ( EProc $ PtoInt cur , TInt)  ]
 

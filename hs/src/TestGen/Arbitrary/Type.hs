@@ -7,11 +7,11 @@ module TestGen.Arbitrary.Type where
 import TestGen.Prelude
 
 -- return the type of a, knowing b  from  `a in b`
-quanType_in :: Type -> Type
+quanType_in :: TType -> TType
 quanType_in (TSet inner) = inner
 
 
-atype_only :: [Type] -> GG Type
+atype_only :: [TType] -> GG TType
 atype_only tys = do
     addLog "atype_only" ["start"]
 
@@ -24,7 +24,7 @@ atype_only tys = do
         return choice
 
     where
-        converted :: Type -> GG Type
+        converted :: TType -> GG TType
         converted (TMatix TAny)  = liftM TMatix (withDepthDec atype)
         converted (TSet TAny)    = liftM TSet (withDepthDec atype)
         converted (TMSet TAny)   = liftM TMSet (withDepthDec atype)
@@ -47,7 +47,7 @@ atype_only tys = do
         converted ty = return ty
 
 
-atype_def :: GG Type
+atype_def :: GG TType
 -- TODO partition should also be of depth 2?
 atype_def = do
     addLog "atype_def" ["start"]
@@ -90,7 +90,7 @@ atype_def = do
     addLog "atype_def" ["resTy" <+> pretty res, "depth_" <+> pretty d' ]
     return res
 
-atuple :: GG Type
+atuple :: GG TType
 atuple = do
     depth_ <- gets depth_
     addLog "atuple" ["depth_" <+> pretty depth_]
@@ -102,7 +102,7 @@ atuple = do
 -- a relation e.g   relation (  tuple(int,int) )
 -- has a nesting of 2  int -> tuple -> relation
 
-arel :: GG Type
+arel :: GG TType
 arel = do
 
     d <- gets depth_
@@ -115,7 +115,7 @@ arel = do
 
 
 
-typesUnify :: Type -> Type -> Bool
+typesUnify :: TType -> TType -> Bool
 typesUnify TAny  _     = True
 typesUnify _     TAny  = True
 typesUnify TInt  TInt  = True

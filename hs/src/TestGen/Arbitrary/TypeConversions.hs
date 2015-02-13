@@ -11,7 +11,7 @@ import TestGen.Arbitrary.Type
 
 
 
--- Type that does not have any anys
+-- TType that does not have any anys
 type PType = Type
 
 -- for ghci usage
@@ -24,7 +24,7 @@ _aa ty = do
             return $ Just xx
 
 
-toTypeWithConversions :: Type -> GG (Maybe (GG Expr))
+toTypeWithConversions :: TType -> GG (Maybe (GG Expr))
 toTypeWithConversions ty = do
     d <- gets depth_
     addLog "toType" ["depth_" <+> pretty d, "ty" <+> pretty ty]
@@ -36,7 +36,7 @@ toTypeWithConversions ty = do
         | otherwise  -> con ty
 
 
-con :: Type -> GG (Maybe (GG Expr))
+con :: TType -> GG (Maybe (GG Expr))
 con  to  = do
     d <- gets depth_
 
@@ -66,7 +66,7 @@ type ToTypeFn = (GG Expr -> GG Expr)
 
 -- return (the type, (function applied and depth needed)  )
 
-reachableToTypeWithCommon :: Depth -> Type -> GG [ (Type, GG [(ToTypeFn, Depth)] ) ]
+reachableToTypeWithCommon :: Depth -> TType -> GG [ (Type, GG [(ToTypeFn, Depth)] ) ]
 reachableToTypeWithCommon 0 _ =  return []
 reachableToTypeWithCommon d y =  do
     rs <- reachableToType d y
@@ -101,7 +101,7 @@ reachableToTypeWithCommon d y =  do
 
 
 
-reachableToType :: Depth -> Type -> GG [ (Type, GG [(ToTypeFn, Depth)] ) ]
+reachableToType :: Depth -> TType -> GG [ (Type, GG [(ToTypeFn, Depth)] ) ]
 reachableToType 0 _ = return  []
 
 --
@@ -121,7 +121,7 @@ reachableToType d oty@TBool = do
         ,   TFunc TAny TAny *| d >= 2
         ]
 
-    process :: Type -> GG [ (Type, GG [(ToTypeFn,Depth)] ) ]
+    process :: TType -> GG [ (Type, GG [(ToTypeFn,Depth)] ) ]
     process TAny = funcs >>=
         concatMapM (uncurry (processCommon d))
 
@@ -205,7 +205,7 @@ reachableToType d oty@TInt = concatMapM process types
         ,   Just $ TFunc TAny TAny
         ]
 
-    process :: Type -> GG [ (Type, GG [(ToTypeFn,Depth)] ) ]
+    process :: TType -> GG [ (Type, GG [(ToTypeFn,Depth)] ) ]
 
     process fty@(TMSet _)  = funcs >>=
         concatMapM (uncurry (processCommon d))
@@ -283,11 +283,11 @@ reachableToType d oty@(TSet ity) =  do
                        , Just  $  TSet  ity
                        ]
 
-    tupleInner :: Type -> Maybe [Type]
+    tupleInner :: TType -> Maybe [TType]
     tupleInner (TTuple ts) = Just ts
     tupleInner _           = Nothing
 
-    process :: Type -> GG [ (Type, GG [(ToTypeFn,Depth)] ) ]
+    process :: TType -> GG [ (Type, GG [(ToTypeFn,Depth)] ) ]
     process fty@(TSet _) = funcs >>=
         concatMapM (uncurry (processCommon d))
 
@@ -414,11 +414,11 @@ reachableToType d oty@(TMSet ity) =  concatMapM process (types)
                        , Just  $  TSet  ity
                        ]
 
-    tupleInner :: Type -> Maybe [Type]
+    tupleInner :: TType -> Maybe [TType]
     tupleInner (TTuple ts) = Just ts
     tupleInner _           = Nothing
 
-    process :: Type -> GG [ (Type, GG [(ToTypeFn,Depth)] ) ]
+    process :: TType -> GG [ (Type, GG [(ToTypeFn,Depth)] ) ]
     process fty@(TMSet _) = funcs >>=
         concatMapM (uncurry (processCommon d))
 
@@ -486,7 +486,7 @@ reachableToType d oty@(TRel inners)   =  concatMapM process types
         ,   oty *|  d >= 3
         ]
 
-    process :: Type -> GG [ (Type, GG [(ToTypeFn,Depth)] ) ]
+    process :: TType -> GG [ (Type, GG [(ToTypeFn,Depth)] ) ]
     process fty@(TFunc _ _ ) = funcs >>=
         concatMapM (uncurry (processCommon d))
 
@@ -522,7 +522,7 @@ reachableToType d oty@(TFunc _ _ ) = concatMapM process types
     types =  catMaybes [ oty *| d >= 2
                        ]
 
-    process :: Type -> GG [ (Type, GG [(ToTypeFn,Depth)] ) ]
+    process :: TType -> GG [ (Type, GG [(ToTypeFn,Depth)] ) ]
     process fty@(TFunc _ _) = funcs >>=
         concatMapM (uncurry (processCommon d))
 
@@ -550,7 +550,7 @@ reachableToType d oty@(TMatix TInt) = concatMapM process types
             TMSet TAny *| d >= 2
         ]
 
-    process :: Type -> GG [ (Type, GG [(ToTypeFn,Depth)] ) ]
+    process :: TType -> GG [ (Type, GG [(ToTypeFn,Depth)] ) ]
 
     process fty@(TMSet _)  = funcs >>=
         concatMapM (uncurry (processCommon d))
@@ -583,13 +583,13 @@ reachableToType _ (TUnamed _)     = return []
 reachableToType _ (TEnum _)       = return []
 
 
-reachableToTypeSetSet :: Depth -> Type -> GG [ (Type, GG [(ToTypeFn, Depth)] ) ]
+reachableToTypeSetSet :: Depth -> TType -> GG [ (Type, GG [(ToTypeFn, Depth)] ) ]
 reachableToTypeSetSet d oty@(TSet (TSet inner) ) = concatMapM process types
     where
 
     types =  catMaybes [ Just $ TPar inner ]
 
-    process :: Type -> GG [ (Type, GG [(ToTypeFn,Depth)] ) ]
+    process :: TType -> GG [ (Type, GG [(ToTypeFn,Depth)] ) ]
     process fty@(TPar _) = funcs >>=
         concatMapM (uncurry (processCommon d))
 
@@ -629,7 +629,7 @@ diff i = do
 
 
 
-processCommon :: Depth ->  Type -> [(ToTypeFn,Depth)] -> GG [(Type, GG [(ToTypeFn,Depth)] ) ]
+processCommon :: Depth ->  TType -> [(ToTypeFn,Depth)] -> GG [(Type, GG [(ToTypeFn,Depth)] ) ]
 processCommon _ _ [] =  return []
 processCommon d ty arr = do
     choices  <- reachableToType (d- 1) ty

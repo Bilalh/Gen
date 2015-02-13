@@ -172,7 +172,7 @@ boolExprUsingRef ref = do
         return $ op other refExpr
 
 -- Types that can be reached from a type in n levels of nesting
-exprFromToType :: Ref -> Type -> Type -> GG Expr
+exprFromToType :: Ref -> TType -> TType -> GG Expr
 exprFromToType ref from to | from == to =  return $ EVar ref
 
 exprFromToType ref (TSet _) TInt = return $ EUniOp $ UBar $ EVar ref
@@ -180,7 +180,7 @@ exprFromToType ref (TSet _) TInt = return $ EUniOp $ UBar $ EVar ref
 
 
 -- Return a expr of the specifed depth and type
-exprOf :: Type -> GG Expr
+exprOf :: TType -> GG Expr
 exprOf ty = do
     nestedOfType <-  maybeToList <$> nestedVarsOf ty
     -- nestedOfType <-  return []
@@ -205,7 +205,7 @@ exprOf ty = do
 
 
     where
-    exprOf' :: Depth -> [GG Expr] -> Type -> GG Expr
+    exprOf' :: Depth -> [GG Expr] -> TType -> GG Expr
 
     exprOf' _ ofType TBool = oneof2 $ ofType ++ [
           boolLit
@@ -258,7 +258,7 @@ exprOf ty = do
 
 -- Remove one level of any
 -- e.g for sets
-deAny :: Type -> GG Type
+deAny :: TType -> GG TType
 deAny TAny = do
     d <- gets depth_
     addLog "deAny" [nn "depth" d]
@@ -283,7 +283,7 @@ deAny (TFunc a b)  = return TFunc
 deAny ty = return ty
 
 
-purgeAny :: Type -> GG Type
+purgeAny :: TType -> GG TType
 purgeAny TAny = do
     d <- gets depth_
     addLog "purgeAny" [nn "depth" d]
@@ -310,7 +310,7 @@ purgeAny (TRel ts) =  do
 purgeAny (TFunc a b)   = return TFunc <*> (withDepthDec $ purgeAny a)
                                    <*> (withDepthDec $ purgeAny b)
 
-exprOfPurgeAny :: Type -> GG Expr
+exprOfPurgeAny :: TType -> GG Expr
 exprOfPurgeAny ty  = do
     addLog "exprOfPurgeAny" []
     newTy <- purgeAny ty
@@ -326,7 +326,7 @@ varsOf ty = gets beConstant_ >>= \case
     True  -> map lift . maybeToList <$> varsOf' ty
 
 
-varsOf' :: Type -> GG (Maybe (Gen Expr))
+varsOf' :: TType -> GG (Maybe (Gen Expr))
 varsOf' exprType = do
     SS{doms_,newVars_} <- get
 
@@ -338,7 +338,7 @@ varsOf' exprType = do
 
 
 
-domOf ::  [Type] -> GG (Maybe (Gen Domain))
+domOf ::  [TType] -> GG (Maybe (Gen Domain))
 domOf exprTypes = do
     doms_ <- gets doms_
     return $ toGenExpr id  $ (map (domOfFG . snd) . M.toList  .

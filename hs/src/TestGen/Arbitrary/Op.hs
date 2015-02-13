@@ -29,7 +29,7 @@ bop op = do
             return $ EBinOp $  op e1 e2
 
 
-bopOf :: Bop -> Type -> GG Expr
+bopOf :: Bop -> TType -> GG Expr
 bopOf op exprType = do
 
     depth_ <- gets depth_
@@ -45,7 +45,7 @@ bopOf op exprType = do
             return $ EBinOp $ op e1 e2
 
 
-opOf :: Uop -> Type ->  GG Expr
+opOf :: Uop -> TType ->  GG Expr
 opOf op exprType =  do
     depth_ <- gets depth_
     addLog "opOf" ["depth_" <+> pretty depth_, "ty" <+> pretty exprType ]
@@ -61,7 +61,7 @@ equivExpr :: GG Expr
 equivExpr = oneof2 $ map bop [ BEQ, BNEQ ]
 
 
-arithmeticTypes :: GG Type
+arithmeticTypes :: GG TType
 arithmeticTypes  = return TInt
 
 arithmeticExpr :: GG Expr
@@ -69,7 +69,7 @@ arithmeticExpr = do
     kind <- arithmeticTypes
     arithmeticExprOf kind
 
-arithmeticExprOf :: Type ->  GG Expr
+arithmeticExprOf :: TType ->  GG Expr
 arithmeticExprOf kind = do
     oneof2 $ map (flip (bopOf) kind ) [BPlus, BMult, BDiv, BPow, BMod]
 
@@ -83,7 +83,7 @@ comparisonExpr =  do
     oneof2 $ map (`bopOf` TBool ) [BLT, BLTE, BGT, BGTE]
 
 
-boolOpFor :: Type -> GG (Expr -> Expr -> Expr)
+boolOpFor :: TType -> GG (Expr -> Expr -> Expr)
 boolOpFor TBool = do
     op <- elements2 [ BEQ, BNEQ, BOr, BAnd, Bimply, Biff ]
     return (\a b -> EBinOp $ op a  b )
