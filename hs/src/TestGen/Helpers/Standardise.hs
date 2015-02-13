@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables, FlexibleInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module TestGen.Helpers.Standardise(Standardise(..)) where
@@ -125,13 +125,13 @@ instance Standardise Literal where
     standardise (EExpr (ELit l)) = standardise l
     standardise (EExpr x)        = pure EExpr <*> standardise x
 
-instance Standardise Domain where
+instance Standardise DDomain where
     standardise x = return x  --FIXME when adding expr to domains
 
 
 instance Standardise FG where
-    standardise (Find x)  = pure Find  <*> standardise x
-    standardise (Given x) = pure Given <*> standardise x
+    standardise (FFind x)  = pure FFind  <*> standardise x
+    standardise (GGiven x) = pure GGiven <*> standardise x
 
 instance Standardise Doms where
     standardise = V.traverse standardise
@@ -141,7 +141,7 @@ instance Standardise SpecE where
                                               <*> mapM standardise x2
                                               <*> standardise x3
 
-instance Standardise Objective where
+instance Standardise OObjective where
     standardise (Maximising x) = pure Maximising <*> standardise x
     standardise (Minimising x) = pure Minimising <*> standardise x
 

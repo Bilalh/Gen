@@ -5,12 +5,11 @@
 
 module TestGen.Arbitrary.Generators where
 
-import AST.Imports(Domain)
+import TestGen.Helpers.StandardImports
 import TestGen.Arbitrary.Data
-import Data.Default as X ( Default)
 
-atype :: GG Type
-dom   :: GG Domain
+atype :: GG TType
+dom   :: GG DDomain
 useFunc :: FuncsNames -> GG Bool
 
 

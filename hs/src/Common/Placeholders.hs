@@ -22,7 +22,6 @@ module Common.Placeholders (
 import Conjure.Prelude
 
 import Control.Exception (Exception, throw)
-import Data.Typeable (Typeable)
 import Language.Haskell.TH (Q, Exp, Loc(..), litE, stringL, location, reportWarning)
 
 -- | Thrown when attempting to evaluate a placeholder at runtime.

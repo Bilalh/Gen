@@ -1,6 +1,6 @@
 module TestGen.Helpers.OrderedType where
 
-import AST.Imports
+import TestGen.Helpers.StandardImports
 
 class Ordered a where
     isOrdered :: a -> Bool

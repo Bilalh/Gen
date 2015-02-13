@@ -55,6 +55,10 @@ import qualified Data.Map as M
 
 import TestGen.Helpers.TypeOf as X
 
+import Control.Monad.State.Strict( MonadState(get))
+
+import GHC.Real(round)
+
 withDepth :: Depth -> GG a -> GG a
 withDepth newDepth f = do
     oldDepth <- gets depth_
@@ -170,7 +174,7 @@ _genfile e ss  = do
         putStrLn . renderSmall $ nest 75 (P.quotes $ pretty index )
             P.$+$ ( pretty r )
 
-        writeFile (dir </> renderWide index <.> "output") $
+        writeFile (dir </> renderSized 120 index <.> "output") $
             show $ ""
                 P.$+$ ( pretty r )
                 P.$+$ ""

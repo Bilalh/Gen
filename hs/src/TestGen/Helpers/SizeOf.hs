@@ -4,7 +4,8 @@
 
 module TestGen.Helpers.SizeOf where
 
-import AST.Imports
+import TestGen.Helpers.StandardImports as X
+
 import TestGen.Arbitrary.Data
 import TestGen.Helpers.Debug
 
@@ -26,7 +27,7 @@ class SizeOfLimited a where
 
 
 
-instance SizeOf Domain where
+instance SizeOf DDomain where
     sizeOf DInt{..} = fromIntegral .  S.size .  S.fromList . concatMap rangeInts $ ranges
     sizeOf r = docError [
         "sizeOf not matched",
@@ -176,14 +177,14 @@ instance DepthOf Proc where
     depthOf (Pparticipants p)    = 1 + depthOf p
     depthOf (Ptogether p1 p2 p3) = 1 + maximum (map depthOf [p1,p2,p3])
 
-instance DepthOf Domain where
+instance DepthOf DDomain where
     depthOf =  depthOf .  typeOfDom
 
 instance DepthOf a => DepthOf (Maybe a) where
     depthOf Nothing  = 0
     depthOf (Just a) = depthOf a
 
-instance DepthOf Objective where
+instance DepthOf OObjective where
     depthOf (Maximising a) = depthOf a
     depthOf (Minimising a) = depthOf a
 
@@ -196,7 +197,7 @@ nonEmpty :: ([t] -> Integer) -> [t] -> Integer
 nonEmpty _ [] = 0
 nonEmpty f xs = f xs
 
-rangeInts :: Range Expr -> [Integer]
+rangeInts :: RRange Expr -> [Integer]
 rangeInts (RSingle (ELit (EI a) ))     = [a]
 rangeInts (RFromTo (ELit (EI a) )  (ELit (EI b) ) )  = [a..b]
 rangeInts r = docError [

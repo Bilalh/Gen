@@ -18,7 +18,7 @@ import TestGen.Arbitrary.Domain(dom_def)
 import qualified Data.Map as M
 
 
-atype :: GG Type
+atype :: GG TType
 atype = gets generators_ >>= \m -> gen_atype m
 
 dom :: GG Domain
