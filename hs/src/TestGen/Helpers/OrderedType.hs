@@ -5,7 +5,7 @@ import AST.Imports
 class Ordered a where
     isOrdered :: a -> Bool
 
-instance Ordered Type where
+instance Ordered TType where
     isOrdered TInt        = True
     isOrdered TBool       = True
     isOrdered (TSet inn)  = isOrdered inn

@@ -15,9 +15,9 @@ import qualified Data.Map as M
 
 
 class (Monad a, Applicative a) => WithDoms a where
-  domainOfVar :: Text -> a (Maybe Domain)
+  domainOfVar :: Text -> a (Maybe DDomain)
   getSpecEWithDoms :: a SpecE
-  typeOfVar :: Text -> a (Maybe Type)
+  typeOfVar :: Text -> a (Maybe TType)
 
   domainOfVar t = do
     (SpecE ds _ _) <- getSpecEWithDoms
@@ -37,15 +37,15 @@ instance WithDoms m => WithDoms (StateT () m)  where
 
 
 class WithDoms m => TypeOf a m where
-    ttypeOf :: a -> m Type
+    ttypeOf :: a -> m TType
 
-instance WithDoms m => TypeOf Type m where
+instance WithDoms m => TypeOf TType m where
   ttypeOf t = return t
 
 instance WithDoms m => TypeOf FG m where
   ttypeOf = return . typeOfDom . domOfFG
 
-instance WithDoms m => TypeOf Domain m where
+instance WithDoms m => TypeOf DDomain m where
   ttypeOf = return . typeOfDom
 
 
@@ -136,7 +136,7 @@ instance WithDoms m => TypeOf Literal m where
   ttypeOf (EPartition xs)           = pure TPar <*> (fmap firstOrAny . fmap catMaybes $ toType xs)
 
     where
-      toType :: [[Literal]] -> m [Maybe Type]
+      toType :: [[Literal]] -> m [Maybe TType]
       toType ts = case filter (not . null) ts of
                    []    -> return []
                    (y:_) -> mapM (fmap ridAny . ttypeOf) y
@@ -146,7 +146,7 @@ instance WithDoms m => TypeOf Literal m where
       ridAny TAny = Nothing
       ridAny v    = Just v
 
-      firstOrAny :: [Type] -> Type
+      firstOrAny :: [TType] -> TType
       firstOrAny []    = TAny
       firstOrAny (x:_) = x
 
@@ -205,7 +205,7 @@ instance WithDoms m => TypeOf Proc m where
     return $ TSet inn
 
 
-innerTyForSets :: Type -> Type
+innerTyForSets :: TType -> TType
 innerTyForSets  (TSet ty)   = ty
 innerTyForSets  (TMSet ty)  = ty
 innerTyForSets  (TRel xs)   = TTuple xs
@@ -213,7 +213,7 @@ innerTyForSets  (TFunc a b) = TTuple [a,b]
 innerTyForSets ty = error . show . vcat $ ["innerTyForSets other type given ", pretty . show $  ty]
 
 
-typeOfDom :: Domain -> Type
+typeOfDom :: DDomain -> TType
 typeOfDom  DInt{} = TInt
 typeOfDom  DBool  = TBool
 

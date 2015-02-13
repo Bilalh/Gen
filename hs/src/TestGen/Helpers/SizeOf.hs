@@ -33,7 +33,7 @@ instance SizeOf Domain where
         pretty $ show r, pretty r
         ]
 
--- instance SizeOf Type where
+-- instance SizeOf TType where
 --     -- FIXME hardcoded
 --     sizeOf TInt            = 20
 --     sizeOf TBool           = 2
@@ -48,7 +48,7 @@ instance SizeOf Domain where
 --     sizeOf (TUnamed _)     = error "SizeOf Type called with TUnamed"
 --     sizeOf (TEnum _)       = error "SizeOf Type called with TUnamed"
 
-instance SizeOfLimited Type where
+instance SizeOfLimited TType where
     -- FIXME hardcoded
     sizeOfLimited _ TInt           = 20
     sizeOfLimited _ TBool          = 2
@@ -74,7 +74,7 @@ minB (m :: Integer) v _ | v >= m = m
 minB m v f          = min m (f v)
 
 
-instance DepthOf Type where
+instance DepthOf TType where
     depthOf TInt  = 0
     depthOf TBool = 0
 

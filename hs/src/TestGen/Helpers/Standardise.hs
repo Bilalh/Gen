@@ -10,10 +10,10 @@ import qualified Data.Traversable as V
 class (Pretty a, Eq a, Show a) => Standardise a  where
     standardise :: (Monad m, Applicative m) => a -> m a
 
-instance Pretty Type where
+instance Pretty TType where
     pretty = pretty . show
 
-instance Standardise Type where
+instance Standardise TType where
     standardise = return
 
 instance Standardise Expr where
