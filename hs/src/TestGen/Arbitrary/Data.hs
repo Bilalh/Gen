@@ -14,7 +14,7 @@ module TestGen.Arbitrary.Data (
     , Ref
     , SpecState
     , SS(..)
-    , Type(..)
+    , TType(..)
     , ArbSpec(..)
     , FuncsNames(..)
     , HasLogger(..)
@@ -23,18 +23,12 @@ module TestGen.Arbitrary.Data (
     , nullLogs
     ) where
 
-import AST.Imports
-import Language.E
+import TestGen.Helpers.StandardImports as X
 import TestGen.Helpers.Log
 
-import Test.QuickCheck
 import Data.Map(Map)
-import Text.Groom
 
 import qualified Text.PrettyPrint as Pr
-
-import Control.Monad.State.Strict(StateT)
-
 
 
 type GG a =  StateT SpecState Gen a
@@ -52,7 +46,7 @@ data SS = SS
       depth_      :: Depth       --  how many levels to genrate
     , doms_       :: Map Text FG --  Domains
     , nextNum_    :: Int          -- Number to name next var
-    , newVars_    :: [(Text,Type) ] -- Domains from e.g. forall
+    , newVars_    :: [(Text,TType) ] -- Domains from e.g. forall
     , logs_       :: LogsTree
     , __lc        :: Int
     , beConstant_ :: Bool  -- when true only generate constrant expressions
@@ -65,8 +59,8 @@ type SpecState=SS
 
 data Generators = Generators
     {
-        gen_atype      :: GG Type
-    ,   gen_dom        :: GG Domain
+        gen_atype      :: GG TType
+    ,   gen_dom        :: GG DDomain
     ,   gen_useFunc    :: FuncsNames -> Bool
     }
 
@@ -104,7 +98,7 @@ instance Pretty SS where
             ]
             )
 
-prettyTypeArr :: [(Text,Type)] -> Doc
+prettyTypeArr :: [(Text,TType)] -> Doc
 prettyTypeArr [] = "[]"
 prettyTypeArr vs = vcat $ map (\(a,b) -> pretty (a, show b) ) vs
 
