@@ -21,7 +21,7 @@ import qualified Data.Map as M
 atype :: GG TType
 atype = gets generators_ >>= \m -> gen_atype m
 
-dom :: GG Domain
+dom :: GG DDomain
 dom = gets generators_ >>= \m -> gen_dom m
 
 useFunc :: FuncsNames -> GG Bool

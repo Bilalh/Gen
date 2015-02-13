@@ -1,6 +1,6 @@
-{-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
+{-# LANGUAGE QuasiQuotes, ViewPatterns #-}
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
-{-# LANGUAGE ScopedTypeVariables, LambdaCase, MultiWayIf #-}
+{-# LANGUAGE LambdaCase, MultiWayIf #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module TestGen.Arbitrary.Domain
@@ -38,9 +38,9 @@ import qualified Data.Set as S
 -- instance (Pretty a, Pretty b, Pretty c) => Pretty (a,b, c) where
 --     pretty (a,b,c) = prettyListDoc parens "," [pretty a, pretty b, pretty c]
 
-intDomChoice, setDomChoice, msetDomChoice, matixDomChoice :: (Int, GG Domain)
-funcDomChoice, relDomChoice, parDomChoice, tupleDomChoice :: (Int, GG Domain)
-boolDomChoice :: (Int, GG Domain)
+intDomChoice, setDomChoice, msetDomChoice, matixDomChoice :: (Int, GG DDomain)
+funcDomChoice, relDomChoice, parDomChoice, tupleDomChoice :: (Int, GG DDomain)
+boolDomChoice :: (Int, GG DDomain)
 
 boolDomChoice  = (0, return DBool)
 intDomChoice   = (0, intDom)
@@ -53,7 +53,7 @@ parDomChoice   = (1, parDom)
 tupleDomChoice = (1, parDom)
 
 
-dom_only :: [(Int,GG Domain)] -> GG Domain
+dom_only :: [(Int,GG DDomain)] -> GG DDomain
 dom_only ds = do
     addLog "dom_only" ["start"]
 
@@ -67,7 +67,7 @@ dom_only ds = do
         return choice
 
 
-dom_def :: GG Domain
+dom_def :: GG DDomain
 dom_def =  gets depth_ >>= \case
     0  -> oneof2 [ intDom, return DBool ]
     1  -> oneof2
@@ -92,20 +92,20 @@ dom_def =  gets depth_ >>= \case
         , tupleDom
         ]
 
-intDom :: GG Domain
+intDom :: GG DDomain
 intDom = return DInt `ap` listOfBounds (1, 2) (range)
 
-setDom :: GG Domain
+setDom :: GG DDomain
 setDom = do
     inner <- withDepthDec dom
     return $ dset{inner}
 
-msetDom :: GG Domain
+msetDom :: GG DDomain
 msetDom = do
     inner <- withDepthDec dom
     return $ dmset{inner}
 
-matixDom :: GG Domain
+matixDom :: GG DDomain
 matixDom = do
     d <- gets depth_
     numElems <- choose2 (1 :: Integer, min (fromIntegral $ d * 3) 10 )
@@ -119,25 +119,25 @@ matixDom = do
     -- return $ (numElems,numRanges, DMat{innerIdx=idx, inner=innerDom })
     return  dmat{innerIdx=idx, inner=innerDom }
 
-funcDom :: GG Domain
+funcDom :: GG DDomain
 funcDom = do
     innerFrom <- withDepthDec dom
     innerTo   <- withDepthDec dom
     return dfunc{innerFrom,innerTo}
 
-relDom :: GG Domain
+relDom :: GG DDomain
 relDom = do
     d <- gets depth_
     numElems <- choose2 (1, min (d * 2) 10 )
     doms <- vectorOf2 numElems (withDepthDec dom)
     return drel{inners=doms}
 
-parDom :: GG Domain
+parDom :: GG DDomain
 parDom = do
     inner <- withDepthDec dom
     return dpar{inner}
 
-tupleDom :: GG Domain
+tupleDom :: GG DDomain
 tupleDom = do
     d <- gets depth_
     numElems <- choose2 (1, min (d * 2) 5 )
@@ -146,7 +146,7 @@ tupleDom = do
 
 
 
-mkRanges :: Integer ->  Integer -> Integer -> Set Integer -> GG ( [Range Expr] )
+mkRanges :: Integer ->  Integer -> Integer -> Set Integer -> GG ( [RRange Expr] )
 mkRanges _ 0 0 _ = return []
 
 mkRanges ub ns 1 used = do
@@ -207,7 +207,7 @@ chooseUnused' (l,u) used = do
 
 
 
-range :: GG (Range Expr)
+range :: GG (RRange Expr)
 range = oneof2
     [
       arbitrarySingle
@@ -215,12 +215,12 @@ range = oneof2
     ]
 
     where
-    arbitrarySingle :: GG (Range Expr)
+    arbitrarySingle :: GG (RRange Expr)
     arbitrarySingle = do
         a <- choose2 (-5,5 :: Integer)
         return $ RSingle (ELit . EI $ a)
 
-    arbitraryFromTo :: GG (Range Expr)
+    arbitraryFromTo :: GG (RRange Expr)
     arbitraryFromTo = do
         do
             a <- choose2 (-5,5 :: Integer)
@@ -229,7 +229,7 @@ range = oneof2
 
 
 
-rangeComp :: Range Expr -> Range Expr -> Ordering
+rangeComp :: RRange Expr -> RRange Expr -> Ordering
 rangeComp (RSingle (ELit (EI a) ))    (RSingle (ELit (EI b) ))   = compare a b
 rangeComp (RSingle (ELit (EI a) ))    (RFromTo (ELit (EI b) ) _) = compare a b
 rangeComp (RFromTo (ELit (EI a) ) _ ) (RFromTo (ELit (EI b) ) _) = compare a b
@@ -240,7 +240,7 @@ rangeComp a b  = docError [
     pretty a, pretty b
     ]
 
-intFromDint :: Domain -> GG Expr
+intFromDint :: DDomain -> GG Expr
 intFromDint DInt{..} =  elements2 $ concatMap getInts ranges
     where
         getInts (RSingle x@(ELit (EI _))) =  [x]

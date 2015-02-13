@@ -30,7 +30,7 @@ import Common.Helpers as X
 import TestGen.Arbitrary.Data as X
 import {-# SOURCE #-} TestGen.Arbitrary.Generators as X
 
-import TestGen.Helpers.Log as X (LogsTree(..), Pretty(..))
+import TestGen.Helpers.Log as X (LogsTree(..))
 import TestGen.Helpers.OrderedType as X
 import TestGen.Helpers.SizeOf as X
 
@@ -42,8 +42,8 @@ import TestGen.Helpers.Standardise as X
 import Data.Time
 import Data.Time.Clock.POSIX(getPOSIXTime)
 
-import System.Directory(getHomeDirectory, createDirectoryIfMissing)
-import System.FilePath((</>), (<.>))
+import System.Directory(getHomeDirectory)
+import System.FilePath( (<.>))
 
 import qualified Data.Set as S
 
@@ -51,7 +51,6 @@ import qualified Data.Set as S
 import qualified Control.Exception as C
 import qualified Text.PrettyPrint as P
 
-import qualified Data.Map as M
 
 import TestGen.Helpers.TypeOf as X
 
