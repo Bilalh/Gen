@@ -1,5 +1,5 @@
-{-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
-{-# LANGUAGE RecordWildCards, NamedFieldPuns, ScopedTypeVariables #-}
+{-# LANGUAGE QuasiQuotes, ViewPatterns #-}
+{-# LANGUAGE RecordWildCards, NamedFieldPuns #-}
 {-# OPTIONS_GHC -fno-cse #-}
 -- cse means output is not outputted
 
@@ -15,7 +15,7 @@ newtype S2 = S2 SpecE
     deriving Show
 
 instance Arbitrary S2 where
-    arbitrary = arbitraryDef undefined
+    arbitrary = arbitraryDef $never
 
 instance ArbSpec S2 where
     getSpec (S2 sp) = sp
@@ -46,7 +46,7 @@ newtype S3 = S3 SpecE
     deriving Show
 
 instance Arbitrary S3  where
-    arbitrary = arbitraryDef undefined
+    arbitrary = arbitraryDef $never
 
 instance ArbSpec S3 where
     getSpec (S3 sp) = sp
@@ -60,5 +60,5 @@ instance ArbSpec S3 where
 
 
 specE1 :: SpecE
-specE1= read $
+specE1= readNote "specE1" $
     "SpecE (fromList [(\"var1\",Find (DSet {size = Nothing, minSize = Nothing, maxSize = Nothing, inner = DBool}))]) [EBinOp (BOr (EBinOp (BEQ (ELit (ESet [EExpr (ELit (EB True))])) (ELit (ESet [EExpr (ELit (EB True)),EExpr (ELit (EB True))])))) (ELit (EB False)))]"

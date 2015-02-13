@@ -1,4 +1,4 @@
-{-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
+{-# LANGUAGE QuasiQuotes, ViewPatterns #-}
 {-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
 {-# LANGUAGE DeriveGeneric, DeriveDataTypeable #-}
 
@@ -13,13 +13,11 @@ import Conjure.Language.Definition
 
 import AST.Data
 import AST.Expr()
-import AST.Helper
-import AST.ToEssence
+-- import AST.Helper
+-- import AST.ToEssence
 import AST.FromEssence
 
 
-import GHC.Generics
-import Data.Typeable
 
 
 type Doms = Map Text FG

@@ -4,13 +4,10 @@
 module TestGen.Reduce.FormatResults(formatResults) where
 
 import TestGen.Reduce.Data
-import TestGen.Prelude(renderSized)
+import TestGen.Prelude
 
-import System.FilePath((</>), takeFileName)
-import System.Directory(createDirectoryIfMissing, renameDirectory
-                       ,getDirectoryContents,removeDirectoryRecursive
-                       , doesDirectoryExist, copyFile)
-import Control.Monad(forM_)
+import System.FilePath(takeFileName)
+import System.Directory(renameDirectory, copyFile)
 
 formatResults :: RState -> IO ()
 formatResults RState{..} = do

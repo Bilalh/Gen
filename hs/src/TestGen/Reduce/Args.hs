@@ -1,12 +1,12 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE RecordWildCards, NamedFieldPuns #-}
-{-# LANGUAGE ScopedTypeVariables  #-}
 {-# OPTIONS_GHC -fno-cse #-} -- stupid cmdargs?
 module TestGen.Reduce.Args(parseArgs) where
 
 import Build_autoversion(autoVersion)
 import System.Console.CmdArgs.Implicit as I
 
+import TestGen.Prelude hiding (def)
 import qualified TestGen.Prelude as P
 import TestGen.Reduce.Data
 import TestGen.Helpers.Runner(KindI(..), StatusI(..))
@@ -113,7 +113,7 @@ parseArgs = do
 
     doKinds False = return False
     doKinds True  = do
-      let names = dataTypeConstrs . dataTypeOf $ (undefined :: KindI)
+      let names = dataTypeConstrs . dataTypeOf $ ($never :: KindI)
       putStrLn "Kinds:"
       mapM_ (putStrLn . show) names
       putStrLn ""
@@ -123,7 +123,7 @@ parseArgs = do
     doStatuses False = return False
     doStatuses True  = do
       putStrLn "Statuses:"
-      let names = dataTypeConstrs . dataTypeOf $ (undefined :: StatusI)
+      let names = dataTypeConstrs . dataTypeOf $ ($never :: StatusI)
       mapM_ (putStrLn . show) names
       putStrLn ""
       return True

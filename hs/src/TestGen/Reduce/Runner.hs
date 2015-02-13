@@ -1,7 +1,4 @@
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE OverloadedStrings #-}
 
 module TestGen.Reduce.Runner where
 
@@ -10,9 +7,6 @@ import TestGen.Helpers.Runner
 import TestGen.Prelude
 import TestGen.Reduce.Data
 
-import Control.Arrow((&&&))
-import System.Directory(createDirectoryIfMissing)
-import System.FilePath((</>))
 
 import qualified Data.Map as M
 import qualified Data.Text as T
@@ -24,7 +18,7 @@ readSpecE :: FilePath -> IO SpecE
 readSpecE fp = do
     con <- T.readFile fp
     let st = T.unpack $ con
-    return . read $ st
+    return . readNote "readSpecE" $ st
 
 
 -- Just means rrError still happens
@@ -99,7 +93,7 @@ runSpec spE = do
             sameError (Right (_, SettingI{successful_=False,data_=SolveM ms })) =
                 let
                     f ResultI{erroed= Just index, results } =
-                        let ix = results !! index
+                        let ix = results `at` index
                         in Just (status_ ix, kind_ ix)
                     f _ = Nothing
 

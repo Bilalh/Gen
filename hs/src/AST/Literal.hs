@@ -13,7 +13,7 @@ import Conjure.Language.Definition
 import AST.ToEssence(ToEssence(..))
 import AST.FromEssence(FromEssence(..))
 import AST.Data
-import {-# SOURCE #-} AST.Domain(dintRRange)
+import {-# SOURCE #-} AST.Domain(dintRange)
 import {-# SOURCE #-} AST.Expr()
 
 import Control.Arrow((&&&))
@@ -61,7 +61,7 @@ instance FromEssence (AbstractLiteral Expression) Literal where
     --                      EMatrix <$> mapM fromEssence xs <*> return jr
 
     -- fromEssence [xMatch| xs  := value.matrix.values |] = do
-    --                    EMatrix <$> mapM fromEssence xs <*> return (dintRRange 1 (genericLength xs))
+    --                    EMatrix <$> mapM fromEssence xs <*> return (dintRange 1 (genericLength xs))
 
     -- fromEssence [xMatch| xs := value.tuple.values |] =
     --     ETuple <$> mapM fromEssence xs

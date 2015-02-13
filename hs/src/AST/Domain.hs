@@ -40,8 +40,8 @@ dpar = DPar{inner=notSet, size=Nothing, maxSize=Nothing, minSize=Nothing
            ,regular=False, complete=False }
 dtuple = DTuple{inners=notSet}
 
-dintRRange :: Integer -> Integer -> DDomain
-dintRRange lower upper = dint{ranges= [RFromTo
+dintRange :: Integer -> Integer -> DDomain
+dintRange lower upper = dint{ranges= [RFromTo
                                       (ELit $ EI lower)
                                       (ELit $ EI upper)]}
 

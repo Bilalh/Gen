@@ -16,4 +16,4 @@ instance FromEssence (Domain () Expression) DDomain
 instance Pretty DDomain
 
 dint, dset, dmset, dmat, dfunc, drel, dpar, dtuple  :: DDomain
-dintRRange :: Integer -> Integer -> DDomain
+dintRange :: Integer -> Integer -> DDomain

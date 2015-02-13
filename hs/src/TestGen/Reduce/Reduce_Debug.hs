@@ -1,9 +1,7 @@
-{-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
+{-# LANGUAGE QuasiQuotes, ViewPatterns #-}
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
-{-# LANGUAGE ScopedTypeVariables, FlexibleInstances #-}
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}
-
 module TestGen.Reduce.Reduce_Debug where
 
 import TestGen.Reduce.Data
@@ -29,41 +27,41 @@ import System.Random(randomIO)
 import TestGen.Reduce.Reduce
 
 
-_parts ::
-        (ToEssence a1, FromEssence a) =>
-        (a -> StateT EState Identity [a1]) -> E -> IO [a1]
-_parts f e =
-    case  fromEssence (e :: E) of
-        Left er -> error . show .  (pretty &&& pretty . groom)  $ er
-        Right ee -> do
-            let spe   :: SpecE  = undefined
-                seed            = 32
-                state :: EState = EState{spec_=spe,sgen_=mkrGen seed,elogs_=LSEmpty}
-                res             = runIdentity $ flip evalStateT state $ f ee
-            mapM_ (print  . pretty . toEssence)  res
-            return res
+-- _parts ::
+--         (ToEssence a1, FromEssence a) =>
+--         (a -> StateT EState Identity [a1]) -> E -> IO [a1]
+-- _parts f e =
+--     case  fromEssence (e :: E) of
+--         Left er -> error . show .  (pretty &&& pretty . groom)  $ er
+--         Right ee -> do
+--             let spe   :: SpecE  = undefined
+--                 seed            = 32
+--                 state :: EState = EState{spec_=spe,sgen_=mkrGen seed,elogs_=LSEmpty}
+--                 res             = runIdentity $ flip evalStateT state $ f ee
+--             mapM_ (print  . pretty . toEssence)  res
+--             return res
 
-_partse :: ToEssence a =>
-         (t -> StateT EState Identity [a]) -> t -> IO [a]
-_partse f e = do
-    let spe   :: SpecE  = undefined
-        seed            = 32
-        state :: EState = EState{spec_=spe,sgen_=mkrGen seed, elogs_=LSEmpty}
-        res             = runIdentity $ flip evalStateT state $ f e
-    mapM_ (print  . pretty . toEssence)  res
-    return res
+-- _partse :: ToEssence a =>
+--          (t -> StateT EState Identity [a]) -> t -> IO [a]
+-- _partse f e = do
+--     let spe   :: SpecE  = undefined
+--         seed            = 32
+--         state :: EState = EState{spec_=spe,sgen_=mkrGen seed, elogs_=LSEmpty}
+--         res             = runIdentity $ flip evalStateT state $ f e
+--     mapM_ (print  . pretty . toEssence)  res
+--     return res
 
-_partsf  = do
-    let spe   :: SpecE  = undefined
-        seed            = 32
-        state :: EState = EState{spec_=spe,sgen_=mkrGen seed, elogs_=LSEmpty}
-        res             = runIdentity  . flip evalStateT state
-    res
+-- _partsf  = do
+--     let spe   :: SpecE  = undefined
+--         seed            = 32
+--         state :: EState = EState{spec_=spe,sgen_=mkrGen seed, elogs_=LSEmpty}
+--         res             = runIdentity  . flip evalStateT state
+--     res
 
-_e :: FromEssence a => E -> a
-_e e =  case fromEssence e of
-        Left er -> error . show .  (pretty &&& pretty . groom) $ er
-        Right ee -> ee
+-- _e :: FromEssence a => E -> a
+-- _e e =  case fromEssence e of
+--         Left er -> error . show .  (pretty &&& pretty . groom) $ er
+--         Right ee -> ee
 
 _k :: FilePath -> FilePath -> IO (SpecE, RState)
 _k out inn= do

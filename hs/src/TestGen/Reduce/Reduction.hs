@@ -1,8 +1,6 @@
-{-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
-{-# LANGUAGE ScopedTypeVariables, FlexibleInstances #-}
-{-# LANGUAGE MultiParamTypeClasses, FlexibleContexts #-}
-{-# LANGUAGE LambdaCase, MultiWayIf #-}
+{-# LANGUAGE MultiParamTypeClasses, FlexibleContexts, FlexibleInstances #-}
+{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE TupleSections #-}
 
@@ -14,10 +12,7 @@ import TestGen.Reduce.Simpler
 
 import TestGen.Prelude
 
-import Data.List(transpose)
-
-import Control.Monad.Trans.Identity(IdentityT)
-
+import Data.List( splitAt)
 
 class (HasGen m, WithDoms m, HasLogger m) => Reduce a m where
     reduce   :: a -> m [a]    -- list of smaller exprs
@@ -222,7 +217,7 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce BinOp m where
     reduce (BIn x1 x2) = reduceBop BIn x1 x2
 
     reduce a@(BOver _ _) = rrError "reduce missing case"
-                           [pretty $ toEssence a, pretty $ groom a ]
+                           [pretty $  a, pretty $ groom a ]
 
     single (BAnd _ _)   = return $ [etrue,  efalse]
     single (BOr _ _)    = return $ [etrue,  efalse]
@@ -259,7 +254,7 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce BinOp m where
     single (BIn _ _) = return $ [etrue,  efalse]
 
     single a@(BOver _ _) = rrError "single BOver missing case"
-                           [pretty $ toEssence a, pretty $ groom a ]
+                           [pretty a, pretty $ groom a ]
 
 
     subterms (BAnd x1 x2)   = return [x1, x2]
@@ -298,10 +293,10 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce BinOp m where
 
     subterms (BIn _ _)     =  return []
     subterms a@(BOver _ _) =  rrError "subterms missing case"
-        [pretty $ toEssence a, pretty $ groom a ]
+        [pretty $  a, pretty $ groom a ]
 
 
-instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Domain m where
+instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce DDomain m where
     reduce _   = return []
     single x   = return [EDom x]
     subterms _ = return []
@@ -349,9 +344,9 @@ reduceBop t a b=  do
             x <- oneofR xs
             return $ Just (x,b)
         (as,bs) -> do
-            na <- oneofR as
-            nb <- oneofR bs
-            return $ Just (na,nb)
+            ea <- oneofR as
+            eb <- oneofR bs
+            return $ Just (ea,eb)
 
 
 infixl 1 -|

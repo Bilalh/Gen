@@ -1,6 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
@@ -17,7 +15,6 @@ import qualified Text.PrettyPrint as Pr
 import Data.IntSet(IntSet)
 import qualified Data.IntSet as IS
 
-import Control.Monad.Trans.Identity(IdentityT)
 
 etrue, efalse :: Expr
 etrue  = ELit (EB True)
@@ -95,7 +92,8 @@ instance Default RState where
 -- | Check if the spec's hash is contained, (add it if it is not)
 containHashAdd :: SpecE -> RR Bool
 containHashAdd newE= do
-  let newHash = hash (pretty newE)
+  -- let newHash = hash (pretty newE)
+  let newHash = $notImplemented
   is <- gets hashes_
   case newHash `IS.member` is of
     True -> return True
@@ -141,7 +139,7 @@ oneofR :: (HasGen m, HasLogger m)  => [a] -> m a
 oneofR [] = rrError "oneOfR used with empty list" []
 oneofR gs = do
   ix <- chooseR (0,length gs - 1)
-  return $ gs !! ix
+  return $ gs `at` ix
 
 
 

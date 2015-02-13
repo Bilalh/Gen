@@ -1,7 +1,5 @@
-{-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
+{-# LANGUAGE QuasiQuotes, ViewPatterns #-}
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE LambdaCase #-}
 
 module TestGen.Reduce.Reduce where
 
@@ -11,7 +9,6 @@ import TestGen.Reduce.Reduction
 import TestGen.Reduce.UnusedDomains
 import TestGen.Prelude
 
-import System.FilePath((</>))
 
 import qualified Data.Map as M
 
@@ -88,7 +85,7 @@ removeUnusedDomains sp@(SpecE ods es obj) = do
 
 
     ensureADomain :: Doms -> Doms
-    ensureADomain ds | M.null ds = M.insert ("unused") (Find DBool) ds
+    ensureADomain ds | M.null ds = M.insert ("unused") (FFind DBool) ds
     ensureADomain ds = ds
 
 
