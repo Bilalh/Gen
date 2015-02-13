@@ -23,8 +23,6 @@ module TestGen.Prelude (
 
 import TestGen.Helpers.StandardImports as X
 
-import Common.Helpers as X
-
 import TestGen.Arbitrary.Data as X
 import {-# SOURCE #-} TestGen.Arbitrary.Generators as X
 
@@ -33,7 +31,6 @@ import TestGen.Helpers.OrderedType as X
 import TestGen.Helpers.SizeOf as X
 
 import TestGen.Helpers.Debug as X
-import TestGen.Helpers.Helpers as X
 import TestGen.Helpers.QuickCheck2 as X
 import TestGen.Helpers.Standardise as X
 

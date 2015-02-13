@@ -17,6 +17,8 @@ specEMain = \case
    [x]    ->  addSpecE x
    (x:xs) ->  addSpecE x >> specEMain xs
 
+inlineParamAndLettings :: Model -> Maybe Model -> (Model, a)
+inlineParamAndLettings spec param = $notImplemented
 
 addSpecE :: FilePath -> IO ()
 addSpecE fp_ = do

@@ -14,7 +14,6 @@ import Conjure.Language.Definition
 import AST.FromEssence(FromEssence(..))
 import AST.ToEssence(ToEssence(..))
 import AST.Data
-import AST.Helper
 import {-# SOURCE #-} AST.Range()
 
 import Conjure.Prelude

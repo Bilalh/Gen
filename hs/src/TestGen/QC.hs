@@ -7,11 +7,11 @@
 module TestGen.QC where
 
 import AST.SpecE
-import Common.Helpers(timestamp)
 
 import TestGen.Prelude
 import Conjure.UI.IO(writeModel)
 
+import TestGen.Helpers.IO
 import TestGen.Arbitrary.Arbitrary
 import TestGen.Classify.Meta(mkMeta)
 import TestGen.Helpers.Args(TArgs(..))

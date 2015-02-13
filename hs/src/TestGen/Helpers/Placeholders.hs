@@ -5,7 +5,7 @@
 -- | This module defines placeholders that you can use while coding to
 -- allow incomplete code to compile. They work just like 'undefined',
 -- but with improved error messages and compile-time warnings.
-module Common.Placeholders (
+module TestGen.Helpers.Placeholders (
     notImplemented,
     todo,
     placeholder,

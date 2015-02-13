@@ -6,6 +6,7 @@ import TestGen.Classify.Meta(mkMeta)
 import TestGen.Helpers.Runner
 import TestGen.Prelude
 import TestGen.Reduce.Data
+import TestGen.Helpers.IO
 
 
 import qualified Data.Map as M

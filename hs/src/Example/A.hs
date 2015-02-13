@@ -1,4 +1,4 @@
-module A where
+module Example.A where
 
 import Conjure.Prelude
 import Conjure.Language.Definition
