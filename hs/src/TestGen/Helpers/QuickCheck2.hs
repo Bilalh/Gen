@@ -2,12 +2,14 @@
 -- Plus some functions that use them
 module TestGen.Helpers.QuickCheck2 where
 
+import TestGen.Helpers.StandardImports as X hiding (maxSize)
+
+
 import TestGen.Arbitrary.Data(GG)
 
 import Test.QuickCheck.Gen
 
-import Control.Monad.State.Strict(runStateT, MonadState(get, put))
-import Control.Monad.Trans.Class as X ( MonadTrans(lift) )
+import Control.Monad.State.Strict( MonadState(get, put))
 import System.Random( Random )
 
 import Test.QuickCheck
@@ -29,7 +31,7 @@ choose2 rng = lift $  choose rng
 -- must be non-empty.
 oneof2 :: [GG a] -> GG a
 oneof2 [] = error "QuickCheck2.oneof used with empty list"
-oneof2 gs = choose2 (0,length gs - 1) >>=   (gs !!)
+oneof2 gs = choose2 (0,length gs - 1) >>=   (gs `at`)
 
 -- | Chooses one of the given generators, with a weighted random distribution.
 -- The input list must be non-empty.

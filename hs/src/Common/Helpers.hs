@@ -3,7 +3,9 @@ module Common.Helpers where
 
 -- Helpers function which do not depend on anything else in our sources
 
-import Language.E
+-- import Language.E
+
+import TestGen.Helpers.StandardImports as X
 
 import Data.Set(Set)
 import Data.Time(formatTime,getCurrentTime)
@@ -12,151 +14,153 @@ import System.Locale(defaultTimeLocale)
 import qualified Data.Set as S
 import qualified Data.Text as T
 
-import Language.E.Pipeline.ExplodeStructuralVars ( explodeStructuralVars )
-import Language.E.Pipeline.InlineLettings ( inlineLettings )
+-- import Language.E.Pipeline.ExplodeStructuralVars ( explodeStructuralVars )
+-- import Language.E.Pipeline.InlineLettings ( inlineLettings )
 
-mkSpec :: [E] -> Spec
-mkSpec es =
-    let spec = Spec (LanguageVersion "Essence" [1,3])
-         . listAsStatement
-         -- . normaliseSolutionEs
-         $ es
-    in spec
+-- mkSpec :: [E] -> Spec
+-- mkSpec es =
+--     let spec = Spec (LanguageVersion "Essence" [1,3])
+--          . listAsStatement
+--          -- . normaliseSolutionEs
+--          $ es
+--     in spec
 
-pullFinds :: [E] -> [(E,E)]
-pullFinds es = mapMaybe pullFind es
-    where pullFind [xMatch| [name] := topLevel.declaration.find.name
-                          | [dom]  := topLevel.declaration.find.domain |] = Just (name,dom)
-          pullFind _ = Nothing
+-- pullFinds :: [E] -> [(E,E)]
+-- pullFinds es = mapMaybe pullFind es
+--     where pullFind [xMatch| [name] := topLevel.declaration.find.name
+--                           | [dom]  := topLevel.declaration.find.domain |] = Just (name,dom)
+--           pullFind _ = Nothing
 
-pullGivens :: [E] -> [(E,E)]
-pullGivens es = mapMaybe pullGiven es
-    where pullGiven [xMatch| [name] := topLevel.declaration.given.name
-                           | [dom]  := topLevel.declaration.given.domain |] = Just (name,dom)
-          pullGiven _ = Nothing
+-- pullGivens :: [E] -> [(E,E)]
+-- pullGivens es = mapMaybe pullGiven es
+--     where pullGiven [xMatch| [name] := topLevel.declaration.given.name
+--                            | [dom]  := topLevel.declaration.given.domain |] = Just (name,dom)
+--           pullGiven _ = Nothing
 
--- assumes each constraint is in a such that
-pullConstraints :: [E] -> [E]
-pullConstraints = catMaybes . map f
-    where f [xMatch| [xs] := topLevel.suchThat |] = Just xs
-          f _ = Nothing
+-- -- assumes each constraint is in a such that
+-- pullConstraints :: [E] -> [E]
+-- pullConstraints = catMaybes . map f
+--     where f [xMatch| [xs] := topLevel.suchThat |] = Just xs
+--           f _ = Nothing
 
-onlyNamesAsText :: [(E,E)] -> Set Text
-onlyNamesAsText = S.fromList . map f
-    where f ([xMatch|[Prim (S name)] := reference |], _) = name
-          f (e,_) = error . show $ "onlyNamesAsText*f: not a name" <+> pretty e
+-- onlyNamesAsText :: [(E,E)] -> Set Text
+-- onlyNamesAsText = S.fromList . map f
+--     where f ([xMatch|[Prim (S name)] := reference |], _) = name
+--           f (e,_) = error . show $ "onlyNamesAsText*f: not a name" <+> pretty e
 
-getName :: E -> Text
-getName [xMatch| [Prim (S name)] := reference  |] = name
-getName e = error . show $ "getName: not a name" <+> pretty e
+-- getName :: E -> Text
+-- getName [xMatch| [Prim (S name)] := reference  |] = name
+-- getName e = error . show $ "getName: not a name" <+> pretty e
 
-appendToName :: Text -> E -> E
-appendToName end [xMatch|[Prim (S name)] := reference |]  =
-    [xMake| reference := [Prim (S $ T.append name end )]  |]
-appendToName e _ = error . show $ "appendToName: not a name" <+> pretty e
-
-
-mkName :: Text -> E
-mkName name = [xMake| reference :=  [Prim (S name)]  |]
-
-mkFind :: (E,E) -> E
-mkFind (name,dom) =[xMake| topLevel.declaration.find.name   := [name]
-                         | topLevel.declaration.find.domain := [dom]
-                         |]
-
-mkGiven :: (E,E) -> E
-mkGiven (name,dom) =[xMake| topLevel.declaration.given.name   := [name]
-                          | topLevel.declaration.given.domain := [dom]
-                          |]
-
-type Attr = E
-mkAttr :: (T.Text, Maybe Integer) -> Attr
-mkAttr (n, Nothing) = [xMake| attribute.name.reference := [Prim (S n)] |]
-mkAttr (n, Just v ) = [xMake| attribute.nameValue.name.reference := [Prim (S n)]
-                            | attribute.nameValue.value          := [mkInt v]
-                            |]
-
-addAttr :: Attr -> E -> E
-addAttr a (Tagged "domain" [Tagged tt ( [xMatch| att := attributes.attrCollection |]:rs) ] ) =
-   let att2 = a : att in
-   (Tagged "domain" [Tagged tt ( [xMake| attributes.attrCollection := att2 |]:rs ) ] )
-
-addAttr a b = error . show . vcat $ "addAttr attr dom" : map prettyAsPaths  [a,b]
-
-addAttrs :: [Attr] -> E -> E
-addAttrs attrs (Tagged "domain" [Tagged tt ( [xMatch| att := attributes.attrCollection |]:rs) ] ) =
-   let att2 = attrs ++  att in
-   (Tagged "domain" [Tagged tt ( [xMake| attributes.attrCollection := att2 |]:rs ) ] )
-
-addAttrs a b = error . show . vcat $ "addAttrs dom attrs" : map prettyAsPaths  (b : a)
+-- appendToName :: Text -> E -> E
+-- appendToName end [xMatch|[Prim (S name)] := reference |]  =
+--     [xMake| reference := [Prim (S $ T.append name end )]  |]
+-- appendToName e _ = error . show $ "appendToName: not a name" <+> pretty e
 
 
-_attTest :: IO ()
-_attTest = do
-    let ee= [dMake| function int --> int |]
-    let f = mkAttr ("size", Just $  4)
-    let res = addAttr f ee
-    putStrLn . show . pretty $ res
-    putStrLn . show . prettyAsPaths $ res
+-- mkName :: Text -> E
+-- mkName name = [xMake| reference :=  [Prim (S name)]  |]
 
-mkInt :: Integer -> E
-mkInt j =  [xMake| value.literal := [Prim (I j)] |]
+-- mkFind :: (E,E) -> E
+-- mkFind (name,dom) =[xMake| topLevel.declaration.find.name   := [name]
+--                          | topLevel.declaration.find.domain := [dom]
+--                          |]
 
-getInt :: E -> Integer
-getInt [xMatch| [Prim (I j)] := value.literal |] = j
-getInt e = error . show  $ vcat ["Not a int", pretty e]
+-- mkGiven :: (E,E) -> E
+-- mkGiven (name,dom) =[xMake| topLevel.declaration.given.name   := [name]
+--                           | topLevel.declaration.given.domain := [dom]
+--                           |]
 
-getIntMaybe :: E -> Maybe Integer
-getIntMaybe [xMatch| [Prim (I j)] := value.literal |] = Just j
-getIntMaybe _ = Nothing
+-- type Attr = E
+-- mkAttr :: (T.Text, Maybe Integer) -> Attr
+-- mkAttr (n, Nothing) = [xMake| attribute.name.reference := [Prim (S n)] |]
+-- mkAttr (n, Just v ) = [xMake| attribute.nameValue.name.reference := [Prim (S n)]
+--                             | attribute.nameValue.value          := [mkInt v]
+--                             |]
+
+-- addAttr :: Attr -> E -> E
+-- addAttr a (Tagged "domain" [Tagged tt ( [xMatch| att := attributes.attrCollection |]:rs) ] ) =
+--    let att2 = a : att in
+--    (Tagged "domain" [Tagged tt ( [xMake| attributes.attrCollection := att2 |]:rs ) ] )
+
+-- addAttr a b = error . show . vcat $ "addAttr attr dom" : map prettyAsPaths  [a,b]
+
+-- addAttrs :: [Attr] -> E -> E
+-- addAttrs attrs (Tagged "domain" [Tagged tt ( [xMatch| att := attributes.attrCollection |]:rs) ] ) =
+--    let att2 = attrs ++  att in
+--    (Tagged "domain" [Tagged tt ( [xMake| attributes.attrCollection := att2 |]:rs ) ] )
+
+-- addAttrs a b = error . show . vcat $ "addAttrs dom attrs" : map prettyAsPaths  (b : a)
+
+
+-- _attTest :: IO ()
+-- _attTest = do
+--     let ee= [dMake| function int --> int |]
+--     let f = mkAttr ("size", Just $  4)
+--     let res = addAttr f ee
+--     putStrLn . show . pretty $ res
+--     putStrLn . show . prettyAsPaths $ res
+
+-- mkInt :: Integer -> E
+-- mkInt j =  [xMake| value.literal := [Prim (I j)] |]
+
+-- getInt :: E -> Integer
+-- getInt [xMatch| [Prim (I j)] := value.literal |] = j
+-- getInt e = error . show  $ vcat ["Not a int", pretty e]
+
+-- getIntMaybe :: E -> Maybe Integer
+-- getIntMaybe [xMatch| [Prim (I j)] := value.literal |] = Just j
+-- getIntMaybe _ = Nothing
 
 
 
 timestamp :: IO Int
 timestamp = do
-    epochInt <- (read <$> formatTime defaultTimeLocale "%s" <$> getCurrentTime) :: IO Int
+    epochInt <- (readNote "timestamp" <$> formatTime defaultTimeLocale "%s" <$> getCurrentTime) :: IO Int
     return epochInt
 
-inlineParamAndLettings :: Spec -> Maybe Spec -> (Spec, LogTree)
-inlineParamAndLettings essence param =
-    let
-        (mresult, _logs) = runCompESingle "simplify solution" helper
-        in
-        case mresult of
-            Left  x      -> error . show $ x
-            Right b -> (b, _logs)
+-- inlineParamAndLettings :: Model -> Maybe Model -> (Spec, LogTree)
+inlineParamAndLettings = error "inlineParamAndLettings"
+-- inlineParamAndLettings essence param =
+--     let
+--         (mresult, _logs) = runCompESingle "simplify solution" helper
+--         in
+--         case mresult of
+--             Left  x      -> error . show $ x
+--             Right b -> (b, _logs)
 
-    where
-    helper = do
+--     where
+--     helper = do
 
-        case param of
-            Nothing -> return ()
-            Just (Spec _ s) -> mapM_ introduceStuff (statementAsList s)
+--         case param of
+--             Nothing -> return ()
+--             Just (Spec _ s) -> mapM_ introduceStuff (statementAsList s)
 
-        bindersDoc >>= mkLog "binders 2"
+--         bindersDoc >>= mkLog "binders 2"
 
-        let essenceCombined =
-                case (essence, param) of
-                    (Spec l s, Just (Spec _ p)) ->
-                        Spec l (listAsStatement $ statementAsList p ++ statementAsList s)
-                    _ -> essence
+--         let essenceCombined =
+--                 case (essence, param) of
+--                     (Spec l s, Just (Spec _ p)) ->
+--                         Spec l (listAsStatement $ statementAsList p ++ statementAsList s)
+--                     _ -> essence
 
-        let pipeline0 = recordSpec "init"
-                >=> explodeStructuralVars   >=> recordSpec "explodeStructuralVars"
-                >=> inlineLettings          >=> recordSpec "inlineLettings"
-                >=> stripDecls              >=> recordSpec "stripDecls"
-                -- >=> return . atMostOneSuchThat True >=> recordSpec "atMostOneSuchThat"
+--         let pipeline0 = recordSpec "init"
+--                 >=> explodeStructuralVars   >=> recordSpec "explodeStructuralVars"
+--                 >=> inlineLettings          >=> recordSpec "inlineLettings"
+--                 >=> stripDecls              >=> recordSpec "stripDecls"
+--                 -- >=> return . atMostOneSuchThat True >=> recordSpec "atMostOneSuchThat"
 
-        inlined <- pipeline0 essenceCombined
-        return $ inlined
+--         inlined <- pipeline0 essenceCombined
+--         return $ inlined
 
 
-stripDecls :: MonadConjure m => Spec -> m Spec
-stripDecls (Spec language stmt) = return $ Spec language $ listAsStatement
-    [ i
-    | i <- statementAsList stmt
-    , case i of
-        [xMatch| _ := topLevel.declaration.given |] -> False
-        [xMatch| _ := topLevel.letting.domain |] -> False
-        _ -> True
-    ]
+stripDecls a = error "stripDecls"
+-- stripDecls :: MonadConjure m => Spec -> m Spec
+-- stripDecls (Spec language stmt) = return $ Spec language $ listAsStatement
+--     [ i
+--     | i <- statementAsList stmt
+--     , case i of
+--         [xMatch| _ := topLevel.declaration.given |] -> False
+--         [xMatch| _ := topLevel.letting.domain |] -> False
+--         _ -> True
+--     ]
