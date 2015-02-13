@@ -5,7 +5,6 @@
 
 module TestGen.Helpers.StandardImports (
       module X,
-      Pretty(..)
 ) where
 
 import Conjure.Prelude as X
@@ -24,10 +23,3 @@ import Data.Set as X (Set)
 import Test.QuickCheck as X (quickCheckWith, quickCheckWithResult
     , quickCheckResult, quickCheck, Gen,generate, sample'
     , Arbitrary(..), CoArbitrary(..), elements, sized)
-
-
-import qualified Text.PrettyPrint as Pr
-
-
-instance (Pretty a, Pretty b, Pretty c) => Pretty (a,b,c) where
-    pretty (a,b,c) = prettyListDoc Pr.parens "," [pretty a, pretty b, pretty c]

@@ -1,4 +1,4 @@
--- https://github.com/ahammar/placeholders with some patches 
+-- https://github.com/ahammar/placeholders with some patches
 
 {-# LANGUAGE TemplateHaskell, DeriveDataTypeable #-}
 
@@ -18,6 +18,8 @@ module Common.Placeholders (
     -- * Exceptions
     PlaceholderException(..)
 ) where
+
+import Conjure.Prelude
 
 import Control.Exception (Exception, throw)
 import Data.Typeable (Typeable)
