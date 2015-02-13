@@ -1,7 +1,6 @@
-{-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
+{-# LANGUAGE QuasiQuotes, ViewPatterns #-}
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE LambdaCase, MultiWayIf #-}
+{-# LANGUAGE MultiWayIf #-}
 
 module TestGen.Arbitrary.Op where
 
