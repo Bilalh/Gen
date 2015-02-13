@@ -1,5 +1,6 @@
 {-# LANGUAGE LambdaCase #-}
 
+import Prelude
 import Distribution.Simple
 import Distribution.PackageDescription (emptyHookedBuildInfo, PackageDescription(..) )
 import System.Directory (createDirectoryIfMissing)
@@ -34,6 +35,7 @@ myPreBuild _ _ = do
     writeFile "dist/build/autogen/Build_autoversion.hs.tmp" $ unlines
         [ "module Build_autoversion where"
         -- , "import Data.DateTime"
+        , "import Prelude(String)"
         , "autoVersion :: String"
         , "autoVersion = " ++ show (init desc)
         -- , "buildDateTime :: DateTime"

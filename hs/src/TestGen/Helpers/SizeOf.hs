@@ -1,12 +1,11 @@
-{-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
+{-# LANGUAGE QuasiQuotes, ViewPatterns #-}
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
-{-# LANGUAGE ScopedTypeVariables, MultiWayIf #-}
+{-# LANGUAGE MultiWayIf #-}
 
 module TestGen.Helpers.SizeOf where
 
 import TestGen.Helpers.StandardImports as X
 
-import TestGen.Arbitrary.Data
 import TestGen.Helpers.Debug
 
 import qualified Data.Set as S

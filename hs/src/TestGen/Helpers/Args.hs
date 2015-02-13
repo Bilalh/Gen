@@ -3,29 +3,30 @@
 {-# OPTIONS_GHC -fno-cse #-} -- stupid cmdargs?
 module TestGen.Helpers.Args(parseArgs, TArgs(..)) where
 
+import TestGen.Prelude hiding (def)
 import Build_autoversion(autoVersion)
 import System.Console.CmdArgs.Implicit
 
 data TArgs_ = TArgs_{base_directory  :: Maybe FilePath
-                 , total_time     :: Maybe Int
-                 , per_spec_time  :: Maybe Int
-                 , seed           :: Maybe Int
-                 , size           :: Maybe Int
-                 , cores          :: Maybe Int
-                 , typecheck_only :: Maybe Int
-                 , run_tool_chain :: Bool
-                 , new_conjure    :: Bool
-                }  deriving (Show, Data, Typeable)
+                    , total_time     :: Maybe Int
+                    , per_spec_time  :: Maybe Int
+                    , seed           :: Maybe Int
+                    , size           :: Maybe Int
+                    , cores          :: Maybe Int
+                    , typecheck_only :: Maybe Int
+                    , run_tool_chain :: Bool
+                    , new_conjure    :: Bool
+                  }  deriving (Show, Data, Typeable)
 
-data TArgs  = TArgs{baseDirectory_  :: FilePath
-                 , totalTime_       :: Int
-                 , perSpecTime_     :: Int
-                 , rseed_           :: Maybe Int
-                 , size_            :: Int
-                 , cores_           :: Int
-                 , typecheckOnly_   :: Maybe Int
-                 , runToolchain_    :: Bool
-                 , newConjure_      :: Bool
+data TArgs = TArgs{baseDirectory_   :: FilePath
+                   , totalTime_     :: Int
+                   , perSpecTime_   :: Int
+                   , rseed_         :: Maybe Int
+                   , size_          :: Int
+                   , cores_         :: Int
+                   , typecheckOnly_ :: Maybe Int
+                   , runToolchain_  :: Bool
+                   , newConjure_    :: Bool
                 }  deriving (Show, Data, Typeable)
 
 argsDef :: TArgs_
