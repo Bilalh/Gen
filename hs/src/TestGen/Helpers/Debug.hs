@@ -6,8 +6,7 @@ module TestGen.Helpers.Debug(
     )
     where
 
-import Language.E hiding(trace)
-
+import TestGen.Helpers.StandardImports as X
 import qualified Data.HashSet as S
 
 #ifdef TTRACE

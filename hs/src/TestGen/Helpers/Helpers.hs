@@ -1,21 +1,21 @@
-{-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
-{-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
 module TestGen.Helpers.Helpers where
 
-import Language.E hiding(trace)
+import TestGen.Helpers.StandardImports as X
+
+-- import Language.E hiding(trace)
 
 import Test.QuickCheck
 
-typeOfC :: E -> E
-typeOfC e  =
-    let (mresult, _logs) = runCompESingle "typeOf" helper
-    in case mresult of
-        Right ss ->  ss
-        Left d     -> error . show . vcat $  ["typeOf", d, pretty _logs]
+-- typeOfC :: E -> E
+-- typeOfC e  =
+--     let (mresult, _logs) = runCompESingle "typeOf" helper
+--     in case mresult of
+--         Right ss ->  ss
+--         Left d     -> error . show . vcat $  ["typeOf", d, pretty _logs]
 
-    where
-        helper = do
-            typeOf e
+--     where
+--         helper = do
+--             typeOf e
 
 -- _sample :: Int -> IO ()
 _sample :: Pretty a => Gen a -> IO ()
