@@ -5,6 +5,7 @@
 module TestGen.Classify.AddSpecE where
 
 import Conjure.UI.IO(readModelFromFile)
+import Conjure.Language.Definition(Model)
 import TestGen.Classify.Sorter(getRecursiveContents)
 import TestGen.Prelude
 
@@ -33,10 +34,10 @@ addSpecE fp_ = do
 
     case specE of
       Left r -> error . show . vcat $ ["Error for " <+> (pretty fp)
-                                      , "spec " <+> pretty spec
-                                      , "msg"  <+> (pretty r)
-                                      , "msg"  <+> (pretty . groom $ r)
-                                      , "groom" <+> (prettySpecDebug $ spec)
+                                      , "spec"  <+> pretty spec
+                                      , "msg"   <+> (pretty r)
+                                      , "msg"   <+> (pretty . groom $ r)
+                                      , "groom" <+> (pretty . groom $ spec)
                                       , "--"  ]
       Right r -> do
          -- b <- (compareSpecs r inlined)

@@ -66,6 +66,7 @@ formatLoc loc = let file = loc_filename loc
                     (line, col) = loc_start loc
                 in concat [file, ":", show line, ":", show col]
 
+
 -- $example
 --
 -- > {-# LANGUAGE TemplateHaskell #-}

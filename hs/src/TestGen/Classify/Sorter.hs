@@ -1,15 +1,14 @@
-{-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
+{-# LANGUAGE QuasiQuotes, ViewPatterns #-}
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
-{-# LANGUAGE ScopedTypeVariables, LambdaCase #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 
 module TestGen.Classify.Sorter where
 
 import TestGen.Prelude
+import Conjure.Language.Type
 import TestGen.Classify.Meta
 
-import System.Directory (doesDirectoryExist, getDirectoryContents, createDirectoryIfMissing)
-import System.FilePath ((</>), takeFileName, takeDirectory,takeExtensions)
+import System.FilePath (takeFileName, takeDirectory,takeExtensions)
 
 import System.Posix.Files(createSymbolicLink)
 
@@ -17,7 +16,6 @@ import TestGen.Helpers.Runner
 
 import Data.Maybe(fromJust)
 
-import System.Environment(getArgs)
 import Data.Data
 
 import qualified Data.Text as T
@@ -39,7 +37,7 @@ data FuncType =
     deriving (Data, Typeable)
 
 fall :: [FuncType]
-fall = map fromConstr $ dataTypeConstrs . dataTypeOf $ (undefined :: FuncType)
+fall = map fromConstr $ dataTypeConstrs . dataTypeOf $ (error "FuncType" :: FuncType)
 
 sorterMain :: IO ()
 sorterMain = getArgs >>= sorterMain'
@@ -106,7 +104,7 @@ getFunc TdTypesComplex = \SpecMeta{..} ->
 
 prettyShowType :: TType -> String
 prettyShowType ty =
-    let t   = T.pack . show . pretty . toEssence $ ty
+    let t   = T.pack . show . pretty . (toEssence :: TType -> Type) $ ty
         res = T.unpack
             . T.take 150
             . T.unwords
