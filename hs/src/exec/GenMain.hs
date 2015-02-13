@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards, OverloadedStrings, LambdaCase #-}
+{-# LANGUAGE RecordWildCards,LambdaCase #-}
 {-# OPTIONS_GHC -fno-cse #-} -- stupid cmdargs
 
 module Main where

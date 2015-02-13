@@ -1,4 +1,3 @@
-{-# LANGUAGE ScopedTypeVariables, LambdaCase, OverloadedStrings #-}
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
 
 module TestGen.Reduce.FormatResults(formatResults) where

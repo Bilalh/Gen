@@ -1,5 +1,4 @@
 {-# LANGUAGE LambdaCase #-}
-
 import Prelude
 import Distribution.Simple
 import Distribution.PackageDescription (emptyHookedBuildInfo, PackageDescription(..) )

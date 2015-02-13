@@ -1,7 +1,7 @@
-{-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
+{-# LANGUAGE QuasiQuotes, ViewPatterns #-}
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
-{-# LANGUAGE ScopedTypeVariables, MultiWayIf #-}
-{-# OPTIONS_GHC -fno-warn-orphans -fno-warn-unused-imports #-}
+{-# LANGUAGE MultiWayIf #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module TestGen.Arbitrary.Common  where
 

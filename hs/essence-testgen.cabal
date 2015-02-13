@@ -59,7 +59,6 @@ Library
                      , TestGen.Reduce.Reduce
                      , TestGen.Reduce.Reduce_Debug
                      , TestGen.Reduce.Reduction
-                     , TestGen.Reduce.Reduction_QC
                      , TestGen.Reduce.Runner
                      , TestGen.Reduce.Simpler
                      , TestGen.Reduce.UnusedDomains
