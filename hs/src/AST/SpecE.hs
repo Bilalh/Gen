@@ -13,11 +13,6 @@ import Conjure.Language.Definition
 
 import AST.Data
 import AST.Expr()
--- import AST.Helper
--- import AST.ToEssence
-import AST.FromEssence
-
-
 
 
 type Doms = Map Text FG

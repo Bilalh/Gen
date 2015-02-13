@@ -11,8 +11,6 @@ module AST.Type where
 import Conjure.Language.Type
 
 import AST.Data
-import AST.FromEssence(FromEssence(..))
-import AST.ToEssence(ToEssence(..))
 
 instance ToEssence TType Type where
     -- toEssence TInt Type         = [dMake| int |]

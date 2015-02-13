@@ -10,8 +10,6 @@ import Conjure.Language.Domain
 import Conjure.Language.Definition
 
 
-import AST.ToEssence(ToEssence(..))
-import AST.FromEssence(FromEssence(..))
 import AST.Data
 import {-# SOURCE #-} AST.Domain(dintRange)
 import {-# SOURCE #-} AST.Expr()

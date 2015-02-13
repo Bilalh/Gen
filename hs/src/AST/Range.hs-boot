@@ -3,8 +3,6 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module AST.Range where
 
-import AST.ToEssence(ToEssence(..))
-import AST.FromEssence(FromEssence(..))
 import AST.Data
 
 import Conjure.Language.Pretty

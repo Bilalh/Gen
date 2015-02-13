@@ -18,15 +18,11 @@ Library
                      , AST.Data
                      , AST.Domain
                      , AST.Expr
-                     , AST.FromEssence
-                     , AST.Helper
                      , AST.Imports
                      , AST.Literal
                      , AST.Range
                      , AST.SpecE
-                     , AST.ToEssence
                      , AST.Type
-                     , Common.Helpers
                      , TestGen.Arbitrary.Arbitrary
                      , TestGen.Arbitrary.Common
                      , TestGen.Arbitrary.Data
@@ -45,9 +41,10 @@ Library
                      , TestGen.Classify.Sorter
                      , TestGen.Helpers.Args
                      , TestGen.Helpers.Debug
-                     , TestGen.Helpers.Helpers
+                     , TestGen.Helpers.IO
                      , TestGen.Helpers.Log
                      , TestGen.Helpers.OrderedType
+                     , TestGen.Helpers.Placeholders
                      , TestGen.Helpers.QuickCheck2
                      , TestGen.Helpers.Runner
                      , TestGen.Helpers.SizeOf
@@ -57,7 +54,6 @@ Library
                      , TestGen.Prelude
                      , TestGen.QC
                      , TestGen.QCDebug
-                     , TestGen.Reduce.Args
                      , TestGen.Reduce.Data
                      , TestGen.Reduce.FormatResults
                      , TestGen.Reduce.Reduce
@@ -68,6 +64,7 @@ Library
                      , TestGen.Reduce.Simpler
                      , TestGen.Reduce.UnusedDomains
                      , UI.UI
+
 
     build-depends    : base
                      , aeson

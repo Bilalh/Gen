@@ -1,4 +1,4 @@
-{-# LANGUAGE  FlexibleInstances #-}
+{-# LANGUAGE  FlexibleInstances, MultiParamTypeClasses #-}
 {-# LANGUAGE DeriveGeneric, DeriveDataTypeable #-}
 {-# LANGUAGE DeriveFunctor #-}
 
@@ -231,3 +231,9 @@ instance ToJSON TType
 data OObjective = Maximising Expr
                 | Minimising Expr
     deriving(Show, Generic, Typeable, Read, Eq)
+
+class ToEssence ast conjure where
+  toEssence :: ast -> conjure
+
+class FromEssence conjure ast where
+  fromEssence :: conjure -> Either conjure ast

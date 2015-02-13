@@ -9,8 +9,6 @@ import Conjure.Prelude
 import Conjure.Language.Pretty
 import Conjure.Language.Definition
 
-import AST.ToEssence(ToEssence(..))
-import AST.FromEssence(FromEssence(..))
 import AST.Data
 import {-# SOURCE #-} AST.Literal()
 import {-# SOURCE #-} AST.Domain()

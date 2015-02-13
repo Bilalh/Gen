@@ -5,8 +5,6 @@ module AST.Expr where
 import Conjure.Language.Pretty
 import Conjure.Language.Definition
 
-import AST.ToEssence
-import AST.FromEssence
 import AST.Data
 
 

@@ -2,8 +2,6 @@
 {-# LANGUAGE MultiParamTypeClasses, FlexibleInstances #-}
 module AST.Literal where
 
-import AST.ToEssence(ToEssence(..))
-import AST.FromEssence(FromEssence(..))
 import AST.Data
 
 import Conjure.Language.Pretty
