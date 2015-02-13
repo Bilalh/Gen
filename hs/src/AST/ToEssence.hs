@@ -1,6 +1,5 @@
+{-# LANGUAGE MultiParamTypeClasses #-}
 module AST.ToEssence where
 
-import Language.E
-
-class ToEssence a where
-  toEssence :: a -> E
+class ToEssence ast conjure where
+  toEssence :: ast -> conjure

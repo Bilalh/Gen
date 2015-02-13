@@ -6,12 +6,12 @@ module AST.Data where
 
 import Conjure.Prelude
 
-data Domain
+data DDomain
   = DSet
     { size        :: Maybe Integer
     , minSize     :: Maybe Integer
     , maxSize     :: Maybe Integer
-    , inner       :: Domain
+    , inner       :: DDomain
     }
   | DMSet
     { size        :: Maybe Integer
@@ -19,7 +19,7 @@ data Domain
     , maxSize     :: Maybe Integer
     , minOccur    :: Maybe Integer
     , maxOccur    :: Maybe Integer
-    , inner       :: Domain
+    , inner       :: DDomain
     }
   | DFunc
     { size        :: Maybe Integer
@@ -28,8 +28,8 @@ data Domain
     , surjective  :: Bool
     , injective   :: Bool
     , total       :: Bool
-    , innerFrom   :: Domain
-    , innerTo     :: Domain
+    , innerFrom   :: DDomain
+    , innerTo     :: DDomain
     }
   | DPar
     { size        :: Maybe Integer
@@ -43,7 +43,7 @@ data Domain
     , minPartSize :: Maybe Integer
     , regular     :: Bool
     , complete    :: Bool
-    , inner       :: Domain
+    , inner       :: DDomain
     }
   | DRel
     { size        :: Maybe Integer
@@ -51,26 +51,26 @@ data Domain
     , minSize     :: Maybe Integer
     , reflexive   :: Bool
     , symmetric   :: Bool
-    , inners      :: [Domain] -- tuples
+    , inners      :: [DDomain] -- tuples
     }
   | DTuple
-    { inners :: [Domain]
+    { inners :: [DDomain]
     }
   | DInt
-    { ranges      :: [Range Expr]
+    { ranges      :: [RRange Expr]
     }
   | DMat
-    { innerIdx    :: Domain
-    , inner       :: Domain
+    { innerIdx    :: DDomain
+    , inner       :: DDomain
     }
   | DBool
   -- enums
   -- unamed types
     deriving(Show, Generic, Typeable, Eq, Ord, Read)
 
-instance Hashable Domain
-instance Hashable (Range Expr)
-instance Hashable (Type)
+instance Hashable DDomain
+instance Hashable (RRange Expr)
+instance Hashable (TType)
 instance Hashable (Expr)
 instance Hashable (QType)
 instance Hashable (BinOp)
@@ -79,7 +79,7 @@ instance Hashable (Proc)
 instance Hashable (UniOp)
 
 
-data Range a =
+data RRange a =
       RSingle a
     | RFromTo a a
     deriving (Show, Generic, Typeable, Eq, Ord, Read)
@@ -91,8 +91,8 @@ data Expr =
   | EBinOp BinOp
   | EUniOp UniOp
   | EProc Proc  -- e.g alldiff
-  | EDom Domain
-  | ETyped Type Expr
+  | EDom DDomain
+  | ETyped TType Expr
   | EEmptyGuard
   | EQuan QType BinOp Expr Expr
   deriving (Show, Generic, Typeable, Eq, Ord, Read)
@@ -201,7 +201,7 @@ data Literal
     = EB Bool
     | EI Integer
     | ETuple      [Literal]
-    | EMatrix     [Literal] Domain
+    | EMatrix     [Literal] DDomain
     | ESet        [Literal]
     | EMSet       [Literal]
     | EFunction   [(Literal, Literal)] -- list of mappings
@@ -210,24 +210,24 @@ data Literal
     | EExpr Expr
     deriving (Show, Generic, Typeable, Eq, Ord, Read)
 
-data Type =
+data TType =
       TInt
     | TBool
-    | TMatix  Type
-    | TSet    Type
-    | TMSet   Type
-    | TFunc   Type Type
-    | TTuple  [Type]
-    | TRel    [Type]
-    | TPar    Type
+    | TMatix  TType
+    | TSet    TType
+    | TMSet   TType
+    | TFunc   TType TType
+    | TTuple  [TType]
+    | TRel    [TType]
+    | TPar    TType
     | TUnamed Text   -- each unamed type is unique
     | TEnum   Text   -- as are enums
     | TAny
   deriving (Show, Generic, Typeable, Eq, Ord, Read)
 
-instance FromJSON Type
-instance ToJSON Type
+instance FromJSON TType
+instance ToJSON TType
 
-data Objective = Maximising Expr
-               | Minimising Expr
+data OObjective = Maximising Expr
+                | Minimising Expr
     deriving(Show, Generic, Typeable, Read, Eq)

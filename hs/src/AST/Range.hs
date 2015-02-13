@@ -1,8 +1,14 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 module AST.Range where
+
+-- import Conjure.Prelude
+import Conjure.Language.Pretty
+import Conjure.Language.Domain
+import Conjure.Language.Definition
 
 import AST.FromEssence(FromEssence(..))
 import AST.ToEssence(ToEssence(..))
@@ -10,19 +16,19 @@ import AST.Data
 import {-# Source #-} AST.Expr()
 import {-# Source #-} AST.Literal()
 
-import Language.E
 
-instance ToEssence (Range Expr) where
-    toEssence (RFromTo l u) = [xMake| range.fromTo  := [toEssence l, toEssence u  ] |]
-    toEssence (RSingle i  ) = [xMake| range.single  := [toEssence i ] |]
 
-instance FromEssence (Range Expr) where
-    fromEssence [xMatch| [l,u] := range.fromTo |] = do
-        l' <- fromEssence l
-        u' <- fromEssence u
-        return $ RFromTo l' u'
-    fromEssence [xMatch| [i] := range.single |] = fromEssence i >>= return . RSingle
-    fromEssence x = Left x
+instance ToEssence (RRange Expr) (Range Expression) where
+    toEssence (RFromTo l u) = RangeBounded (toEssence l) (toEssence u)
+    toEssence (RSingle i ) = RangeSingle (toEssence i)
 
-instance Pretty (Range Expr) where
-    pretty p = pretty $ toEssence p
+instance FromEssence (Range Expression) (RRange Expr) where
+--     fromEssence [xMatch| [l,u] := range.fromTo |] = do
+--         l' <- fromEssence l
+--         u' <- fromEssence u
+--         return $ RFromTo l' u'
+--     fromEssence [xMatch| [i] := range.single |] = fromEssence i >>= return . RSingle
+--     fromEssence x = Left x
+
+instance Pretty (RRange Expr) where
+    -- pretty p = pretty $ toEssence p

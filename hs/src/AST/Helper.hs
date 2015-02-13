@@ -1,6 +1,7 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, ViewPatterns #-}
 module AST.Helper where
 
+{-
 import Language.E
 import qualified Data.Text as T
 
@@ -86,3 +87,5 @@ mkGiven :: (E,E) -> E
 mkGiven (name,dom) =[xMake| topLevel.declaration.given.name   := [name]
                           | topLevel.declaration.given.domain := [dom]
                           |]
+
+-}

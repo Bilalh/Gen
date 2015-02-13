@@ -1,12 +1,16 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances #-}
 module AST.Literal where
 
 import AST.ToEssence(ToEssence(..))
 import AST.FromEssence(FromEssence(..))
 import AST.Data
 
-import Language.E
+import Conjure.Language.Pretty
+import Conjure.Language.Domain
+import Conjure.Language.Definition
 
-instance ToEssence Literal
-instance FromEssence Literal
+
+instance ToEssence Literal (AbstractLiteral Expression)
+instance FromEssence (AbstractLiteral Expression) Literal
 instance Pretty Literal
