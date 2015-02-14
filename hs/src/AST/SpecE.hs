@@ -1,6 +1,7 @@
 {-# LANGUAGE QuasiQuotes, ViewPatterns #-}
 {-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
 {-# LANGUAGE DeriveGeneric, DeriveDataTypeable #-}
+{-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
 
 module AST.SpecE where
 
@@ -13,6 +14,8 @@ import Conjure.Language.Definition
 
 import AST.Data
 import AST.Expr()
+
+import TestGen.Helpers.Placeholders (todo)
 
 
 type Doms = Map Text FG
@@ -40,7 +43,17 @@ instance FromEssence (Text,FG) FindOrGiven where
     -- fromEssence x = Left x
 
 fromSpec :: MonadFail m => Model -> m SpecE
-fromSpec = error "fromSpec"
+fromSpec Model{mStatements} = do
+ -- let decs'  mapM fromEssence decs
+ decs' <- $(todo "fromSpec")
+ return $ SpecE (M.fromList decs') [] Nothing
+
+  where
+    decs = mapMaybe df mStatements
+
+    df (Declaration ret@(FindOrGiven Find _ x)) = Just ret
+    df _ = Nothing
+
 -- fromSpec (Spec _ x) = do
 --   decs' <- mapM fromEssence decs
 --   cons' <- mapM fromEssence cons
