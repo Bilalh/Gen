@@ -95,6 +95,8 @@ Library
                      , tf-random
                      , unix
                      , uniplate
+                     , syb
+                     , parsec
 
    default-extensions:
         NoImplicitPrelude
