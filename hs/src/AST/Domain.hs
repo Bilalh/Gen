@@ -9,10 +9,11 @@ import Conjure.Prelude
 import Conjure.Language.Pretty
 import Conjure.Language.Domain
 import Conjure.Language.Definition
-
+import AST.TH
 
 import AST.Data
 import {-# SOURCE #-} AST.Range()
+import {-# SOURCE #-} AST.Expr()
 
 import Conjure.Prelude
 
@@ -185,3 +186,14 @@ instance FromEssence (Domain () Expression) DDomain where
     --     return DTuple{inners=iv}
 
     -- fromEssence x = Left x
+
+
+
+instance Translate (Domainn Expr) (Domain () Expression) where
+-- instance Translate (Domainn Expr) (Domainn Expr) where
+    fromConjure x =  mapM f (Domainn  x)
+        where
+          f y = fromConjure y
+
+instance Pretty (Domainn Expr) where
+    pretty (Domainn x) = pretty x

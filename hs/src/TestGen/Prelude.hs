@@ -49,9 +49,7 @@ import qualified Text.PrettyPrint as P
 
 import TestGen.Helpers.TypeOf as X
 
-import Control.Monad.State.Strict( MonadState(get))
-
-import GHC.Real(round)
+import GHC.Real as X(round)
 
 withDepth :: Depth -> GG a -> GG a
 withDepth newDepth f = do

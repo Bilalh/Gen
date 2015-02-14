@@ -12,6 +12,7 @@ import AST.Data
 instance ToEssence DDomain (Domain () Expression)
 instance FromEssence (Domain () Expression) DDomain
 instance Pretty DDomain
+instance Pretty (Domainn Expr)
 
 dint, dset, dmset, dmat, dfunc, drel, dpar, dtuple  :: DDomain
 dintRange :: Integer -> Integer -> DDomain

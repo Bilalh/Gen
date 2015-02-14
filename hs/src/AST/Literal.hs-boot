@@ -11,4 +11,6 @@ import Conjure.Language.Definition
 
 instance ToEssence Literal (AbstractLiteral Expression)
 instance FromEssence (AbstractLiteral Expression) Literal
+
+instance Translate Literal Constant
 instance Pretty Literal

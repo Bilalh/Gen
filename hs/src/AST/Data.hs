@@ -1,10 +1,17 @@
 {-# LANGUAGE  FlexibleInstances, MultiParamTypeClasses #-}
-{-# LANGUAGE DeriveGeneric, DeriveDataTypeable #-}
-{-# LANGUAGE DeriveFunctor #-}
+--{-# LANGUAGE DeriveGeneric, DeriveDataTypeable #-}
+-- {-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DeriveGeneric, DeriveDataTypeable, DeriveFunctor, DeriveTraversable, DeriveFoldable #-}
+
 
 module AST.Data where
 
 import Conjure.Prelude
+import Conjure.Language.Domain
+import Conjure.Language.Pretty
+
+newtype Domainn x = Domainn (Domain () x)
+  deriving (Eq, Ord, Show, Data, Functor, Traversable, Foldable, Typeable, Generic)
 
 data DDomain
   = DSet
@@ -237,3 +244,19 @@ class ToEssence ast conjure where
 
 class FromEssence conjure ast where
   fromEssence :: conjure -> Either conjure ast
+
+class (Pretty ast, Pretty conjure) => Translate ast conjure where
+  -- Should never cause an error but...
+  toConjure   :: MonadFail m => ast -> m conjure
+  -- Should never cause an error but...
+  fromConjure :: MonadFail m => conjure -> m ast
+
+  toConjureNote :: Doc -> ast -> conjure
+  toConjureNote msg a = case toConjure a  of
+                  Right x -> x
+                  Left  d -> error . renderNormal . vcat $ [msg, d ]
+
+  fromConjureNote :: Doc -> conjure -> ast
+  fromConjureNote msg a =  case fromConjure a of
+                    Right x -> x
+                    Left  d -> error . renderNormal . vcat $ [msg, d ]

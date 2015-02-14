@@ -14,8 +14,6 @@ import AST.Data
 import {-# SOURCE #-} AST.Domain(dintRange)
 import {-# SOURCE #-} AST.Expr()
 
-import Control.Arrow((&&&))
-import Text.Groom(groom)
 
 
 
@@ -42,8 +40,6 @@ instance ToEssence Literal (AbstractLiteral Expression) where
 
     -- toEssence (EExpr e) =  toEssence e
 
-instance Pretty Literal where
-    -- pretty = pretty . toEssence
 
 instance FromEssence (AbstractLiteral Expression) Literal where
     -- fromEssence (Prim (B x)) = return $ EB x
@@ -89,3 +85,23 @@ instance FromEssence (AbstractLiteral Expression) Literal where
     --         helper x = Left x
 
     -- fromEssence x = EExpr <$> fromEssence x
+
+
+instance Translate Literal Constant where
+  fromConjure (ConstantBool r)        = return $ EB r
+  fromConjure (ConstantInt r)         = return $ EI (fromIntegral r)
+  fromConjure x = fail ("fromConjure Expr " <+>  pretty x <+> (pretty . groom) x)
+
+  -- fromConjure (ConstantEnum r1 r2 r3) = _r
+  -- fromConjure (ConstantAbstract r)    = _r
+  -- fromConjure (DomainInConstant r)    = _r
+  -- fromConjure (ConstantUndefined r)   = _r
+
+  toConjure (EB x) = pure $ ConstantBool x
+  toConjure (EI x) = pure $ ConstantInt (fromInteger x)
+  toConjure x = error . renderNormal $ ("toConjure Expr " <+>  (pretty . groom) x)
+
+instance Pretty Literal where
+    pretty (EB x) = pretty $ ConstantBool x
+    pretty (EI x) = pretty $ ConstantInt (fromInteger x)
+    pretty x = error . renderNormal $ ("toConjure Expr " <+>  (pretty . groom) x)

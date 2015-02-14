@@ -1,4 +1,5 @@
 module AST.TH(domain) where
+-- really only for ghci
 
 import Conjure.Language.Definition
 

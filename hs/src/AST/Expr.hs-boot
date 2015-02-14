@@ -14,3 +14,6 @@ instance FromEssence Expression Expr
 instance Pretty Expr
 instance Pretty BinOp
 instance Pretty UniOp
+
+instance Translate Expr Expression
+instance Translate BinOp Expression where
