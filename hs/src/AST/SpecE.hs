@@ -11,17 +11,75 @@ import Data.Map (Map)
 import Conjure.Prelude
 import Conjure.Language.Pretty
 import Conjure.Language.Definition
+import Conjure.Language.Domain
 
 import AST.Data
 import AST.Expr()
 
 import TestGen.Helpers.Placeholders (todo)
 
+data GF = Givenn (Domainn Expr)
+        | Findd  (Domainn Expr)
+    deriving(Show, Generic, Typeable, Eq)
+
+type Domains = Map Text GF
+
+data Spec = Spec Domains [Expr] (Maybe OObjective)
+    deriving(Show, Generic, Typeable, Eq)
+
+instance Pretty GF
+
+
+instance Translate (Text, GF) (FindOrGiven, Name, Domain () Expression)  where
+    fromConjure (x,(Name t),cdom) | x == Find || x == Given = do
+      dom <- fromConjure cdom
+      let kind = if x == Find then Findd else Givenn
+      return $ (t, kind dom)
+
+    fromConjure x = fail ("fromConjure Expr " <+>  pretty x <+> (pretty . groom) x)
+
+    toConjure (t,(Findd dom)) = do
+      cdom <- toConjure dom
+      return (Find, Name t, cdom)
+
+    toConjure (t,(Givenn dom)) = do
+      cdom <- toConjure dom
+      return (Find, Name t, cdom)
+
+instance Pretty Spec where
+    pretty = pretty . (toConjureNote "Pretty Spec" :: Spec -> Model )
+
+instance Translate Spec Model where
+    toConjure = toModel
+    fromConjure = fromModel
+
+fromModel :: MonadFail m => Model -> m Spec
+fromModel Model{mStatements} = do
+  let cDoms = mapMaybe getDoms mStatements
+  doms <- mapM makeDoms cDoms
+  return $ Spec (M.fromList doms) [] Nothing
+
+    where
+      getDoms (Declaration (FindOrGiven _ (Name name) dom) ) = Just (name,  ((), dom))
+      getDomss _ = Nothing
+
+      makeDoms (name, (_, cdom)) = do
+        dom <- fromConjure cdom
+        return $ (name, Findd dom)
+
+toModel :: MonadFail m => Spec -> m Model
+toModel (Spec doms exprs obj) = do
+    tuples   <- mapM toConjure (M.toList doms)
+    let doms = map toDom tuples
+    return $ def{mStatements=doms }
+
+    where
+      toDom (x,t,cdom) = Declaration $ FindOrGiven x t cdom
+
 
 type Doms = Map Text FG
 data SpecE = SpecE Doms [Expr] (Maybe OObjective)
     deriving(Show, Generic, Typeable, Read, Eq)
-
 
 
 

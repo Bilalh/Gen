@@ -190,10 +190,11 @@ instance FromEssence (Domain () Expression) DDomain where
 
 
 instance Translate (Domainn Expr) (Domain () Expression) where
--- instance Translate (Domainn Expr) (Domainn Expr) where
     fromConjure x =  mapM f (Domainn  x)
         where
           f y = fromConjure y
+
+    toConjure (Domainn x) = mapM toConjure x
 
 instance Pretty (Domainn Expr) where
     pretty (Domainn x) = pretty x

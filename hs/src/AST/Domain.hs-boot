@@ -14,5 +14,7 @@ instance FromEssence (Domain () Expression) DDomain
 instance Pretty DDomain
 instance Pretty (Domainn Expr)
 
+instance Translate (Domainn Expr) (Domain () Expression)
+
 dint, dset, dmset, dmat, dfunc, drel, dpar, dtuple  :: DDomain
 dintRange :: Integer -> Integer -> DDomain
