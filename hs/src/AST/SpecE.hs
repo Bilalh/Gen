@@ -27,7 +27,10 @@ type Domains = Map Text GF
 data Spec = Spec Domains [Expr] (Maybe OObjective)
     deriving(Show, Generic, Typeable, Eq)
 
-instance Pretty GF
+instance Pretty GF where
+    pretty (Givenn x) = "Givenn " <+> pretty x
+    pretty (Findd x)  = "Findd "  <+> pretty x
+
 
 
 instance Translate (Text, GF) (FindOrGiven, Name, Domain () Expression)  where
@@ -56,16 +59,12 @@ instance Translate Spec Model where
 fromModel :: MonadFail m => Model -> m Spec
 fromModel Model{mStatements} = do
   let cDoms = mapMaybe getDoms mStatements
-  doms <- mapM makeDoms cDoms
+  doms <- mapM fromConjure cDoms
   return $ Spec (M.fromList doms) [] Nothing
 
     where
-      getDoms (Declaration (FindOrGiven _ (Name name) dom) ) = Just (name,  ((), dom))
-      getDomss _ = Nothing
-
-      makeDoms (name, (_, cdom)) = do
-        dom <- fromConjure cdom
-        return $ (name, Findd dom)
+      getDoms (Declaration (FindOrGiven a b c) ) = Just (a, b, c)
+      getDoms _ = Nothing
 
 toModel :: MonadFail m => Spec -> m Model
 toModel (Spec doms exprs obj) = do

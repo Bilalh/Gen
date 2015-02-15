@@ -417,13 +417,13 @@ instance Translate BinOp Expression where
         x' = toConjureNote "toConjure binOP" x
         y' = toConjureNote "toConjure binOP" y
 
-    -- toConjure (BlexGT x y) = return [essence| &x' >lex &y' |] where
-    --     x' = toConjureNote "toConjure binOP" x
-    --     y' = toConjureNote "toConjure binOP" y
+    toConjure (BlexGT x y) = return [essence| &x' >lex &y' |] where
+        x' = toConjureNote "toConjure binOP" x
+        y' = toConjureNote "toConjure binOP" y
 
-    -- toConjure (BlexGTE x y) = return [essence| &x' >=lex &y' |] where
-    --     x' = toConjureNote "toConjure binOP" x
-    --     y' = toConjureNote "toConjure binOP" y
+    toConjure (BlexGTE x y) = return [essence| &x' >=lex &y' |] where
+        x' = toConjureNote "toConjure binOP" x
+        y' = toConjureNote "toConjure binOP" y
 
     toConjure (BOver _ _ ) = error . show . vcat $ [
               "toConjure Bover missing case"
