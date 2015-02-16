@@ -296,7 +296,7 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce BinOp m where
         [pretty $  a, pretty $ groom a ]
 
 
-instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce DDomain m where
+instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce (Domainn Expr) m where
     reduce _   = return []
     single x   = return [EDom x]
     subterms _ = return []
@@ -461,7 +461,7 @@ singleLitExpr ty = do
   singleLit $ ty
 
 runReduce :: (HasGen m, Standardise a, HasLogger m, Reduce a (StateT EState (IdentityT m)) )
-             => SpecE -> a -> m [a]
+             => Spec -> a -> m [a]
 runReduce spe x = do
   addLog "runReduce" []
   state <- (newEState spe)

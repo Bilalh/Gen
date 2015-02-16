@@ -338,7 +338,7 @@ varsOf' exprType = do
 
 
 
-domOf ::  [TType] -> GG (Maybe (Gen DDomain))
+domOf ::  [TType] -> GG (Maybe (Gen (Domainn Expr)))
 domOf exprTypes = do
     doms_ <- gets doms_
     return $ toGenExpr id  $ (map (domOfFG . snd) . M.toList  .

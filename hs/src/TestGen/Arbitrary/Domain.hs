@@ -38,9 +38,9 @@ import qualified Data.Set as S
 -- instance (Pretty a, Pretty b, Pretty c) => Pretty (a,b, c) where
 --     pretty (a,b,c) = prettyListDoc parens "," [pretty a, pretty b, pretty c]
 
-intDomChoice, setDomChoice, msetDomChoice, matixDomChoice :: (Int, GG DDomain)
-funcDomChoice, relDomChoice, parDomChoice, tupleDomChoice :: (Int, GG DDomain)
-boolDomChoice :: (Int, GG DDomain)
+intDomChoice, setDomChoice, msetDomChoice, matixDomChoice :: (Int, GG (Domainn Expr))
+funcDomChoice, relDomChoice, parDomChoice, tupleDomChoice :: (Int, GG (Domainn Expr))
+boolDomChoice :: (Int, GG (Domainn Expr))
 
 boolDomChoice  = (0, return DBool)
 intDomChoice   = (0, intDom)
@@ -53,7 +53,7 @@ parDomChoice   = (1, parDom)
 tupleDomChoice = (1, parDom)
 
 
-dom_only :: [(Int,GG DDomain)] -> GG DDomain
+dom_only :: [(Int,GG (Domainn Expr))] -> GG (Domainn Expr)
 dom_only ds = do
     addLog "dom_only" ["start"]
 
@@ -67,7 +67,7 @@ dom_only ds = do
         return choice
 
 
-dom_def :: GG DDomain
+dom_def :: GG (Domainn Expr)
 dom_def =  gets depth_ >>= \case
     0  -> oneof2 [ intDom, return DBool ]
     1  -> oneof2
@@ -92,20 +92,20 @@ dom_def =  gets depth_ >>= \case
         , tupleDom
         ]
 
-intDom :: GG DDomain
+intDom :: GG (Domainn Expr)
 intDom = return DInt `ap` listOfBounds (1, 2) (range)
 
-setDom :: GG DDomain
+setDom :: GG (Domainn Expr)
 setDom = do
     inner <- withDepthDec dom
     return $ dset{inner}
 
-msetDom :: GG DDomain
+msetDom :: GG (Domainn Expr)
 msetDom = do
     inner <- withDepthDec dom
     return $ dmset{inner}
 
-matixDom :: GG DDomain
+matixDom :: GG (Domainn Expr)
 matixDom = do
     d <- gets depth_
     numElems <- choose2 (1 :: Integer, min (fromIntegral $ d * 3) 10 )
@@ -119,25 +119,25 @@ matixDom = do
     -- return $ (numElems,numRanges, DMat{innerIdx=idx, inner=innerDom })
     return  dmat{innerIdx=idx, inner=innerDom }
 
-funcDom :: GG DDomain
+funcDom :: GG (Domainn Expr)
 funcDom = do
     innerFrom <- withDepthDec dom
     innerTo   <- withDepthDec dom
     return dfunc{innerFrom,innerTo}
 
-relDom :: GG DDomain
+relDom :: GG (Domainn Expr)
 relDom = do
     d <- gets depth_
     numElems <- choose2 (1, min (d * 2) 10 )
     doms <- vectorOf2 numElems (withDepthDec dom)
     return drel{inners=doms}
 
-parDom :: GG DDomain
+parDom :: GG (Domainn Expr)
 parDom = do
     inner <- withDepthDec dom
     return dpar{inner}
 
-tupleDom :: GG DDomain
+tupleDom :: GG (Domainn Expr)
 tupleDom = do
     d <- gets depth_
     numElems <- choose2 (1, min (d * 2) 5 )
@@ -240,7 +240,7 @@ rangeComp a b  = docError [
     pretty a, pretty b
     ]
 
-intFromDint :: DDomain -> GG Expr
+intFromDint :: (Domainn Expr) -> GG Expr
 intFromDint DInt{..} =  elements2 $ concatMap getInts ranges
     where
         getInts (RSingle x@(ELit (EI _))) =  [x]

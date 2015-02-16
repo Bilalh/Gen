@@ -125,7 +125,7 @@ instance Standardise Literal where
     standardise (EExpr (ELit l)) = standardise l
     standardise (EExpr x)        = pure EExpr <*> standardise x
 
-instance Standardise DDomain where
+instance Standardise (Domainn Expr) where
     standardise x = return x  --FIXME when adding expr to domains
 
 
@@ -136,8 +136,8 @@ instance Standardise FG where
 instance Standardise Doms where
     standardise = V.traverse standardise
 
-instance Standardise SpecE where
-    standardise (SpecE x1 x2 x3) = pure SpecE <*> standardise x1
+instance Standardise Spec where
+    standardise (SpecE x1 x2 x3) = pure Spec <*> standardise x1
                                               <*> mapM standardise x2
                                               <*> standardise x3
 

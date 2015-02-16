@@ -90,7 +90,7 @@ instance Default RState where
 
 
 -- | Check if the spec's hash is contained, (add it if it is not)
-containHashAdd :: SpecE -> RR Bool
+containHashAdd :: Spec -> RR Bool
 containHashAdd newE= do
   -- let newHash = hash (pretty newE)
   let newHash = $notImplemented
@@ -144,7 +144,7 @@ oneofR gs = do
 
 
 data EState = EState
-  { spec_  :: SpecE
+  { spec_  :: Spec
   , sgen_  :: TFGen
   , elogs_ :: LogsTree
   }
@@ -158,16 +158,16 @@ instance HasGen (StateT EState Identity) where
   getGen   = gets sgen_
   putGen g = modify $ \st -> st{sgen_=g }
 
-newEState :: HasGen m => SpecE -> m EState
+newEState :: HasGen m => Spec -> m EState
 newEState sp = do
   newSeed <- chooseR (0 :: Int ,2^(24:: Int) )
   return $ EState{spec_=sp,sgen_=mkrGen newSeed,elogs_=LSEmpty}
 
-newEStateWithSeed :: Int -> SpecE -> EState
+newEStateWithSeed :: Int -> Spec -> EState
 newEStateWithSeed seed sp = do
   EState{spec_=sp,sgen_=mkrGen seed,elogs_=LSEmpty}
 
-instance WithDoms (StateT SpecE Identity) where
+instance WithDoms (StateT Spec Identity) where
   getSpecEWithDoms = get
 
 

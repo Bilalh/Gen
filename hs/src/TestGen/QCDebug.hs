@@ -11,7 +11,7 @@ import TestGen.Arbitrary.Type(atype_only)
 import TestGen.Prelude
 
 
-newtype S2 = S2 SpecE
+newtype S2 = S2 Spec
     deriving Show
 
 instance Arbitrary S2 where
@@ -42,7 +42,7 @@ myUseFunc2 Aimage        = False
 myUseFunc2 _             = True
 
 
-newtype S3 = S3 SpecE
+newtype S3 = S3 Spec
     deriving Show
 
 instance Arbitrary S3  where
@@ -59,6 +59,6 @@ instance ArbSpec S3 where
         }
 
 
-specE1 :: SpecE
+specE1 :: Spec
 specE1= readNote "specE1" $
     "SpecE (fromList [(\"var1\",Find (DSet {size = Nothing, minSize = Nothing, maxSize = Nothing, inner = DBool}))]) [EBinOp (BOr (EBinOp (BEQ (ELit (ESet [EExpr (ELit (EB True))])) (ELit (ESet [EExpr (ELit (EB True)),EExpr (ELit (EB True))])))) (ELit (EB False)))]"

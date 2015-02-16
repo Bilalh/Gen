@@ -34,7 +34,7 @@ import TestGen.Reduce.Reduce
 --     case  fromEssence (e :: E) of
 --         Left er -> error . show .  (pretty &&& pretty . groom)  $ er
 --         Right ee -> do
---             let spe   :: SpecE  = undefined
+--             let spe   :: Spec  = undefined
 --                 seed            = 32
 --                 state :: EState = EState{spec_=spe,sgen_=mkrGen seed,elogs_=LSEmpty}
 --                 res             = runIdentity $ flip evalStateT state $ f ee
@@ -44,7 +44,7 @@ import TestGen.Reduce.Reduce
 -- _partse :: ToEssence a =>
 --          (t -> StateT EState Identity [a]) -> t -> IO [a]
 -- _partse f e = do
---     let spe   :: SpecE  = undefined
+--     let spe   :: Spec  = undefined
 --         seed            = 32
 --         state :: EState = EState{spec_=spe,sgen_=mkrGen seed, elogs_=LSEmpty}
 --         res             = runIdentity $ flip evalStateT state $ f e
@@ -52,7 +52,7 @@ import TestGen.Reduce.Reduce
 --     return res
 
 -- _partsf  = do
---     let spe   :: SpecE  = undefined
+--     let spe   :: Spec  = undefined
 --         seed            = 32
 --         state :: EState = EState{spec_=spe,sgen_=mkrGen seed, elogs_=LSEmpty}
 --         res             = runIdentity  . flip evalStateT state
@@ -71,7 +71,7 @@ plogs :: (a,RState) -> Doc
 plogs (_,RState{rlogs_}) = pretty rlogs_
 
 
--- _k :: IO SpecE
+-- _k :: IO Spec
 -- _k = do
 --     -- let fp = "/Users/bilalh/CS/break_conjure/misc/1419393045_122/spec.specE"
 --     -- let fp = "/Users/bilalh/CS/break_conjure/2014-12-19_04-19_1418962766/RefineCompact_/rrErrorUnknown_/1418964459_41/spec.specE"
@@ -90,7 +90,7 @@ plogs (_,RState{rlogs_}) = pretty rlogs_
 --               }
 
 
--- _j :: IO SpecE
+-- _j :: IO Spec
 -- _j = do
 --   let fp = "/Users/bilalh/CS/break_conjure/2014-12-19_04-19_1418962766/RefineCompact_/ErrorUnknown_/1418964459_41"
 

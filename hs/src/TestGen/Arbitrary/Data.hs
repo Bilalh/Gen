@@ -43,8 +43,8 @@ type Ref = Text
 data SS = SS
     {
       depth_      :: Depth       --  how many levels to genrate
-    , doms_       :: Map Text FG --  Domains
-    , nextNum_    :: Int          -- Number to name next var
+    , doms_       :: Domains
+    , nextNum_    :: Int             -- Number to name next var
     , newVars_    :: [(Text,TType) ] -- Domains from e.g. forall
     , logs_       :: LogsTree
     , __lc        :: Int
@@ -59,14 +59,14 @@ type SpecState=SS
 data Generators = Generators
     {
         gen_atype      :: GG TType
-    ,   gen_dom        :: GG DDomain
+    ,   gen_dom        :: GG (Domainn Expr)
     ,   gen_useFunc    :: FuncsNames -> Bool
     }
 
 class (Arbitrary a, Show a) => ArbSpec a where
     tyGens  :: a -> Generators
-    getSpec :: a -> SpecE
-    wrapSpec :: SpecE -> a
+    getSpec :: a -> Spec
+    wrapSpec :: Spec -> a
 
 
 

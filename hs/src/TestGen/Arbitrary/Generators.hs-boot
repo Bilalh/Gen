@@ -9,7 +9,7 @@ import TestGen.Helpers.StandardImports
 import TestGen.Arbitrary.Data
 
 atype :: GG TType
-dom   :: GG DDomain
+dom   :: GG (Domainn Expr)
 useFunc :: FuncsNames -> GG Bool
 
 

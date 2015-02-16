@@ -57,7 +57,7 @@ addSpecE fp_ = do
          writeFile (replaceExtension fp ".specE" ) (show r)
 
 
-compareSpecs :: SpecE -> Model -> IO Bool
+compareSpecs :: Spec -> Model -> IO Bool
 compareSpecs = error "compareSpecs"
 -- compareSpecs specE  (Spec _ v2) = do
 --     let (Spec lang v1) = toSpec specE

@@ -4,7 +4,7 @@ module TestGen.Reduce.UnusedDomains(unusedDomains) where
 import TestGen.Prelude
 -- import qualified Data.HashSet as S
 
-unusedDomains :: SpecE -> [Text]
+unusedDomains :: Spec -> [Text]
 unusedDomains _ = $notImplemented
 -- unusedDomains spe =
 --     case runCompESingle "f" (unusedDomainsOC (toSpec spe)  ) of

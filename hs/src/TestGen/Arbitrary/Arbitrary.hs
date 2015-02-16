@@ -71,10 +71,10 @@ instance (Arbitrary a, ArbSpec a) => Arbitrary (WithExtra a) where
             return WithExtra{inner_=wrapSpec sp, wlogs_= t, ts_int_, run_seed_ }
 
 
-instance Arbitrary SpecE where
+instance Arbitrary Spec where
     arbitrary = sized spec
 
-instance ArbSpec SpecE where
+instance ArbSpec Spec where
     tyGens   = def
     getSpec  = id
     wrapSpec = id
@@ -85,7 +85,7 @@ tails2 [] = []
 tails2 xs = tail (tails xs)
 
 
-spec :: Depth -> Gen SpecE
+spec :: Depth -> Gen Spec
 spec depth =  do
     (specE, _) <- spec' depth
     return specE

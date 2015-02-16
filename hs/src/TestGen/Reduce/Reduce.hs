@@ -47,7 +47,7 @@ reduceMain rr = do
       return newSp
 
 
-tryRemoveConstraints :: SpecE -> RR SpecE
+tryRemoveConstraints :: Spec -> RR Spec
 tryRemoveConstraints  sp@(SpecE ds _ obj) = do
   runSpec (SpecE ds [] obj) >>= \case
     Just r  -> do
@@ -55,7 +55,7 @@ tryRemoveConstraints  sp@(SpecE ds _ obj) = do
       return (SpecE ds [] obj)
     Nothing -> return sp
 
-removeUnusedDomains :: SpecE -> RR SpecE
+removeUnusedDomains :: Spec -> RR Spec
 removeUnusedDomains sp@(SpecE ods es obj) = do
     let unusedNames = unusedDomains sp
 
@@ -89,7 +89,7 @@ removeUnusedDomains sp@(SpecE ods es obj) = do
     ensureADomain ds = ds
 
 
-removeConstraints :: SpecE -> RR SpecE
+removeConstraints :: Spec -> RR Spec
 removeConstraints (SpecE ds oes obj) = do
     let nubbed = nub2 oes
     nes <- process (choices nubbed)
@@ -114,7 +114,7 @@ removeConstraints (SpecE ds oes obj) = do
 
     -- process ts = rrError . show . prettyBrackets . vcat $ map (prettyBrackets .  vcat . map pretty) ts
 
-simplyConstraints :: SpecE -> RR SpecE
+simplyConstraints :: Spec -> RR Spec
 simplyConstraints sp@(SpecE ds es obj) = do
     csToDo <- doConstraints es
     addLog "Got Constraints" []

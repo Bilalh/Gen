@@ -94,7 +94,7 @@ maximum' :: Ord a => a -> [a] -> a
 maximum' a [] = a
 maximum' _ xs = maximum xs
 
-specE1 :: SpecE
+specE1 :: Spec
 specE1= readNote "SpecE1" $
     "SpecE (fromList [(\"var1\",Find (DSet {size = Nothing, minSize = Nothing, maxSize = Nothing, inner = DBool}))]) [EBinOp (BOr (EBinOp (BEQ (ELit (ESet [EExpr (ELit (EB True))])) (ELit (ESet [EExpr (ELit (EB True)),EExpr (ELit (EB True))])))) (ELit (EB False)))]"
 
@@ -212,5 +212,5 @@ instance HasFeature Literal where
     getFeatures (EExpr l)      = FexprInLiteral : getFeatures l
 
 
-instance HasFeature DDomain where
+instance HasFeature (Domainn Expr) where
   getFeatures _ = []

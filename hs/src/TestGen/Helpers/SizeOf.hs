@@ -26,7 +26,7 @@ class SizeOfLimited a where
 
 
 
-instance SizeOf DDomain where
+instance SizeOf (Domainn Expr) where
     sizeOf DInt{..} = fromIntegral .  S.size .  S.fromList . concatMap rangeInts $ ranges
     sizeOf r = docError [
         "sizeOf not matched",
@@ -176,7 +176,7 @@ instance DepthOf Proc where
     depthOf (Pparticipants p)    = 1 + depthOf p
     depthOf (Ptogether p1 p2 p3) = 1 + maximum (map depthOf [p1,p2,p3])
 
-instance DepthOf DDomain where
+instance DepthOf (Domainn Expr) where
     depthOf =  depthOf .  typeOfDom
 
 instance DepthOf a => DepthOf (Maybe a) where

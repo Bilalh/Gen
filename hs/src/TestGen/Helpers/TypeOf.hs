@@ -1,23 +1,24 @@
 {-# LANGUAGE MultiParamTypeClasses, FlexibleInstances #-}
 {-# LANGUAGE RecordWildCards, NamedFieldPuns #-}
 
-module TestGen.Helpers.TypeOf(WithDoms(..), TypeOf(..), typeOfDom) where
+module TestGen.Helpers.TypeOf(WithDoms(..), TTypeOf(..), typeOfDom) where
 
 import TestGen.Helpers.StandardImports
 -- import TestGen.Arbitrary.Data
 
 import qualified Data.Map as M
-
-
+import Conjure.Language.TypeOf
+import Conjure.Language.Domain
+import Conjure.Language.Definition
 
 class (Monad a, Applicative a) => WithDoms a where
-  domainOfVar :: Text -> a (Maybe DDomain)
-  getSpecEWithDoms :: a SpecE
+  domainOfVar :: Text -> a (Maybe (Domainn Expr))
+  getSpecEWithDoms :: a Spec
   typeOfVar :: Text -> a (Maybe TType)
 
   domainOfVar t = do
-    (SpecE ds _ _) <- getSpecEWithDoms
-    let d =  fmap domOfFG $ t `M.lookup` ds
+    (Spec ds _ _) <- getSpecEWithDoms
+    let d =  fmap domOfGF $ t `M.lookup` ds
     return d
 
   typeOfVar  t = do
@@ -25,27 +26,27 @@ class (Monad a, Applicative a) => WithDoms a where
       Nothing -> return Nothing
       Just d  -> ttypeOf d >>= return . Just
 
-instance WithDoms ((->) SpecE) where
+instance WithDoms ((->) Spec) where
     getSpecEWithDoms e = e
 
 instance WithDoms m => WithDoms (StateT () m)  where
     getSpecEWithDoms = getSpecEWithDoms
 
 
-class WithDoms m => TypeOf a m where
+class WithDoms m => TTypeOf a m where
     ttypeOf :: a -> m TType
 
-instance WithDoms m => TypeOf TType m where
+instance WithDoms m => TTypeOf TType m where
   ttypeOf t = return t
 
-instance WithDoms m => TypeOf FG m where
-  ttypeOf = return . typeOfDom . domOfFG
+instance WithDoms m => TTypeOf GF m where
+  ttypeOf = return . typeOfDom . domOfGF
 
-instance WithDoms m => TypeOf DDomain m where
+instance WithDoms m => TTypeOf (Domainn Expr) m where
   ttypeOf = return . typeOfDom
 
 
-instance WithDoms m => TypeOf Expr m where
+instance WithDoms m => TTypeOf Expr m where
   ttypeOf (ELit x)          = ttypeOf x
   ttypeOf (EDom x)          = ttypeOf x
   ttypeOf (EBinOp x)        = ttypeOf x
@@ -55,22 +56,18 @@ instance WithDoms m => TypeOf Expr m where
   ttypeOf (EQuan _ _ _ _)   = return TBool
   ttypeOf EEmptyGuard       = return TBool
 
-  ttypeOf (EQVar x) = typeOfVar x >>= \case
-    Nothing -> error . show . vcat $ ["ttypeOf EQVar no domain", pretty x  ]
-    Just ty -> return ty
-
   ttypeOf (EVar x) = typeOfVar x >>= \case
     Nothing -> error . show . vcat $ ["ttypeOf EVar no domain", pretty x  ]
     Just ty -> return ty
 
   ttypeOf (ETyped t _)  = return t
 
-instance WithDoms m => TypeOf UniOp m where
+instance WithDoms m => TTypeOf UniOp m where
   ttypeOf (UBar e) = ttypeOf e
   ttypeOf (UNeg e) = ttypeOf e
 
 
-instance WithDoms m => TypeOf BinOp m where
+instance WithDoms m => TTypeOf BinOp m where
   ttypeOf (BIn _ _)    = return TBool
   ttypeOf (BOver _ _) = error "withDoms Bover missing"
   ttypeOf (BEQ _ _)    = return TBool
@@ -106,11 +103,11 @@ instance WithDoms m => TypeOf BinOp m where
 
 
 
-instance WithDoms m => TypeOf [Literal] m where
+instance WithDoms m => TTypeOf [Literal] m where
     ttypeOf []    = return TAny
     ttypeOf (x:_) = ttypeOf x
 
-instance WithDoms m => TypeOf Literal m where
+instance WithDoms m => TTypeOf Literal m where
   ttypeOf (EB _) = return TBool
   ttypeOf (EI _) = return TInt
 
@@ -148,7 +145,7 @@ instance WithDoms m => TypeOf Literal m where
 
   ttypeOf (EExpr x) = ttypeOf x
 
-instance WithDoms m => TypeOf Proc m where
+instance WithDoms m => TTypeOf Proc m where
   ttypeOf (PallDiff x)  = ttypeOf x
   ttypeOf (Pindex _ x2) = ttypeOf x2
   ttypeOf (Papply x1 _) = ttypeOf x1 >>= \case
@@ -209,17 +206,13 @@ innerTyForSets  (TFunc a b) = TTuple [a,b]
 innerTyForSets ty = error . show . vcat $ ["innerTyForSets other type given ", pretty . show $  ty]
 
 
-typeOfDom :: DDomain -> TType
-typeOfDom  DInt{} = TInt
-typeOfDom  DBool  = TBool
+instance TypeOf (Domainn Expr) where
+    typeOf d = do
+      cd :: Domain () Expression <- toConjure d
+      typeOf cd
 
-typeOfDom DMat{inner}  = TMatix (typeOfDom inner)
-typeOfDom DSet{inner}  = TSet   (typeOfDom inner)
-typeOfDom DMSet{inner} = TMSet  (typeOfDom inner)
-typeOfDom DPar{inner}  = TPar  (typeOfDom inner)
-
-typeOfDom DRel{inners} = TRel (map typeOfDom inners)
-typeOfDom DFunc{innerFrom,innerTo} =
-    TFunc (typeOfDom innerFrom) (typeOfDom innerTo)
-
-typeOfDom DTuple{inners} = TTuple (map typeOfDom inners)
+typeOfDom :: (Domainn Expr) -> TType
+typeOfDom d = case typeOf d of
+                Left x -> error . show . vcat $
+                          ["typeOfDom failed for", x, (pretty . groom) d, pretty d]
+                Right x -> fromConjureNote "typeOfDom convert type back" x

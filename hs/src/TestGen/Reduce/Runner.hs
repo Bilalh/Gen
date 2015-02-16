@@ -15,7 +15,7 @@ import qualified Data.Text.IO as T
 
 
 -- reads a .specE file
-readSpecE :: FilePath -> IO SpecE
+readSpecE :: FilePath -> IO Spec
 readSpecE fp = do
     con <- T.readFile fp
     let st = T.unpack $ con
@@ -23,7 +23,7 @@ readSpecE fp = do
 
 
 -- Just means rrError still happens
-runSpec :: SpecE -> RR (Maybe RunResult)
+runSpec :: Spec -> RR (Maybe RunResult)
 runSpec spE = do
 
     containHashAdd spE >>= \case

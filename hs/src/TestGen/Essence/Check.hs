@@ -51,7 +51,7 @@ main startTime =  do
 
 
 aSpec :: Spec
-aSpec = Spec (M.fromList [("a",Findd (Domainn (DomainSet () (SetAttr SizeAttr_None) (DomainInt [RangeBounded (ELit (EI 1)) (ELit (EI 2))]))))]) [] Nothing
+aSpec = Spec (M.fromList [("a",Findd ((Domainn Expr) (DomainSet () (SetAttr SizeAttr_None) (DomainInt [RangeBounded (ELit (EI 1)) (ELit (EI 2))]))))]) [] Nothing
 
 
 typeChecks :: MonadFail m => Model -> m ()

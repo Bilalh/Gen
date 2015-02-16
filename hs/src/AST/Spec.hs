@@ -61,6 +61,7 @@ instance Translate (Text, GF) (FindOrGiven, Name, Domain () Expression)  where
 
 
 
+
 fromModel :: MonadFail m => Model -> m Spec
 fromModel Model{mStatements} = do
   let cDoms = mapMaybe getDoms mStatements
@@ -79,3 +80,10 @@ toModel (Spec doms exprs obj) = do
 
     where
       toDom (x,t,cdom) = Declaration $ FindOrGiven x t cdom
+
+instance Pretty (Map Text GF) where
+    pretty =  vcat . map pretty .  M.toList
+
+domOfGF :: GF -> (Domainn Expr)
+domOfGF (Givenn x) = x
+domOfGF (Findd x)  = x

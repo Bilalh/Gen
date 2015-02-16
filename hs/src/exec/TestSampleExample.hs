@@ -18,7 +18,7 @@ main = do
     putStrLn "<<Finished>>"
 
 
-newtype S1 = S1 SpecE
+newtype S1 = S1 Spec
     deriving Show
 
 instance Arbitrary S1 where
