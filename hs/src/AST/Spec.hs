@@ -60,23 +60,26 @@ instance Translate (Text, GF) (FindOrGiven, Name, Domain () Expression)  where
       return (Find, Name t, cdom)
 
 
-
-
 fromModel :: MonadFail m => Model -> m Spec
 fromModel Model{mStatements} = do
-  let cDoms = mapMaybe getDoms mStatements
-  doms <- mapM fromConjure cDoms
-  return $ Spec (M.fromList doms) [] Nothing
+  doms <- mapM fromConjure (mapMaybe getDoms mStatements)
+  cs :: [Expr] <- mapM fromConjure . concat .  mapMaybe getCs $ mStatements
+  return $ Spec (M.fromList doms) cs Nothing
 
     where
       getDoms (Declaration (FindOrGiven a b c) ) = Just (a, b, c)
       getDoms _ = Nothing
 
+      getCs :: Statement -> Maybe [Expression]
+      getCs (SuchThat xs) = Just (xs)
+      getCs _ = Nothing
+
+
 toModel :: MonadFail m => Spec -> m Model
 toModel (Spec doms exprs obj) = do
     tuples   <- mapM toConjure (M.toList doms)
-    let doms = map toDom tuples
-    return $ def{mStatements=doms }
+    let cdoms = map toDom tuples
+    return $ def{mStatements=cdoms }
 
     where
       toDom (x,t,cdom) = Declaration $ FindOrGiven x t cdom
