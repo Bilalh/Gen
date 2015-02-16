@@ -2,4 +2,4 @@ TmCtagsTagFileName   = 'tags'
 TmCtagsOkSingleSound = ''
 TmCtagsOkMultiSound  = ''
 TmCtagsAutoJump      = 1
-exclude              = "{$exclude,TestSampleMain,TestSampleOnlySets,tmtagsHistory,keys.txt,cabal.sandbox.config,_docs,toolchain,z}"
+exclude              = "{$exclude,TestSampleMain,TestSampleOnlySets,tmtagsHistory,keys.txt,cabal.sandbox.config,_docs,toolchain,z,codex.tags,TAGS}"
