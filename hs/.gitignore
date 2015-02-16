@@ -1,8 +1,9 @@
-bin
-_t*
+.cabal-sandbox
+.cabal-sandbox-profile
 __bugs
+_t*
 a.essence
 a.param
-.cabal-sandbox
+bin
+outt
 toolchain
-.cabal-sandbox-profile
