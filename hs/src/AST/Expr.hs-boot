@@ -8,9 +8,6 @@ import Conjure.Language.Definition
 import AST.Data
 
 
-instance ToEssence Expr Expression
-instance FromEssence Expression Expr
-
 instance Pretty Expr
 instance Pretty BinOp
 instance Pretty UniOp

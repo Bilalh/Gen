@@ -11,13 +11,12 @@ import Conjure.Language.Definition
 
 
 import AST.Data
-import {-# SOURCE #-} AST.Domain(dintRange)
 import {-# SOURCE #-} AST.Expr()
 
 
 
 
-instance ToEssence Literal (AbstractLiteral Expression) where
+-- instance ToEssence Literal (AbstractLiteral Expression) where
     -- toEssence (EB x)      = [xMake| value.literal      := [Prim (B x)] |]
     -- toEssence (EI x)      = [xMake| value.literal      := [Prim (I x)] |]
     -- toEssence (ETuple xs) = [xMake| value.tuple.values := map toEssence xs |]
@@ -41,7 +40,7 @@ instance ToEssence Literal (AbstractLiteral Expression) where
     -- toEssence (EExpr e) =  toEssence e
 
 
-instance FromEssence (AbstractLiteral Expression) Literal where
+-- instance FromEssence (AbstractLiteral Expression) Literal where
     -- fromEssence (Prim (B x)) = return $ EB x
 
     -- fromEssence (Prim (I x)) = return $ EI x

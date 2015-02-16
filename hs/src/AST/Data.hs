@@ -1,6 +1,4 @@
-{-# LANGUAGE  FlexibleInstances, MultiParamTypeClasses #-}
---{-# LANGUAGE DeriveGeneric, DeriveDataTypeable #-}
--- {-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE  FlexibleInstances, MultiParamTypeClasses, KindSignatures #-}
 {-# LANGUAGE DeriveGeneric, DeriveDataTypeable, DeriveFunctor, DeriveTraversable, DeriveFoldable #-}
 
 
@@ -10,86 +8,32 @@ import Conjure.Prelude
 import Conjure.Language.Domain
 import Conjure.Language.Pretty
 
+
+class (Pretty ast, Pretty conjure, Show ast) => Translate ast conjure where
+  -- Should never cause an error but...
+  toConjure   :: MonadFail m => ast -> m conjure
+  -- Should never cause an error but...
+  fromConjure :: MonadFail m => conjure -> m ast
+
+  toConjureNote :: Doc -> ast -> conjure
+  toConjureNote msg a = case toConjure a  of
+                  Right x -> x
+                  Left  d -> error . renderNormal . vcat $ [msg, d ]
+
+  fromConjureNote :: Doc -> conjure -> ast
+  fromConjureNote msg a =  case fromConjure a of
+                    Right x -> x
+                    Left  d -> error . renderNormal . vcat $ [msg, d ]
+
+
 newtype Domainn x = Domainn (Domain () x)
   deriving (Eq, Ord, Show, Data, Functor, Traversable, Foldable, Typeable, Generic)
 
-data DDomain
-  = DSet
-    { size        :: Maybe Integer
-    , minSize     :: Maybe Integer
-    , maxSize     :: Maybe Integer
-    , inner       :: DDomain
-    }
-  | DMSet
-    { size        :: Maybe Integer
-    , minSize     :: Maybe Integer
-    , maxSize     :: Maybe Integer
-    , minOccur    :: Maybe Integer
-    , maxOccur    :: Maybe Integer
-    , inner       :: DDomain
-    }
-  | DFunc
-    { size        :: Maybe Integer
-    , maxSize     :: Maybe Integer
-    , minSize     :: Maybe Integer
-    , surjective  :: Bool
-    , injective   :: Bool
-    , total       :: Bool
-    , innerFrom   :: DDomain
-    , innerTo     :: DDomain
-    }
-  | DPar
-    { size        :: Maybe Integer
-    , maxSize     :: Maybe Integer
-    , minSize     :: Maybe Integer
-    , numParts    :: Maybe Integer
-    , maxNumParts :: Maybe Integer
-    , minNumParts :: Maybe Integer
-    , partSize    :: Maybe Integer
-    , maxPartSize :: Maybe Integer
-    , minPartSize :: Maybe Integer
-    , regular     :: Bool
-    , complete    :: Bool
-    , inner       :: DDomain
-    }
-  | DRel
-    { size        :: Maybe Integer
-    , maxSize     :: Maybe Integer
-    , minSize     :: Maybe Integer
-    , reflexive   :: Bool
-    , symmetric   :: Bool
-    , inners      :: [DDomain] -- tuples
-    }
-  | DTuple
-    { inners :: [DDomain]
-    }
-  | DInt
-    { ranges      :: [RRange Expr]
-    }
-  | DMat
-    { innerIdx    :: DDomain
-    , inner       :: DDomain
-    }
-  | DBool
-  -- enums
-  -- unamed types
-    deriving(Show, Generic, Typeable, Eq, Ord, Read)
+instance (Serialize x) => Serialize (Domainn x)
+instance (Hashable  x) => Hashable  (Domainn x)
+instance (ToJSON    x) => ToJSON    (Domainn x) where toJSON = genericToJSON jsonOptions
+instance (FromJSON  x) => FromJSON  (Domainn x) where parseJSON = genericParseJSON jsonOptions
 
-instance Hashable DDomain
-instance Hashable (RRange Expr)
-instance Hashable (TType)
-instance Hashable (Expr)
-instance Hashable (QType)
-instance Hashable (BinOp)
-instance Hashable (Literal)
-instance Hashable (Proc)
-instance Hashable (UniOp)
-
-
-data RRange a =
-      RSingle a
-    | RFromTo a a
-    deriving (Show, Generic, Typeable, Eq, Ord, Read)
 
 data Expr =
     ELit Literal
@@ -98,17 +42,27 @@ data Expr =
   | EBinOp BinOp
   | EUniOp UniOp
   | EProc Proc  -- e.g alldiff
-  | EDom DDomain
+  | EDom (Domainn Expr)
   | ETyped TType Expr
   | EEmptyGuard
   | EQuan QType BinOp Expr Expr
-  deriving (Show, Generic, Typeable, Eq, Ord, Read)
+  deriving (Eq, Ord, Show, Data, Typeable, Generic)
+
+instance Serialize (Expr)
+instance Hashable  (Expr)
+instance ToJSON    (Expr) where toJSON = genericToJSON jsonOptions
+instance FromJSON  (Expr) where parseJSON = genericParseJSON jsonOptions
+
 
 data QType = ForAll
            | Exists
            | Sum
-           deriving (Show, Generic, Typeable, Eq, Ord, Read)
+           deriving (Eq, Ord, Show, Data, Typeable, Generic)
 
+instance Serialize QType
+instance Hashable  QType
+instance ToJSON    QType where toJSON = genericToJSON jsonOptions
+instance FromJSON  QType where parseJSON = genericParseJSON jsonOptions
 
 data BinOp = BIn   Expr  Expr  -- TODO SR also has a `in`
            | BOver Expr  Expr
@@ -149,12 +103,21 @@ data BinOp = BIn   Expr  Expr  -- TODO SR also has a `in`
            | BlexGT   Expr  Expr
            | BlexGTE  Expr  Expr
 
+           deriving (Eq, Ord, Show, Data, Typeable, Generic)
 
-           deriving (Show, Generic, Typeable, Eq, Ord, Read)
+instance Serialize BinOp
+instance Hashable  BinOp
+instance ToJSON    BinOp where toJSON = genericToJSON jsonOptions
+instance FromJSON  BinOp where parseJSON = genericParseJSON jsonOptions
 
 data UniOp = UBar Expr
            | UNeg Expr
-           deriving (Show, Generic, Typeable, Eq, Ord, Read)
+           deriving (Eq, Ord, Show, Data, Typeable, Generic)
+
+instance Serialize UniOp
+instance Hashable  UniOp
+instance ToJSON    UniOp where toJSON = genericToJSON jsonOptions
+instance FromJSON  UniOp where parseJSON = genericParseJSON jsonOptions
 
 data Proc =   PallDiff Expr
 
@@ -185,41 +148,35 @@ data Proc =   PallDiff Expr
             | Pparticipants Expr
             | Ptogether Expr Expr Expr
 
-        --  dontcare?
+          deriving (Eq, Ord, Show, Data, Typeable, Generic)
 
-        --   in Essence?
-        --   | Pflatten Expr
-        --
-        --   | Psum     Expr
-        --   | Pproduct Expr
-        --
-        --   | Pand Expr
-        --   | Por  Expr
-        --
-        --   | Patleast Expr Expr Expr
-        --   | Patmost  Expr Expr Expr
-        --   | Pgcc     Expr Expr Expr
-        --
-        --   | Palldifferent_except Expr Expr
-        --   | table [Expr]
-          deriving (Show, Generic, Typeable, Eq, Ord, Read)
+instance Serialize Proc
+instance Hashable  Proc
+instance ToJSON    Proc where toJSON = genericToJSON jsonOptions
+instance FromJSON  Proc where parseJSON = genericParseJSON jsonOptions
 
 data Literal
     = EB Bool
     | EI Integer
     | ETuple      [Literal]
-    | EMatrix     [Literal] DDomain
+    | EMatrix     [Literal] (Domainn Expr)
     | ESet        [Literal]
     | EMSet       [Literal]
     | EFunction   [(Literal, Literal)] -- list of mappings
     | ERelation   [Literal]            -- list of tuples
     | EPartition  [[Literal]]          -- list of parts
     | EExpr Expr
-    deriving (Show, Generic, Typeable, Eq, Ord, Read)
+      deriving (Eq, Ord, Show, Data, Typeable, Generic)
+
+instance Serialize Literal
+instance Hashable  Literal
+instance ToJSON    Literal where toJSON = genericToJSON jsonOptions
+instance FromJSON  Literal where parseJSON = genericParseJSON jsonOptions
 
 data TType =
-      TInt
+      TAny
     | TBool
+    | TInt
     | TMatix  TType
     | TSet    TType
     | TMSet   TType
@@ -229,34 +186,22 @@ data TType =
     | TPar    TType
     | TUnamed Text   -- each unamed type is unique
     | TEnum   Text   -- as are enums
-    | TAny
-  deriving (Show, Generic, Typeable, Eq, Ord, Read)
+      deriving (Eq, Ord, Show, Data, Typeable, Generic)
 
-instance FromJSON TType
-instance ToJSON TType
+instance Serialize TType
+instance Hashable  TType
+instance ToJSON    TType where toJSON = genericToJSON jsonOptions
+instance FromJSON  TType where parseJSON = genericParseJSON jsonOptions
 
-data OObjective = Maximising Expr
-                | Minimising Expr
-    deriving(Show, Generic, Typeable, Read, Eq)
 
-class ToEssence ast conjure where
-  toEssence :: ast -> conjure
+toConjureFail :: forall (m :: * -> *) a a1.
+                 (MonadFail m, Show a1) =>
+                 Doc -> a1 -> m a
 
-class FromEssence conjure ast where
-  fromEssence :: conjure -> Either conjure ast
+fromConjureFail :: forall (m :: * -> *) a a1.
+                   (Pretty a1, MonadFail m) =>
+                   Doc -> a1 -> m a
 
-class (Pretty ast, Pretty conjure) => Translate ast conjure where
-  -- Should never cause an error but...
-  toConjure   :: MonadFail m => ast -> m conjure
-  -- Should never cause an error but...
-  fromConjure :: MonadFail m => conjure -> m ast
 
-  toConjureNote :: Doc -> ast -> conjure
-  toConjureNote msg a = case toConjure a  of
-                  Right x -> x
-                  Left  d -> error . renderNormal . vcat $ [msg, d ]
-
-  fromConjureNote :: Doc -> conjure -> ast
-  fromConjureNote msg a =  case fromConjure a of
-                    Right x -> x
-                    Left  d -> error . renderNormal . vcat $ [msg, d ]
+fromConjureFail s x  = fail ("fromConjure" <+> s <+> pretty x <+> (pretty . groom) x)
+toConjureFail   s x  = fail ("toConjure"   <+> s <+> (pretty . groom) x)

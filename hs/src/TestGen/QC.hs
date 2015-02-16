@@ -450,24 +450,6 @@ takeFileName' fp = case reverse fp of
 
 
 
-prop_specs_type_check ::  ArbSpec a => a -> a -> Property
-prop_specs_type_check a b = $notImplemented
--- prop_specs_type_check _ arb = do
---     let specE = getSpec arb
---         sp = toSpec specE
---         (res,doc) = typeChecks sp
---     counterexample
---         (show doc ++ (show $ pretty sp) )
---         (res)
-
--- typeChecks :: Model -> (Bool, Doc)
-typeChecks = $notImplemented
--- typeChecks sp = case fst $ runCompESingle "Error while type checking." $
---     typeCheckSpec sp of
---         Left  e  -> (False, e)
---             -- trace (show e ++ (show . pretty $ sp)) False
---         Right () -> (True, "")
-
 
 rmain :: Int -> IO ()
 rmain n =

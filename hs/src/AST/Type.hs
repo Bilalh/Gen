@@ -4,68 +4,49 @@
 
 module AST.Type where
 
--- import Conjure.Prelude
--- import Conjure.Language.Pretty
--- import Conjure.Language.Domain
--- import Conjure.Language.Definition
+import Conjure.Prelude
+import Conjure.Language.Pretty
 import Conjure.Language.Type
+import Conjure.Language.Name
 
 import AST.Data
 
-instance ToEssence TType Type where
-    -- toEssence TInt Type         = [dMake| int |]
-    -- toEssence TBool         = [dMake| bool |]
 
-    -- toEssence (TMatix t)    = [dMake| matrix indexed by [int(1..1)] of &t' |]
-    --     where t' = toEssence t
+instance Pretty TType where
+    pretty = pretty . (toConjureNote "Pretty TType" :: TType -> Type)
 
-    -- toEssence (TSet t)      = [dMake| set of &t' |] where t' = toEssence t
-    -- toEssence (TMSet t)     = [dMake| mset of &t' |] where t' = toEssence t
+instance Translate TType Type where
+    toConjure TAny             = pure TypeAny
+    toConjure TBool            = pure TypeBool
+    toConjure TInt             = pure TypeInt
+    toConjure (TMatix x)       = pure TypeMatrix    <*> return TypeInt
+                                                    <*> toConjure x
+    toConjure (TSet x)         = pure TypeSet       <*> toConjure x
+    toConjure (TMSet x)        = pure TypeMSet      <*> toConjure x
+    toConjure (TFunc x1 x2)    = pure TypeFunction  <*> toConjure x1
+                                                    <*> toConjure x2
+    toConjure (TTuple x)       = pure TypeTuple     <*> mapM toConjure x
+    toConjure (TRel x)         = pure TypeRelation  <*> mapM toConjure x
+    toConjure (TPar x)         = pure TypePartition <*> toConjure x
+    toConjure (TUnamed x)      = pure TypeUnnamed   <*> toConjure x
+    toConjure (TEnum x)        = pure TypeEnum      <*> toConjure x
 
-    -- toEssence (TFunc t1 t2) = [dMake| function &t1' --> &t2' |]
-    --     where t1' = toEssence t1
-    --           t2' = toEssence t2
+    fromConjure TypeAny              = pure TAny
+    fromConjure TypeBool             = pure TBool
+    fromConjure TypeInt              = pure TInt
+    fromConjure (TypeEnum x)         = pure TEnum   <*> fromConjure x
+    fromConjure (TypeUnnamed x)      = pure TUnamed <*> fromConjure x
+    fromConjure (TypeTuple x)        = pure TTuple  <*> mapM fromConjure x
+    fromConjure (TypeList _)         = fail "whats a typeList?"
+    fromConjure (TypeMatrix _ x2)    = pure TMatix  <*> fromConjure x2
+    fromConjure (TypeSet x)          = pure TSet    <*> fromConjure x
+    fromConjure (TypeMSet x)         = pure TMSet   <*> fromConjure x
+    fromConjure (TypeFunction x1 x2) = pure TFunc   <*> fromConjure x1
+                                                    <*> fromConjure x2
+    fromConjure (TypeRelation x)     = pure TRel    <*> mapM fromConjure x
+    fromConjure (TypePartition x)    = pure TPar    <*> fromConjure x
 
-    -- toEssence (TTuple t)    = [xMake| domain.tuple.inners := map toEssence t |]
-    -- toEssence (TRel t)      = [xMake| domain.relation.attributes.attrCollection := []
-    --                                 | domain.relation.inners := map toEssence t |]
-    -- toEssence (TPar t)      = [dMake| partition from &t' |] where t' = toEssence t
 
-    -- -- toEssence (TUnamed t)   = [dMake| t |]
-    -- -- toEssence (TEnum t)     = [dMake| _a |] where t' = toEssence t
-
-    -- -- toEssence TAny          =
-
-    -- toEssence x = error . show . vcat $ [ "ToEssence Type", "x=" <+> (pretty .groom $ x)]
-
-
-instance FromEssence Type TType where
-    -- fromEssence [xMatch| [d]  := domainInExpr |] = fromEssence d
-
-    -- fromEssence [dMatch| int  |]     = return TInt
-    -- fromEssence [dMatch| bool |]     = return TBool
-
-    -- fromEssence [dMatch| set of &t|]  = TSet <$> fromEssence t
-    -- fromEssence [dMatch| mset of &t|] = TMSet <$> fromEssence t
-
-    -- fromEssence [dMatch| function &t1 --> &t2 |] = TFunc <$> fromEssence t1
-    --                                                     <*> fromEssence t2
-
-    -- fromEssence [dMatch| partition from &t |] = TPar <$> fromEssence t
-
-    -- fromEssence [xMatch| is   := domain.relation.inners
-    --                    | [_] := domain.relation.attributes |] = do
-    --     iv <- mapM fromEssence is
-    --     return $ TRel iv
-
-    -- fromEssence x = error . show . vcat $ [ "fromEssence Type", "x=" <+> pretty x]
-
--- Having a Pretty instances is error prone,
--- Since we might want  show or toEssence
--- and toEssecne will break on TAny (as it should)
-
--- instance Pretty TType where
---     pretty  =  pretty  . toEssence
-
--- instance Pretty [TType] where
---     pretty  =  vcat . map pretty
+instance Translate Text Name where
+    toConjure x          = pure $ Name x
+    fromConjure (Name x) = pure x
