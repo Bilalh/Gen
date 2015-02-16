@@ -20,8 +20,8 @@ Library
                      , AST.Expr
                      , AST.Imports
                      , AST.Literal
-                     , AST.Range
-                     , AST.SpecE
+                     , AST.Spec
+                     , AST.TH
                      , AST.Type
                      , TestGen.Arbitrary.Arbitrary
                      , TestGen.Arbitrary.Common
@@ -39,6 +39,8 @@ Library
                      , TestGen.Classify.DomTypes
                      , TestGen.Classify.Meta
                      , TestGen.Classify.Sorter
+                     , TestGen.Essence.Check
+                     , TestGen.Essence.SpecE
                      , TestGen.Helpers.Args
                      , TestGen.Helpers.Debug
                      , TestGen.Helpers.IO
@@ -52,8 +54,6 @@ Library
                      , TestGen.Helpers.Standardise
                      , TestGen.Helpers.TypeOf
                      , TestGen.Prelude
-                     , TestGen.QC
-                     , TestGen.QCDebug
                      , TestGen.Reduce.Data
                      , TestGen.Reduce.FormatResults
                      , TestGen.Reduce.Reduce

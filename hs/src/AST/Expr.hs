@@ -2,7 +2,6 @@
 {-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
--- Use deriving instance Show  instead of deriving Show
 module AST.Expr where
 
 import Conjure.Prelude
