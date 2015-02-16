@@ -15,28 +15,38 @@ import AST.Domain()
 
 
 instance Translate Literal Expression where
-    toConjure y@(EB _) = pure Constant <*> toConjure y
-    toConjure y@(EI _) = pure Constant <*> toConjure y
     toConjure (EExpr x) = toConjure x
-    toConjure x        = pure AbstractLiteral <*> toConjure x
+    -- toConjure y@(EB _)  = pure Constant        <*> toConjure y
+    -- toConjure y@(EI _)  = pure Constant        <*> toConjure y
+    -- toConjure x         = pure AbstractLiteral <*> toConjure x
     -- toConjure x = toConjureFail "Literal Expression" x
+
+    toConjure t =  do
+        case toConjure t of
+          Just (x :: Constant)  -> pure $ Constant x
+          Nothing -> do
+            case toConjure t of
+              Just (x :: AbstractLiteral Expression)  -> pure $ AbstractLiteral x
+              Nothing -> toConjureFail "Literal Expression" t
 
 
     fromConjure (AbstractLiteral x) = fromConjure x
-    fromConjure (Constant x) = fromConjure x
-    fromConjure x = pure EExpr <*> fromConjure x
+    fromConjure (Constant x)        = fromConjure x
+    fromConjure x                   = pure EExpr <*> fromConjure x
 
 instance Translate Literal (AbstractLiteral Expression)  where
-    fromConjure (AbsLitTuple x)       = pure ETuple     <*> mapM fromConjure x
-    fromConjure (AbsLitMatrix dom vs) = pure EMatrix    <*> mapM fromConjure vs
-                                                        <*> fromConjure dom
-    fromConjure (AbsLitSet x)         = pure ESet       <*> mapM fromConjure x
-    fromConjure (AbsLitMSet x)        = pure EMSet      <*> mapM fromConjure x
-    fromConjure (AbsLitFunction x)    = pure EFunction  <*> mapM fromConjure x
-    -- fromConjure (AbsLitRelation x) = _d
-    fromConjure (AbsLitPartition x)   = pure EPartition <*> mapM (mapM fromConjure) x
+    fromConjure (AbsLitTuple x)       = pure ETuple         <*> mapM fromConjure x
+    fromConjure (AbsLitMatrix dom vs) = pure EMatrix        <*> mapM fromConjure vs
+                                                            <*> fromConjure dom
+    fromConjure (AbsLitSet x)         = pure ESet           <*> mapM fromConjure x
+    fromConjure (AbsLitMSet x)        = pure EMSet          <*> mapM fromConjure x
+    fromConjure (AbsLitFunction x)    = pure EFunction      <*> mapM fromConjure x
+    fromConjure (AbsLitPartition x)   = pure EPartition     <*> mapM (mapM fromConjure) x
+    fromConjure (AbsLitRelation x)    = pure ERelation      <*> mapM fromRel x
+        where
+          fromRel v = pure ETuple <*> mapM fromConjure v
 
-    fromConjure x = fromConjureFail "Literal (AbstractLiteral Expression)" x
+    -- fromConjure x = fromConjureFail "Literal (AbstractLiteral Expression)" x
 
     -- toConjure (EB x)           =  _f
     -- toConjure (EI x)           = _f
@@ -46,9 +56,14 @@ instance Translate Literal (AbstractLiteral Expression)  where
     toConjure (ESet x)         = pure AbsLitSet       <*> mapM toConjure x
     toConjure (EMSet x)        = pure AbsLitMSet      <*> mapM toConjure x
     toConjure (EFunction x)    = pure AbsLitFunction  <*> mapM toConjure x
-    -- toConjure (ERelation x) = pure AbsLitRelation  <*> mapM toConjure x
     toConjure (EPartition x)   = pure AbsLitPartition <*> mapM (mapM toConjure) x
     -- toConjure (EExpr x)     = pure AbstractLiteral <*> toConjure x
+
+    toConjure (ERelation x)    = pure AbsLitRelation  <*> mapM toRel x
+        where
+          toRel (ETuple xs ) = mapM toConjure xs
+          toRel (EExpr (ELit (ETuple xs)) ) = mapM toConjure xs
+          toRel v = toConjureFail "toRel Literal (AbstractLiteral Expression)" v
 
     toConjure x = toConjureFail "Literal (AbstractLiteral Expression)" x
 
