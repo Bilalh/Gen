@@ -38,7 +38,6 @@ instance (FromJSON  x) => FromJSON  (Domainn x) where parseJSON = genericParseJS
 data Expr =
     ELit Literal
   | EVar Text
-  | EQVar Text
   | EBinOp BinOp
   | EUniOp UniOp
   | EProc Proc  -- e.g alldiff
@@ -203,5 +202,11 @@ fromConjureFail :: forall (m :: * -> *) a a1.
                    Doc -> a1 -> m a
 
 
-fromConjureFail s x  = fail ("fromConjure" <+> s <+> pretty x <+> (pretty . groom) x)
-toConjureFail   s x  = fail ("toConjure"   <+> s <+> (pretty . groom) x)
+fromConjureFail s x  = fail . vcat $ ["fromConjure failed: " <+> s
+                                     ,pretty x
+                                     ,pretty . groom $ x
+                                     ]
+
+toConjureFail s x    = fail . vcat $ ["toConjure failed: " <+> s
+                                     ,pretty . groom $ x
+                                     ]
