@@ -132,9 +132,13 @@ toModel (Spec doms exprs obj) = do
     let cdoms = map toDom tuples
     cexprs <- mapM toConjure exprs
     cObj <- toConjure obj
-    return $ def{mStatements=(cdoms ++ [SuchThat cexprs]  ++ (maybeToList cObj) ) }
+    return $ def{mStatements=(cdoms ++  toSuchThat cexprs  ++ (maybeToList cObj) ) }
+
 
     where
+      toSuchThat [] =  []
+      toSuchThat xs =  [SuchThat xs]
+
       toDom (x,t,cdom) = Declaration $ FindOrGiven x t cdom
 
 instance Pretty (Map Text GF) where

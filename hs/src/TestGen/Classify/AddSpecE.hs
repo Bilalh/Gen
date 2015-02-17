@@ -4,7 +4,8 @@
 
 module TestGen.Classify.AddSpecE where
 
-import Conjure.UI.Model(prologue)
+import Conjure.Language.TH
+import Conjure.Language.NameResolution(resolveNames)
 import Conjure.UI.IO(readModelFromFile)
 import Conjure.Language.Definition
 import TestGen.Classify.Sorter(getRecursiveContents)
@@ -31,7 +32,7 @@ addSpecE printSpecs fp_ = do
 
   where
   f spec fp = do
-    start <- ignoreLogs $ prologue spec
+    start <- ignoreLogs $ resolveNames spec >>= return . removeTrueConstraints
     let inlined = inlineParamAndLettings start Nothing
     let specE  = fromModel inlined
 
@@ -76,7 +77,17 @@ addSpecE printSpecs fp_ = do
 
 
 
+removeTrueConstraints :: Model -> Model
+removeTrueConstraints m =
+   let flitered = map f (mStatements m)
+   in m{mStatements=flitered}
 
+   where
+     f (SuchThat es) = SuchThat $ filter g es
+     f s =s
+
+     g [essence| true(&_) |] = False
+     g _ = True
 
 -- FIXME param file
 inlineParamAndLettings :: Model -> Maybe Model -> Model

@@ -94,9 +94,6 @@ maximum' :: Ord a => a -> [a] -> a
 maximum' a [] = a
 maximum' _ xs = maximum xs
 
-specE1 :: Spec
-specE1= $notDone
-
 findFeatures :: (WithDoms m) => m [Feature]
 findFeatures = do
     (Spec _ cs obj)  <- getSpecEWithDoms

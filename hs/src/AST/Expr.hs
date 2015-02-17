@@ -23,8 +23,6 @@ instance Translate Expr Expression where
   -- fromConjure (Comprehension t1 t2) = _f
   fromConjure (Typed t1 t2)            = ETyped <$> fromConjure t2 <*> fromConjure t1
 
-  fromConjure [essence| true(&x) |] = fromConjure x
-
   fromConjure t@(Op _) =  do
       case fromConjure t of
         Just (x :: BinOp)  -> pure $ EBinOp x

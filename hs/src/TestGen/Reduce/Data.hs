@@ -92,8 +92,7 @@ instance Default RState where
 -- | Check if the spec's hash is contained, (add it if it is not)
 containHashAdd :: Spec -> RR Bool
 containHashAdd newE= do
-  -- let newHash = hash (pretty newE)
-  let newHash = $notDone
+  let newHash = hash newE
   is <- gets hashes_
   case newHash `IS.member` is of
     True -> return True
