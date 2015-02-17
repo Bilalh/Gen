@@ -206,10 +206,6 @@ innerTyForSets  (TFunc a b) = TTuple [a,b]
 innerTyForSets ty = error . show . vcat $ ["innerTyForSets other type given ", pretty . show $  ty]
 
 
-instance TypeOf (Domainn Expr) where
-    typeOf d = do
-      cd :: Domain () Expression <- toConjure d
-      typeOf cd
 
 typeOfDom :: (Domainn Expr) -> TType
 typeOfDom d = case typeOf d of

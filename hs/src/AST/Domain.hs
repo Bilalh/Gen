@@ -13,11 +13,8 @@ import AST.Data
 import {-# SOURCE #-} AST.Expr()
 
 instance Translate (Domainn Expr) (Domain () Expression) where
-    fromConjure x =  mapM f (Domainn  x)
+    fromConjure x =  mapM f x
         where
           f y = fromConjure y
 
-    toConjure (Domainn x) = mapM toConjure x
-
-instance Pretty (Domainn Expr) where
-    pretty (Domainn x) = pretty x
+    toConjure x = mapM toConjure x

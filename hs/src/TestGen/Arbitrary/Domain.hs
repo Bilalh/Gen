@@ -28,21 +28,17 @@ module TestGen.Arbitrary.Domain
     , tupleDom
 
     , rangeComp
-    , intFromDint
 ) where
 
 import TestGen.Prelude
 import qualified Data.Set as S
-
--- import Text.PrettyPrint(parens)
--- instance (Pretty a, Pretty b, Pretty c) => Pretty (a,b, c) where
---     pretty (a,b,c) = prettyListDoc parens "," [pretty a, pretty b, pretty c]
+import Conjure.Language.Domain
 
 intDomChoice, setDomChoice, msetDomChoice, matixDomChoice :: (Int, GG (Domainn Expr))
 funcDomChoice, relDomChoice, parDomChoice, tupleDomChoice :: (Int, GG (Domainn Expr))
 boolDomChoice :: (Int, GG (Domainn Expr))
 
-boolDomChoice  = (0, return DBool)
+boolDomChoice  = (0, boolDom)
 intDomChoice   = (0, intDom)
 setDomChoice   = (1, setDom)
 msetDomChoice  = (1, msetDom)
@@ -69,9 +65,9 @@ dom_only ds = do
 
 dom_def :: GG (Domainn Expr)
 dom_def =  gets depth_ >>= \case
-    0  -> oneof2 [ intDom, return DBool ]
+    0  -> oneof2 [ intDom, return DomainBool ]
     1  -> oneof2
-        [ return DBool
+        [ boolDom
         , intDom
         , setDom
         -- , msetDom
@@ -81,7 +77,7 @@ dom_def =  gets depth_ >>= \case
         , tupleDom
         ]
     _ -> oneof2
-        [ return DBool
+        [ boolDom
         , intDom
         , setDom
         -- , msetDom
@@ -92,18 +88,24 @@ dom_def =  gets depth_ >>= \case
         , tupleDom
         ]
 
+boolDom :: GG (Domainn Expr)
+boolDom = return  DomainBool
+
 intDom :: GG (Domainn Expr)
-intDom = return DInt `ap` listOfBounds (1, 2) (range)
+intDom =  do
+  bs <- listOfBounds (1,2) range
+  return $ DomainInt bs
 
 setDom :: GG (Domainn Expr)
 setDom = do
     inner <- withDepthDec dom
-    return $ dset{inner}
+    return $ DomainSet () def inner
 
 msetDom :: GG (Domainn Expr)
 msetDom = do
     inner <- withDepthDec dom
-    return $ dmset{inner}
+    return $ DomainMSet () def inner
+
 
 matixDom :: GG (Domainn Expr)
 matixDom = do
@@ -111,52 +113,51 @@ matixDom = do
     numElems <- choose2 (1 :: Integer, min (fromIntegral $ d * 3) 10 )
     numRanges <- choose2 (1 :: Integer, numElems)
 
-    -- ranges <-trace (show ("aaa",numElems, numRanges) )  $
     ranges <- mkRanges numElems numElems numRanges S.empty
-    let idx = DInt (sortBy  rangeComp ranges)
+    let idx = DomainInt (sortBy  rangeComp ranges)
     innerDom <- withDepthDec dom
 
     -- return $ (numElems,numRanges, DMat{innerIdx=idx, inner=innerDom })
-    return  dmat{innerIdx=idx, inner=innerDom }
+    return $ DomainMatrix idx innerDom
 
 funcDom :: GG (Domainn Expr)
 funcDom = do
     innerFrom <- withDepthDec dom
     innerTo   <- withDepthDec dom
-    return dfunc{innerFrom,innerTo}
+    return $ DomainFunction () def innerFrom innerTo
 
 relDom :: GG (Domainn Expr)
 relDom = do
     d <- gets depth_
     numElems <- choose2 (1, min (d * 2) 10 )
     doms <- vectorOf2 numElems (withDepthDec dom)
-    return drel{inners=doms}
+    return $ DomainRelation () def doms
 
 parDom :: GG (Domainn Expr)
 parDom = do
     inner <- withDepthDec dom
-    return dpar{inner}
+    return $ DomainPartition () def inner
 
 tupleDom :: GG (Domainn Expr)
 tupleDom = do
     d <- gets depth_
     numElems <- choose2 (1, min (d * 2) 5 )
     doms <- vectorOf2 numElems (withDepthDec dom)
-    return dtuple{inners=doms}
+    return $ DomainTuple doms
 
 
 
-mkRanges :: Integer ->  Integer -> Integer -> Set Integer -> GG ( [RRange Expr] )
+mkRanges :: Integer ->  Integer -> Integer -> Set Integer -> GG ( [Range Expr] )
 mkRanges _ 0 0 _ = return []
 
 mkRanges ub ns 1 used = do
     (l,u) <- chooseUnusedSized ub ns used
-    return  [ RFromTo (ELit . EI $ l) (ELit . EI $ u) ]
+    return  [ RangeBounded (ELit . EI $ l) (ELit . EI $ u) ]
 
 mkRanges ub ns rs used | ns == rs = do
     i <- chooseUnused ub used
     rest <- mkRanges ub (ns - 1) (rs - 1) (S.union (S.singleton i )  used)
-    return $ RSingle (ELit . EI $ i) : rest
+    return $ RangeSingle (ELit . EI $ i) : rest
 
 mkRanges _ 1 rs _ | rs /= 1 = do
      error . show $ ("mkRanges invaild" :: String, 1 :: Integer, rs)
@@ -166,7 +167,7 @@ mkRanges ub ns rs used | ns >=2= do
     if single then do
         i <- chooseUnused ub used
         rest <- mkRanges ub (ns - 1) (rs - 1) (S.union (S.singleton i )  used)
-        return $ RSingle (ELit . EI $ i) : rest
+        return $ RangeSingle (ELit . EI $ i) : rest
     else do
         num <- choose2 (2, ns - rs + 1 )
         (l,u) <- chooseUnusedSized ub num used
@@ -174,10 +175,9 @@ mkRanges ub ns rs used | ns >=2= do
         let used' = S.fromList [l..u]  `S.union` used
         rest <- mkRanges ub (ns - (u - l + 1) ) (rs - 1) used'
 
-        return $ RFromTo (ELit . EI $ l) (ELit . EI $ u) : rest
+        return $ RangeBounded (ELit . EI $ l) (ELit . EI $ u) : rest
 
-mkRanges _ ns rs _  =
-     error . show $ ("mkRanges unmatched" :: String, ns, rs)
+mkRanges _ ns rs _  = docError ["mkRanges unmatched", pretty ns, pretty rs]
 
 chooseUnusedSized ::  Integer -> Integer -> Set Integer -> GG (Integer, Integer)
 chooseUnusedSized ub size used | S.null used  =  do
@@ -207,7 +207,7 @@ chooseUnused' (l,u) used = do
 
 
 
-range :: GG (RRange Expr)
+range :: GG (Range Expr)
 range = oneof2
     [
       arbitrarySingle
@@ -215,42 +215,27 @@ range = oneof2
     ]
 
     where
-    arbitrarySingle :: GG (RRange Expr)
+    arbitrarySingle :: GG (Range Expr)
     arbitrarySingle = do
         a <- choose2 (-5,5 :: Integer)
-        return $ RSingle (ELit . EI $ a)
+        return $ RangeSingle (ELit . EI $ a)
 
-    arbitraryFromTo :: GG (RRange Expr)
+    arbitraryFromTo :: GG (Range Expr)
     arbitraryFromTo = do
         do
             a <- choose2 (-5,5 :: Integer)
             b <- choose2 (a,5)
-            return $ RFromTo (ELit . EI $ a) (ELit . EI $  b)
+            return $ RangeBounded (ELit . EI $ a) (ELit . EI $  b)
 
 
 
-rangeComp :: RRange Expr -> RRange Expr -> Ordering
-rangeComp (RSingle (ELit (EI a) ))    (RSingle (ELit (EI b) ))   = compare a b
-rangeComp (RSingle (ELit (EI a) ))    (RFromTo (ELit (EI b) ) _) = compare a b
-rangeComp (RFromTo (ELit (EI a) ) _ ) (RFromTo (ELit (EI b) ) _) = compare a b
-rangeComp (RFromTo (ELit (EI a) ) _)  (RSingle (ELit (EI b) ))   = compare a b
+rangeComp :: Range Expr -> Range Expr -> Ordering
+rangeComp (RangeSingle (ELit (EI a) ))    (RangeSingle (ELit (EI b) ))   = compare a b
+rangeComp (RangeSingle (ELit (EI a) ))    (RangeBounded (ELit (EI b) ) _) = compare a b
+rangeComp (RangeBounded (ELit (EI a) ) _ ) (RangeBounded (ELit (EI b) ) _) = compare a b
+rangeComp (RangeBounded (ELit (EI a) ) _)  (RangeSingle (ELit (EI b) ))   = compare a b
 rangeComp a b  = docError [
     "rangeComp not matched",
     pretty $ show a, pretty $ show b,
     pretty a, pretty b
-    ]
-
-intFromDint :: (Domainn Expr) -> GG Expr
-intFromDint DInt{..} =  elements2 $ concatMap getInts ranges
-    where
-        getInts (RSingle x@(ELit (EI _))) =  [x]
-        getInts (RFromTo (ELit (EI a) ) (ELit (EI b) ))  = map (ELit . EI) [a..b]
-        getInts a = docError [
-            "getInts not matched",
-            pretty $ show a, pretty a
-            ]
-
-intFromDint a = docError [
-    "intFromInt not matched",
-    pretty $ show a, pretty a
     ]

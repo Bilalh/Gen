@@ -26,14 +26,7 @@ class (Pretty ast, Pretty conjure, Show ast) => Translate ast conjure where
                     Left  d -> error . renderNormal . vcat $ [msg, d ]
 
 
-newtype Domainn x = Domainn (Domain () x)
-  deriving (Eq, Ord, Show, Data, Functor, Traversable, Foldable, Typeable, Generic)
-
-instance (Serialize x) => Serialize (Domainn x)
-instance (Hashable  x) => Hashable  (Domainn x)
-instance (ToJSON    x) => ToJSON    (Domainn x) where toJSON = genericToJSON jsonOptions
-instance (FromJSON  x) => FromJSON  (Domainn x) where parseJSON = genericParseJSON jsonOptions
-
+type Domainn x = Domain () x
 
 data Expr =
     ELit Literal
