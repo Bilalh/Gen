@@ -1,6 +1,6 @@
-{-# LANGUAGE QuasiQuotes, ViewPatterns #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
-{-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE MultiWayIf, FlexibleInstances #-}
 
 module TestGen.Helpers.SizeOf where
 
@@ -8,12 +8,7 @@ import TestGen.Helpers.StandardImports as X
 
 import TestGen.Helpers.Debug
 
-import qualified Data.Set as S
 import TestGen.Helpers.TypeOf(typeOfDom)
-
--- How many different unique values are in say a domain
-class SizeOf a where
-    sizeOf :: a -> Integer
 
 class DepthOf a where
     depthOf :: a -> Integer
@@ -24,29 +19,6 @@ class DepthOf a where
 class SizeOfLimited a where
     sizeOfLimited:: Integer -> a  -> Integer
 
-
-
-instance SizeOf (Domainn Expr) where
-    sizeOf DInt{..} = fromIntegral .  S.size .  S.fromList . concatMap rangeInts $ ranges
-    sizeOf r = docError [
-        "sizeOf not matched",
-        pretty $ show r, pretty r
-        ]
-
--- instance SizeOf TType where
---     -- FIXME hardcoded
---     sizeOf TInt            = 20
---     sizeOf TBool           = 2
---     sizeOf (TMatix inner)  = 20 ^ (sizeOf inner)
---     sizeOf (TSet inner)    = 2  ^ (sizeOf inner)
---     sizeOf (TMSet inner)   = 2  ^ (sizeOf inner)
---     sizeOf (TFunc from to) = ((sizeOf to) + 1 )  ^ (sizeOf from)
---     sizeOf (TTuple inners) = product (map sizeOf inners )
---     sizeOf (TRel inners)   = sizeOf (TSet (TTuple inners) )
---     sizeOf (TPar inner)    = sizeOf (TSet (TSet inner))
---     sizeOf TAny            = error "SizeOf Type called with TAny"
---     sizeOf (TUnamed _)     = error "SizeOf Type called with TUnamed"
---     sizeOf (TEnum _)       = error "SizeOf Type called with TUnamed"
 
 instance SizeOfLimited TType where
     -- FIXME hardcoded
@@ -95,7 +67,6 @@ instance DepthOf TType where
 instance DepthOf Expr where
     depthOf (ELit e)      = depthOf e
     depthOf (EVar _)      = 0
-    depthOf (EQVar _)     = 0
     depthOf (EBinOp e)    = depthOf e
     depthOf (EUniOp e)    = depthOf e
     depthOf (EProc e)     = depthOf e
@@ -184,8 +155,8 @@ instance DepthOf a => DepthOf (Maybe a) where
     depthOf (Just a) = depthOf a
 
 instance DepthOf OObjective where
-    depthOf (Maximising a) = depthOf a
-    depthOf (Minimising a) = depthOf a
+    depthOf (Maximisingg a) = depthOf a
+    depthOf (Minimisingg a) = depthOf a
 
 
 depthOfOrZero :: (DepthOf x) => [x] -> Integer
@@ -195,11 +166,3 @@ depthOfOrZero (x:_) = depthOf x
 nonEmpty :: ([t] -> Integer) -> [t] -> Integer
 nonEmpty _ [] = 0
 nonEmpty f xs = f xs
-
-rangeInts :: RRange Expr -> [Integer]
-rangeInts (RSingle (ELit (EI a) ))     = [a]
-rangeInts (RFromTo (ELit (EI a) )  (ELit (EI b) ) )  = [a..b]
-rangeInts r = docError [
-    "rangeInts not matched",
-    pretty $ show r, pretty r
-    ]

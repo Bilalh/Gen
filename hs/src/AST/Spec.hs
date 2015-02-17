@@ -26,10 +26,13 @@ data GF = Givenn (Domainn Expr)
 
 type Domains = Map Text GF
 
-data OObjective = Maximising Expr
-                | Minimising Expr
+data OObjective = Maximisingg Expr
+                | Minimisingg Expr
     deriving(Eq, Ord, Show, Data, Typeable, Generic)
 
+instance Pretty OObjective where
+    pretty (Maximisingg x)  = "Maximising "  <+> pretty x
+    pretty (Minimisingg x)  = "Minimising "  <+> pretty x
 
 instance Pretty GF where
     pretty (Givenn x) = "Givenn " <+> pretty x

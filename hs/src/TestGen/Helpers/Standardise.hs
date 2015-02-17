@@ -10,9 +10,6 @@ import qualified Data.Traversable as V
 class (Pretty a, Eq a, Show a) => Standardise a  where
     standardise :: (Monad m, Applicative m) => a -> m a
 
-instance Pretty TType where
-    pretty = pretty . show
-
 instance Standardise TType where
     standardise = return
 
@@ -39,7 +36,6 @@ instance Standardise Expr where
     standardise (ETyped x y ) = pure ETyped <*> standardise x <*> standardise y
 
     standardise x@(EVar _)    = return x
-    standardise x@(EQVar _)   = return x
     standardise x@EEmptyGuard = return x
 
 
@@ -129,21 +125,21 @@ instance Standardise (Domainn Expr) where
     standardise x = return x  --FIXME when adding expr to domains
 
 
-instance Standardise FG where
-    standardise (FFind x)  = pure FFind  <*> standardise x
-    standardise (GGiven x) = pure GGiven <*> standardise x
+instance Standardise GF where
+    standardise (Findd x)  = pure Findd  <*> standardise x
+    standardise (Givenn x) = pure Givenn <*> standardise x
 
-instance Standardise Doms where
+instance Standardise Domains where
     standardise = V.traverse standardise
 
 instance Standardise Spec where
-    standardise (SpecE x1 x2 x3) = pure Spec <*> standardise x1
-                                              <*> mapM standardise x2
-                                              <*> standardise x3
+    standardise (Spec x1 x2 x3) = pure Spec <*> standardise x1
+                                            <*> mapM standardise x2
+                                            <*> standardise x3
 
 instance Standardise OObjective where
-    standardise (Maximising x) = pure Maximising <*> standardise x
-    standardise (Minimising x) = pure Minimising <*> standardise x
+    standardise (Maximisingg x) = pure Maximisingg <*> standardise x
+    standardise (Minimisingg x) = pure Minimisingg <*> standardise x
 
 instance (Standardise a, Standardise b) =>  Standardise (a,b) where
     standardise (a,b) = do

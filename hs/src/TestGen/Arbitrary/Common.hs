@@ -48,7 +48,7 @@ lookupType  name = do
     case name `lookup` newVars_ of
         Just v  -> return v
         Nothing ->
-            case fmap (typeOfDom . domOfFG) $  name `M.lookup` doms_ of
+            case fmap (typeOfDom . domOfGF) $  name `M.lookup` doms_ of
                 Nothing ->  ggError "lookUpType"  [pretty name]
                 Just v  -> return v
 
