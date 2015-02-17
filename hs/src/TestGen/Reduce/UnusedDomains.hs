@@ -11,7 +11,7 @@ unusedDomains _ = $notDone
 --         ((Right ts),_) -> ts
 --         ((Left doc),lg) -> error . show . vcat $ ["unusedDomains rrError", doc,pretty lg]
 
--- --TODO don't use old conjure
+-- --FIXME don't use old conjure
 -- unusedDomainsOC
 --     :: MonadConjure m
 --     => Spec

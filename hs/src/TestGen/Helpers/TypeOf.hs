@@ -8,8 +8,6 @@ import TestGen.Helpers.StandardImports
 
 import qualified Data.Map as M
 import Conjure.Language.TypeOf
-import Conjure.Language.Domain
-import Conjure.Language.Definition
 
 class (Monad a, Applicative a) => WithDoms a where
   domainOfVar :: Text -> a (Maybe (Domainn Expr))

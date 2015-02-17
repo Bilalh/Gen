@@ -21,7 +21,7 @@ class SizeOfLimited a where
 
 
 instance SizeOfLimited TType where
-    -- FIXME hardcoded
+    -- FIXME hardcoded over estimated (we only use -5 .. 5)
     sizeOfLimited _ TInt           = 20
     sizeOfLimited _ TBool          = 2
     sizeOfLimited m (TMatix inner) = minB m (sizeOfLimited m inner) (20 ^)
@@ -58,7 +58,7 @@ instance DepthOf TType where
     depthOf (TRel inners )   = 2 + nonEmpty (maximum . map depthOf) inners
     depthOf (TPar inner)     = 1 + depthOf inner
 
-    --FIXME what should the depth of any be?
+    --TODO what should the depth of any be?
     depthOf TAny             = 0
 
     depthOf ty@(TUnamed _) = docError [ "depthOf not implemented", pretty . show $ ty ]
@@ -154,9 +154,8 @@ instance DepthOf a => DepthOf (Maybe a) where
     depthOf Nothing  = 0
     depthOf (Just a) = depthOf a
 
-instance DepthOf OObjective where
-    depthOf (Maximisingg a) = depthOf a
-    depthOf (Minimisingg a) = depthOf a
+instance DepthOf (OObjective, Expr) where
+    depthOf (_, a) = depthOf a
 
 
 depthOfOrZero :: (DepthOf x) => [x] -> Integer

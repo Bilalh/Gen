@@ -138,8 +138,7 @@ instance Standardise Spec where
                                             <*> standardise x3
 
 instance Standardise OObjective where
-    standardise (Maximisingg x) = pure Maximisingg <*> standardise x
-    standardise (Minimisingg x) = pure Minimisingg <*> standardise x
+    standardise x = return x
 
 instance (Standardise a, Standardise b) =>  Standardise (a,b) where
     standardise (a,b) = do

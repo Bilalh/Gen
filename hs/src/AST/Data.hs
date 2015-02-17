@@ -56,7 +56,7 @@ instance Hashable  QType
 instance ToJSON    QType where toJSON = genericToJSON jsonOptions
 instance FromJSON  QType where parseJSON = genericParseJSON jsonOptions
 
-data BinOp = BIn   Expr  Expr  -- TODO SR also has a `in`
+data BinOp = BIn   Expr  Expr
            | BOver Expr  Expr
 
            | BEQ   Expr  Expr

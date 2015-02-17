@@ -4,10 +4,8 @@
 module AST.Domain where
 
 import Conjure.Prelude
-import Conjure.Language.Pretty
 import Conjure.Language.Domain
 import Conjure.Language.Definition
-import Conjure.Prelude
 
 import AST.Data
 import {-# SOURCE #-} AST.Expr()

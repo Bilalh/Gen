@@ -1,13 +1,13 @@
 module TestGen.Essence.SpecE where
 
-import TestGen.Prelude
-import TestGen.Reduce.Data
+-- import TestGen.Prelude
+-- import TestGen.Reduce.Data
 import System.Random.TF(newTFGen,TFGen)
-import AST.Imports
+-- import AST.Imports
 
 import Conjure.Prelude
-import Conjure.Language.Definition
-import Conjure.Language.Domain
+-- import Conjure.Language.Definition
+-- import Conjure.Language.Domain
 
 import System.Random
   ( Random

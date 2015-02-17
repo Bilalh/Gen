@@ -2,14 +2,13 @@
 -- Plus some functions that use them
 module TestGen.Helpers.QuickCheck2 where
 
-import TestGen.Helpers.StandardImports as X hiding (maxSize)
+import TestGen.Helpers.StandardImports
 
 
 import TestGen.Arbitrary.Data(GG)
 
 import Test.QuickCheck.Gen
 
-import Control.Monad.State.Strict( MonadState(get, put))
 import System.Random( Random )
 
 import Test.QuickCheck

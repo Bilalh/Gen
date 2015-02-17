@@ -103,8 +103,7 @@ findFeatures = do
     cs' <- mapM standardise cs
     let objs = case obj of
                  Nothing               -> []
-                 (Just (Maximisingg a)) -> getFeatures a
-                 (Just (Minimisingg a)) -> getFeatures a
+                 (Just (_, a)) -> getFeatures a
 
     let fs = concatMap getFeatures cs'
              ++

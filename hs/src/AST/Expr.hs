@@ -356,4 +356,3 @@ instance Pretty Proc where
 
 instance Pretty QType where
     pretty = error "Pretty Qtype"
-    -- pretty =   pretty  . toEssence

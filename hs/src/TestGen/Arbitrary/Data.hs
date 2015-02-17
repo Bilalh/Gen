@@ -25,7 +25,6 @@ module TestGen.Arbitrary.Data (
 import TestGen.Helpers.StandardImports as X
 import TestGen.Helpers.Log
 
-import Data.Map(Map)
 
 import qualified Text.PrettyPrint as Pr
 

@@ -13,12 +13,8 @@ import TestGen.Arbitrary.Expr(exprOf,deAny)
 import qualified Data.IntSet as I
 import Data.IntSet(IntSet)
 
-import Conjure.Language.DomainSize
 import Conjure.Language.Domain
-import Conjure.Language.Definition
 
-
--- FIXME option to  only pick values that in the domain?
 
 
 boolLit :: GG Expr

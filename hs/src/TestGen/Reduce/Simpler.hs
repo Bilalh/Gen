@@ -1,5 +1,5 @@
 {-# LANGUAGE QuasiQuotes, ViewPatterns #-}
-{-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
+{-# LANGUAGE NamedFieldPuns, RecordWildCards, KindSignatures #-}
 {-# LANGUAGE MultiParamTypeClasses, FlexibleInstances #-}
 
 module TestGen.Reduce.Simpler where
@@ -328,11 +328,18 @@ instance Simpler Proc Literal where
         tyb <- ttypeOf b
         simplerImp tya tyb
 
+simplerTu2 :: forall (m :: * -> *) a a1 b.
+              (Simpler a1 b, Simpler a b, HasLogger m, WithDoms m) =>
+              (a, a1) -> b -> m Ordering
 simplerTu2 (a,b) c = do
     ac <- simplerImp a c
     bc <- simplerImp b c
     return $ compareChain [ac,bc]
 
+simplerTu3 :: forall (m :: * -> *) a a1 a2 b.
+              (Simpler a2 b, Simpler a1 b, Simpler a b, HasLogger m,
+               WithDoms m) =>
+              (a, a1, a2) -> b -> m Ordering
 simplerTu3 (a,b,c) x = do
     ax <- simplerImp a x
     bx <- simplerImp b x

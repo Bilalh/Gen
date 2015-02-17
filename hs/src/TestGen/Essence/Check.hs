@@ -3,13 +3,13 @@ module TestGen.Essence.Check where
 import Conjure.Language.Definition
 import TestGen.Prelude
 import TestGen.Helpers.IO
-import TestGen.Arbitrary.Arbitrary
+-- import TestGen.Arbitrary.Arbitrary
 import TestGen.Helpers.Runner
 
-import TestGen.Classify.Meta(mkMeta)
+-- import TestGen.Classify.Meta(mkMeta)
 
-import Conjure.Language.Domain
-import Conjure.UI.IO(readModelFromFile)
+-- import Conjure.Language.Domain
+-- import Conjure.UI.IO(readModelFromFile)
 
 import qualified Data.Map as M
 

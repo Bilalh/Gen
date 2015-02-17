@@ -6,7 +6,6 @@
 module TestGen.Arbitrary.Common  where
 
 import TestGen.Prelude
-import TestGen.Arbitrary.Type
 
 import qualified Data.Map as M
 import qualified Data.Text as T

@@ -122,7 +122,6 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Literal m where
 
     reduce (EB _) = return []
     reduce (EI _) = return []
-
     reduce (ESet [])     = return []
     reduce (ESet (t:ts)) = return [ESet [t], ESet ts ]
 
