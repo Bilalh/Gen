@@ -20,15 +20,34 @@ import AST.Expr()
 data Spec = Spec Domains [Expr] (Maybe OObjective)
     deriving(Show, Generic, Typeable, Eq)
 
+instance Hashable  (Map Text GF) where
+    hashWithSalt salt m = hashWithSalt salt (M.toList m)
+
+instance Serialize Spec
+instance Hashable  Spec
+instance ToJSON    Spec where toJSON = genericToJSON jsonOptions
+instance FromJSON  Spec where parseJSON = genericParseJSON jsonOptions
+
 data GF = Givenn (Domainn Expr)
         | Findd  (Domainn Expr)
     deriving(Show, Generic, Typeable, Eq)
 
+instance Serialize GF
+instance Hashable  GF
+instance ToJSON    GF where toJSON = genericToJSON jsonOptions
+instance FromJSON  GF where parseJSON = genericParseJSON jsonOptions
+
 type Domains = Map Text GF
+
 
 data OObjective = Maximisingg Expr
                 | Minimisingg Expr
     deriving(Eq, Ord, Show, Data, Typeable, Generic)
+
+instance Serialize OObjective
+instance Hashable  OObjective
+instance ToJSON    OObjective where toJSON = genericToJSON jsonOptions
+instance FromJSON  OObjective where parseJSON = genericParseJSON jsonOptions
 
 instance Pretty OObjective where
     pretty (Maximisingg x)  = "Maximising "  <+> pretty x

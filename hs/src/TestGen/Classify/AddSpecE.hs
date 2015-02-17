@@ -5,11 +5,14 @@
 module TestGen.Classify.AddSpecE where
 
 import Conjure.UI.IO(readModelFromFile)
-import Conjure.Language.Definition(Model)
+import Conjure.Language.Definition
 import TestGen.Classify.Sorter(getRecursiveContents)
 import TestGen.Prelude
 
 import System.FilePath (replaceExtension, takeExtension)
+
+import qualified Data.Aeson as A
+import qualified Data.ByteString.Lazy as L
 
 specEMain :: [FilePath] -> IO ()
 specEMain = \case
@@ -17,7 +20,7 @@ specEMain = \case
    [x]    ->  addSpecE x
    (x:xs) ->  addSpecE x >> specEMain xs
 
-inlineParamAndLettings :: Model -> Maybe Model -> (Model, a)
+inlineParamAndLettings :: Model -> Maybe Model -> Model
 inlineParamAndLettings spec param = $notDone
 
 addSpecE :: FilePath -> IO ()
@@ -29,8 +32,9 @@ addSpecE fp_ = do
 
   where
   f spec fp = do
-    let inlined = fst $ inlineParamAndLettings spec Nothing
-        specE  = fromModel inlined
+    -- let inlined = inlineParamAndLettings spec
+        -- specE  = fromModel inlined
+    let specE  = fromModel spec
 
     putStrLn fp
 
@@ -54,19 +58,19 @@ addSpecE fp_ = do
          -- else
          --     return ()
 
-         writeFile (replaceExtension fp ".specE" ) (show r)
+         writeFile (replaceExtension fp ".specE" )      (show r)
+         L.writeFile (replaceExtension fp ".specE.json" ) (A.encode r)
+
 
 
 compareSpecs :: Spec -> Model -> IO Bool
-compareSpecs = error "compareSpecs"
--- compareSpecs specE  (Spec _ v2) = do
---     let (Spec lang v1) = toSpec specE
---         s1 = (Spec lang v1)
---         s2 = (Spec lang v2)
---     case hash s1 == hash s2 of
---       True  -> return True
---       False -> do
---         return False
+compareSpecs specE  m1  = do
+    Model{mStatements=d} <- toModel specE
+    let m2 = m1{mStatements=d}
+    case hash m1 == hash m2 of
+      True  -> return True
+      False -> do
+        return False
 
 
 ffind :: FilePath -> IO [FilePath]
