@@ -4,6 +4,7 @@
 
 module TestGen.Classify.AddSpecE where
 
+import Conjure.UI.Model(prologue)
 import Conjure.UI.IO(readModelFromFile)
 import Conjure.Language.Definition
 import TestGen.Classify.Sorter(getRecursiveContents)
@@ -14,17 +15,15 @@ import System.FilePath (replaceExtension, takeExtension)
 import qualified Data.Aeson as A
 import qualified Data.ByteString.Lazy as L
 
-specEMain :: [FilePath] -> IO ()
-specEMain = \case
+specEMain :: Bool ->  [FilePath] -> IO ()
+specEMain printSpecs = \case
    []     ->  putStrLn "gen specE <dir+>"
-   [x]    ->  addSpecE x
-   (x:xs) ->  addSpecE x >> specEMain xs
+   [x]    ->  addSpecE printSpecs x
+   (x:xs) ->  addSpecE printSpecs x >> specEMain printSpecs xs
 
-inlineParamAndLettings :: Model -> Maybe Model -> Model
-inlineParamAndLettings spec param = $notDone
 
-addSpecE :: FilePath -> IO ()
-addSpecE fp_ = do
+addSpecE :: Bool -> FilePath -> IO ()
+addSpecE printSpecs fp_ = do
   specs_ :: [FilePath] <- ffind fp_
   specs  :: [Model]    <- mapM readModelFromFile specs_
 
@@ -32,9 +31,9 @@ addSpecE fp_ = do
 
   where
   f spec fp = do
-    -- let inlined = inlineParamAndLettings spec
-        -- specE  = fromModel inlined
-    let specE  = fromModel spec
+    start <- ignoreLogs $ prologue spec
+    let inlined = inlineParamAndLettings start Nothing
+    let specE  = fromModel inlined
 
     putStrLn fp
 
@@ -42,7 +41,6 @@ addSpecE fp_ = do
       Left r -> error . show . vcat $ ["Error for " <+> (pretty fp)
                                       , "spec"  <+> pretty spec
                                       , "msg"   <+> (pretty r)
-                                      , "msg"   <+> (pretty . groom $ r)
                                       , "groom" <+> (pretty . groom $ spec)
                                       , "--"  ]
       Right r -> do
@@ -58,9 +56,55 @@ addSpecE fp_ = do
          -- else
          --     return ()
 
+         if printSpecs then
+             putStrLn . show . vcat $ [
+                            "Original"
+                          , pretty spec
+                          , "Converted"
+                          , pretty r
+                          ,  "Original AST"
+                          , pretty . groom $ spec
+                          , "Converted AST"
+                          , pretty . groom $ inlined
+                          , pretty . groom $ r
+                          ]
+         else
+             return ()
+
          writeFile (replaceExtension fp ".specE" )      (show r)
          L.writeFile (replaceExtension fp ".specE.json" ) (A.encode r)
 
+
+
+
+
+-- FIXME param file
+inlineParamAndLettings :: Model -> Maybe Model -> Model
+inlineParamAndLettings spec Nothing = inlineLettings spec
+inlineParamAndLettings _ (Just _) = $notDone
+
+
+inlineLettings :: Model -> Model
+inlineLettings model =
+    let
+        inline p@(Reference nm _) = do
+            x <- gets (lookup nm)
+            return (fromMaybe p x)
+        inline p = return p
+
+        statements = catMaybes
+                        $ flip evalState []
+                        $ forM (mStatements model)
+                        $ \ st ->
+            case st of
+                Declaration (Letting nm x)
+                    -> modify ((nm,x) :) >> return Nothing
+                -- The following doesn't work when the identifier is used in a domain
+                -- Declaration (Letting nm x@Reference{})
+                --     -> modify ((nm,x) :) >> return Nothing
+                _ -> Just <$> transformBiM inline st
+    in
+        model { mStatements = statements }
 
 
 compareSpecs :: Spec -> Model -> IO Bool

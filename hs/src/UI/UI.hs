@@ -47,6 +47,7 @@ data UI
   | SpecEE
       { directories :: [FilePath]
       , limit_time  :: Maybe Int
+      , print_specs :: Bool
       }
   deriving (Show, Data, Typeable)
 
@@ -139,15 +140,19 @@ ui  = modes
 
   , SpecEE
     {
-      directories = def &= typDir
-                        &= name "directory"
-                        &= name "d"
-                        &= explicit
-                        &= help "Directories containing spec.essence files "
-    , limit_time  = def &= name "limit-time"
-                        &= groupname "Other"
-                        &= explicit
-                        &= help "Time limit in seconds of CPU time of this program"
+      directories = def   &= typDir
+                          &= name "directory"
+                          &= name "d"
+                          &= explicit
+                          &= help "Directories containing spec.essence files "
+    , limit_time  = def   &= name "limit-time"
+                          &= groupname "Other"
+                          &= explicit
+                          &= help "Time limit in seconds of CPU time of this program"
+    , print_specs = False &= name "print-specs"
+                          &= name "v"
+                          &= explicit
+                          &= help "Print the the spec before and after conversion"
 
     } &= explicit
       &= name "specE"

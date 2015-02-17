@@ -105,7 +105,7 @@ mainWithArgs Meta{..} = do
   metaMain directories
 
 mainWithArgs SpecEE{..} = do
-  specEMain directories
+  specEMain print_specs directories
 
 aerr :: String -> Bool -> Maybe String
 aerr n b | b = Just $ n ++ " is required"
