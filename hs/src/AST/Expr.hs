@@ -15,13 +15,13 @@ import AST.Type()
 import AST.Domain()
 
 instance Translate Expr Expression where
-  fromConjure (Constant t)             = ELit <$> fromConjure t
-  fromConjure (AbstractLiteral t)      = ELit <$> fromConjure t
-  fromConjure (Domain t)               = EDom <$> fromConjure t
-  fromConjure (Reference t1 _)         = EVar <$> fromConjure t1
+  fromConjure (Constant t)             = ELit   <$> fromConjure t
+  fromConjure (AbstractLiteral t)      = ELit   <$> fromConjure t
+  fromConjure (Domain t)               = EDom   <$> fromConjure t
+  fromConjure (Reference t1 _)         = EVar   <$> fromConjure t1
   -- fromConjure (WithLocals t1 t2)    = _f
   -- fromConjure (Comprehension t1 t2) = _f
-  -- fromConjure (Typed t1 t2)         = _f
+  fromConjure (Typed t1 t2)            = ETyped <$> fromConjure t2 <*> fromConjure t1
 
   fromConjure t@(Op _) =  do
       case fromConjure t of
@@ -55,7 +55,7 @@ instance Translate Expr Expression where
   toConjure (EUniOp x)             =  toConjure x
   toConjure (EProc x)              =  toConjure x
   toConjure (EDom x)               =  Domain <$> toConjure x
-  -- toConjure (ETyped x1 x2)      =  _t
+  toConjure (ETyped x1 x2)         =  Typed <$> toConjure x2 <*> toConjure x1
   -- toConjure EEmptyGuard         =  _t
   -- toConjure (EQuan x1 x2 x3 x4) =  _t
 
