@@ -18,7 +18,7 @@ specEMain = \case
    (x:xs) ->  addSpecE x >> specEMain xs
 
 inlineParamAndLettings :: Model -> Maybe Model -> (Model, a)
-inlineParamAndLettings spec param = $notImplemented
+inlineParamAndLettings spec param = $notDone
 
 addSpecE :: FilePath -> IO ()
 addSpecE fp_ = do
@@ -30,7 +30,7 @@ addSpecE fp_ = do
   where
   f spec fp = do
     let inlined = fst $ inlineParamAndLettings spec Nothing
-        specE  = fromSpec inlined
+        specE  = fromModel inlined
 
     putStrLn fp
 

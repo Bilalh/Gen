@@ -149,7 +149,7 @@ instance FromJSON  Proc where parseJSON = genericParseJSON jsonOptions
 
 data Literal
     = EB Bool
-    | EI Integer
+    | EI Int
     | ETuple      [Literal]
     | EMatrix     [Literal] (Domainn Expr)
     | ESet        [Literal]
@@ -178,7 +178,7 @@ data TType =
     | TPar    TType
     | TUnamed Text   -- each unamed type is unique
     | TEnum   Text   -- as are enums
-      deriving (Eq, Ord, Show, Data, Typeable, Generic)
+      deriving (Eq, Ord, Show, Data, Typeable, Generic, Read)
 
 instance Serialize TType
 instance Hashable  TType

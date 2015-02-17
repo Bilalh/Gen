@@ -94,11 +94,6 @@ instance Simpler Expr Expr where
     tyb <- ttypeOf b
     simplerImp tya tyb
 
-  simplerImp a@(EQVar _) b = do
-    tya <- ttypeOf a
-    tyb <- ttypeOf b
-    simplerImp tya tyb
-
   simplerImp (ETyped _ x) (ETyped _ y) = simplerImp x y
   simplerImp (ETyped _ x) y            = simplerImp x y
   simplerImp x (ETyped _ y)            = simplerImp x y
@@ -271,13 +266,6 @@ instance Simpler Expr Literal where
     simplerImp (ELit e) l    = simplerImp e l
 
     simplerImp (EVar e) l = do
-      tyE :: TType <- typeOfVar e >>= \case
-             Just ty -> return ty
-             Nothing -> rrError "simplerImp no type of var" [nn "var" e]
-      tyl <- ttypeOf l
-      simplerImp (tyE) tyl
-
-    simplerImp (EQVar e) l = do
       tyE :: TType <- typeOfVar e >>= \case
              Just ty -> return ty
              Nothing -> rrError "simplerImp no type of var" [nn "var" e]

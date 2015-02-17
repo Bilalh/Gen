@@ -79,12 +79,12 @@ instance Translate Literal Constant where
   -- fromConjure (ConstantUndefined r)   = _r
 
   toConjure (EB x) = pure $ ConstantBool x
-  toConjure (EI x) = pure $ ConstantInt (fromInteger x)
+  toConjure (EI x) = pure $ ConstantInt x
   toConjure x = toConjureFail "Literal Constant" x
 
 instance Pretty Literal where
     pretty (EB x) = pretty $ ConstantBool x
-    pretty (EI x) = pretty $ ConstantInt (fromInteger x)
+    pretty (EI x) = pretty $ ConstantInt x
     pretty x = error . renderNormal $ ("Pretty Literal " <+>  (pretty . groom) x)
 
 instance (Translate a b) => Translate (a,a) (b,b) where

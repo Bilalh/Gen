@@ -93,7 +93,7 @@ instance Default RState where
 containHashAdd :: Spec -> RR Bool
 containHashAdd newE= do
   -- let newHash = hash (pretty newE)
-  let newHash = $notImplemented
+  let newHash = $notDone
   is <- gets hashes_
   case newHash `IS.member` is of
     True -> return True

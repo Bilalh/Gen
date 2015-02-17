@@ -104,7 +104,7 @@ getFunc TdTypesComplex = \SpecMeta{..} ->
 
 prettyShowType :: TType -> String
 prettyShowType ty =
-    let t   = T.pack . show . pretty . (toEssence :: TType -> Type) $ ty
+    let t   = T.pack . show . pretty . (toConjureNote "prettyShowType" :: TType -> Type) $ ty
         res = T.unpack
             . T.take 150
             . T.unwords

@@ -22,7 +22,7 @@ metaMain = \case
 addMeta :: FilePath -> IO ()
 addMeta fp_ = do
   specs_ :: [FilePath] <- ffind fp_
-  specs  :: [SpecE]    <- mapM readSpecE specs_
+  specs  :: [Spec]    <- mapM readSpecE specs_
 
   void $ zipWithM f specs specs_
 

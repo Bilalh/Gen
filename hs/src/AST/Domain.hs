@@ -18,3 +18,6 @@ instance Translate (Domainn Expr) (Domain () Expression) where
           f y = fromConjure y
 
     toConjure x = mapM toConjure x
+
+dintRange :: Int -> Int -> Domainn Expr
+dintRange a b = DomainInt [RangeBounded (ELit . EI $ a) (ELit . EI $ b)]

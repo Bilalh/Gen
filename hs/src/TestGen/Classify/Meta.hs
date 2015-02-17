@@ -48,9 +48,9 @@ instance Hashable SpecMeta
 
 mkMeta :: (WithDoms m) => m SpecMeta
 mkMeta = do
-  (SpecE ds cs obj) <- getSpecEWithDoms
+  (Spec ds cs obj) <- getSpecEWithDoms
 
-  let doms              = map (domOfFG . snd) .  M.toList $ ds
+  let doms              = map (domOfGF . snd) .  M.toList $ ds
       constraint_depth_ = maximum' 0 (depthOf obj : map depthOf cs)
       dom_depth_        = maximum' 0 $ (map depthOf) doms
       constraint_count_ = length cs
@@ -95,18 +95,16 @@ maximum' a [] = a
 maximum' _ xs = maximum xs
 
 specE1 :: Spec
-specE1= readNote "SpecE1" $
-    "SpecE (fromList [(\"var1\",Find (DSet {size = Nothing, minSize = Nothing, maxSize = Nothing, inner = DBool}))]) [EBinOp (BOr (EBinOp (BEQ (ELit (ESet [EExpr (ELit (EB True))])) (ELit (ESet [EExpr (ELit (EB True)),EExpr (ELit (EB True))])))) (ELit (EB False)))]"
-
+specE1= $notDone
 
 findFeatures :: (WithDoms m) => m [Feature]
 findFeatures = do
-    (SpecE _ cs obj)  <- getSpecEWithDoms
+    (Spec _ cs obj)  <- getSpecEWithDoms
     cs' <- mapM standardise cs
     let objs = case obj of
                  Nothing               -> []
-                 (Just (Maximising a)) -> getFeatures a
-                 (Just (Minimising a)) -> getFeatures a
+                 (Just (Maximisingg a)) -> getFeatures a
+                 (Just (Minimisingg a)) -> getFeatures a
 
     let fs = concatMap getFeatures cs'
              ++
@@ -124,7 +122,6 @@ class HasFeature e where
 instance HasFeature Expr where
     getFeatures (ELit e)             = Fliterals : getFeatures e
     getFeatures (EVar _)             = [Fref]
-    getFeatures (EQVar _)            = [Fref]
     getFeatures (EBinOp e)           = getFeatures e
     getFeatures (EUniOp e)           = getFeatures e
     getFeatures (EProc e)            = Fproc : getFeatures e

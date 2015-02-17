@@ -63,7 +63,7 @@ nestedVarsOf' tyTo = do
         inDepth _ Nothing  = False
         inDepth d (Just c) = c <  d
 
-        toTy (ref, fg) = (ref, typeOfDom . domOfFG $ fg )
+        toTy (ref, fg) = (ref, typeOfDom . domOfGF $ fg )
 
 --TODO Make sure to handle Tany
 

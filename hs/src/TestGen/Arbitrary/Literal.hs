@@ -13,6 +13,11 @@ import TestGen.Arbitrary.Expr(exprOf,deAny)
 import qualified Data.IntSet as I
 import Data.IntSet(IntSet)
 
+import Conjure.Language.DomainSize
+import Conjure.Language.Domain
+import Conjure.Language.Definition
+
+
 -- FIXME option to  only pick values that in the domain?
 
 
@@ -23,7 +28,7 @@ boolLit = do
 
 intLit :: GG Expr
 intLit  = do
-    i <- choose2 ((-10),10 :: Integer)
+    i <- choose2 ((-10),10 :: Int)
     return (ELit (EI i) )
 
 
@@ -59,10 +64,18 @@ msetLitOf innerType = do
 matrixLitOf :: TType -> GG Expr
 matrixLitOf innerType = do
     idx <-  withDepthDec intDom
-    let numElems = sizeOf idx
-    exprs <- vectorOf2 (fromInteger numElems) ( withDepthDec $ exprOf innerType)
+    let numElems = I.size $ I.fromList $ concat $ ints idx
+    exprs <- vectorOf2 numElems ( withDepthDec $ exprOf innerType)
     return $ ELit $ EMatrix (map EExpr $ exprs) idx
 
+    where
+      ints (DomainInt rs)         = map rsInts rs
+      ints x = docError ["not matched ints", pretty x]
+      rsInts (RangeSingle x)      = [getInt x]
+      rsInts (RangeBounded a b)   = [(getInt a) .. (getInt b)]
+      rsInts x = docError ["not matched rsInts", pretty x]
+      getInt (ELit (EI x)) = x
+      getInt x = docError ["not matched getInt", pretty x]
 
 -- FIXME from mappings should be distinct?
 funcLitOf :: TType -> TType -> GG Expr

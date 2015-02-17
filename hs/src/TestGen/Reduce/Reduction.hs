@@ -32,10 +32,6 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
         Just ty -> singleLitExpr ty
         Nothing -> rrError "reduce EVar not found" [pretty t]
 
-    reduce (EQVar t) = typeOfVar t >>= \case
-        Just ty -> singleLitExpr ty
-        Nothing -> rrError "reduce EQVar not found" [pretty t]
-
     reduce (EUniOp t) = do
       ds <- reduce t
       return $ map EUniOp ds
@@ -73,9 +69,6 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
         Nothing -> do
           rrError "single EVar not found" [pretty t]
 
-    single (EQVar t) = typeOfVar t >>= \case
-        Just ty -> singleLitExpr ty
-        Nothing -> rrError "single EQVar not found" [pretty t]
 
     single (ELit t)   = do
       addLog "singleELit" [nn "t" t]
@@ -104,7 +97,6 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
                  , EQuan t1 t2 EEmptyGuard t4]
 
     subterms (EVar _)  = return []
-    subterms (EQVar _) = return []
 
     subterms (ELit t)   = subterms t
     subterms (EDom t)   = subterms t
@@ -152,7 +144,7 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Literal m where
       case filter (/= []) nts of
         [] -> return [ EMatrix [t] (dintRange 1 1)
                  -- , EMatrix [nts] (dintRange 1 (genericLength nts))
-                 , EMatrix ts (dintRange 1 (genericLength ts))]
+                 , EMatrix ts (dintRange 1 (length ts))]
 
         nt -> do
           ns <- mapM oneofR nt

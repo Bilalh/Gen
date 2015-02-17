@@ -16,10 +16,10 @@ import qualified Data.Text.IO as T
 
 -- reads a .specE file
 readSpecE :: FilePath -> IO Spec
-readSpecE fp = do
-    con <- T.readFile fp
-    let st = T.unpack $ con
-    return . readNote "readSpecE" $ st
+readSpecE fp = $notDone
+    -- con <- T.readFile fp
+    -- let st = T.unpack $ con
+    -- return . readNote "readSpecE" $ st
 
 
 -- Just means rrError still happens
@@ -29,7 +29,7 @@ runSpec spE = do
     containHashAdd spE >>= \case
       True -> return Nothing
       False -> do
-        let sp = toSpec spE
+        sp <- liftIO $ toModel spE
         outdir <- gets outputDir_
 
         ts <- liftIO $ timestamp >>= return . show

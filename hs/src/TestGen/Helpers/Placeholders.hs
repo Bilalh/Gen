@@ -6,7 +6,7 @@
 -- allow incomplete code to compile. They work just like 'undefined',
 -- but with improved error messages and compile-time warnings.
 module TestGen.Helpers.Placeholders (
-    notImplemented,
+    notDone,
     todo,
     placeholder,
     placeholderNoWarning,
@@ -27,9 +27,9 @@ instance Exception PlaceholderException
 
 -- | Indicates that this piece of code has not yet been implemented.
 --
--- @$notImplemented = $(placeholder \"Unimplemented feature\")@
-notImplemented :: Q Exp
-notImplemented = placeholder "Unimplemented feature"
+-- @$notDone = $(placeholder \"Unimplemented feature\")@
+notDone :: Q Exp
+notDone = placeholder "Unimplemented feature"
 
 -- | Indicates unimplemented code or a known bug with a custom message.
 --
@@ -74,7 +74,7 @@ formatLoc loc = let file = loc_filename loc
 -- > import Common.Placeholders
 -- >
 -- > theUltimateAnswer :: Int
--- > theUltimateAnswer = $notImplemented
+-- > theUltimateAnswer = $notDone
 -- >
 -- > main = do
 -- >     putStrLn "The ultimate answer:"

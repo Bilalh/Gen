@@ -60,7 +60,7 @@ quanInExpr  = withQuan $
 
             -- FIXME Ensure with high prob that inName is actually used
             quanType <- elements2 [ ForAll, Exists ]
-            let quanTop = EQuan quanType (BIn (EQVar inName) over)
+            let quanTop = EQuan quanType (BIn (EVar inName) over)
 
             d <- gets depth_
             let typeDepth = depthOf inType
@@ -98,7 +98,7 @@ quanOverExpr = withQuan $
 
             -- FIXME Ensure with high prob that inName is actually used
             quanType <- elements2 [ ForAll, Exists ]
-            let quanTop = EQuan quanType (BOver (EQVar inName) (EDom dm))
+            let quanTop = EQuan quanType (BOver (EVar inName) (EDom dm))
 
             d <- gets depth_
             let typeDepth = depthOf innerType
@@ -135,7 +135,7 @@ quanSum = withQuan $
                                   , "inTy" <+> pretty inType
                                   ]
 
-            let quanTop = EQuan Sum (BIn (EQVar inName) over)
+            let quanTop = EQuan Sum (BIn (EVar inName) over)
 
             quanGuard <- oneof2 [
                 return EEmptyGuard
@@ -334,15 +334,15 @@ varsOf' exprType = do
 
     return $ toGenExpr EVar $ newVars ++ (
         map fst . M.toList  . M.filter
-            (typesUnify exprType . typeOfDom . domOfFG ))  doms_
+            (typesUnify exprType . typeOfDom . domOfGF ))  doms_
 
 
 
 domOf ::  [TType] -> GG (Maybe (Gen (Domainn Expr)))
 domOf exprTypes = do
     doms_ <- gets doms_
-    return $ toGenExpr id  $ (map (domOfFG . snd) . M.toList  .
-        M.filter (  (\t -> any (typesUnify t) exprTypes )  . typeOfDom . domOfFG ))
+    return $ toGenExpr id  $ (map (domOfGF . snd) . M.toList  .
+        M.filter (  (\t -> any (typesUnify t) exprTypes )  . typeOfDom . domOfGF ))
             doms_
 
 

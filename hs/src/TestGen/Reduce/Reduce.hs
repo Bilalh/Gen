@@ -9,11 +9,12 @@ import TestGen.Reduce.Reduction
 import TestGen.Reduce.UnusedDomains
 import TestGen.Prelude
 
+import Conjure.Language.Domain
 
 import qualified Data.Map as M
 
 
-reduceMain :: RState -> IO (SpecE, RState)
+reduceMain :: RState -> IO (Spec, RState)
 reduceMain rr = do
   let base = specDir_ rr
       fp   =  base </> "spec.specE"
@@ -48,24 +49,24 @@ reduceMain rr = do
 
 
 tryRemoveConstraints :: Spec -> RR Spec
-tryRemoveConstraints  sp@(SpecE ds _ obj) = do
-  runSpec (SpecE ds [] obj) >>= \case
+tryRemoveConstraints  sp@(Spec ds _ obj) = do
+  runSpec (Spec ds [] obj) >>= \case
     Just r  -> do
       recordResult r
-      return (SpecE ds [] obj)
+      return (Spec ds [] obj)
     Nothing -> return sp
 
 removeUnusedDomains :: Spec -> RR Spec
-removeUnusedDomains sp@(SpecE ods es obj) = do
+removeUnusedDomains sp@(Spec ods es obj) = do
     let unusedNames = unusedDomains sp
 
     nds <- process (choices ods unusedNames)
     case nds of
-        Just ds -> return (SpecE ds es obj)
-        Nothing -> return (SpecE ods es obj)
+        Just ds -> return (Spec ds es obj)
+        Nothing -> return (Spec ods es obj)
 
     where
-    choices :: Doms -> [Text] -> [Doms]
+    choices :: Domains -> [Text] -> [Domains]
     choices ds ts =
         -- remove [] and reversing to get largest first
         -- meaning res would be [ [a], [b], [a,b],  ... ]
@@ -73,9 +74,9 @@ removeUnusedDomains sp@(SpecE ods es obj) = do
             res = fmap (\wy -> M.filterWithKey (\k _ -> k `notElem` wy) ds ) ways
         in res
 
-    process :: [Doms]-> RR (Maybe Doms)
+    process :: [Domains]-> RR (Maybe Domains)
     process []     = return Nothing
-    process (x:xs) = runSpec (SpecE y es obj) >>= \case
+    process (x:xs) = runSpec (Spec y es obj) >>= \case
         Just r  -> do
           recordResult r
           return $ Just y
@@ -84,18 +85,18 @@ removeUnusedDomains sp@(SpecE ods es obj) = do
         where y = ensureADomain x
 
 
-    ensureADomain :: Doms -> Doms
-    ensureADomain ds | M.null ds = M.insert ("unused") (FFind DBool) ds
+    ensureADomain :: Domains -> Domains
+    ensureADomain ds | M.null ds = M.insert ("unused") (Findd DomainBool) ds
     ensureADomain ds = ds
 
 
 removeConstraints :: Spec -> RR Spec
-removeConstraints (SpecE ds oes obj) = do
+removeConstraints (Spec ds oes obj) = do
     let nubbed = nub2 oes
     nes <- process (choices nubbed)
     case nes of
-        Just es -> return (SpecE ds es obj)
-        Nothing -> return (SpecE ds nubbed obj)
+        Just es -> return (Spec ds es obj)
+        Nothing -> return (Spec ds nubbed obj)
 
     where
 
@@ -106,7 +107,7 @@ removeConstraints (SpecE ds oes obj) = do
 
     process :: [[Expr]] -> RR (Maybe [Expr])
     process []     = return Nothing
-    process (x:xs) = runSpec (SpecE ds x obj) >>= \case
+    process (x:xs) = runSpec (Spec ds x obj) >>= \case
         Just r  -> do
           recordResult r
           return $ Just x
@@ -115,19 +116,19 @@ removeConstraints (SpecE ds oes obj) = do
     -- process ts = rrError . show . prettyBrackets . vcat $ map (prettyBrackets .  vcat . map pretty) ts
 
 simplyConstraints :: Spec -> RR Spec
-simplyConstraints sp@(SpecE ds es obj) = do
+simplyConstraints sp@(Spec ds es obj) = do
     csToDo <- doConstraints es
     addLog "Got Constraints" []
     fin    <- process csToDo
     addLog "finished processing" []
     if fin == [] then
-        runSpec (SpecE ds [] obj) >>= \case
+        runSpec (Spec ds [] obj) >>= \case
             Just r  -> do
               recordResult r
-              return (SpecE ds [] obj)
-            Nothing -> return (SpecE ds es obj)
+              return (Spec ds [] obj)
+            Nothing -> return (Spec ds es obj)
     else
-        return (SpecE ds fin obj)
+        return (Spec ds fin obj)
 
     where
     process :: [[Expr]] -> RR [Expr]
@@ -138,7 +139,7 @@ simplyConstraints sp@(SpecE ds es obj) = do
     process xs | all (singleElem) xs = do
         addLog "processsingleElem" []
         let fix = map head xs
-        runSpec (SpecE ds fix obj) >>= \case
+        runSpec (Spec ds fix obj) >>= \case
           Just r -> do
             recordResult r
             return fix
@@ -147,7 +148,7 @@ simplyConstraints sp@(SpecE ds es obj) = do
     process esR = do
         addLog "process esR" []
         fix <- choose esR
-        runSpec (SpecE ds fix obj) >>= \case
+        runSpec (Spec ds fix obj) >>= \case
                 Nothing -> removeNext esR >>= process
                 Just r  -> do
                     recordResult r

@@ -5,7 +5,7 @@ import TestGen.Prelude
 -- import qualified Data.HashSet as S
 
 unusedDomains :: Spec -> [Text]
-unusedDomains _ = $notImplemented
+unusedDomains _ = $notDone
 -- unusedDomains spe =
 --     case runCompESingle "f" (unusedDomainsOC (toSpec spe)  ) of
 --         ((Right ts),_) -> ts

@@ -90,14 +90,14 @@ spec depth =  do
     (specE, _) <- spec' depth
     return specE
 
-spec' :: Depth -> Gen (SpecE, LogsTree)
+spec' :: Depth -> Gen (Spec, LogsTree)
 spec' = flip spec'' def
 
 
-specwithLogs :: Depth -> Generators -> Gen (WithLogs SpecE)
+specwithLogs :: Depth -> Generators -> Gen (WithLogs Spec)
 specwithLogs depth gens  =  uncurry WithLogs  <$> spec'' depth gens
 
-spec'' :: Depth -> Generators -> Gen (SpecE, LogsTree)
+spec'' :: Depth -> Generators -> Gen (Spec, LogsTree)
 spec'' depth _ | depth < 0 = error "spec'' depth < 0"
 spec'' depth gens  = do
     let state =  def{depth_= (depth+1) `div` 2, generators_=gens}
@@ -109,7 +109,7 @@ spec'' depth gens  = do
     (doms,state') <- runStateT (addDepth "domDepth" >> listOfBounds domsCount dom) state
 
 
-    let withNames =  zipWith (\d i -> (name i , FFind d)) doms [1 :: Int ..]
+    let withNames =  zipWith (\d i -> (name i , Findd d)) doms [1 :: Int ..]
     let mappings  = M.fromList withNames
 
 
@@ -143,7 +143,7 @@ spec'' depth gens  = do
             , "|------|"
             ]
     else
-        return $ (SpecE mappings exprs Nothing, logs_ sfinal)
+        return $ (Spec mappings exprs Nothing, logs_ sfinal)
 
     where
         name i =  T.pack $  "var" ++  (show  i)

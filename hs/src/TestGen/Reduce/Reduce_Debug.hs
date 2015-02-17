@@ -12,7 +12,6 @@ import TestGen.Helpers.TypeOf
 
 import TestGen.Prelude
 import TestGen.Helpers.Runner(KindI(..), StatusI(..))
-import TestGen.QCDebug(specE1)
 
 import qualified TestGen.Arbitrary.Arbitrary as A
 import qualified TestGen.Arbitrary.Domain as A
@@ -63,7 +62,7 @@ import TestGen.Reduce.Reduce
 --         Left er -> error . show .  (pretty &&& pretty . groom) $ er
 --         Right ee -> ee
 
-_k :: FilePath -> FilePath -> IO (SpecE, RState)
+_k :: FilePath -> FilePath -> IO (Spec, RState)
 _k out inn= do
   reduceMain def{oErrKind_=KindAny_, oErrStatus_=StatusAny_, cores_=1,newConjure_=True,oErrEprime_=Nothing ,rgen_= mkrGen 4, outputDir_=out, specDir_=inn}
 
