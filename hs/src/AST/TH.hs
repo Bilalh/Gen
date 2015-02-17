@@ -1,7 +1,9 @@
-module AST.TH(domain) where
--- really only for ghci
+-- really only for usage in ghci
+module AST.TH(domain, domainn,essencee) where
 
 import Conjure.Language.Definition
+
+import AST.Imports
 
 import Conjure.Prelude
 import Conjure.Language.Domain
@@ -28,6 +30,39 @@ domain = QuasiQuoter
     , quoteType = error "quoteType"
     , quoteDec  = error "quoteDec"
     }
+
+domainn :: QuasiQuoter
+domainn = QuasiQuoter
+    { quoteExp = \ str -> do
+        l <- locationTH
+        e <- runIO $ parseIO (setPosition l *> parseDomain) str
+        let f :: Domainn Expr = fromConjureNote "in domainn quoteExp TH" e
+        dataToExpQ (const Nothing `extQ` expE `extQ` expD `extQ` expAP) f
+    , quotePat  = \ str -> do
+        l <- locationTH
+        e <- runIO $ parseIO (setPosition l *> parseDomain) str
+        let f :: Domainn Expr = fromConjureNote "in domainn quotePat TH" e
+        dataToPatQ (const Nothing `extQ` patE `extQ` patD `extQ` patAP) f
+    , quoteType = error "quoteType"
+    , quoteDec  = error "quoteDec"
+    }
+
+essencee :: QuasiQuoter
+essencee = QuasiQuoter
+    { quoteExp = \ str -> do
+        l <- locationTH
+        e <- runIO $ parseIO (setPosition l *> parseExpr) str
+        let f :: Expr = fromConjureNote "in essencee quoteExp TH" e
+        dataToExpQ (const Nothing `extQ` expE `extQ` expD `extQ` expAP) f
+    , quotePat  = \ str -> do
+        l <- locationTH
+        e <- runIO $ parseIO (setPosition l *> parseExpr) str
+        let f :: Expr = fromConjureNote "in essencee quotePat TH" e
+        dataToPatQ (const Nothing `extQ` patE `extQ` patD `extQ` patAP) f
+    , quoteType = error "quoteType"
+    , quoteDec  = error "quoteDec"
+    }
+
 
 locationTH :: Q SourcePos
 locationTH = aux <$> location
