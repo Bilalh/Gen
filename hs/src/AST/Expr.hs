@@ -35,7 +35,8 @@ instance Translate Expr Expression where
                 Nothing -> fromConjureFail "Expr Expression" t
 
 
-  -- fromConjure (ExpressionMetaVar t) =
+  fromConjure (ExpressionMetaVar t) = return $ EMetaVar t
+
   fromConjure x = fromConjureFail "Expr Expression" x
 
 
@@ -59,6 +60,7 @@ instance Translate Expr Expression where
   -- toConjure EEmptyGuard         =  _t
   -- toConjure (EQuan x1 x2 x3 x4) =  _t
 
+  toConjure (EMetaVar x)  = return $ ExpressionMetaVar x
 
   toConjure x = toConjureFail "Expr Expression" x
 

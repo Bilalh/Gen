@@ -38,6 +38,7 @@ data Expr =
   | ETyped TType Expr
   | EEmptyGuard
   | EQuan QType BinOp Expr Expr
+  | EMetaVar String -- For TH
   deriving (Eq, Ord, Show, Data, Typeable, Generic)
 
 instance Serialize (Expr)
