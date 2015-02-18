@@ -75,6 +75,15 @@ expE :: Expression -> Maybe ExpQ
 expE (ExpressionMetaVar x) = Just [| $(varE (mkName x)) |]
 expE _ = Nothing
 
+expD :: Domain () Expression -> Maybe ExpQ
+expD (DomainMetaVar x) = Just $ [| $(varE (mkName "forgetRepr")) |]
+                         `appE` [| "TH:expD" |]
+                         `appE` [| $(varE (mkName x)) |]
+expD _ = Nothing
+
+expAP :: AbstractPattern -> Maybe ExpQ
+expAP (AbstractPatternMetaVar x) = Just [| $(varE (mkName x)) |]
+expAP _ = Nothing
 
 
 patE :: Expression -> Maybe PatQ
