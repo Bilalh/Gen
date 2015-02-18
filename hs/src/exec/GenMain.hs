@@ -80,6 +80,9 @@ mainWithArgs Essence{..} = do
 
   return ()
 
+mainWithArgs Instance{..} = do
+  error . show . vcat $ ["gen instance not done yet" ]
+
 mainWithArgs Reduce{..} = do
 
   let errors = catMaybes
