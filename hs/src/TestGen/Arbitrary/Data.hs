@@ -1,6 +1,7 @@
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
 {-# LANGUAGE FlexibleInstances, ConstraintKinds #-}
 {-# LANGUAGE RankNTypes, KindSignatures #-}
+{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE CPP #-}
 
 module TestGen.Arbitrary.Data (
@@ -20,6 +21,7 @@ module TestGen.Arbitrary.Data (
     , addLogsTree
     , prettyArr
     , nullLogs
+    , EssenceMode(..)
     ) where
 
 import TestGen.Helpers.StandardImports as X
@@ -38,6 +40,14 @@ type GenM m  = (MonadState SpecState m)
 
 type Ref = Text
 
+data EssenceMode =
+          TypeCheck_
+        | Refine_
+        | Solve_
+  deriving (Show, Data, Typeable)
+
+instance Default EssenceMode where
+    def = Solve_
 
 data SS = SS
     {

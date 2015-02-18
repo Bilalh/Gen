@@ -1,3 +1,1 @@
-#Test Generation
-
-See scripts/hs/Readme.md
+see hs/Readme.md

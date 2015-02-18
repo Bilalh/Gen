@@ -20,7 +20,7 @@ import System.CPUTime ( getCPUTime )
 import System.Timeout ( timeout )
 import Text.Printf ( printf )
 
-import System.Environment(getArgs, withArgs)
+import System.Environment(withArgs)
 import System.Exit(exitSuccess,exitFailure)
 
 
@@ -29,7 +29,7 @@ main = do
   getArgs >>= \case
     [] -> do
        void $ withArgs ["--help"] (cmdArgs ui)
-    [x] | x `elem` ["reduce", "link", "meta", "specE"] ->
+    [x] | x `elem` ["essence", "reduce", "link", "meta","json"] ->
        void $ withArgs [x, "--help"] (cmdArgs ui)
 
     ["reduce", "--list-kinds"] -> do
@@ -65,6 +65,21 @@ main = do
         _ -> workload
 
 mainWithArgs :: UI -> IO ()
+mainWithArgs Essence{..} = do
+  let errors = catMaybes
+        [ aerr "-t|--total-time" (total_time == 0)
+        , aerr "-p|--per-spec-time" (per_spec_time == 0)
+        , aerr "-c|--cores" (cores == 0)
+        , aerr "--seed" (seed == 0)
+        ]
+
+  case errors of
+    [] -> return ()
+    xs -> mapM putStrLn xs >> exitFailure
+
+
+  return ()
+
 mainWithArgs Reduce{..} = do
 
   let errors = catMaybes
@@ -78,9 +93,6 @@ mainWithArgs Reduce{..} = do
     [] -> return ()
     xs -> mapM putStrLn xs >> exitFailure
 
-
-    -- error "directory required"
-    -- print "d"
 
 
   let args = def{oErrKind_   = error_kind
@@ -108,5 +120,5 @@ mainWithArgs SpecEE{..} = do
   specEMain print_specs directories
 
 aerr :: String -> Bool -> Maybe String
-aerr n b | b = Just $ n ++ " is required"
+aerr n b | b = Just $ "Required: " ++ n
 aerr _ _     = Nothing
