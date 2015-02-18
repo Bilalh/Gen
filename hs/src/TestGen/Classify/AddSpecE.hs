@@ -8,10 +8,13 @@ import Conjure.Language.TH
 import Conjure.Language.NameResolution(resolveNames)
 import Conjure.UI.IO(readModelFromFile)
 import Conjure.Language.Definition
+
 import TestGen.Classify.Sorter(getRecursiveContents)
 import TestGen.Prelude
+import TestGen.Helpers.IO
 
-import System.FilePath (replaceExtension, takeExtension)
+
+import System.FilePath ( takeExtension)
 
 import qualified Data.Aeson as A
 import qualified Data.ByteString.Lazy as L
@@ -76,8 +79,8 @@ addSpecE printSpecs fp_ = do
          else
              return ()
 
-         writeFile (replaceExtension fp ".specE" )      (show r)
-         L.writeFile (replaceExtension fp ".specE.json" ) (A.encode r)
+         writeFile (replaceExtensions fp ".spec" )      (show r)
+         L.writeFile (replaceExtensions fp ".spec.json" ) (A.encode r)
 
 
 

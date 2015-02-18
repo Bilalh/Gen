@@ -4,19 +4,16 @@
 
 module TestGen.Classify.Sorter where
 
-import TestGen.Prelude
-import Conjure.Language.Type
 import TestGen.Classify.Meta
+import TestGen.Helpers.IO
+import TestGen.Prelude
 
-import System.FilePath (takeFileName, takeDirectory,takeExtensions)
-
-import System.Posix.Files(createSymbolicLink)
-
-import TestGen.Helpers.Runner
-
-import Data.Maybe(fromJust)
+import Conjure.Language.Type
 
 import Data.Data
+import Data.Maybe(fromJust)
+import System.FilePath (takeFileName, takeDirectory,takeExtensions)
+import System.Posix.Files(createSymbolicLink)
 
 import qualified Data.Text as T
 
@@ -52,7 +49,7 @@ sorterMain' = \case
 sorter :: SArgs -> IO ()
 sorter SArgs{fp_,types_} = do
   metaJson <- ffind fp_
-  metaA :: [(FilePath, Maybe SpecMeta)] <- fmap (zip metaJson) $ mapM getJSON metaJson
+  metaA :: [(FilePath, Maybe SpecMeta)] <- fmap (zip metaJson) $ mapM readFromJSON metaJson
   let meta :: [(FilePath, SpecMeta)]  = map ( \(a,b) -> (a, fromJust b) )
                  $ flip filter metaA $ \(_,b) -> isJust b
 

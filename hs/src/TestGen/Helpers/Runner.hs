@@ -4,27 +4,26 @@
 module TestGen.Helpers.Runner where
 
 import TestGen.Prelude
+import TestGen.Helpers.IO
+
 import Conjure.Language.Definition(Model)
 import Conjure.UI.IO(writeModel)
 
-import Data.Map(Map)
 
 import System.Environment(getEnv)
 import System.FilePath((<.>))
 import System.Process(rawSystem)
 
 import Data.List(foldl1)
+import Data.Map(Map)
+import Data.Data
 
 import qualified Data.Aeson as A
-import qualified Data.ByteString.Lazy as B
-
-import Data.Data
 
 type Cores = Int
 type Seed  = Int
 
 -- For reading json from toolchain.py
-
 data StatusI =
       Success_
     | Timeout_
@@ -139,20 +138,6 @@ instance ToJSON SolveM where
     toJSON (SolveM m) = toJSON m
 
 
-getJSON :: FromJSON a => FilePath -> IO (Maybe a)
-getJSON fp = do
-    b <- doesFileExist fp
-    if b then
-        fmap A.decode $ B.readFile fp
-    else
-        return Nothing
-
-writeJSON :: ToJSON a => FilePath -> a -> IO ()
-writeJSON fp a = do
-  let s = A.encode a
-  B.writeFile fp s
-
-
 runToolChain :: FilePath -> FilePath -> Int -> IO (Either RefineR (RefineR, SolveR ) )
 runToolChain spec dir timeou  = do
     seed <- randomRIO (0,2^(24 :: Int)) :: IO Int
@@ -171,8 +156,8 @@ runToolChain1 seed newConjure refineAll cores spec dir timeou  = do
                , "--num_cores", (show cores), "--seed", (show seed)] ++ nc ++ ra
     putStrLn $ "cmd: " ++ toolchain ++ " " ++ foldl1 (\a b -> a ++ " " ++ b) args
     _       <- rawSystem toolchain args
-    refineF <- getJSON $ dir </> "refine_essence.json"
-    solveF  <- getJSON $ dir </> "solve_eprime.json"
+    refineF <- readFromJSON $ dir </> "refine_essence.json"
+    solveF  <- readFromJSON $ dir </> "solve_eprime.json"
 
     return $ case (refineF, solveF) of
         (Just r, Just s)  -> Right (r,s)
@@ -195,7 +180,7 @@ runRefine1 seed newConjure cores spec dir timeou = do
                , "--num_cores", (show cores), "--seed", (show seed)] ++ nc
     putStrLn $ "cmd: " ++ toolchain ++ " " ++ foldl1 (\a b -> a ++ " " ++ b) args
     _       <- rawSystem toolchain args
-    refineF <- getJSON $ dir </> "refine_essence.json"
+    refineF <- readFromJSON $ dir </> "refine_essence.json"
 
     return $ case (refineF) of
         Just r  ->  r

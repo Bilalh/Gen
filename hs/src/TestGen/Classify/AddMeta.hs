@@ -6,11 +6,10 @@ module TestGen.Classify.AddMeta where
 
 import TestGen.Classify.Meta(mkMeta)
 import TestGen.Classify.Sorter(getRecursiveContents)
-import TestGen.Helpers.Runner
+import TestGen.Helpers.IO
 import TestGen.Prelude
-import TestGen.Reduce.Runner(readSpecE)
 
-import System.FilePath (replaceExtension,takeExtension)
+import System.FilePath (takeExtension)
 
 metaMain :: [FilePath] -> IO ()
 metaMain = \case
@@ -22,7 +21,7 @@ metaMain = \case
 addMeta :: FilePath -> IO ()
 addMeta fp_ = do
   specs_ :: [FilePath] <- ffind fp_
-  specs  :: [Spec]    <- mapM readSpecE specs_
+  specs  :: [Spec]    <- mapM readFromJSON specs_
 
   void $ zipWithM f specs specs_
 
@@ -31,8 +30,8 @@ addMeta fp_ = do
   f spec fp = do
     putStrLn fp
     let meta = mkMeta spec
-    writeFile (replaceExtension fp ".meta" ) (show meta)
-    writeJSON (replaceExtension fp ".meta.json" ) (meta)
+    writeFile (replaceExtensions fp ".meta" ) (show meta)
+    writeToJSON (replaceExtensions fp ".meta.json" ) (meta)
 
 
 ffind :: FilePath -> IO [FilePath]
@@ -42,4 +41,4 @@ ffind path = do
 
   where
     p fp = do
-      return $ (takeExtension $ fp)  == ".specE"
+      return $ (takeExtension $ fp)  == ".spec.json"

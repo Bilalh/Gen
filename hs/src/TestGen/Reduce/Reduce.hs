@@ -5,6 +5,7 @@ module TestGen.Reduce.Reduce where
 
 import TestGen.Reduce.Data
 import TestGen.Reduce.Runner
+import TestGen.Helpers.IO
 import TestGen.Reduce.Reduction
 import TestGen.Reduce.UnusedDomains
 import TestGen.Prelude
@@ -17,9 +18,9 @@ import qualified Data.Map as M
 reduceMain :: RState -> IO (Spec, RState)
 reduceMain rr = do
   let base = specDir_ rr
-      fp   =  base </> "spec.specE"
+      fp   =  base </> "spec.spec.json"
 
-  sp <- readSpecE fp
+  sp <- readFromJSON fp
   noteFormat "Starting with" [pretty sp]
 
   (sfin,state) <- (flip runStateT) rr $

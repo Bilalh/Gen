@@ -1,9 +1,11 @@
 module TestGen.Helpers.IO where
 
+import Conjure.Prelude
 import TestGen.Prelude
 import Data.Time(formatTime,getCurrentTime)
 import System.Locale(defaultTimeLocale)
 import Conjure.UI.IO(readModelFromFile)
+import System.FilePath((<.>))
 
 import qualified Data.ByteString.Lazy as L
 import qualified Data.Aeson as A
@@ -20,13 +22,16 @@ readSpecFromEssence fp = do
   model <- readModelFromFile fp
   fromConjure model
 
-readSpecFromJSON :: (MonadFail m, MonadIO m) => FilePath -> m Spec
-readSpecFromJSON fp = do
+readFromJSON :: (MonadFail m, MonadIO m, FromJSON a) => FilePath -> m a
+readFromJSON fp = do
   by <- liftIO $ L.readFile fp
   case A.decode by of
     Just r -> return r
     Nothing -> fail $ "Error decoding " <+> pretty fp
 
-writeSpecToJSON :: (MonadFail m, MonadIO m) => FilePath -> Spec -> m ()
-writeSpecToJSON fp r = do
+writeToJSON :: (MonadFail m, MonadIO m, ToJSON a) => FilePath -> a -> m ()
+writeToJSON fp r = do
   liftIO $ L.writeFile fp (A.encode r)
+
+replaceExtensions :: FilePath -> FilePath -> FilePath
+replaceExtensions x y = dropExtensions x <.> y

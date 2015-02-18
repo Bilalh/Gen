@@ -8,18 +8,7 @@ import TestGen.Prelude
 import TestGen.Reduce.Data
 import TestGen.Helpers.IO
 
-
 import qualified Data.Map as M
-import qualified Data.Text as T
-import qualified Data.Text.IO as T
-
-
--- reads a .specE file
-readSpecE :: FilePath -> IO Spec
-readSpecE fp = $notDone
-    -- con <- T.readFile fp
-    -- let st = T.unpack $ con
-    -- return . readNote "readSpecE" $ st
 
 
 -- Just means rrError still happens
@@ -38,11 +27,11 @@ runSpec spE = do
 
         let path = outdir </> (ts ++ "_" ++ ts_num)
         liftIO $ createDirectoryIfMissing True  path
-        liftIO $ writeFile (path </> "spec.specE" ) (show spE)
+        liftIO $ writeToJSON (path </> "spec.spec.json" ) (show spE)
 
         let meta = mkMeta spE
-        liftIO $  writeFile (path </> "spec.meta" ) (show meta)
-        liftIO $  writeJSON  (path </> "spec.meta.json" ) (meta)
+        liftIO $  writeFile    (path </> "spec.meta" ) (show meta)
+        liftIO $  writeToJSON  (path </> "spec.meta.json" ) (meta)
 
         seed <- chooseR (0, 2^(24 :: Int))
         -- TODO follow logs
