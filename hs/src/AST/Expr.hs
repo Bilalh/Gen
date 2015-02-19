@@ -58,7 +58,8 @@ instance Translate Expr Expression where
   toConjure (EDom x)               =  Domain <$> toConjure x
   toConjure (ETyped x1 x2)         =  Typed <$> toConjure x2 <*> toConjure x1
   -- toConjure EEmptyGuard         =  _t
-  -- toConjure (EQuan x1 x2 x3 x4) =  _t
+  -- toConjure (EQuan x1 (BIn var dom) guard inner) = return [essence| forAll "d" in c . true |]
+  -- toConjure (EQuan x1 x2@(BOver ) x3 x4) = _d
 
   toConjure (EMetaVar x)  = return $ ExpressionMetaVar x
 

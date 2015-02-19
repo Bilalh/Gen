@@ -9,7 +9,7 @@ import TestGen.Arbitrary.Arbitrary
 
 generateEssence :: EssenceConfig -> IO ()
 generateEssence EssenceConfig{..}= do
-  (aSpec,_)  <- generate $ spec'' size_ def
+  (aSpec,_)  <- generate $ spec'' size_ def{gen_useFunc = myUseFunc}
   putStrLn . show . pretty $ aSpec
 
 
@@ -21,7 +21,7 @@ _generateDebug = do
 
              , totalTime   = 20
              , perSpecTime = 5
-             , size_       = 3
+             , size_       = 2
              , cores_      = 1
              , seed_       = 44
 
@@ -29,3 +29,6 @@ _generateDebug = do
              , oldConjure        = False
              }
     generateEssence ec
+
+myUseFunc Aapply = False
+myUseFunc _ = True
