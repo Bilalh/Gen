@@ -1,4 +1,4 @@
-module TestGen.Essence.SpecE where
+module TestGen.Essence.Rnd where
 
 -- import TestGen.Prelude
 -- import TestGen.Reduce.Data

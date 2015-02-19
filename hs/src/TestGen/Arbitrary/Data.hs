@@ -22,6 +22,7 @@ module TestGen.Arbitrary.Data (
     , prettyArr
     , nullLogs
     , EssenceMode(..)
+    , EssenceConfig(..)
     ) where
 
 import TestGen.Helpers.StandardImports as X
@@ -61,7 +62,37 @@ data SS = SS
 
     , generators_ :: Generators
 
+
     }
+
+data EssenceConfig = EssenceConfig
+      { outputDirectory  :: FilePath
+      , mode_            :: EssenceMode
+
+      , totalTime        :: Int
+      , perSpecTime      :: Int
+      , size_            :: Int  -- should not be greater then 5
+      , cores_           :: Int
+      , seed_            :: Int
+
+      , binariesDirectory :: Maybe FilePath
+      , oldConjure        :: Bool
+      }
+
+instance Default EssenceConfig where
+    def = EssenceConfig
+      { outputDirectory = error "EssenceConfig outputDirectory not set"
+      , mode_           = Solve_
+
+      , totalTime   = error "EssenceConfig totalTime not set"
+      , perSpecTime = error "EssenceConfig perSpecTime not set"
+      , size_       = 4
+      , cores_      = error "EssenceConfig cores_ not set"
+      , seed_       = error "EssenceConfig seed_ not set"
+
+      , binariesDirectory = Nothing
+      , oldConjure        = False
+      }
 
 type SpecState=SS
 

@@ -1,5 +1,5 @@
 {-# LANGUAGE RecordWildCards,LambdaCase #-}
-{-# OPTIONS_GHC -fno-cse #-} -- stupid cmdargs
+{-# OPTIONS_GHC -fno-cse #-} -- stupid cmdargs?
 
 module Main where
 
@@ -43,7 +43,7 @@ main = do
       input <- cmdArgs ui
 
       let workload = do
-            putStrLn . show $ "Command line options: " <+> pretty (groom input)
+            putStrLn . show . vcat $ ["Command line options: ", pretty (groom input)]
             mainWithArgs input
 
       case limit_time input of
@@ -69,14 +69,29 @@ mainWithArgs Essence{..} = do
   let errors = catMaybes
         [ aerr "-t|--total-time" (total_time == 0)
         , aerr "-p|--per-spec-time" (per_spec_time == 0)
-        , aerr "-c|--cores" (cores == 0)
-        , aerr "--seed" (seed == 0)
+        , aerr "-c|--cores" (_cores == 0)
+        , aerr "--seed" (_seed == 0)
+        , aerr "--size > 0" (_size <= 0)
         ]
 
   case errors of
     [] -> return ()
     xs -> mapM putStrLn xs >> exitFailure
 
+  let config = EssenceConfig
+               { outputDirectory = output_directory
+               , mode_           = _mode
+
+               , totalTime   = total_time
+               , perSpecTime = per_spec_time
+               , size_       = _size
+               , cores_      = _cores
+               , seed_       = _seed
+
+               , binariesDirectory = binaries_directory
+               , oldConjure        = old_conjure
+               , limitTime         = limit_time
+               }
 
   return ()
 
@@ -88,8 +103,8 @@ mainWithArgs Reduce{..} = do
   let errors = catMaybes
         [ aerr "spec-directory" (null spec_directory)
         , aerr "-p|--per-spec-time" (per_spec_time == 0)
-        , aerr "-c|--cores" (cores == 0)
-        , aerr "--seed" (seed == 0)
+        , aerr "-c|--cores" (_cores == 0)
+        , aerr "--seed" (_seed == 0)
         ]
 
   case errors of
@@ -103,9 +118,9 @@ mainWithArgs Reduce{..} = do
                 ,oErrEprime_ = Nothing
                 ,outputDir_  = output_directory
                 ,specDir_    = spec_directory
-                ,cores_      = cores
+                ,cores_      = _cores
                 ,newConjure_ = not old_conjure
-                ,rgen_       = mkrGen (seed)
+                ,rgen_       = mkrGen (_seed)
                 ,specTime_   = per_spec_time
                 }
   (_,state) <- reduceMain args

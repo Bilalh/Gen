@@ -14,13 +14,13 @@ import Build_autoversion(autoVersion)
 data UI
   = Essence
       { output_directory :: FilePath
-      , mode             :: EssenceMode
+      , _mode            :: EssenceMode
 
       , total_time       :: Int
       , per_spec_time    :: Int
-      , size             :: Int  -- should not be greater then 5
-      , cores            :: Int
-      , seed             :: Int
+      , _size            :: Int  -- should not be greater then 5
+      , _cores           :: Int
+      , _seed            :: Int
 
       , binaries_directory :: Maybe FilePath
       , old_conjure        :: Bool
@@ -45,8 +45,8 @@ data UI
 
       , output_directory   :: FilePath
       , per_spec_time      :: Int
-      , cores              :: Int
-      , seed               :: Int
+      , _cores             :: Int
+      , _seed              :: Int
 
       , binaries_directory :: Maybe FilePath
       , old_conjure        :: Bool
@@ -74,7 +74,7 @@ ui  = modes
   [ Essence
      { output_directory   = def     &= typDir
                                     &= argPos 0
-     , mode               = def     &= name "mode"
+     , _mode              = def     &= name "mode"
                                     &= typ "mode"
                                     &= groupname "Generation"
                                     &= explicit
@@ -89,16 +89,16 @@ ui  = modes
                                     &= groupname "Stats"
                                     &= explicit
                                     &= help "Time per Spec"
-     , size               = 4       &= name "size"
+     , _size              = 4       &= name "size"
                                     &= groupname "Stats"
                                     &= help "Max depth of an expression, 5 should be more then enough"
                                     &= explicit
-     , cores              = def     &= name "cores"
+     , _cores             = def     &= name "cores"
                                     &= name "c"
                                     &= groupname "Stats"
                                     &= explicit
                                     &= help "Number of cores to Use"
-     , seed               = def     &= name "seed"
+     , _seed              = def     &= name "seed"
                                     &= groupname "Stats"
                                     &= explicit
                                     &= help "Random Seed to use"
@@ -149,12 +149,12 @@ ui  = modes
                                      &= groupname "Stats"
                                      &= explicit
                                      &= help "Time per Spec"
-     , cores            = def        &= name "cores"
+     , _cores           = def        &= name "cores"
                                      &= name "c"
                                      &= groupname "Stats"
                                      &= explicit
                                      &= help "Number of cores to Use"
-     , seed             = def        &= name "seed"
+     , _seed            = def        &= name "seed"
                                      &= groupname "Stats"
                                      &= explicit
                                      &= help "Random Seed to use"
