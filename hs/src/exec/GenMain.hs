@@ -12,6 +12,8 @@ import TestGen.Classify.AddSpecE(specEMain)
 import TestGen.Helpers.Runner(kindsList, statusesList)
 
 import TestGen.Reduce.Data(RState(..),mkrGen)
+import qualified TestGen.Reduce.Data as R
+
 import TestGen.Reduce.Reduce(reduceMain)
 import TestGen.Reduce.FormatResults(formatResults)
 
@@ -90,7 +92,6 @@ mainWithArgs Essence{..} = do
 
                , binariesDirectory = binaries_directory
                , oldConjure        = old_conjure
-               , limitTime         = limit_time
                }
 
   return ()
@@ -118,7 +119,7 @@ mainWithArgs Reduce{..} = do
                 ,oErrEprime_ = Nothing
                 ,outputDir_  = output_directory
                 ,specDir_    = spec_directory
-                ,cores_      = _cores
+                ,R.cores_    = _cores
                 ,newConjure_ = not old_conjure
                 ,rgen_       = mkrGen (_seed)
                 ,specTime_   = per_spec_time

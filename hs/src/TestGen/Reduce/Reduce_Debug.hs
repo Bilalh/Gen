@@ -10,7 +10,7 @@ import TestGen.Reduce.Reduction
 import TestGen.Reduce.UnusedDomains
 import TestGen.Helpers.TypeOf
 
-import TestGen.Prelude
+import TestGen.Prelude hiding (cores_)
 import TestGen.Helpers.Runner(KindI(..), StatusI(..))
 
 import qualified TestGen.Arbitrary.Arbitrary as A

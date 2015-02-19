@@ -40,7 +40,8 @@ Library
                      , TestGen.Classify.Meta
                      , TestGen.Classify.Sorter
                      , TestGen.Essence.Check
-                     , TestGen.Essence.SpecE
+                     , TestGen.Essence.Generate
+                     , TestGen.Essence.Rnd
                      , TestGen.Helpers.Args
                      , TestGen.Helpers.Debug
                      , TestGen.Helpers.IO
