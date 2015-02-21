@@ -9,8 +9,9 @@ import TestGen.Arbitrary.Arbitrary
 
 generateEssence :: EssenceConfig -> IO ()
 generateEssence EssenceConfig{..}= do
-  (aSpec,_)  <- generate $ spec'' size_ def{gen_useFunc = myUseFunc}
-  putStrLn . show . pretty $ aSpec
+  forM_ [1..1000] $  \_ -> do
+    (aSpec,_)  <- generate $ spec'' size_ def{gen_useFunc = myUseFunc}
+    putStrLn . show . pretty $ aSpec
 
 
 _generateDebug :: IO ()
@@ -30,5 +31,8 @@ _generateDebug = do
              }
     generateEssence ec
 
+-- Does not work completely
 myUseFunc Aapply = False
+myUseFunc Ahist = False
+myUseFunc Ainverse = False
 myUseFunc _ = True

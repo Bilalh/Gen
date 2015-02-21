@@ -7,12 +7,16 @@ module AST.Expr where
 import Conjure.Prelude
 import Conjure.Language.Pretty
 import Conjure.Language.Definition
+import Conjure.Language.Domain(Domain)
 import Conjure.Language.TH
+import Conjure.Language.Ops
+
 
 import AST.Data
 import {-# SOURCE #-} AST.Literal()
 import AST.Type()
 import AST.Domain()
+
 
 instance Translate Expr Expression where
   fromConjure (Constant t)             = ELit   <$> fromConjure t
@@ -76,6 +80,21 @@ instance Translate Expr Expression where
           (Sum,_)              -> toConjure g  >>= \g' ->
                                   return [essence| sum    &x' in &dom', &g' . &inner' |]
 
+  toConjure (EQuan q (BOver (EVar x) (EDom dom)) g inner) = do
+        x'                           <- return $ Single (Name x)
+        dom' :: Domain () Expression <- toConjure dom
+        inner'                       <- toConjure inner
+        case (q,g) of
+          (ForAll,EEmptyGuard) -> return [essence| forAll &x' : &dom' . &inner' |]
+          (Exists,EEmptyGuard) -> return [essence| exists &x' : &dom' . &inner' |]
+          (Sum,EEmptyGuard)    -> return [essence| sum    &x' : &dom' . &inner' |]
+          (ForAll,_)           -> toConjure g  >>= \g' ->
+                                  return [essence| forAll &x' : &dom', &g' . &inner' |]
+          (Exists,_)           -> toConjure g  >>= \g' ->
+                                  return [essence| exists &x' : &dom', &g' . &inner' |]
+          (Sum,_)              -> toConjure g  >>= \g' ->
+                                  return [essence| sum    &x' : &dom', &g' . &inner' |]
+
 
   toConjure (EMetaVar x)  = return $ ExpressionMetaVar x
 
@@ -119,8 +138,8 @@ instance Translate BinOp Expression where
     fromConjure [essence| &x supsetEq &y |]  = BsupsetEq  <$> fromConjure x <*> fromConjure y
     fromConjure [essence| &x intersect &y |] = Bintersect <$> fromConjure x <*> fromConjure y
     fromConjure [essence| &x union &y |]     = Bunion     <$> fromConjure x <*> fromConjure y
-    fromConjure [essence| &x <lex &y |]      = BlexLT     <$> fromConjure x <*> fromConjure y
-    fromConjure [essence| &x <=lex &y |]     = BlexLTE    <$> fromConjure x <*> fromConjure y
+    -- fromConjure [essence| &x <lex &y |]      = BlexLT     <$> fromConjure x <*> fromConjure y
+    -- fromConjure [essence| &x <=lex &y |]     = BlexLTE    <$> fromConjure x <*> fromConjure y
     fromConjure [essence| &x >lex &y |]      = BlexGT     <$> fromConjure x <*> fromConjure y
     fromConjure [essence| &x >=lex &y |]     = BlexGTE    <$> fromConjure x <*> fromConjure y
 
@@ -284,12 +303,14 @@ instance Translate Proc Expression where
      c'     = toConjureNote "Proc Expression" c
 
 
-  -- toConjure (Papply ref@(EVar _) es ) =
-  --    [xMake| functionApply.actual := [ref']
-  --          | functionApply.args   := es' |]
-  --    where
-  --    ref' = toConjureNote "Proc Expression" ref
-  --    es'  = map toConjure es
+  toConjure (Papply (EVar t) es ) =do
+    es' <- mapM toConjure es
+    return $
+      Op
+        (MkOpRelationProj
+         (OpRelationProj (Reference (Name t) Nothing)
+          (map Just es') ))
+
 
 
   toConjure (Pfreq x y) = return [essence| freq(&x', &y') |] where
