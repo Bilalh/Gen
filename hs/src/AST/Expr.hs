@@ -51,19 +51,36 @@ instance Translate Expr Expression where
   -- toConjure (ELit x@(EB _))        =  Constant        <$>  toConjure x
   -- toConjure (ELit x)               =  AbstractLiteral <$>  toConjure x
 
-  toConjure (EVar x)               =  Reference <$> toConjure x <*> return Nothing --FIXME correct?
+  --FIXME correct? not the first
+  toConjure (EVar x)               =  Reference <$> toConjure x <*> return Nothing
+
   toConjure (EBinOp x)             =  toConjure x
   toConjure (EUniOp x)             =  toConjure x
   toConjure (EProc x)              =  toConjure x
   toConjure (EDom x)               =  Domain <$> toConjure x
   toConjure (ETyped x1 x2)         =  Typed <$> toConjure x2 <*> toConjure x1
   -- toConjure EEmptyGuard         =  _t
-  -- toConjure (EQuan x1 (BIn var dom) guard inner) = return [essence| forAll "d" in c . true |]
-  -- toConjure (EQuan x1 x2@(BOver ) x3 x4) = _d
+
+  toConjure (EQuan q (BIn (EVar x) dom) g inner) = do
+        x'     <- return $ Single (Name x)
+        dom'   <- toConjure dom
+        inner' <- toConjure inner
+        case (q,g) of
+          (ForAll,EEmptyGuard) -> return [essence| forAll &x' in &dom' . &inner' |]
+          (Exists,EEmptyGuard) -> return [essence| exists &x' in &dom' . &inner' |]
+          (Sum,EEmptyGuard)    -> return [essence| sum    &x' in &dom' . &inner' |]
+          (ForAll,_)           -> toConjure g  >>= \g' ->
+                                  return [essence| forAll &x' in &dom', &g' . &inner' |]
+          (Exists,_)           -> toConjure g  >>= \g' ->
+                                  return [essence| exists &x' in &dom', &g' . &inner' |]
+          (Sum,_)              -> toConjure g  >>= \g' ->
+                                  return [essence| sum    &x' in &dom', &g' . &inner' |]
+
 
   toConjure (EMetaVar x)  = return $ ExpressionMetaVar x
 
   toConjure x = toConjureFail "Expr Expression" x
+
 
 instance Translate UniOp Expression where
    fromConjure [essence| |&x|  |] = UBar <$> fromConjure x
@@ -104,8 +121,8 @@ instance Translate BinOp Expression where
     fromConjure [essence| &x union &y |]     = Bunion     <$> fromConjure x <*> fromConjure y
     fromConjure [essence| &x <lex &y |]      = BlexLT     <$> fromConjure x <*> fromConjure y
     fromConjure [essence| &x <=lex &y |]     = BlexLTE    <$> fromConjure x <*> fromConjure y
-    -- fromConjure [essence| &x >lex &y |]      = BlexGT     <$> fromConjure x <*> fromConjure y
-    -- fromConjure [essence| &x >=lex &y |]     = BlexGTE    <$> fromConjure x <*> fromConjure y
+    fromConjure [essence| &x >lex &y |]      = BlexGT     <$> fromConjure x <*> fromConjure y
+    fromConjure [essence| &x >=lex &y |]     = BlexGTE    <$> fromConjure x <*> fromConjure y
 
 
     fromConjure x = fromConjureFail "BinOp Expression" x
