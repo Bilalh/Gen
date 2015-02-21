@@ -17,6 +17,8 @@ import qualified TestGen.Reduce.Data as R
 import TestGen.Reduce.Reduce(reduceMain)
 import TestGen.Reduce.FormatResults(formatResults)
 
+import TestGen.Essence.Generate(generateEssence)
+
 import System.Console.CmdArgs ( cmdArgs )
 import System.CPUTime ( getCPUTime )
 import System.Timeout ( timeout )
@@ -48,23 +50,32 @@ main = do
             putStrLn . show . vcat $ ["Command line options: ", pretty (groom input)]
             mainWithArgs input
 
-      case limit_time input of
-        Just sec | sec > 0 -> do
-          putStrLn $ "Running with a timelimit of " ++ show sec ++ " seconds."
-          res <- timeout (sec * 1000000) workload
-          case res of
-            Nothing -> do
-              cputime <- getCPUTime
-              let
-                -- cputime is returned in pico-seconds. arbitrary precision integer.
-                -- divide by 10^9 first. use arbitrary precision integer arithmetic.
-                -- do the last 10^3 division via double to get 3 significant digits
-                -- after the integer part
-                cputimeInSeconds :: Double
-                cputimeInSeconds = fromInteger (cputime `div` 1000000000) / 1000
-              putStrLn $ printf "Timed out. Total CPU time is %.3f seconds." cputimeInSeconds
-            Just () -> return ()
-        _ -> workload
+      limiter (getLimit input) workload
+
+   where
+     getLimit (Essence{_mode=m,limit_time = Nothing, total_time=t}) | m == TypeCheck_ = Just t
+     getLimit input = limit_time input
+
+
+limiter :: Maybe Int -> IO () -> IO ()
+limiter Nothing f = f
+limiter (Just sec) _ | sec <= 0 =  error "--limit-time must be greater then zero"
+limiter (Just sec) f  =  do
+  putStrLn $ "Running with a timelimit of " ++ show sec ++ " seconds."
+  res <- timeout (sec * 1000000) f
+  case res of
+    Nothing -> do
+      cputime <- getCPUTime
+      let
+        -- cputime is returned in pico-seconds. arbitrary precision integer.
+        -- divide by 10^9 first. use arbitrary precision integer arithmetic.
+        -- do the last 10^3 division via double to get 3 significant digits
+        -- after the integer part
+        cputimeInSeconds :: Double
+        cputimeInSeconds = fromInteger (cputime `div` 1000000000) / 1000
+      putStrLn $ printf "Timed out. Total CPU time is %.3f seconds." cputimeInSeconds
+    Just () -> return ()
+
 
 mainWithArgs :: UI -> IO ()
 mainWithArgs Essence{..} = do
@@ -81,20 +92,21 @@ mainWithArgs Essence{..} = do
     xs -> mapM putStrLn xs >> exitFailure
 
   let config = EssenceConfig
-               { outputDirectory = output_directory
-               , mode_           = _mode
+               { outputDirectory_ = output_directory
+               , mode_            = _mode
 
-               , totalTime   = total_time
-               , perSpecTime = per_spec_time
-               , size_       = _size
-               , cores_      = _cores
-               , seed_       = _seed
+               , totalTime_   = total_time
+               , perSpecTime_ = per_spec_time
+               , size_        = _size
+               , cores_       = _cores
+               , seed_        = _seed
 
-               , binariesDirectory = binaries_directory
-               , oldConjure        = old_conjure
+               , deletePassing_     = delete_passing
+               , binariesDirectory_ = binaries_directory
+               , oldConjure_        = old_conjure
                }
 
-  return ()
+  generateEssence config
 
 mainWithArgs Instance{..} = do
   error . show . vcat $ ["gen instance not done yet" ]
@@ -141,3 +153,24 @@ mainWithArgs SpecEE{..} = do
 aerr :: String -> Bool -> Maybe String
 aerr n b | b = Just $ "Required: " ++ n
 aerr _ _     = Nothing
+
+
+
+_mainDebug :: IO ()
+_mainDebug = do
+    let ec = Essence
+             { output_directory = "__/aa/s"
+             , _mode            = TypeCheck_
+
+             , total_time    = 20
+             , per_spec_time = 5
+             , _size         = 2
+             , _cores        = 1
+             , _seed         = 44
+
+             , delete_passing     = False
+             , binaries_directory = Nothing
+             , old_conjure        = False
+             , limit_time         = Just 5
+             }
+    limiter (limit_time ec) (mainWithArgs ec)

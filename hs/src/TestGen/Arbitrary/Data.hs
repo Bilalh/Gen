@@ -45,7 +45,7 @@ data EssenceMode =
           TypeCheck_
         | Refine_
         | Solve_
-  deriving (Show, Data, Typeable)
+  deriving (Show, Data, Typeable,Eq)
 
 instance Default EssenceMode where
     def = Solve_
@@ -66,32 +66,34 @@ data SS = SS
     }
 
 data EssenceConfig = EssenceConfig
-      { outputDirectory  :: FilePath
+      { outputDirectory_ :: FilePath
       , mode_            :: EssenceMode
 
-      , totalTime        :: Int
-      , perSpecTime      :: Int
+      , totalTime_       :: Int
+      , perSpecTime_     :: Int
       , size_            :: Int  -- should not be greater then 5
       , cores_           :: Int
       , seed_            :: Int
 
-      , binariesDirectory :: Maybe FilePath
-      , oldConjure        :: Bool
+      , deletePassing_     :: Bool
+      , binariesDirectory_ :: Maybe FilePath
+      , oldConjure_        :: Bool
       }
 
 instance Default EssenceConfig where
     def = EssenceConfig
-      { outputDirectory = error "EssenceConfig outputDirectory not set"
-      , mode_           = Solve_
+      { outputDirectory_ = error "EssenceConfig outputDirectory not set"
+      , mode_            = Solve_
 
-      , totalTime   = error "EssenceConfig totalTime not set"
-      , perSpecTime = error "EssenceConfig perSpecTime not set"
-      , size_       = 4
-      , cores_      = error "EssenceConfig cores_ not set"
-      , seed_       = error "EssenceConfig seed_ not set"
+      , totalTime_   = error "EssenceConfig totalTime not set"
+      , perSpecTime_ = error "EssenceConfig perSpecTime not set"
+      , size_        = 4
+      , cores_       = error "EssenceConfig cores_ not set"
+      , seed_        = error "EssenceConfig seed_ not set"
 
-      , binariesDirectory = Nothing
-      , oldConjure        = False
+      , deletePassing_     = False
+      , binariesDirectory_ = Nothing
+      , oldConjure_        = False
       }
 
 type SpecState=SS

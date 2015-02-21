@@ -21,6 +21,7 @@ data UI
       , _size            :: Int  -- should not be greater then 5
       , _cores           :: Int
       , _seed            :: Int
+      , delete_passing   :: Bool
 
       , binaries_directory :: Maybe FilePath
       , old_conjure        :: Bool
@@ -102,6 +103,10 @@ ui  = modes
                                     &= groupname "Stats"
                                     &= explicit
                                     &= help "Random Seed to use"
+     , delete_passing     = False   &= name "delete_passing"
+                                    &= groupname "Other"
+                                    &= explicit
+                                    &= help "Delete non failing test cases as soon as they have been generated"
      , binaries_directory = Nothing &= name "bin-dir"
                                     &= groupname "Other"
                                     &= explicit
