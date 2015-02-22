@@ -3,7 +3,8 @@
 
 module Main where
 
-import TestGen.Prelude
+import TestGen.Helpers.StandardImports
+import TestGen.Arbitrary.Data
 import UI.UI
 
 import TestGen.Classify.Sorter(sorterMain')
@@ -159,8 +160,8 @@ aerr _ _     = Nothing
 _mainDebug :: IO ()
 _mainDebug = do
     let ec = Essence
-             { output_directory = "__/refine"
-             , _mode            = Refine_
+             { output_directory = "__/solve"
+             , _mode            = Solve_
 
              , total_time    = 20
              , per_spec_time = 5

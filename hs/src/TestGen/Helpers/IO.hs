@@ -1,6 +1,5 @@
 module TestGen.Helpers.IO where
 
-import Conjure.Prelude
 import TestGen.Prelude
 import Data.Time(formatTime,getCurrentTime)
 import System.Locale(defaultTimeLocale)
@@ -28,6 +27,19 @@ readFromJSON fp = do
   case A.decode by of
     Just r -> return r
     Nothing -> fail $ "Error decoding " <+> pretty fp
+
+-- readFromJSONMay :: (MonadFail m, MonadIO m, FromJSON a) => FilePath -> m a
+-- readFromJSONMay fp = do
+--   liftIO $ doesFileExist fp >>= \case
+--     False -> fail $ "No File" <+> pretty fp
+--     True  -> readFromJSON fp
+
+readFromJSONMay :: FromJSON a => FilePath -> IO (Maybe a)
+readFromJSONMay fp = do
+  doesFileExist fp >>= \case
+    False -> return Nothing
+    True  -> readFromJSON fp
+
 
 writeToJSON :: (MonadFail m, MonadIO m, ToJSON a) => FilePath -> a -> m ()
 writeToJSON fp r = do

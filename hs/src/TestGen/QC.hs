@@ -151,7 +151,8 @@ prop_specs_toolchain  _ cores time outBase newConjure WithExtra{..} = do
             run $  writeFile (outdir </> "spec.meta" ) (show meta)
             run $  writeJSON  (outdir </> "spec.meta.json" ) (meta)
 
-            result <- run $ runToolchain' run_seed_ cores sp (out </> uname ) time newConjure False
+            result <- run $ runToolchain' run_seed_ cores sp (out </> uname ) time
+                      newConjure False
             classifyError uname result
 
     where
@@ -208,7 +209,7 @@ prop_specs_toolchain  _ cores time outBase newConjure WithExtra{..} = do
         -- fail inErrDir
         $(todo "fail somehow")
 
-    classifyError _ _ =  return ()
+    classifyError _ _ =  return ()   R
 
 
 copyFiles :: Traversable t =>

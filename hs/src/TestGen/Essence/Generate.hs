@@ -12,9 +12,7 @@ import Conjure.UI.TypeCheck ( typeCheckModel )
 import Conjure.UI.IO(writeModel)
 
 
-import System.Directory(createDirectoryIfMissing, getHomeDirectory, doesFileExist
-                       ,renameDirectory, removeDirectory,removeDirectoryRecursive
-                       ,getDirectoryContents, copyFile)
+import System.Directory( renameDirectory, copyFile)
 
 import qualified Data.Map as M
 import qualified Data.Set as S
@@ -28,6 +26,7 @@ generateEssence ec@EssenceConfig{..} = do
   case mode_ of
     TypeCheck_ -> doTypeCheck ec
     Refine_    -> doRefine ec
+    Solve_     -> doSolve ec
 
 
 doRefine :: EssenceConfig -> IO ()
@@ -35,21 +34,25 @@ doRefine EssenceConfig{..} = do
   process totalTime_
 
     where
-    out = outputDirectory_ </> "_passing"
-    errdir  = outputDirectory_ </> "_errors"
+    out    = outputDirectory_ </> "_passing"
+    errdir = outputDirectory_ </> "_errors"
 
     process timeLeft | timeLeft <= 0 = return ()
     process timeLeft = do
-      (sp,_) <- generate $ spec'' size_ def{gen_useFunc = myUseFunc}
+      (sp,logs) <- generate $ spec'' size_ def{gen_useFunc = myUseFunc}
       model :: Model <- toConjure sp
       case ignoreLogs (typeCheckModel model)  of
-        Left x -> process timeLeft
+        Left _ -> process timeLeft
         Right () -> do
           num <- (randomRIO (10,99) :: IO Int)  >>= return . show
           ts <- timestamp >>= return . show
           let uname  =  (ts ++ "_" ++ num )
+
           let dir = outputDirectory_ </> "_passing" </> uname
           createDirectoryIfMissing True dir
+          writeFile (dir </> "spec.logs" ) (renderSized 120 logs)
+
+
           let meta = mkMeta sp
           writeFile (dir </> "spec.meta" ) (show meta)
           writeToJSON  (dir </> "spec.meta.json" ) (meta)
@@ -57,9 +60,93 @@ doRefine EssenceConfig{..} = do
           runSeed <- (randomRIO (1,2147483647) :: IO Int)
           result <- runRefine' runSeed cores_ model (out </> uname ) perSpecTime_
                     (not oldConjure_)
-          run_time <- classifySettingI errdir out uname result
-          process (timeLeft - (floor run_time))
 
+          runTime <- classifySettingI errdir out uname result
+          process (timeLeft - (floor runTime))
+
+doSolve :: EssenceConfig -> IO ()
+doSolve EssenceConfig{..} = do
+  process totalTime_
+
+    where
+    out    = outputDirectory_ </> "_passing"
+    errdir = outputDirectory_ </> "_errors"
+
+    process timeLeft | timeLeft <= 0 = return ()
+    process timeLeft = do
+      (sp,logs) <- generate $ spec'' size_ def{gen_useFunc = myUseFunc}
+      model :: Model <- toConjure sp
+      case ignoreLogs (typeCheckModel model)  of
+        Left _ -> process timeLeft
+        Right () -> do
+          num <- (randomRIO (10,99) :: IO Int)  >>= return . show
+          ts <- timestamp >>= return . show
+          let uname  =  (ts ++ "_" ++ num )
+
+          let dir = outputDirectory_ </> "_passing" </> uname
+          createDirectoryIfMissing True dir
+          writeFile (dir </> "spec.logs" ) (renderSized 120 logs)
+
+
+          let meta = mkMeta sp
+          writeFile (dir </> "spec.meta" ) (show meta)
+          writeToJSON  (dir </> "spec.meta.json" ) (meta)
+
+          runSeed <- (randomRIO (1,2147483647) :: IO Int)
+          result <- runToolchain' runSeed cores_ model (out </> uname ) perSpecTime_
+                    (not oldConjure_) False
+
+          runTime <-  classifyError uname result
+          process (timeLeft - (floor runTime))
+
+
+    classifyError uname (Left a) = classifySettingI errdir out uname a
+
+    classifyError uname (Right (_,
+          ee@SettingI{successful_=False,data_=SolveM ms,time_taken_})) = do
+
+        let inErrDir = errdir </> "zall" </> uname
+        createDirectoryIfMissing True inErrDir
+        renameDirectory (out </> uname ) inErrDir
+
+        rr <- flip M.traverseWithKey (M.filter (isJust . erroed ) ms ) $
+             \_ ResultI{last_status, last_kind=Just kind, erroed= Just _ } -> do
+               let mvDirBase = errdir </> (show kind) </> (show last_status)
+               return $ mvDirBase
+
+        let inDir = M.map S.fromList
+                  . M.fromListWith (\a b -> a ++ b)
+                  . map (\(a,b) -> (b, [a]))
+                  . M.toList
+                  $ rr
+
+
+        let
+            unMaybe (Just a) = a
+            unMaybe Nothing = docError $ ["unMaybe: classifyError"
+                                         , nn "uname" uname
+                                         , nn "ee" (show ee)
+                                         , nn "ee" (show rr)
+                                         , nn "ee" (show inDir)]
+
+            f k ResultI{last_status, last_kind=Just kind, erroed= Just _ } = do
+                let mvDirBase = errdir </> (show kind) </> (show last_status)
+                let mvDir     = mvDirBase </> uname
+                createDirectoryIfMissing True mvDir
+
+                fps <- getDirectoryContents inErrDir
+                let needed =  filter (allow k) fps
+
+                void $ copyFiles (unMaybe $ mvDirBase `M.lookup` inDir) inErrDir mvDir needed
+                return mvDir
+
+
+            f _ _ = return ""
+
+        void $ M.traverseWithKey f ms
+        return time_taken_
+
+    classifyError _ (Right (_, SettingI{time_taken_ })) = return time_taken_
 
 
 
@@ -68,7 +155,8 @@ classifySettingI :: FilePath
                     -> FilePath
                     -> SettingI RefineM
                     -> IO Double -- timetaken
-classifySettingI errdir out uname e@SettingI{successful_=False,data_=RefineM ms,time_taken_}=do
+classifySettingI errdir out uname
+                 ee@SettingI{successful_=False,data_=RefineM ms,time_taken_} = do
     let inErrDir = errdir </> "zPerSpec" </> uname
     createDirectoryIfMissing True inErrDir
     renameDirectory (out </> uname ) inErrDir
@@ -87,11 +175,11 @@ classifySettingI errdir out uname e@SettingI{successful_=False,data_=RefineM ms,
 
     let
         unMaybe (Just a) = a
-        unMaybe Nothing = error  . show . pretty . vcat $ ["unMaybe: classifySettingI"
-                                                  , nn "uname" uname
-                                                  , nn "ee" (show e)
-                                                  , nn "ee" (show rr)
-                                                  , nn "ee" (show inDir)]
+        unMaybe Nothing = docError $ ["unMaybe: classifySettingI"
+                                     , nn "uname" uname
+                                     , nn "ee" (show ee)
+                                     , nn "ee" (show rr)
+                                     , nn "ee" (show inDir)]
 
         f k CmdI{status_, kind_ } = do
             let mvDirBase = errdir </> (show kind_) </> (show status_)
