@@ -53,13 +53,13 @@ main = do
       limiter (getLimit input) workload
 
    where
+     getLimit x | Just i <- limit_time x, i <=0  = error "--limit-time must be > then 0"
      getLimit (Essence{_mode=m,limit_time = Nothing, total_time=t}) | m == TypeCheck_ = Just t
      getLimit input = limit_time input
 
 
 limiter :: Maybe Int -> IO () -> IO ()
 limiter Nothing f = f
-limiter (Just sec) _ | sec <= 0 =  error "--limit-time must be greater then zero"
 limiter (Just sec) f  =  do
   putStrLn $ "Running with a timelimit of " ++ show sec ++ " seconds."
   res <- timeout (sec * 1000000) f
@@ -159,8 +159,8 @@ aerr _ _     = Nothing
 _mainDebug :: IO ()
 _mainDebug = do
     let ec = Essence
-             { output_directory = "__/aa/s"
-             , _mode            = TypeCheck_
+             { output_directory = "__/refine"
+             , _mode            = Refine_
 
              , total_time    = 20
              , per_spec_time = 5
@@ -171,6 +171,6 @@ _mainDebug = do
              , delete_passing     = False
              , binaries_directory = Nothing
              , old_conjure        = False
-             , limit_time         = Just 5
+             , limit_time         = Nothing
              }
     limiter (limit_time ec) (mainWithArgs ec)
