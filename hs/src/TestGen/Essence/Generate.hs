@@ -69,7 +69,7 @@ classifySettingI :: FilePath
                     -> SettingI RefineM
                     -> IO Double -- timetaken
 classifySettingI errdir out uname e@SettingI{successful_=False,data_=RefineM ms,time_taken_}=do
-    let inErrDir = errdir </> "zall" </> uname
+    let inErrDir = errdir </> "zPerSpec" </> uname
     createDirectoryIfMissing True inErrDir
     renameDirectory (out </> uname ) inErrDir
 
