@@ -28,11 +28,6 @@ readFromJSON fp = do
     Just r -> return r
     Nothing -> fail $ "Error decoding " <+> pretty fp
 
--- readFromJSONMay :: (MonadFail m, MonadIO m, FromJSON a) => FilePath -> m a
--- readFromJSONMay fp = do
---   liftIO $ doesFileExist fp >>= \case
---     False -> fail $ "No File" <+> pretty fp
---     True  -> readFromJSON fp
 
 readFromJSONMay :: FromJSON a => FilePath -> IO (Maybe a)
 readFromJSONMay fp = do
