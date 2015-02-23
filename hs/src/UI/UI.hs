@@ -10,11 +10,19 @@ import System.Console.CmdArgs hiding ( Default(..) )
 
 import Build_autoversion(autoVersion)
 
+data ModeChoice =
+          TypeCheck
+        | Refine
+        | Solve
+  deriving (Show, Data, Typeable,Eq)
+
+instance Default ModeChoice where
+    def = Solve
 
 data UI
   = Essence
       { output_directory :: FilePath
-      , _mode            :: EssenceMode
+      , _mode            :: ModeChoice
 
       , total_time         :: Int
       , per_spec_time      :: Int
@@ -80,28 +88,28 @@ ui  = modes
                                     &= typ "mode"
                                     &= groupname "Generation"
                                     &= explicit
-                                    &= help "Mode to use, one of typecheck_ refine_ solve_"
+                                    &= help "Mode to use, one of typecheck refine solve (default) "
      , total_time         = def     &= name "total-time"
                                     &= name "t"
-                                    &= groupname "Stats"
+                                    &= groupname "Required"
                                     &= explicit
-                                    &= help "Total time for running spec"
+                                    &= help "Total time for running specs"
      , per_spec_time      = def     &= name "per-spec-time"
                                     &= name "p"
-                                    &= groupname "Stats"
+                                    &= groupname "Required"
                                     &= explicit
                                     &= help "Time per Spec"
      , _size              = 4       &= name "size"
-                                    &= groupname "Stats"
+                                    &= groupname "Generation"
                                     &= help "Max depth of an expression, 5 should be more then enough"
                                     &= explicit
      , _cores             = def     &= name "cores"
                                     &= name "c"
-                                    &= groupname "Stats"
+                                    &= groupname "Required"
                                     &= explicit
-                                    &= help "Number of cores to Use"
+                                    &= help "Number of cores to use"
      , _seed              = def     &= name "seed"
-                                    &= groupname "Stats"
+                                    &= groupname "Required"
                                     &= explicit
                                     &= help "Random Seed to use"
      , delete_passing     = False   &= name "delete_passing"
@@ -117,7 +125,7 @@ ui  = modes
      , binaries_directory = Nothing &= name "bin-dir"
                                     &= groupname "Other"
                                     &= explicit
-                                    &= help "Directory to prepend the $PATH before running progams."
+                                    &= help "Directory to prepend to the $PATH before running progams."
      , old_conjure        = False   &= name "old-conjure"
                                     &= groupname "Other"
                                     &= explicit

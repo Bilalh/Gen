@@ -55,7 +55,7 @@ main = do
 
    where
      getLimit x | Just i <- limit_time x, i <=0  = error "--limit-time must be > then 0"
-     getLimit (Essence{_mode=m,limit_time = Nothing, total_time=t}) | m == TypeCheck_ = Just t
+     getLimit (Essence{_mode=m,limit_time = Nothing, total_time=t}) | m == TypeCheck = Just t
      getLimit input = limit_time input
 
 
@@ -94,7 +94,7 @@ mainWithArgs Essence{..} = do
 
   let config = EssenceConfig
                { outputDirectory_ = output_directory
-               , mode_            = _mode
+               , mode_            = toEssenceMode _mode
 
                , totalTime_   = total_time
                , perSpecTime_ = per_spec_time
@@ -109,6 +109,12 @@ mainWithArgs Essence{..} = do
                }
 
   generateEssence config
+
+  where
+    toEssenceMode :: ModeChoice -> EssenceMode
+    toEssenceMode TypeCheck = TypeCheck_
+    toEssenceMode Refine    = Refine_
+    toEssenceMode Solve     = Solve_
 
 mainWithArgs Instance{..} = do
   error . show . vcat $ ["gen instance not done yet" ]
@@ -162,7 +168,7 @@ _mainDebug :: IO ()
 _mainDebug = do
     let ec = Essence
              { output_directory = "__/solve"
-             , _mode            = Solve_
+             , _mode            = Solve
 
              , total_time    = 20
              , per_spec_time = 5
