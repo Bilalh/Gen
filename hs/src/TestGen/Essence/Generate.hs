@@ -118,7 +118,7 @@ doSolve EssenceConfig{..} = do
     classifyError uname (Right (_,
           ee@SettingI{successful_=False,data_=SolveM ms,time_taken_})) = do
 
-        let inErrDir = errdir </> "zall" </> uname
+        let inErrDir = errdir </> "zPerSpec" </> uname
         createDirectoryIfMissing True inErrDir
         renameDirectory (out </> uname ) inErrDir
 
