@@ -8,14 +8,12 @@ module TestGen.Arbitrary.Data (
       addLog
     , Depth
     , Generators(..)
-    , GenM
     , GG
     , Pretty(..)
     , Ref
     , SpecState
     , SS(..)
     , TType(..)
-    , ArbSpec(..)
     , FuncsNames(..)
     , HasLogger(..)
     , addLogsTree
@@ -35,10 +33,6 @@ import qualified Text.PrettyPrint as Pr
 type GG a =  StateT SpecState Gen a
 
 type Depth = Int
--- type GenM  a = State SpecState (Gen a)
-type GenM m  = (MonadState SpecState m)
-
-
 type Ref = Text
 
 data EssenceMode =
@@ -106,12 +100,6 @@ data Generators = Generators
     ,   gen_dom        :: GG (Domainn Expr)
     ,   gen_useFunc    :: FuncsNames -> Bool
     }
-
-class (Arbitrary a, Show a) => ArbSpec a where
-    tyGens  :: a -> Generators
-    getSpec :: a -> Spec
-    wrapSpec :: Spec -> a
-
 
 
 instance Show SS where

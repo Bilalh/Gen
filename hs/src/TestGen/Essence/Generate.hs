@@ -4,7 +4,6 @@ module TestGen.Essence.Generate(generateEssence) where
 import TestGen.Prelude
 import TestGen.Helpers.IO
 import TestGen.Helpers.Runner
-import TestGen.Arbitrary.Arbitrary
 import TestGen.Classify.Meta(mkMeta)
 
 import Conjure.Language.Definition
@@ -20,6 +19,8 @@ import qualified Data.Set as S
 import GHC.Real(floor)
 import Data.Time.Clock.POSIX(getPOSIXTime)
 
+import qualified TestGen.Arbitrary.Arbitrary as Gen
+
 
 generateEssence :: EssenceConfig -> IO ()
 generateEssence ec@EssenceConfig{..} = do
@@ -29,6 +30,9 @@ generateEssence ec@EssenceConfig{..} = do
     TypeCheck_ -> doTypeCheck ec
     Refine_    -> doRefine ec
     Solve_     -> doSolve ec
+
+a :: Gen Int
+a = return 3
 
 
 doRefine :: EssenceConfig -> IO ()
@@ -41,7 +45,7 @@ doRefine EssenceConfig{..} = do
 
     process timeLeft | timeLeft <= 0 = return ()
     process timeLeft = do
-      (sp,logs) <- generate $ spec'' size_ def{gen_useFunc = myUseFunc}
+      (sp,logs) <- generate $ Gen.spec size_ def{gen_useFunc = myUseFunc}
       model :: Model <- toConjure sp
       case ignoreLogs (typeCheckModel model)  of
         Left _ -> process timeLeft
@@ -83,7 +87,7 @@ doSolve EssenceConfig{..} = do
 
     process timeLeft | timeLeft <= 0 = return ()
     process timeLeft = do
-      (sp,logs) <- generate $ spec'' size_ def{gen_useFunc = myUseFunc}
+      (sp,logs) <- generate $ Gen.spec size_ def{gen_useFunc = myUseFunc}
       model :: Model <- toConjure sp
       case ignoreLogs (typeCheckModel model)  of
         Left _ -> process timeLeft
@@ -221,7 +225,7 @@ doTypeCheck EssenceConfig{..}= do
 
   where
     process = do
-      (sp,_) <- generate $ spec'' size_ def{gen_useFunc = myUseFunc}
+      (sp,_) <- generate $ Gen.spec size_ def{gen_useFunc = myUseFunc}
       model :: Model <- toConjure sp
 
 

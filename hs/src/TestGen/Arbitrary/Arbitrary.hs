@@ -6,100 +6,15 @@
 module TestGen.Arbitrary.Arbitrary where
 
 import TestGen.Prelude
--- import TestGen.Arbitrary.Data
--- import TestGen.Arbitrary.Domain
 import TestGen.Arbitrary.Expr
 
 import qualified Data.Map as M
 import qualified Data.Text as T
-import Data.List
-
-import qualified Test.QuickCheck as QC
-
-data WithLogs a = WithLogs a LogsTree
-data WithExtra a = WithExtra {
-        inner_ :: a
-        , wlogs_  :: LogsTree
-        , ts_int_ :: Int
-        , run_seed_ :: Int
-        }
 
 
-arbitraryDef :: ArbSpec a => a -> Gen a
-arbitraryDef unused = fmap (wrapSpec . fst) <$> sized $ (flip  spec'') (tyGens unused)
-
-
-instance (ArbSpec a, Show a, Arbitrary a) => ArbSpec (WithLogs a) where
-    getSpec (WithLogs aa _) = getSpec aa
-    tyGens  aa              = tyGens aa
-    wrapSpec                = error "wrapSpec, would not have logs"
-
-instance (Show a) => Show (WithLogs a) where
-    show (WithLogs inner _) =
-        "WithLogs( " ++ show inner ++ " )"
-
-instance (Arbitrary a, ArbSpec a) => Arbitrary (WithLogs a) where
-    arbitrary = needed (error "Arbitrary (WithLogs a)")
-
-        where
-        needed :: ArbSpec a => a -> Gen (WithLogs a)
-        needed unused = fmap (\(sp,t) -> WithLogs (wrapSpec sp) t )
-                     <$> sized $ (flip  spec'') (tyGens unused)
-
-
-instance (ArbSpec a, Show a, Arbitrary a) => ArbSpec (WithExtra a) where
-    getSpec WithExtra{..}    = getSpec inner_
-    tyGens  aa              = tyGens aa
-    wrapSpec                = error "wrapSpec, would not have extra state"
-
-instance (Show a) => Show (WithExtra a) where
-    show WithExtra{..} =
-        "WithExtra( " ++ show inner_ ++ " )"
-
-instance (Arbitrary a, ArbSpec a) => Arbitrary (WithExtra a) where
-    arbitrary = needed (error "Arbitrary (WithExtra a)")
-
-        where
-        needed :: ArbSpec a => a -> Gen (WithExtra a)
-        needed unused = sized $ genn (tyGens unused)
-
-        genn gens size = do
-            (sp,t)    <- spec'' size gens
-            ts_int_   <- QC.choose (10,99)
-            run_seed_ <- QC.choose (0,2^(24:: Integer ))
-
-            return WithExtra{inner_=wrapSpec sp, wlogs_= t, ts_int_, run_seed_ }
-
-
-instance Arbitrary Spec where
-    arbitrary = sized spec
-
-instance ArbSpec Spec where
-    tyGens   = def
-    getSpec  = id
-    wrapSpec = id
-
-
-tails2 :: [a] -> [[a]]
-tails2 [] = []
-tails2 xs = tail (tails xs)
-
-
-spec :: Depth -> Gen Spec
-spec depth =  do
-    (specE, _) <- spec' depth
-    return specE
-
-spec' :: Depth -> Gen (Spec, LogsTree)
-spec' = flip spec'' def
-
-
-specwithLogs :: Depth -> Generators -> Gen (WithLogs Spec)
-specwithLogs depth gens  =  uncurry WithLogs  <$> spec'' depth gens
-
-spec'' :: Depth -> Generators -> Gen (Spec, LogsTree)
-spec'' depth _ | depth < 0 = error "spec'' depth < 0"
-spec'' depth gens  = do
+spec :: Depth -> Generators -> Gen (Spec, LogsTree)
+spec  depth _ | depth < 0 = error "spec'' depth < 0"
+spec  depth gens  = do
     let state =  def{depth_= (depth+1) `div` 2, generators_=gens}
 
 
