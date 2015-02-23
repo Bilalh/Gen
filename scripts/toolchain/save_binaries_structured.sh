@@ -80,15 +80,16 @@ printf "***${prog}\n%s\n" "${val}" >> "${tbase}/data_other.txt"
 echo "+++" >> "${tbase}/data_other.txt"
 
 
+
 ## Conjure
 cbase="${base}/versions/conjureNew/"
 mkdir -p "${cbase}"
 
-conjureNewPath="$(which conjureNew)"
+conjureNewPath="$(which conjure)"
 
-conjureNew_version="$(conjureNew --version | egrep -o 'Version: \w+' | egrep -o ': \w+' | egrep -o '\w+')"
+conjureNew_version="$(conjure --version | egrep -o 'Version: \w+' | egrep -o ': \w+' | egrep -o '\w+')"
 
-vd="$(conjureNew --version | egrep -o '201[0-9]-[0-9][0-9]-[0-9][0-9] [0-9]+:[0-9]+ \+[0-9]+')"
+vd="$(conjure --version | egrep -o '201[0-9]-[0-9][0-9]-[0-9][0-9] [0-9]+:[0-9]+ \+[0-9]+')"
 
 if (sw_vers &>/dev/null); then
 	conjureNew_date="$(date -jf '%Y-%m-%e %H:%M %z' "${vd}" '+%F_%s')"
@@ -122,6 +123,7 @@ ln -sf "../../../versions/conjureNew/hash/${conjureNew_version}/${host_type}/con
 echo "conjureNew,git,${conjureNew_version},${conjureNew_date},${rest_line}" >> data.csv
 
 popd
+
 
 ## conjureOld
 if ( which conjureOld &> /dev/null ); then
@@ -226,6 +228,8 @@ EOF
 chmod +x "./savilerow"
 popd
 
+
+
 #Minion
 name=minion
 cbase="${base}/versions/${name}/"
@@ -250,7 +254,7 @@ ln -sf "../../../versions/${name}/hash/${version}/${host_type}/${name}" "${name}
 popd
 
 
-#testReduce etc..
+#gen etc..
 
 function mine(){
 	name="$1"
@@ -292,11 +296,6 @@ function mine(){
 	popd
 }
 
-mine testReduce
-mine testSample
-
-if [ ! -z "${testSampleName:-}" ]; then
-	mine "${testSampleName}"
-fi
+mine gen
 
 set +x
