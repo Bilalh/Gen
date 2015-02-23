@@ -47,7 +47,7 @@ def run_refine(extra_env, commands, kwargs, i):
 
     dic = res.__dict__
     dic.update(vals=vals)
-    return ((eprime.stem, dic), " ".join(cmd_arr) + "\n" + output)
+    return ((eprime.stem, dic), (" ".join(cmd_arr), output) )
 
 
 def run_refine_all_essence(*, op, commands, extra_env):
@@ -74,7 +74,7 @@ def run_refine_all_essence(*, op, commands, extra_env):
         f.write(output)
 
     with (op.outdir / "all.refine-output").open("w") as f:
-        f.write(output)
+        f.write(output0)
 
     dic = res.__dict__
     dic.update(vals=mapping)
@@ -96,14 +96,16 @@ def run_refine_essence(*, op, commands, random, cores, extra_env):
     (results, outputs) =list(zip( *(  rnds ) ))
 
     with (op.outdir / "_refine.outputs").open("w") as f:
-        f.write("\n".join(outputs))
+        f.write("\n".join(  [  " ".join(arr) + "\n" + output for (arr, output) in outputs ] ))
 
     date_end=datetime.utcnow()
     diff = date_end - date_start
 
 
     results_unique = {}
-    for (result, output) in zip(results, outputs):
+    refine_error_hashes=set()
+
+    for (result, (_, output)) in zip(results, outputs):
         (eprime_name, _) = result
         ep = (op.outdir/ eprime_name).with_suffix(".eprime")
         log = ep.with_suffix('.refine-output')
@@ -111,8 +113,19 @@ def run_refine_essence(*, op, commands, random, cores, extra_env):
             f.write(output)
 
         if not ep.exists():
-            results_unique[eprime_name] = result
+            err_hash = hash_path( log )
+            if err_hash not in refine_error_hashes:
+                refine_error_hashes.add(err_hash)
+                results_unique[eprime_name] = result
+            else:
+                logger.warn("Removing %s it is a duplicate  ", log.name)
+                ep.with_suffix(".refine-output").unlink()
+                for ext in ['.eprime.logs', '.eprime.error']:
+                    if ep.with_suffix(ext).exists():
+                        ep.with_suffix(ext).unlink()
+
             continue
+
         hf = hash_path( ep )
         if hf not in results_unique:
             results_unique[hf] = result

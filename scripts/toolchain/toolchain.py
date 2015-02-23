@@ -5,15 +5,11 @@ Runs the whole toolchain (compact + rnd models >> SR + Minion)
 """
 import json
 import logging
-import math
 import os
-import shlex
 import sys
-import itertools
 
 
 from functools import partial
-from pathlib import Path
 from pprint import pprint, pformat
 from multiprocessing import Pool
 from enum import Enum
@@ -165,8 +161,8 @@ if __name__ == "__main__":
     logger.info("solve_results: %s", pformat(solve_results))
 
     solve_wall_time = sum(  res['total_real_time'] for res in solve_results.values()  )
-    
-    successful = all( res['erroed'] == None for res in solve_results.values() )
+
+    successful = all( res['erroed'] is None for res in solve_results.values() )
 
     # checks that all eprimes that were solved either have a solution
     # or don't have a solution
