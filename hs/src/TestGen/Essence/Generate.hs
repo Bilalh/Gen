@@ -54,6 +54,7 @@ doRefine EssenceConfig{..} = do
           createDirectoryIfMissing True dir
           writeFile (dir </> "spec.logs" ) (renderSized 120 logs)
 
+          writeToJSON (dir </> "spec.spec.json") sp
 
           let meta = mkMeta sp
           writeFile (dir </> "spec.meta" ) (show meta)
@@ -95,6 +96,7 @@ doSolve EssenceConfig{..} = do
           createDirectoryIfMissing True dir
           writeFile (dir </> "spec.logs" ) (renderSized 120 logs)
 
+          writeToJSON (dir </> "spec.spec.json") sp
 
           let meta = mkMeta sp
           writeFile (dir </> "spec.meta" ) (show meta)
