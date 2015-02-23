@@ -23,7 +23,7 @@ import Data.Time.Clock.POSIX(getPOSIXTime)
 
 generateEssence :: EssenceConfig -> IO ()
 generateEssence ec@EssenceConfig{..} = do
-
+  setRandomSeed seed_
 
   case mode_ of
     TypeCheck_ -> doTypeCheck ec
