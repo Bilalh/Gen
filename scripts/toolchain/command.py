@@ -131,7 +131,7 @@ class ConjureNew(Commands):
         super(ConjureNew, self).__init__(
                 refine_compact="""
                 conjureNew {essence}
-                    -q f -a r
+                    -q f -a c
                     --output-directory '{outdir}'
                     --numbering-start  {index}
                     --limit-time       {itimeout}
