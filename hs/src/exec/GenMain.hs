@@ -84,7 +84,6 @@ mainWithArgs Essence{..} = do
         [ aerr "-t|--total-time" (total_time == 0)
         , aerr "-p|--per-spec-time" (per_spec_time == 0)
         , aerr "-c|--cores" (_cores == 0)
-        , aerr "--seed" (_seed == 0)
         , aerr "--size > 0" (_size <= 0)
         ]
 
@@ -92,6 +91,8 @@ mainWithArgs Essence{..} = do
     [] -> return ()
     xs -> mapM putStrLn xs >> exitFailure
 
+
+  seed_ <- giveSeed _seed
   let config = EssenceConfig
                { outputDirectory_ = output_directory
                , mode_            = toEssenceMode _mode
@@ -100,7 +101,7 @@ mainWithArgs Essence{..} = do
                , perSpecTime_ = per_spec_time
                , size_        = _size
                , cores_       = _cores
-               , seed_        = _seed
+               , seed_        = seed_
 
                , totalIsRealTime    = total_is_real_time
                , deletePassing_     = delete_passing
@@ -125,7 +126,6 @@ mainWithArgs Reduce{..} = do
         [ aerr "spec-directory" (null spec_directory)
         , aerr "-p|--per-spec-time" (per_spec_time == 0)
         , aerr "-c|--cores" (_cores == 0)
-        , aerr "--seed" (_seed == 0)
         ]
 
   case errors of
@@ -133,7 +133,7 @@ mainWithArgs Reduce{..} = do
     xs -> mapM putStrLn xs >> exitFailure
 
 
-
+  seed_ <- giveSeed _seed
   let args = def{oErrKind_   = error_kind
                 ,oErrStatus_ = error_status
                 ,oErrEprime_ = Nothing
@@ -141,7 +141,7 @@ mainWithArgs Reduce{..} = do
                 ,specDir_    = spec_directory
                 ,R.cores_    = _cores
                 ,newConjure_ = not old_conjure
-                ,rgen_       = mkrGen (_seed)
+                ,rgen_       = mkrGen (seed_)
                 ,specTime_   = per_spec_time
                 }
   (_,state) <- reduceMain args
@@ -163,6 +163,10 @@ aerr n b | b = Just $ "Required: " ++ n
 aerr _ _     = Nothing
 
 
+giveSeed :: Maybe Int -> IO Int
+giveSeed (Just s)  = return s
+giveSeed Nothing = randomRIO (0,2^(31 :: Int)-1)
+
 
 _mainDebug :: IO ()
 _mainDebug = do
@@ -174,7 +178,7 @@ _mainDebug = do
              , per_spec_time = 5
              , _size         = 2
              , _cores        = 1
-             , _seed         = 44
+             , _seed         = Just 44
 
              , delete_passing     = False
              , binaries_directory = Nothing

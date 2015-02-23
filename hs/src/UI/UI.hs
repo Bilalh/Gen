@@ -28,7 +28,7 @@ data UI
       , per_spec_time      :: Int
       , _size              :: Int  -- should not be greater then 5
       , _cores             :: Int
-      , _seed              :: Int
+      , _seed              :: Maybe Int
       , delete_passing     :: Bool
       , total_is_real_time :: Bool
 
@@ -56,7 +56,7 @@ data UI
       , output_directory   :: FilePath
       , per_spec_time      :: Int
       , _cores             :: Int
-      , _seed              :: Int
+      , _seed              :: Maybe Int
 
       , binaries_directory :: Maybe FilePath
       , old_conjure        :: Bool
@@ -109,7 +109,7 @@ ui  = modes
                                     &= explicit
                                     &= help "Number of cores to use"
      , _seed              = def     &= name "seed"
-                                    &= groupname "Required"
+                                    &= groupname "Other"
                                     &= explicit
                                     &= help "Random Seed to use"
      , delete_passing     = False   &= name "delete_passing"
