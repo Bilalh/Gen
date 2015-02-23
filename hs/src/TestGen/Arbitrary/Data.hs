@@ -75,6 +75,7 @@ data EssenceConfig = EssenceConfig
       , cores_           :: Int
       , seed_            :: Int
 
+      , totalIsRealTime    :: Bool
       , deletePassing_     :: Bool
       , binariesDirectory_ :: Maybe FilePath
       , oldConjure_        :: Bool
@@ -91,6 +92,7 @@ instance Default EssenceConfig where
       , cores_       = error "EssenceConfig cores_ not set"
       , seed_        = error "EssenceConfig seed_ not set"
 
+      , totalIsRealTime    = True
       , deletePassing_     = False
       , binariesDirectory_ = Nothing
       , oldConjure_        = False

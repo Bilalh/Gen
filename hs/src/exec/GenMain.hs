@@ -102,6 +102,7 @@ mainWithArgs Essence{..} = do
                , cores_       = _cores
                , seed_        = _seed
 
+               , totalIsRealTime    = total_is_real_time
                , deletePassing_     = delete_passing
                , binariesDirectory_ = binaries_directory
                , oldConjure_        = old_conjure
@@ -173,5 +174,6 @@ _mainDebug = do
              , binaries_directory = Nothing
              , old_conjure        = False
              , limit_time         = Nothing
+             , total_is_real_time = True
              }
     limiter (limit_time ec) (mainWithArgs ec)

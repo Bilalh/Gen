@@ -18,6 +18,8 @@ import qualified Data.Map as M
 import qualified Data.Set as S
 
 import GHC.Real(floor)
+import Data.Time.Clock.POSIX(getPOSIXTime)
+
 
 generateEssence :: EssenceConfig -> IO ()
 generateEssence ec@EssenceConfig{..} = do
@@ -58,11 +60,17 @@ doRefine EssenceConfig{..} = do
           writeToJSON  (dir </> "spec.meta.json" ) (meta)
 
           runSeed <- (randomRIO (1,2147483647) :: IO Int)
+          startTime <- round `fmap` getPOSIXTime
           result <- runRefine' runSeed cores_ model (out </> uname ) perSpecTime_
                     (not oldConjure_)
+          endTime <- round `fmap` getPOSIXTime
+          let realTime = endTime - startTime
 
           runTime <- classifySettingI errdir out uname result
-          process (timeLeft - (floor runTime))
+          case totalIsRealTime of
+            False -> process (timeLeft - (floor runTime))
+            True  -> process (timeLeft - realTime)
+
 
 doSolve :: EssenceConfig -> IO ()
 doSolve EssenceConfig{..} = do
@@ -93,11 +101,16 @@ doSolve EssenceConfig{..} = do
           writeToJSON  (dir </> "spec.meta.json" ) (meta)
 
           runSeed <- (randomRIO (1,2147483647) :: IO Int)
+          startTime <- round `fmap` getPOSIXTime
           result <- runToolchain' runSeed cores_ model (out </> uname ) perSpecTime_
                     (not oldConjure_) False
+          endTime <- round `fmap` getPOSIXTime
+          let realTime = endTime - startTime
 
           runTime <-  classifyError uname result
-          process (timeLeft - (floor runTime))
+          case totalIsRealTime of
+            False -> process (timeLeft - (floor runTime))
+            True  -> process (timeLeft - realTime)
 
 
     classifyError uname (Left a) = classifySettingI errdir out uname a

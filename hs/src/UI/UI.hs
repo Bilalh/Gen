@@ -16,12 +16,13 @@ data UI
       { output_directory :: FilePath
       , _mode            :: EssenceMode
 
-      , total_time       :: Int
-      , per_spec_time    :: Int
-      , _size            :: Int  -- should not be greater then 5
-      , _cores           :: Int
-      , _seed            :: Int
-      , delete_passing   :: Bool
+      , total_time         :: Int
+      , per_spec_time      :: Int
+      , _size              :: Int  -- should not be greater then 5
+      , _cores             :: Int
+      , _seed              :: Int
+      , delete_passing     :: Bool
+      , total_is_real_time :: Bool
 
       , binaries_directory :: Maybe FilePath
       , old_conjure        :: Bool
@@ -107,6 +108,12 @@ ui  = modes
                                     &= groupname "Other"
                                     &= explicit
                                     &= help "Delete non failing test cases as soon as they have been generated"
+     , total_is_real_time = False   &= name "total-is-real-time"
+                                    &= name "@"
+                                    &= groupname "Other"
+                                    &= explicit
+                                    &= help "The total time is real time, not cpu time "
+
      , binaries_directory = Nothing &= name "bin-dir"
                                     &= groupname "Other"
                                     &= explicit
