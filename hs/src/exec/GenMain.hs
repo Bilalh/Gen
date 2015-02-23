@@ -124,6 +124,7 @@ mainWithArgs Reduce{..} = do
 
   let errors = catMaybes
         [ aerr "spec-directory" (null spec_directory)
+        , aerr "-o|--output-directory" (null output_directory)
         , aerr "-p|--per-spec-time" (per_spec_time == 0)
         , aerr "-c|--cores" (_cores == 0)
         ]

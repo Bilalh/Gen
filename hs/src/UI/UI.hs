@@ -82,13 +82,13 @@ ui :: UI
 ui  = modes
 
   [ Essence
-     { output_directory   = def     &= typDir
+     { output_directory   = def     &= typ "OUT-DIR"
                                     &= argPos 0
      , _mode              = def     &= name "mode"
                                     &= typ "mode"
                                     &= groupname "Generation"
                                     &= explicit
-                                    &= help "Mode to use, one of typecheck refine solve (default) "
+                                    &= help "Mode to use, one of typecheck, refine, solve (default) "
      , total_time         = def     &= name "total-time"
                                     &= name "t"
                                     &= groupname "Required"
@@ -140,7 +140,7 @@ ui  = modes
        &= help "Generates essence test cases"
 
   , Reduce
-     { spec_directory   = def        &= typDir
+     { spec_directory   = def        &= typ "SPEC-DIR"
                                      &= argPos 0
      , error_status     = StatusAny_ &= name "status"
                                      &= groupname "Reduction"
@@ -161,33 +161,33 @@ ui  = modes
      , output_directory = def        &= typDir
                                      &= name "output-directory"
                                      &= name "o"
-                                     &= groupname "Stats"
+                                     &= groupname "Required"
                                      &= explicit
                                      &= help "Output directory "
      , per_spec_time    = def        &= name "per-spec-time"
                                      &= name "p"
-                                     &= groupname "Stats"
+                                     &= groupname "Required"
                                      &= explicit
                                      &= help "Time per Spec"
      , _cores           = def        &= name "cores"
                                      &= name "c"
-                                     &= groupname "Stats"
+                                     &= groupname "Required"
                                      &= explicit
                                      &= help "Number of cores to Use"
      , _seed            = def        &= name "seed"
-                                     &= groupname "Stats"
+                                     &= groupname "Other"
                                      &= explicit
                                      &= help "Random Seed to use"
      , binaries_directory = Nothing  &= name "bin-dir"
-                                     &= groupname "Stats"
+                                     &= groupname "Other"
                                      &= explicit
                                      &= help "Directory to prepend the $PATH before running progams."
      , old_conjure      = False      &= name "old-conjure"
-                                     &= groupname "Stats"
+                                     &= groupname "Other"
                                      &= explicit
                                      &= help "Use old conjure"
      , limit_time       = Nothing    &= name "limit-time"
-                                     &= groupname "Stats"
+                                     &= groupname "Other"
                                      &= explicit
                                      &= help "Time limit in seconds of CPU time of this program"
 
@@ -245,5 +245,5 @@ ui  = modes
       &= help "Create .spec.json files for each .essence file recursively"
 
   ] &= program "gen"
-    &= summary (unlines ["Gen v2.0",  "Git version: " ++ autoVersion])
+    &= summary (unlines ["Gen v2.1",  "Git version: " ++ autoVersion])
     &= helpArg [name "h"]
