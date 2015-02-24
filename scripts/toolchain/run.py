@@ -96,7 +96,7 @@ def run_refine_essence(*, op, commands, random, cores, extra_env):
     (results, outputs) =list(zip( *(  rnds ) ))
 
     with (op.outdir / "_refine.outputs").open("w") as f:
-        f.write("\n".join(  [  " ".join(arr) + "\n" + output for (arr, output) in outputs ] ))
+        f.write("\n".join(  [ arr + "\n" + output for (arr, output) in outputs ] ))
 
     date_end=datetime.utcnow()
     diff = date_end - date_start
