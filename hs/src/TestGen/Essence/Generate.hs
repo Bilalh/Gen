@@ -45,7 +45,8 @@ doRefine EssenceConfig{..} = do
 
     process timeLeft | timeLeft <= 0 = return ()
     process timeLeft = do
-      (sp,logs) <- generate $ Gen.spec size_ def{gen_useFunc = myUseFunc}
+      useSize <- (randomRIO (0, size_) :: IO Int)
+      (sp,logs) <- generate $ Gen.spec useSize def{gen_useFunc = myUseFunc}
       model :: Model <- toConjure sp
       case ignoreLogs (typeCheckModel model)  of
         Left _ -> process timeLeft
@@ -295,6 +296,7 @@ copyFiles names inn out needed = forM needed $ \g -> do
 
 
 -- Does not work completely
+myUseFunc :: FuncsNames -> Bool
 myUseFunc Aapply = False
 myUseFunc Ahist = False
 myUseFunc Ainverse = False
