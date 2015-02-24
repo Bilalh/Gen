@@ -21,7 +21,7 @@ main = defaultMainWithHooks myHooks
 copyScripts :: PackageDescription -> LocalBuildInfo -> CopyDest -> IO ()
 copyScripts pkg local copy = do
     let dirs = absoluteInstallDirs pkg local copy
-    copyFile "scripts/testSampleWrap.sh" (bindir dirs </> "testSampleWrap.sh")
+    copyFile "scripts/genEssenceDate.sh" (bindir dirs </> "genEssenceDate.sh")
 
 
 myPreBuild _ _ = do
