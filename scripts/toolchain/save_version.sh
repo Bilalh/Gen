@@ -44,10 +44,13 @@ else
     echo "" >> "${fp}.versions"
 fi
 
-echo "conjure" >> "${fp}.versions"
-conjure 2>&1 | grep Version  >> "${fp}.versions"
 echo "conjureNew" >> "${fp}.versions"
-conjureNew --version 2>&1   >> "${fp}.versions"
+conjure --version  >> "${fp}.versions" 2>&1
+
+echo "conjureOld" >> "${fp}.versions"
+conjureOld 2>&1 | grep Version  >> "${fp}.versions"
+
+
 
 echo "" >> "${fp}.versions"
 minion 2>&1	 | egrep 'HG version|Minion Version' >> "${fp}.versions"
@@ -62,7 +65,7 @@ echo "##Repos##"  >> "$fp.versions"
 echo ""  >> "$fp.versions"
 
 declare -a repos
-repos=(conjure conjure-private conjure-testing essenceAST instancegen instancegen-models minion savilerow)
+repos=(conjure conjure-private conjure-testing instancegen instancegen-models minion savilerow)
 for repo in "${repos[@]}"; do
 
     if [ ! -d "$repos_dir/$repo" ]; then
@@ -77,14 +80,14 @@ for repo in "${repos[@]}"; do
         git describe --always    >> "${fp}.versions"
         echoing git branch  >> "${fp}.versions"
         echo "" >> "${fp}.versions"
-        echoing git diff  2>&1 >>   "${fp}.versions"
+        echoing git diff  >>   "${fp}.versions" 2>&1
     elif [ -d ".hg" ]; then
         echo "$repo(hg) version" >> "${fp}.versions"
         hg log -r . --template "{latesttag}-{latesttagdistance}-{node|short}" >> "${fp}.versions"
         echo "" >> "${fp}.versions"
         echoing hg branch  >> "${fp}.versions"
         echo "" >> "${fp}.versions"
-        echoing hg diff 2>&1 >>   "${fp}.versions"
+        echoing hg diff  >>   "${fp}.versions" 2>&1
     fi
 
     echo "" >> "${fp}.versions"
