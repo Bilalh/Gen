@@ -73,12 +73,12 @@ def remove_solve_dups(solve_results, outdir):
     for (eprime_name, dic) in solve_results.items():
         if dic['last_kind'] in [K.savilerow, K.translateUp, K.validate]:
             if dic['erroed'] is None:
-                delete((outdir / eprime_name),err_hash)
+                delete((outdir / eprime_name), "<passing>")
                 continue
             solve_output = (outdir / eprime_name).with_suffix(".output")
             err_hash = run.hash_path( solve_output )
             if err_hash in error_hashes[dic['last_kind']]:
-                delete((outdir / eprime_name),err_hash)
+                delete((outdir / eprime_name), err_hash)
                 continue
 
             error_hashes[dic['last_kind']].add(err_hash)
