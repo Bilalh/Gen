@@ -82,7 +82,7 @@ def rerun_refine(extra_env, itimeout, data):
         extra_env=extra_env, vals=cmd_data['vals'])
     dic = res.__dict__
     dic.update(vals=cmd_data['vals'])
-    return ((eprime_name, dic), " ".join(cmd_arr) + "\n" + output)
+    return ((eprime_name, dic), (" ".join(cmd_arr), output) )
 
 
 def rerun_refine_essence(*, extra_env, outdir, limit, cores, datas):
@@ -93,17 +93,9 @@ def rerun_refine_essence(*, extra_env, outdir, limit, cores, datas):
     (results, outputs) =list(zip( *(  rnds ) ))
 
     with (outdir / "_refine.outputs").open("w") as f:
-        f.write("\n".join(outputs))
+        f.write("\n".join(  [ "###" + arr + "\n" + output for (arr, output) in outputs ] ))
 
-    results_unique = {}
-    for (result, output) in zip(results, outputs):
-        (eprime_name, _) = result
-        ep = (outdir/ eprime_name).with_suffix(".eprime")
-        log = ep.with_suffix('.refine-output')
-        with log.open('w') as f:
-            f.write(output)
-
-        results_unique[eprime_name] = result
+    results_unique = run.remove_refine_dups(results=results, outputs=outputs, op=op)
 
     return (dict(results_unique.values()), sum( data['real_time']
                 for (_, data) in results  ) )
@@ -236,7 +228,7 @@ def rerun_solve(extra_env, outdir, limit, kv):
         total_cpu_time += res.cpu_time
         total_real_time += res.real_time
 
-        outputs.append(" ".join(cmd_arr))
+        outputs.append("###" + " ".join(cmd_arr))
         outputs.append(output)
 
 
@@ -298,7 +290,10 @@ solve_results = dict(pool.map(solve_op, sdatas))
 logger.info("solve_results: %s", pformat(solve_results))
 
 solve_wall_time = sum(  res['total_real_time'] for res in solve_results.values()  )
-solve_successful = all( res['erroed'] == None for res in solve_results.values() )
+solve_successful = all( res['erroed'] is None for res in solve_results.values() )
+
+if not solve_successful:
+        solve_results = toolchain.remove_solve_dups(solve_results, op.outdir)
 
 
 # checks that all eprimes that were solved either have a solution

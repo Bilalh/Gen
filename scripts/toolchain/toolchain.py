@@ -24,6 +24,10 @@ from run import Status
 import time
 import random
 
+from collections import defaultdict
+from command import K
+
+
 logger = logging.getLogger(__name__)
 
 import hashlib
@@ -50,6 +54,39 @@ def with_settings(results, *, op, time_taken, successful, consistent):
         successful_ = successful,
         consistent_ = consistent
     )
+
+
+def remove_solve_dups(solve_results, outdir):
+    exts = ['.eprime.logs', '.eprime.error', '.eprimes-solution', '.solution',
+             '.output', '.eprime-param', '.refine-output', '.eprime']
+
+    error_hashes = defaultdict(set)
+
+    def delete(ep, err_hash):
+        logger.warn("Removing %s it has the same error as %s ", ep.stem, err_hash)
+        for ext in exts:
+            if ep.with_suffix(ext).exists():
+                    ep.with_suffix(ext).unlink()
+
+    results_unique=[]
+
+    for (eprime_name, dic) in solve_results.items():
+        if dic['last_kind'] in [K.savilerow, K.translateUp, K.validate]:
+            if dic['erroed'] is None:
+                delete((outdir / eprime_name),err_hash)
+                continue
+            solve_output = (outdir / eprime_name).with_suffix(".output")
+            err_hash = run.hash_path( solve_output )
+            if err_hash in error_hashes[dic['last_kind']]:
+                delete((outdir / eprime_name),err_hash)
+                continue
+
+            error_hashes[dic['last_kind']].add(err_hash)
+            logger.warn("hash %s is %s", err_hash, eprime_name)
+
+        results_unique.append((eprime_name, dic))
+
+    return dict(results_unique)
 
 if __name__ == "__main__":
 
@@ -163,6 +200,9 @@ if __name__ == "__main__":
     solve_wall_time = sum(  res['total_real_time'] for res in solve_results.values()  )
 
     successful = all( res['erroed'] is None for res in solve_results.values() )
+
+    if not successful:
+        solve_results = remove_solve_dups(solve_results, op.outdir)
 
     # checks that all eprimes that were solved either have a solution
     # or don't have a solution

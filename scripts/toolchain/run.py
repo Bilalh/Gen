@@ -24,7 +24,8 @@ logger = logging.getLogger(__name__)
 def hash_path(path):
     sha = hashlib.sha1()
     with path.open('rb') as f:
-        sha.update(f.read())
+        sha.update(b"".join([ line for line in f.readlines()
+            if not line.startswith(b"###") ]  ))
     return sha.hexdigest()
 
 
@@ -65,7 +66,7 @@ def run_refine_all_essence(*, op, commands, extra_env):
 
     logger.warn("running %s:  %s\n\t%s", cmd_kind, cmd_arr, " ".join(cmd_arr))
     (res, output0) = run_with_timeout(mapping['itimeout'], cmd_kind, cmd_arr, extra_env=extra_env, vals=mapping)
-    output = " ".join(cmd_arr) + "\n" + output0
+    output = "###" + " ".join(cmd_arr) + "\n" + output0
 
     date_end=datetime.utcnow()
     diff = date_end - date_start
@@ -96,14 +97,25 @@ def run_refine_essence(*, op, commands, random, cores, extra_env):
     (results, outputs) =list(zip( *(  rnds ) ))
 
     with (op.outdir / "_refine.outputs").open("w") as f:
-        f.write("\n".join(  [ arr + "\n" + output for (arr, output) in outputs ] ))
+        f.write("\n".join(  [ "###" + arr + "\n" + output for (arr, output) in outputs ] ))
 
     date_end=datetime.utcnow()
     diff = date_end - date_start
 
 
+    results_unique = remove_refine_dups(results=results, outputs=outputs, op=op)
+
+
+    return (dict(results_unique.values()), sum( data['real_time']
+                for (_, data) in results  ) )
+
+
+def remove_refine_dups(*, results, outputs, op):
     results_unique = {}
     refine_error_hashes=set()
+
+    exts = ['.eprime.logs', '.eprime.error', '.eprime-solution', '.solution',
+             '.output', '.eprime-param', '.refine-output']
 
     for (result, (_, output)) in zip(results, outputs):
         (eprime_name, _) = result
@@ -119,8 +131,7 @@ def run_refine_essence(*, op, commands, random, cores, extra_env):
                 results_unique[eprime_name] = result
             else:
                 logger.warn("Removing %s it is a duplicate  ", log.name)
-                ep.with_suffix(".refine-output").unlink()
-                for ext in ['.eprime.logs', '.eprime.error']:
+                for ext in exts:
                     if ep.with_suffix(ext).exists():
                         ep.with_suffix(ext).unlink()
 
@@ -134,13 +145,11 @@ def run_refine_essence(*, op, commands, random, cores, extra_env):
                     eprime_name, results_unique[hf][0] )
             ep.unlink()
 
-            if isinstance(commands, command.ConjureOld):
-                ep.with_suffix(".eprime.logs").unlink()
-            ep.with_suffix(".refine-output").unlink()
+            for ext in exts:
+                if ep.with_suffix(ext).exists():
+                    ep.with_suffix(ext).unlink()
 
-
-    return (dict(results_unique.values()), sum( data['real_time']
-                for (_, data) in results  ) )
+    return results_unique
 
 def uniform_int(l, u):
     return math.ceil(random.uniform(l - 1, u))
@@ -206,7 +215,7 @@ def run_solve(extra_env, op, commands, limit, eprime):
         total_cpu_time += res.cpu_time
         total_real_time += res.real_time
 
-        outputs.append(" ".join(c))
+        outputs.append("###" + " ".join(c))
         outputs.append(output)
 
         if res.status_ == Status.timeout:
