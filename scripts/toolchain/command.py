@@ -171,7 +171,7 @@ class ConjureNew(Commands):
                     -out-info                    '{eprime_info}'
                     -run-solver
                     -timelimit                   {mstimeout}
-                    -solver-options '-timelimit  {itimeout}'
+                    -solver-options '-timelimit {itimeout}'
                 """,
 
                 translate_up="""
