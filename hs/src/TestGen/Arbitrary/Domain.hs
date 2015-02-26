@@ -110,8 +110,8 @@ msetDom = do
 matixDom :: GG (Domainn Expr)
 matixDom = do
     d <- gets depth_
-    numElems <- choose2 (1 :: Int, min (d * 3) 10 )
-    numRanges <- choose2 (1 :: Int, numElems)
+    numElems <- choose2 (1 :: Integer, min ( (fromIntegral d) * 3) 10 )
+    numRanges <- choose2 (1 :: Integer, numElems)
 
     ranges <- mkRanges numElems numElems numRanges S.empty
     let idx = DomainInt (sortBy  rangeComp ranges)
@@ -147,7 +147,7 @@ tupleDom = do
 
 
 
-mkRanges :: Int ->  Int -> Int -> Set Int -> GG ( [Range Expr] )
+mkRanges :: Integer ->  Integer -> Integer -> Set Integer -> GG ( [Range Expr] )
 mkRanges _ 0 0 _ = return []
 
 mkRanges ub ns 1 used = do
@@ -179,7 +179,7 @@ mkRanges ub ns rs used | ns >=2= do
 
 mkRanges _ ns rs _  = docError ["mkRanges unmatched", pretty ns, pretty rs]
 
-chooseUnusedSized ::  Int -> Int -> Set Int -> GG (Int, Int)
+chooseUnusedSized ::  Integer -> Integer -> Set Integer -> GG (Integer, Integer)
 chooseUnusedSized ub size used | S.null used  =  do
     lower <- choose2 (-ub*3,ub*3 - size)
     return (lower, lower + size - 1)
@@ -193,10 +193,10 @@ chooseUnusedSized ub size used =  do
         return (lower,upper)
 
 
-chooseUnused :: Int -> Set Int -> GG Int
+chooseUnused :: Integer -> Set Integer -> GG Integer
 chooseUnused ub = chooseUnused' (-ub*3, ub*3)
 
-chooseUnused' :: (Int,Int) -> Set Int -> GG Int
+chooseUnused' :: (Integer,Integer) -> Set Integer -> GG Integer
 chooseUnused' (l,u) used | S.null used  = choose2 (l,u)
 chooseUnused' (l,u) used = do
     i <- choose2 (l,u)
@@ -217,13 +217,13 @@ range = oneof2
     where
     arbitrarySingle :: GG (Range Expr)
     arbitrarySingle = do
-        a <- choose2 (-5,5 :: Int)
+        a <- choose2 (-5,5 :: Integer)
         return $ RangeSingle (ELit . EI $ a)
 
     arbitraryFromTo :: GG (Range Expr)
     arbitraryFromTo = do
         do
-            a <- choose2 (-5,5 :: Int)
+            a <- choose2 (-5,5 :: Integer)
             b <- choose2 (a,5)
             return $ RangeBounded (ELit . EI $ a) (ELit . EI $  b)
 

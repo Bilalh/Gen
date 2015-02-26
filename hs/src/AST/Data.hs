@@ -150,7 +150,7 @@ instance FromJSON  Proc where parseJSON = genericParseJSON jsonOptions
 
 data Literal
     = EB Bool
-    | EI Int
+    | EI Integer
     | ETuple      [Literal]
     | EMatrix     [Literal] (Domainn Expr)
     | ESet        [Literal]

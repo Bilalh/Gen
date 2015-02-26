@@ -12,6 +12,8 @@ import TestGen.Arbitrary.Expr(exprOf,deAny)
 
 import qualified Data.IntSet as I
 import Data.IntSet(IntSet)
+import qualified Data.Set as S
+
 
 import Conjure.Language.Domain
 
@@ -24,7 +26,7 @@ boolLit = do
 
 intLit :: GG Expr
 intLit  = do
-    i <- choose2 ((-10),10 :: Int)
+    i <- choose2 ((-10),10 :: Integer)
     return (ELit (EI i) )
 
 
@@ -60,7 +62,7 @@ msetLitOf innerType = do
 matrixLitOf :: TType -> GG Expr
 matrixLitOf innerType = do
     idx <-  withDepthDec intDom
-    let numElems = I.size $ I.fromList $ concat $ ints idx
+    let numElems = S.size $ S.fromList $ concat $ ints idx
     exprs <- vectorOf2 numElems ( withDepthDec $ exprOf innerType)
     return $ ELit $ EMatrix (map EExpr $ exprs) idx
 
