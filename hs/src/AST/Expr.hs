@@ -388,11 +388,17 @@ instance Pretty Expr where
 instance Pretty BinOp where
   pretty = pretty . (toConjureNote "Pretty BinOp" :: BinOp -> Expression)
 
+instance PrettyWithQuan BinOp where prettyWithQuan = pretty
+
 instance Pretty UniOp where
   pretty = pretty . (toConjureNote "Pretty UniOP" :: UniOp -> Expression)
 
+instance PrettyWithQuan UniOp where prettyWithQuan = pretty
+
 instance Pretty Proc where
   pretty = pretty . (toConjureNote "Pretty UniOP" :: Proc -> Expression)
+
+instance PrettyWithQuan Proc where prettyWithQuan = pretty
 
 instance Pretty QType where
     pretty = error "Pretty Qtype"

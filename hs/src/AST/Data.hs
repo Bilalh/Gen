@@ -25,8 +25,10 @@ class (Pretty ast, Pretty conjure, Show ast) => Translate ast conjure where
                     Right x -> x
                     Left  d -> error . renderNormal . vcat $ [msg, d ]
 
-
 type Domainn x = Domain () x
+
+class Pretty a => PrettyWithQuan a where
+    prettyWithQuan :: Pretty a => a -> Doc
 
 data Expr =
     ELit Literal
@@ -102,6 +104,7 @@ instance Serialize BinOp
 instance Hashable  BinOp
 instance ToJSON    BinOp where toJSON = genericToJSON jsonOptions
 instance FromJSON  BinOp where parseJSON = genericParseJSON jsonOptions
+
 
 data UniOp = UBar Expr
            | UNeg Expr
