@@ -9,8 +9,7 @@ import Conjure.Language.Pretty
 import Conjure.Language.Definition
 import Conjure.Language.Domain(Domain)
 import Conjure.Language.TH
-import Conjure.Language.Ops
-
+import Conjure.Language.Expression.Op
 
 import AST.Data
 import {-# SOURCE #-} AST.Literal()

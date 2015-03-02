@@ -55,7 +55,7 @@ main = do
 
    where
      getLimit x | Just i <- limit_time x, i <=0  = error "--limit-time must be > then 0"
-     getLimit (Essence{_mode=m,limit_time = Nothing, total_time=t}) | m == TypeCheck = Just t
+     getLimit (Essence{_mode=m,limit_time = Nothing, total_time=t}) | m == TypeCheck=Just t
      getLimit input = limit_time input
 
 
