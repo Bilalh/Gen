@@ -31,9 +31,6 @@ generateEssence ec@EssenceConfig{..} = do
     Refine_    -> doRefine ec
     Solve_     -> doSolve ec
 
-a :: Gen Int
-a = return 3
-
 
 doRefine :: EssenceConfig -> IO ()
 doRefine EssenceConfig{..} = do
@@ -130,15 +127,19 @@ doSolve EssenceConfig{..} = do
         renameDirectory (out </> uname ) inErrDir
 
         rr <- flip M.traverseWithKey (M.filter (isJust . erroed ) ms ) $
-             \_ ResultI{last_status, last_kind=Just kind, erroed= Just _ } -> do
-               let mvDirBase = errdir </> (show kind) </> (show last_status)
-               return $ mvDirBase
+             \_ k -> case k of
+                       ResultI{last_status, last_kind=Just kind, erroed= Just _ } -> do
+                              let mvDirBase = errdir </> (show kind) </> (show last_status)
+                              return $ Just mvDirBase
+
+                       _  -> return Nothing
+
 
         let inDir = M.map S.fromList
                   . M.fromListWith (\a b -> a ++ b)
                   . map (\(a,b) -> (b, [a]))
                   . M.toList
-                  $ rr
+                  $  M.mapMaybe id rr
 
 
         let
