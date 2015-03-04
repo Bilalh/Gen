@@ -65,16 +65,18 @@ data UI
 
   | Link
       { directories :: [FilePath]
+
       , limit_time  :: Maybe Int
       }
   | Meta
       { directories :: [FilePath]
+
       , limit_time  :: Maybe Int
       }
   | SpecEE
       { directories :: [FilePath]
-      , limit_time  :: Maybe Int
       , print_specs :: Bool
+      , limit_time  :: Maybe Int
       }
   deriving (Show, Data, Typeable)
 
