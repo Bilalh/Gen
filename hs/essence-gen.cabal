@@ -43,7 +43,6 @@ Library
                      , TestGen.Essence.Check
                      , TestGen.Essence.Generate
                      , TestGen.Essence.Rnd
-                     , TestGen.Helpers.Args
                      , TestGen.Helpers.Debug
                      , TestGen.Helpers.IO
                      , TestGen.Helpers.Log
