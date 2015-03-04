@@ -3,22 +3,22 @@
 
 module Main where
 
-import TestGen.Helpers.StandardImports
-import TestGen.Arbitrary.Data
-import UI.UI
+import Gen.Helpers.StandardImports
+import Gen.Arbitrary.Data
+import Gen.UI.UI
 
-import TestGen.Classify.Sorter(sorterMain')
-import TestGen.Classify.AddMeta(metaMain)
-import TestGen.Classify.AddSpecE(specEMain)
-import TestGen.Helpers.Runner(kindsList, statusesList)
+import Gen.Classify.Sorter(sorterMain')
+import Gen.Classify.AddMeta(metaMain)
+import Gen.Classify.AddSpecE(specEMain)
+import Gen.Helpers.Runner(kindsList, statusesList)
 
-import TestGen.Reduce.Data(RState(..),mkrGen)
-import qualified TestGen.Reduce.Data as R
+import Gen.Reduce.Data(RState(..),mkrGen)
+import qualified Gen.Reduce.Data as R
 
-import TestGen.Reduce.Reduce(reduceMain)
-import TestGen.Reduce.FormatResults(formatResults)
+import Gen.Reduce.Reduce(reduceMain)
+import Gen.Reduce.FormatResults(formatResults)
 
-import TestGen.Essence.Generate(generateEssence)
+import Gen.Essence.Generate(generateEssence)
 
 import System.Console.CmdArgs ( cmdArgs )
 import System.CPUTime ( getCPUTime )
