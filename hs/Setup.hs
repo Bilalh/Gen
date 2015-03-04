@@ -4,12 +4,15 @@ import Distribution.Simple
 import Distribution.PackageDescription (emptyHookedBuildInfo, PackageDescription(..) )
 import System.Directory (createDirectoryIfMissing)
 import System.Process (readProcess, readProcessWithExitCode)
-import System.Directory ( copyFile, renameFile, doesFileExist )
+import System.Directory ( copyFile, renameFile, doesFileExist,renameDirectory, copyFile, doesDirectoryExist, getDirectoryContents )
 import System.FilePath ( (</>) )
 import System.Exit(ExitCode(..))
 
-import Distribution.Simple.LocalBuildInfo ( LocalBuildInfo(..), absoluteInstallDirs, bindir )
+import Distribution.Simple.LocalBuildInfo ( LocalBuildInfo(..), absoluteInstallDirs, bindir)
+import Distribution.Simple.InstallDirs( datadir)
 import Distribution.Simple.Setup ( fromFlag, copyDest, CopyDest(..) )
+
+import Control.Monad(forM_)
 
 main = defaultMainWithHooks myHooks
     where myHooks = simpleUserHooks {
@@ -22,7 +25,8 @@ copyScripts :: PackageDescription -> LocalBuildInfo -> CopyDest -> IO ()
 copyScripts pkg local copy = do
     let dirs = absoluteInstallDirs pkg local copy
     copyFile "scripts/genEssenceDate.sh" (bindir dirs </> "genEssenceDate.sh")
-
+    createDirectoryIfMissing True (datadir dirs)
+    copyDirectory "../scripts/toolchain" (datadir dirs </> "toolchain")
 
 myPreBuild _ _ = do
     putStrLn "Generating dist/build/autogen/Build_autoversion.hs ..."
@@ -59,3 +63,13 @@ myPreBuild _ _ = do
                            "dist/build/autogen/Build_autoversion.hs"
 
     return emptyHookedBuildInfo
+
+
+copyDirectory :: FilePath -> FilePath -> IO ()
+copyDirectory from to = do
+  createDirectoryIfMissing True to
+  fps <- (getDirectoryContents from)
+  forM_ (filter (`notElem` [".", "..", "__pycache__"])  fps) $ \f -> do
+    doesDirectoryExist f >>= \case
+      True  -> return ()
+      False -> copyFile (from </> f) (to </> f)

@@ -10,7 +10,7 @@ import Conjure.Language.Definition(Model)
 import Conjure.UI.IO(writeModel)
 
 
-import System.Environment(getEnv)
+import System.Environment(lookupEnv,  setEnv)
 import System.FilePath((<.>))
 import System.Process(rawSystem)
 
@@ -19,6 +19,8 @@ import Data.Map(Map)
 import Data.Data
 
 import qualified Data.Aeson as A
+
+import Paths_essence_gen(getDataDir)
 
 type Cores = Int
 type Seed  = Int
@@ -144,13 +146,13 @@ runToolChain1 seed newConjure refineAll cores spec dir timeou  = do
     let nc = if newConjure then ["--new_conjure"] else []
     let ra = if refineAll then ["--refine_all"] else []
 
-    pg <- getEnv "PARAM_GEN_SCRIPTS"
-    let toolchain= pg </> "toolchain" </> "toolchain_wrap.sh"
+    toolchainDir <- getToolchainDir
+    let script = toolchainDir </> "toolchain_wrap.sh"
         args = [spec, "--outdir", dir
                ,"--timeout", show timeou
                , "--num_cores", (show cores), "--seed", (show seed)] ++ nc ++ ra
-    putStrLn $ "cmd: " ++ toolchain ++ " " ++ foldl1 (\a b -> a ++ " " ++ b) args
-    _       <- rawSystem toolchain args
+    putStrLn $ "cmd: " ++ script ++ " " ++ foldl1 (\a b -> a ++ " " ++ b) args
+    _       <- rawSystem script args
     refineF <- readFromJSONMay $ dir </> "refine_essence.json"
     solveF  <- readFromJSONMay $ dir </> "solve_eprime.json"
 
@@ -164,18 +166,18 @@ runRefine1 :: Seed -> Bool -> Cores -> FilePath -> FilePath -> Int -> IO RefineR
 runRefine1 seed newConjure cores spec dir timeou = do
     let nc = if newConjure then ["--new_conjure"] else []
 
-    pg <- getEnv "PARAM_GEN_SCRIPTS"
-    let toolchain= pg </> "toolchain" </> "toolchain_wrap.sh"
+    toolchainDir <- getToolchainDir
+    let script = toolchainDir </> "toolchain_wrap.sh"
         args = [spec, "--refine_only", "--outdir", dir
                , "--timeout", show timeou
                , "--num_cores", (show cores), "--seed", (show seed)] ++ nc
-    putStrLn $ "cmd: " ++ toolchain ++ " " ++ foldl1 (\a b -> a ++ " " ++ b) args
-    _       <- rawSystem toolchain args
+    putStrLn $ "cmd: " ++ script ++ " " ++ foldl1 (\a b -> a ++ " " ++ b) args
+    _       <- rawSystem script args
     refineF <- readFromJSONMay $ dir </> "refine_essence.json"
 
     return $ case (refineF) of
         Just r  ->  r
-        Nothing -> error $ "script error" ++  "cmd: " ++ toolchain ++ " "
+        Nothing -> error $ "script error" ++  "cmd: " ++ script ++ " "
                    ++ foldl1 (\a b -> a ++ " " ++ b) args
 
 runRefine' :: Seed -> Cores -> Model -> FilePath -> Int -> Bool -> IO RefineR
@@ -217,3 +219,11 @@ statusesList :: [String]
 statusesList = do
   let names = dataTypeConstrs . dataTypeOf $ (error "StatusI" :: StatusI)
   map show names
+
+getToolchainDir :: IO FilePath
+getToolchainDir = lookupEnv "PARAM_GEN_SCRIPTS" >>= \case
+                  Nothing -> do
+                    fp <- getDataDir
+                    setEnv "PARAM_GEN_SCRIPTS" fp
+                    return $ fp </> "toolchain"
+                  Just fp -> return $ fp </> "toolchain"

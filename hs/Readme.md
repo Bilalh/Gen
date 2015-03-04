@@ -9,15 +9,10 @@ Firstly
 
 	git clone git@bitbucket.org:Bilalh/instancegen.git instancegen
 
-To build (places `testSample` in ~/.cabal/bin)
+To build (places `gen` in ~/.cabal/bin)
 
 	export CONJURE_LIB=<where the new-conjure repo is>
 	make
-
-
-Before running
-
-	export PARAM_GEN_SCRIPTS=<full path of instancegen/scripts>
 
 Usage from:
 
