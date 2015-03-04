@@ -1,5 +1,5 @@
 name:                essence-gen
-version:             2.1
+version:             3.2
 synopsis:            .
 description:         .
 License:             AllRightsReserved
@@ -48,12 +48,12 @@ Library
                      , Gen.Helpers.OrderedType
                      , Gen.Helpers.Placeholders
                      , Gen.Helpers.QuickCheck2
-                     , Gen.Helpers.Runner
                      , Gen.Helpers.SizeOf
                      , Gen.Helpers.StandardImports
                      , Gen.Helpers.Standardise
                      , Gen.Helpers.TypeOf
                      , Gen.IO.Formats
+                     , Gen.IO.Runner
                      , Gen.Prelude
                      , Gen.Reduce.Data
                      , Gen.Reduce.FormatResults

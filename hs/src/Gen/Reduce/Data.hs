@@ -5,7 +5,7 @@
 module Gen.Reduce.Data where
 
 import Gen.Prelude
-import Gen.Helpers.Runner(KindI, StatusI)
+import Gen.IO.Runner(KindI, StatusI)
 
 import System.Random
 import System.Random.TF

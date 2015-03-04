@@ -3,7 +3,7 @@ module Gen.Essence.Generate(generateEssence) where
 
 import Gen.Prelude
 import Gen.IO.Formats
-import Gen.Helpers.Runner
+import Gen.IO.Runner
 import Gen.Classify.Meta(mkMeta)
 
 import Conjure.Language.Definition

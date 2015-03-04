@@ -3,7 +3,7 @@
 module Gen.Reduce.Runner where
 
 import Gen.Classify.Meta(mkMeta)
-import Gen.Helpers.Runner
+import Gen.IO.Runner
 import Gen.Prelude
 import Gen.Reduce.Data
 import Gen.IO.Formats

@@ -4,7 +4,7 @@ import Conjure.Language.Definition
 import Gen.Prelude
 import Gen.IO.Formats
 -- import Gen.Arbitrary.Arbitrary
-import Gen.Helpers.Runner
+import Gen.IO.Runner
 
 -- import Gen.Classify.Meta(mkMeta)
 

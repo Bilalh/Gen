@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE QuasiQuotes, ViewPatterns #-}
 {-# LANGUAGE DeriveGeneric #-}
-module Gen.Helpers.Runner where
+module Gen.IO.Runner where
 
 import Gen.Prelude
 import Gen.IO.Formats

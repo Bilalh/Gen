@@ -11,7 +11,7 @@ import Gen.Reduce.UnusedDomains
 import Gen.Helpers.TypeOf
 
 import Gen.Prelude hiding (cores_)
-import Gen.Helpers.Runner(KindI(..), StatusI(..))
+import Gen.IO.Runner(KindI(..), StatusI(..))
 
 import qualified Gen.Arbitrary.Arbitrary as A
 import qualified Gen.Arbitrary.Domain as A

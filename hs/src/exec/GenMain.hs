@@ -10,7 +10,7 @@ import Gen.UI.UI
 import Gen.Classify.Sorter(sorterMain')
 import Gen.Classify.AddMeta(metaMain)
 import Gen.Classify.AddSpecE(specEMain)
-import Gen.Helpers.Runner(kindsList, statusesList)
+import Gen.IO.Runner(kindsList, statusesList)
 
 import Gen.Reduce.Data(RState(..),mkrGen)
 import qualified Gen.Reduce.Data as R
