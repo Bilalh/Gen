@@ -11,7 +11,7 @@ import Conjure.Language.Definition
 
 import Gen.Classify.Sorter(getRecursiveContents)
 import Gen.Prelude
-import Gen.Helpers.IO
+import Gen.IO.Formats
 
 
 import System.FilePath ( takeExtension)

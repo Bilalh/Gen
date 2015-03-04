@@ -2,7 +2,7 @@
 module Gen.Essence.Generate(generateEssence) where
 
 import Gen.Prelude
-import Gen.Helpers.IO
+import Gen.IO.Formats
 import Gen.Helpers.Runner
 import Gen.Classify.Meta(mkMeta)
 

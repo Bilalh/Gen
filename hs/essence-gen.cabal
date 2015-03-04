@@ -44,7 +44,6 @@ Library
                      , Gen.Essence.Generate
                      , Gen.Essence.Rnd
                      , Gen.Helpers.Debug
-                     , Gen.Helpers.IO
                      , Gen.Helpers.Log
                      , Gen.Helpers.OrderedType
                      , Gen.Helpers.Placeholders
@@ -54,6 +53,7 @@ Library
                      , Gen.Helpers.StandardImports
                      , Gen.Helpers.Standardise
                      , Gen.Helpers.TypeOf
+                     , Gen.IO.Formats
                      , Gen.Prelude
                      , Gen.Reduce.Data
                      , Gen.Reduce.FormatResults

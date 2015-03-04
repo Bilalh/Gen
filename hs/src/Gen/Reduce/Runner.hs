@@ -6,7 +6,7 @@ import Gen.Classify.Meta(mkMeta)
 import Gen.Helpers.Runner
 import Gen.Prelude
 import Gen.Reduce.Data
-import Gen.Helpers.IO
+import Gen.IO.Formats
 
 import qualified Data.Map as M
 

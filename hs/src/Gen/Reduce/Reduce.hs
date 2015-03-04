@@ -5,7 +5,7 @@ module Gen.Reduce.Reduce where
 
 import Gen.Reduce.Data
 import Gen.Reduce.Runner
-import Gen.Helpers.IO
+import Gen.IO.Formats
 import Gen.Reduce.Reduction
 import Gen.Reduce.UnusedDomains
 import Gen.Prelude

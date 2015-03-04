@@ -1,4 +1,4 @@
-module Gen.Helpers.IO where
+module Gen.IO.Formats where
 
 import Gen.Prelude
 import Data.Time(formatTime,getCurrentTime)

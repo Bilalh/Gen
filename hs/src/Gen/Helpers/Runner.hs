@@ -4,7 +4,7 @@
 module Gen.Helpers.Runner where
 
 import Gen.Prelude
-import Gen.Helpers.IO
+import Gen.IO.Formats
 
 import Conjure.Language.Definition(Model)
 import Conjure.UI.IO(writeModel)

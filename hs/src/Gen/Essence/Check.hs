@@ -2,7 +2,7 @@ module Gen.Essence.Check where
 
 import Conjure.Language.Definition
 import Gen.Prelude
-import Gen.Helpers.IO
+import Gen.IO.Formats
 -- import Gen.Arbitrary.Arbitrary
 import Gen.Helpers.Runner
 

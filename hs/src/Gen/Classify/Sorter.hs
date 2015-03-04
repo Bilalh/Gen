@@ -5,7 +5,7 @@
 module Gen.Classify.Sorter where
 
 import Gen.Classify.Meta
-import Gen.Helpers.IO
+import Gen.IO.Formats
 import Gen.Prelude
 
 import Conjure.Language.Type
