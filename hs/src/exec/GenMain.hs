@@ -34,7 +34,8 @@ main = do
   getArgs >>= \case
     [] -> do
        void $ withArgs ["--help"] (cmdArgs ui)
-    [x] | x `elem` ["essence", "reduce", "link", "meta","json"] ->
+    [x] | x `elem` [ "essence", "reduce", "link", "meta", "json"
+                   , "script-toolchain"] ->
        void $ withArgs [x, "--help"] (cmdArgs ui)
 
     ["reduce", "--list-kinds"] -> do

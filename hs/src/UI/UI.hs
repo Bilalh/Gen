@@ -10,14 +10,6 @@ import System.Console.CmdArgs hiding ( Default(..) )
 
 import Build_autoversion(autoVersion)
 
-data ModeChoice =
-          TypeCheck
-        | Refine
-        | Solve
-  deriving (Show, Data, Typeable,Eq)
-
-instance Default ModeChoice where
-    def = Solve
 
 data UI
   = Essence
@@ -78,7 +70,42 @@ data UI
       , print_specs :: Bool
       , limit_time  :: Maybe Int
       }
+  | Script_Toolchain
+    {
+      essence_path       :: FilePath
+    , output_directory   :: FilePath
+    , total_time         :: Int
+
+    , essence_param      :: Maybe FilePath
+    , refine_type        :: RefineType
+
+    , _cores             :: Int
+    , _seed              :: Maybe Int
+
+    , binaries_directory :: Maybe FilePath
+    , old_conjure        :: Bool
+    , limit_time         :: Maybe Int
+    }
   deriving (Show, Data, Typeable)
+
+data ModeChoice =
+          TypeCheck
+        | Refine
+        | Solve
+  deriving (Show, Data, Typeable,Eq)
+
+instance Default ModeChoice where
+    def = Solve
+
+data RefineType =
+                  Refine_Only
+                | Refine_All
+                | Refine_Solve
+                | Refine_Solve_All
+  deriving (Show, Data, Typeable,Eq)
+
+instance Default RefineType where
+    def = Refine_Solve
 
 ui :: UI
 ui  = modes
@@ -198,53 +225,120 @@ ui  = modes
        &= help "Reduces a .spec.json file"
 
   , Link
-    {
-      directories = def &= typDir
-                        &= name "directory"
-                        &= name "d"
-                        &= explicit
-                        &= help "Directories containing spec.meta.json files "
-    , limit_time  = def &= name "limit-time"
-                        &= explicit
-                        &= help "Time limit in seconds of CPU time of this program"
+     {
+       directories = def &= typDir
+                         &= name "directory"
+                         &= name "d"
+                         &= explicit
+                         &= help "Directories containing spec.meta.json files "
+     , limit_time  = def &= name "limit-time"
+                         &= explicit
+                         &= help "Time limit in seconds of CPU time of this program"
 
-    } &= explicit
-      &= name "link"
-      &= help "Classify the specs by creating symlinks (using .meta.json files)"
+     } &= explicit
+       &= name "link"
+       &= help "Classify the specs by creating symlinks (using .meta.json files)"
 
   , Meta
-    {
-      directories = def &= typDir
-                        &= name "directory"
-                        &= name "d"
-                        &= explicit
-                        &= help "Directories containing spec.specE files "
-    , limit_time  = def &= name "limit-time"
-                        &= explicit
-                        &= help "Time limit in seconds of CPU time of this program"
+     {
+       directories = def &= typDir
+                         &= name "directory"
+                         &= name "d"
+                         &= explicit
+                         &= help "Directories containing spec.specE files "
+     , limit_time  = def &= name "limit-time"
+                         &= explicit
+                         &= help "Time limit in seconds of CPU time of this program"
 
-    } &= explicit
-      &= name "meta"
-      &= help "Create .meta.json files for each .specE file recursively"
+     } &= explicit
+       &= name "meta"
+       &= help "Create .meta.json files for each .specE file recursively"
 
   , SpecEE
-    {
-      directories = def   &= typDir
-                          &= name "directory"
-                          &= name "d"
-                          &= explicit
-                          &= help "Directories containing spec.essence files "
-    , limit_time  = def   &= name "limit-time"
-                          &= explicit
-                          &= help "Time limit in seconds of CPU time of this program"
-    , print_specs = False &= name "print-specs"
-                          &= name "v"
-                          &= explicit
-                          &= help "Print the the spec before and after conversion"
+     {
+       directories = def   &= typDir
+                           &= name "directory"
+                           &= name "d"
+                           &= explicit
+                           &= help "Directories containing spec.essence files "
+     , limit_time  = def   &= name "limit-time"
+                           &= explicit
+                           &= help "Time limit in seconds of CPU time of this program"
+     , print_specs = False &= name "print-specs"
+                           &= name "v"
+                           &= explicit
+                           &= help "Print the the spec before and after conversion"
 
-    } &= explicit
-      &= name "json"
-      &= help "Create .spec.json files for each .essence file recursively"
+     } &= explicit
+       &= name "json"
+       &= help "Create .spec.json files for each .essence file recursively"
+
+  , Script_Toolchain
+     { essence_path       = def     &= typ "essence"
+                                    &= argPos 0
+     , output_directory   = def     &= typDir
+                                    &= name "output-directory"
+                                    &= name "o"
+                                    &= groupname "Required"
+                                    &= explicit
+                                    &= help "Output directory "
+     , total_time         = def     &= name "total-time"
+                                    &= name "t"
+                                    &= groupname "Required"
+                                    &= explicit
+                                    &= help "Total time for running the toolchain"
+     , _cores             = def     &= name "cores"
+                                    &= name "c"
+                                    &= groupname "Required"
+                                    &= explicit
+                                    &= help "Number of cores to Use"
+
+     , essence_param      = def     &= typ "PARAM"
+                                    &= name "essence-param"
+                                    &= groupname "Control"
+                                    &= explicit
+                                    &= help "Essence param to use"
+     , refine_type        = enum
+                            [
+                              Refine_Only      &= name "refine-only"
+                                               &= explicit
+                                               &= groupname "Control"
+                                               &= help "Only refine the spec"
+                            , Refine_All       &= name "refine-all"
+                                               &= explicit
+                                               &= groupname "Control"
+                                               &= help "Only generate all model of the spec"
+                            , Refine_Solve     &= name "refine-solve"
+                                               &= explicit
+                                               &= groupname "Control"
+                                               &= help "Refine, solve and validate the spec (default)"
+                            , Refine_Solve_All &= name "refine-solve-all"
+                                               &= explicit
+                                               &= groupname "Control"
+                                               &= help "Refine, solve and validate the spec while genrating all models"
+                            ]
+
+     , _seed              = def     &= name "seed"
+                                    &= groupname "Other"
+                                    &= explicit
+                                    &= help "Random Seed to use"
+     , binaries_directory = Nothing &= name "bin-dir"
+                                    &= groupname "Other"
+                                    &= explicit
+                                    &= help "Directory to prepend the $PATH before running progams."
+     , old_conjure        = False   &= name "old-conjure"
+                                    &= groupname "Other"
+                                    &= explicit
+                                    &= help "Use old conjure"
+     , limit_time         = Nothing &= name "limit-time"
+                                    &= groupname "Other"
+                                    &= explicit
+                                    &= help "Time limit in seconds of CPU time of this program"
+
+     } &= explicit
+       &= name "script-toolchain"
+       &= help "Run the toolchain on an essence spec"
+
 
   ] &= program "gen"
     &= summary (unlines ["Gen v2.1",  "Git version: " ++ autoVersion])
