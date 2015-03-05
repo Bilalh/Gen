@@ -5,23 +5,23 @@ module Gen.IO.Toolchain (
   , statusesList
   , getToolchainDir
   , writeModelDef
-  , foo
   )where
 
+import Conjure.Language.Definition (Model)
+import Conjure.UI.IO               (writeModel)
 import Data.Data
-import Data.List (foldl1)
+import Data.List                   (foldl1)
 import Gen.IO.Formats
-import Gen.IO.ToolchainData as X
+import Gen.IO.ToolchainData        as X
 import Gen.Prelude
-import Paths_essence_gen (getDataDir)
-import System.Environment (lookupEnv, setEnv)
-import System.Process (rawSystem)
-import Conjure.Language.Definition(Model)
-import Conjure.UI.IO(writeModel)
-import System.FilePath((<.>))
-import System.Process(createProcess, waitForProcess, proc
-                     , StdStream(..), std_out, std_err)
-import System.IO(withFile,IOMode(..))
+import Paths_essence_gen           (getDataDir)
+import System.Environment          (lookupEnv, setEnv)
+import System.Exit                 (ExitCode)
+import System.FilePath             ((<.>))
+import System.IO                   (IOMode (..), withFile)
+import System.Process              (rawSystem)
+import System.Process              (StdStream (..), createProcess, proc, std_err, std_out,
+                                    waitForProcess)
 
 
 writeModelDef :: MonadIO m => FilePath -> Model -> m FilePath
@@ -117,11 +117,11 @@ getToolchainDir binDir = lookupEnv "PARAM_GEN_SCRIPTS" >>= \case
                               , "set PARAM_GEN_SCRIPTS to instancegen/scripts"]
 
 
-foo cmd fout ferr =
-    withFile fout  WriteMode  $ \hout  ->
-    withFile ferr WriteMode $ \herr -> do
-        (_, _, _, ph) <- createProcess (proc cmd [])
+runCommand :: MonadIO m => FilePath -> [String] -> String -> m ExitCode
+runCommand cmd args fout  =
+    liftIO $ withFile fout  WriteMode  $ \hout  -> do
+        (_, _, _, ph) <- createProcess (proc cmd args)
             { std_out  = UseHandle hout
-            , std_err = UseHandle herr
+            , std_err  = UseHandle hout
             }
         waitForProcess ph
