@@ -1,4 +1,4 @@
-{-# LANGUAGE QuasiQuotes, ViewPatterns #-}
+
 {-# LANGUAGE RecordWildCards, NamedFieldPuns #-}
 {-# LANGUAGE FlexibleContexts #-}
 module EssenceSolver.Checker where

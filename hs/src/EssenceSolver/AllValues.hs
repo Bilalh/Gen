@@ -1,4 +1,4 @@
-{-# LANGUAGE QuasiQuotes, ViewPatterns #-}
+
 {-# LANGUAGE RecordWildCards, NamedFieldPuns #-}
 module EssenceSolver.AllValues(allValues) where
 

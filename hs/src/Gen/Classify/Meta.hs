@@ -1,4 +1,4 @@
-{-# LANGUAGE QuasiQuotes, ViewPatterns #-}
+
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE DeriveGeneric, DeriveDataTypeable #-}
 {-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}

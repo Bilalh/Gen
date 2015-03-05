@@ -1,4 +1,4 @@
-{-# LANGUAGE QuasiQuotes, ViewPatterns #-}
+
 {-# LANGUAGE RecordWildCards, NamedFieldPuns #-}
 {-# LANGUAGE CPP #-}
 module EssenceSolver.Data where

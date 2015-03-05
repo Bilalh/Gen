@@ -6,12 +6,14 @@ clean:
 
 ghci:
 	@cabal exec ghci -- -isrc -isrc/test -idist/build/autogen  \
-		-XNoImplicitPrelude                        \
-		-XOverloadedStrings                        \
-		-XScopedTypeVariables                      \
-		-XTemplateHaskell                          \
-		-XQuasiQuotes                              \
-		-XLambdaCase                               \
+            -XNoImplicitPrelude                        \
+	    -XOverloadedStrings                        \
+	    -XScopedTypeVariables                      \
+	    -XTemplateHaskell                          \
+	    -XQuasiQuotes                              \
+	    -XLambdaCase                               \
+	    -XRecordWildCards                          \
+	    -XNamedFieldPuns                           \
 	    -fwarn-incomplete-patterns                 \
 	    -fwarn-incomplete-uni-patterns             \
 	    -fwarn-missing-signatures                  \
@@ -22,16 +24,18 @@ ghci:
 	    -fwarn-unused-do-bind                      \
 	    -fwarn-unused-matches                      \
 	    -Wall                                      \
-	    `find src -name '*.hs' | grep -v QC | grep -v 'exec' | grep -v 'EssenceSolver'  | grep -v '\.#' `
+	    `find src -name '*.hs' | grep -v 'exec' | grep -v 'EssenceSolver'  | grep -v '\.#' `
 
 ghci_main:
 	@cabal exec ghci -- -isrc -isrc/test -idist/build/autogen  \
-		-XNoImplicitPrelude                        \
-		-XOverloadedStrings                        \
-		-XScopedTypeVariables                      \
-		-XTemplateHaskell                          \
-		-XQuasiQuotes                              \
-		-XLambdaCase                               \
+            -XNoImplicitPrelude                        \
+	    -XOverloadedStrings                        \
+	    -XScopedTypeVariables                      \
+	    -XTemplateHaskell                          \
+	    -XQuasiQuotes                              \
+	    -XLambdaCase                               \
+	    -XRecordWildCards                          \
+	    -XNamedFieldPuns                           \
 	    -fwarn-incomplete-patterns                 \
 	    -fwarn-incomplete-uni-patterns             \
 	    -fwarn-missing-signatures                  \
@@ -43,4 +47,3 @@ ghci_main:
 	    -fwarn-unused-matches                      \
 	    -Wall                                      \
 		src/exec/GenMain.hs
-

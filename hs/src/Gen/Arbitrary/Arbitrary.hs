@@ -1,5 +1,3 @@
-{-# LANGUAGE QuasiQuotes, ViewPatterns #-}
-
 {-# LANGUAGE FlexibleInstances #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 

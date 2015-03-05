@@ -1,5 +1,4 @@
 {-# LANGUAGE QuasiQuotes, ViewPatterns #-}
-
 {-# LANGUAGE DeriveDataTypeable #-}
 
 module Gen.Classify.AddSpecE where

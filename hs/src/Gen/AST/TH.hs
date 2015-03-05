@@ -1,4 +1,4 @@
-{-# LANGUAGE QuasiQuotes, ViewPatterns #-}
+
 -- really only for usage in ghci
 module Gen.AST.TH(domain, domainn,essencee) where
 
