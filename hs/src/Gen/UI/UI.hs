@@ -142,10 +142,12 @@ ui  = modes
 
      , binaries_directory = Nothing &= name "bin-dir"
                                     &= groupname "Other"
+                                    &= typDir
                                     &= explicit
                                     &= help "Directory to prepend to the $PATH before running progams."
      , old_conjure        = False   &= name "old-conjure"
                                     &= groupname "Other"
+                                    &= typDir
                                     &= explicit
                                     &= help "Use old conjure"
      , limit_time         = Nothing &= name "limit-time"
@@ -198,6 +200,7 @@ ui  = modes
                                      &= help "Random Seed to use"
      , binaries_directory = Nothing  &= name "bin-dir"
                                      &= groupname "Other"
+                                     &= typDir
                                      &= explicit
                                      &= help "Directory to prepend the $PATH before running progams."
      , limit_time       = Nothing    &= name "limit-time"
@@ -278,7 +281,7 @@ ui  = modes
                                     &= explicit
                                     &= help "Number of cores to Use"
 
-     , essence_param      = def     &= typ "PARAM"
+     , essence_param      = def     &= typFile
                                     &= name "essence-param"
                                     &= groupname "Control"
                                     &= explicit
@@ -309,6 +312,7 @@ ui  = modes
                                     &= help "Random Seed to use"
      , binaries_directory = Nothing &= name "bin-dir"
                                     &= groupname "Other"
+                                    &= typDir
                                     &= explicit
                                     &= help "Directory to prepend the $PATH before running progams."
      , old_conjure        = False   &= name "old-conjure"

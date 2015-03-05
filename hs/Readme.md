@@ -18,3 +18,7 @@ Usage from:
 
 	gen
   
+  
+Bash completion 
+
+	  source scripts/_gen.sh
