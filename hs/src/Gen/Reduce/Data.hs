@@ -5,7 +5,7 @@
 module Gen.Reduce.Data where
 
 import Gen.Prelude
-import Gen.IO.Runner(KindI, StatusI)
+import Gen.IO.Toolchain(KindI, StatusI)
 
 import System.Random
 import System.Random.TF
@@ -31,8 +31,6 @@ data RState = RState
     , specDir_          :: FilePath
 
     , cores_            :: Int
-    , newConjure_       :: Bool
-
     , rgen_             :: TFGen
     , specTime_         :: Int
 
@@ -62,7 +60,6 @@ instance Pretty RState where
                 , nn "specDir_" specDir_
 
                 , nn "cores_" cores_
-                , nn "newConjure_" newConjure_
                 , nn "specTime_" specTime_
 
                 , nn "mostReduced_ =" mostReduced_
@@ -77,7 +74,6 @@ instance Default RState where
                  ,oErrStatus_    = error "need oErrStatus_"
                  ,oErrEprime_    = error "need oErrEprime"
                  ,cores_         = error "need cores"
-                 ,newConjure_    = error "need newConjure_"
                  ,outputDir_     = error "need outputDir_"
                  ,rgen_          = error "need rgen_"
                  ,specDir_       = error "need specDir_"

@@ -40,7 +40,6 @@ Library
                      , Gen.Classify.DomTypes
                      , Gen.Classify.Meta
                      , Gen.Classify.Sorter
-                     , Gen.Essence.Check
                      , Gen.Essence.Generate
                      , Gen.Essence.Rnd
                      , Gen.Helpers.Debug
@@ -53,17 +52,18 @@ Library
                      , Gen.Helpers.Standardise
                      , Gen.Helpers.TypeOf
                      , Gen.IO.Formats
-                     , Gen.IO.Runner
+                     , Gen.IO.Toolchain
+                     , Gen.IO.ToolchainData
                      , Gen.Prelude
                      , Gen.Reduce.Data
                      , Gen.Reduce.FormatResults
                      , Gen.Reduce.Reduce
-                     , Gen.Reduce.Reduce_Debug
                      , Gen.Reduce.Reduction
                      , Gen.Reduce.Runner
                      , Gen.Reduce.Simpler
                      , Gen.Reduce.UnusedDomains
                      , Gen.UI.UI
+                     
 
     build-depends    : base
                      , aeson

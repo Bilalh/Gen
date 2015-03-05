@@ -10,7 +10,7 @@ import Gen.UI.UI
 import Gen.Classify.Sorter(sorterMain')
 import Gen.Classify.AddMeta(metaMain)
 import Gen.Classify.AddSpecE(specEMain)
-import Gen.IO.Runner(kindsList, statusesList)
+import Gen.IO.Toolchain(kindsList, statusesList)
 
 import Gen.Reduce.Data(RState(..),mkrGen)
 import qualified Gen.Reduce.Data as R
@@ -142,7 +142,6 @@ mainWithArgs Reduce{..} = do
                 ,outputDir_  = output_directory
                 ,specDir_    = spec_directory
                 ,R.cores_    = _cores
-                ,newConjure_ = not old_conjure
                 ,rgen_       = mkrGen (seed_)
                 ,specTime_   = per_spec_time
                 }

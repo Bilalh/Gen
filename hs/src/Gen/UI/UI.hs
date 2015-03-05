@@ -1,14 +1,12 @@
 {-# LANGUAGE DeriveDataTypeable #-}
-{-# OPTIONS_GHC -fno-cse #-} -- stupid cmdargs
+{-# OPTIONS_GHC -fno-cse #-} -- stup id cmdargs
 module Gen.UI.UI where
 
+import Build_autoversion      (autoVersion)
+import Gen.IO.Toolchain       (KindI (..), RefineType (..), StatusI (..))
 import Gen.Prelude
+import System.Console.CmdArgs hiding (Default (..))
 
-import Gen.IO.Runner(KindI(..), StatusI(..))
-
-import System.Console.CmdArgs hiding ( Default(..) )
-
-import Build_autoversion(autoVersion)
 
 
 data UI
@@ -42,8 +40,8 @@ data UI
       , error_kind     :: KindI
       , error_status   :: StatusI
 
-      , list_kinds    :: Bool
-      , list_statuses :: Bool
+      , list_kinds     :: Bool
+      , list_statuses  :: Bool
 
       , output_directory   :: FilePath
       , per_spec_time      :: Int
@@ -51,7 +49,6 @@ data UI
       , _seed              :: Maybe Int
 
       , binaries_directory :: Maybe FilePath
-      , old_conjure        :: Bool
       , limit_time         :: Maybe Int
       }
 
@@ -97,15 +94,7 @@ data ModeChoice =
 instance Default ModeChoice where
     def = Solve
 
-data RefineType =
-                  Refine_Only
-                | Refine_All
-                | Refine_Solve
-                | Refine_Solve_All
-  deriving (Show, Data, Typeable,Eq)
 
-instance Default RefineType where
-    def = Refine_Solve
 
 ui :: UI
 ui  = modes
@@ -211,10 +200,6 @@ ui  = modes
                                      &= groupname "Other"
                                      &= explicit
                                      &= help "Directory to prepend the $PATH before running progams."
-     , old_conjure      = False      &= name "old-conjure"
-                                     &= groupname "Other"
-                                     &= explicit
-                                     &= help "Use old conjure"
      , limit_time       = Nothing    &= name "limit-time"
                                      &= groupname "Other"
                                      &= explicit

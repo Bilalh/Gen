@@ -1,25 +1,20 @@
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
 module Gen.Essence.Generate(generateEssence) where
 
-import Gen.Prelude
-import Gen.IO.Formats
-import Gen.IO.Runner
-import Gen.Classify.Meta(mkMeta)
-
-import Conjure.Language.Definition
-import Conjure.UI.TypeCheck ( typeCheckModel )
-import Conjure.UI.IO(writeModel)
-
-
-import System.Directory( renameDirectory, copyFile)
-
-import qualified Data.Map as M
-import qualified Data.Set as S
-
-import GHC.Real(floor)
-import Data.Time.Clock.POSIX(getPOSIXTime)
-
-import qualified Gen.Arbitrary.Arbitrary as Gen
+import           Conjure.Language.Definition
+import           Conjure.UI.IO               (writeModel)
+import           Conjure.UI.TypeCheck        (typeCheckModel)
+import qualified Data.Map                    as M
+import qualified Data.Set                    as S
+import           Data.Time.Clock.POSIX       (getPOSIXTime)
+import qualified Gen.Arbitrary.Arbitrary     as Gen
+import           Gen.Classify.Meta           (mkMeta)
+import           Gen.IO.Formats
+import           Gen.IO.Toolchain            hiding (ToolchainData (..))
+import qualified Gen.IO.Toolchain            as Toolchain
+import           Gen.Prelude
+import           GHC.Real                    (floor)
+import           System.Directory            (copyFile, renameDirectory)
 
 
 generateEssence :: EssenceConfig -> IO ()
@@ -63,9 +58,19 @@ doRefine EssenceConfig{..} = do
           writeToJSON  (dir </> "spec.meta.json" ) (meta)
 
           runSeed <- (randomRIO (1,2147483647) :: IO Int)
+          essencePath <- writeModelDef dir model
           startTime <- round `fmap` getPOSIXTime
-          result <- runRefine' runSeed cores_ model (out </> uname ) perSpecTime_
-                    (not oldConjure_)
+          RefineResult result <- toolchain Toolchain.ToolchainData{
+                      Toolchain.essencePath = essencePath
+                    , Toolchain.outputDirectory = dir
+                    , Toolchain.totalTime = timeLeft
+                    , Toolchain.essenceParam = Nothing
+                    , Toolchain.refineType   = Refine_Only
+                    , Toolchain.cores = cores_
+                    , Toolchain.seed = Just runSeed
+                    , Toolchain.binariesDirectory = binariesDirectory_
+                    , Toolchain.oldConjure = oldConjure_
+                    }
           endTime <- round `fmap` getPOSIXTime
           let realTime = endTime - startTime
 
@@ -105,9 +110,20 @@ doSolve EssenceConfig{..} = do
           writeToJSON  (dir </> "spec.meta.json" ) (meta)
 
           runSeed <- (randomRIO (1,2147483647) :: IO Int)
+          essencePath <- writeModelDef dir model
           startTime <- round `fmap` getPOSIXTime
-          result <- runToolchain' runSeed cores_ model (out </> uname ) perSpecTime_
-                    (not oldConjure_) False
+          result <- toolchain Toolchain.ToolchainData{
+                      Toolchain.essencePath = essencePath
+                    , Toolchain.outputDirectory = dir
+                    , Toolchain.totalTime = timeLeft
+                    , Toolchain.essenceParam = Nothing
+                    , Toolchain.refineType   = Refine_Solve
+                    , Toolchain.cores = cores_
+                    , Toolchain.seed = Just runSeed
+                    , Toolchain.binariesDirectory = binariesDirectory_
+                    , Toolchain.oldConjure = oldConjure_
+                    }
+
           endTime <- round `fmap` getPOSIXTime
           let realTime = endTime - startTime
 
@@ -117,9 +133,9 @@ doSolve EssenceConfig{..} = do
             True  -> process (timeLeft - realTime)
 
 
-    classifyError uname (Left a) = classifySettingI errdir out uname a
+    classifyError uname (RefineResult a) = classifySettingI errdir out uname a
 
-    classifyError uname (Right (_,
+    classifyError uname (SolveResult (_,
           ee@SettingI{successful_=False,data_=SolveM ms,time_taken_})) = do
 
         let inErrDir = errdir </> "zPerSpec" </> uname
@@ -167,7 +183,7 @@ doSolve EssenceConfig{..} = do
         void $ M.traverseWithKey f ms
         return time_taken_
 
-    classifyError _ (Right (_, SettingI{time_taken_ })) = return time_taken_
+    classifyError _ (SolveResult (_, SettingI{time_taken_ })) = return time_taken_
 
 
 

@@ -29,9 +29,9 @@ readFromJSON fp = do
     Nothing -> fail $ "Error decoding " <+> pretty fp
 
 
-readFromJSONMay :: FromJSON a => FilePath -> IO (Maybe a)
+readFromJSONMay :: (MonadIO m, FromJSON a)  => FilePath -> m (Maybe a)
 readFromJSONMay fp = do
-  doesFileExist fp >>= \case
+  liftIO $ doesFileExist fp >>= \case
     False -> return Nothing
     True  -> readFromJSON fp
 

@@ -2,14 +2,13 @@
 
 module Gen.Reduce.Runner where
 
-import Gen.Classify.Meta(mkMeta)
-import Gen.IO.Runner
-import Gen.Prelude
-import Gen.Reduce.Data
-import Gen.IO.Formats
-
-import qualified Data.Map as M
-
+import qualified Data.Map          as M
+import           Gen.Classify.Meta (mkMeta)
+import           Gen.IO.Formats
+import           Gen.IO.Toolchain  hiding (ToolchainData (..))
+import qualified Gen.IO.Toolchain  as Toolchain
+import           Gen.Prelude
+import           Gen.Reduce.Data
 
 -- Just means rrError still happens
 runSpec :: Spec -> RR (Maybe RunResult)
@@ -34,10 +33,20 @@ runSpec spE = do
         liftIO $  writeToJSON  (path </> "spec.meta.json" ) (meta)
 
         seed <- chooseR (0, 2^(24 :: Int))
-        -- TODO follow logs
         perSpec <- gets specTime_
-        res <- liftIO $  runToolchain' seed 4 sp path perSpec True True
-
+        essencePath <- writeModelDef path sp
+        cores <- gets Gen.Reduce.Data.cores_
+        res  <- toolchain Toolchain.ToolchainData{
+                      Toolchain.essencePath       = essencePath
+                    , Toolchain.outputDirectory   = path
+                    , Toolchain.totalTime         = perSpec
+                    , Toolchain.essenceParam      = Nothing
+                    , Toolchain.refineType        = Refine_Solve_All
+                    , Toolchain.cores             = cores
+                    , Toolchain.seed              = Just seed
+                    , Toolchain.binariesDirectory = Nothing
+                    , Toolchain.oldConjure        = False
+                    }
 
         rrErrorKind   <- gets oErrKind_
         rrErrorStatus <- gets oErrStatus_
@@ -48,8 +57,8 @@ runSpec spE = do
                                  ,nn "res" (pretty . groom $ res)]
 
         let
-            sameError :: Either RefineR (RefineR,SolveR) -> (Bool,Maybe RunResult)
-            sameError (Left SettingI{successful_=False, data_=RefineM ms})
+            sameError :: ToolchainResult -> (Bool,Maybe RunResult)
+            sameError (RefineResult SettingI{successful_=False, data_=RefineM ms})
                 | modelRefineError rrErrorKind =
 
                 let sks = M.toList $  M.map ( status_ &&& kind_) ms
@@ -80,7 +89,7 @@ runSpec spE = do
                         Nothing
 
 
-            sameError (Right (_, SettingI{successful_=False,data_=SolveM ms })) =
+            sameError (SolveResult (_, SettingI{successful_=False,data_=SolveM ms })) =
                 let
                     f ResultI{erroed= Just index, results } =
                         let ix = results `at` index
