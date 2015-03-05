@@ -1,42 +1,39 @@
-{-# LANGUAGE RecordWildCards,LambdaCase #-}
+{-# LANGUAGE LambdaCase, RecordWildCards #-}
 {-# OPTIONS_GHC -fno-cse #-} -- stupid cmdargs?
 
 module Main where
 
-import Gen.Helpers.StandardImports
-import Gen.Arbitrary.Data
-import Gen.UI.UI
-
-import Gen.Classify.Sorter(sorterMain')
-import Gen.Classify.AddMeta(metaMain)
-import Gen.Classify.AddSpecE(specEMain)
-import Gen.IO.Toolchain(kindsList, statusesList)
-
-import Gen.Reduce.Data(RState(..),mkrGen)
-import qualified Gen.Reduce.Data as R
-
-import Gen.Reduce.Reduce(reduceMain)
-import Gen.Reduce.FormatResults(formatResults)
-
-import Gen.Essence.Generate(generateEssence)
-
-import System.Console.CmdArgs ( cmdArgs )
-import System.CPUTime ( getCPUTime )
-import System.Timeout ( timeout )
-import Text.Printf ( printf )
-
-import System.Environment(withArgs)
-import System.Exit(exitSuccess,exitFailure)
-
+import           Gen.Arbitrary.Data
+import           Gen.Classify.AddMeta        (metaMain)
+import           Gen.Classify.AddSpecE       (specEMain)
+import           Gen.Classify.Sorter         (sorterMain')
+import           Gen.Essence.Generate        (generateEssence)
+import           Gen.Helpers.StandardImports
+import           Gen.IO.CmdArgsHelpers
+import           Gen.IO.Toolchain            (kindsList, statusesList)
+import qualified Gen.IO.Toolchain            as Toolchain
+import           Gen.Reduce.Data             (RState (..), mkrGen)
+import qualified Gen.Reduce.Data             as R
+import           Gen.Reduce.FormatResults    (formatResults)
+import           Gen.Reduce.Reduce           (reduceMain)
+import           Gen.UI.UI
+import           System.Console.CmdArgs      (cmdArgs)
+import           System.CPUTime              (getCPUTime)
+import           System.Environment          (withArgs)
+import           System.Exit                 (exitFailure, exitSuccess)
+import           System.Timeout              (timeout)
+import           Text.Printf                 (printf)
 
 main :: IO ()
 main = do
   getArgs >>= \case
     [] -> do
-       void $ withArgs ["--help"] (cmdArgs ui)
+       args <- helpArg
+       void $ withArgs [args] (cmdArgs ui)
     [x] | x `elem` [ "essence", "reduce", "link", "meta", "json"
-                   , "script-toolchain"] ->
-       void $ withArgs [x, "--help"] (cmdArgs ui)
+                   , "script-toolchain"] -> do
+       args <- helpArg
+       void $ withArgs [x, args] (cmdArgs ui)
 
     ["reduce", "--list-kinds"] -> do
         mapM_ (putStrLn) kindsList
@@ -45,8 +42,9 @@ main = do
         mapM_ (putStrLn) statusesList
         exitSuccess
 
-    _ -> do
-      input <- cmdArgs ui
+    xs -> do
+      newArgs <- replaceOldHelpArg xs
+      input <- withArgs newArgs (cmdArgs ui)
 
       let workload = do
             putStrLn . show . vcat $ ["Command line options: ", pretty (groom input)]
@@ -158,6 +156,20 @@ mainWithArgs Meta{..} = do
 
 mainWithArgs SpecEE{..} = do
   specEMain print_specs directories
+
+mainWithArgs Script_Toolchain{..} = do
+  void $ Toolchain.toolchain Toolchain.ToolchainData
+           {
+             Toolchain.essencePath = essence_path
+           , Toolchain.outputDirectory = output_directory
+           , Toolchain.totalTime = total_time
+           , Toolchain.essenceParam = essence_param
+           , Toolchain.refineType   = refine_type
+           , Toolchain.cores = _cores
+           , Toolchain.seed = _seed
+           , Toolchain.binariesDirectory = binaries_directory
+           , Toolchain.oldConjure = old_conjure
+           }
 
 aerr :: String -> Bool -> Maybe String
 aerr n b | b = Just $ "Required: " ++ n
