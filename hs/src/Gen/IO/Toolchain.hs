@@ -32,7 +32,7 @@ writeModelDef dir spec = do
 
 toolchain :: MonadIO m => ToolchainData -> m ToolchainResult
 toolchain ToolchainData{..} = do
-  toolchainDir <- liftIO getToolchainDir
+  toolchainDir <- liftIO $ getToolchainDir binariesDirectory
 
   let script = toolchainDir </> "toolchain_wrap.sh"
   let args = [ essencePath
@@ -72,13 +72,6 @@ oldConjureArgs :: Bool -> [String]
 oldConjureArgs True  = []
 oldConjureArgs False = ["--new_conjure"]
 
-getToolchainDir :: IO FilePath
-getToolchainDir = lookupEnv "PARAM_GEN_SCRIPTS" >>= \case
-                  Nothing -> do
-                    fp <- getDataDir
-                    setEnv "PARAM_GEN_SCRIPTS" fp
-                    return $ fp </> "toolchain"
-                  Just fp -> return $ fp </> "toolchain"
 
 kindsList :: [String]
 kindsList = do
@@ -89,3 +82,27 @@ statusesList :: [String]
 statusesList = do
   let names = dataTypeConstrs . dataTypeOf $ (error "StatusI" :: StatusI)
   map show names
+
+
+getToolchainDir :: Maybe FilePath -> IO FilePath
+getToolchainDir binDir = lookupEnv "PARAM_GEN_SCRIPTS" >>= \case
+                  Nothing -> do
+                    case binDir of
+                      Nothing -> useDataDir
+                      Just bp -> doesDirectoryExist (bp </> "toolchain") >>= \case
+                                    True  -> do
+                                      setEnv "PARAM_GEN_SCRIPTS" bp
+                                      return (bp </> "toolchain")
+                                    False -> useDataDir
+                  Just fp -> return $ fp </> "toolchain"
+
+  where
+  useDataDir = do
+    fp <- getDataDir
+    doesDirectoryExist (fp </> "toolchain") >>= \case
+      True -> do
+        setEnv "PARAM_GEN_SCRIPTS" fp
+        return $ fp </> "toolchain"
+      False -> do
+        error . show . vcat $ [" Can't find toolchain directory in data dir"
+                              , "set PARAM_GEN_SCRIPTS to instancegen/scripts"]
