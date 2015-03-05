@@ -10,7 +10,6 @@ module Gen.IO.Toolchain (
 import Conjure.Language.Definition (Model)
 import Conjure.UI.IO               (writeModel)
 import Data.Data
-import Data.List                   (foldl1)
 import Gen.IO.Formats
 import Gen.IO.ToolchainData        as X
 import Gen.Prelude
@@ -19,8 +18,8 @@ import System.Environment          (lookupEnv, setEnv)
 import System.Exit                 (ExitCode)
 import System.FilePath             ((<.>))
 import System.IO                   (IOMode (..), withFile)
-import System.Process              (StdStream (..), createProcess, proc, std_err, std_out,
-                                    waitForProcess)
+import System.Process              (StdStream (..), createProcess, proc,
+                                    showCommandForUser, std_err, std_out, waitForProcess)
 
 
 writeModelDef :: MonadIO m => FilePath -> Model -> m FilePath
@@ -47,11 +46,11 @@ toolchain ToolchainData{..} = do
                ++ argsMay "--param"   essenceParam
 
 
-  liftIO . putStrLn $ "cmd: " ++ script ++ " " ++ foldl1 (\a b -> a ++ " " ++ b) args
-
+  liftIO . putStrLn $ "Running: " ++ showCommandForUser script args
   _       <- runCommand script args (outputArg toolchainOutput outputDirectory)
   refineF <- readFromJSONMay $ outputDirectory </> "refine_essence.json"
   solveF  <- readFromJSONMay $ outputDirectory </> "solve_eprime.json"
+  liftIO . putStrLn $ "Finished: " ++ showCommandForUser script args
 
   return $ case (refineF, solveF) of
              (Just r, Just s)  -> SolveResult (r,s)
