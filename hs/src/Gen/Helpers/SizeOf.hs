@@ -1,6 +1,4 @@
-{-# LANGUAGE ViewPatterns #-}
-
-{-# LANGUAGE MultiWayIf, FlexibleInstances #-}
+{-# LANGUAGE  FlexibleInstances #-}
 
 module Gen.Helpers.SizeOf where
 

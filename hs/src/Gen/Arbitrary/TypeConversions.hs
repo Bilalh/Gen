@@ -1,6 +1,6 @@
 {-# LANGUAGE QuasiQuotes, ViewPatterns#-}
 
-{-# LANGUAGE MultiWayIf, TupleSections #-}
+{-# LANGUAGE  TupleSections #-}
 
 module Gen.Arbitrary.TypeConversions(toTypeWithConversions) where
 
