@@ -1,5 +1,5 @@
 {-# LANGUAGE QuasiQuotes, ViewPatterns #-}
-{-# LANGUAGE NamedFieldPuns, RecordWildCards, MultiWayIf #-}
+{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE DeriveGeneric, DeriveDataTypeable #-}
 {-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
 

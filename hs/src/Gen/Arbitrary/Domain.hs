@@ -1,5 +1,5 @@
 {-# LANGUAGE QuasiQuotes, ViewPatterns #-}
-{-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
+
 {-# LANGUAGE MultiWayIf #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 

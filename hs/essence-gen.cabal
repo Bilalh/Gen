@@ -66,7 +66,7 @@ Library
                      , Gen.Reduce.Simpler
                      , Gen.Reduce.UnusedDomains
                      , Gen.UI.UI
-                     
+
 
     build-depends    : base
                      , aeson
@@ -107,6 +107,8 @@ Library
         ScopedTypeVariables
         LambdaCase
         TemplateHaskell
+        RecordWildCards
+        NamedFieldPuns
 
    ghc-options:
        -fwarn-incomplete-patterns

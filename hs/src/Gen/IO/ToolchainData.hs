@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, DeriveGeneric, RecordWildCards #-}
+{-# LANGUAGE DeriveDataTypeable, DeriveGeneric #-}
 module Gen.IO.ToolchainData where
 
 import qualified Data.Aeson as A

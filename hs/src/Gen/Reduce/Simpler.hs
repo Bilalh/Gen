@@ -1,5 +1,5 @@
 {-# LANGUAGE QuasiQuotes, ViewPatterns #-}
-{-# LANGUAGE NamedFieldPuns, RecordWildCards, KindSignatures #-}
+{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE MultiParamTypeClasses, FlexibleInstances #-}
 
 module Gen.Reduce.Simpler where

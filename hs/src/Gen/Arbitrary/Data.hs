@@ -1,4 +1,4 @@
-{-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
+
 {-# LANGUAGE FlexibleInstances, ConstraintKinds #-}
 {-# LANGUAGE RankNTypes, KindSignatures #-}
 {-# LANGUAGE DeriveDataTypeable #-}

@@ -1,5 +1,5 @@
 {-# LANGUAGE ViewPatterns #-}
-{-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
+
 {-# LANGUAGE MultiWayIf, FlexibleInstances #-}
 
 module Gen.Helpers.SizeOf where

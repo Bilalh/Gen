@@ -1,7 +1,7 @@
 {-# LANGUAGE QuasiQuotes, ViewPatterns #-}
 {-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
 {-# LANGUAGE DeriveGeneric, DeriveDataTypeable #-}
-{-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
+
 
 module Gen.AST.Spec where
 

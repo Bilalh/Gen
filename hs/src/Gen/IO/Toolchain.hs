@@ -1,4 +1,3 @@
-{-# LANGUAGE RecordWildCards #-}
 module Gen.IO.Toolchain (
     module X
   , toolchain

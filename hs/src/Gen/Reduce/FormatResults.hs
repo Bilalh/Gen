@@ -1,4 +1,4 @@
-{-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
+
 
 module Gen.Reduce.FormatResults(formatResults) where
 

@@ -1,5 +1,5 @@
 {-# LANGUAGE QuasiQuotes,  ViewPatterns #-}
-{-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
+
 {-# LANGUAGE MultiWayIf #-}
 
 module Gen.Arbitrary.Literal where

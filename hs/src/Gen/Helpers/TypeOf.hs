@@ -1,5 +1,4 @@
 {-# LANGUAGE MultiParamTypeClasses, FlexibleInstances #-}
-{-# LANGUAGE RecordWildCards, NamedFieldPuns #-}
 
 module Gen.Helpers.TypeOf(WithDoms(..), TTypeOf(..), typeOfDom) where
 

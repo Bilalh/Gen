@@ -1,4 +1,3 @@
-{-# LANGUAGE QuasiQuotes, ViewPatterns #-}
 module Gen.Reduce.UnusedDomains(unusedDomains) where
 
 import Gen.Prelude

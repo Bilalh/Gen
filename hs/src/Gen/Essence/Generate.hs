@@ -1,4 +1,4 @@
-{-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
+
 module Gen.Essence.Generate(generateEssence) where
 
 import           Conjure.Language.Definition

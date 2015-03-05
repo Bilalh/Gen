@@ -1,5 +1,5 @@
 {-# LANGUAGE QuasiQuotes, ViewPatterns#-}
-{-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
+
 {-# LANGUAGE MultiWayIf, TupleSections #-}
 
 module Gen.Arbitrary.TypeConversions(toTypeWithConversions) where
