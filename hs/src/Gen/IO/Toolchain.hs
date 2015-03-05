@@ -97,7 +97,13 @@ getToolchainDir binDir = lookupEnv "PARAM_GEN_SCRIPTS" >>= \case
                                       setEnv "PARAM_GEN_SCRIPTS" bp
                                       return (bp </> "toolchain")
                                     False -> useDataDir
-                  Just fp -> return $ fp </> "toolchain"
+                  Just fp -> do
+                    doesDirectoryExist (fp </> "toolchain") >>= \case
+                       True -> do
+                         return $ fp </> "toolchain"
+                       False -> do
+                         error . show . vcat $ [" Can't find toolchain directory in data dir"
+                                               , "set PARAM_GEN_SCRIPTS to instancegen/scripts"]
 
   where
   useDataDir = do
