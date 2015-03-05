@@ -21,6 +21,7 @@ module Gen.Arbitrary.Data (
     , nullLogs
     , EssenceMode(..)
     , EssenceConfig(..)
+    , ToolchainOutput(..)
     ) where
 
 import Gen.Helpers.StandardImports as X
@@ -43,6 +44,15 @@ data EssenceMode =
 
 instance Default EssenceMode where
     def = Solve_
+
+data ToolchainOutput =
+    ToolchainScreen_
+  | ToolchainFile_
+  | ToolchainNull_
+  deriving (Show, Data, Typeable,Eq)
+
+instance Default ToolchainOutput where
+    def = ToolchainScreen_
 
 data SS = SS
     {

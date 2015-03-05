@@ -198,5 +198,6 @@ _mainDebug = do
              , old_conjure        = False
              , limit_time         = Nothing
              , total_is_real_time = True
+             , toolchain_ouput    = ToolchainNull_
              }
     limiter (limit_time ec) (mainWithArgs ec)

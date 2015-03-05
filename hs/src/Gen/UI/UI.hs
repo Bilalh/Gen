@@ -22,6 +22,7 @@ data UI
       , delete_passing     :: Bool
       , total_is_real_time :: Bool
 
+      , toolchain_ouput    :: ToolchainOutput
       , binaries_directory :: Maybe FilePath
       , old_conjure        :: Bool
       , limit_time         :: Maybe Int
@@ -48,6 +49,7 @@ data UI
       , _cores             :: Int
       , _seed              :: Maybe Int
 
+      , toolchain_ouput    :: ToolchainOutput
       , binaries_directory :: Maybe FilePath
       , limit_time         :: Maybe Int
       }
@@ -79,6 +81,7 @@ data UI
     , _cores             :: Int
     , _seed              :: Maybe Int
 
+    , toolchain_ouput    :: ToolchainOutput
     , binaries_directory :: Maybe FilePath
     , old_conjure        :: Bool
     , limit_time         :: Maybe Int
@@ -154,6 +157,18 @@ ui  = modes
                                     &= groupname "Other"
                                     &= explicit
                                     &= help "Time limit in seconds of CPU time of this program"
+     , toolchain_ouput    = enum
+                            [
+                              ToolchainScreen_
+                            , ToolchainFile_    &= name "redirect_toolchain_output"
+                                               &= explicit
+                                               &= groupname "Output"
+                                               &= help "Redirect toolchain output to file"
+                            , ToolchainNull_   &= name "null_toolchain_output"
+                                               &= explicit
+                                               &= groupname "Output"
+                                               &= help "Discard toolchain output"
+                            ]
 
      } &= explicit
        &= name "essence"
@@ -207,7 +222,18 @@ ui  = modes
                                      &= groupname "Other"
                                      &= explicit
                                      &= help "Time limit in seconds of CPU time of this program"
-
+     , toolchain_ouput    = enum
+                            [
+                              ToolchainScreen_
+                            , ToolchainFile_    &= name "redirect_toolchain_output"
+                                               &= explicit
+                                               &= groupname "Output"
+                                               &= help "Redirect toolchain output to file"
+                            , ToolchainNull_   &= name "null_toolchain_output"
+                                               &= explicit
+                                               &= groupname "Output"
+                                               &= help "Discard toolchain output"
+                            ]
      } &= explicit
        &= name "reduce"
        &= help "Reduces a .spec.json file"
@@ -288,7 +314,11 @@ ui  = modes
                                     &= help "Essence param to use"
      , refine_type        = enum
                             [
-                              Refine_Only      &= name "refine-only"
+                              Refine_Solve     &= name "refine-solve"
+                                               &= explicit
+                                               &= groupname "Control"
+                                               &= help "Refine, solve and validate the spec (default)"
+                            , Refine_Only      &= name "refine-only"
                                                &= explicit
                                                &= groupname "Control"
                                                &= help "Only refine the spec"
@@ -296,10 +326,6 @@ ui  = modes
                                                &= explicit
                                                &= groupname "Control"
                                                &= help "Only generate all model of the spec"
-                            , Refine_Solve     &= name "refine-solve"
-                                               &= explicit
-                                               &= groupname "Control"
-                                               &= help "Refine, solve and validate the spec (default)"
                             , Refine_Solve_All &= name "refine-solve-all"
                                                &= explicit
                                                &= groupname "Control"
@@ -323,7 +349,18 @@ ui  = modes
                                     &= groupname "Other"
                                     &= explicit
                                     &= help "Time limit in seconds of CPU time of this program"
-
+     , toolchain_ouput    = enum
+                            [
+                              ToolchainScreen_
+                            , ToolchainFile_    &= name "redirect_toolchain_output"
+                                               &= explicit
+                                               &= groupname "Output"
+                                               &= help "Redirect toolchain output to file"
+                            , ToolchainNull_   &= name "null_toolchain_output"
+                                               &= explicit
+                                               &= groupname "Output"
+                                               &= help "Discard toolchain output"
+                            ]
      } &= explicit
        &= name "script-toolchain"
        &= help "Run the toolchain on an essence spec"

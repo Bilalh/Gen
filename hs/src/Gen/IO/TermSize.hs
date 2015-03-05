@@ -1,5 +1,6 @@
 {-# LINE 1 "TermSize.hsc" #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
+{-# OPTIONS_GHC -fno-warn-unused-binds -fno-warn-unused-do-bind #-}
 {-# LINE 2 "TermSize.hsc" #-}
 
 module Gen.IO.TermSize (getTermSize) where

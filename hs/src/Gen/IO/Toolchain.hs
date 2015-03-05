@@ -6,6 +6,7 @@ module Gen.IO.Toolchain (
   , statusesList
   , getToolchainDir
   , writeModelDef
+  , foo
   )where
 
 import Data.Data
@@ -19,6 +20,9 @@ import System.Process (rawSystem)
 import Conjure.Language.Definition(Model)
 import Conjure.UI.IO(writeModel)
 import System.FilePath((<.>))
+import System.Process(createProcess, waitForProcess, proc
+                     , StdStream(..), std_out, std_err)
+import System.IO(withFile,IOMode(..))
 
 
 writeModelDef :: MonadIO m => FilePath -> Model -> m FilePath
@@ -106,3 +110,13 @@ getToolchainDir binDir = lookupEnv "PARAM_GEN_SCRIPTS" >>= \case
       False -> do
         error . show . vcat $ [" Can't find toolchain directory in data dir"
                               , "set PARAM_GEN_SCRIPTS to instancegen/scripts"]
+
+
+foo cmd fout ferr =
+    withFile fout  WriteMode  $ \hout  ->
+    withFile ferr WriteMode $ \herr -> do
+        (_, _, _, ph) <- createProcess (proc cmd [])
+            { std_out  = UseHandle hout
+            , std_err = UseHandle herr
+            }
+        waitForProcess ph
