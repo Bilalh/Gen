@@ -33,6 +33,7 @@ data EssenceConfig = EssenceConfig
       , deletePassing_     :: Bool
       , binariesDirectory_ :: Maybe FilePath
       , oldConjure_        :: Bool
+      , toolchainOutput_   :: ToolchainOutput
       }
 
 instance Default EssenceConfig where
@@ -50,4 +51,5 @@ instance Default EssenceConfig where
       , deletePassing_     = False
       , binariesDirectory_ = Nothing
       , oldConjure_        = False
+      , toolchainOutput_   = def
       }

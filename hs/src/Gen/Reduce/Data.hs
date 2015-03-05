@@ -34,8 +34,10 @@ data RState = RState
     , rgen_             :: TFGen
     , specTime_         :: Int
 
-
     -- def Initialised
+    , binariesDirectory_ :: Maybe FilePath
+    , toolchainOutput_   :: ToolchainOutput
+
     , mostReduced_      :: Maybe RunResult
     , otherErrors_      :: [RunResult]
     , hashes_           :: IntSet
@@ -61,6 +63,8 @@ instance Pretty RState where
 
                 , nn "cores_" cores_
                 , nn "specTime_" specTime_
+                , nn "binariesDirectory_" binariesDirectory_
+                , nn "toolchainOutput_" toolchainOutput_
 
                 , nn "mostReduced_ =" mostReduced_
                 , nn "otherErrors_ =" (prettyArr otherErrors_)
@@ -70,18 +74,20 @@ instance Pretty RState where
                 ])
 
 instance Default RState where
-    def =  RState{oErrKind_      = error "need oErrKind_"
-                 ,oErrStatus_    = error "need oErrStatus_"
-                 ,oErrEprime_    = error "need oErrEprime"
-                 ,cores_         = error "need cores"
-                 ,outputDir_     = error "need outputDir_"
-                 ,rgen_          = error "need rgen_"
-                 ,specDir_       = error "need specDir_"
-                 ,specTime_      = error "need specTime_"
-                 ,hashes_        = IS.empty
-                 ,mostReduced_   = Nothing
-                 ,otherErrors_   = []
-                 ,rlogs_         = LSEmpty
+    def =  RState{oErrKind_          = error "need oErrKind_"
+                 ,oErrStatus_        = error "need oErrStatus_"
+                 ,oErrEprime_        = error "need oErrEprime"
+                 ,cores_             = error "need cores"
+                 ,outputDir_         = error "need outputDir_"
+                 ,rgen_              = error "need rgen_"
+                 ,specDir_           = error "need specDir_"
+                 ,specTime_          = error "need specTime_"
+                 ,hashes_            = IS.empty
+                 ,mostReduced_       = Nothing
+                 ,otherErrors_       = []
+                 ,rlogs_             = LSEmpty
+                 ,binariesDirectory_ = Nothing
+                 ,toolchainOutput_   = def
                  }
 
 

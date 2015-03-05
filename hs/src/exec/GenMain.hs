@@ -107,6 +107,7 @@ mainWithArgs Essence{..} = do
                , deletePassing_     = delete_passing
                , binariesDirectory_ = binaries_directory
                , oldConjure_        = old_conjure
+               , toolchainOutput_   = toolchain_ouput
                }
 
   generateEssence config
@@ -135,14 +136,16 @@ mainWithArgs Reduce{..} = do
 
 
   seed_ <- giveSeed _seed
-  let args = def{oErrKind_   = error_kind
-                ,oErrStatus_ = error_status
-                ,oErrEprime_ = Nothing
-                ,outputDir_  = output_directory
-                ,specDir_    = spec_directory
-                ,R.cores_    = _cores
-                ,rgen_       = mkrGen (seed_)
-                ,specTime_   = per_spec_time
+  let args = def{oErrKind_          = error_kind
+                ,oErrStatus_        = error_status
+                ,oErrEprime_        = Nothing
+                ,outputDir_         = output_directory
+                ,specDir_           = spec_directory
+                ,R.cores_           = _cores
+                ,rgen_              = mkrGen (seed_)
+                ,specTime_          = per_spec_time
+                ,binariesDirectory_ = binaries_directory
+                ,toolchainOutput_   = toolchain_ouput
                 }
   (_,state) <- reduceMain args
   formatResults state

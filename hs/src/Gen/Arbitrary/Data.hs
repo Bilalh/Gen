@@ -37,6 +37,9 @@ data ToolchainOutput =
 instance Default ToolchainOutput where
     def = ToolchainScreen_
 
+instance Pretty ToolchainOutput where
+    pretty = pretty . show
+
 type GG a =  StateT SpecState Gen a
 
 type Depth = Int
