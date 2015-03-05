@@ -20,6 +20,7 @@ data ToolchainData = ToolchainData
 
     , binariesDirectory  :: Maybe FilePath
     , oldConjure         :: Bool
+    , toolchainOutput    :: ToolchainOutput
     }
   deriving (Show, Eq, Generic, Typeable, Data)
 
@@ -35,6 +36,7 @@ instance Default ToolchainData where
           , seed              = Nothing
           , binariesDirectory = Nothing
           , oldConjure        = False
+          , toolchainOutput   = def
           }
 
 data RefineType =

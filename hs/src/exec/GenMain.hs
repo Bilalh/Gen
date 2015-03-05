@@ -164,15 +164,16 @@ mainWithArgs SpecEE{..} = do
 mainWithArgs Script_Toolchain{..} = do
   void $ Toolchain.toolchain Toolchain.ToolchainData
            {
-             Toolchain.essencePath = essence_path
-           , Toolchain.outputDirectory = output_directory
-           , Toolchain.totalTime = total_time
-           , Toolchain.essenceParam = essence_param
-           , Toolchain.refineType   = refine_type
-           , Toolchain.cores = _cores
-           , Toolchain.seed = _seed
+             Toolchain.essencePath       = essence_path
+           , Toolchain.outputDirectory   = output_directory
+           , Toolchain.totalTime         = total_time
+           , Toolchain.essenceParam      = essence_param
+           , Toolchain.refineType        = refine_type
+           , Toolchain.cores             = _cores
+           , Toolchain.seed              = _seed
            , Toolchain.binariesDirectory = binaries_directory
-           , Toolchain.oldConjure = old_conjure
+           , Toolchain.oldConjure        = old_conjure
+           , Toolchain.toolchainOutput   = toolchain_ouput
            }
 
 aerr :: String -> Bool -> Maybe String

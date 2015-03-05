@@ -1,4 +1,3 @@
-
 module Gen.Essence.Generate(generateEssence) where
 
 import           Conjure.Language.Definition
@@ -72,6 +71,7 @@ doRefine EC.EssenceConfig{..} = do
                     , Toolchain.seed = Just runSeed
                     , Toolchain.binariesDirectory = binariesDirectory_
                     , Toolchain.oldConjure = oldConjure_
+                    , Toolchain.toolchainOutput = toolchainOutput_
                     }
           endTime <- round `fmap` getPOSIXTime
           let realTime = endTime - startTime
@@ -124,6 +124,7 @@ doSolve EC.EssenceConfig{..} = do
                     , Toolchain.seed = Just runSeed
                     , Toolchain.binariesDirectory = binariesDirectory_
                     , Toolchain.oldConjure = oldConjure_
+                    , Toolchain.toolchainOutput = toolchainOutput_
                     }
 
           endTime <- round `fmap` getPOSIXTime

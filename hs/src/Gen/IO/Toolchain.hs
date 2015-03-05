@@ -19,7 +19,6 @@ import System.Environment          (lookupEnv, setEnv)
 import System.Exit                 (ExitCode)
 import System.FilePath             ((<.>))
 import System.IO                   (IOMode (..), withFile)
-import System.Process              (rawSystem)
 import System.Process              (StdStream (..), createProcess, proc, std_err, std_out,
                                     waitForProcess)
 
@@ -37,7 +36,7 @@ toolchain :: MonadIO m => ToolchainData -> m ToolchainResult
 toolchain ToolchainData{..} = do
   toolchainDir <- liftIO $ getToolchainDir binariesDirectory
 
-  let script = toolchainDir </> "toolchain_wrap.sh"
+  let script = toolchainDir </> "toolchain.py"
   let args = [ essencePath
              , "--outdir",  outputDirectory
              , "--timeout", show totalTime
@@ -50,7 +49,7 @@ toolchain ToolchainData{..} = do
 
   liftIO . putStrLn $ "cmd: " ++ script ++ " " ++ foldl1 (\a b -> a ++ " " ++ b) args
 
-  _       <- liftIO $ rawSystem script args
+  _       <- runCommand script args (outputArg toolchainOutput outputDirectory)
   refineF <- readFromJSONMay $ outputDirectory </> "refine_essence.json"
   solveF  <- readFromJSONMay $ outputDirectory </> "solve_eprime.json"
 
@@ -59,6 +58,11 @@ toolchain ToolchainData{..} = do
              (Just r, Nothing) -> RefineResult r
              (r, s)            -> error . show $ (r,s)
 
+
+outputArg :: ToolchainOutput -> FilePath -> Maybe String
+outputArg ToolchainScreen_ _ = Nothing
+outputArg ToolchainFile_   d = Just (d </> "toolchain.log")
+outputArg ToolchainNull_   _ = Just "/dev/null"
 
 
 refineTypeArgs :: RefineType -> [String]
@@ -117,11 +121,16 @@ getToolchainDir binDir = lookupEnv "PARAM_GEN_SCRIPTS" >>= \case
                               , "set PARAM_GEN_SCRIPTS to instancegen/scripts"]
 
 
-runCommand :: MonadIO m => FilePath -> [String] -> String -> m ExitCode
-runCommand cmd args fout  =
-    liftIO $ withFile fout  WriteMode  $ \hout  -> do
-        (_, _, _, ph) <- createProcess (proc cmd args)
-            { std_out  = UseHandle hout
-            , std_err  = UseHandle hout
-            }
-        waitForProcess ph
+runCommand :: MonadIO m => FilePath -> [String] -> Maybe String -> m ExitCode
+runCommand cmd args (Just fout)  =
+  liftIO $ withFile fout  WriteMode  $ \hout  -> do
+    (_, _, _, ph) <- createProcess (proc cmd args)
+                     { std_out  = UseHandle hout
+                     , std_err  = UseHandle hout
+                     }
+    waitForProcess ph
+
+runCommand cmd args Nothing  =
+  liftIO $ do
+    (_, _, _, ph) <- createProcess (proc cmd args)
+    waitForProcess ph

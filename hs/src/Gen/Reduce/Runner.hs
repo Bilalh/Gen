@@ -1,5 +1,3 @@
-
-
 module Gen.Reduce.Runner where
 
 import qualified Data.Map          as M
@@ -36,6 +34,8 @@ runSpec spE = do
         perSpec <- gets specTime_
         essencePath <- writeModelDef path sp
         cores <- gets Gen.Reduce.Data.cores_
+        bd   <- gets binariesDirectory_
+        oo   <- gets toolchainOutput_
         res  <- toolchain Toolchain.ToolchainData{
                       Toolchain.essencePath       = essencePath
                     , Toolchain.outputDirectory   = path
@@ -44,8 +44,9 @@ runSpec spE = do
                     , Toolchain.refineType        = Refine_Solve_All
                     , Toolchain.cores             = cores
                     , Toolchain.seed              = Just seed
-                    , Toolchain.binariesDirectory = Nothing
+                    , Toolchain.binariesDirectory = bd
                     , Toolchain.oldConjure        = False
+                    , Toolchain.toolchainOutput   = oo
                     }
 
         rrErrorKind   <- gets oErrKind_
