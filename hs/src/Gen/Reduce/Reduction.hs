@@ -1,6 +1,6 @@
 
 {-# LANGUAGE MultiParamTypeClasses, FlexibleContexts, FlexibleInstances #-}
-{-# LANGUAGE MultiWayIf #-}
+
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE TupleSections #-}
 

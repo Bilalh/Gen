@@ -1,5 +1,5 @@
 
-{-# LANGUAGE MultiWayIf #-}
+
 {-# LANGUAGE DeriveGeneric, DeriveDataTypeable #-}
 {-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
 

@@ -1,5 +1,5 @@
 
-{-# LANGUAGE MultiWayIf #-}
+
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Gen.Arbitrary.Generators(

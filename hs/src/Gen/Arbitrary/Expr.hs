@@ -1,6 +1,6 @@
 {-# LANGUAGE QuasiQuotes, ViewPatterns#-}
 
-{-# LANGUAGE MultiWayIf #-}
+
 
 module Gen.Arbitrary.Expr where
 

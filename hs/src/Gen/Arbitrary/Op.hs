@@ -1,6 +1,6 @@
 
 
-{-# LANGUAGE MultiWayIf #-}
+
 
 module Gen.Arbitrary.Op where
 

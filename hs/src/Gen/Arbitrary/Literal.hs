@@ -1,6 +1,6 @@
 {-# LANGUAGE QuasiQuotes,  ViewPatterns #-}
 
-{-# LANGUAGE MultiWayIf #-}
+
 
 module Gen.Arbitrary.Literal where
 
