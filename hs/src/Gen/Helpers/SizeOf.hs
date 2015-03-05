@@ -8,6 +8,7 @@ import Gen.Helpers.Debug
 
 import Gen.Helpers.TypeOf(typeOfDom)
 
+
 class DepthOf a where
     depthOf :: a -> Integer
 
