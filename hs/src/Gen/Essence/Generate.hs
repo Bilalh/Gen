@@ -9,6 +9,8 @@ import qualified Data.Set                    as S
 import           Data.Time.Clock.POSIX       (getPOSIXTime)
 import qualified Gen.Arbitrary.Arbitrary     as Gen
 import           Gen.Classify.Meta           (mkMeta)
+import           Gen.Essence.Data            (EssenceConfig)
+import qualified Gen.Essence.Data            as EC
 import           Gen.IO.Formats
 import           Gen.IO.Toolchain            hiding (ToolchainData (..))
 import qualified Gen.IO.Toolchain            as Toolchain
@@ -18,17 +20,17 @@ import           System.Directory            (copyFile, renameDirectory)
 
 
 generateEssence :: EssenceConfig -> IO ()
-generateEssence ec@EssenceConfig{..} = do
+generateEssence ec@EC.EssenceConfig{..} = do
   setRandomSeed seed_
 
   case mode_ of
-    TypeCheck_ -> doTypeCheck ec
-    Refine_    -> doRefine ec
-    Solve_     -> doSolve ec
+    EC.TypeCheck_ -> doTypeCheck ec
+    EC.Refine_    -> doRefine ec
+    EC.Solve_     -> doSolve ec
 
 
 doRefine :: EssenceConfig -> IO ()
-doRefine EssenceConfig{..} = do
+doRefine EC.EssenceConfig{..} = do
   process totalTime_
 
     where
@@ -81,7 +83,7 @@ doRefine EssenceConfig{..} = do
 
 
 doSolve :: EssenceConfig -> IO ()
-doSolve EssenceConfig{..} = do
+doSolve EC.EssenceConfig{..} = do
   process totalTime_
 
     where
@@ -238,7 +240,7 @@ classifySettingI _ _ _ SettingI{time_taken_}  = return time_taken_
 
 
 doTypeCheck :: EssenceConfig -> IO ()
-doTypeCheck EssenceConfig{..}= do
+doTypeCheck EC.EssenceConfig{..}= do
   process
 
   where

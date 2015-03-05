@@ -14,6 +14,7 @@ import           Gen.IO.Toolchain            (kindsList, statusesList)
 import qualified Gen.IO.Toolchain            as Toolchain
 import           Gen.Reduce.Data             (RState (..), mkrGen)
 import qualified Gen.Reduce.Data             as R
+import qualified Gen.Essence.Data            as EC
 import           Gen.Reduce.FormatResults    (formatResults)
 import           Gen.Reduce.Reduce           (reduceMain)
 import           Gen.UI.UI
@@ -92,7 +93,7 @@ mainWithArgs Essence{..} = do
 
 
   seed_ <- giveSeed _seed
-  let config = EssenceConfig
+  let config = EC.EssenceConfig
                { outputDirectory_ = output_directory
                , mode_            = toEssenceMode _mode
 
@@ -111,10 +112,10 @@ mainWithArgs Essence{..} = do
   generateEssence config
 
   where
-    toEssenceMode :: ModeChoice -> EssenceMode
-    toEssenceMode TypeCheck = TypeCheck_
-    toEssenceMode Refine    = Refine_
-    toEssenceMode Solve     = Solve_
+    toEssenceMode :: ModeChoice -> EC.EssenceMode
+    toEssenceMode TypeCheck = EC.TypeCheck_
+    toEssenceMode Refine    = EC.Refine_
+    toEssenceMode Solve     = EC.Solve_
 
 mainWithArgs Instance{..} = do
   error . show . vcat $ ["gen instance not done yet" ]

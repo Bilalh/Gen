@@ -8,7 +8,6 @@ import Gen.Prelude
 import System.Console.CmdArgs hiding (Default (..))
 
 
-
 data UI
   = Essence
       { output_directory :: FilePath
@@ -159,8 +158,11 @@ ui  = modes
                                     &= help "Time limit in seconds of CPU time of this program"
      , toolchain_ouput    = enum
                             [
-                              ToolchainScreen_
-                            , ToolchainFile_    &= name "redirect_toolchain_output"
+                              ToolchainScreen_ &= name "show_toolchain_output"
+                                               &= explicit
+                                               &= groupname "Output"
+                                               &= help "Show toolchain output (default)"
+                            , ToolchainFile_   &= name "redirect_toolchain_output"
                                                &= explicit
                                                &= groupname "Output"
                                                &= help "Redirect toolchain output to file"
@@ -224,8 +226,11 @@ ui  = modes
                                      &= help "Time limit in seconds of CPU time of this program"
      , toolchain_ouput    = enum
                             [
-                              ToolchainScreen_
-                            , ToolchainFile_    &= name "redirect_toolchain_output"
+                              ToolchainScreen_ &= name "show_toolchain_output"
+                                               &= explicit
+                                               &= groupname "Output"
+                                               &= help "Show toolchain output (default)"
+                            , ToolchainFile_   &= name "redirect_toolchain_output"
                                                &= explicit
                                                &= groupname "Output"
                                                &= help "Redirect toolchain output to file"
@@ -351,8 +356,11 @@ ui  = modes
                                     &= help "Time limit in seconds of CPU time of this program"
      , toolchain_ouput    = enum
                             [
-                              ToolchainScreen_
-                            , ToolchainFile_    &= name "redirect_toolchain_output"
+                              ToolchainScreen_ &= name "show_toolchain_output"
+                                               &= explicit
+                                               &= groupname "Output"
+                                               &= help "Show toolchain output (default)"
+                            , ToolchainFile_   &= name "redirect_toolchain_output"
                                                &= explicit
                                                &= groupname "Output"
                                                &= help "Redirect toolchain output to file"
@@ -367,5 +375,5 @@ ui  = modes
 
 
   ] &= program "gen"
-    &= summary (unlines ["Gen v2.1",  "Git version: " ++ autoVersion])
+    &= summary (unlines ["Gen v3.2",  "Git version: " ++ autoVersion])
     &= helpArg [name "h"]
