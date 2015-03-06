@@ -12,6 +12,7 @@ replaceOldHelpArg :: MonadIO m => [String] -> m [String]
 replaceOldHelpArg ins = mapM f ins
   where
     f "-h"     = helpArg
+    f "-?"     = helpArg
     f "--help" = helpArg
     f other    = return other
 

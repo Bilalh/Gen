@@ -439,7 +439,7 @@ ui  = modes
                             ]
      } &= explicit
        &= name "script-recheck"
-       &= help "Runs the toolchain with same settings"
+       &= help "Reruns the toolchain with previous used settings"
 
 
   ] &= program "gen"

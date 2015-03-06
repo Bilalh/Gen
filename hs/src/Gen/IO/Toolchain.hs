@@ -91,8 +91,8 @@ statusesList = do
   map show names
 
 
-getToolchainDir :: Maybe FilePath -> IO FilePath
-getToolchainDir binDir = lookupEnv "PARAM_GEN_SCRIPTS" >>= \case
+getToolchainDir :: (MonadFail m, MonadIO m) => Maybe FilePath -> m FilePath
+getToolchainDir binDir = liftIO $ lookupEnv "PARAM_GEN_SCRIPTS" >>= \case
                   Nothing -> do
                     case binDir of
                       Nothing -> useDataDir
@@ -106,8 +106,8 @@ getToolchainDir binDir = lookupEnv "PARAM_GEN_SCRIPTS" >>= \case
                        True -> do
                          return $ fp </> "toolchain"
                        False -> do
-                         error . show . vcat $ [" Can't find toolchain directory in data dir"
-                                               , "set PARAM_GEN_SCRIPTS to instancegen/scripts"]
+                         fail . vcat $ [" Can't find toolchain directory in data dir"
+                                       , "set PARAM_GEN_SCRIPTS to instancegen/scripts"]
 
   where
   useDataDir = do
@@ -117,8 +117,8 @@ getToolchainDir binDir = lookupEnv "PARAM_GEN_SCRIPTS" >>= \case
         setEnv "PARAM_GEN_SCRIPTS" fp
         return $ fp </> "toolchain"
       False -> do
-        error . show . vcat $ [" Can't find toolchain directory in data dir"
-                              , "set PARAM_GEN_SCRIPTS to instancegen/scripts"]
+        fail . vcat $ [" Can't find toolchain directory in data dir"
+                      , "set PARAM_GEN_SCRIPTS to instancegen/script" ]
 
 
 runCommand :: MonadIO m => FilePath -> [String] -> Maybe String -> m ExitCode

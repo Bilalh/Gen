@@ -14,6 +14,7 @@ ghci:
 	    -XLambdaCase                               \
 	    -XRecordWildCards                          \
 	    -XNamedFieldPuns                           \
+	    -XMultiWayIf                               \
 	    -fwarn-incomplete-patterns                 \
 	    -fwarn-incomplete-uni-patterns             \
 	    -fwarn-missing-signatures                  \
@@ -36,6 +37,7 @@ ghci_main:
 	    -XLambdaCase                               \
 	    -XRecordWildCards                          \
 	    -XNamedFieldPuns                           \
+	    -XMultiWayIf                               \
 	    -fwarn-incomplete-patterns                 \
 	    -fwarn-incomplete-uni-patterns             \
 	    -fwarn-missing-signatures                  \

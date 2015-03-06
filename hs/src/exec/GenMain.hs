@@ -46,6 +46,14 @@ main = do
         mapM_ (putStrLn) statusesList
         exitSuccess
 
+    ["--toolchain-path"] -> do
+         dir <- Toolchain.getToolchainDir Nothing
+         putStrLn dir
+
+    ["", "--toolchain-path"] -> do
+         dir <- Toolchain.getToolchainDir Nothing
+         putStrLn dir
+
     xs -> do
       newArgs <- replaceOldHelpArg xs
       input <- withArgs newArgs (cmdArgs ui)
@@ -57,6 +65,8 @@ main = do
       limiter (getLimit input) workload
 
    where
+
+
      getLimit x | Just i <- limit_time x, i <=0  = error "--limit-time must be > then 0"
      getLimit (Essence{_mode=m,limit_time = Nothing, total_time=t}) | m == TypeCheck=Just t
      getLimit input = limit_time input
