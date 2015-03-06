@@ -31,7 +31,6 @@ Library
                      , Gen.AST.Domain
                      , Gen.AST.Expr
                      , Gen.AST.Imports
-                     , Gen.AST.Literal
                      , Gen.AST.Spec
                      , Gen.AST.TH
                      , Gen.AST.Type

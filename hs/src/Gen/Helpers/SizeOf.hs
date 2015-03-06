@@ -1,12 +1,14 @@
-{-# LANGUAGE  FlexibleInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 module Gen.Helpers.SizeOf where
 
-import Gen.Helpers.StandardImports as X
-
+import Conjure.Language.AbstractLiteral
+import Conjure.Language.Constant
 import Gen.Helpers.Debug
+import Gen.Helpers.StandardImports      as X
+import Gen.Helpers.TypeOf               (typeOfDom)
 
-import Gen.Helpers.TypeOf(typeOfDom)
+import qualified Data.Foldable as F
 
 
 class DepthOf a where
@@ -64,8 +66,9 @@ instance DepthOf TType where
     depthOf ty@(TEnum _)   = docError [ "depthOf not implemented", pretty . show $ ty ]
 
 instance DepthOf Expr where
-    depthOf (ELiteral e)      = depthOf e
-    depthOf (EVar _)      = 0
+    depthOf (ELit e)      = depthOf e
+    depthOf (ECon c)      = depthOf c
+    depthOf (EVar _ _)      = 0
     depthOf (EBinOp e)    = depthOf e
     depthOf (EUniOp e)    = depthOf e
     depthOf (EProc e)     = depthOf e
@@ -74,6 +77,17 @@ instance DepthOf Expr where
     depthOf EEmptyGuard   = 0
 
     depthOf (EQuan _ e2 e3 e4) = 1 + maximum ([depthOf e2, depthOf e3, depthOf e4])
+
+
+instance DepthOf (AbstractLiteral Expr) where
+    depthOf x = F.foldl (\x e -> x + depthOf e ) 0 x
+
+instance DepthOf Constant where
+    depthOf (ConstantBool _)          = 0
+    depthOf (ConstantInt _)           = 0
+    depthOf (ConstantEnum _ _ _ )     = 0
+    depthOf x = error . show . vcat $ [pretty x]
+
 
 instance DepthOf UniOp where
     depthOf (UBar u) = 1 + depthOf u
@@ -108,20 +122,6 @@ instance DepthOf BinOp where
     depthOf (BlexLTE b1 b2)    = 1 +  max (depthOf b1) (depthOf b2)
     depthOf (BlexGT b1 b2)     = 1 +  max (depthOf b1) (depthOf b2)
     depthOf (BlexGTE b1 b2)    = 1 +  max (depthOf b1) (depthOf b2)
-
-instance DepthOf Literal where
-    depthOf (EB _)                = 0
-    depthOf (EI _)                = 0
-    depthOf (ETuple l)            = 1 + maximum (map depthOf l)
-    depthOf (EMatrix l1 _)        = 1 + depthOfOrZero l1
-    depthOf (ESet l)              = 1 + depthOfOrZero l
-    depthOf (EMSet l)             = 1 + depthOfOrZero l
-    depthOf (EFunction [])        = 1
-    depthOf (EFunction ((a,b):_)) = 1 + maximum [depthOf a, depthOf b]
-    depthOf (ERelation l)         = 1 + depthOfOrZero l
-    depthOf (EPartition [])       = 1
-    depthOf (EPartition xs)       = 1 + maximum (map (depthOfOrZero) xs)
-    depthOf (EExpr l)             = depthOf l
 
 instance DepthOf Proc where
     depthOf (PallDiff p)         = 1 + depthOf p

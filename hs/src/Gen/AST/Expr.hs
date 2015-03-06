@@ -12,16 +12,71 @@ import Conjure.Language.TH
 import Conjure.Language.Expression.Op
 
 import Gen.AST.Data
-import {-# SOURCE #-} Gen.AST.Literal()
 import Gen.AST.Type()
 import Gen.AST.Domain()
 
 
+instance Translate Constant Constant where
+    fromConjure = return . id
+    toConjure   = return . id
+
+
+fromConjureM :: (Translate a b, MonadFail m) => [b] -> m [a]
+fromConjureM as =  mapM fromConjure as
+
+toConjureM :: (Translate a b, MonadFail m) => [a] -> m [b]
+toConjureM as =  mapM toConjure as
+
+instance (Translate a b) => Translate (a,a) (b,b) where
+    toConjure (x,y) = do
+      xx <- toConjure x
+      yy <- toConjure y
+      return (xx, yy)
+
+    fromConjure (x,y) = do
+      xx <- fromConjure x
+      yy <- fromConjure y
+      return (xx, yy)
+
+
+instance Translate (AbstractLiteral Expr) (AbstractLiteral Expression) where
+    fromConjure (AbsLitTuple x)             = AbsLitTuple <$> fromConjureM x
+    -- fromConjure (AbsLitRecord x)         = AbsLitRecord <$> fromConjureM x
+    -- fromConjure (AbsLitVariant x1 x2 x3) = AbsLitVariant <$> fromConjure x1
+    --                                                      <*> fromConjure x2
+    --                                                      <*> fromConjure x3
+    fromConjure (AbsLitMatrix x1 x2)        =  AbsLitMatrix <$> fromConjure x1
+                                                         <*> fromConjureM x2
+    fromConjure (AbsLitSet x)               = AbsLitSet <$> fromConjureM x
+    fromConjure (AbsLitMSet x)              = AbsLitMSet <$> fromConjureM x
+    fromConjure (AbsLitFunction x)          = AbsLitFunction <$> fromConjureM x
+    -- fromConjure (AbsLitSequence x)       = _d
+    -- fromConjure (AbsLitRelation x)       = _d
+    -- fromConjure (AbsLitPartition x)      = _d
+
+    fromConjure x = fromConjureFail "(AbstractLiteral Expr) (AbstractLiteral Expression)" x
+
+    toConjure (AbsLitTuple x)             = AbsLitTuple     <$> toConjureM x
+    -- toConjure (AbsLitRecord x)         = AbsLitRecord    <$> toConjure x
+    -- toConjure (AbsLitVariant x1 x2 x3) = AbsLitVariant   <$> toConjure x1
+    --                                                      <*> toConjure x2
+    --                                                      <*> toConjure x3
+    toConjure (AbsLitMatrix x1 x2)        = AbsLitMatrix    <$> toConjure x1
+                                                            <*> toConjureM x2
+    toConjure (AbsLitSet x)               = AbsLitSet       <$> toConjureM x
+    toConjure (AbsLitMSet x)              = AbsLitMSet      <$> toConjureM x
+    toConjure (AbsLitFunction x)          = AbsLitFunction  <$> toConjureM x
+    toConjure (AbsLitSequence x)          = AbsLitSequence  <$> toConjureM x
+    toConjure (AbsLitRelation x)          = AbsLitRelation  <$> mapM toConjureM x
+    toConjure (AbsLitPartition x)         = AbsLitPartition <$> mapM toConjureM x
+
+    toConjure x = toConjureFail "(AbstractLiteral Expr) (AbstractLiteral Expression)" x
+
 instance Translate Expr Expression where
-  fromConjure (Constant t)             = ELiteral   <$> fromConjure t
-  fromConjure (AbstractLiteral t)      = ELiteral   <$> fromConjure t
+  fromConjure (Constant t)             = ECon   <$> fromConjure t
+  fromConjure (AbstractLiteral t)      = ELit   <$> fromConjure t
   fromConjure (Domain t)               = EDom   <$> fromConjure t
-  fromConjure (Reference t1 _)         = EVar   <$> fromConjure t1
+  -- fromConjure (Reference t1 _)         = EVar   <$> fromConjure t1
   -- fromConjure (WithLocals t1 t2)    = _f
   -- fromConjure (Comprehension t1 t2) = _f
   fromConjure (Typed t1 t2)            = ETyped <$> fromConjure t2 <*> fromConjure t1
@@ -43,19 +98,8 @@ instance Translate Expr Expression where
   fromConjure x = fromConjureFail "Expr Expression" x
 
 
-  toConjure (ELiteral t) =  do
-      case toConjure t of
-        Just (x :: Constant)  -> pure $ Constant x
-        Nothing -> do
-          case toConjure t of
-            Just (x :: AbstractLiteral Expression)  -> pure $ AbstractLiteral x
-            Nothing -> toConjureFail "Expr Expression" t
-
-  -- toConjure (ELiteral x@(EB _))        =  Constant        <$>  toConjure x
-  -- toConjure (ELiteral x)               =  AbstractLiteral <$>  toConjure x
-
   --FIXME correct? not the first
-  toConjure (EVar x)               =  Reference <$> toConjure x <*> return Nothing
+  toConjure (EVar x _)               =  Reference <$> toConjure x <*> return Nothing
 
   toConjure (EBinOp x)             =  toConjure x
   toConjure (EUniOp x)             =  toConjure x
@@ -64,7 +108,7 @@ instance Translate Expr Expression where
   toConjure (ETyped x1 x2)         =  Typed <$> toConjure x2 <*> toConjure x1
   -- toConjure EEmptyGuard         =  _t
 
-  toConjure (EQuan q (BIn (EVar x) dom) g inner) = do
+  toConjure (EQuan q (BIn (EVar x _) dom) g inner) = do
         x'     <- return $ Single (Name x)
         dom'   <- toConjure dom
         inner' <- toConjure inner
@@ -79,7 +123,7 @@ instance Translate Expr Expression where
           (Sum,_)              -> toConjure g  >>= \g' ->
                                   return [essence| sum    &x' in &dom', &g' . &inner' |]
 
-  toConjure (EQuan q (BOver (EVar x) (EDom dom)) g inner) = do
+  toConjure (EQuan q (BOver (EVar x _) (EDom dom)) g inner) = do
         x'                           <- return $ Single (Name x)
         dom' :: Domain () Expression <- toConjure dom
         inner'                       <- toConjure inner
@@ -293,7 +337,7 @@ instance Translate Proc Expression where
   toConjure (PallDiff x ) = return [essence| allDiff(&x') |] where
      x' = toConjureNote "Proc Expression" x
 
-  toConjure (Pindex ref@(EVar _) c ) = return [essence| &ref'[&c']  |] where
+  toConjure (Pindex ref@(EVar _ _) c ) = return [essence| &ref'[&c']  |] where
      ref' = toConjureNote "Proc Expression" ref
      c'   = toConjureNote "Proc Expression" c
 
@@ -302,7 +346,7 @@ instance Translate Proc Expression where
      c'     = toConjureNote "Proc Expression" c
 
 
-  toConjure (Papply (EVar t) es ) =do
+  toConjure (Papply (EVar t _) es ) =do
     es' <- mapM toConjure es
     return $
       Op

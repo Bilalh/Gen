@@ -18,5 +18,5 @@ instance Translate (Domainn Expr) (Domain () Expression) where
     toConjure x = mapM toConjure x
 
 dintRange :: Int -> Int -> Domainn Expr
-dintRange a b = DomainInt [RangeBounded (ELiteral . EI $ fromIntegral a)
-                                        (ELiteral . EI $ fromIntegral b)]
+dintRange a b = DomainInt [RangeBounded (ECon . ConstantInt $ fromIntegral a)
+                                        (ECon . ConstantInt $ fromIntegral b)]

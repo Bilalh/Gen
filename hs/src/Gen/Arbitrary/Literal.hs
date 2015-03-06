@@ -1,33 +1,25 @@
-{-# LANGUAGE QuasiQuotes,  ViewPatterns #-}
-
-
-
+{-# LANGUAGE QuasiQuotes #-}
 module Gen.Arbitrary.Literal where
 
-import Gen.Prelude
-
-import Gen.Arbitrary.Domain
-
-import Gen.Arbitrary.Expr(exprOf,deAny)
-
-import qualified Data.IntSet as I
-import Data.IntSet(IntSet)
-import qualified Data.Set as S
-
-
-import Conjure.Language.Domain
-
+import           Conjure.Language.Constant
+import           Conjure.Language.Domain
+import           Data.IntSet               (IntSet)
+import qualified Data.IntSet               as I
+import qualified Data.Set                  as S
+import           Gen.Arbitrary.Domain
+import           Gen.Arbitrary.Expr        (deAny, exprOf)
+import           Gen.Prelude
 
 
 boolLit :: GG Expr
 boolLit = do
     b <- lift arbitrary
-    return  (ELiteral (EB b))
+    return  (ECon (ConstantBool b))
 
 intLit :: GG Expr
 intLit  = do
     i <- choose2 ((-10),10 :: Integer)
-    return (ELiteral (EI i) )
+    return (ECon (ConstantInt i) )
 
 
 setLit :: GG Expr

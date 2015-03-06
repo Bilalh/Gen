@@ -1,50 +1,42 @@
-{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Gen.Helpers.TypeOf(WithDoms(..), TTypeOf(..), typeOfDom) where
 
-import Gen.Helpers.StandardImports
--- import Gen.Arbitrary.Data
+import           Conjure.Language.AbstractLiteral
+import           Conjure.Language.Constant
+import           Conjure.Language.TypeOf
+import qualified Data.Map                         as M
+import           Gen.Helpers.StandardImports
 
-import qualified Data.Map as M
-import Conjure.Language.TypeOf
+class TTypeOf a where
+    ttypeOf :: (Monad m, Applicative m) => a -> m TType
 
-class (Monad a, Applicative a) => WithDoms a where
-  domainOfVar :: Text -> a (Maybe (Domainn Expr))
-  getSpecEWithDoms :: a Spec
-  typeOfVar :: Text -> a (Maybe TType)
-
-  domainOfVar t = do
-    (Spec ds _ _) <- getSpecEWithDoms
-    let d =  fmap domOfGF $ t `M.lookup` ds
-    return d
-
-  typeOfVar  t = do
-    domainOfVar  t >>= \case
-      Nothing -> return Nothing
-      Just d  -> ttypeOf d >>= return . Just
-
-instance WithDoms ((->) Spec) where
-    getSpecEWithDoms e = e
-
-instance WithDoms m => WithDoms (StateT () m)  where
-    getSpecEWithDoms = getSpecEWithDoms
-
-
-class WithDoms m => TTypeOf a m where
-    ttypeOf :: a -> m TType
-
-instance WithDoms m => TTypeOf TType m where
+instance TTypeOf TType  where
   ttypeOf t = return t
 
-instance WithDoms m => TTypeOf GF m where
+instance TypeOf TType  where
+  typeOf t = return $ toConjureNote "typeOf TType" t
+
+instance TypeOf Expr  where
+  typeOf t = do
+      ty <- (ttypeOf t)
+      return $ toConjureNote "typeOf TType" ty
+
+instance TTypeOf GF  where
   ttypeOf = return . typeOfDom . domOfGF
 
-instance WithDoms m => TTypeOf (Domainn Expr) m where
+instance TTypeOf (Domainn Expr)  where
   ttypeOf = return . typeOfDom
 
+instance TTypeOf Constant  where
+    ttypeOf x = case typeOf x of
+                  Left d -> error . show $ d
+                  Right r -> return $ fromConjureNote "d" r
 
-instance WithDoms m => TTypeOf Expr m where
-  ttypeOf (ELiteral x)          = ttypeOf x
+instance TTypeOf Expr  where
+  ttypeOf (ELit x)          = ttypeOf x
+  ttypeOf (ECon x)          = ttypeOf x
   ttypeOf (EDom x)          = ttypeOf x
   ttypeOf (EBinOp x)        = ttypeOf x
   ttypeOf (EUniOp x)        = ttypeOf x
@@ -52,19 +44,26 @@ instance WithDoms m => TTypeOf Expr m where
   ttypeOf (EQuan Sum _ _ _) = return TInt
   ttypeOf (EQuan _ _ _ _)   = return TBool
   ttypeOf EEmptyGuard       = return TBool
+  ttypeOf (EVar _ ty)       = return ty
+  ttypeOf (ETyped t _)      = return t
+  ttypeOf x = error . show . vcat $ ["ttypeOf ", pretty x]
 
-  ttypeOf (EVar x) = typeOfVar x >>= \case
-    Nothing -> error . show . vcat $ ["ttypeOf EVar no domain", pretty x  ]
-    Just ty -> return ty
 
-  ttypeOf (ETyped t _)  = return t
+toTType :: (Monad m, Applicative m, TypeOf a) => a -> m TType
+toTType f = case typeOf f of
+              Left r   -> error . show $ r
+              Right r  -> return $ fromConjureNote "toTType"  r
 
-instance WithDoms m => TTypeOf UniOp m where
+instance TTypeOf (AbstractLiteral Expr)  where
+    ttypeOf x = toTType x
+
+
+instance TTypeOf UniOp  where
   ttypeOf (UBar e) = ttypeOf e
   ttypeOf (UNeg e) = ttypeOf e
 
 
-instance WithDoms m => TTypeOf BinOp m where
+instance TTypeOf BinOp  where
   ttypeOf (BIn _ _)    = return TBool
   ttypeOf (BOver _ _) = error "withDoms Bover missing"
   ttypeOf (BEQ _ _)    = return TBool
@@ -99,50 +98,7 @@ instance WithDoms m => TTypeOf BinOp m where
 
 
 
-
-instance WithDoms m => TTypeOf [Literal] m where
-    ttypeOf []    = return TAny
-    ttypeOf (x:_) = ttypeOf x
-
-instance WithDoms m => TTypeOf Literal m where
-  ttypeOf (EB _) = return TBool
-  ttypeOf (EI _) = return TInt
-
-  ttypeOf (ETuple x)        = return TTuple <*> (mapM ttypeOf x)
-
-  ttypeOf (EMatrix [] _)    = return $ TMatix TAny
-  ttypeOf (EMatrix (x:_) _) = pure TMatix <*> ttypeOf x
-  ttypeOf (ESet [])         = return $ TSet TAny
-  ttypeOf (ESet (x:_))      = pure TSet <*> ttypeOf x
-  ttypeOf (EMSet [])        = return $ TMSet TAny
-  ttypeOf (EMSet (x:_))     = pure TMSet <*> ttypeOf x
-
-  ttypeOf (EFunction [])            = return $ TFunc TAny TAny
-  ttypeOf (EFunction ( (x1,x2) :_)) = pure TFunc <*> (ttypeOf x1) <*> (ttypeOf x2)
-
-  ttypeOf (ERelation xs)            = pure  TRel <*> (mapM ( ttypeOf) xs)
-  ttypeOf (EPartition [])           = return $ TPar TAny
-
-  ttypeOf (EPartition xs)           = pure TPar <*> (fmap firstOrAny . fmap catMaybes $ toType xs)
-
-    where
-      toType :: [[Literal]] -> m [Maybe TType]
-      toType ts = case filter (not . null) ts of
-                   []    -> return []
-                   (y:_) -> mapM (fmap ridAny . ttypeOf) y
-
-
-
-      ridAny TAny = Nothing
-      ridAny v    = Just v
-
-      firstOrAny :: [TType] -> TType
-      firstOrAny []    = TAny
-      firstOrAny (x:_) = x
-
-  ttypeOf (EExpr x) = ttypeOf x
-
-instance WithDoms m => TTypeOf Proc m where
+instance TTypeOf Proc  where
   ttypeOf (PallDiff x)  = ttypeOf x
   ttypeOf (Pindex _ x2) = ttypeOf x2
   ttypeOf (Papply x1 _) = ttypeOf x1 >>= \case
@@ -209,3 +165,25 @@ typeOfDom d = case typeOf d of
                 Left x -> error . show . vcat $
                           ["typeOfDom failed for", x, (pretty . groom) d, pretty d]
                 Right x -> fromConjureNote "typeOfDom convert type back" x
+
+
+class (Monad a, Applicative a) => WithDoms a where
+  domainOfVar :: Text -> a (Maybe (Domainn Expr))
+  getSpecEWithDoms :: a Spec
+  typeOfVar :: Text -> a (Maybe TType)
+
+  domainOfVar t = do
+    (Spec ds _ _) <- getSpecEWithDoms
+    let d =  fmap domOfGF $ t `M.lookup` ds
+    return d
+
+  typeOfVar  t = do
+    domainOfVar  t >>= \case
+      Nothing -> return Nothing
+      Just d  -> ttypeOf d >>= return . Just
+
+instance WithDoms ((->) Spec) where
+    getSpecEWithDoms e = e
+
+instance WithDoms m => WithDoms (StateT () m)  where
+    getSpecEWithDoms = getSpecEWithDoms

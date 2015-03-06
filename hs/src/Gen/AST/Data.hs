@@ -6,7 +6,7 @@ module Gen.AST.Data where
 import Conjure.Prelude
 import Conjure.Language.Domain
 import Conjure.Language.Pretty
-
+import Conjure.Language.Definition
 
 class (Pretty ast, Pretty conjure, Show ast) => Translate ast conjure where
   -- Should never cause an error but...
@@ -30,9 +30,10 @@ class Pretty a => PrettyWithQuan a where
     prettyWithQuan :: Pretty a => a -> Doc
 
 data Expr =
-    ELiteral Literal
-  | EVar Text
+    EVar Text TType
   | EDom (Domainn Expr)
+  | ECon Constant
+  | ELit (AbstractLiteral Expr)
 
   | ETyped TType Expr
   | EEmptyGuard
@@ -151,24 +152,6 @@ instance Serialize Proc
 instance Hashable  Proc
 instance ToJSON    Proc where toJSON = genericToJSON jsonOptions
 instance FromJSON  Proc where parseJSON = genericParseJSON jsonOptions
-
-data Literal
-    = EB Bool
-    | EI Integer
-    | ETuple      [Literal]
-    | EMatrix     [Literal] (Domainn Expr)
-    | ESet        [Literal]
-    | EMSet       [Literal]
-    | EFunction   [(Literal, Literal)] -- list of mappings
-    | ERelation   [Literal]            -- list of tuples
-    | EPartition  [[Literal]]          -- list of parts
-    | EExpr Expr
-      deriving (Eq, Ord, Show, Data, Typeable, Generic)
-
-instance Serialize Literal
-instance Hashable  Literal
-instance ToJSON    Literal where toJSON = genericToJSON jsonOptions
-instance FromJSON  Literal where parseJSON = genericParseJSON jsonOptions
 
 data TType =
       TAny
