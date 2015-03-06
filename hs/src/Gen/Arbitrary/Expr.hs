@@ -1,11 +1,7 @@
 {-# LANGUAGE QuasiQuotes, ViewPatterns#-}
-
-
-
 module Gen.Arbitrary.Expr where
 
 import Gen.Prelude
-
 import Gen.Arbitrary.Type
 import Gen.Arbitrary.Common
 
@@ -45,7 +41,7 @@ quanInExpr  = withQuan $
         Nothing -> boolExpr  -- Nothing to quantify over
         Just gen -> do
 
-            over@(EVar overName) <- lift gen
+            over@(EVar overName _) <- lift gen
             addLog "quanInExpr" ["over" <+> pretty over ]
             overType <- lookupType overName
             addLog "quanInExpr" ["overTy" <+> pretty overType ]
@@ -60,7 +56,7 @@ quanInExpr  = withQuan $
 
             -- FIXME Ensure with high prob that inName is actually used
             quanType <- elements2 [ ForAll, Exists ]
-            let quanTop = EQuan quanType (BIn (EVar inName) over)
+            let quanTop = EQuan quanType (BIn (EVar inName overType) over)
 
             d <- gets depth_
             let typeDepth = depthOf inType
@@ -98,7 +94,7 @@ quanOverExpr = withQuan $
 
             -- FIXME Ensure with high prob that inName is actually used
             quanType <- elements2 [ ForAll, Exists ]
-            let quanTop = EQuan quanType (BOver (EVar inName) (EDom dm))
+            let quanTop = EQuan quanType (BOver (EVar inName overType) (EDom dm))
 
             d <- gets depth_
             let typeDepth = depthOf innerType
@@ -124,7 +120,7 @@ quanSum = withQuan $
         Just gen -> do
             addLog "quanSum" []
 
-            over@(EVar overName) <- lift gen
+            over@(EVar overName _) <- lift gen
             overType <- lookupType overName
 
             let inType =  quanType_in overType
@@ -135,7 +131,7 @@ quanSum = withQuan $
                                   , "inTy" <+> pretty inType
                                   ]
 
-            let quanTop = EQuan Sum (BIn (EVar inName) over)
+            let quanTop = EQuan Sum (BIn (EVar inName overType) over)
 
             quanGuard <- oneof2 [
                 return EEmptyGuard
@@ -173,9 +169,9 @@ boolExprUsingRef ref = do
 
 -- Types that can be reached from a type in n levels of nesting
 exprFromToType :: Ref -> TType -> TType -> GG Expr
-exprFromToType ref from to | from == to =  return $ EVar ref
+exprFromToType ref from to | from == to =  return $ EVar ref $notDone
 
-exprFromToType ref (TSet _) TInt = return $ EUniOp $ UBar $ EVar ref
+exprFromToType ref (TSet _) TInt = return $ EUniOp $ UBar $ EVar ref  $notDone
 
 
 
@@ -332,7 +328,7 @@ varsOf' exprType = do
 
     let newVars = map fst $ filter (typesUnify exprType . snd ) newVars_
 
-    return $ toGenExpr EVar $ newVars ++ (
+    return $ toGenExpr (flip EVar  $notDone) $ newVars ++ (
         map fst . M.toList  . M.filter
             (typesUnify exprType . typeOfDom . domOfGF ))  doms_
 

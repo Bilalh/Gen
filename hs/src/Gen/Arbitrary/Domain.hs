@@ -1,5 +1,4 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-
 module Gen.Arbitrary.Domain
 (
       dom_def
@@ -28,6 +27,7 @@ module Gen.Arbitrary.Domain
 ) where
 
 import Conjure.Language.Domain
+import Conjure.Language.Constant
 import Gen.Prelude
 
 import qualified Data.Set as S
@@ -150,12 +150,12 @@ mkRanges _ 0 0 _ = return []
 
 mkRanges ub ns 1 used = do
     (l,u) <- chooseUnusedSized ub ns used
-    return  [ RangeBounded (ELiteral . EI $ l) (ELiteral . EI $ u) ]
+    return  [ RangeBounded (ECon . ConstantInt $ l) (ECon . ConstantInt $ u) ]
 
 mkRanges ub ns rs used | ns == rs = do
     i <- chooseUnused ub used
     rest <- mkRanges ub (ns - 1) (rs - 1) (S.union (S.singleton i )  used)
-    return $ RangeSingle (ELiteral . EI $ i) : rest
+    return $ RangeSingle (ECon . ConstantInt $ i) : rest
 
 mkRanges _ 1 rs _ | rs /= 1 = do
      error . show $ ("mkRanges invaild" :: String, 1 :: Integer, rs)
@@ -165,7 +165,7 @@ mkRanges ub ns rs used | ns >=2= do
     if single then do
         i <- chooseUnused ub used
         rest <- mkRanges ub (ns - 1) (rs - 1) (S.union (S.singleton i )  used)
-        return $ RangeSingle (ELiteral . EI $ i) : rest
+        return $ RangeSingle (ECon . ConstantInt $ i) : rest
     else do
         num <- choose2 (2, ns - rs + 1 )
         (l,u) <- chooseUnusedSized ub num used
@@ -173,7 +173,7 @@ mkRanges ub ns rs used | ns >=2= do
         let used' = S.fromList [l..u]  `S.union` used
         rest <- mkRanges ub (ns - (u - l + 1) ) (rs - 1) used'
 
-        return $ RangeBounded (ELiteral . EI $ l) (ELiteral . EI $ u) : rest
+        return $ RangeBounded (ECon . ConstantInt $ l) (ECon . ConstantInt $ u) : rest
 
 mkRanges _ ns rs _  = docError ["mkRanges unmatched", pretty ns, pretty rs]
 
@@ -216,22 +216,22 @@ range = oneof2
     arbitrarySingle :: GG (Range Expr)
     arbitrarySingle = do
         a <- choose2 (-5,5 :: Integer)
-        return $ RangeSingle (ELiteral . EI $ a)
+        return $ RangeSingle (ECon . ConstantInt $ a)
 
     arbitraryFromTo :: GG (Range Expr)
     arbitraryFromTo = do
         do
             a <- choose2 (-5,5 :: Integer)
             b <- choose2 (a,5)
-            return $ RangeBounded (ELiteral . EI $ a) (ELiteral . EI $  b)
+            return $ RangeBounded (ECon . ConstantInt $ a) (ECon . ConstantInt $  b)
 
 
 
 rangeComp :: Range Expr -> Range Expr -> Ordering
-rangeComp (RangeSingle (ELiteral (EI a) ))    (RangeSingle (ELiteral (EI b) ))   = compare a b
-rangeComp (RangeSingle (ELiteral (EI a) ))    (RangeBounded (ELiteral (EI b) ) _) = compare a b
-rangeComp (RangeBounded (ELiteral (EI a) ) _ ) (RangeBounded (ELiteral (EI b) ) _) = compare a b
-rangeComp (RangeBounded (ELiteral (EI a) ) _)  (RangeSingle (ELiteral (EI b) ))   = compare a b
+rangeComp (RangeSingle (ECon (ConstantInt a) ))    (RangeSingle (ECon (ConstantInt b) ))     = compare a b
+rangeComp (RangeSingle (ECon (ConstantInt a) ))    (RangeBounded (ECon (ConstantInt b) ) _)  = compare a b
+rangeComp (RangeBounded (ECon (ConstantInt a) ) _ ) (RangeBounded (ECon (ConstantInt b) ) _) = compare a b
+rangeComp (RangeBounded (ECon (ConstantInt a) ) _)  (RangeSingle (ECon (ConstantInt b) ))    = compare a b
 rangeComp a b  = docError [
     "rangeComp not matched",
     pretty $ show a, pretty $ show b,

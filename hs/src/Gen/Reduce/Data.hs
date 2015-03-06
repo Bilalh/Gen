@@ -17,8 +17,8 @@ import qualified Data.IntSet as IS
 
 
 etrue, efalse :: Expr
-etrue  = ELiteral (EB True)
-efalse = ELiteral (EB False)
+etrue  = ELit (EB True)
+efalse = ELit (EB False)
 
 type RR a = StateT RState IO a
 

@@ -1,16 +1,12 @@
-
-
-
-
 module Gen.Arbitrary.FromNested where
 
-import Gen.Prelude
+import Conjure.Language.AbstractLiteral
+import Conjure.Language.Constant
 import Gen.Arbitrary.Expr
--- import Gen.Arbitrary.Type
 import Gen.Arbitrary.Op
+import Gen.Prelude
 
 import qualified Data.Map as M
--- import Data.Maybe(isJust)
 
 
 -- returns a Ref to var that be reached with the remaining depth
@@ -129,7 +125,7 @@ exprFromRefTo (ref,tyFrom) tyTo = do
     addLog "exprFromRefTo" ["depth, ref, fromTy, tyTo"
                            ,pretty d,  pretty ref, pretty tyFrom, pretty tyTo  ]
 
-    process (EVar ref) tyFrom
+    process (EVar ref $notDone) tyFrom
 
 
     where
@@ -182,14 +178,14 @@ nextt' cur tyFrom tyTo = do
         return $ [(op cur cur, TBool)]
 
     ff from to@(TSet inner) | from == inner  = do
-        return [(ELiteral $ ESet $ [EExpr cur], to )]
+        return [(ELit $ AbsLitSet $ [cur], to )]
 
     ff (TTuple inners) to | any (==to) inners = do
         let withIdx = zip inners [1..]
             possible =  filter (\(f,_) -> f == to ) withIdx
 
         (_, cIndex) <- elements2 possible
-        return $ [  (EProc $ Pindex cur (ELiteral $ EI cIndex)  , to)  ]
+        return $ [  (EProc $ Pindex cur (ECon $ ConstantInt cIndex)  , to)  ]
 
     ff (TFunc ffrom fto) to | fto == to = do
         indexer <-  exprOf ffrom

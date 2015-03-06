@@ -1,15 +1,15 @@
-{-# LANGUAGE QuasiQuotes #-}
+ {-# LANGUAGE QuasiQuotes #-}
 module Gen.Arbitrary.Literal where
+import Conjure.Language.Constant
+import Conjure.Language.AbstractLiteral
+import Conjure.Language.Domain
+import Data.IntSet               (IntSet)
+import Gen.Arbitrary.Domain
+import Gen.Arbitrary.Expr        (deAny, exprOf)
+import Gen.Prelude
 
-import           Conjure.Language.Constant
-import           Conjure.Language.Domain
-import           Data.IntSet               (IntSet)
 import qualified Data.IntSet               as I
 import qualified Data.Set                  as S
-import           Gen.Arbitrary.Domain
-import           Gen.Arbitrary.Expr        (deAny, exprOf)
-import           Gen.Prelude
-
 
 boolLit :: GG Expr
 boolLit = do
@@ -32,9 +32,8 @@ setLitOf innerType = do
     depth_ <- gets depth_
     t2 <- deAny $ TSet innerType
     listOfBounds (0,  min 15 (2 * depth_) ) (withDepthDec $ exprOf innerType) >>= \case
-                     [] -> return $ ETyped t2 (ELiteral $ ESet [])
-                     xs -> return . ELiteral . ESet . map EExpr $ xs
-    --
+                     [] -> return $ ETyped t2 (ELit $ AbsLitSet [])
+                     xs -> return . ELit . AbsLitSet $ xs
 
 
 msetLit :: GG Expr
@@ -47,8 +46,8 @@ msetLitOf innerType = do
     depth_ <- gets depth_
     t2 <- deAny $ TMSet innerType
     listOfBounds (0,  min 15 (2 * depth_) ) (withDepthDec $ exprOf innerType) >>= \case
-                     [] -> return $ ETyped t2 (ELiteral $ EMSet [])
-                     xs -> return . ELiteral . EMSet . map EExpr $ xs
+                     [] -> return $ ETyped t2 (ELit $ AbsLitMSet [])
+                     xs -> return . ELit . AbsLitMSet  $ xs
 
 
 matrixLitOf :: TType -> GG Expr
@@ -56,7 +55,7 @@ matrixLitOf innerType = do
     idx <-  withDepthDec intDom
     let numElems = S.size $ S.fromList $ concat $ ints idx
     exprs <- vectorOf2 numElems ( withDepthDec $ exprOf innerType)
-    return $ ELiteral $ EMatrix (map EExpr $ exprs) idx
+    return $ ELit $ AbsLitMatrix idx exprs
 
     where
       ints (DomainInt rs)         = map rsInts rs
@@ -64,7 +63,7 @@ matrixLitOf innerType = do
       rsInts (RangeSingle x)      = [getInt x]
       rsInts (RangeBounded a b)   = [(getInt a) .. (getInt b)]
       rsInts x = docError ["not matched rsInts", pretty x]
-      getInt (ELiteral (EI x)) = x
+      getInt (ECon (ConstantInt x)) = x
       getInt x = docError ["not matched getInt", pretty x]
 
 -- FIXME from mappings should be distinct?
@@ -76,9 +75,9 @@ funcLitOf fromType toType = do
     tos   <- vectorOf2 numElems  ( withDepthDec $ exprOf toType)
 
     t2 <- deAny $ TFunc fromType toType
-    case zipWith (\a b -> (EExpr $ a, EExpr $ b) ) froms tos of
-      [] -> return $ ETyped t2 $ (ELiteral $ EFunction [])
-      xs -> return $ ELiteral $ EFunction xs
+    case zipWith (\a b -> (a, b) ) froms tos of
+      [] -> return $ ETyped t2 $ (ELit $ AbsLitFunction [])
+      xs -> return $ ELit $ AbsLitFunction xs
 
 
 tupleLitOf :: [TType] -> GG Expr
@@ -88,12 +87,12 @@ tupleLitOf tys = do
         | depth_ < 1 -> ggError "tupleLitOf depth_ <1" [pretty $ groom tys]
         | otherwise -> do
             parts <- mapM mkParts tys
-            return $ ELiteral $ ETuple parts
+            return $ ELit $ AbsLitTuple parts
 
     where
         mkParts ty  = do
             e <- withDepthDec $ exprOf ty
-            return $ EExpr  e
+            return $ e
 
 relLitOf :: [TType] -> GG Expr
 relLitOf types = do
@@ -104,13 +103,12 @@ relLitOf types = do
             parts <- vectorOf2 3 $ mkParts types
             t2 <- deAny $ TRel types
             case parts of
-              [] -> return $ ETyped t2  (ELiteral $ ERelation [])
-              xs -> return $ ELiteral $ ERelation xs
+              [] -> return $ ETyped t2  (ELit $ AbsLitRelation [])
+              xs -> return $ ELit $ AbsLitRelation xs
 
     where
-    mkParts tys = do
-        (ELiteral lit) <- withDepthDec $ tupleLitOf tys
-        return lit
+    -- FIXME CHECK depth
+    mkParts tys = mapM exprOf tys
 
 
 
@@ -128,8 +126,8 @@ parLitOf innerType = do
             numParts <- choose2 (1, numElems)
             t2 <- deAny $ TPar innerType
             mkParts numElems numParts (I.empty) >>= \case
-                    [] -> return $ ETyped t2 (ELiteral $ EPartition [])
-                    xs -> return $ ELiteral $ EPartition xs
+                    [] -> return $ ETyped t2 (ELit $ AbsLitPartition [])
+                    xs -> return $ ELit $ AbsLitPartition xs
 
     where
 
@@ -137,7 +135,7 @@ parLitOf innerType = do
             :: Int  -- Number of elements to put in all parts
             -> Int  -- Number of parts
             -> IntSet
-            -> GG [[Literal]]
+            -> GG [[Expr]]
         mkParts e 1 done = (\f -> [fst f]) <$> mkPart e done
         mkParts e p done = do
             numElems <- choose2 (1, (e - (p - 1) ))
@@ -149,10 +147,10 @@ parLitOf innerType = do
         mkPart
             :: Int         -- Number of elements
             -> IntSet
-            -> GG ( [Literal], IntSet)
+            -> GG ( [Expr], IntSet)
         mkPart e done = do
             (es,done') <- expr e done
-            return $ (map EExpr es, done')
+            return $ (es, done')
 
             where
             expr 0 seen = return ([], seen)
