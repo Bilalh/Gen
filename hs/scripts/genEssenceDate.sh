@@ -1,6 +1,10 @@
 #/bin/bash
 set -o nounset
 
+if ( ! gen --toolchain-path >/dev/null ); then
+    exit 1
+fi
+
 base=$1;
 shift;
 
@@ -12,4 +16,4 @@ cores=${CORES:-"$(parallel --number-of-cores)"}
 
 gen essence "${base}/${dat}" --cores "$cores" "$@" 2>&1 | tee "${base}/${dat}/_all.logged" ;
 
-"$PARAM_GEN_SCRIPTS/toolchain/save_version.sh" "${base}/${dat}/zver@"
+"$(gen --toolchain-path)/save_version.sh" "${base}/${dat}/zver@"

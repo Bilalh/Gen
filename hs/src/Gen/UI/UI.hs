@@ -398,11 +398,7 @@ ui  = modes
                                     &= groupname "Required"
                                     &= explicit
                                     &= help "Output directory "
-     , _cores             = def                                        &= name "output-directory"
-                                    &= name "o"
-                                    &= groupname "Required"
-                                    &= explicit
- &= name "cores"
+     , _cores             = def     &= name "cores"
                                     &= name "c"
                                     &= groupname "Required"
                                     &= explicit
