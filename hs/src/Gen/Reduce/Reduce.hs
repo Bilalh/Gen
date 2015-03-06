@@ -1,6 +1,3 @@
-
-
-
 module Gen.Reduce.Reduce where
 
 import Gen.Reduce.Data

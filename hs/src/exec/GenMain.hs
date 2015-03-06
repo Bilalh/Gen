@@ -191,14 +191,22 @@ mainWithArgs Script_Toolchain{..} = do
            , Toolchain.outputDirectory   = output_directory
            , Toolchain.totalTime         = total_time
            , Toolchain.essenceParam      = essence_param
-           , Toolchain.refineType        = refine_type
+           , Toolchain.refineType        = f refine_type choices_path
            , Toolchain.cores             = _cores
            , Toolchain.seed              = _seed
            , Toolchain.binariesDirectory = binaries_directory
            , Toolchain.oldConjure        = old_conjure
            , Toolchain.toolchainOutput   = toolchain_ouput
+           , Toolchain.choicesPath       = choices_path
            }
   exitWith code
+
+  where
+    f :: Toolchain.RefineType -> Maybe FilePath -> Toolchain.RefineType 
+    f r Nothing = r
+    f Toolchain.Refine_All _       = error "--choices make no sense with --refine-all"
+    f Toolchain.Refine_Solve_All _ = error "--choices make no sense with --refine-solve-all"
+    f r _ = r
 
 mainWithArgs Script_ToolchainRecheck{..} = do
   let errors = catMaybes

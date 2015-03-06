@@ -1,4 +1,3 @@
-
 {-# LANGUAGE MultiParamTypeClasses, FlexibleContexts, FlexibleInstances #-}
 
 {-# LANGUAGE PatternGuards #-}

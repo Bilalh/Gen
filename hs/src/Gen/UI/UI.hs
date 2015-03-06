@@ -74,8 +74,9 @@ data UI
     , output_directory   :: FilePath
     , total_time         :: Int
 
-    , essence_param      :: Maybe FilePath
-    , refine_type        :: RefineType
+    , essence_param       :: Maybe FilePath
+    , refine_type         :: RefineType
+    , choices_path        :: Maybe FilePath
 
     , _cores             :: Int
     , _seed              :: Maybe Int
@@ -351,6 +352,12 @@ ui  = modes
                                                &= groupname "Control"
                                                &= help "Refine, solve and validate the spec while genrating all models"
                             ]
+
+     , choices_path      = Nothing  &= name "choices"
+                                    &= explicit
+                                    &= typ "FILE"
+                                    &= groupname "Control"
+                                    &= help "Use an .eprime/.json file to try to pick the given choices as far as possible"
 
      , _seed              = def     &= name "seed"
                                     &= groupname "Other"

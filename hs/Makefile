@@ -25,7 +25,7 @@ ghci:
 	    -fwarn-unused-do-bind                      \
 	    -fwarn-unused-matches                      \
 	    -Wall                                      \
-	    `find src -name '*.hs' | grep -v 'exec' | grep -v 'EssenceSolver'  | grep -v '\.#' `
+	    `find src -name '*.hs' | grep -v 'exec' | grep -v '\.#' `
 
 ghci_main:
 	@cabal exec ghci -- -isrc -isrc/test -idist/build/autogen  \
