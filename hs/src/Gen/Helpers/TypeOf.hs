@@ -44,7 +44,7 @@ instance WithDoms m => TTypeOf (Domainn Expr) m where
 
 
 instance WithDoms m => TTypeOf Expr m where
-  ttypeOf (ELit x)          = ttypeOf x
+  ttypeOf (ELiteral x)          = ttypeOf x
   ttypeOf (EDom x)          = ttypeOf x
   ttypeOf (EBinOp x)        = ttypeOf x
   ttypeOf (EUniOp x)        = ttypeOf x

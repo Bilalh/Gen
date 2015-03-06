@@ -152,12 +152,12 @@ mkRanges _ 0 0 _ = return []
 
 mkRanges ub ns 1 used = do
     (l,u) <- chooseUnusedSized ub ns used
-    return  [ RangeBounded (ELit . EI $ l) (ELit . EI $ u) ]
+    return  [ RangeBounded (ELiteral . EI $ l) (ELiteral . EI $ u) ]
 
 mkRanges ub ns rs used | ns == rs = do
     i <- chooseUnused ub used
     rest <- mkRanges ub (ns - 1) (rs - 1) (S.union (S.singleton i )  used)
-    return $ RangeSingle (ELit . EI $ i) : rest
+    return $ RangeSingle (ELiteral . EI $ i) : rest
 
 mkRanges _ 1 rs _ | rs /= 1 = do
      error . show $ ("mkRanges invaild" :: String, 1 :: Integer, rs)
@@ -167,7 +167,7 @@ mkRanges ub ns rs used | ns >=2= do
     if single then do
         i <- chooseUnused ub used
         rest <- mkRanges ub (ns - 1) (rs - 1) (S.union (S.singleton i )  used)
-        return $ RangeSingle (ELit . EI $ i) : rest
+        return $ RangeSingle (ELiteral . EI $ i) : rest
     else do
         num <- choose2 (2, ns - rs + 1 )
         (l,u) <- chooseUnusedSized ub num used
@@ -175,7 +175,7 @@ mkRanges ub ns rs used | ns >=2= do
         let used' = S.fromList [l..u]  `S.union` used
         rest <- mkRanges ub (ns - (u - l + 1) ) (rs - 1) used'
 
-        return $ RangeBounded (ELit . EI $ l) (ELit . EI $ u) : rest
+        return $ RangeBounded (ELiteral . EI $ l) (ELiteral . EI $ u) : rest
 
 mkRanges _ ns rs _  = docError ["mkRanges unmatched", pretty ns, pretty rs]
 
@@ -218,22 +218,22 @@ range = oneof2
     arbitrarySingle :: GG (Range Expr)
     arbitrarySingle = do
         a <- choose2 (-5,5 :: Integer)
-        return $ RangeSingle (ELit . EI $ a)
+        return $ RangeSingle (ELiteral . EI $ a)
 
     arbitraryFromTo :: GG (Range Expr)
     arbitraryFromTo = do
         do
             a <- choose2 (-5,5 :: Integer)
             b <- choose2 (a,5)
-            return $ RangeBounded (ELit . EI $ a) (ELit . EI $  b)
+            return $ RangeBounded (ELiteral . EI $ a) (ELiteral . EI $  b)
 
 
 
 rangeComp :: Range Expr -> Range Expr -> Ordering
-rangeComp (RangeSingle (ELit (EI a) ))    (RangeSingle (ELit (EI b) ))   = compare a b
-rangeComp (RangeSingle (ELit (EI a) ))    (RangeBounded (ELit (EI b) ) _) = compare a b
-rangeComp (RangeBounded (ELit (EI a) ) _ ) (RangeBounded (ELit (EI b) ) _) = compare a b
-rangeComp (RangeBounded (ELit (EI a) ) _)  (RangeSingle (ELit (EI b) ))   = compare a b
+rangeComp (RangeSingle (ELiteral (EI a) ))    (RangeSingle (ELiteral (EI b) ))   = compare a b
+rangeComp (RangeSingle (ELiteral (EI a) ))    (RangeBounded (ELiteral (EI b) ) _) = compare a b
+rangeComp (RangeBounded (ELiteral (EI a) ) _ ) (RangeBounded (ELiteral (EI b) ) _) = compare a b
+rangeComp (RangeBounded (ELiteral (EI a) ) _)  (RangeSingle (ELiteral (EI b) ))   = compare a b
 rangeComp a b  = docError [
     "rangeComp not matched",
     pretty $ show a, pretty $ show b,

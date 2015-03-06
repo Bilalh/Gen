@@ -18,8 +18,8 @@ import Gen.AST.Domain()
 
 
 instance Translate Expr Expression where
-  fromConjure (Constant t)             = ELit   <$> fromConjure t
-  fromConjure (AbstractLiteral t)      = ELit   <$> fromConjure t
+  fromConjure (Constant t)             = ELiteral   <$> fromConjure t
+  fromConjure (AbstractLiteral t)      = ELiteral   <$> fromConjure t
   fromConjure (Domain t)               = EDom   <$> fromConjure t
   fromConjure (Reference t1 _)         = EVar   <$> fromConjure t1
   -- fromConjure (WithLocals t1 t2)    = _f
@@ -43,7 +43,7 @@ instance Translate Expr Expression where
   fromConjure x = fromConjureFail "Expr Expression" x
 
 
-  toConjure (ELit t) =  do
+  toConjure (ELiteral t) =  do
       case toConjure t of
         Just (x :: Constant)  -> pure $ Constant x
         Nothing -> do
@@ -51,8 +51,8 @@ instance Translate Expr Expression where
             Just (x :: AbstractLiteral Expression)  -> pure $ AbstractLiteral x
             Nothing -> toConjureFail "Expr Expression" t
 
-  -- toConjure (ELit x@(EB _))        =  Constant        <$>  toConjure x
-  -- toConjure (ELit x)               =  AbstractLiteral <$>  toConjure x
+  -- toConjure (ELiteral x@(EB _))        =  Constant        <$>  toConjure x
+  -- toConjure (ELiteral x)               =  AbstractLiteral <$>  toConjure x
 
   --FIXME correct? not the first
   toConjure (EVar x)               =  Reference <$> toConjure x <*> return Nothing

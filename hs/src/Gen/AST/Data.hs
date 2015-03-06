@@ -30,16 +30,18 @@ class Pretty a => PrettyWithQuan a where
     prettyWithQuan :: Pretty a => a -> Doc
 
 data Expr =
-    ELit Literal
+    ELiteral Literal
   | EVar Text
-  | EBinOp BinOp
-  | EUniOp UniOp
-  | EProc Proc  -- e.g alldiff
   | EDom (Domainn Expr)
+
   | ETyped TType Expr
   | EEmptyGuard
   | EQuan QType BinOp Expr Expr
   | EMetaVar String -- For TH
+
+  | EBinOp BinOp
+  | EUniOp UniOp
+  | EProc Proc  -- e.g alldiff
   deriving (Eq, Ord, Show, Data, Typeable, Generic)
 
 instance Serialize (Expr)

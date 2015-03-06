@@ -22,12 +22,12 @@ import Conjure.Language.Domain
 boolLit :: GG Expr
 boolLit = do
     b <- lift arbitrary
-    return  (ELit (EB b))
+    return  (ELiteral (EB b))
 
 intLit :: GG Expr
 intLit  = do
     i <- choose2 ((-10),10 :: Integer)
-    return (ELit (EI i) )
+    return (ELiteral (EI i) )
 
 
 setLit :: GG Expr
@@ -40,8 +40,8 @@ setLitOf innerType = do
     depth_ <- gets depth_
     t2 <- deAny $ TSet innerType
     listOfBounds (0,  min 15 (2 * depth_) ) (withDepthDec $ exprOf innerType) >>= \case
-                     [] -> return $ ETyped t2 (ELit $ ESet [])
-                     xs -> return . ELit . ESet . map EExpr $ xs
+                     [] -> return $ ETyped t2 (ELiteral $ ESet [])
+                     xs -> return . ELiteral . ESet . map EExpr $ xs
     --
 
 
@@ -55,8 +55,8 @@ msetLitOf innerType = do
     depth_ <- gets depth_
     t2 <- deAny $ TMSet innerType
     listOfBounds (0,  min 15 (2 * depth_) ) (withDepthDec $ exprOf innerType) >>= \case
-                     [] -> return $ ETyped t2 (ELit $ EMSet [])
-                     xs -> return . ELit . EMSet . map EExpr $ xs
+                     [] -> return $ ETyped t2 (ELiteral $ EMSet [])
+                     xs -> return . ELiteral . EMSet . map EExpr $ xs
 
 
 matrixLitOf :: TType -> GG Expr
@@ -64,7 +64,7 @@ matrixLitOf innerType = do
     idx <-  withDepthDec intDom
     let numElems = S.size $ S.fromList $ concat $ ints idx
     exprs <- vectorOf2 numElems ( withDepthDec $ exprOf innerType)
-    return $ ELit $ EMatrix (map EExpr $ exprs) idx
+    return $ ELiteral $ EMatrix (map EExpr $ exprs) idx
 
     where
       ints (DomainInt rs)         = map rsInts rs
@@ -72,7 +72,7 @@ matrixLitOf innerType = do
       rsInts (RangeSingle x)      = [getInt x]
       rsInts (RangeBounded a b)   = [(getInt a) .. (getInt b)]
       rsInts x = docError ["not matched rsInts", pretty x]
-      getInt (ELit (EI x)) = x
+      getInt (ELiteral (EI x)) = x
       getInt x = docError ["not matched getInt", pretty x]
 
 -- FIXME from mappings should be distinct?
@@ -85,8 +85,8 @@ funcLitOf fromType toType = do
 
     t2 <- deAny $ TFunc fromType toType
     case zipWith (\a b -> (EExpr $ a, EExpr $ b) ) froms tos of
-      [] -> return $ ETyped t2 $ (ELit $ EFunction [])
-      xs -> return $ ELit $ EFunction xs
+      [] -> return $ ETyped t2 $ (ELiteral $ EFunction [])
+      xs -> return $ ELiteral $ EFunction xs
 
 
 tupleLitOf :: [TType] -> GG Expr
@@ -96,7 +96,7 @@ tupleLitOf tys = do
         | depth_ < 1 -> ggError "tupleLitOf depth_ <1" [pretty $ groom tys]
         | otherwise -> do
             parts <- mapM mkParts tys
-            return $ ELit $ ETuple parts
+            return $ ELiteral $ ETuple parts
 
     where
         mkParts ty  = do
@@ -112,12 +112,12 @@ relLitOf types = do
             parts <- vectorOf2 3 $ mkParts types
             t2 <- deAny $ TRel types
             case parts of
-              [] -> return $ ETyped t2  (ELit $ ERelation [])
-              xs -> return $ ELit $ ERelation xs
+              [] -> return $ ETyped t2  (ELiteral $ ERelation [])
+              xs -> return $ ELiteral $ ERelation xs
 
     where
     mkParts tys = do
-        (ELit lit) <- withDepthDec $ tupleLitOf tys
+        (ELiteral lit) <- withDepthDec $ tupleLitOf tys
         return lit
 
 
@@ -136,8 +136,8 @@ parLitOf innerType = do
             numParts <- choose2 (1, numElems)
             t2 <- deAny $ TPar innerType
             mkParts numElems numParts (I.empty) >>= \case
-                    [] -> return $ ETyped t2 (ELit $ EPartition [])
-                    xs -> return $ ELit $ EPartition xs
+                    [] -> return $ ETyped t2 (ELiteral $ EPartition [])
+                    xs -> return $ ELiteral $ EPartition xs
 
     where
 

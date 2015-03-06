@@ -182,14 +182,14 @@ nextt' cur tyFrom tyTo = do
         return $ [(op cur cur, TBool)]
 
     ff from to@(TSet inner) | from == inner  = do
-        return [(ELit $ ESet $ [EExpr cur], to )]
+        return [(ELiteral $ ESet $ [EExpr cur], to )]
 
     ff (TTuple inners) to | any (==to) inners = do
         let withIdx = zip inners [1..]
             possible =  filter (\(f,_) -> f == to ) withIdx
 
         (_, cIndex) <- elements2 possible
-        return $ [  (EProc $ Pindex cur (ELit $ EI cIndex)  , to)  ]
+        return $ [  (EProc $ Pindex cur (ELiteral $ EI cIndex)  , to)  ]
 
     ff (TFunc ffrom fto) to | fto == to = do
         indexer <-  exprOf ffrom

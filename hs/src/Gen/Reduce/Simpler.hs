@@ -82,7 +82,7 @@ instance Simpler TType TType where
     simplerImp x  y = return $ compare (depthOf x) (depthOf y)
 
 instance Simpler Expr Expr where
-  simplerImp (ELit a ) (ELit b)    = simplerImp a b
+  simplerImp (ELiteral a ) (ELiteral b)    = simplerImp a b
   simplerImp (EUniOp a) (EUniOp b) = simplerImp a b
   simplerImp (EBinOp a) (EBinOp b) = simplerImp a b
   simplerImp (EProc a)  (EProc b)  = simplerImp a b
@@ -201,7 +201,7 @@ instance Simpler Literal Literal where
     simplerImp (EI _) _      = return LT
     simplerImp _     (EI _)  = return GT
 
-    simplerImp x (EExpr (ELit y))  = simplerImp x y
+    simplerImp x (EExpr (ELiteral y))  = simplerImp x y
     simplerImp (EExpr x) (EExpr y) = simplerImp x y
 
     simplerImp (EExpr x) l = simplerImp x l
@@ -263,7 +263,7 @@ instance Simpler Expr Literal where
     simplerImp EEmptyGuard b = do
       tyb <- ttypeOf b
       return $ if tyb == TBool then EQ else LT
-    simplerImp (ELit e) l    = simplerImp e l
+    simplerImp (ELiteral e) l    = simplerImp e l
 
     simplerImp (EVar e) l = do
       tyE :: TType <- typeOfVar e >>= \case

@@ -62,7 +62,7 @@ instance Translate Literal (AbstractLiteral Expression)  where
     toConjure (ERelation x)    = pure AbsLitRelation  <*> mapM toRel x
         where
           toRel (ETuple xs ) = mapM toConjure xs
-          toRel (EExpr (ELit (ETuple xs)) ) = mapM toConjure xs
+          toRel (EExpr (ELiteral (ETuple xs)) ) = mapM toConjure xs
           toRel v = toConjureFail "toRel Literal (AbstractLiteral Expression)" v
 
     toConjure x = toConjureFail "Literal (AbstractLiteral Expression)" x

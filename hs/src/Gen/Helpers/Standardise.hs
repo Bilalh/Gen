@@ -15,12 +15,12 @@ instance Standardise TType where
 
 instance Standardise Expr where
 
-    standardise (ELit (EExpr (ELit y) )) = pure ELit <*> standardise y
+    standardise (ELiteral (EExpr (ELiteral y) )) = pure ELiteral <*> standardise y
     -- When we have expr in domains
     -- standardise (EDom (DExpr (EDom y) )) = pure EDom <*> standardise y
 
 
-    standardise (ELit y)   = pure ELit    <*> standardise y
+    standardise (ELiteral y)   = pure ELiteral    <*> standardise y
     standardise (EDom y)   = pure EDom    <*> standardise y
 
     standardise (EBinOp y) = pure EBinOp  <*> standardise y
@@ -118,7 +118,7 @@ instance Standardise Literal where
         where
           nor = mapM standardise
 
-    standardise (EExpr (ELit l)) = standardise l
+    standardise (EExpr (ELiteral l)) = standardise l
     standardise (EExpr x)        = pure EExpr <*> standardise x
 
 instance Standardise (Domainn Expr) where

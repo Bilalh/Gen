@@ -23,9 +23,9 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
 
     reduce EEmptyGuard = return []
 
-    reduce (ELit t) = do
+    reduce (ELiteral t) = do
       lits <- reduce t
-      return $ map ELit lits
+      return $ map ELiteral lits
 
     reduce (EVar t) = typeOfVar t >>= \case
         Just ty -> singleLitExpr ty
@@ -69,7 +69,7 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
           rrError "single EVar not found" [pretty t]
 
 
-    single (ELit t)   = do
+    single (ELiteral t)   = do
       addLog "singleELit" [nn "t" t]
       single t
 
@@ -97,7 +97,7 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
 
     subterms (EVar _)  = return []
 
-    subterms (ELit t)   = subterms t
+    subterms (ELiteral t)   = subterms t
     subterms (EDom t)   = subterms t
     subterms (EBinOp t) = subterms t
     subterms (EUniOp t) = subterms t
@@ -354,14 +354,14 @@ f  -| (a,e) = do
 -- | return the simplest literals, two at most
 singleLit :: (HasGen m, HasLogger m, WithDoms m) => TType -> m [Expr]
 singleLit TInt = do
-  pure EI <*> chooseR (-5, 5) >>= return . (\a ->  [ELit a ] )
+  pure EI <*> chooseR (-5, 5) >>= return . (\a ->  [ELiteral a ] )
 
-singleLit TBool = oneofR [EB True, EB False] >>= return . (\a ->  [ELit a ] )
+singleLit TBool = oneofR [EB True, EB False] >>= return . (\a ->  [ELiteral a ] )
 
 -- of TAny are empty
 singleLit (TMatix TAny) = rrError "singleLit TMatix TAny" []
-singleLit (TSet TAny)   = return [ELit $ ESet []]
-singleLit (TMSet TAny)  = return [ELit $ EMSet []]
+singleLit (TSet TAny)   = return [ELiteral $ ESet []]
+singleLit (TMSet TAny)  = return [ELiteral $ EMSet []]
 
 singleLit (TMatix x) = do
   s <- singleLit x
@@ -371,58 +371,58 @@ singleLit (TMatix x) = do
              [e]   -> [si,  EMatrix (map (EExpr ) [e,e]) (dintRange 1 2)]
              (e:_) -> [EMatrix [(EExpr ) e] (dintRange 1 1), si]
 
-  return (map ELit res)
+  return (map ELiteral res)
 
 singleLit l@(TSet x) = do
   ty <- ttypeOf l
-  let empty = ETyped ty (ELit $ ESet [])
+  let empty = ETyped ty (ELiteral $ ESet [])
 
   si <- pure ESet <*> (singleLit x >>= (return . map (EExpr)))
-  return [ ELit si, empty]
+  return [ ELiteral si, empty]
 
 singleLit l@(TMSet x) = do
   ty <- ttypeOf l
-  let empty = ETyped ty $ (ELit $ EMSet [])
+  let empty = ETyped ty $ (ELiteral $ EMSet [])
 
   si <- pure EMSet <*> (singleLit x >>= (return . map (EExpr)))
   d  <- (singleLit x >>= (return . map (EExpr) ))
   let dupped = EMSet $ concat $ replicate 2 d
 
-  chosen <- oneofR [ELit si,ELit dupped]
+  chosen <- oneofR [ELiteral si,ELiteral dupped]
   return [chosen, empty]
 
 singleLit l@(TFunc x1 x2) = do
   ty <- ttypeOf l
-  let empty = ETyped ty $ (ELit $ EFunction [])
+  let empty = ETyped ty $ (ELiteral $ EFunction [])
 
   as <- singleLit x1 >>= (return . map (EExpr))
   bs <- singleLit x2 >>= (return . map (EExpr))
   let mu = EFunction (zip as bs)
 
-  return [ ELit mu, empty]
+  return [ ELiteral mu, empty]
 
 singleLit (TTuple x) = do
   lits <- mapM singleLit x
   picked <- mapM oneofR lits
-  return [ELit $ ETuple ( map EExpr picked)]
+  return [ELiteral $ ETuple ( map EExpr picked)]
 
 singleLit l@(TRel x) = do
   ty <- ttypeOf l
-  let empty = ETyped ty  (ELit $ ERelation [])
+  let empty = ETyped ty  (ELiteral $ ERelation [])
 
   lits <- mapM singleLit x
 
   let minLength = minimum $ map length lits
       lits'     = map (take minLength) lits
       tuples    = map ETuple $ map (map EExpr) $ transpose lits'
-      rel       = ELit $ ERelation $ map (EExpr . ELit)  tuples
+      rel       = ELiteral $ ERelation $ map (EExpr . ELiteral)  tuples
 
   return [rel, empty]
 
 
 singleLit l@(TPar x) = do
   ty <- ttypeOf l
-  let empty = ETyped ty (ELit $ EPartition [])
+  let empty = ETyped ty (ELiteral $ EPartition [])
 
   lits <- concatMapM (singleLit) [x,x]
   let lits' = take 3 $  nub2 lits
@@ -430,12 +430,12 @@ singleLit l@(TPar x) = do
   -- Choose if all the elements should go in one part
   chooseR (True,False) >>= \case
           True  -> do
-            let par = ELit $ EPartition [map EExpr lits]
+            let par = ELiteral $ EPartition [map EExpr lits]
             return $ [par, empty]
           False -> do
             point <- chooseR (0,length lits')
             let (as,bs) = splitAt point lits'
-                par     = ELit $ EPartition [map EExpr  as, map EExpr bs]
+                par     = ELiteral $ EPartition [map EExpr  as, map EExpr bs]
             return $ [par, empty]
 
 

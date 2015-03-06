@@ -64,7 +64,7 @@ instance DepthOf TType where
     depthOf ty@(TEnum _)   = docError [ "depthOf not implemented", pretty . show $ ty ]
 
 instance DepthOf Expr where
-    depthOf (ELit e)      = depthOf e
+    depthOf (ELiteral e)      = depthOf e
     depthOf (EVar _)      = 0
     depthOf (EBinOp e)    = depthOf e
     depthOf (EUniOp e)    = depthOf e
