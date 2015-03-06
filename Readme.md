@@ -11,6 +11,7 @@ Firstly
 
 To build (places `gen` in ~/.cabal/bin)
 
+	cd hs
 	export CONJURE_LIB=<where the new-conjure repo is>
 	make
 
@@ -21,4 +22,4 @@ Usage from:
   
 Bash completion 
 
-	  source scripts/_gen.sh
+	  source hs/scripts/_gen.sh
