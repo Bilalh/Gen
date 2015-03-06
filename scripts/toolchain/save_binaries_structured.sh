@@ -288,12 +288,14 @@ function gen_save(){
 
 	pushd "${dateDir}"
 	ln -sf "../../../hash/${version}/${host_type}/${name}" "${name}"
+	ln -sf "../../../hash/${version}/${host_type}/toolchain" "toolchain"
 	popd
 
 	pushd "${tbase}"
 	echo "${name},git,${version},${version_date},${rest_line}" >> data.csv
 
 	ln -sf "../../../versions/${name}/hash/${version}/${host_type}/${name}" "${name}"
+	ln -sf "../../../versions/${name}/hash/${version}/${host_type}/toolchain" "toolchain"
 	popd
 }
 
