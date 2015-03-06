@@ -8,7 +8,7 @@ _gen()
     local last=${COMP_WORDS[COMP_CWORD-1]}
     # MODIFY THIS IF  ONLY for a new command
     if [ "${last}x" = "genx" ]; then
-        COMPREPLY=( $(compgen -W "essence reduce link meta json script-toolchain" -- $cur) )
+        COMPREPLY=( $(compgen -W "essence reduce link meta json script-toolchain script-recheck" -- $cur) )
         return 0
     fi
 

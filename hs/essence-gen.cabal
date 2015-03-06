@@ -57,6 +57,7 @@ Library
                      , Gen.IO.TermSize
                      , Gen.IO.Toolchain
                      , Gen.IO.ToolchainData
+                     , Gen.IO.ToolchainRecheck
                      , Gen.Prelude
                      , Gen.Reduce.Data
                      , Gen.Reduce.FormatResults

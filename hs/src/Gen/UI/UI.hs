@@ -85,6 +85,17 @@ data UI
     , old_conjure        :: Bool
     , limit_time         :: Maybe Int
     }
+  | Script_ToolchainRecheck
+    {
+      essence_path       :: FilePath
+    , output_directory   :: FilePath
+
+    , _cores             :: Int
+    , toolchain_ouput    :: ToolchainOutput
+    , binaries_directory :: Maybe FilePath
+    , old_conjure        :: Bool
+    , limit_time         :: Maybe Int
+    }
   deriving (Show, Data, Typeable)
 
 data ModeChoice =
@@ -378,6 +389,57 @@ ui  = modes
      } &= explicit
        &= name "script-toolchain"
        &= help "Run the toolchain on an essence spec"
+  , Script_ToolchainRecheck
+     { essence_path       = def     &= typDir
+                                    &= argPos 0
+     , output_directory   = def     &= typDir
+                                    &= name "output-directory"
+                                    &= name "o"
+                                    &= groupname "Required"
+                                    &= explicit
+                                    &= help "Output directory "
+     , _cores             = def                                        &= name "output-directory"
+                                    &= name "o"
+                                    &= groupname "Required"
+                                    &= explicit
+ &= name "cores"
+                                    &= name "c"
+                                    &= groupname "Required"
+                                    &= explicit
+                                    &= help "Number of cores to Use"
+     , binaries_directory = Nothing &= name "bin-dir"
+                                    &= groupname "Other"
+                                    &= typDir
+                                    &= explicit
+                                    &= help "Directory to prepend the $PATH before running progams."
+     , old_conjure        = False   &= name "old-conjure"
+                                    &= groupname "Other"
+                                    &= explicit
+                                    &= help "Use old conjure"
+     , limit_time         = Nothing &= name "limit-time"
+                                    &= groupname "Other"
+                                    &= explicit
+                                    &= help "Time limit in seconds of CPU time of this program"
+     , toolchain_ouput    = enum
+                            [
+                              ToolchainScreen_ &= name "show_toolchain_output"
+                                               &= explicit
+                                               &= groupname "Output"
+                                               &= help "Show toolchain output (default)"
+                            , ToolchainFile_   &= name "redirect_toolchain_output"
+                                               &= name "F"
+                                               &= explicit
+                                               &= groupname "Output"
+                                               &= help "Redirect toolchain output to file"
+                            , ToolchainNull_   &= name "null_toolchain_output"
+                                               &= name "N"
+                                               &= explicit
+                                               &= groupname "Output"
+                                               &= help "Discard toolchain output"
+                            ]
+     } &= explicit
+       &= name "script-recheck"
+       &= help "Runs the toolchain with same settings"
 
 
   ] &= program "gen"

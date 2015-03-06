@@ -12,9 +12,11 @@ import           Gen.Helpers.StandardImports
 import           Gen.IO.CmdArgsHelpers
 import           Gen.IO.Toolchain            (kindsList, statusesList)
 import qualified Gen.IO.Toolchain            as Toolchain
+import qualified Gen.IO.ToolchainRecheck     as Recheck
+
+import qualified Gen.Essence.Data            as EC
 import           Gen.Reduce.Data             (RState (..), mkrGen)
 import qualified Gen.Reduce.Data             as R
-import qualified Gen.Essence.Data            as EC
 import           Gen.Reduce.FormatResults    (formatResults)
 import           Gen.Reduce.Reduce           (reduceMain)
 import           Gen.UI.UI
@@ -22,6 +24,7 @@ import           System.Console.CmdArgs      (cmdArgs)
 import           System.CPUTime              (getCPUTime)
 import           System.Environment          (withArgs)
 import           System.Exit                 (exitFailure, exitSuccess)
+import           System.Exit                 (exitWith)
 import           System.Timeout              (timeout)
 import           Text.Printf                 (printf)
 
@@ -32,7 +35,7 @@ main = do
        args <- helpArg
        void $ withArgs [args] (cmdArgs ui)
     [x] | x `elem` [ "essence", "reduce", "link", "meta", "json"
-                   , "script-toolchain"] -> do
+                   , "script-toolchain", "script-recheck"] -> do
        args <- helpArg
        void $ withArgs [x, args] (cmdArgs ui)
 
@@ -162,7 +165,17 @@ mainWithArgs SpecEE{..} = do
   specEMain print_specs directories
 
 mainWithArgs Script_Toolchain{..} = do
-  void $ Toolchain.toolchain Toolchain.ToolchainData
+  let errors = catMaybes
+        [ aerr "-o|--output-directory" (null output_directory)
+        , aerr "-t|--total-time" (total_time == 0)
+        , aerr "-c|--cores" (_cores == 0)
+        ]
+
+  case errors of
+    [] -> return ()
+    xs -> mapM putStrLn xs >> exitFailure
+
+  (code,_) <- Toolchain.toolchain Toolchain.ToolchainData
            {
              Toolchain.essencePath       = essence_path
            , Toolchain.outputDirectory   = output_directory
@@ -175,6 +188,29 @@ mainWithArgs Script_Toolchain{..} = do
            , Toolchain.oldConjure        = old_conjure
            , Toolchain.toolchainOutput   = toolchain_ouput
            }
+  exitWith code
+
+mainWithArgs Script_ToolchainRecheck{..} = do
+  let errors = catMaybes
+        [ aerr "-o|--output-directory" (null output_directory)
+        , aerr "-c|--cores" (_cores == 0)
+        ]
+
+  case errors of
+    [] -> return ()
+    xs -> mapM putStrLn xs >> exitFailure
+
+  (code,_) <- Recheck.toolchainRecheck Recheck.RecheckData
+           {
+             Recheck.essencePath       = essence_path
+           , Recheck.outputDirectory   = output_directory
+           , Recheck.cores             = _cores
+           , Recheck.binariesDirectory = binaries_directory
+           , Recheck.oldConjure        = old_conjure
+           , Recheck.toolchainOutput   = toolchain_ouput
+           }
+  exitWith code
+
 
 aerr :: String -> Bool -> Maybe String
 aerr n b | b = Just $ "Required: " ++ n

@@ -5,6 +5,7 @@ module Gen.IO.Toolchain (
   , statusesList
   , getToolchainDir
   , writeModelDef
+  , runCommand
   )where
 
 import Conjure.Language.Definition (Model)
@@ -31,7 +32,7 @@ writeModelDef dir spec = do
     writeModel (Just name) spec
     return (dir </> "spec.essence")
 
-toolchain :: MonadIO m => ToolchainData -> m ToolchainResult
+toolchain :: MonadIO m => ToolchainData -> m (ExitCode, ToolchainResult)
 toolchain ToolchainData{..} = do
   toolchainDir <- liftIO $ getToolchainDir binariesDirectory
 
@@ -47,14 +48,14 @@ toolchain ToolchainData{..} = do
 
 
   liftIO . putStrLn $ "Running: " ++ showCommandForUser script args
-  _       <- runCommand script args (outputArg toolchainOutput outputDirectory)
+  code    <- runCommand script args (outputArg toolchainOutput outputDirectory)
   refineF <- readFromJSONMay $ outputDirectory </> "refine_essence.json"
   solveF  <- readFromJSONMay $ outputDirectory </> "solve_eprime.json"
   liftIO . putStrLn $ "Finished: " ++ showCommandForUser script args
 
   return $ case (refineF, solveF) of
-             (Just r, Just s)  -> SolveResult (r,s)
-             (Just r, Nothing) -> RefineResult r
+             (Just r, Just s)  -> (code, SolveResult (r,s))
+             (Just r, Nothing) -> (code, RefineResult r)
              (r, s)            -> error . show $ (r,s)
 
 

@@ -61,7 +61,7 @@ doRefine EC.EssenceConfig{..} = do
           runSeed <- (randomRIO (1,2147483647) :: IO Int)
           essencePath <- writeModelDef dir model
           startTime <- round `fmap` getPOSIXTime
-          RefineResult result <- toolchain Toolchain.ToolchainData{
+          (_, RefineResult result) <- toolchain Toolchain.ToolchainData{
                       Toolchain.essencePath = essencePath
                     , Toolchain.outputDirectory = dir
                     , Toolchain.totalTime = timeLeft
@@ -114,7 +114,7 @@ doSolve EC.EssenceConfig{..} = do
           runSeed <- (randomRIO (1,2147483647) :: IO Int)
           essencePath <- writeModelDef dir model
           startTime <- round `fmap` getPOSIXTime
-          result <- toolchain Toolchain.ToolchainData{
+          (_, result) <- toolchain Toolchain.ToolchainData{
                       Toolchain.essencePath = essencePath
                     , Toolchain.outputDirectory = dir
                     , Toolchain.totalTime = timeLeft
