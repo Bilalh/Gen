@@ -136,6 +136,7 @@ class ConjureNew(Commands):
                     --numbering-start  {index}
                     --limit-time       {itimeout}
                     --seed             {seed}
+                    --log-choices
                 """,
 
                 refine_all="""
@@ -144,6 +145,7 @@ class ConjureNew(Commands):
                     --output-directory '{outdir}'
                     --limit-time       {itimeout}
                     --seed             {seed}
+                    --log-choices
                 """,
 
                 refine_random="""
@@ -153,6 +155,7 @@ class ConjureNew(Commands):
                     --numbering-start  {index}
                     --limit-time       {itimeout}
                     --seed             {seed}
+                    --log-choices
                 """,
 
                 refine_param="""
