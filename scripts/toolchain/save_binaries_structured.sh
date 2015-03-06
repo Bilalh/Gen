@@ -256,8 +256,8 @@ popd
 
 #gen etc..
 
-function mine(){
-	name="$1"
+function gen_save(){
+	name="gen"
 	cbase="${base}/versions/${name}/"
 	mkdir -p "${cbase}"
 
@@ -278,6 +278,7 @@ function mine(){
 	cp "${binPath}" "${newDstDir}/${name}"
 
 	pushd "${newDstDir}"
+	cp -r "$(gen --toolchain-path)/" toolchain
 	ln -fs "../../../../../${tbase_}" date
 	echo  "../../../../../${tbase_}" >> dates
 	popd
@@ -296,6 +297,6 @@ function mine(){
 	popd
 }
 
-mine gen
+gen_save
 
 set +x

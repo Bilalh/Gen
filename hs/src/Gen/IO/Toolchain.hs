@@ -100,7 +100,9 @@ getToolchainDir binDir = liftIO $ lookupEnv "PARAM_GEN_SCRIPTS" >>= \case
                                     True  -> do
                                       setEnv "PARAM_GEN_SCRIPTS" bp
                                       return (bp </> "toolchain")
-                                    False -> useDataDir
+                                    False -> fail . vcat $
+                                       [" Can't find toolchain directory in" <+> pretty bp
+                                       , "set PARAM_GEN_SCRIPTS to instancegen/scripts" ]
                   Just fp -> do
                     doesDirectoryExist (fp </> "toolchain") >>= \case
                        True -> do
