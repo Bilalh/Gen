@@ -26,7 +26,7 @@ copyScripts pkg local copy = do
     let dirs = absoluteInstallDirs pkg local copy
     copyFile "scripts/genEssenceDate.sh" (bindir dirs </> "genEssenceDate.sh")
     createDirectoryIfMissing True (datadir dirs)
-    copyDirectory "../scripts/toolchain" (datadir dirs </> "toolchain")
+    copyDirectory "../toolchain" (datadir dirs </> "toolchain")
 
 myPreBuild _ _ = do
     putStrLn "Generating dist/build/autogen/Build_autoversion.hs ..."
