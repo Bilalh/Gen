@@ -92,35 +92,33 @@ statusesList = do
 
 
 getToolchainDir :: (MonadFail m, MonadIO m) => Maybe FilePath -> m FilePath
-getToolchainDir binDir = liftIO $ lookupEnv "PARAM_GEN_SCRIPTS" >>= \case
+getToolchainDir binDir = liftIO $ lookupEnv "REPO_GEN" >>= \case
                   Nothing -> do
                     case binDir of
                       Nothing -> useDataDir
                       Just bp -> doesDirectoryExist (bp </> "toolchain") >>= \case
                                     True  -> do
-                                      setEnv "PARAM_GEN_SCRIPTS" bp
                                       return (bp </> "toolchain")
                                     False -> fail . vcat $
                                        [" Can't find toolchain directory in" <+> pretty bp
-                                       , "set PARAM_GEN_SCRIPTS to instancegen/scripts" ]
+                                       , "set REPO_GEN to gen/" ]
                   Just fp -> do
                     doesDirectoryExist (fp </> "toolchain") >>= \case
                        True -> do
                          return $ fp </> "toolchain"
                        False -> do
                          fail . vcat $ [" Can't find toolchain directory in data dir"
-                                       , "set PARAM_GEN_SCRIPTS to instancegen/scripts"]
+                                       , "set REPO_GEN to gen/"]
 
   where
   useDataDir = do
     fp <- getDataDir
     doesDirectoryExist (fp </> "toolchain") >>= \case
       True -> do
-        setEnv "PARAM_GEN_SCRIPTS" fp
         return $ fp </> "toolchain"
       False -> do
         fail . vcat $ [" Can't find toolchain directory in data dir"
-                      , "set PARAM_GEN_SCRIPTS to instancegen/script" ]
+                      , "set REPO_GEN to gen/" ]
 
 
 runCommand :: MonadIO m => FilePath -> [String] -> Maybe String -> m ExitCode

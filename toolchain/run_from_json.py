@@ -29,7 +29,7 @@ data = d[args.arg]
 data.update(args.__dict__)
 
 print("\n###")
-print("$PARAM_GEN_SCRIPTS/toolchain/toolchain.py {spec_dir}/spec.essence \
+print("$REPO_GEN/toolchain/toolchain.py {spec_dir}/spec.essence \
 --outdir={out_dir} \
 --timeout={timeout} \
 --num_cores={cores} \
@@ -39,7 +39,7 @@ print("$PARAM_GEN_SCRIPTS/toolchain/toolchain.py {spec_dir}/spec.essence \
 
 
 print("\n###")
-print("$PARAM_GEN_SCRIPTS/toolchain/toolchain_recheck.py {spec_dir} \
+print("$REPO_GEN/toolchain/toolchain_recheck.py {spec_dir} \
 --outdir={out_dir} \
 --num_cores={cores} \
 --bin_dir={bin_base}/{bin_dir}/{host} \
