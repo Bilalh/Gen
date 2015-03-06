@@ -1,6 +1,3 @@
-
-
-
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Gen.Arbitrary.Domain
@@ -30,9 +27,10 @@ module Gen.Arbitrary.Domain
     , rangeComp
 ) where
 
-import Gen.Prelude
-import qualified Data.Set as S
 import Conjure.Language.Domain
+import Gen.Prelude
+
+import qualified Data.Set as S
 
 intDomChoice, setDomChoice, msetDomChoice, matixDomChoice :: (Int, GG (Domainn Expr))
 funcDomChoice, relDomChoice, parDomChoice, tupleDomChoice :: (Int, GG (Domainn Expr))

@@ -3,9 +3,11 @@
 
 module Gen.Helpers.Standardise(Standardise(..)) where
 
+import Conjure.Language.AbstractLiteral
 import Gen.Helpers.StandardImports
 
 import qualified Data.Traversable as V
+
 
 class (Pretty a, Eq a, Show a) => Standardise a  where
     standardise :: (Monad m, Applicative m) => a -> m a
@@ -15,12 +17,8 @@ instance Standardise TType where
 
 instance Standardise Expr where
 
-    standardise (ELiteral (EExpr (ELiteral y) )) = pure ELiteral <*> standardise y
-    -- When we have expr in domains
-    -- standardise (EDom (DExpr (EDom y) )) = pure EDom <*> standardise y
-
-
-    standardise (ELiteral y)   = pure ELiteral    <*> standardise y
+    standardise (ECon y)   = return $ ECon y
+    standardise (ELit y)   = pure ELit    <*> standardise y
     standardise (EDom y)   = pure EDom    <*> standardise y
 
     standardise (EBinOp y) = pure EBinOp  <*> standardise y
@@ -35,8 +33,9 @@ instance Standardise Expr where
 
     standardise (ETyped x y ) = pure ETyped <*> standardise x <*> standardise y
 
-    standardise x@(EVar _)    = return x
+    standardise x@(EVar _ _)    = return x
     standardise x@EEmptyGuard = return x
+    standardise x = return x
 
 
 instance Standardise QType where
@@ -103,23 +102,8 @@ instance Standardise Proc where
     standardise (Ptogether x1 x2 x3) = pure Ptogether      <*> standardise x1 <*> standardise x2
                                                          <*> standardise x3
 
-instance Standardise Literal where
-    standardise (EB x)          = return $ EB x
-    standardise (EI x)          = return $ EI x
-
-    standardise (ETuple xs)     = pure ETuple       <*> mapM standardise xs
-    standardise (EMatrix x1 x2) = pure EMatrix      <*> mapM standardise x1 <*> standardise x2
-    standardise (ESet x)        = pure ESet         <*> mapM standardise x
-    standardise (EMSet x)       = pure EMSet        <*> mapM standardise x
-
-    standardise (EFunction (xs)) = pure EFunction   <*> mapM standardise xs
-    standardise (ERelation xs)   = pure ERelation   <*> mapM standardise xs
-    standardise (EPartition xs)  = pure EPartition  <*> mapM nor xs
-        where
-          nor = mapM standardise
-
-    standardise (EExpr (ELiteral l)) = standardise l
-    standardise (EExpr x)        = pure EExpr <*> standardise x
+instance Standardise (AbstractLiteral Expr) where
+    standardise x = return x
 
 instance Standardise (Domainn Expr) where
     standardise x = return x  --FIXME when adding expr to domains
