@@ -16,11 +16,6 @@ import Gen.AST.Type()
 import Gen.AST.Domain()
 
 
-instance Translate Constant Constant where
-    fromConjure = return . id
-    toConjure   = return . id
-
-
 fromConjureM :: (Translate a b, MonadFail m) => [b] -> m [a]
 fromConjureM as =  mapM fromConjure as
 
@@ -37,6 +32,10 @@ instance (Translate a b) => Translate (a,a) (b,b) where
       xx <- fromConjure x
       yy <- fromConjure y
       return (xx, yy)
+
+instance Translate Constant Constant where
+    fromConjure = return . id
+    toConjure   = return . id
 
 
 instance Translate Literal (AbstractLiteral Expression) where
@@ -99,14 +98,16 @@ instance Translate Expr Expression where
 
 
   --FIXME correct? not the first
-  toConjure (EVar x _)               =  Reference <$> toConjure x <*> return Nothing
+  toConjure (EVar x _) =  Reference <$> toConjure x <*> return Nothing
+  toConjure (ECon x )  =  return $ Constant x
+  toConjure (ELit x )  =  AbstractLiteral <$> toConjure x
 
-  toConjure (EBinOp x)             =  toConjure x
-  toConjure (EUniOp x)             =  toConjure x
-  toConjure (EProc x)              =  toConjure x
-  toConjure (EDom x)               =  Domain <$> toConjure x
-  toConjure (ETyped x1 x2)         =  Typed <$> toConjure x2 <*> toConjure x1
-  -- toConjure EEmptyGuard         =  _t
+  toConjure (EDom x)       =  Domain <$> toConjure x
+  toConjure (ETyped x1 x2) =  Typed <$> toConjure x2 <*> toConjure x1
+
+  toConjure (EBinOp x)     =  toConjure x
+  toConjure (EUniOp x)     =  toConjure x
+  toConjure (EProc x)      =  toConjure x
 
   toConjure (EQuan q (BIn (EVar x _) dom) g inner) = do
         x'     <- return $ Single (Name x)
