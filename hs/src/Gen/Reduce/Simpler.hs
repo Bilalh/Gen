@@ -198,7 +198,7 @@ instance Simpler Constant Constant where
     simplerImp (ConstantInt _) _      = return LT
     simplerImp _     (ConstantInt _)  = return GT
 
-instance Simpler (AbstractLiteral Expr) (AbstractLiteral Expr) where
+instance Simpler Literal Literal where
 
     simplerImp (AbsLitTuple x) (AbsLitTuple y) = do
         res <- zipWithM simplerImp x y
@@ -246,7 +246,7 @@ simplerImpError a b = rrError "simplerImp"
                       , pretty $ groom a, pretty $ groom b ]
 
 
-instance Simpler Expr (AbstractLiteral Expr) where
+instance Simpler Expr Literal where
     simplerImp EEmptyGuard b = do
       tyb <- ttypeOf b
       return $ if tyb == TBool then EQ else LT
@@ -291,25 +291,25 @@ instance Simpler Expr Proc where
         tyb <- ttypeOf b
         simplerImp tya tyb
 
-instance Simpler (AbstractLiteral Expr) UniOp where
+instance Simpler Literal UniOp where
     simplerImp x y = negOrderM $ simplerImp y x
-instance Simpler UniOp (AbstractLiteral Expr) where
+instance Simpler UniOp Literal where
     simplerImp a b = do
         tya <- ttypeOf a
         tyb <- ttypeOf b
         simplerImp tya tyb
 
-instance Simpler (AbstractLiteral Expr) BinOp where
+instance Simpler Literal BinOp where
     simplerImp x y = negOrderM $ simplerImp y x
-instance Simpler BinOp (AbstractLiteral Expr) where
+instance Simpler BinOp Literal where
     simplerImp a b = do
         tya <- ttypeOf a
         tyb <- ttypeOf b
         simplerImp tya tyb
 
-instance Simpler (AbstractLiteral Expr) Proc where
+instance Simpler Literal Proc where
     simplerImp x y = negOrderM $ simplerImp y x
-instance Simpler Proc (AbstractLiteral Expr) where
+instance Simpler Proc Literal where
     simplerImp a b = do
         tya <- ttypeOf a
         tyb <- ttypeOf b

@@ -105,7 +105,7 @@ instance Standardise Proc where
     standardise (Ptogether x1 x2 x3) = pure Ptogether      <*> standardise x1 <*> standardise x2
                                                          <*> standardise x3
 
-instance Standardise (AbstractLiteral Expr) where
+instance Standardise Literal where
     standardise x = return x
 
 instance Standardise (Domainn Expr) where

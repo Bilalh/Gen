@@ -39,7 +39,7 @@ instance (Translate a b) => Translate (a,a) (b,b) where
       return (xx, yy)
 
 
-instance Translate (AbstractLiteral Expr) (AbstractLiteral Expression) where
+instance Translate Literal (AbstractLiteral Expression) where
     fromConjure (AbsLitTuple x)             = AbsLitTuple <$> fromConjureM x
     -- fromConjure (AbsLitRecord x)         = AbsLitRecord <$> fromConjureM x
     -- fromConjure (AbsLitVariant x1 x2 x3) = AbsLitVariant <$> fromConjure x1
@@ -54,7 +54,7 @@ instance Translate (AbstractLiteral Expr) (AbstractLiteral Expression) where
     -- fromConjure (AbsLitRelation x)       = _d
     -- fromConjure (AbsLitPartition x)      = _d
 
-    fromConjure x = fromConjureFail "(AbstractLiteral Expr) (AbstractLiteral Expression)" x
+    fromConjure x = fromConjureFail "Literal Literalession)" x
 
     toConjure (AbsLitTuple x)             = AbsLitTuple     <$> toConjureM x
     -- toConjure (AbsLitRecord x)         = AbsLitRecord    <$> toConjure x
@@ -70,7 +70,7 @@ instance Translate (AbstractLiteral Expr) (AbstractLiteral Expression) where
     toConjure (AbsLitRelation x)          = AbsLitRelation  <$> mapM toConjureM x
     toConjure (AbsLitPartition x)         = AbsLitPartition <$> mapM toConjureM x
 
-    toConjure x = toConjureFail "(AbstractLiteral Expr) (AbstractLiteral Expression)" x
+    toConjure x = toConjureFail "Literal Literalession)" x
 
 instance Translate Expr Expression where
   fromConjure (Constant t)             = ECon   <$> fromConjure t

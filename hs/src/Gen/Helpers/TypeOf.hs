@@ -54,7 +54,7 @@ toTType f = case typeOf f of
               Left r   -> error . show $ r
               Right r  -> return $ fromConjureNote "toTType"  r
 
-instance TTypeOf (AbstractLiteral Expr)  where
+instance TTypeOf Literal  where
     ttypeOf x = toTType x
 
 

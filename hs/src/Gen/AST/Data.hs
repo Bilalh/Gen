@@ -25,6 +25,7 @@ class (Pretty ast, Pretty conjure, Show ast) => Translate ast conjure where
                     Left  d -> error . renderNormal . vcat $ [msg, d ]
 
 type Domainn x = Domain () x
+type Literal = AbstractLiteral Expr
 
 class Pretty a => PrettyWithQuan a where
     prettyWithQuan :: Pretty a => a -> Doc
@@ -33,7 +34,7 @@ data Expr =
     EVar Text TType
   | EDom (Domainn Expr)
   | ECon Constant
-  | ELit (AbstractLiteral Expr)
+  | ELit Literal
 
   | ETyped TType Expr
   | EEmptyGuard

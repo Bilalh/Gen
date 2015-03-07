@@ -79,7 +79,7 @@ instance DepthOf Expr where
     depthOf (EQuan _ e2 e3 e4) = 1 + maximum ([depthOf e2, depthOf e3, depthOf e4])
 
 
-instance DepthOf (AbstractLiteral Expr) where
+instance DepthOf Literal where
     depthOf x = F.foldl (\x e -> x + depthOf e ) 0 x
 
 instance DepthOf Constant where

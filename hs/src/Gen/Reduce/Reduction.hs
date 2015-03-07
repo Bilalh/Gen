@@ -109,7 +109,7 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Constant m where
     reduce (ConstantBool _) = return []
     reduce (ConstantInt _) = return []
 
-instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce (AbstractLiteral Expr) m where
+instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Literal m where
 
     subterms _ = return []
     single t = ttypeOf t >>= singleLitExpr

@@ -189,7 +189,7 @@ instance HasFeature Proc where
     getFeatures (Ptogether p1 p2 p3) = getFeatures p1 ++ getFeatures p2
                                     ++ getFeatures p3
 
-instance HasFeature (AbstractLiteral Expr) where
+instance HasFeature Literal where
     getFeatures (AbsLitTuple l)     = concatMap getFeatures l
     getFeatures (AbsLitMatrix _ l1) = concatMap getFeatures l1
     getFeatures (AbsLitSet l)       = concatMap getFeatures l
