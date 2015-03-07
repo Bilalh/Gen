@@ -4,6 +4,7 @@
 module Gen.Helpers.Standardise(Standardise(..)) where
 
 import Conjure.Language.AbstractLiteral
+import Conjure.Language.Constant
 import Gen.Helpers.StandardImports
 
 import qualified Data.Traversable as V
@@ -41,6 +42,8 @@ instance Standardise Expr where
 instance Standardise QType where
     standardise = return
 
+instance Standardise Constant where
+    standardise = return
 
 instance Standardise BinOp where
     standardise (BIn t1 t2)        = pure BIn         <*> standardise t1 <*> standardise t2

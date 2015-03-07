@@ -15,7 +15,7 @@ import Gen.IO.Formats
 import Gen.IO.ToolchainData        as X
 import Gen.Prelude
 import Paths_essence_gen           (getDataDir)
-import System.Environment          (lookupEnv, setEnv)
+import System.Environment          (lookupEnv)
 import System.Exit                 (ExitCode)
 import System.FilePath             ((<.>))
 import System.IO                   (IOMode (..), withFile)

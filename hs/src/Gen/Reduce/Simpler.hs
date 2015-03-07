@@ -1,12 +1,11 @@
-
-{-# LANGUAGE KindSignatures #-}
-{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances #-}
-
+{-# LANGUAGE FlexibleInstances, KindSignatures, MultiParamTypeClasses #-}
 module Gen.Reduce.Simpler where
 
+import Conjure.Language.AbstractLiteral
+import Conjure.Language.Constant
+import Data.List                        (foldl1)
+import Gen.Arbitrary.Type               (typesUnify)
 import Gen.Prelude
-import Data.List(foldl1)
-import Gen.Arbitrary.Type(typesUnify)
 
 
 -- True if a1 is simpler then a2
@@ -89,9 +88,7 @@ instance Simpler Expr Expr where
   -- simplerImp (EDom a)  (EDom b) = simplerImp a b
 
 
-  simplerImp a@(EVar _) b = do
-    tya <- ttypeOf a
-    tyb <- ttypeOf b
+  simplerImp (EVar _ tya) (EVar _ tyb) = do
     simplerImp tya tyb
 
   simplerImp (ETyped _ x) (ETyped _ y) = simplerImp x y
@@ -192,59 +189,49 @@ instance Simpler Proc Proc where
         bs  <- mapM (\x -> simplerImp x q) p2
         return $ chainCompare (a:bs)
 
-instance Simpler Literal Literal where
-    simplerImp (EB _) (EB _) = return EQ
-    simplerImp (EB _) _      = return LT
-    simplerImp _     (EB _)  = return GT
+instance Simpler Constant Constant where
+    simplerImp (ConstantBool _) (ConstantBool _) = return EQ
+    simplerImp (ConstantBool _) _      = return LT
+    simplerImp _     (ConstantBool _)  = return GT
 
-    simplerImp (EI _) (EI _) = return EQ
-    simplerImp (EI _) _      = return LT
-    simplerImp _     (EI _)  = return GT
+    simplerImp (ConstantInt _) (ConstantInt _) = return EQ
+    simplerImp (ConstantInt _) _      = return LT
+    simplerImp _     (ConstantInt _)  = return GT
 
-    simplerImp x (EExpr (ELit y))  = simplerImp x y
-    simplerImp (EExpr x) (EExpr y) = simplerImp x y
+instance Simpler (AbstractLiteral Expr) (AbstractLiteral Expr) where
 
-    simplerImp (EExpr x) l = simplerImp x l
-    simplerImp l (EExpr e) = do
-      res <- simplerImp e l
-      return $  res
-
-    simplerImp (ETuple x) (ETuple y) = do
+    simplerImp (AbsLitTuple x) (AbsLitTuple y) = do
         res <- zipWithM simplerImp x y
         return $ chainCompare res
 
-    simplerImp (EMatrix x _) (EMatrix y _) = do
-      tx <- ttypeOf x
-      ty <- ttypeOf y
+    simplerImp (AbsLitMatrix _ x ) (AbsLitMatrix _ y) = do
       res <- zipWithM simplerImp x y
 
       let bo = case chainCompare res of
-                  EQ -> case (typesUnify tx ty) of
-                          True  -> compare (length x) (length y)
-                          False -> EQ
+                  EQ -> compare (length x) (length y)
                   t  -> t
 
       return bo
 
-    simplerImp a@(ESet x) b@(ESet y)             =  do
+    simplerImp a@(AbsLitSet x) b@(AbsLitSet y)             =  do
         addLog "simplerImp" [nn "a" a, nn "b" b]
         res <- zipWithM simplerImp x y
         return $ chainCompare res
 
-    simplerImp (EMSet x) (EMSet y)           =  do
+    simplerImp (AbsLitMSet x) (AbsLitMSet y)           =  do
         res <- zipWithM simplerImp x y
         return $ chainCompare res
 
 
-    simplerImp (ERelation x) (ERelation y)   =  do
-        res <- zipWithM simplerImp x y
-        return $ chainCompare res
+    simplerImp (AbsLitRelation x) (AbsLitRelation y)   =  do
+        res <- zipWithM (\a b -> zipWithM simplerImp a b ) x y
+        return $ chainCompare $ map chainCompare res
 
-    simplerImp (EFunction x) (EFunction y)   = do
+    simplerImp (AbsLitFunction x) (AbsLitFunction y)   = do
       cs <- zipWithM simplerImp x y
       return $ chainCompare cs
 
-    simplerImp (EPartition x) (EPartition y) = do
+    simplerImp (AbsLitPartition x) (AbsLitPartition y) = do
         cs <- zipWithM ( \a b -> zipWithM simplerImp a b ) x y
         return $ chainCompare (concat cs)
 
@@ -259,16 +246,13 @@ simplerImpError a b = rrError "simplerImp"
                       , pretty $ groom a, pretty $ groom b ]
 
 
-instance Simpler Expr Literal where
+instance Simpler Expr (AbstractLiteral Expr) where
     simplerImp EEmptyGuard b = do
       tyb <- ttypeOf b
       return $ if tyb == TBool then EQ else LT
     simplerImp (ELit e) l    = simplerImp e l
 
-    simplerImp (EVar e) l = do
-      tyE :: TType <- typeOfVar e >>= \case
-             Just ty -> return ty
-             Nothing -> rrError "simplerImp no type of var" [nn "var" e]
+    simplerImp (EVar _ tyE) l = do
       tyl <- ttypeOf l
       simplerImp (tyE) tyl
 
@@ -307,22 +291,25 @@ instance Simpler Expr Proc where
         tyb <- ttypeOf b
         simplerImp tya tyb
 
-instance Simpler Literal UniOp where simplerImp x y = negOrderM $ simplerImp y x
-instance Simpler UniOp Literal where
+instance Simpler (AbstractLiteral Expr) UniOp where
+    simplerImp x y = negOrderM $ simplerImp y x
+instance Simpler UniOp (AbstractLiteral Expr) where
     simplerImp a b = do
         tya <- ttypeOf a
         tyb <- ttypeOf b
         simplerImp tya tyb
 
-instance Simpler Literal BinOp where simplerImp x y = negOrderM $ simplerImp y x
-instance Simpler BinOp Literal where
+instance Simpler (AbstractLiteral Expr) BinOp where
+    simplerImp x y = negOrderM $ simplerImp y x
+instance Simpler BinOp (AbstractLiteral Expr) where
     simplerImp a b = do
         tya <- ttypeOf a
         tyb <- ttypeOf b
         simplerImp tya tyb
 
-instance Simpler Literal Proc where simplerImp x y = negOrderM $ simplerImp y x
-instance Simpler Proc Literal where
+instance Simpler (AbstractLiteral Expr) Proc where
+    simplerImp x y = negOrderM $ simplerImp y x
+instance Simpler Proc (AbstractLiteral Expr) where
     simplerImp a b = do
         tya <- ttypeOf a
         tyb <- ttypeOf b

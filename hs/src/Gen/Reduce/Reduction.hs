@@ -1,17 +1,15 @@
-{-# LANGUAGE MultiParamTypeClasses, FlexibleContexts, FlexibleInstances #-}
-
-{-# LANGUAGE PatternGuards #-}
-{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE FlexibleContexts, FlexibleInstances, MultiParamTypeClasses,
+             PatternGuards, TupleSections #-}
 
 -- module Gen.Reduce.Reduction(Reduce(..), runReduce) where
 module Gen.Reduce.Reduction where
 
+import Conjure.Language.AbstractLiteral
+import Conjure.Language.Constant
+import Data.List                        (splitAt)
+import Gen.Prelude
 import Gen.Reduce.Data
 import Gen.Reduce.Simpler
-
-import Gen.Prelude
-
-import Data.List( splitAt)
 
 class (HasGen m, WithDoms m, HasLogger m) => Reduce a m where
     reduce   :: a -> m [a]    -- list of smaller exprs
@@ -27,9 +25,7 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
       lits <- reduce t
       return $ map ELit lits
 
-    reduce (EVar t) = typeOfVar t >>= \case
-        Just ty -> singleLitExpr ty
-        Nothing -> rrError "reduce EVar not found" [pretty t]
+    reduce (EVar t ty) = singleLitExpr ty
 
     reduce (EUniOp t) = do
       ds <- reduce t
@@ -63,10 +59,7 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
 
     single EEmptyGuard = return []
 
-    single (EVar t) = typeOfVar t >>= \case
-        Just ty -> singleLitExpr ty
-        Nothing -> do
-          rrError "single EVar not found" [pretty t]
+    single (EVar _ ty) = singleLitExpr ty
 
 
     single (ELit t)   = do
@@ -95,7 +88,7 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
                  , EQuan t1 t2 t3 etrue
                  , EQuan t1 t2 EEmptyGuard t4]
 
-    subterms (EVar _)  = return []
+    subterms (EVar _ _)  = return []
 
     subterms (ELit t)   = subterms t
     subterms (EDom t)   = subterms t
@@ -108,50 +101,50 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
 
     subterms EEmptyGuard = return []
 
-
-instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Literal m where
+instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Constant m where
 
     subterms _ = return []
-    single (EExpr t) = single t
     single t = ttypeOf t >>= singleLitExpr
 
-    reduce (EExpr t) = do
-      es <- reduce t
-      return $ map EExpr es
+    reduce (ConstantBool _) = return []
+    reduce (ConstantInt _) = return []
 
-    reduce (EB _) = return []
-    reduce (EI _) = return []
-    reduce (ESet [])     = return []
-    reduce (ESet (t:ts)) = return [ESet [t], ESet ts ]
+instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce (AbstractLiteral Expr) m where
 
-    reduce (EMSet [])     = return []
-    reduce (EMSet (t:ts)) = return [EMSet [t], EMSet ts ]
+    subterms _ = return []
+    single t = ttypeOf t >>= singleLitExpr
+
+    reduce (AbsLitSet [])     = return []
+    reduce (AbsLitSet (t:ts)) = return [AbsLitSet [t], AbsLitSet ts ]
+
+    reduce (AbsLitMSet [])     = return []
+    reduce (AbsLitMSet (t:ts)) = return [AbsLitMSet [t], AbsLitMSet ts ]
 
     -- FIXME indexes
-    reduce (EMatrix [] _ )     = rrError "reduce empty matrix" []
-    reduce (EMatrix [a] d )    = do
+    reduce (AbsLitMatrix _ [] )     = rrError "reduce empty matrix" []
+    reduce (AbsLitMatrix d [a] )    = do
       reduce a >>= \case
              [] -> return []
              xs -> do
                x <- oneofR xs
-               return $ [EMatrix [x] d]
+               return $ [AbsLitMatrix d [x] ]
 
-    reduce (EMatrix [a,_] d )  = return $ [EMatrix [a] d]
-    reduce (EMatrix (t:ts) _ ) = do
+    reduce (AbsLitMatrix d [a,_] )  = return $ [AbsLitMatrix d [a] ]
+    reduce (AbsLitMatrix _ (t:ts) ) = do
       nts <- mapM (reduce) ts
       case filter (/= []) nts of
-        [] -> return [ EMatrix [t] (dintRange 1 1)
-                 -- , EMatrix [nts] (dintRange 1 (genericLength nts))
-                 , EMatrix ts (dintRange 1 (length ts))]
+        [] -> return [ AbsLitMatrix  (dintRange 1 1) [t]
+                 -- , AbsLitMatrix [nts] (dintRange 1 (genericLength nts))
+                 , AbsLitMatrix  (dintRange 1 (length ts)) ts]
 
         nt -> do
           ns <- mapM oneofR nt
-          return [ EMatrix [t] (dintRange 1 1)
-                 , EMatrix ns (dintRange 1 (genericLength ns))
-                 , EMatrix ts (dintRange 1 (genericLength ts))]
+          return [ AbsLitMatrix  (dintRange 1 1) [t]
+                 , AbsLitMatrix  (dintRange 1 (genericLength ns)) ns
+                 , AbsLitMatrix  (dintRange 1 (genericLength ts)) ts]
 
 
-    reduce (ETuple t) = do
+    reduce (AbsLitTuple t) = do
       ts <- mapM (reduce) t
       case ts of
         [] -> return []
@@ -163,16 +156,16 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Literal m where
               ts' = map (f maxLength) (zip ts t)
           -- -- FIXME shuffle?
           let ts'' = take 3 . filter ((==) (length t) . length) . transpose $ ts'
-          return $ map ETuple ts''
+          return $ map AbsLitTuple ts''
           -- error . show . vcat $ [pretty maxLength
           --                       , pretty . groom $ ts
           --                       , pretty . groom $ ts']
 
 
 
-    reduce (EFunction _)  = return []
-    reduce (ERelation _)  = return []
-    reduce (EPartition _) = return []
+    reduce (AbsLitFunction _)  = return []
+    reduce (AbsLitRelation _)  = return []
+    reduce (AbsLitPartition _) = return []
 
 
 instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce BinOp m where
@@ -354,75 +347,75 @@ f  -| (a,e) = do
 -- | return the simplest literals, two at most
 singleLit :: (HasGen m, HasLogger m, WithDoms m) => TType -> m [Expr]
 singleLit TInt = do
-  pure EI <*> chooseR (-5, 5) >>= return . (\a ->  [ELit a ] )
+  pure ConstantInt<*> chooseR (-5, 5) >>= return . (\a ->  [ECon a ] )
 
-singleLit TBool = oneofR [EB True, EB False] >>= return . (\a ->  [ELit a ] )
+singleLit TBool = oneofR [ConstantBool True, ConstantBool False]
+              >>= return . (\a ->  [ECon a ] )
 
 -- of TAny are empty
 singleLit (TMatix TAny) = rrError "singleLit TMatix TAny" []
-singleLit (TSet TAny)   = return [ELit $ ESet []]
-singleLit (TMSet TAny)  = return [ELit $ EMSet []]
+singleLit (TSet TAny)   = return [ELit $ AbsLitSet []]
+singleLit (TMSet TAny)  = return [ELit $ AbsLitMSet []]
 
 singleLit (TMatix x) = do
   s <- singleLit x
-  let si = EMatrix (map (EExpr ) s) (dintRange 1 (genericLength s))
+  let si = AbsLitMatrix  (dintRange 1 (genericLength s)) s
   let res = case s of -- Return the other combination
              []    -> error "singleLit empty matrix"
-             [e]   -> [si,  EMatrix (map (EExpr ) [e,e]) (dintRange 1 2)]
-             (e:_) -> [EMatrix [(EExpr ) e] (dintRange 1 1), si]
+             [e]   -> [si,  AbsLitMatrix (dintRange 1 2) ([e,e])]
+             (e:_) -> [AbsLitMatrix (dintRange 1 1) [e], si]
 
   return (map ELit res)
 
 singleLit l@(TSet x) = do
   ty <- ttypeOf l
-  let empty = ETyped ty (ELit $ ESet [])
+  let empty = ETyped ty (ELit $ AbsLitSet [])
 
-  si <- pure ESet <*> (singleLit x >>= (return . map (EExpr)))
+  si <- pure AbsLitSet <*> (singleLit x )
   return [ ELit si, empty]
 
 singleLit l@(TMSet x) = do
   ty <- ttypeOf l
-  let empty = ETyped ty $ (ELit $ EMSet [])
+  let empty = ETyped ty $ (ELit $ AbsLitMSet [])
 
-  si <- pure EMSet <*> (singleLit x >>= (return . map (EExpr)))
-  d  <- (singleLit x >>= (return . map (EExpr) ))
-  let dupped = EMSet $ concat $ replicate 2 d
+  si <- pure AbsLitMSet <*> (singleLit x)
+  d  <- singleLit x
+  let dupped = AbsLitMSet $ concat $ replicate 2 d
 
   chosen <- oneofR [ELit si,ELit dupped]
   return [chosen, empty]
 
 singleLit l@(TFunc x1 x2) = do
   ty <- ttypeOf l
-  let empty = ETyped ty $ (ELit $ EFunction [])
+  let empty = ETyped ty $ (ELit $ AbsLitFunction [])
 
-  as <- singleLit x1 >>= (return . map (EExpr))
-  bs <- singleLit x2 >>= (return . map (EExpr))
-  let mu = EFunction (zip as bs)
+  as <- singleLit x1
+  bs <- singleLit x2
+  let mu = AbsLitFunction (zip as bs)
 
   return [ ELit mu, empty]
 
 singleLit (TTuple x) = do
   lits <- mapM singleLit x
   picked <- mapM oneofR lits
-  return [ELit $ ETuple ( map EExpr picked)]
+  return [ELit $ AbsLitTuple picked]
 
 singleLit l@(TRel x) = do
   ty <- ttypeOf l
-  let empty = ETyped ty  (ELit $ ERelation [])
+  let empty = ETyped ty  (ELit $ AbsLitRelation [])
 
-  lits <- mapM singleLit x
+  lits <- mapM (singleLit) x
 
   let minLength = minimum $ map length lits
       lits'     = map (take minLength) lits
-      tuples    = map ETuple $ map (map EExpr) $ transpose lits'
-      rel       = ELit $ ERelation $ map (EExpr . ELit)  tuples
+      rel       = ELit $ AbsLitRelation $  lits
 
   return [rel, empty]
 
 
 singleLit l@(TPar x) = do
   ty <- ttypeOf l
-  let empty = ETyped ty (ELit $ EPartition [])
+  let empty = ETyped ty (ELit $ AbsLitPartition [])
 
   lits <- concatMapM (singleLit) [x,x]
   let lits' = take 3 $  nub2 lits
@@ -430,12 +423,12 @@ singleLit l@(TPar x) = do
   -- Choose if all the elements should go in one part
   chooseR (True,False) >>= \case
           True  -> do
-            let par = ELit $ EPartition [map EExpr lits]
+            let par = ELit $ AbsLitPartition [lits]
             return $ [par, empty]
           False -> do
             point <- chooseR (0,length lits')
             let (as,bs) = splitAt point lits'
-                par     = ELit $ EPartition [map EExpr  as, map EExpr bs]
+                par     = ELit $ AbsLitPartition [as, bs]
             return $ [par, empty]
 
 

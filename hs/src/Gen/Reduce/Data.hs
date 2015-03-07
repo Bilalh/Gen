@@ -1,24 +1,21 @@
-
 {-# LANGUAGE FlexibleInstances #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-
 module Gen.Reduce.Data where
 
+import Conjure.Language.Constant
+import Data.IntSet               (IntSet)
+import Gen.IO.Toolchain          (KindI, StatusI)
 import Gen.Prelude
-import Gen.IO.Toolchain(KindI, StatusI)
-
 import System.Random
 import System.Random.TF
 
+import qualified Data.IntSet      as IS
 import qualified Text.PrettyPrint as Pr
-
-import Data.IntSet(IntSet)
-import qualified Data.IntSet as IS
 
 
 etrue, efalse :: Expr
-etrue  = ELit (EB True)
-efalse = ELit (EB False)
+etrue  = ECon (ConstantBool True)
+efalse = ECon (ConstantBool False)
 
 type RR a = StateT RState IO a
 
