@@ -28,8 +28,15 @@ generateEssence ec@EC.EssenceConfig{..} = do
     EC.Solve_     -> doSolve ec
 
 
+  case deletePassing_ of
+    False -> return ()
+    True  -> do
+      doesDirectoryExist (outputDirectory_ </> "passing") >>= \case
+             False -> return ()
+             True  -> removeDirectoryRecursive (outputDirectory_ </> "passing")
+
 doRefine :: EssenceConfig -> IO ()
-doRefine EC.EssenceConfig{..} = do
+doRefine ec@EC.EssenceConfig{..} = do
   process totalTime_
 
     where
@@ -77,14 +84,14 @@ doRefine EC.EssenceConfig{..} = do
           endTime <- round `fmap` getPOSIXTime
           let realTime = endTime - startTime
 
-          runTime <- classifySettingI errdir out uname result
+          runTime <- classifySettingI ec errdir out uname result
           case totalIsRealTime of
             False -> process (timeLeft - (floor runTime))
             True  -> process (timeLeft - realTime)
 
 
 doSolve :: EssenceConfig -> IO ()
-doSolve EC.EssenceConfig{..} = do
+doSolve ec@EC.EssenceConfig{..} = do
   process totalTime_
 
     where
@@ -138,7 +145,7 @@ doSolve EC.EssenceConfig{..} = do
             True  -> process (timeLeft - realTime)
 
 
-    classifyError uname (RefineResult a) = classifySettingI errdir out uname a
+    classifyError uname (RefineResult a) = classifySettingI ec errdir out uname a
 
     classifyError uname (SolveResult (_,
           ee@SettingI{successful_=False,data_=SolveM ms,time_taken_})) = do
@@ -188,16 +195,21 @@ doSolve EC.EssenceConfig{..} = do
         void $ M.traverseWithKey f ms
         return time_taken_
 
-    classifyError _ (SolveResult (_, SettingI{time_taken_ })) = return time_taken_
+    classifyError uname (SolveResult (_, SettingI{time_taken_ })) = do
+      case deletePassing_ of
+        False -> return ()
+        True  -> removeDirectoryRecursive (out </> uname)
+      return time_taken_
 
 
 
-classifySettingI :: FilePath
-                    -> FilePath
-                    -> FilePath
-                    -> SettingI RefineM
-                    -> IO Double -- timetaken
-classifySettingI errdir out uname
+classifySettingI :: EssenceConfig
+                 -> FilePath
+                 -> FilePath
+                 -> FilePath
+                 -> SettingI RefineM
+                 -> IO Double -- timetaken
+classifySettingI _ errdir out uname
                  ee@SettingI{successful_=False,data_=RefineM ms,time_taken_} = do
     let inErrDir = errdir </> "zPerSpec" </> uname
     createDirectoryIfMissing True inErrDir
@@ -239,7 +251,13 @@ classifySettingI errdir out uname
     return time_taken_
 
 
-classifySettingI _ _ _ SettingI{time_taken_}  = return time_taken_
+classifySettingI ec _ out uname SettingI{time_taken_}  = do
+  case EC.deletePassing_ ec of
+    False -> return ()
+    True  -> do
+      removeDirectoryRecursive (out </> uname)
+
+  return time_taken_
 
 
 doTypeCheck :: EssenceConfig -> IO ()

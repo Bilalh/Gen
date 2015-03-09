@@ -115,7 +115,7 @@ def remove_refine_dups(*, results, outputs, op):
     refine_error_hashes=set()
 
     exts = ['.eprime.logs', '.eprime.error', '.eprime-solution', '.solution',
-             '.output', '.eprime-param', '.refine-output']
+             '.output', '.eprime-param', '.refine-output', '.choices.json']
 
     for (result, (_, output)) in zip(results, outputs):
         (eprime_name, _) = result

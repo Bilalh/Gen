@@ -145,6 +145,7 @@ ui  = modes
                                     &= explicit
                                     &= help "Random Seed to use"
      , delete_passing     = False   &= name "delete_passing"
+                                    &= name "D"
                                     &= groupname "Other"
                                     &= explicit
                                     &= help "Delete non failing test cases as soon as they have been generated"

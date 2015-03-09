@@ -58,7 +58,7 @@ def with_settings(results, *, op, time_taken, successful, consistent):
 
 def remove_solve_dups(solve_results, outdir):
     exts = ['.eprime.logs', '.eprime.error', '.eprimes-solution', '.solution',
-             '.output', '.eprime-param', '.refine-output', '.eprime']
+             '.output', '.eprime-param', '.refine-output', '.eprime', '.choices.json']
 
     error_hashes = defaultdict(set)
 

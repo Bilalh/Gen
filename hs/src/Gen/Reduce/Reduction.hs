@@ -1,7 +1,5 @@
 {-# LANGUAGE FlexibleContexts, FlexibleInstances, MultiParamTypeClasses,
              PatternGuards, TupleSections #-}
-
--- module Gen.Reduce.Reduction(Reduce(..), runReduce) where
 module Gen.Reduce.Reduction where
 
 import Conjure.Language.AbstractLiteral
@@ -154,7 +152,7 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Literal m where
 
           let maxLength = maximum $ map length ts
               ts' = map (f maxLength) (zip ts t)
-          -- -- FIXME shuffle?
+          -- -- TODo shuffle?
           let ts'' = take 3 . filter ((==) (length t) . length) . transpose $ ts'
           return $ map AbsLitTuple ts''
           -- error . show . vcat $ [pretty maxLength

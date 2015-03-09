@@ -109,7 +109,7 @@ instance Standardise Literal where
     standardise x = return x
 
 instance Standardise (Domainn Expr) where
-    standardise x = return x  --FIXME when adding expr to domains
+    standardise x = return x
 
 
 instance Standardise GF where

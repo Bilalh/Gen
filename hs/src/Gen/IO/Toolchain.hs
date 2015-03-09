@@ -25,7 +25,7 @@ import System.Process              (StdStream (..), createProcess, proc,
 
 writeModelDef :: MonadIO m => FilePath -> Model -> m FilePath
 writeModelDef dir spec = do
-    liftIO $ putStrLn . renderSmall . nest 4 . vcat $ ["Running", pretty spec]
+    liftIO $ putStrLn . renderSmall . nest 4 . vcat $ ["Processing", pretty spec]
     liftIO $ createDirectoryIfMissing True  dir
 
     let name = (dir </> "spec" <.> ".essence")
