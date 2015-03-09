@@ -123,7 +123,7 @@ mainWithArgs Essence{..} = do
                , binariesDirectory_ = binaries_directory
                , oldConjure_        = old_conjure
                , toolchainOutput_   = toolchain_ouput
-               , notUseful          = S.fromList [()]
+               , notUseful          = S.fromList [(Savilerow_, NumberToLarge_)]
                }
 
   generateEssence config
