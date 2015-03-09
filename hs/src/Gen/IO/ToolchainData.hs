@@ -78,7 +78,7 @@ data StatusI =
     | NotRefined_
     | UnknownLexeme_
     | StatusAny_
-    deriving (Show,Eq,Enum,Generic,Typeable, Data, Read)
+    deriving (Show,Eq,Enum,Generic,Typeable, Data, Read, Ord)
 
 instance Pretty StatusI where
     pretty = pretty . show
@@ -93,7 +93,7 @@ data KindI =
     | Validate_
     | ValidateOld_
     | KindAny_
-    deriving (Show,Eq,Enum,Generic,Typeable, Data, Read)
+    deriving (Show,Eq,Enum,Generic,Typeable, Data, Read, Ord)
 
 
 instance Pretty KindI where

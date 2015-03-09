@@ -188,6 +188,16 @@ doSolve ec@EC.EssenceConfig{..} = do
                 let needed =  filter (allow k) fps
 
                 void $ copyFiles (unMaybe $ mvDirBase `M.lookup` inDir) inErrDir mvDir needed
+
+                case (kind,last_status) `S.member` (EC.notUseful ec)  of
+                  False -> return ()
+                  True  -> do
+                    putStrLn . show . vcat $ [
+                                    "Deleting " <+> (pretty . groom $ (kind,last_status) )
+                                  ,  "mvDir"   <+> pretty mvDir
+                                  ]
+                    removeDirectoryRecursive mvDir
+
                 return mvDir
 
 
@@ -251,6 +261,15 @@ classifySettingI ec errdir out uname
             let needed =  filter (allow k) fps
 
             void $ copyFiles (unMaybe $ mvDirBase `M.lookup` inDir) inErrDir mvDir needed
+
+            case (kind_,status_) `S.member` (EC.notUseful ec)  of
+              False -> return ()
+              True  -> do
+                putStrLn . show . vcat $ [
+                                "Deleting " <+> (pretty . groom $ (kind_,status_) )
+                              ,  "mvDir"   <+> pretty mvDir
+                              ]
+                removeDirectoryRecursive mvDir
 
             return mvDir
 

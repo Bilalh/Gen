@@ -4,9 +4,9 @@
 module Gen.Essence.Data  where
 
 import Gen.Prelude
+import Gen.IO.Toolchain(KindI,StatusI)
 
 type Depth = Int
-type Ref = Text
 
 data EssenceMode =
           TypeCheck_
@@ -33,7 +33,8 @@ data EssenceConfig = EssenceConfig
       , binariesDirectory_ :: Maybe FilePath
       , oldConjure_        :: Bool
       , toolchainOutput_   :: ToolchainOutput
-      }
+      , notUseful          :: Set ( KindI, StatusI )
+      } deriving (Show)
 
 instance Default EssenceConfig where
     def = EssenceConfig
@@ -51,4 +52,5 @@ instance Default EssenceConfig where
       , binariesDirectory_ = Nothing
       , oldConjure_        = False
       , toolchainOutput_   = def
+      , notUseful          = def
       }

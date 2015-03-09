@@ -3,30 +3,32 @@
 
 module Main where
 
-import           Gen.Arbitrary.Data
-import           Gen.Classify.AddMeta        (metaMain)
-import           Gen.Classify.AddSpecE       (specEMain)
-import           Gen.Classify.Sorter         (sorterMain')
-import           Gen.Essence.Generate        (generateEssence)
-import           Gen.Helpers.StandardImports
-import           Gen.IO.CmdArgsHelpers
-import           Gen.IO.Toolchain            (kindsList, statusesList)
-import           Gen.Reduce.Data             (RState (..), mkrGen)
-import           Gen.Reduce.FormatResults    (formatResults)
-import           Gen.Reduce.Reduce           (reduceMain)
-import           Gen.UI.UI
-import           System.Console.CmdArgs      (cmdArgs)
-import           System.CPUTime              (getCPUTime)
-import           System.Environment          (withArgs)
-import           System.Exit                 (exitFailure, exitSuccess)
-import           System.Exit                 (exitWith)
-import           System.Timeout              (timeout)
-import           Text.Printf                 (printf)
+import Gen.Arbitrary.Data
+import Gen.Classify.AddMeta        (metaMain)
+import Gen.Classify.AddSpecE       (specEMain)
+import Gen.Classify.Sorter         (sorterMain')
+import Gen.Essence.Generate        (generateEssence)
+import Gen.Helpers.StandardImports
+import Gen.IO.CmdArgsHelpers
+import Gen.IO.Toolchain            (kindsList, statusesList, KindI(..), StatusI(..))
+import Gen.Reduce.Data             (RState (..), mkrGen)
+import Gen.Reduce.FormatResults    (formatResults)
+import Gen.Reduce.Reduce           (reduceMain)
+import Gen.UI.UI
+import System.Console.CmdArgs      (cmdArgs)
+import System.CPUTime              (getCPUTime)
+import System.Environment          (withArgs)
+import System.Exit                 (exitFailure, exitSuccess)
+import System.Exit                 (exitWith)
+import System.Timeout              (timeout)
+import Text.Printf                 (printf)
 
-import qualified Gen.Reduce.Data             as R
-import qualified Gen.IO.Toolchain            as Toolchain
-import qualified Gen.IO.ToolchainRecheck     as Recheck
-import qualified Gen.Essence.Data            as EC
+import qualified Data.Set                as S
+import qualified Gen.Essence.Data        as EC
+import qualified Gen.IO.Toolchain        as Toolchain
+import qualified Gen.IO.ToolchainRecheck as Recheck
+import qualified Gen.Reduce.Data         as R
+
 
 main :: IO ()
 main = do
@@ -121,6 +123,7 @@ mainWithArgs Essence{..} = do
                , binariesDirectory_ = binaries_directory
                , oldConjure_        = old_conjure
                , toolchainOutput_   = toolchain_ouput
+               , notUseful          = S.fromList [()]
                }
 
   generateEssence config
