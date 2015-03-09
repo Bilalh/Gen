@@ -8,6 +8,8 @@ import Conjure.Language.Domain
 import Conjure.Language.Pretty
 import Conjure.Language.Definition
 
+import Text.Groom(groom)
+
 class (Pretty ast, Pretty conjure, Show ast) => Translate ast conjure where
   -- Should never cause an error but...
   toConjure   :: MonadFail m => ast -> m conjure

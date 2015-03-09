@@ -15,6 +15,7 @@ import Gen.AST.Data
 import Gen.AST.Type()
 import Gen.AST.Domain()
 
+import Text.Groom(groom)
 
 fromConjureM :: (Translate a b, MonadFail m) => [b] -> m [a]
 fromConjureM as =  mapM fromConjure as

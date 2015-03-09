@@ -6,6 +6,7 @@ import Conjure.Prelude as X
 import Conjure.Language.Pretty as X(Pretty(..))
 import Gen.AST.Imports as X
 
+import Text.Groom as X(groom)
 
 import Gen.Helpers.Placeholders as X (placeholder,notDone,todo, never)
 import Control.Monad.State.Strict as X (execStateT)

@@ -1,20 +1,17 @@
-
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
-{-# LANGUAGE DeriveGeneric, DeriveDataTypeable #-}
-
-
+{-# LANGUAGE DeriveDataTypeable, DeriveGeneric, FlexibleInstances,
+             MultiParamTypeClasses #-}
 module Gen.AST.Spec where
 
-import qualified Data.Map as M
-import Data.Map (Map)
-
-import Conjure.Prelude
-import Conjure.Language.Pretty
 import Conjure.Language.Definition
 import Conjure.Language.Domain
-
+import Conjure.Language.Pretty
+import Conjure.Prelude
+import Data.Map                    (Map)
 import Gen.AST.Data
-import Gen.AST.Expr()
+import Gen.AST.Expr                ()
+import Text.Groom                  (groom)
+
+import qualified Data.Map as M
 
 
 data Spec = Spec Domains [Expr] (Maybe (OObjective, Expr) )
