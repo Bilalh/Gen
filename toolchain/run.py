@@ -16,7 +16,6 @@ from multiprocessing import Pool
 from textwrap import indent
 
 from command import K
-import command
 import random
 
 logger = logging.getLogger(__name__)
@@ -388,11 +387,6 @@ def run_process(timeout, kind, cmd, *, extra_env, vals):
     cputime_taken = (end_usr - start_usr) + (end_sys - start_sys)
 
 
-    if (kind == K.refineCompact or kind == K.refineRandom) \
-            and "Timed out" in output:
-        status=Status.timeout
-        finished=False
-
     # Might be simpler to run SR and minion our self
     if code == 0 and kind == K.savilerow:
         if "Savile Row timed out" in output:
@@ -413,10 +407,6 @@ def run_process(timeout, kind, cmd, *, extra_env, vals):
                     finished=False
                     status=Status.timeout
 
-
-        logger.info("Took %0.2f (%0.2f real), reported user %0.2f sys %0.2f",
-                cputime_taken, diff.total_seconds(),
-                (end_usr - start_usr), (end_sys - start_sys))
 
     return (Results(rcode=code,
                   cpu_time=cputime_taken, real_time=diff.total_seconds(),
