@@ -181,6 +181,7 @@ mainWithArgs Script_Toolchain{..} = do
         , aerr "-c|--cores" (_cores == 0)
         ]
 
+
   case errors of
     [] -> return ()
     xs -> mapM putStrLn xs >> exitFailure
@@ -202,7 +203,7 @@ mainWithArgs Script_Toolchain{..} = do
   exitWith code
 
   where
-    f :: Toolchain.RefineType -> Maybe FilePath -> Toolchain.RefineType 
+    f :: Toolchain.RefineType -> Maybe FilePath -> Toolchain.RefineType
     f r Nothing = r
     f Toolchain.Refine_All _       = error "--choices make no sense with --refine-all"
     f Toolchain.Refine_Solve_All _ = error "--choices make no sense with --refine-solve-all"

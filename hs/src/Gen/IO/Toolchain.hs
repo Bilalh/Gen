@@ -45,6 +45,7 @@ toolchain ToolchainData{..} = do
                ++ argsMay "--seed"    (fmap show seed)
                ++ argsMay "--bin_dir" binariesDirectory
                ++ argsMay "--param"   essenceParam
+               ++ argsMay "--choices" choicesPath
 
 
   liftIO . putStrLn $ "Running: " ++ showCommandForUser script args
