@@ -32,9 +32,14 @@ generateEssence ec@EC.EssenceConfig{..} = do
   case deletePassing_ of
     False -> return ()
     True  -> do
-      doesDirectoryExist (outputDirectory_ </> "passing") >>= \case
-             False -> return ()
-             True  -> removeDirectoryRecursive (outputDirectory_ </> "passing")
+      delete (outputDirectory_ </> "passing")
+      delete  (outputDirectory_ </> "_errors" </> "zPerSpec")
+
+      where
+        delete fp =
+            doesDirectoryExist fp >>= \case
+            False -> return ()
+            True  -> removeDirectoryRecursive fp
 
 doRefine :: EssenceConfig -> IO ()
 doRefine ec@EC.EssenceConfig{..} = do
