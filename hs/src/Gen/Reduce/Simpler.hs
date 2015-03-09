@@ -88,7 +88,7 @@ instance Simpler Expr Expr where
   -- simplerImp (EDom a)  (EDom b) = simplerImp a b
 
 
-  simplerImp (EVar _ tya) (EVar _ tyb) = do
+  simplerImp (EVar (Var _ tya)) (EVar (Var _ tyb)) = do
     simplerImp tya tyb
 
   simplerImp (ETyped _ x) (ETyped _ y) = simplerImp x y
@@ -252,7 +252,7 @@ instance Simpler Expr Literal where
       return $ if tyb == TBool then EQ else LT
     simplerImp (ELit e) l    = simplerImp e l
 
-    simplerImp (EVar _ tyE) l = do
+    simplerImp (EVar (Var _ tyE)) l = do
       tyl <- ttypeOf l
       simplerImp (tyE) tyl
 

@@ -34,7 +34,7 @@ instance Standardise Expr where
 
     standardise (ETyped x y ) = pure ETyped <*> standardise x <*> standardise y
 
-    standardise x@(EVar _ _)    = return x
+    standardise x@(EVar _)    = return x
     standardise x@EEmptyGuard = return x
     standardise x = return x
 

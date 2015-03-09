@@ -1,13 +1,8 @@
-
-
-
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-
 module Gen.Arbitrary.Common  where
 
 import Gen.Prelude
 
-import qualified Data.Map as M
 import qualified Data.Text as T
 
 
@@ -40,17 +35,6 @@ typeFromType' ty = return ty
 -- typeFromType' ty =  ggError "typeFromType' unmatched" [ pretty . show $ ty ]
 
 
-lookupType ::  Ref -> GG TType
-lookupType  name = do
-    SS{newVars_,doms_} <- get
-
-    case name `lookup` newVars_ of
-        Just v  -> return v
-        Nothing ->
-            case fmap (typeOfDom . domOfGF) $  name `M.lookup` doms_ of
-                Nothing ->  ggError "lookUpType"  [pretty name]
-                Just v  -> return v
-
 
 nextQuanVarName :: GG Text
 nextQuanVarName = do
@@ -59,6 +43,6 @@ nextQuanVarName = do
     modify (\s -> s{nextNum_=curNum + 1}  )
     return varName
 
-introduceVariable :: (Text, TType) -> GG ()
+introduceVariable :: Var -> GG ()
 introduceVariable newVar =
     modify ( \st -> st{newVars_ = newVar : newVars_ st} )

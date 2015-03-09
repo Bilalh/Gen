@@ -190,7 +190,7 @@ mainWithArgs Script_Toolchain{..} = do
            {
              Toolchain.essencePath       = essence_path
            , Toolchain.outputDirectory   = output_directory
-           , Toolchain.totalTime         = total_time
+           , Toolchain.toolchainTime     = total_time
            , Toolchain.essenceParam      = essence_param
            , Toolchain.refineType        = f refine_type choices_path
            , Toolchain.cores             = _cores

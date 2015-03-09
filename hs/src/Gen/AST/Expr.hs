@@ -1,21 +1,18 @@
-{-# LANGUAGE QuasiQuotes, ViewPatterns #-}
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, QuasiQuotes #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-
 module Gen.AST.Expr where
 
-import Conjure.Prelude
-import Conjure.Language.Pretty
 import Conjure.Language.Definition
-import Conjure.Language.Domain(Domain)
-import Conjure.Language.TH
+import Conjure.Language.Domain        (Domain)
 import Conjure.Language.Expression.Op
-
+import Conjure.Language.Pretty
+import Conjure.Language.TH
+import Conjure.Prelude
 import Gen.AST.Data
-import Gen.AST.Type()
-import Gen.AST.Domain()
+import Gen.AST.Domain                 ()
+import Gen.AST.Type                   ()
+import Text.Groom                     (groom)
 
-import Text.Groom(groom)
 
 fromConjureM :: (Translate a b, MonadFail m) => [b] -> m [a]
 fromConjureM as =  mapM fromConjure as
@@ -76,7 +73,7 @@ instance Translate Expr Expression where
   fromConjure (Constant t)             = ECon   <$> fromConjure t
   fromConjure (AbstractLiteral t)      = ELit   <$> fromConjure t
   fromConjure (Domain t)               = EDom   <$> fromConjure t
-  -- fromConjure (Reference t1 _)         = EVar   <$> fromConjure t1
+  -- fromConjure (Reference t1 x)         = EVar   <$> fromConjure t1
   -- fromConjure (WithLocals t1 t2)    = _f
   -- fromConjure (Comprehension t1 t2) = _f
   fromConjure (Typed t1 t2)            = ETyped <$> fromConjure t2 <*> fromConjure t1
@@ -99,7 +96,7 @@ instance Translate Expr Expression where
 
 
   --FIXME correct? not the first
-  toConjure (EVar x _) =  Reference <$> toConjure x <*> return Nothing
+  toConjure (EVar (Var x _) ) =  Reference <$> toConjure x <*> return Nothing
   toConjure (ECon x )  =  return $ Constant x
   toConjure (ELit x )  =  AbstractLiteral <$> toConjure x
 
@@ -110,7 +107,7 @@ instance Translate Expr Expression where
   toConjure (EUniOp x)     =  toConjure x
   toConjure (EProc x)      =  toConjure x
 
-  toConjure (EQuan q (BIn (EVar x _) dom) g inner) = do
+  toConjure (EQuan q (BIn (EVar (Var x _) ) dom) g inner) = do
         x'     <- return $ Single (Name x)
         dom'   <- toConjure dom
         inner' <- toConjure inner
@@ -125,7 +122,7 @@ instance Translate Expr Expression where
           (Sum,_)              -> toConjure g  >>= \g' ->
                                   return [essence| sum    &x' in &dom', &g' . &inner' |]
 
-  toConjure (EQuan q (BOver (EVar x _) (EDom dom)) g inner) = do
+  toConjure (EQuan q (BOver (EVar (Var x _) ) (EDom dom)) g inner) = do
         x'                           <- return $ Single (Name x)
         dom' :: Domain () Expression <- toConjure dom
         inner'                       <- toConjure inner
@@ -339,7 +336,7 @@ instance Translate Proc Expression where
   toConjure (PallDiff x ) = return [essence| allDiff(&x') |] where
      x' = toConjureNote "Proc Expression" x
 
-  toConjure (Pindex ref@(EVar _ _) c ) = return [essence| &ref'[&c']  |] where
+  toConjure (Pindex ref@(EVar _ ) c ) = return [essence| &ref'[&c']  |] where
      ref' = toConjureNote "Proc Expression" ref
      c'   = toConjureNote "Proc Expression" c
 
@@ -348,7 +345,7 @@ instance Translate Proc Expression where
      c'     = toConjureNote "Proc Expression" c
 
 
-  toConjure (Papply (EVar t _) es ) =do
+  toConjure (Papply (EVar (Var t _) ) es ) =do
     es' <- mapM toConjure es
     return $
       Op

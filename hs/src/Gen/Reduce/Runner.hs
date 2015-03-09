@@ -40,7 +40,7 @@ runSpec spE = do
         (_, res)  <- toolchain Toolchain.ToolchainData{
                       Toolchain.essencePath       = essencePath
                     , Toolchain.outputDirectory   = path
-                    , Toolchain.totalTime         = perSpec
+                    , Toolchain.toolchainTime     = perSpec
                     , Toolchain.essenceParam      = Nothing
                     , Toolchain.refineType        = Refine_Solve_All
                     , Toolchain.cores             = cores

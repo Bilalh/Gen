@@ -25,7 +25,7 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
       lits <- reduce t
       return $ map ELit lits
 
-    reduce (EVar t ty) = singleLitExpr ty
+    reduce (EVar (Var _ ty)) = singleLitExpr ty
 
     reduce (EUniOp t) = do
       ds <- reduce t
@@ -59,7 +59,7 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
 
     single EEmptyGuard = return []
 
-    single (EVar _ ty) = singleLitExpr ty
+    single (EVar (Var _ ty)) = singleLitExpr ty
 
 
     single (ELit t)   = do
@@ -88,7 +88,7 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
                  , EQuan t1 t2 t3 etrue
                  , EQuan t1 t2 EEmptyGuard t4]
 
-    subterms (EVar _ _)  = return []
+    subterms (EVar _)  = return []
 
     subterms (ELit t)   = subterms t
     subterms (EDom t)   = subterms t

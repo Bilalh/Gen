@@ -39,19 +39,19 @@ nestedVarsOf' tyTo = do
     -- FIXME are types enough?
     doms     <- gets doms_
     quanVars <- gets newVars_
-    let refs =  quanVars  ++ (toTy <$> M.toList doms)
+    let refs :: [Var] =  quanVars  ++ (map toVar . M.toList $ doms)
 
     gets depth_ >>= \d -> case (d, refs) of
-        (0, _) -> return Nothing
+        (0, _)  -> return Nothing
         (_, []) -> return Nothing
         (_, _) ->  do
-            filterM ( \(_, from) ->
+            filterM ( \(Var _ from) ->
                 (inDepth d ) <$> typeReachable from tyTo ) refs >>=
                  \case
                     [] -> return Nothing
                     xs -> do
-                        tu@(name,tyFrom) <- elements2 xs
-                        addLog "nestedVarsOf'gets" [pretty name, pretty tyFrom]
+                        tu :: Var <- elements2 xs
+                        addLog "nestedVarsOf'gets" [nn "var" (groom tu)]
                         return . Just $  exprFromRefTo tu tyTo
 
 
@@ -59,7 +59,7 @@ nestedVarsOf' tyTo = do
         inDepth _ Nothing  = False
         inDepth d (Just c) = c <  d
 
-        toTy (ref, fg) = (ref, typeOfDom . domOfGF $ fg )
+        toVar (ref, fg) = (Var ref (typeOfDom . domOfGF $ fg) )
 
 --TODO Make sure to handle Tany
 
@@ -115,8 +115,8 @@ typeReachable _ _ = return Nothing
 
 
 -- returns a expr that contraints the Ref
-exprFromRefTo :: (Ref,TType) -> TType -> GG Expr
-exprFromRefTo (ref,tyFrom) tyTo = do
+exprFromRefTo :: Var -> TType -> GG Expr
+exprFromRefTo var@(Var ref tyFrom) tyTo = do
     addLog "exprFromRefTo" []
     -- TODO inefficient
     minSteps <- typeReachable tyTo tyFrom
@@ -125,7 +125,7 @@ exprFromRefTo (ref,tyFrom) tyTo = do
     addLog "exprFromRefTo" ["depth, ref, fromTy, tyTo"
                            ,pretty d,  pretty ref, pretty tyFrom, pretty tyTo  ]
 
-    process (EVar ref $notDone) tyFrom
+    process (EVar var) tyFrom
 
 
     where

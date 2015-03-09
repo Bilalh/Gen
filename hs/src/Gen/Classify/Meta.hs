@@ -114,7 +114,7 @@ class HasFeature e where
 instance HasFeature Expr where
     getFeatures (ELit e)             = Fliterals : getFeatures e
     getFeatures (ECon _)             = []
-    getFeatures (EVar _ _)           = [Fref]
+    getFeatures (EVar _)             = [Fref]
     getFeatures (EBinOp e)           = getFeatures e
     getFeatures (EUniOp e)           = getFeatures e
     getFeatures (EProc e)            = Fproc : getFeatures e

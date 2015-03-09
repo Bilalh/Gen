@@ -10,7 +10,7 @@ data ToolchainData = ToolchainData
     {
       essencePath        :: FilePath
     , outputDirectory    :: FilePath
-    , totalTime          :: Int
+    , toolchainTime      :: Int
 
     , essenceParam       :: Maybe FilePath
     , refineType         :: RefineType
@@ -30,7 +30,7 @@ instance Default ToolchainData where
           {
             essencePath       = $never
           , outputDirectory   = $never
-          , totalTime         = $never
+          , toolchainTime     = $never
           , essenceParam      = Nothing
           , refineType        = def
           , cores             = $never
@@ -38,7 +38,7 @@ instance Default ToolchainData where
           , binariesDirectory = Nothing
           , oldConjure        = False
           , toolchainOutput   = def
-          , choicesPath       = Nothing 
+          , choicesPath       = Nothing
           }
 
 data RefineType =

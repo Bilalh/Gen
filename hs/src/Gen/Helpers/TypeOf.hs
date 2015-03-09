@@ -3,11 +3,12 @@
 
 module Gen.Helpers.TypeOf(WithDoms(..), TTypeOf(..), typeOfDom) where
 
-import           Conjure.Language.AbstractLiteral
-import           Conjure.Language.Constant
-import           Conjure.Language.TypeOf
-import qualified Data.Map                         as M
-import           Gen.Helpers.StandardImports
+import Conjure.Language.Constant
+import Conjure.Language.TypeOf
+import Gen.Helpers.StandardImports
+
+import qualified Data.Map as M
+
 
 class TTypeOf a where
     ttypeOf :: (Monad m, Applicative m) => a -> m TType
@@ -29,6 +30,9 @@ instance TTypeOf GF  where
 instance TTypeOf (Domainn Expr)  where
   ttypeOf = return . typeOfDom
 
+instance TTypeOf Var  where
+  ttypeOf (Var _ ty )= return ty
+
 instance TTypeOf Constant  where
     ttypeOf x = case typeOf x of
                   Left d -> error . show $ d
@@ -44,7 +48,7 @@ instance TTypeOf Expr  where
   ttypeOf (EQuan Sum _ _ _) = return TInt
   ttypeOf (EQuan _ _ _ _)   = return TBool
   ttypeOf EEmptyGuard       = return TBool
-  ttypeOf (EVar _ ty)       = return ty
+  ttypeOf (EVar v)          = ttypeOf v
   ttypeOf (ETyped t _)      = return t
   ttypeOf x = error . show . vcat $ ["ttypeOf ", pretty x]
 

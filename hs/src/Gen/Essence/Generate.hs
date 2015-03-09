@@ -62,17 +62,17 @@ doRefine EC.EssenceConfig{..} = do
           essencePath <- writeModelDef dir model
           startTime <- round `fmap` getPOSIXTime
           (_, RefineResult result) <- toolchain Toolchain.ToolchainData{
-                      Toolchain.essencePath = essencePath
-                    , Toolchain.outputDirectory = dir
-                    , Toolchain.totalTime = timeLeft
-                    , Toolchain.essenceParam = Nothing
-                    , Toolchain.refineType   = Refine_Only
-                    , Toolchain.cores = cores_
-                    , Toolchain.seed = Just runSeed
+                      Toolchain.essencePath       = essencePath
+                    , Toolchain.outputDirectory   = dir
+                    , Toolchain.toolchainTime     = perSpecTime_
+                    , Toolchain.essenceParam      = Nothing
+                    , Toolchain.refineType        = Refine_Only
+                    , Toolchain.cores             = cores_
+                    , Toolchain.seed              = Just runSeed
                     , Toolchain.binariesDirectory = binariesDirectory_
-                    , Toolchain.oldConjure = oldConjure_
-                    , Toolchain.toolchainOutput = toolchainOutput_
-                    , Toolchain.choicesPath = Nothing                    
+                    , Toolchain.oldConjure        = oldConjure_
+                    , Toolchain.toolchainOutput   = toolchainOutput_
+                    , Toolchain.choicesPath       = Nothing
                     }
           endTime <- round `fmap` getPOSIXTime
           let realTime = endTime - startTime
@@ -116,17 +116,17 @@ doSolve EC.EssenceConfig{..} = do
           essencePath <- writeModelDef dir model
           startTime <- round `fmap` getPOSIXTime
           (_, result) <- toolchain Toolchain.ToolchainData{
-                      Toolchain.essencePath = essencePath
-                    , Toolchain.outputDirectory = dir
-                    , Toolchain.totalTime = timeLeft
-                    , Toolchain.essenceParam = Nothing
-                    , Toolchain.refineType   = Refine_Solve
-                    , Toolchain.cores = cores_
-                    , Toolchain.seed = Just runSeed
+                      Toolchain.essencePath       = essencePath
+                    , Toolchain.outputDirectory   = dir
+                    , Toolchain.toolchainTime     = perSpecTime_
+                    , Toolchain.essenceParam      = Nothing
+                    , Toolchain.refineType        = Refine_Solve
+                    , Toolchain.cores             = cores_
+                    , Toolchain.seed              = Just runSeed
                     , Toolchain.binariesDirectory = binariesDirectory_
-                    , Toolchain.oldConjure = oldConjure_
-                    , Toolchain.toolchainOutput = toolchainOutput_
-                    , Toolchain.choicesPath = Nothing
+                    , Toolchain.oldConjure        = oldConjure_
+                    , Toolchain.toolchainOutput   = toolchainOutput_
+                    , Toolchain.choicesPath       = Nothing
                     }
 
           endTime <- round `fmap` getPOSIXTime

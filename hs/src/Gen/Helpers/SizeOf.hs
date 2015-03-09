@@ -68,7 +68,7 @@ instance DepthOf TType where
 instance DepthOf Expr where
     depthOf (ELit e)      = depthOf e
     depthOf (ECon c)      = depthOf c
-    depthOf (EVar _ _)      = 0
+    depthOf (EVar _ )     = 0
     depthOf (EBinOp e)    = depthOf e
     depthOf (EUniOp e)    = depthOf e
     depthOf (EProc e)     = depthOf e
@@ -80,7 +80,7 @@ instance DepthOf Expr where
 
 
 instance DepthOf Literal where
-    depthOf x = F.foldl (\x e -> x + depthOf e ) 0 x
+    depthOf x = F.foldl (\y e -> y + depthOf e ) 0 x
 
 instance DepthOf Constant where
     depthOf (ConstantBool _)          = 0

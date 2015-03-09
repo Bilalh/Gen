@@ -39,7 +39,7 @@ toolchain ToolchainData{..} = do
   let script = toolchainDir </> "toolchain.py"
   let args = [ essencePath
              , "--outdir",  outputDirectory
-             , "--timeout", show totalTime
+             , "--timeout", show toolchainTime
              , "--num_cores", (show cores)
              ] ++ refineTypeArgs refineType ++ oldConjureArgs oldConjure
                ++ argsMay "--seed"    (fmap show seed)

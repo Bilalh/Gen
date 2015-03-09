@@ -10,7 +10,6 @@ module Gen.Arbitrary.Data (
     , Generators(..)
     , GG
     , Pretty(..)
-    , Ref
     , SpecState
     , SS(..)
     , TType(..)
@@ -43,14 +42,13 @@ instance Pretty ToolchainOutput where
 type GG a =  StateT SpecState Gen a
 
 type Depth = Int
-type Ref = Text
 
 data SS = SS
     {
       depth_      :: Depth       --  how many levels to genrate
     , doms_       :: Domains
     , nextNum_    :: Int             -- Number to name next var
-    , newVars_    :: [(Text,TType) ] -- Domains from e.g. forall
+    , newVars_    :: [Var] -- Domains from e.g. forall
     , logs_       :: LogsTree
     , __lc        :: Int
     , beConstant_ :: Bool  -- when true only generate constrant expressions
@@ -97,9 +95,9 @@ instance Pretty SS where
             ]
             )
 
-prettyTypeArr :: [(Text,TType)] -> Doc
+prettyTypeArr :: [Var] -> Doc
 prettyTypeArr [] = "[]"
-prettyTypeArr vs = vcat $ map (\(a,b) -> pretty (a, show b) ) vs
+prettyTypeArr vs = vcat $ map (\(Var a b) -> pretty (a, show b) ) vs
 
 prettyArr :: Pretty a => [a] -> Doc
 prettyArr [] = "[]"

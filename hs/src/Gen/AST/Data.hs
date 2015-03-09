@@ -1,14 +1,15 @@
-{-# LANGUAGE  FlexibleInstances, MultiParamTypeClasses, KindSignatures #-}
-{-# LANGUAGE DeriveGeneric, DeriveDataTypeable, DeriveFunctor, DeriveTraversable, DeriveFoldable #-}
+{-# LANGUAGE DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveGeneric,
+             DeriveTraversable, FlexibleInstances, KindSignatures,
+             MultiParamTypeClasses #-}
 
 module Gen.AST.Data where
 
-import Conjure.Prelude
+import Conjure.Language.Definition
 import Conjure.Language.Domain
 import Conjure.Language.Pretty
-import Conjure.Language.Definition
+import Conjure.Prelude
+import Text.Groom                  (groom)
 
-import Text.Groom(groom)
 
 class (Pretty ast, Pretty conjure, Show ast) => Translate ast conjure where
   -- Should never cause an error but...
@@ -32,8 +33,10 @@ type Literal = AbstractLiteral Expr
 class Pretty a => PrettyWithQuan a where
     prettyWithQuan :: Pretty a => a -> Doc
 
+
+
 data Expr =
-    EVar Text TType
+    EVar Var
   | EDom (Domainn Expr)
   | ECon Constant
   | ELit Literal
@@ -48,11 +51,20 @@ data Expr =
   | EProc Proc  -- e.g alldiff
   deriving (Eq, Ord, Show, Data, Typeable, Generic)
 
+
+data Var = Var Text TType
+  deriving (Eq, Ord, Show, Data, Typeable, Generic)
+
+instance Serialize (Var)
+instance Hashable  (Var)
+instance ToJSON    (Var) where toJSON    = genericToJSON jsonOptions
+instance FromJSON  (Var) where parseJSON = genericParseJSON jsonOptions
+
+
 instance Serialize (Expr)
 instance Hashable  (Expr)
-instance ToJSON    (Expr) where toJSON = genericToJSON jsonOptions
+instance ToJSON    (Expr) where toJSON    = genericToJSON jsonOptions
 instance FromJSON  (Expr) where parseJSON = genericParseJSON jsonOptions
-
 
 data QType = ForAll
            | Exists

@@ -1,4 +1,4 @@
-{-# LANGUAGE QuasiQuotes, ViewPatterns#-}
+{-# LANGUAGE QuasiQuotes, ViewPatterns, TupleSections#-}
 module Gen.Arbitrary.Expr where
 
 import Gen.Prelude
@@ -41,14 +41,12 @@ quanInExpr  = withQuan $
         Nothing -> boolExpr  -- Nothing to quantify over
         Just gen -> do
 
-            over@(EVar overName _) <- lift gen
-            addLog "quanInExpr" ["over" <+> pretty over ]
-            overType <- lookupType overName
-            addLog "quanInExpr" ["overTy" <+> pretty overType ]
+            over@(EVar (Var overName overType)) <- lift gen
+            addLog "quanInExpr" [nn "over" (overName, overType) ]
 
             let inType =  quanType_in overType
             inName <-  nextQuanVarName
-            introduceVariable (inName, inType)
+            introduceVariable (Var inName inType)
 
             addLog "quanInExpr" [ "in" <+> pretty inName
                                 , "inTy" <+> pretty inType
@@ -56,13 +54,13 @@ quanInExpr  = withQuan $
 
             -- FIXME Ensure with high prob that inName is actually used
             quanType <- elements2 [ ForAll, Exists ]
-            let quanTop = EQuan quanType (BIn (EVar inName overType) over)
+            let quanTop = EQuan quanType (BIn (EVar (Var inName inType)) over)
 
             d <- gets depth_
             let typeDepth = depthOf inType
             let useGuardExpr = if
                     | typeDepth < fromIntegral d  ->
-                        [withDepthDec $ boolExprUsingRef  inName]
+                        [withDepthDec $ boolExprUsingRef  (Var inName inType)]
                     | otherwise -> []
 
             addLog "quanInExpr" ["inDepth" <+> pretty typeDepth ]
@@ -86,7 +84,7 @@ quanOverExpr = withQuan $
 
             let innerType = overType
             inName <-  nextQuanVarName
-            introduceVariable (inName, innerType)
+            introduceVariable (Var inName innerType)
 
             addLog "quanOverExpr" [ "in" <+> pretty inName
                                   , "inTy" <+> pretty innerType
@@ -94,13 +92,13 @@ quanOverExpr = withQuan $
 
             -- FIXME Ensure with high prob that inName is actually used
             quanType <- elements2 [ ForAll, Exists ]
-            let quanTop = EQuan quanType (BOver (EVar inName overType) (EDom dm))
+            let quanTop = EQuan quanType (BOver (EVar (Var inName innerType)) (EDom dm))
 
             d <- gets depth_
             let typeDepth = depthOf innerType
             let useGuardExpr = if
                     | typeDepth < fromIntegral d  ->
-                        [withDepthDec $ boolExprUsingRef  inName]
+                        [withDepthDec $ boolExprUsingRef  (Var inName innerType)]
                     | otherwise -> []
 
             addLog "quanOverExpr" ["inDepth" <+> pretty typeDepth ]
@@ -120,18 +118,16 @@ quanSum = withQuan $
         Just gen -> do
             addLog "quanSum" []
 
-            over@(EVar overName _) <- lift gen
-            overType <- lookupType overName
+            over@(EVar (Var overName overType)) <- lift gen
 
             let inType =  quanType_in overType
             inName <- nextQuanVarName
-            introduceVariable  (inName, inType)
+            introduceVariable  (Var inName inType)
 
-            addLog "quanSum" [ "in" <+> pretty inName
-                                  , "inTy" <+> pretty inType
-                                  ]
+            addLog "quanSum" [nn "over" (overName, overType) ]
 
-            let quanTop = EQuan Sum (BIn (EVar inName overType) over)
+
+            let quanTop = EQuan Sum (BIn (EVar (Var inName overType)) over)
 
             quanGuard <- oneof2 [
                 return EEmptyGuard
@@ -145,12 +141,11 @@ quanSum = withQuan $
 
 
 -- assuming depth > 1 left
-boolExprUsingRef :: Ref -> GG Expr
-boolExprUsingRef ref = do
+boolExprUsingRef :: Var -> GG Expr
+boolExprUsingRef var@(Var ref refType) = do
     d <- gets depth_
     addLog "boolExprUsingRef" ["depth_" <+> pretty d, "ref" <+> pretty ref]
 
-    refType <- lookupType ref
     sidesType <- typeFromType refType
 
     addLog "boolExprUsingRef" ["refType" <+> pretty refType
@@ -158,7 +153,7 @@ boolExprUsingRef ref = do
 
 
     other <- exprOf sidesType
-    refExpr <- withDepth (min 2 d) $ exprFromToType ref refType sidesType
+    refExpr <- withDepth (min 2 d) $ exprFromToType var sidesType
 
     onLeft :: Bool <- lift arbitrary
     op <- boolOpFor sidesType
@@ -168,10 +163,10 @@ boolExprUsingRef ref = do
         return $ op other refExpr
 
 -- Types that can be reached from a type in n levels of nesting
-exprFromToType :: Ref -> TType -> TType -> GG Expr
-exprFromToType ref from to | from == to =  return $ EVar ref $notDone
+exprFromToType :: Var -> TType -> GG Expr
+exprFromToType var@(Var _ from) to | from == to =  return $ EVar var
 
-exprFromToType ref (TSet _) TInt = return $ EUniOp $ UBar $ EVar ref  $notDone
+exprFromToType var@(Var _ (TSet _)) TInt = return $ EUniOp $ UBar $ EVar var
 
 
 
@@ -326,11 +321,11 @@ varsOf' :: TType -> GG (Maybe (Gen Expr))
 varsOf' exprType = do
     SS{doms_,newVars_} <- get
 
-    let newVars = map fst $ filter (typesUnify exprType . snd ) newVars_
+    let newVars = filter (\(Var _ ty) -> typesUnify exprType ty   ) newVars_
 
-    return $ toGenExpr (flip EVar  $notDone) $ newVars ++ (
-        map fst . M.toList  . M.filter
-            (typesUnify exprType . typeOfDom . domOfGF ))  doms_
+    return $ toGenExpr EVar $ newVars ++ ( map ( uncurry Var) .
+        M.toList  . M.filter (typesUnify exprType ) . M.map (typeOfDom . domOfGF )
+        )  doms_
 
 
 
