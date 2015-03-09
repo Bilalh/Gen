@@ -135,6 +135,7 @@ Executable gen
     build-depends    : essence-gen
                      , base
                      , cmdargs
+                     , containers
 
    default-extensions:
         NoImplicitPrelude
