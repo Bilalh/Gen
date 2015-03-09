@@ -11,12 +11,7 @@ import           Gen.Essence.Generate        (generateEssence)
 import           Gen.Helpers.StandardImports
 import           Gen.IO.CmdArgsHelpers
 import           Gen.IO.Toolchain            (kindsList, statusesList)
-import qualified Gen.IO.Toolchain            as Toolchain
-import qualified Gen.IO.ToolchainRecheck     as Recheck
-
-import qualified Gen.Essence.Data            as EC
 import           Gen.Reduce.Data             (RState (..), mkrGen)
-import qualified Gen.Reduce.Data             as R
 import           Gen.Reduce.FormatResults    (formatResults)
 import           Gen.Reduce.Reduce           (reduceMain)
 import           Gen.UI.UI
@@ -27,6 +22,11 @@ import           System.Exit                 (exitFailure, exitSuccess)
 import           System.Exit                 (exitWith)
 import           System.Timeout              (timeout)
 import           Text.Printf                 (printf)
+
+import qualified Gen.Reduce.Data             as R
+import qualified Gen.IO.Toolchain            as Toolchain
+import qualified Gen.IO.ToolchainRecheck     as Recheck
+import qualified Gen.Essence.Data            as EC
 
 main :: IO ()
 main = do

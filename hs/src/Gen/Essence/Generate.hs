@@ -1,21 +1,22 @@
 module Gen.Essence.Generate(generateEssence) where
 
-import           Conjure.Language.Definition
-import           Conjure.UI.IO               (writeModel)
-import           Conjure.UI.TypeCheck        (typeCheckModel)
-import qualified Data.Map                    as M
-import qualified Data.Set                    as S
-import           Data.Time.Clock.POSIX       (getPOSIXTime)
-import qualified Gen.Arbitrary.Arbitrary     as Gen
-import           Gen.Classify.Meta           (mkMeta)
-import           Gen.Essence.Data            (EssenceConfig)
-import qualified Gen.Essence.Data            as EC
-import           Gen.IO.Formats
-import           Gen.IO.Toolchain            hiding (ToolchainData (..))
-import qualified Gen.IO.Toolchain            as Toolchain
-import           Gen.Prelude
-import           GHC.Real                    (floor)
-import           System.Directory            (copyFile, renameDirectory)
+import Conjure.Language.Definition
+import Conjure.UI.IO               (writeModel)
+import Conjure.UI.TypeCheck        (typeCheckModel)
+import Data.Time.Clock.POSIX       (getPOSIXTime)
+import Gen.Classify.Meta           (mkMeta)
+import Gen.Essence.Data            (EssenceConfig)
+import Gen.IO.Formats
+import Gen.IO.Toolchain            hiding (ToolchainData (..))
+import Gen.Prelude
+import GHC.Real                    (floor)
+import System.Directory            (copyFile, renameDirectory)
+
+import qualified Data.Map                as M
+import qualified Data.Set                as S
+import qualified Gen.Arbitrary.Arbitrary as Gen
+import qualified Gen.Essence.Data        as EC
+import qualified Gen.IO.Toolchain        as Toolchain
 
 
 generateEssence :: EssenceConfig -> IO ()
@@ -193,6 +194,12 @@ doSolve ec@EC.EssenceConfig{..} = do
             f _ _ = return ""
 
         void $ M.traverseWithKey f ms
+
+        case EC.deletePassing_ ec of
+          False -> return ()
+          True  -> do
+            removeDirectoryRecursive (inErrDir)
+
         return time_taken_
 
     classifyError uname (SolveResult (_, SettingI{time_taken_ })) = do
@@ -209,7 +216,7 @@ classifySettingI :: EssenceConfig
                  -> FilePath
                  -> SettingI RefineM
                  -> IO Double -- timetaken
-classifySettingI _ errdir out uname
+classifySettingI ec errdir out uname
                  ee@SettingI{successful_=False,data_=RefineM ms,time_taken_} = do
     let inErrDir = errdir </> "zPerSpec" </> uname
     createDirectoryIfMissing True inErrDir
@@ -248,6 +255,12 @@ classifySettingI _ errdir out uname
             return mvDir
 
     void $ M.traverseWithKey f ms
+
+    case EC.deletePassing_ ec of
+           False -> return ()
+           True  -> do
+             removeDirectoryRecursive (inErrDir)
+
     return time_taken_
 
 
