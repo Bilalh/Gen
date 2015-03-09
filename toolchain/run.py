@@ -39,11 +39,13 @@ def run_refine(extra_env, commands, kwargs, i):
         eprime = kwargs['outdir'] / "model{:06}.eprime".format(i)
         (cmd_kind, cmd_template) = commands.refine_random
 
+    choices_json= eprime.with_suffix('.choices.json')
+
     seed = kwargs['seed_base'] + i
     cmd_arr=shlex.split(cmd_template.format(eprime=eprime, index=i, seed=seed, **kwargs))
 
-    logger.warn("running %s:  %s\n\t%s", cmd_kind, cmd_arr, " ".join(cmd_arr))
-    vals = dict(eprime=eprime, index=i, seed=seed, **kwargs)
+    # logger.warn("running %s:  %s\n\t%s", cmd_kind, cmd_arr, " ".join(cmd_arr))
+    vals = dict(eprime=eprime, index=i, seed=seed, choices_json=choices_json, **kwargs)
     (res, output) = run_with_timeout(kwargs['itimeout'], cmd_kind, cmd_arr, extra_env=extra_env, vals=vals)
 
     dic = res.__dict__
@@ -284,69 +286,78 @@ class Status(Enum):
 errors_not_useful = {Status.numberToLarge}
 
 
-def classify_error(kind, c, e):
+def classify_error(*, kind, output, returncode):
     kind_conjure = {K.refineAll, K.refineRandom, K.refineCompact, K.refineParam,
                     K.translateUp, K.validate, K.validateOld}
     if kind == K.savilerow:
-        if "java.lang.NumberFormatException: For input string: " in e.output:
+        if "java.lang.NumberFormatException: For input string: " in output:
             return Status.numberToLarge
-        if "Failed when parsing rest of structure following" in e.output:
+        if "Failed when parsing rest of structure following" in output:
             return Status.parseError
-        if 'Failed type checking' in e.output:
+        if 'Failed type checking' in output:
             return Status.typeChecking
-        if 'declared more than once.' in e.output:
+        if 'declared more than once.' in output:
             return Status.varDuplicated
-        if 'Exception in thread' in e.output:
+        if 'Exception in thread' in output:
             return Status.javaException
-        if 'ERROR: Savile Row timed out' in e.output:
+        if 'ERROR: Savile Row timed out' in output:
             return Status.timeout
 
     if kind in kind_conjure:
-        if e.returncode == 252:
+        if returncode == 252:
             return Status.heapSpace
 
-    if kind == K.validateOld and 'Value not in' in e.output:
+    if kind == K.validateOld and 'Value not in' in output:
         return Status.valueNotInDom
 
     if kind == K.validate:
-        if ': negativeExponent' in e.output:
+        if ': negativeExponent' in output:
             return Status.negativeExponent
-        if ': Negative exponent' in e.output:
+        if ': Negative exponent' in output:
             return Status.negativeExponent
-        if ': divideByZero' in e.output:
+        if ': divideByZero' in output:
             return Status.divideByZero
-        if ': divide by zero' in e.output:
+        if ': divide by zero' in output:
             return Status.divideByZero
-        if ': Invalid' in e.output:
+        if ': Invalid' in output:
             return Status.conjureInvalid
 
     if kind in kind_conjure:
-        if 'Shunting Yard failed' in e.output:
+        if 'Shunting Yard failed' in output:
             return Status.parseError
 
-        if 'Cannot fully evaluate' in e.output:
+        if 'Cannot fully evaluate' in output:
             return Status.cannotEvaluate
 
-        if 'not a homoType' in e.output:
+        if 'not a homoType' in output:
             return Status.notAHomoType
 
-        if 'N/A:' in e.output:
+        if 'N/A:' in output:
             return Status.conjureNA
 
-        if 'forgetRepr' in e.output:
+        if 'forgetRepr' in output:
             return Status.forgetRepr
 
-        if 'Unknown lexeme' in e.output:
+        if 'Unknown lexeme' in output:
             return Status.unknownLexeme
 
-        if 'Not refined:' in e.output:
+        if 'Not refined:' in output:
             return Status.notRefined
 
 
     return Status.errorUnknown
 
-Results = namedtuple("Results", "rcode cpu_time real_time timeout finished cmd status_ kind_")
 def run_with_timeout(timeout, kind, cmd, *, extra_env, vals):
+    logging.info("Running %s", " ".join(cmd))
+
+    if kind == K.refineCompact or kind == K.refineRandom:
+        return run_conjure_with_choices(timeout, kind, cmd, extra_env=extra_env, vals=vals)
+    else:
+        return run_process(timeout, kind, cmd, extra_env=extra_env, vals=vals)
+
+
+Results = namedtuple("Results", "rcode cpu_time real_time timeout finished cmd status_ kind_")
+def run_process(timeout, kind, cmd, *, extra_env, vals):
     code = 0
     finished = True
     status = Status.success
@@ -365,7 +376,7 @@ def run_with_timeout(timeout, kind, cmd, *, extra_env, vals):
         output = e.output
         code = e.returncode
         finished = False
-        status = classify_error(kind, cmd, e)
+        status = classify_error(kind=kind, output=e.output, returncode=e.returncode)
 
     # does not work with Pool.map
     end_usr = os.times().children_user
@@ -406,6 +417,75 @@ def run_with_timeout(timeout, kind, cmd, *, extra_env, vals):
         logger.info("Took %0.2f (%0.2f real), reported user %0.2f sys %0.2f",
                 cputime_taken, diff.total_seconds(),
                 (end_usr - start_usr), (end_sys - start_sys))
+
+    return (Results(rcode=code,
+                  cpu_time=cputime_taken, real_time=diff.total_seconds(),
+                  timeout=timeout, finished=finished,
+                  cmd=cmd, status_=status, kind_=kind), output)
+
+
+
+def run_conjure_with_choices(timeout, kind, cmd, *, extra_env, vals):
+
+    code = 0
+    finished = True
+    status = Status.success
+
+    date_start = datetime.utcnow()
+    start_usr = os.times().children_user
+    start_sys = os.times().children_system
+    if extra_env:
+        my_env = os.environ
+        my_env.update(extra_env)
+    else:
+        extra_env=None
+
+    lines = []
+    saved_first_choice=False
+
+    with vals['choices_json'].open('w') as choices:
+        choices.write("[")
+        with subprocess.Popen(cmd, stdout=subprocess.PIPE, universal_newlines=True,
+                        env=extra_env, stderr=subprocess.STDOUT, bufsize=1 ) as proc:
+            for line in iter( proc.stdout.readline, ''):
+                if line.startswith("LF:") and line.endswith(" END:\n"):
+                    if saved_first_choice:
+                        choices.write(",")
+                        choices.write(line[3:-6])
+                        choices.write("\n")
+                    else:
+                        choices.write(line[3:-6])
+                        saved_first_choice = True
+                        choices.write("\n")
+
+                else:
+                    print(line, end='')
+                    lines.append(line)
+
+            code = proc.poll()
+
+        choices.write("]")
+
+
+    # does not work with Pool.map
+    end_usr = os.times().children_user
+    end_sys = os.times().children_system
+
+    date_end=datetime.utcnow()
+
+    diff = date_end - date_start
+    cputime_taken = (end_usr - start_usr) + (end_sys - start_sys)
+
+    output = "".join(lines)
+
+
+    if code != 0:
+        finished = False
+        status = classify_error(kind=kind, output=output, returncode=code)
+
+    if "Timed out" in output:
+        status=Status.timeout
+        finished=False
 
     return (Results(rcode=code,
                   cpu_time=cputime_taken, real_time=diff.total_seconds(),

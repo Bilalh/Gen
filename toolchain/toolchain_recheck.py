@@ -40,7 +40,7 @@ def data_convert_back(d):
 
     for n in ['eprime', 'essence', 'eprime_info', 'eprime_param', 'minion',
             'eprime_solution', 'essence_param', 'essence_solution',
-            'outdir', 'outdir_']:
+            'outdir', 'outdir_', 'choices_json']:
         if n in d:
             d[n] = Path(d[n])
 
@@ -133,7 +133,7 @@ def update_cmd_paths(v):
     v['vals'].update(outdir=newBase)
 
     for name in ['eprime', 'essence', 'eprime_info', 'eprime_param', 'minion',
-            'eprime_solution', 'essence_param', 'essence_solution']:
+            'eprime_solution', 'essence_param', 'essence_solution', 'choices_json']:
         if name in v['vals']:
             v['vals'][name] = newBase / v['vals'][name].name
 

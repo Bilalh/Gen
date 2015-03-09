@@ -138,6 +138,7 @@ class ConjureNew(Commands):
                     --limit-time       {itimeout}
                     --seed             {seed}
                     --log-choices
+                    --log-level=logfollow
                 """,
 
                 refine_all="""
@@ -157,6 +158,7 @@ class ConjureNew(Commands):
                     --limit-time       {itimeout}
                     --seed             {seed}
                     --log-choices
+                    --log-level=logfollow
                 """,
 
                 refine_follow_log="""
@@ -168,6 +170,7 @@ class ConjureNew(Commands):
                     --seed             {seed}
                     --log-choices
                     --choices          {log_choices}
+                    --log-level=logfollow
                 """,
 
 
