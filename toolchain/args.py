@@ -1,5 +1,6 @@
 import argparse
 import logging
+import sys
 
 from pathlib import Path
 
@@ -20,6 +21,7 @@ def do_args():
     parse_args.add_argument("--refine_all", action='store_true',
             help='Produces all models')
     parse_args.add_argument("--bin_dir", help='Use the specifed directory for binaries (give a full path)')
+    parse_args.add_argument("--choices", help='Use the following choices when refining if possible, can not be used with --refine_all')
 
 
     args = parse_args.parse_args()
@@ -30,11 +32,20 @@ def do_args():
     if not args.param:
         args.param  = args.outdir / "empty.param"
         with args.param.open("w") as f:
-            f.write("language ESSENCE' 1.0")
-            f.write("\n$This Fine is empty")
+            f.write("language Essence 1.3")
+            f.write("\n$This file is empty")
 
     else:
         args.param = Path(args.param)
+
+    if args.refine_only and args.choices:
+        print("--refine_all can not be used with --choices", file=sys.stderr)
+        sys.exit(1)
+
+    if args.choices:
+        args.choices = Path(args.choices)
+        if not args.choices.exists():
+            print("{} does not exist ".format(args.choices))
 
     args.essence = Path(args.essence)
     return args

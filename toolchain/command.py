@@ -22,7 +22,7 @@ class K(Enum):
 
 class Commands(object):
     def __init__(self, *, refine_compact, refine_all, refine_random, refine_param,
-                 savilerow, translate_up, validate, refine_follow_log=None):
+                 savilerow, translate_up, validate):
         super(Commands, self).__init__()
         self.refine_compact = (K.refineCompact, refine_compact)
         self.refine_all=(K.refineAll, refine_all)
@@ -31,7 +31,6 @@ class Commands(object):
         self.savilerow = (K.savilerow, savilerow)
         self.translate_up = (K.translateUp, translate_up)
         self.validate = (K.validate, validate)
-        self.refine_follow_log_command = refine_follow_log
 
     def kind_to_template(self, kind):
         d = {
@@ -49,6 +48,9 @@ class Commands(object):
         else:
             print("%s not a vaild kind" % d )
             sys.exit(6)
+
+    def refine_log_follow(self, kind):
+        raise NotImplementedError()
 
 
 
@@ -161,19 +163,6 @@ class ConjureNew(Commands):
                     --log-level=logfollow
                 """,
 
-                refine_follow_log="""
-                conjureNew {essence}
-                    -q f -a l
-                    --output-directory '{outdir}'
-                    --numbering-start  {index}
-                    --limit-time       {itimeout}
-                    --seed             {seed}
-                    --log-choices
-                    --choices          {log_choices}
-                    --log-level=logfollow
-                """,
-
-
                 refine_param="""
                 conjureNew refine-param
                     --eprime        '{eprime}'
@@ -212,5 +201,14 @@ class ConjureNew(Commands):
 
         self.sovlve_cmds=[self.refine_param, self.savilerow, self.translate_up,
                             self.validate]
+
+    def refine_log_follow(self, kind):
+        if kind not in [K.refineCompact, K.refineRandom]:
+            print("Not a vaild kind for log-following {}".format(kind), file=sys.stderr)
+            sys.exit(1)
+        (_, template) = self.kind_to_template(kind)
+        template += "\n--choices {saved_choices}"
+        return template
+
 
 

@@ -82,7 +82,7 @@ def remove_solve_dups(solve_results, outdir):
                 continue
 
             error_hashes[dic['last_kind']].add(err_hash)
-            logger.warn("hash %s is %s", err_hash, eprime_name)
+            logger.info("hash %s is %s", err_hash, eprime_name)
 
         results_unique.append((eprime_name, dic))
 
@@ -117,12 +117,8 @@ if __name__ == "__main__":
 
 
     setup_logging(op.outdir)
-
-    logger.info("info")
-    logger.warn("warn")
     logger.warn("args %s", op)
-    logger.warn("@@output_dir:%s", op.outdir)
-    logger.warn("@@sha1_spec.essence:%s", sha1_file(op.essence))
+    logger.info("@@sha1_spec.essence:%s", sha1_file(op.essence))
 
     random.seed(op.seed)
 

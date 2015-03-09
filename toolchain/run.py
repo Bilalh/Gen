@@ -20,12 +20,35 @@ import random
 
 logger = logging.getLogger(__name__)
 
-def hash_path(path):
-    sha = hashlib.sha1()
-    with path.open('rb') as f:
-        sha.update(b"".join([ line for line in f.readlines()
-            if not line.startswith(b"###") ]  ))
-    return sha.hexdigest()
+
+def run_refine_essence(*, op, commands, random, cores, extra_env):
+    limit = op.timeout
+    date_start = datetime.utcnow()
+
+    mapping = dict(essence=op.essence, outdir=op.outdir)
+    mapping['itimeout']  = int(math.ceil(limit))
+    mapping['seed_base'] = uniform_int(0, 2 ** 24)
+    mapping['saved_choices'] = op.choices
+
+    rr = partial(run_refine, extra_env, commands, mapping)
+    pool = Pool(cores)
+    rnds = list(pool.map(rr, range(0, random + 1)))
+    (results, outputs) =list(zip( *(  rnds ) ))
+
+    with (op.outdir / "_refine.outputs").open("w") as f:
+        f.write("\n".join(  [ "###" + arr + "\n" + output for (arr, output) in outputs ] ))
+
+    date_end=datetime.utcnow()
+    diff = date_end - date_start
+
+
+    results_unique = remove_refine_dups(results=results, outputs=outputs, op=op)
+
+
+    return (dict(results_unique.values()), sum( data['real_time']
+                for (_, data) in results  ) )
+
+
 
 
 # global function for run_refine_essence
@@ -37,6 +60,9 @@ def run_refine(extra_env, commands, kwargs, i):
     else:
         eprime = kwargs['outdir'] / "model{:06}.eprime".format(i)
         (cmd_kind, cmd_template) = commands.refine_random
+
+    if kwargs['saved_choices']:
+        cmd_template =commands.refine_log_follow(cmd_kind)
 
     choices_json= eprime.with_suffix('.choices.json')
 
@@ -84,33 +110,6 @@ def run_refine_all_essence(*, op, commands, extra_env):
 
 
 
-def run_refine_essence(*, op, commands, random, cores, extra_env):
-    limit = op.timeout
-    date_start = datetime.utcnow()
-
-    mapping = dict(essence=op.essence, outdir=op.outdir)
-    mapping['itimeout']  = int(math.ceil(limit))
-    mapping['seed_base'] = uniform_int(0, 2 ** 24)
-
-    rr = partial(run_refine, extra_env, commands, mapping)
-    pool = Pool(cores)
-    rnds = list(pool.map(rr, range(0, random + 1)))
-    (results, outputs) =list(zip( *(  rnds ) ))
-
-    with (op.outdir / "_refine.outputs").open("w") as f:
-        f.write("\n".join(  [ "###" + arr + "\n" + output for (arr, output) in outputs ] ))
-
-    date_end=datetime.utcnow()
-    diff = date_end - date_start
-
-
-    results_unique = remove_refine_dups(results=results, outputs=outputs, op=op)
-
-
-    return (dict(results_unique.values()), sum( data['real_time']
-                for (_, data) in results  ) )
-
-
 def remove_refine_dups(*, results, outputs, op):
     results_unique = {}
     refine_error_hashes=set()
@@ -151,9 +150,6 @@ def remove_refine_dups(*, results, outputs, op):
                     ep.with_suffix(ext).unlink()
 
     return results_unique
-
-def uniform_int(l, u):
-    return math.ceil(random.uniform(l - 1, u))
 
 def run_solve(extra_env, op, commands, limit, eprime):
     essence          = op.essence
@@ -347,7 +343,7 @@ def classify_error(*, kind, output, returncode):
     return Status.errorUnknown
 
 def run_with_timeout(timeout, kind, cmd, *, extra_env, vals):
-    logging.info("Running %s", " ".join(cmd))
+    logging.warn("Running %s", " ".join(cmd))
 
     if kind == K.refineCompact or kind == K.refineRandom:
         return run_conjure_with_choices(timeout, kind, cmd, extra_env=extra_env, vals=vals)
@@ -481,3 +477,14 @@ def run_conjure_with_choices(timeout, kind, cmd, *, extra_env, vals):
                   cpu_time=cputime_taken, real_time=diff.total_seconds(),
                   timeout=timeout, finished=finished,
                   cmd=cmd, status_=status, kind_=kind), output)
+
+
+def hash_path(path):
+    sha = hashlib.sha1()
+    with path.open('rb') as f:
+        sha.update(b"".join([ line for line in f.readlines()
+            if not line.startswith(b"###") ]  ))
+    return sha.hexdigest()
+
+def uniform_int(l, u):
+    return math.ceil(random.uniform(l - 1, u))
