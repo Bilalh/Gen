@@ -32,7 +32,7 @@ generateEssence ec@EC.EssenceConfig{..} = do
   case deletePassing_ of
     False -> return ()
     True  -> do
-      delete (outputDirectory_ </> "passing")
+      delete (outputDirectory_ </> "_passing")
       delete  (outputDirectory_ </> "_errors" </> "zPerSpec")
 
       where

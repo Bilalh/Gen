@@ -24,7 +24,7 @@ runSpec spE = do
 
         let path = outdir </> (ts ++ "_" ++ ts_num)
         liftIO $ createDirectoryIfMissing True  path
-        liftIO $ writeToJSON (path </> "spec.spec.json" ) (show spE)
+        liftIO $ writeToJSON (path </> "spec.spec.json" )  spE
 
         let meta = mkMeta spE
         liftIO $  writeFile    (path </> "spec.meta" ) (show meta)
