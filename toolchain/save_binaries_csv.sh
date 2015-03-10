@@ -7,6 +7,7 @@ set -o nounset
 if [ -z "${1:-}" ]; then
 	echo "Usage:"
 	echo "$0 basedir"
+	echo "export HOST_TYPE=<some_name> if not on a compute server for better data"
 	exit 1
 fi
 
@@ -20,7 +21,7 @@ host_index=(
 	"lovelace"
 	"azure"
 	"bh_laptop"
-	"unknown"
+	"$(whoami)_$( hostname | awk -F. '{print $1}' )"
 )
 
 
