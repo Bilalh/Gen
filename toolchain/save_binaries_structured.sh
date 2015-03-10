@@ -58,7 +58,15 @@ tbase_="date/${now}/${host_type}/"
 tbase="${base}/date/${now}/${host_type}/"
 mkdir -p "${tbase}"
 echo "name,scm,hash,ver_date,uname,whoami,host_type,hostname" > "${tbase}/data.csv"
-rest_line="$(uname),$(whoami),${host_type},$(hostname)"
+rest_line="$(uname),$(whoami),${host_type},$(hostname)"]
+
+cat << EOF > "${tbase}/meta.json"
+{
+	 "bin_dir"   : "date/${now}"
+	,"host_type" : "${host_type}"
+}
+EOF
+
 
 declare -a cmds
 cmds=(python python3 pip sqlite3 git hg perl parallel ruby ghc cabal gcc clang pigz pip3 )
