@@ -47,7 +47,7 @@ fi
 set -o errexit
 
 mkdir -p "${base}"
-echo "name,scm,hash,ver_date,uname,whoami,host_type,hostname" > "${base}/data.csv"
+echo "name,scm,hash,ver_date,uname,whoami,host_type,hostname" > "${base}/versions.csv"
 rest_line="$(uname),$(whoami),${host_type},$(hostname)"
 
 
@@ -62,7 +62,7 @@ else
 	conjureNew_date="$(date --date="${vd}" '+%F_%s')"
 fi
 
-echo "conjureNew,hg,${conjureNew_version},${conjureNew_date},${rest_line}" >> "${base}/data.csv"
+echo "conjureNew,hg,${conjureNew_version},${conjureNew_date},${rest_line}" >> "${base}/versions.csv"
 
 
 ## conjureOld
@@ -78,7 +78,7 @@ if ( which conjureOld &> /dev/null ); then
 		version_date="$(date --date="${vd}" '+%F_%s')"
 	fi
 
-	echo "${name},hg,${version},${version_date},${rest_line}" >> "${base}/data.csv"
+	echo "${name},hg,${version},${version_date},${rest_line}" >> "${base}/versions.csv"
 fi
 
 
@@ -95,14 +95,14 @@ else
 	version_date="$(date --date="${vd}" '+%F_%s')"
 fi
 
-echo "${name},hg,${version},${version_date},${rest_line}" >> "${base}/data.csv"
+echo "${name},hg,${version},${version_date},${rest_line}" >> "${base}/versions.csv"
 
 #Minion
 name=minion
 
 version="$(minion | grep 'HG version:' | egrep -o '"\w+' | egrep -o '\w+')"
 
-echo "${name},hg,${version},,${rest_line}" >> "${base}/data.csv"
+echo "${name},hg,${version},,${rest_line}" >> "${base}/versions.csv"
 
 
 #gen
@@ -118,4 +118,4 @@ else
 	version_date="$(date --date="${vd}" '+%F_%s')"
 fi
 
-echo "${name},git,${version},${version_date},${rest_line}" >> "${base}/data.csv"
+echo "${name},git,${version},${version_date},${rest_line}" >> "${base}/versions.csv"

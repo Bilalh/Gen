@@ -25,6 +25,7 @@ data UI
       , binaries_directory :: Maybe FilePath
       , old_conjure        :: Bool
       , limit_time         :: Maybe Int
+      , no_csv             :: Bool
       }
 
   | Instance
@@ -51,6 +52,7 @@ data UI
       , toolchain_ouput    :: ToolchainOutput
       , binaries_directory :: Maybe FilePath
       , limit_time         :: Maybe Int
+      , no_csv             :: Bool
       }
 
   | Link
@@ -169,6 +171,10 @@ ui  = modes
                                     &= groupname "Other"
                                     &= explicit
                                     &= help "Time limit in seconds of CPU time of this program"
+     , no_csv             = False   &= name "no-save-csv"
+                                    &= groupname "Other"
+                                    &= explicit
+                                    &= help "Don't save version of the tools used, The script if used requires bash"
      , toolchain_ouput    = enum
                             [
                               ToolchainScreen_ &= name "show_toolchain_output"
@@ -239,6 +245,10 @@ ui  = modes
                                      &= groupname "Other"
                                      &= explicit
                                      &= help "Time limit in seconds of CPU time of this program"
+     , no_csv              = False   &= name "no-save-csv"
+                                     &= groupname "Other"
+                                     &= explicit
+                                     &= help "Don't save version of the tools used, The script if used requires bash"
      , toolchain_ouput    = enum
                             [
                               ToolchainScreen_ &= name "show_toolchain_output"

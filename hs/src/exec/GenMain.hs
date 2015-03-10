@@ -10,7 +10,8 @@ import Gen.Classify.Sorter         (sorterMain')
 import Gen.Essence.Generate        (generateEssence)
 import Gen.Helpers.StandardImports
 import Gen.IO.CmdArgsHelpers
-import Gen.IO.Toolchain            (kindsList, statusesList, KindI(..), StatusI(..))
+import Gen.IO.Toolchain            (KindI (..), StatusI (..), kindsList,
+                                    saveBinariesCsv, statusesList)
 import Gen.Reduce.Data             (RState (..), mkrGen)
 import Gen.Reduce.FormatResults    (formatResults)
 import Gen.Reduce.Reduce           (reduceMain)
@@ -126,6 +127,10 @@ mainWithArgs Essence{..} = do
                , notUseful          = S.fromList [(Savilerow_, NumberToLarge_)]
                }
 
+  case no_csv of
+    True  -> return ()
+    False -> saveBinariesCsv output_directory
+
   generateEssence config
 
   where
@@ -163,6 +168,11 @@ mainWithArgs Reduce{..} = do
                 ,binariesDirectory_ = binaries_directory
                 ,toolchainOutput_   = toolchain_ouput
                 }
+
+  case no_csv of
+    True  -> return ()
+    False -> saveBinariesCsv output_directory
+
   (_,state) <- reduceMain args
   formatResults state
   return ()
@@ -247,14 +257,14 @@ giveSeed Nothing = randomRIO (0,2^(31 :: Int)-1)
 _essenceDebug :: IO ()
 _essenceDebug = do
     let ec = Essence
-             { output_directory = "__/solve"
-             , _mode            = Solve
+             { output_directory   = "__/solve"
+             , _mode              = Solve
 
-             , total_time    = 20
-             , per_spec_time = 5
-             , _size         = 2
-             , _cores        = 1
-             , _seed         = Just 44
+             , total_time         = 20
+             , per_spec_time      = 5
+             , _size              = 2
+             , _cores             = 1
+             , _seed              = Just 44
 
              , delete_passing     = False
              , binaries_directory = Nothing
@@ -262,6 +272,7 @@ _essenceDebug = do
              , limit_time         = Nothing
              , total_is_real_time = True
              , toolchain_ouput    = ToolchainNull_
+             , no_csv             = False
              }
     limiter (limit_time ec) (mainWithArgs ec)
 
@@ -278,5 +289,7 @@ _reduceDebug = do
                    , _seed              = Nothing
                    , toolchain_ouput    = ToolchainNull_
                    , binaries_directory = Nothing
-                   , limit_time         = Nothing}
+                   , limit_time         = Nothing
+                   , no_csv             = False
+                   }
     limiter (limit_time ec) (mainWithArgs ec)

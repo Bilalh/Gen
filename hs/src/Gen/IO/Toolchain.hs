@@ -6,6 +6,7 @@ module Gen.IO.Toolchain (
   , getToolchainDir
   , writeModelDef
   , runCommand
+  , saveBinariesCsv
   )where
 
 import Conjure.Language.Definition (Model)
@@ -135,3 +136,10 @@ runCommand cmd args Nothing  =
   liftIO $ do
     (_, _, _, ph) <- createProcess (proc cmd args)
     waitForProcess ph
+
+
+saveBinariesCsv :: FilePath -> IO ()
+saveBinariesCsv fp= do
+  toolchainDir <- getToolchainDir Nothing
+  let cmd = toolchainDir </> "save_binaries_csv.sh"
+  void $ runCommand cmd [fp] Nothing
