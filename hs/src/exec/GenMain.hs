@@ -154,7 +154,7 @@ mainWithArgs Reduce{..} = do
   seed_ <- giveSeed _seed
   let args = def{oErrKind_          = error_kind
                 ,oErrStatus_        = error_status
-                ,oErrEprime_        = Nothing
+                ,oErrChoices_       = Just "/Users/bilalh/Desktop/Results/_notable/reduce_examples/1425940601_40/model000000.choices.json"
                 ,outputDir_         = output_directory
                 ,specDir_           = spec_directory
                 ,R.cores_           = _cores
@@ -267,11 +267,16 @@ _essenceDebug = do
 
 _reduceDebug :: IO ()
 _reduceDebug = do
-    let ec = Reduce{spec_directory = "/Users/bilalh/Desktop/Results/_notable/reduce_examples/r_1425946060_6329/"
-                   , error_kind = RefineRandom_,
-       error_status = StatusAny_, list_kinds = False,
-       list_statuses = False, output_directory = "out",
-       per_spec_time = 60, _cores = 1, _seed = Nothing,
-       toolchain_ouput = ToolchainNull_, binaries_directory = Nothing,
-       limit_time = Nothing}
+    let ec = Reduce{spec_directory      = "/Users/bilalh/Desktop/Results/_notable/reduce_examples/1425940601_40"
+                   , error_kind         = RefineRandom_
+                   , error_status       = StatusAny_
+                   , list_kinds         = False
+                   , list_statuses      = False
+                   , output_directory   = "/Users/bilalh/Desktop/Results/_notable/reduce_examples/1425940601_40/out"
+                   , per_spec_time      = 60
+                   , _cores             = 1
+                   , _seed              = Nothing
+                   , toolchain_ouput    = ToolchainNull_
+                   , binaries_directory = Nothing
+                   , limit_time         = Nothing}
     limiter (limit_time ec) (mainWithArgs ec)

@@ -23,7 +23,7 @@ type RR a = StateT RState IO a
 data RState = RState
     { oErrKind_         :: KindI
     , oErrStatus_       :: StatusI
-    , oErrEprime_       :: Maybe FilePath
+    , oErrChoices_       :: Maybe FilePath
     , outputDir_        :: FilePath
     , specDir_          :: FilePath
 
@@ -53,7 +53,7 @@ instance Pretty RState where
             Pr.sep
                 [ nn "oErrKind_ = "  oErrKind_
                 , nn "oErrStatus_ =" oErrStatus_
-                , nn "oErrEprime_ =" oErrEprime_
+                , nn "oErrChoices_ =" oErrChoices_
 
                 , nn "outputDir_" outputDir_
                 , nn "specDir_" specDir_
@@ -73,7 +73,7 @@ instance Pretty RState where
 instance Default RState where
     def =  RState{oErrKind_          = error "need oErrKind_"
                  ,oErrStatus_        = error "need oErrStatus_"
-                 ,oErrEprime_        = error "need oErrEprime"
+                 ,oErrChoices_        = error "need oErrEprime"
                  ,cores_             = error "need cores"
                  ,outputDir_         = error "need outputDir_"
                  ,rgen_              = error "need rgen_"

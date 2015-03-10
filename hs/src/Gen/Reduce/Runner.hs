@@ -36,7 +36,7 @@ runSpec spE = do
         cores <- gets Gen.Reduce.Data.cores_
         bd   <- gets binariesDirectory_
         oo   <- gets toolchainOutput_
-        choices <- gets oErrEprime_
+        choices <- gets oErrChoices_
         (_, res)  <- toolchain Toolchain.ToolchainData{
                       Toolchain.essencePath       = essencePath
                     , Toolchain.outputDirectory   = path
