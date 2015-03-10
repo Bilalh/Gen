@@ -53,9 +53,11 @@ instance TTypeOf Expr  where
   ttypeOf x = error . show . vcat $ ["ttypeOf ", pretty x]
 
 
-toTType :: (Monad m, Applicative m, TypeOf a) => a -> m TType
+toTType :: (Monad m, Applicative m, TypeOf a, Show a) => a -> m TType
 toTType f = case typeOf f of
-              Left r   -> error . show $ r
+              Left r   -> error . show . vcat  $ ["toTType error"
+                                                 , r
+                                                 , pretty . groom $ f ]
               Right r  -> return $ fromConjureNote "toTType"  r
 
 instance TTypeOf Literal  where
@@ -63,7 +65,7 @@ instance TTypeOf Literal  where
 
 
 instance TTypeOf UniOp  where
-  ttypeOf (UBar e) = ttypeOf e
+  ttypeOf (UBar e) = return TInt
   ttypeOf (UNeg e) = ttypeOf e
 
 

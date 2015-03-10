@@ -244,8 +244,8 @@ giveSeed (Just s)  = return s
 giveSeed Nothing = randomRIO (0,2^(31 :: Int)-1)
 
 
-_mainDebug :: IO ()
-_mainDebug = do
+_essenceDebug :: IO ()
+_essenceDebug = do
     let ec = Essence
              { output_directory = "__/solve"
              , _mode            = Solve
@@ -263,4 +263,15 @@ _mainDebug = do
              , total_is_real_time = True
              , toolchain_ouput    = ToolchainNull_
              }
+    limiter (limit_time ec) (mainWithArgs ec)
+
+_reduceDebug :: IO ()
+_reduceDebug = do
+    let ec = Reduce{spec_directory = "/Users/bilalh/Desktop/Results/_notable/reduce_examples/r_1425946060_6329/"
+                   , error_kind = RefineRandom_,
+       error_status = StatusAny_, list_kinds = False,
+       list_statuses = False, output_directory = "out",
+       per_spec_time = 60, _cores = 1, _seed = Nothing,
+       toolchain_ouput = ToolchainNull_, binaries_directory = Nothing,
+       limit_time = Nothing}
     limiter (limit_time ec) (mainWithArgs ec)

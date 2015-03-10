@@ -20,12 +20,12 @@ class (Pretty ast, Pretty conjure, Show ast) => Translate ast conjure where
   toConjureNote :: Doc -> ast -> conjure
   toConjureNote msg a = case toConjure a  of
                   Right x -> x
-                  Left  d -> error . renderNormal . vcat $ [msg, d ]
+                  Left  d -> error . renderNormal . vcat $ ["toConjureNote", msg, d ]
 
   fromConjureNote :: Doc -> conjure -> ast
   fromConjureNote msg a =  case fromConjure a of
                     Right x -> x
-                    Left  d -> error . renderNormal . vcat $ [msg, d ]
+                    Left  d -> error . renderNormal . vcat $ ["fromConjureNote", msg, d ]
 
 type Domainn x = Domain () x
 type Literal = AbstractLiteral Expr
