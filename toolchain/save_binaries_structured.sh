@@ -40,7 +40,7 @@ function host_selector() {
 		'b.home')        return 5;;
 		instancegen1*)   return 4;;
 		*)
-			export "HOST_TYPE=<some_name>"
+			echo export "HOST_TYPE=<some_name>"
 			exit 33
 	esac
 }
