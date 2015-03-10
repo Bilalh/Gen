@@ -1,4 +1,5 @@
 #/bin/bash
+# gen essence on all cores, logged and datestamped
 set -o nounset
 
 if ( ! gen --toolchain-path >/dev/null ); then
@@ -15,5 +16,3 @@ mkdir "${base}/${dat}"
 cores=${CORES:-"$(parallel --number-of-cores)"}
 
 gen essence "${base}/${dat}" --cores "$cores" "$@" 2>&1 | tee "${base}/${dat}/_all.logged" ;
-
-"$(gen --toolchain-path)/save_version.sh" "${base}/${dat}/zver@"
