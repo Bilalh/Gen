@@ -2,13 +2,11 @@
 set -o nounset
 
 # Save binaries of
-# conjureNew (conjure)
+# conjure (conjureNew)
+# conjureOld
 # savilerow
 # minion
-# testReduce
-# testSample
-# ${testSampleName}
-#
+# gen
 # by date and hash so that compatible versions of the binaries can be rerun.
 
 
