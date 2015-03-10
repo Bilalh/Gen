@@ -39,9 +39,6 @@ function host_selector() {
 		lovelace*)       return 3;;
 		'b.home')        return 5;;
 		instancegen1*)   return 4;;
-
-		vpn*.cs.st-andrews.ac.uk)
-			return 5;;
 		*)
 			export "HOST_TYPE=<some_name>"
 			exit 33
@@ -120,7 +117,7 @@ popd
 pushd "${tbase}"
 ln -sf "../../../versions/conjureNew/hash/${conjureNew_version}/${host_type}/conjure" conjure
 ln -sf "../../../versions/conjureNew/hash/${conjureNew_version}/${host_type}/conjure" conjureNew
-echo "conjureNew,git,${conjureNew_version},${conjureNew_date},${rest_line}" >> data.csv
+echo "conjureNew,hg,${conjureNew_version},${conjureNew_date},${rest_line}" >> data.csv
 
 popd
 
