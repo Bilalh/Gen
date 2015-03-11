@@ -78,16 +78,18 @@ instance Translate Expr Expression where
   -- fromConjure (Comprehension t1 t2) = _f
   fromConjure (Typed t1 t2)            = ETyped <$> fromConjure t2 <*> fromConjure t1
 
-  fromConjure t@(Op _) =  do
-      case fromConjure t of
-        Just (x :: BinOp)  -> pure $ EBinOp x
-        Nothing -> do
-          case fromConjure t of
-            Just (x :: UniOp)  -> pure $ EUniOp x
-            Nothing -> do
-              case fromConjure t of
-                Just (x :: Proc)  -> pure $ EProc x
-                Nothing -> fromConjureFail "Expr Expression" t
+  fromConjure (Op op) = EOp <$> mapM fromConjure op
+
+  -- fromConjure t@(Op _) =  do
+  --     case fromConjure t of
+  --       Just (x :: BinOp)  -> pure $ EBinOp x
+  --       Nothing -> do
+  --         case fromConjure t of
+  --           Just (x :: UniOp)  -> pure $ EUniOp x
+  --           Nothing -> do
+  --             case fromConjure t of
+  --               Just (x :: Proc)  -> pure $ EProc x
+  --               Nothing -> fromConjureFail "Expr Expression" t
 
 
   fromConjure (ExpressionMetaVar t) = return $ EMetaVar t
@@ -95,17 +97,20 @@ instance Translate Expr Expression where
   fromConjure x = fromConjureFail "Expr Expression" x
 
 
-  --FIXME correct? not the first
-  toConjure (EVar (Var x _) ) =  Reference <$> toConjure x <*> return Nothing
-  toConjure (ECon x )  =  return $ Constant x
-  toConjure (ELit x )  =  AbstractLiteral <$> toConjure x
-
+  toConjure (ECon x )      =  return $ Constant x
+  toConjure (ELit x )      =  AbstractLiteral <$> toConjure x
   toConjure (EDom x)       =  Domain <$> toConjure x
   toConjure (ETyped x1 x2) =  Typed <$> toConjure x2 <*> toConjure x1
+  toConjure (EOp x)        =  Op <$> mapM toConjure x
 
-  toConjure (EBinOp x)     =  toConjure x
-  toConjure (EUniOp x)     =  toConjure x
-  toConjure (EProc x)      =  toConjure x
+  --FIXME correct? not the first
+  toConjure (EVar (Var x _) ) =  Reference <$> toConjure x <*> return Nothing
+  toConjure (EMetaVar x)      = return $ ExpressionMetaVar x
+
+
+  toConjure (EBinOp x) =  toConjure x
+  toConjure (EUniOp x) =  toConjure x
+  toConjure (EProc x)  =  toConjure x
 
   toConjure (EQuan q (BIn (EVar (Var x _) ) dom) g inner) = do
         x'     <- return $ Single (Name x)
@@ -137,8 +142,6 @@ instance Translate Expr Expression where
           (Sum,_)              -> toConjure g  >>= \g' ->
                                   return [essence| sum    &x' : &dom', &g' . &inner' |]
 
-
-  toConjure (EMetaVar x)  = return $ ExpressionMetaVar x
 
   toConjure x = toConjureFail "Expr Expression" x
 

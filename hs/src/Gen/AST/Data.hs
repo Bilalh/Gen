@@ -6,9 +6,10 @@ module Gen.AST.Data where
 
 import Conjure.Language.Definition
 import Conjure.Language.Domain
+import Conjure.Language.Expression.Op
 import Conjure.Language.Pretty
 import Conjure.Prelude
-import Text.Groom                  (groom)
+import Text.Groom                     (groom)
 
 
 class (Pretty ast, Pretty conjure, Show ast) => Translate ast conjure where
@@ -40,11 +41,12 @@ data Expr =
   | EDom (Domainn Expr)
   | ECon Constant
   | ELit Literal
-
   | ETyped TType Expr
+  | EOp (Op Expr)
+  | EMetaVar String -- For TH
+
   | EEmptyGuard
   | EQuan QType BinOp Expr Expr
-  | EMetaVar String -- For TH
 
   | EBinOp BinOp
   | EUniOp UniOp
