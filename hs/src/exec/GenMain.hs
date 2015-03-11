@@ -141,6 +141,18 @@ mainWithArgs Instance{..} = do
 
 mainWithArgs Reduce{..} = do
 
+  if list_kinds then do
+        mapM_ (putStrLn) kindsList
+        exitSuccess
+  else
+      return ()
+
+  if list_statuses then do
+        mapM_ (putStrLn) statusesList
+        exitSuccess
+  else
+      return ()
+
   let errors = catMaybes
         [ aerr "spec-directory" (null spec_directory)
         , aerr "-o|--output-directory" (null output_directory)
