@@ -40,12 +40,24 @@ runSpec spE = do
         bd   <- gets binariesDirectory_
         oo   <- gets toolchainOutput_
         choices <- gets oErrChoices_
+
+        let refineWay :: Maybe FilePath -> KindI -> RefineType
+            refineWay Nothing  RefineCompact_ = Refine_All
+            refineWay Nothing  RefineRandom_  = Refine_All
+            refineWay (Just _) RefineCompact_ = Refine_Only
+            refineWay (Just _) RefineRandom_  = Refine_Only
+            refineWay (Just _) _              = Refine_Solve
+            refineWay _        _              = Refine_Solve_All
+
+        rrErrorKind   <- gets oErrKind_
+        rrErrorStatus <- gets oErrStatus_
+
         (_, res)  <- toolchain Toolchain.ToolchainData{
                       Toolchain.essencePath       = essencePath
                     , Toolchain.outputDirectory   = path
                     , Toolchain.toolchainTime     = perSpec
                     , Toolchain.essenceParam      = Nothing
-                    , Toolchain.refineType        = Refine_Solve_All
+                    , Toolchain.refineType        = refineWay choices  rrErrorKind
                     , Toolchain.cores             = cores
                     , Toolchain.seed              = Just seed
                     , Toolchain.binariesDirectory = bd
@@ -54,8 +66,6 @@ runSpec spE = do
                     , Toolchain.choicesPath       = choices
                     }
 
-        rrErrorKind   <- gets oErrKind_
-        rrErrorStatus <- gets oErrStatus_
 
         addLog "runSpec" [pretty spE]
         addLog "runSpec_results" [nn "org_kind"   rrErrorKind

@@ -38,7 +38,7 @@ def do_args():
     else:
         args.param = Path(args.param)
 
-    if args.refine_only and args.choices:
+    if args.refine_all and args.choices:
         print("--refine_all can not be used with --choices", file=sys.stderr)
         sys.exit(1)
 
