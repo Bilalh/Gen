@@ -77,6 +77,8 @@ data StatusI =
     | ForgetRepr_
     | NotRefined_
     | UnknownLexeme_
+    | RuleApplication_
+    | TypeError_
     | StatusAny_
     deriving (Show,Eq,Enum,Generic,Typeable, Data, Read, Ord)
 

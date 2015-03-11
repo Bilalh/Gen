@@ -21,6 +21,34 @@ import random
 logger = logging.getLogger(__name__)
 
 
+@unique
+class Status(Enum):
+    success          = 0,
+    errorUnknown     = 1,
+    timeout          = 2,
+    numberToLarge    = 3,
+    heapSpace        = 4,
+    cannotEvaluate   = 5,
+    valueNotInDom    = 6,
+    parseError       = 7,
+    typeChecking     = 8,
+    varDuplicated    = 9,
+    negativeExponent = 10,
+    divideByZero     = 11,
+    conjureNA        = 12,
+    conjureInvalid   = 13,
+    statusAny        = 14,
+    javaException    = 15,
+    notAHomoType     = 16,
+    forgetRepr       = 17,
+    notRefined       = 18,
+    unknownLexeme    = 19,
+    ruleApplication  = 20
+    typeError        = 21
+
+
+
+
 def run_refine_essence(*, op, commands, random, cores, extra_env):
     limit = op.timeout
     date_start = datetime.utcnow()
@@ -255,30 +283,6 @@ def run_solve(extra_env, op, commands, limit, eprime):
     return (eprime.stem, ret)
 
 
-@unique
-class Status(Enum):
-    success          = 0,
-    errorUnknown     = 1,
-    timeout          = 2,
-    numberToLarge    = 3,
-    heapSpace        = 4,
-    cannotEvaluate   = 5,
-    valueNotInDom    = 6,
-    parseError       = 7,
-    typeChecking     = 8,
-    varDuplicated    = 9,
-    negativeExponent = 10,
-    divideByZero     = 11,
-    conjureNA        = 12,
-    conjureInvalid   = 13,
-    statusAny        = 14,
-    javaException    = 15,
-    notAHomoType     = 16,
-    forgetRepr       = 17,
-    notRefined       = 18,
-    unknownLexeme    = 19
-
-errors_not_useful = {Status.numberToLarge}
 
 
 def classify_error(*, kind, output, returncode):
@@ -320,25 +324,26 @@ def classify_error(*, kind, output, returncode):
     if kind in kind_conjure:
         if 'Shunting Yard failed' in output:
             return Status.parseError
-
         if 'Cannot fully evaluate' in output:
             return Status.cannotEvaluate
-
         if 'not a homoType' in output:
             return Status.notAHomoType
-
         if 'N/A:' in output:
             return Status.conjureNA
-
         if 'forgetRepr' in output:
             return Status.forgetRepr
-
         if 'Unknown lexeme' in output:
             return Status.unknownLexeme
-
         if 'Not refined:' in output:
             return Status.notRefined
-
+        if 'Type error after rule application' in output:
+            return Status.ruleApplication
+        if 'Type error before rule application' in output:
+            return Status.ruleApplication
+        if 'Error: Type error' in output:
+            return Status.typeError
+        if 'There were type errors' in output:
+            return Status.typeChecking
 
     return Status.errorUnknown
 
