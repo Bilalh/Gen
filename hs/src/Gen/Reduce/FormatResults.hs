@@ -29,7 +29,9 @@ formatResults RState{..} = do
 
   files <- getDirectoryContents outputDir_
   let toDelete = flip filter files
-                 (`notElem` ["others", "final", "zsteps", ".", "..", "zreduce.logs"] )
+                 (`notElem` [
+                   "others", "final", "zsteps", ".", ".."
+                  , "zreduce.logs", "versions.csv", "meta.json"] )
   createDirectoryIfMissing True stepsDir
 
   forM_ toDelete $ \d -> do
