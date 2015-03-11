@@ -18,9 +18,9 @@ import Gen.Reduce.Reduce           (reduceMain)
 import Gen.UI.UI
 import System.Console.CmdArgs      (cmdArgs)
 import System.CPUTime              (getCPUTime)
+import System.Directory            (copyFile)
 import System.Environment          (withArgs)
-import System.Exit                 (exitFailure, exitSuccess)
-import System.Exit                 (exitWith)
+import System.Exit                 (exitFailure, exitSuccess, exitWith)
 import System.Timeout              (timeout)
 import Text.Printf                 (printf)
 
@@ -29,6 +29,7 @@ import qualified Gen.Essence.Data        as EC
 import qualified Gen.IO.Toolchain        as Toolchain
 import qualified Gen.IO.ToolchainRecheck as Recheck
 import qualified Gen.Reduce.Data         as R
+
 
 
 main :: IO ()
@@ -112,12 +113,11 @@ mainWithArgs Essence{..} = do
   let config = EC.EssenceConfig
                { outputDirectory_ = output_directory
                , mode_            = toEssenceMode _mode
-
-               , totalTime_   = total_time
-               , perSpecTime_ = per_spec_time
-               , size_        = _size
-               , cores_       = _cores
-               , seed_        = seed_
+               , totalTime_       = total_time
+               , perSpecTime_     = per_spec_time
+               , size_            = _size
+               , cores_           = _cores
+               , seed_            = seed_
 
                , totalIsRealTime    = total_is_real_time
                , deletePassing_     = delete_passing
@@ -127,10 +127,7 @@ mainWithArgs Essence{..} = do
                , notUseful          = S.fromList [(Savilerow_, NumberToLarge_)]
                }
 
-  case no_csv of
-    True  -> return ()
-    False -> saveBinariesCsv output_directory
-
+  doMeta output_directory no_csv binaries_directory
   generateEssence config
 
   where
@@ -169,13 +166,9 @@ mainWithArgs Reduce{..} = do
                 ,toolchainOutput_   = toolchain_ouput
                 }
 
-  case no_csv of
-    True  -> return ()
-    False -> saveBinariesCsv output_directory
-
+  doMeta output_directory no_csv binaries_directory
   (_,state) <- reduceMain args
   formatResults state
-  return ()
 
 
 mainWithArgs Link{..} = do
@@ -242,6 +235,22 @@ mainWithArgs Script_ToolchainRecheck{..} = do
            , Recheck.toolchainOutput   = toolchain_ouput
            }
   exitWith code
+
+
+doMeta :: FilePath -> Bool -> Maybe FilePath -> IO ()
+doMeta out no_csv_copy bin_dir = do
+  createDirectoryIfMissing True out
+
+  case no_csv_copy of
+    True  -> return ()
+    False -> saveBinariesCsv out
+
+  case bin_dir of
+    Nothing -> return ()
+    Just bp -> doesFileExist (bp </> "meta.json") >>= \case
+               False -> return ()
+               True  -> copyFile (bp </> "meta.json") (out </> "meta.json")
+
 
 
 aerr :: String -> Bool -> Maybe String

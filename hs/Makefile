@@ -49,3 +49,11 @@ ghci_main:
 	    -fwarn-unused-matches                      \
 	    -Wall                                      \
 		src/exec/GenMain.hs
+
+etags:
+	hasktags --etags --ignore-close-implementation `find -L src -name '*.hs' | grep -v \#`
+
+vtags:
+	hasktags --ctags --ignore-close-implementation `find -L src -name '*.hs' | grep -v \#`
+
+

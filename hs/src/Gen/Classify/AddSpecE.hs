@@ -28,7 +28,6 @@ specEMain printSpecs = \case
    [x]    ->  addSpecE printSpecs x
    (x:xs) ->  addSpecE printSpecs x >> specEMain printSpecs xs
 
-
 addSpecE :: Bool -> FilePath -> IO ()
 addSpecE printSpecs fp_ = do
   specs_ :: [FilePath] <- ffind fp_

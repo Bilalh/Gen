@@ -6,12 +6,13 @@ set -o nounset
 
 if [ -z "${1:-}" ]; then
 	echo "Usage:"
-	echo "$0 basedir"
+	echo "$0 basedir [filename]"
 	echo "export HOST_TYPE=<some_name> if not on a compute server for better data"
 	exit 1
 fi
 
 base="$1"
+csv_name="${2:-versions.csv}"
 
 declare -a host_index
 host_index=(
@@ -47,7 +48,7 @@ fi
 set -o errexit
 
 mkdir -p "${base}"
-echo "name,scm,hash,ver_date,uname,whoami,host_type,hostname" > "${base}/versions.csv"
+echo "name,scm,hash,ver_date,uname,whoami,host_type,hostname" > "${base}/${csv_name}"
 rest_line="$(uname),$(whoami),${host_type},$(hostname)"
 
 
@@ -62,7 +63,7 @@ else
 	conjureNew_date="$(date --date="${vd}" '+%F_%s')"
 fi
 
-echo "conjureNew,hg,${conjureNew_version},${conjureNew_date},${rest_line}" >> "${base}/versions.csv"
+echo "conjureNew,hg,${conjureNew_version},${conjureNew_date},${rest_line}" >> "${base}/${csv_name}"
 
 
 ## conjureOld
@@ -78,7 +79,7 @@ if ( which conjureOld &> /dev/null ); then
 		version_date="$(date --date="${vd}" '+%F_%s')"
 	fi
 
-	echo "${name},hg,${version},${version_date},${rest_line}" >> "${base}/versions.csv"
+	echo "${name},hg,${version},${version_date},${rest_line}" >> "${base}/${csv_name}"
 fi
 
 
@@ -95,14 +96,14 @@ else
 	version_date="$(date --date="${vd}" '+%F_%s')"
 fi
 
-echo "${name},hg,${version},${version_date},${rest_line}" >> "${base}/versions.csv"
+echo "${name},hg,${version},${version_date},${rest_line}" >> "${base}/${csv_name}"
 
 #Minion
 name=minion
 
 version="$(minion | grep 'HG version:' | egrep -o '"\w+' | egrep -o '\w+')"
 
-echo "${name},hg,${version},,${rest_line}" >> "${base}/versions.csv"
+echo "${name},hg,${version},,${rest_line}" >> "${base}/${csv_name}"
 
 
 #gen
@@ -118,4 +119,4 @@ else
 	version_date="$(date --date="${vd}" '+%F_%s')"
 fi
 
-echo "${name},git,${version},${version_date},${rest_line}" >> "${base}/versions.csv"
+echo "${name},git,${version},${version_date},${rest_line}" >> "${base}/${csv_name}"

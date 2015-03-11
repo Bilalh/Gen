@@ -136,6 +136,7 @@ Executable gen
                      , base
                      , cmdargs
                      , containers
+                     , directory
 
    default-extensions:
         NoImplicitPrelude
