@@ -163,16 +163,15 @@ runSpec spE = do
           (True, Just r)   -> return $ Just $ r
           (True, Nothing)  -> rrError "Same error but no result" []
           (False, Just r)  -> do
-            -- liftIO $ putStrLn . show $ res
-            -- liftIO $ putStrLn $ groom ("hasResult:" :: String,  pretty r)
             addOtherError r
             return Nothing
 
           (False, Nothing) -> do
-             -- liftIO $ putStrLn . show $ res
-             -- liftIO $ print $ ("noResult")
-             return Nothing
-
+             gets deletePassing_ >>= \case
+                  False -> return Nothing
+                  True  -> do
+                       liftIO $ removeDirectoryRecursive path
+                       return Nothing
 
 
 modelRefineError :: KindI -> Bool

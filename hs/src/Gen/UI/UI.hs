@@ -49,6 +49,7 @@ data UI
     , _cores             :: Int
     , _seed              :: Maybe Int
 
+    , delete_passing     :: Bool
     , toolchain_ouput    :: ToolchainOutput
     , binaries_directory :: Maybe FilePath
     , limit_time         :: Maybe Int
@@ -247,6 +248,11 @@ ui  = modes
                                      &= groupname "Other"
                                      &= explicit
                                      &= help "Don't save version of the tools used, The script if used requires bash"
+     , delete_passing     = False    &= name "delete-passing"
+                                     &= name "D"
+                                     &= groupname "Other"
+                                     &= explicit
+                                     &= help "Delete non failing test cases as soon as they have been generated"
      , toolchain_ouput    = enum
                             [
                               ToolchainScreen_ &= name "show-toolchain-output"

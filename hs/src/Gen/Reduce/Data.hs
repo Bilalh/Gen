@@ -39,6 +39,7 @@ data RState = RState
     , otherErrors_      :: [RunResult]
     , hashes_           :: IntSet
     , rlogs_            :: LogsTree
+    , deletePassing_    :: Bool
     } deriving (Show)
 
 data RunResult = RunResult{
@@ -85,6 +86,7 @@ instance Default RState where
                  ,rlogs_             = LSEmpty
                  ,binariesDirectory_ = Nothing
                  ,toolchainOutput_   = def
+                 ,deletePassing_     = False
                  }
 
 

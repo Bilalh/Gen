@@ -176,6 +176,7 @@ mainWithArgs Reduce{..} = do
                 ,specTime_          = per_spec_time
                 ,binariesDirectory_ = binaries_directory
                 ,toolchainOutput_   = toolchain_ouput
+                ,deletePassing_     = delete_passing
                 }
 
   doMeta output_directory no_csv binaries_directory
@@ -312,5 +313,6 @@ _reduceDebug = do
                    , binaries_directory = Nothing
                    , limit_time         = Nothing
                    , no_csv             = False
+                   , delete_passing     = False
                    }
     limiter (limit_time ec) (mainWithArgs ec)
