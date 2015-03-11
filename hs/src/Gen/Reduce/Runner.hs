@@ -30,6 +30,9 @@ runSpec spE = do
         liftIO $  writeFile    (path </> "spec.meta" ) (show meta)
         liftIO $  writeToJSON  (path </> "spec.meta.json" ) (meta)
 
+        base_out <- gets outputDir_
+        liftIO $ Toolchain.copyMetaToSpecDir base_out outdir
+
         seed <- chooseR (0, 2^(24 :: Int))
         perSpec <- gets specTime_
         essencePath <- writeModelDef path sp

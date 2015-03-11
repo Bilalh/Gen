@@ -7,7 +7,7 @@ import Data.Time.Clock.POSIX       (getPOSIXTime)
 import Gen.Classify.Meta           (mkMeta)
 import Gen.Essence.Data            (EssenceConfig)
 import Gen.IO.Formats
-import Gen.IO.Toolchain            hiding (ToolchainData (..))
+import Gen.IO.Toolchain            hiding (ToolchainData (..), copyMetaToSpecDir)
 import Gen.Prelude
 import GHC.Real                    (floor)
 import System.Directory            (copyFile, renameDirectory)
@@ -41,6 +41,7 @@ generateEssence ec@EC.EssenceConfig{..} = do
             False -> return ()
             True  -> removeDirectoryRecursive fp
 
+
 doRefine :: EssenceConfig -> IO ()
 doRefine ec@EC.EssenceConfig{..} = do
   process totalTime_
@@ -64,12 +65,12 @@ doRefine ec@EC.EssenceConfig{..} = do
           let dir = outputDirectory_ </> "_passing" </> uname
           createDirectoryIfMissing True dir
           writeFile (dir </> "spec.logs" ) (renderSized 120 logs)
-
           writeToJSON (dir </> "spec.spec.json") sp
 
           let meta = mkMeta sp
           writeFile (dir </> "spec.meta" ) (show meta)
           writeToJSON  (dir </> "spec.meta.json" ) (meta)
+          Toolchain.copyMetaToSpecDir outputDirectory_ dir
 
           runSeed <- (randomRIO (1,2147483647) :: IO Int)
           essencePath <- writeModelDef dir model
@@ -124,6 +125,8 @@ doSolve ec@EC.EssenceConfig{..} = do
           let meta = mkMeta sp
           writeFile (dir </> "spec.meta" ) (show meta)
           writeToJSON  (dir </> "spec.meta.json" ) (meta)
+          Toolchain.copyMetaToSpecDir outputDirectory_ dir
+
 
           runSeed <- (randomRIO (1,2147483647) :: IO Int)
           essencePath <- writeModelDef dir model

@@ -7,6 +7,7 @@ module Gen.IO.Toolchain (
   , writeModelDef
   , runCommand
   , saveBinariesCsv
+  , copyMetaToSpecDir
   )where
 
 import Conjure.Language.Definition (Model)
@@ -16,12 +17,14 @@ import Gen.IO.Formats
 import Gen.IO.ToolchainData        as X
 import Gen.Prelude
 import Paths_essence_gen           (getDataDir)
+import System.Directory            (copyFile)
 import System.Environment          (lookupEnv)
 import System.Exit                 (ExitCode)
 import System.FilePath             ((<.>))
 import System.IO                   (IOMode (..), withFile)
 import System.Process              (StdStream (..), createProcess, proc,
-                                    showCommandForUser, std_err, std_out, waitForProcess)
+                                    showCommandForUser, std_err, std_out,
+                                    waitForProcess)
 
 
 writeModelDef :: MonadIO m => FilePath -> Model -> m FilePath
@@ -143,3 +146,30 @@ saveBinariesCsv fp= do
   toolchainDir <- getToolchainDir Nothing
   let cmd = toolchainDir </> "save_binaries_csv.sh"
   void $ runCommand cmd [fp] Nothing
+
+
+doMeta :: FilePath -> Bool -> Maybe FilePath -> IO ()
+doMeta out no_csv_copy bin_dir = do
+  createDirectoryIfMissing True out
+
+  case no_csv_copy of
+    True  -> return ()
+    False -> saveBinariesCsv out
+
+  case bin_dir of
+    Nothing -> return ()
+    Just bp -> doesFileExist (bp </> "meta.json") >>= \case
+               False -> return ()
+               True  -> copyFile (bp </> "meta.json") (out </> "meta.json")
+
+copyMetaToSpecDir :: FilePath -> FilePath -> IO ()
+copyMetaToSpecDir base_out spec_out = do
+  createDirectoryIfMissing True spec_out
+
+  doesFileExist (base_out </> "meta.json") >>= \case
+           False -> return ()
+           True  -> copyFile (base_out </> "meta.json") (spec_out </> "meta-ran.json")
+
+  doesFileExist (base_out </> "versions.csv") >>= \case
+           False -> return ()
+           True  -> copyFile (base_out </> "versions.csv") (spec_out </> "versions-ran.csv")
