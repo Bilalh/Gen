@@ -10,66 +10,64 @@ import System.Console.CmdArgs hiding (Default (..))
 
 data UI
   = Essence
-      { output_directory :: FilePath
-      , _mode            :: ModeChoice
+    { output_directory :: FilePath
+    , _mode            :: ModeChoice
 
-      , total_time         :: Int
-      , per_spec_time      :: Int
-      , _size              :: Int  -- should not be greater then 5
-      , _cores             :: Int
-      , _seed              :: Maybe Int
-      , delete_passing     :: Bool
-      , total_is_real_time :: Bool
+    , total_time         :: Int
+    , per_spec_time      :: Int
+    , _size              :: Int  -- should not be greater then 5
+    , _cores             :: Int
+    , _seed              :: Maybe Int
+    , delete_passing     :: Bool
+    , total_is_real_time :: Bool
 
-      , toolchain_ouput    :: ToolchainOutput
-      , binaries_directory :: Maybe FilePath
-      , old_conjure        :: Bool
-      , limit_time         :: Maybe Int
-      , no_csv             :: Bool
-      }
+    , toolchain_ouput    :: ToolchainOutput
+    , binaries_directory :: Maybe FilePath
+    , old_conjure        :: Bool
+    , limit_time         :: Maybe Int
+    , no_csv             :: Bool
+    }
 
   | Instance
-      { output_directory   :: FilePath
+    { output_directory   :: FilePath
 
-      , binaries_directory :: Maybe FilePath
-      , old_conjure        :: Bool
-      , limit_time         :: Maybe Int
-      }
+    , binaries_directory :: Maybe FilePath
+    , old_conjure        :: Bool
+    , limit_time         :: Maybe Int
+    }
 
   | Reduce
-      { spec_directory :: FilePath
-      , error_kind     :: KindI
-      , error_status   :: StatusI
+    { spec_directory     :: FilePath
+    , error_kind         :: KindI
+    , error_status       :: StatusI
 
-      , list_kinds     :: Bool
-      , list_statuses  :: Bool
+    , list_kinds         :: Bool
+    , list_statuses      :: Bool
 
-      , output_directory   :: FilePath
-      , per_spec_time      :: Int
-      , _cores             :: Int
-      , _seed              :: Maybe Int
+    , output_directory   :: FilePath
+    , per_spec_time      :: Int
+    , _cores             :: Int
+    , _seed              :: Maybe Int
 
-      , toolchain_ouput    :: ToolchainOutput
-      , binaries_directory :: Maybe FilePath
-      , limit_time         :: Maybe Int
-      , no_csv             :: Bool
-      }
+    , toolchain_ouput    :: ToolchainOutput
+    , binaries_directory :: Maybe FilePath
+    , limit_time         :: Maybe Int
+    , no_csv             :: Bool
+    }
 
   | Link
-      { directories :: [FilePath]
-
-      , limit_time  :: Maybe Int
-      }
+    { directories :: [FilePath]
+    , limit_time  :: Maybe Int
+    }
   | Meta
-      { directories :: [FilePath]
-
-      , limit_time  :: Maybe Int
-      }
+    { directories :: [FilePath]
+    , limit_time  :: Maybe Int
+    }
   | SpecEE
-      { directories :: [FilePath]
-      , print_specs :: Bool
-      , limit_time  :: Maybe Int
-      }
+    { directories :: [FilePath]
+    , print_specs :: Bool
+    , limit_time  :: Maybe Int
+    }
   | Script_Toolchain
     {
       essence_path       :: FilePath
@@ -146,7 +144,7 @@ ui  = modes
                                     &= groupname "Other"
                                     &= explicit
                                     &= help "Random Seed to use"
-     , delete_passing     = False   &= name "delete_passing"
+     , delete_passing     = False   &= name "delete-passing"
                                     &= name "D"
                                     &= groupname "Other"
                                     &= explicit
@@ -177,16 +175,16 @@ ui  = modes
                                     &= help "Don't save version of the tools used, The script if used requires bash"
      , toolchain_ouput    = enum
                             [
-                              ToolchainScreen_ &= name "show_toolchain_output"
+                              ToolchainScreen_ &= name "show-toolchain-output"
                                                &= explicit
                                                &= groupname "Output"
                                                &= help "Show toolchain output (default)"
-                            , ToolchainFile_   &= name "redirect_toolchain_output"
+                            , ToolchainFile_   &= name "redirect-toolchain-output"
                                                &= name "F"
                                                &= explicit
                                                &= groupname "Output"
                                                &= help "Redirect toolchain output to file"
-                            , ToolchainNull_   &= name "null_toolchain_output"
+                            , ToolchainNull_   &= name "nul-toolchain-output"
                                                &= name "N"
                                                &= explicit
                                                &= groupname "Output"
@@ -251,16 +249,16 @@ ui  = modes
                                      &= help "Don't save version of the tools used, The script if used requires bash"
      , toolchain_ouput    = enum
                             [
-                              ToolchainScreen_ &= name "show_toolchain_output"
+                              ToolchainScreen_ &= name "show-toolchain-output"
                                                &= explicit
                                                &= groupname "Output"
                                                &= help "Show toolchain output (default)"
-                            , ToolchainFile_   &= name "redirect_toolchain_output"
+                            , ToolchainFile_   &= name "redirect-toolchain-output"
                                                &= name "F"
                                                &= explicit
                                                &= groupname "Output"
                                                &= help "Redirect toolchain output to file"
-                            , ToolchainNull_   &= name "null_toolchain_output"
+                            , ToolchainNull_   &= name "null-toolchain-output"
                                                &= name "N"
                                                &= explicit
                                                &= groupname "Output"
@@ -389,16 +387,16 @@ ui  = modes
                                     &= help "Time limit in seconds of CPU time of this program"
      , toolchain_ouput    = enum
                             [
-                              ToolchainScreen_ &= name "show_toolchain_output"
+                              ToolchainScreen_ &= name "show-toolchain-output"
                                                &= explicit
                                                &= groupname "Output"
                                                &= help "Show toolchain output (default)"
-                            , ToolchainFile_   &= name "redirect_toolchain_output"
+                            , ToolchainFile_   &= name "redirect-toolchain-output"
                                                &= name "F"
                                                &= explicit
                                                &= groupname "Output"
                                                &= help "Redirect toolchain output to file"
-                            , ToolchainNull_   &= name "null_toolchain_output"
+                            , ToolchainNull_   &= name "null-toolchain-output"
                                                &= name "N"
                                                &= explicit
                                                &= groupname "Output"
@@ -436,16 +434,16 @@ ui  = modes
                                     &= help "Time limit in seconds of CPU time of this program"
      , toolchain_ouput    = enum
                             [
-                              ToolchainScreen_ &= name "show_toolchain_output"
+                              ToolchainScreen_ &= name "show-toolchain-output"
                                                &= explicit
                                                &= groupname "Output"
                                                &= help "Show toolchain output (default)"
-                            , ToolchainFile_   &= name "redirect_toolchain_output"
+                            , ToolchainFile_   &= name "redirect-toolchain-output"
                                                &= name "F"
                                                &= explicit
                                                &= groupname "Output"
                                                &= help "Redirect toolchain output to file"
-                            , ToolchainNull_   &= name "null_toolchain_output"
+                            , ToolchainNull_   &= name "null-toolchain-output"
                                                &= name "N"
                                                &= explicit
                                                &= groupname "Output"
