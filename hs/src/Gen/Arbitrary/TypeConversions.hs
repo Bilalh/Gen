@@ -140,6 +140,7 @@ reachableToType d oty@TBool = do
             e1 <- withDepthDec $ exprOf i
             return $ raise $ ( (flip opIn) e1, 1)
 
+    process (TFunc _ _ )  = return []
     -- process fty@(TFunc _ _ ) = funcs >>=
     --     concatMapM (uncurry (processCommon d))
 
@@ -150,11 +151,11 @@ reachableToType d oty@TBool = do
     --         do
     --         (TFunc a b) <- withDepthDec (purgeAny fty)
 
-    --         op <-  elements2 [  , flip Pinverse  ]
+    --         op <-  elements2 [ Pinverse , flip Pinverse  ]
     --         (t1,t2) <- elements2 [ (TFunc a b, TFunc b a ),  (TFunc b a, TFunc a b ) ]
     --         e1 <- withDepthDec (exprOf t1)
 
-    --         customM t2  [ (return . raise) (EProc . op e1, 1) **| useFunc Ainverse ]
+    --         customM t2  [ (return . raise) (op e1, 1) **| useFunc Ainverse ]
     --             ++| d - (max (fromInteger $ depthOf t1 ) (fromInteger $ depthOf t2 )) > 1
     --         ]
 
@@ -565,9 +566,7 @@ reachableToType d oty@(TMatix TInt) = concatMapM process types
 
         hist :: PType -> GG (ToTypeFn, Depth)
         hist i =  do
-            -- matrix indexed by [w] of i
-            ep <- withDepthDec (exprOf $ TMatix i)
-            return $ raise $ ((flip opHist) ep, 1)
+            return $ raise $ (opHist, 1)
 
     process ty = ggError "reachableToType missing"
         ["ty" <+> pretty ty, "oty" <+> pretty oty ]
