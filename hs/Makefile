@@ -1,6 +1,9 @@
 install:
 	@bash scripts/install.sh
 
+trace_install:
+	@bash scripts/install.sh --ghc-options="-DLOGS_TRACE"
+
 clean:
 	@bash scripts/clean.sh
 
