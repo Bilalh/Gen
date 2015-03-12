@@ -93,8 +93,8 @@ reachableToTypeWithCommon d y =  do
             ]
 
     minn, maxx :: GG (ToTypeFn, Depth)
-    minn = return $ raise $ (EProc . Pmin, 1)
-    maxx = return $ raise $ (EProc . Pmax, 1)
+    minn = return $ raise $ (opMin, 1)
+    maxx = return $ raise $ (opMax, 1)
 
 
 
@@ -138,25 +138,25 @@ reachableToType d oty@TBool = do
         element :: PType -> GG (ToTypeFn, Depth)
         element i = do
             e1 <- withDepthDec $ exprOf i
-            return $ raise $ (EBinOp . (flip BIn) e1, 1)
+            return $ raise $ ( (flip opIn) e1, 1)
 
-    process fty@(TFunc _ _ ) = funcs >>=
-        concatMapM (uncurry (processCommon d))
+    -- process fty@(TFunc _ _ ) = funcs >>=
+    --     concatMapM (uncurry (processCommon d))
 
-        where
-        funcs :: GG [ (TType, [(ToTypeFn, Depth)]) ]
-        funcs = catMaybes <$> sequence
-            [
-            do
-            (TFunc a b) <- withDepthDec (purgeAny fty)
+    --     where
+    --     funcs :: GG [ (TType, [(ToTypeFn, Depth)]) ]
+    --     funcs = catMaybes <$> sequence
+    --         [
+    --         do
+    --         (TFunc a b) <- withDepthDec (purgeAny fty)
 
-            op <-  elements2 [ Pinverse , flip Pinverse  ]
-            (t1,t2) <- elements2 [ (TFunc a b, TFunc b a ),  (TFunc b a, TFunc a b ) ]
-            e1 <- withDepthDec (exprOf t1)
+    --         op <-  elements2 [  , flip Pinverse  ]
+    --         (t1,t2) <- elements2 [ (TFunc a b, TFunc b a ),  (TFunc b a, TFunc a b ) ]
+    --         e1 <- withDepthDec (exprOf t1)
 
-            customM t2  [ (return . raise) (EProc . op e1, 1) **| useFunc Ainverse ]
-                ++| d - (max (fromInteger $ depthOf t1 ) (fromInteger $ depthOf t2 )) > 1
-            ]
+    --         customM t2  [ (return . raise) (EProc . op e1, 1) **| useFunc Ainverse ]
+    --             ++| d - (max (fromInteger $ depthOf t1 ) (fromInteger $ depthOf t2 )) > 1
+    --         ]
 
 
     process fty@(TPar _) = funcs >>=
@@ -177,13 +177,13 @@ reachableToType d oty@TBool = do
         together i = do
             e1 <- withDepthDec $ exprOf i
             e2 <- withDepthDec $ exprOf i
-            return $ raise $ (EProc . Ptogether e1 e2, 1)
+            return $ raise $ (opTogether e1 e2, 1)
 
         apart :: PType -> GG (ToTypeFn, Depth)
         apart i = do
             e1 <- withDepthDec $ exprOf i
             e2 <- withDepthDec $ exprOf i
-            return $ raise $ (EProc . Papart e1 e2, 1)
+            return $ raise $ (opApart e1 e2, 1)
 
     process ty = ggError "reachableToType missing"
         ["ty" <+> pretty ty, "oty" <+> pretty oty ]
@@ -211,7 +211,7 @@ reachableToType d oty@TInt = concatMapM process types
         funcs :: GG [ (TType, [(ToTypeFn, Depth)]) ]
         funcs = catMaybes <$> sequence
             [
-              simpleM fty [ (EUniOp . UBar, 1) **| useFunc Aubar ]
+              simpleM fty [ (opBar, 1) **| useFunc Aubar ]
                 ++| d - (fromInteger $ depthOf fty) >= 1
 
             , do
@@ -224,7 +224,7 @@ reachableToType d oty@TInt = concatMapM process types
         freq :: PType -> GG (ToTypeFn, Depth)
         freq i =  do
             ep <- withDepthDec (exprOf i)
-            return $ raise $ (EProc . (flip Pfreq) ep, 1)
+            return $ raise $ ( (flip opFreq) ep, 1)
 
     process fty@TBool = funcs >>=
         concatMapM (uncurry (processCommon d))
@@ -233,7 +233,7 @@ reachableToType d oty@TInt = concatMapM process types
         funcs :: GG [ (TType, [(ToTypeFn, Depth)]) ]
         funcs = catMaybes <$> sequence
             [
-              simpleM fty [ (EProc . PtoInt, 1) **| useFunc AtoInt  ]
+              simpleM fty [ (opToInt, 1) **| useFunc AtoInt  ]
                 ++| d - (fromInteger $ depthOf fty) >= 1
 
             ]
@@ -253,7 +253,7 @@ reachableToType d oty@TInt = concatMapM process types
         funcs :: GG [ (TType, [(ToTypeFn, Depth)]) ]
         funcs = catMaybes <$> sequence
             [
-              simpleM fty [ (EUniOp . UBar, 1) **| useFunc Aubar ]
+              simpleM fty [ (opBar, 1) **| useFunc Aubar ]
                 ++| d - (fromInteger $ depthOf fty) >= 1
             ]
 
@@ -312,7 +312,7 @@ reachableToType d oty@(TSet ity) =  do
         funcs :: GG [ (TType, [(ToTypeFn, Depth)]) ]
         funcs = catMaybes <$> sequence
             [
-             simpleM fty [ (EProc . PtoSet, 1) **| useFunc AtoSet ]
+             simpleM fty [ (opToSet, 1) **| useFunc AtoSet ]
                 ++| d - (fromInteger $ depthOf fty) >= 1
             ]
 
@@ -324,7 +324,7 @@ reachableToType d oty@(TSet ity) =  do
         funcs :: GG [ (TType, [(ToTypeFn, Depth)]) ]
         funcs = catMaybes <$> sequence
             [
-              simpleM fty [ (EProc . Pparticipants, 1) **| useFunc Aparticipants ]
+              simpleM fty [ (opParticipants, 1) **| useFunc Aparticipants ]
                 ++| d - (fromInteger $ depthOf fty) >= 1
             , do
                 nty@(TPar ins) <- purgeAny fty
@@ -336,7 +336,7 @@ reachableToType d oty@(TSet ity) =  do
         party :: PType -> GG (ToTypeFn, Depth)
         party i =  do
             ep <- withDepthDec (exprOf i)
-            return $ raise $ (EProc . Pparty ep, 1)
+            return $ raise $ (opParty ep, 1)
 
 
     process fty@(TRel _) = funcs >>=
@@ -346,7 +346,7 @@ reachableToType d oty@(TSet ity) =  do
         funcs :: GG [ (TType, [(ToTypeFn, Depth)]) ]
         funcs = catMaybes <$> sequence
             [
-             simpleM fty [ (EProc . PtoSet, 1) **| useFunc AtoSet ]
+             simpleM fty [ (opToSet, 1) **| useFunc AtoSet ]
                 ++| d - (fromInteger $ depthOf fty) >= 2
                 -- one for toSet, one for the rel
             ]
@@ -361,14 +361,14 @@ reachableToType d oty@(TSet ity) =  do
             -- 1 for func
             -- 1 usually for TFunc
 
-            [ simpleM fty [ (EProc . Pdefined, 1) **| useFunc Adefined ]
+            [ simpleM fty [ (opDefined, 1) **| useFunc Adefined ]
                 ++| a == ity &&  d - (fromInteger $ depthOf a) > 2
 
-            , simpleM fty [  (EProc . Prange, 1)  **| useFunc Arange  ]
+            , simpleM fty [  (opRange, 1)  **| useFunc Arange  ]
                 ++| b == ity && d - (fromInteger $ depthOf b) > 2
 
 
-            ,simpleM fty [ (EProc . PtoSet, 1) **| useFunc AtoSet ]
+            ,simpleM fty [ (opToSet, 1) **| useFunc AtoSet ]
                 ++| d - (fromInteger $ max (depthOf a ) (depthOf b) ) > 2
                 && typesUnify  (TTuple [a,b]) ity
 
@@ -389,7 +389,7 @@ reachableToType d oty@(TSet ity) =  do
         preImage :: PType -> GG (ToTypeFn, Depth)
         preImage pb = do
             ep <- withDepthDec (exprOf pb)
-            return $ raise $ (EProc . (flip PpreImage) ep, 1)
+            return $ raise $ ((flip opPreImage) ep, 1)
 
         -- Other image `does not exist`
         -- image :: PType -> GG (ToTypeFn, Depth)
@@ -437,7 +437,7 @@ reachableToType d oty@(TMSet ity) =  concatMapM process (types)
         funcs :: GG [ (TType, [(ToTypeFn, Depth)]) ]
         funcs = catMaybes <$> sequence
             [
-             simpleM fty [ (EProc . PtoMSet, 1) **| useFunc AtoMSet ]
+             simpleM fty [ (opToMSet, 1) **| useFunc AtoMSet ]
                 ++| d - (fromInteger $ depthOf fty) >= 1
             ]
 
@@ -449,7 +449,7 @@ reachableToType d oty@(TMSet ity) =  concatMapM process (types)
         funcs :: GG [ (TType, [(ToTypeFn, Depth)]) ]
         funcs = catMaybes <$> sequence
             [
-             simpleM fty [ (EProc . PtoMSet, 1) **| useFunc AtoMSet  ]
+             simpleM fty [ (opToMSet, 1) **| useFunc AtoMSet  ]
                 ++| d - (fromInteger $ depthOf fty) >= 2
                 -- one for toSet, one for the rel
             ]
@@ -464,7 +464,7 @@ reachableToType d oty@(TMSet ity) =  concatMapM process (types)
             -- 1 for func
             -- 1 usually for TFunc
             [
-              simpleM fty [ (EProc . PtoMSet, 1) **| useFunc AtoMSet ]
+              simpleM fty [ (opToMSet, 1) **| useFunc AtoMSet ]
                 ++| d - (fromInteger $ max (depthOf a ) (depthOf b) ) > 2
                 && typesUnify  (TTuple [a,b]) ity
             ]
@@ -491,7 +491,7 @@ reachableToType d oty@(TRel inners)   =  concatMapM process types
         funcs :: GG [ (TType, [(ToTypeFn, Depth)]) ]
         funcs = catMaybes <$> sequence
             [
-                simpleM fty [ (EProc . PtoRelation, 1) **| useFunc AtoRelation ]
+                simpleM fty [ (opToRelation, 1) **| useFunc AtoRelation ]
                     ++| d - (fromInteger $ depthOf fty) >= 1
             ]
 
@@ -567,7 +567,7 @@ reachableToType d oty@(TMatix TInt) = concatMapM process types
         hist i =  do
             -- matrix indexed by [w] of i
             ep <- withDepthDec (exprOf $ TMatix i)
-            return $ raise $ (EProc . (flip Phist) ep, 1)
+            return $ raise $ ((flip opHist) ep, 1)
 
     process ty = ggError "reachableToType missing"
         ["ty" <+> pretty ty, "oty" <+> pretty oty ]
@@ -594,7 +594,7 @@ reachableToTypeSetSet d oty@(TSet (TSet inner) ) = concatMapM process types
         funcs :: GG [ (TType, [(ToTypeFn, Depth)]) ]
         funcs = catMaybes <$> sequence
             [
-              simpleM fty [ (EProc . Pparts, 1) **| useFunc Aparts ]
+              simpleM fty [ (opParts, 1) **| useFunc Aparts ]
                   ++| d - (fromInteger $ depthOf fty) >= 1
             ]
 
@@ -609,20 +609,20 @@ reachableToTypeSetSet d ty =
 union :: PType -> GG (ToTypeFn, Depth)
 union i = do
     other <- withDepthDec $ exprOf i
-    ff <- elements2 [Bunion, flip Bunion]
-    return $ raise $ (EBinOp . ff other, 1)
+    ff <- elements2 [opUnion, flip opUnion]
+    return $ raise $ (ff other, 1)
 
 intersectG :: PType -> GG (ToTypeFn, Depth)
 intersectG i = do
     other <- withDepthDec $ exprOf i
-    ff <- elements2 [Bintersect, flip Bintersect]
-    return $ raise $ (EBinOp . ff other, 1)
+    ff <- elements2 [opIntersect, flip opIntersect]
+    return $ raise $ (ff other, 1)
 
 diff :: PType -> GG (ToTypeFn, Depth)
 diff i = do
     other <- withDepthDec $ exprOf i
-    ff <- elements2 [BDiff, flip BDiff]
-    return $ raise $ (EBinOp . ff other, 1)
+    ff <- elements2 [opMinus, flip opMinus]
+    return $ raise $ (ff other, 1)
 
 
 
