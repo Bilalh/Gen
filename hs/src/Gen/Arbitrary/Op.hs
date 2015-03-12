@@ -14,6 +14,7 @@ module Gen.Arbitrary.Op(
 import Conjure.Language.Expression.Op
 import Gen.Arbitrary.Expr
 import Gen.AST.TH
+import Gen.AST.Ops
 import Gen.Prelude
 
 
@@ -78,7 +79,7 @@ arithmeticExpr = do
 arithmeticExprOf :: TType ->  GG Expr
 arithmeticExprOf kind = do
 -- oneof2 $ map (flip (bopOf) kind ) [BPlus, BMult, BDiv, BPow, BMod]
-  oneof2 $ map (flip (bopOf) kind ) [opSum]
+  oneof2 $ map (flip (bopOf) kind ) [opPlus]
 
 
 relationExpr :: GG Expr
@@ -125,10 +126,3 @@ boolOpFor (TPar _) = do
   elements2 [ opEq, opNeq ]
 
 boolOpFor t = ggError "boolOpFor" [pretty t]
-
-
-opEq a b  = [essencee| &a = &b |]
-opNeq a b = [essencee| &a != &b |]
-opSum a b = [essencee| &a + &b |]
-opOr a b  = [essencee| &a /\ &b |]
-opLt a b  = [essencee| &a < &b |]

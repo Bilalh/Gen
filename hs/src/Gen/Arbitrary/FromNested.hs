@@ -5,6 +5,8 @@ import Conjure.Language.Constant
 import Gen.Arbitrary.Expr
 import Gen.Arbitrary.Op
 import Gen.Prelude
+import Gen.AST.TH
+import Gen.AST.Ops
 
 import qualified Data.Map as M
 

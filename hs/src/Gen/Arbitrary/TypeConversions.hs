@@ -1,15 +1,12 @@
-{-# LANGUAGE QuasiQuotes, ViewPatterns#-}
-
-{-# LANGUAGE  TupleSections #-}
+{-# LANGUAGE QuasiQuotes, TupleSections #-}
 
 module Gen.Arbitrary.TypeConversions(toTypeWithConversions) where
 
-import Gen.Prelude
 import Gen.Arbitrary.Expr
--- import Gen.Arbitrary.Literal
 import Gen.Arbitrary.Type
-
-
+import Gen.AST.Ops
+import Gen.AST.TH
+import Gen.Prelude
 
 -- TType that does not have any anys
 type PType = TType
