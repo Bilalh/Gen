@@ -8,3 +8,5 @@ import Gen.AST.Data
 
 instance Translate Expr Expression
 instance Pretty Expr
+
+instance ExpressionLike Expr

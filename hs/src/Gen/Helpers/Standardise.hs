@@ -4,7 +4,7 @@
 module Gen.Helpers.Standardise(Standardise(..)) where
 
 import Conjure.Language.Constant
--- import Conjure.Language.Expression.Op
+import Conjure.Language.Expression.Op.Internal.Generated
 import Gen.Helpers.StandardImports
 
 import qualified Data.Traversable as V
@@ -21,7 +21,7 @@ instance Standardise Expr where
     standardise (ECon y)      = return $ ECon y
     standardise (ELit y)      = pure ELit   <*> standardise y
     standardise (EDom y)      = pure EDom   <*> standardise y
-    standardise (EOp y)       = pure EOp    <*> return y
+    standardise (EOp y)       = pure EOp    <*> standardise y
     standardise (ETyped x y ) = pure ETyped <*> standardise x <*> standardise y
 
     standardise (EQuan y1 y2 y3 y4 y5) = pure EQuan
@@ -46,6 +46,9 @@ instance Standardise Literal where
     standardise x = return x
 
 instance Standardise (Domainn Expr) where
+    standardise x = return x
+
+instance Standardise (Op Expr) where
     standardise x = return x
 
 

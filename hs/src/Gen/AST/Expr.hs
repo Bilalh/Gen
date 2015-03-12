@@ -9,7 +9,7 @@ import Conjure.Language.Pretty
 import Conjure.Language.TH
 import Conjure.Prelude
 import Gen.AST.Data
-import Gen.AST.Domain                 ()
+import Gen.AST.Domain                 (dintRange)
 import Gen.AST.Type                   ()
 import Text.Groom                     (groom)
 
@@ -134,3 +134,18 @@ instance Pretty Expr where
 
 instance Pretty QType where
     pretty = error "Pretty Qtype"
+
+
+instance ExpressionLike Expr where
+    fromInt = ECon . fromInt
+    intOut (ECon c) = intOut c
+    intOut x = fail ("Expecting a constant, but got:" <+> pretty x)
+
+    fromBool = ECon . fromBool
+    boolOut (ECon c) = boolOut c
+    boolOut x = fail ("Expecting a constant, but got:" <+> pretty x)
+
+    fromList xs = ELit $ AbsLitMatrix (dintRange 1 (genericLength xs)) xs
+    listOut (ELit (AbsLitMatrix _ xs)) = return xs
+    listOut (ECon (ConstantAbstract (AbsLitMatrix _ xs))) = return (map ECon xs)
+    listOut c = fail ("Expecting a matrix literal, but found:" <+> pretty c)

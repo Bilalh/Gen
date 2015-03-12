@@ -1,12 +1,13 @@
-{-# LANGUAGE FlexibleInstances, KindSignatures, MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances, KindSignatures, MultiParamTypeClasses, QuasiQuotes #-}
 module Gen.Reduce.Simpler where
 
 import Conjure.Language.AbstractLiteral
 import Conjure.Language.Constant
+import Conjure.Language.Expression.Op
 import Data.List                        (foldl1)
 import Gen.Arbitrary.Type               (typesUnify)
 import Gen.Prelude
-
+import Gen.AST.TH
 
 -- True if a1 is simpler then a2
 class (Pretty a, Eq a, Show a, Pretty b, Eq b, Show b, Standardise a, Standardise b)
@@ -81,10 +82,8 @@ instance Simpler TType TType where
     simplerImp x  y = return $ compare (depthOf x) (depthOf y)
 
 instance Simpler Expr Expr where
-  simplerImp (ELit a ) (ELit b)    = simplerImp a b
-  simplerImp (EUniOp a) (EUniOp b) = simplerImp a b
-  simplerImp (EBinOp a) (EBinOp b) = simplerImp a b
-  simplerImp (EProc a)  (EProc b)  = simplerImp a b
+  simplerImp (ELit a ) (ELit b) = simplerImp a b
+  simplerImp (EOp a)  (EOp b)   = simplerImp a b
   -- simplerImp (EDom a)  (EDom b) = simplerImp a b
 
 
@@ -100,17 +99,12 @@ instance Simpler Expr Expr where
     tyb <- ttypeOf b
     return $ if tyb == TBool then EQ else LT
 
-  simplerImp (EUniOp a) b = simplerImp a b
-  simplerImp b (EUniOp a) = simplerImp a b
+  simplerImp (EOp a) b = simplerImp a b
+  simplerImp b (EOp a) = simplerImp a b
 
-  simplerImp (EBinOp a) b = simplerImp a b
-  simplerImp b (EBinOp a) = simplerImp a b
 
-  simplerImp (EProc a) b  = simplerImp a b
-  simplerImp b (EProc a)  = simplerImp a b
-
-  simplerImp (EQuan _ _ a3 a4) b   = simplerTu2 (a3,a4) b
-  simplerImp b (EQuan _ _ a3 a4)   = negOrderM $ simplerTu2 (a3,a4) b
+  simplerImp (EQuan _ _ _ a3 a4) b   = simplerTu2 (a3,a4) b
+  simplerImp b (EQuan _ _ _ a3 a4)   = negOrderM $ simplerTu2 (a3,a4) b
 
   simplerImp a@(EDom _) b = rrError "simplerImp"
                            [pretty $ a, pretty $ b
@@ -125,69 +119,68 @@ instance Simpler Expr Expr where
       simplerImp tya tyb
 
 
-instance Simpler UniOp UniOp where
-    simplerImp (UBar f) (UBar t) = simplerImp f t
-    simplerImp (UBar f) (UNeg t) = simplerImp f t
-    simplerImp (UNeg f) (UBar t) = simplerImp f t
-    simplerImp (UNeg f) (UNeg t) = simplerImp f t
+instance Simpler (Op Expr) (Op Expr) where
+    -- simplerImp (UBar f) (UBar t) = simplerImp f t
+    -- simplerImp [essencee| |&f| |] [essencee| |&t| |] = simplerImp f t
 
+    -- simplerImp (UBar f) (UNeg t) = simplerImp f t
+    -- simplerImp (UNeg f) (UBar t) = simplerImp f t
+    -- simplerImp (UNeg f) (UNeg t) = simplerImp f t
 
-instance Simpler BinOp BinOp where
-    simplerImp x@(BIn _ _) y   = simplerImpError x y
-    simplerImp x@(BOver _ _) y = simplerImpError x y
+    -- simplerImp x@(BIn _ _) y   = simplerImpError x y
+    -- simplerImp x@(BOver _ _) y = simplerImpError x y
 
-    simplerImp (BEQ x1 x2) y        = simplerTu2 (x1,x2) y
-    simplerImp (BNEQ x1 x2) y       = simplerTu2 (x1,x2) y
-    simplerImp (BLT x1 x2) y        = simplerTu2 (x1,x2) y
-    simplerImp (BLTE x1 x2) y       = simplerTu2 (x1,x2) y
-    simplerImp (BGT x1 x2) y        = simplerTu2 (x1,x2) y
-    simplerImp (BGTE x1 x2) y       = simplerTu2 (x1,x2) y
-    simplerImp (BDiff x1 x2) y      = simplerTu2 (x1,x2) y
-    simplerImp (BPlus x1 x2) y      = simplerTu2 (x1,x2) y
-    simplerImp (BMult x1 x2) y      = simplerTu2 (x1,x2) y
-    simplerImp (BDiv x1 x2) y       = simplerTu2 (x1,x2) y
-    simplerImp (BPow x1 x2) y       = simplerTu2 (x1,x2) y
-    simplerImp (BMod x1 x2) y       = simplerTu2 (x1,x2) y
-    simplerImp (BAnd x1 x2) y       = simplerTu2 (x1,x2) y
-    simplerImp (BOr x1 x2) y        = simplerTu2 (x1,x2) y
-    simplerImp (Bimply x1 x2) y     = simplerTu2 (x1,x2) y
-    simplerImp (Biff x1 x2) y       = simplerTu2 (x1,x2) y
-    simplerImp (Bsubset x1 x2) y    = simplerTu2 (x1,x2) y
-    simplerImp (BsubsetEq x1 x2) y  = simplerTu2 (x1,x2) y
-    simplerImp (Bsupset x1 x2) y    = simplerTu2 (x1,x2) y
-    simplerImp (BsupsetEq x1 x2) y  = simplerTu2 (x1,x2) y
-    simplerImp (Bintersect x1 x2) y = simplerTu2 (x1,x2) y
-    simplerImp (Bunion x1 x2) y     = simplerTu2 (x1,x2) y
-    simplerImp (BlexLT x1 x2) y     = simplerTu2 (x1,x2) y
-    simplerImp (BlexLTE x1 x2) y    = simplerTu2 (x1,x2) y
-    simplerImp (BlexGT x1 x2) y     = simplerTu2 (x1,x2) y
-    simplerImp (BlexGTE x1 x2) y    = simplerTu2 (x1,x2) y
+    -- simplerImp (BEQ x1 x2) y        = simplerTu2 (x1,x2) y
+    -- simplerImp (BNEQ x1 x2) y       = simplerTu2 (x1,x2) y
+    -- simplerImp (BLT x1 x2) y        = simplerTu2 (x1,x2) y
+    -- simplerImp (BLTE x1 x2) y       = simplerTu2 (x1,x2) y
+    -- simplerImp (BGT x1 x2) y        = simplerTu2 (x1,x2) y
+    -- simplerImp (BGTE x1 x2) y       = simplerTu2 (x1,x2) y
+    -- simplerImp (BDiff x1 x2) y      = simplerTu2 (x1,x2) y
+    -- simplerImp (BPlus x1 x2) y      = simplerTu2 (x1,x2) y
+    -- simplerImp (BMult x1 x2) y      = simplerTu2 (x1,x2) y
+    -- simplerImp (BDiv x1 x2) y       = simplerTu2 (x1,x2) y
+    -- simplerImp (BPow x1 x2) y       = simplerTu2 (x1,x2) y
+    -- simplerImp (BMod x1 x2) y       = simplerTu2 (x1,x2) y
+    -- simplerImp (BAnd x1 x2) y       = simplerTu2 (x1,x2) y
+    -- simplerImp (BOr x1 x2) y        = simplerTu2 (x1,x2) y
+    -- simplerImp (Bimply x1 x2) y     = simplerTu2 (x1,x2) y
+    -- simplerImp (Biff x1 x2) y       = simplerTu2 (x1,x2) y
+    -- simplerImp (Bsubset x1 x2) y    = simplerTu2 (x1,x2) y
+    -- simplerImp (BsubsetEq x1 x2) y  = simplerTu2 (x1,x2) y
+    -- simplerImp (Bsupset x1 x2) y    = simplerTu2 (x1,x2) y
+    -- simplerImp (BsupsetEq x1 x2) y  = simplerTu2 (x1,x2) y
+    -- simplerImp (Bintersect x1 x2) y = simplerTu2 (x1,x2) y
+    -- simplerImp (Bunion x1 x2) y     = simplerTu2 (x1,x2) y
+    -- simplerImp (BlexLT x1 x2) y     = simplerTu2 (x1,x2) y
+    -- simplerImp (BlexLTE x1 x2) y    = simplerTu2 (x1,x2) y
+    -- simplerImp (BlexGT x1 x2) y     = simplerTu2 (x1,x2) y
+    -- simplerImp (BlexGTE x1 x2) y    = simplerTu2 (x1,x2) y
 
-instance Simpler Proc Proc where
-    simplerImp (PallDiff p) q         = simplerImp p q
-    simplerImp (Pindex p1 p2) q       = simplerTu2 (p1, p2) q
-    simplerImp (Pfreq p1 p2) q        = simplerTu2 (p1, p2) q
-    simplerImp (Phist p1 p2) q        = simplerTu2 (p1, p2) q
-    simplerImp (Pmax p) q             = simplerImp p q
-    simplerImp (Pmin p) q             = simplerImp p q
-    simplerImp (PtoInt p) q           = simplerImp p q
-    simplerImp (PtoMSet p) q          = simplerImp p q
-    simplerImp (PtoRelation p) q      = simplerImp p q
-    simplerImp (PtoSet p) q           = simplerImp p q
-    simplerImp (Pdefined p) q         = simplerImp p q
-    simplerImp (Pimage p1 p2) q       = simplerTu2 (p1, p2) q
-    simplerImp (Pinverse p1 p2) q     = simplerTu2 (p1, p2) q
-    simplerImp (PpreImage p1 p2) q    = simplerTu2 (p1, p2) q
-    simplerImp (Prange p) q           = simplerImp p q
-    simplerImp (Pparts p) q           = simplerImp p q
-    simplerImp (Pparty p1 p2) q       = simplerTu2 (p1, p2) q
-    simplerImp (Pparticipants p) q    = simplerImp p q
-    simplerImp (Papart p1 p2 p3) q    = simplerTu3 (p1, p2, p3) q
-    simplerImp (Ptogether p1 p2 p3) q = simplerTu3 (p1, p2, p3) q
-    simplerImp (Papply p1 p2) q       = do
-        a <- simplerImp p1 q
-        bs  <- mapM (\x -> simplerImp x q) p2
-        return $ chainCompare (a:bs)
+    -- simplerImp (PallDiff p) q         = simplerImp p q
+    -- simplerImp (Pindex p1 p2) q       = simplerTu2 (p1, p2) q
+    -- simplerImp (Pfreq p1 p2) q        = simplerTu2 (p1, p2) q
+    -- simplerImp (Phist p1 p2) q        = simplerTu2 (p1, p2) q
+    -- simplerImp (Pmax p) q             = simplerImp p q
+    -- simplerImp (Pmin p) q             = simplerImp p q
+    -- simplerImp (PtoInt p) q           = simplerImp p q
+    -- simplerImp (PtoMSet p) q          = simplerImp p q
+    -- simplerImp (PtoRelation p) q      = simplerImp p q
+    -- simplerImp (PtoSet p) q           = simplerImp p q
+    -- simplerImp (Pdefined p) q         = simplerImp p q
+    -- simplerImp (Pimage p1 p2) q       = simplerTu2 (p1, p2) q
+    -- simplerImp (Pinverse p1 p2) q     = simplerTu2 (p1, p2) q
+    -- simplerImp (PpreImage p1 p2) q    = simplerTu2 (p1, p2) q
+    -- simplerImp (Prange p) q           = simplerImp p q
+    -- simplerImp (Pparts p) q           = simplerImp p q
+    -- simplerImp (Pparty p1 p2) q       = simplerTu2 (p1, p2) q
+    -- simplerImp (Pparticipants p) q    = simplerImp p q
+    -- simplerImp (Papart p1 p2 p3) q    = simplerTu3 (p1, p2, p3) q
+    -- simplerImp (Ptogether p1 p2 p3) q = simplerTu3 (p1, p2, p3) q
+    -- simplerImp (Papply p1 p2) q       = do
+    --     a <- simplerImp p1 q
+    --     bs  <- mapM (\x -> simplerImp x q) p2
+    --     return $ chainCompare (a:bs)
 
 instance Simpler Constant Constant where
     simplerImp (ConstantBool _) (ConstantBool _) = return EQ
@@ -262,54 +255,24 @@ instance Simpler Expr Literal where
         True  -> simplerImp e l
         False -> simplerImp tyE tyl
 
-    simplerImp (EBinOp e) l          = simplerImp e l
-    simplerImp (EUniOp e) l          = simplerImp e l
-    simplerImp (EProc e) l           = simplerImp e l
-    simplerImp (EQuan _ _ e3 e4) l   = simplerTu2 (e3, e4) l
+    simplerImp (EOp e) l             = simplerImp e l
+    simplerImp (EQuan _ _ _ e3 e4) l   = simplerTu2 (e3, e4) l
 
     simplerImp a@(EDom _) l            = simplerImpError a l
 
 
-instance Simpler UniOp Expr where simplerImp x y = negOrderM $ simplerImp y x
-instance Simpler Expr UniOp where
+instance Simpler (Op Expr) Expr where simplerImp x y = negOrderM $ simplerImp y x
+instance Simpler Expr (Op Expr) where
     simplerImp a b = do
         tya <- ttypeOf a
         tyb <- ttypeOf b
         simplerImp tya tyb
 
-instance Simpler BinOp Expr where simplerImp x y = negOrderM $ simplerImp y x
-instance Simpler Expr BinOp where
-    simplerImp a b = do
-        tya <- ttypeOf a
-        tyb <- ttypeOf b
-        simplerImp tya tyb
 
-instance Simpler Proc Expr where simplerImp x y = negOrderM $ simplerImp y x
-instance Simpler Expr Proc where
-    simplerImp a b = do
-        tya <- ttypeOf a
-        tyb <- ttypeOf b
-        simplerImp tya tyb
 
-instance Simpler Literal UniOp where
+instance Simpler Literal (Op Expr) where
     simplerImp x y = negOrderM $ simplerImp y x
-instance Simpler UniOp Literal where
-    simplerImp a b = do
-        tya <- ttypeOf a
-        tyb <- ttypeOf b
-        simplerImp tya tyb
-
-instance Simpler Literal BinOp where
-    simplerImp x y = negOrderM $ simplerImp y x
-instance Simpler BinOp Literal where
-    simplerImp a b = do
-        tya <- ttypeOf a
-        tyb <- ttypeOf b
-        simplerImp tya tyb
-
-instance Simpler Literal Proc where
-    simplerImp x y = negOrderM $ simplerImp y x
-instance Simpler Proc Literal where
+instance Simpler (Op Expr) Literal where
     simplerImp a b = do
         tya <- ttypeOf a
         tyb <- ttypeOf b
