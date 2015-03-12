@@ -95,21 +95,6 @@ instance Translate Expr Expression where
   toConjure (EMetaVar x)      = return $ ExpressionMetaVar x
 
 
-  toConjure (EQuan q (Var x _) dom g inner) = do
-        x'     <- return $ Single (Name x)
-        dom'   <- toConjure dom
-        inner' <- toConjure inner
-        case (q,g) of
-          (ForAll,EEmptyGuard) -> return [essence| forAll &x' in &dom' . &inner' |]
-          (Exists,EEmptyGuard) -> return [essence| exists &x' in &dom' . &inner' |]
-          (Sum,EEmptyGuard)    -> return [essence| sum    &x' in &dom' . &inner' |]
-          (ForAll,_)           -> toConjure g  >>= \g' ->
-                                  return [essence| forAll &x' in &dom', &g' . &inner' |]
-          (Exists,_)           -> toConjure g  >>= \g' ->
-                                  return [essence| exists &x' in &dom', &g' . &inner' |]
-          (Sum,_)              -> toConjure g  >>= \g' ->
-                                  return [essence| sum    &x' in &dom', &g' . &inner' |]
-
   toConjure (EQuan q (Var x _) (EDom dom) g inner) = do
         x'                           <- return $ Single (Name x)
         dom' :: Domain () Expression <- toConjure dom
@@ -124,6 +109,21 @@ instance Translate Expr Expression where
                                   return [essence| exists &x' : &dom', &g' . &inner' |]
           (Sum,_)              -> toConjure g  >>= \g' ->
                                   return [essence| sum    &x' : &dom', &g' . &inner' |]
+
+  toConjure (EQuan q (Var x _) dom g inner) = do
+        x'     <- return $ Single (Name x)
+        dom'   <- toConjure dom
+        inner' <- toConjure inner
+        case (q,g) of
+          (ForAll,EEmptyGuard) -> return [essence| forAll &x' in &dom' . &inner' |]
+          (Exists,EEmptyGuard) -> return [essence| exists &x' in &dom' . &inner' |]
+          (Sum,EEmptyGuard)    -> return [essence| sum    &x' in &dom' . &inner' |]
+          (ForAll,_)           -> toConjure g  >>= \g' ->
+                                  return [essence| forAll &x' in &dom', &g' . &inner' |]
+          (Exists,_)           -> toConjure g  >>= \g' ->
+                                  return [essence| exists &x' in &dom', &g' . &inner' |]
+          (Sum,_)              -> toConjure g  >>= \g' ->
+                                  return [essence| sum    &x' in &dom', &g' . &inner' |]
 
 
   toConjure x = toConjureFail "Expr Expression" x
