@@ -3,6 +3,7 @@
 module Gen.Classify.Meta where
 
 import Conjure.Language.AbstractLiteral
+import Conjure.Language.Expression.Op
 import Gen.Classify.DomTypes
 import Gen.Prelude
 import Gen.Reduce.Simpler
@@ -15,7 +16,7 @@ data Feature = Fquan
               | Findexing       -- tuple indexing, matrix slices etc
               | Fliterals       -- literal apart from int and bool
               | FnoConstraints
-              | Fproc
+              | Fop
               | Fref            -- references variables
               | Fsum            -- quan sum
               | Ftyped
@@ -115,79 +116,19 @@ instance HasFeature Expr where
     getFeatures (ELit e)             = Fliterals : getFeatures e
     getFeatures (ECon _)             = []
     getFeatures (EVar _)             = [Fref]
-    getFeatures (EBinOp e)           = getFeatures e
-    getFeatures (EUniOp e)           = getFeatures e
-    getFeatures (EProc e)            = Fproc : getFeatures e
+    getFeatures (EOp e)            = Fop : getFeatures e
     getFeatures (EDom e)             = getFeatures e
     getFeatures (ETyped _ e2)        = Ftyped : getFeatures e2
     getFeatures EEmptyGuard          = []
-    getFeatures (EQuan Sum e2 e3 e4) = Fsum : (concat
+    getFeatures (EQuan Sum _ e2 e3 e4) = Fsum : (concat
           [getFeatures  e2, getFeatures  e3, getFeatures e4] )
-    getFeatures (EQuan _  e2 e3 e4)  = Fquan : (concat
+    getFeatures (EQuan _ _ e2 e3 e4)  = Fquan : (concat
           [getFeatures  e2, getFeatures  e3, getFeatures e4] )
 
 
 
-instance HasFeature UniOp where
-  getFeatures (UBar e) = getFeatures e
-  getFeatures (UNeg e) = getFeatures e
-
-instance HasFeature BinOp where
-    getFeatures (BIn e1 e2)        = getFeatures e1 ++ getFeatures e2
-    getFeatures (BOver e1 e2)      = getFeatures e1 ++ getFeatures e2
-    getFeatures (BEQ e1 e2)        = getFeatures e1 ++ getFeatures e2
-    getFeatures (BNEQ e1 e2)       = getFeatures e1 ++ getFeatures e2
-    getFeatures (BLT e1 e2)        = getFeatures e1 ++ getFeatures e2
-    getFeatures (BLTE e1 e2)       = getFeatures e1 ++ getFeatures e2
-    getFeatures (BGT e1 e2)        = getFeatures e1 ++ getFeatures e2
-    getFeatures (BGTE e1 e2)       = getFeatures e1 ++ getFeatures e2
-    getFeatures (BDiff e1 e2)      = getFeatures e1 ++ getFeatures e2
-    getFeatures (BPlus e1 e2)      = getFeatures e1 ++ getFeatures e2
-    getFeatures (BMult e1 e2)      = getFeatures e1 ++ getFeatures e2
-    getFeatures (BDiv e1 e2)       = getFeatures e1 ++ getFeatures e2
-    getFeatures (BPow e1 e2)       = getFeatures e1 ++ getFeatures e2
-    getFeatures (BMod e1 e2)       = getFeatures e1 ++ getFeatures e2
-    getFeatures (BAnd e1 e2)       = getFeatures e1 ++ getFeatures e2
-    getFeatures (BOr e1 e2)        = getFeatures e1 ++ getFeatures e2
-    getFeatures (Bimply e1 e2)     = getFeatures e1 ++ getFeatures e2
-    getFeatures (Biff e1 e2)       = getFeatures e1 ++ getFeatures e2
-    getFeatures (Bsubset e1 e2)    = getFeatures e1 ++ getFeatures e2
-    getFeatures (BsubsetEq e1 e2)  = getFeatures e1 ++ getFeatures e2
-    getFeatures (Bsupset e1 e2)    = getFeatures e1 ++ getFeatures e2
-    getFeatures (BsupsetEq e1 e2)  = getFeatures e1 ++ getFeatures e2
-    getFeatures (Bintersect e1 e2) = getFeatures e1 ++ getFeatures e2
-    getFeatures (Bunion e1 e2)     = getFeatures e1 ++ getFeatures e2
-    getFeatures (BlexLT e1 e2)     = getFeatures e1 ++ getFeatures e2
-    getFeatures (BlexLTE e1 e2)    = getFeatures e1 ++ getFeatures e2
-    getFeatures (BlexGT e1 e2)     = getFeatures e1 ++ getFeatures e2
-    getFeatures (BlexGTE e1 e2)    = getFeatures e1 ++ getFeatures e2
-
-
-
-instance HasFeature Proc where
-    getFeatures (PallDiff p)         = getFeatures p
-    getFeatures (Pindex p1 p2)       = getFeatures p1 ++ getFeatures p2
-    getFeatures (Papply p1 p2)       = getFeatures p1 ++ (concatMap getFeatures p2)
-    getFeatures (Pfreq p1 p2)        = getFeatures p1 ++ getFeatures p2
-    getFeatures (Phist p1 p2)        = getFeatures p1 ++ getFeatures p2
-    getFeatures (Pmax p)             = getFeatures p
-    getFeatures (Pmin p)             = getFeatures p
-    getFeatures (PtoInt p)           = getFeatures p
-    getFeatures (PtoMSet p)          = getFeatures p
-    getFeatures (PtoRelation p)      = getFeatures p
-    getFeatures (PtoSet p)           = getFeatures p
-    getFeatures (Pdefined p)         = getFeatures p
-    getFeatures (Pimage p1 p2)       = getFeatures p1 ++ getFeatures p2
-    getFeatures (Pinverse p1 p2)     = getFeatures p1 ++ getFeatures p2
-    getFeatures (PpreImage p1 p2)    = getFeatures p1 ++ getFeatures p2
-    getFeatures (Prange p)           = getFeatures p
-    getFeatures (Papart p1 p2 p3)    = getFeatures p1 ++ getFeatures p2
-                                    ++ getFeatures p3
-    getFeatures (Pparts p)           = getFeatures p
-    getFeatures (Pparty p1 p2)       = getFeatures p1 ++ getFeatures p2
-    getFeatures (Pparticipants p)    = getFeatures p
-    getFeatures (Ptogether p1 p2 p3) = getFeatures p1 ++ getFeatures p2
-                                    ++ getFeatures p3
+instance HasFeature (Op Expr) where
+  getFeatures x = F.foldl (\y e -> y ++ getFeatures e ) [] x
 
 instance HasFeature Literal where
     getFeatures (AbsLitTuple l)     = concatMap getFeatures l
