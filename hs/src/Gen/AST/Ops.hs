@@ -61,3 +61,6 @@ opParticipants x     = [essencee| participants(&x ) |]
 
 -- opInverse x y = [essencee| inverse(&x, &y ) |]
 opBar x = [essencee|  |&x| |]
+
+opApply x y = [essencee| &x(&y) |]
+opIndex x y = [essencee| &x[&y] |]

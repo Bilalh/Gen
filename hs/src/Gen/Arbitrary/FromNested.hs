@@ -170,10 +170,10 @@ nextt' cur tyFrom tyTo = do
     -- :: from to -> choices
     ff :: TType -> TType -> GG [(Expr, TType)]
     ff TBool TInt  = do
-        return [ ( EProc $ PtoInt cur , TInt)  ]
+        return [ ( opToInt cur , TInt)  ]
 
     ff (TSet _) TInt = do
-        return [( EUniOp $ UBar cur , TInt) ]
+        return [( opBar cur , TInt) ]
 
     ff ty TBool = do
         op <- boolOpFor ty
@@ -187,16 +187,16 @@ nextt' cur tyFrom tyTo = do
             possible =  filter (\(f,_) -> f == to ) withIdx
 
         (_, cIndex) <- elements2 possible
-        return $ [  (EProc $ Pindex cur (ECon $ ConstantInt cIndex)  , to)  ]
+        return $ [  (opIndex cur (ECon $ ConstantInt cIndex)  , to)  ]
 
     ff (TFunc ffrom fto) to | fto == to = do
         indexer <-  exprOf ffrom
-        return [ (EProc $ Papply cur [indexer] , to) ]
+        return [ (opApply cur indexer , to) ]
 
     ff (TMatix inner) to | inner == to = do
         addLog "ffmat" []
         indexer <- exprOf TInt
-        return $ [ (EProc $ Pindex cur (indexer ), to) ]
+        return $ [ (opIndex cur (indexer ), to) ]
 
 
     ff from to = ggError "ff unmatched" $ [  "cur" <+> pretty cur
