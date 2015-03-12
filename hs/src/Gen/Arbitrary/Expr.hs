@@ -2,6 +2,7 @@
 module Gen.Arbitrary.Expr where
 
 import Gen.Prelude
+import Gen.AST.TH
 import Gen.Arbitrary.Type
 import Gen.Arbitrary.Common
 
@@ -54,7 +55,7 @@ quanInExpr  = withQuan $
 
             -- FIXME Ensure with high prob that inName is actually used
             quanType <- elements2 [ ForAll, Exists ]
-            let quanTop = EQuan quanType (BIn (EVar (Var inName inType)) over)
+            let quanTop = EQuan quanType (Var inName inType) over
 
             d <- gets depth_
             let typeDepth = depthOf inType
@@ -92,7 +93,7 @@ quanOverExpr = withQuan $
 
             -- FIXME Ensure with high prob that inName is actually used
             quanType <- elements2 [ ForAll, Exists ]
-            let quanTop = EQuan quanType (BOver (EVar (Var inName innerType)) (EDom dm))
+            let quanTop = EQuan quanType (Var inName innerType) (EDom dm)
 
             d <- gets depth_
             let typeDepth = depthOf innerType
@@ -127,7 +128,7 @@ quanSum = withQuan $
             addLog "quanSum" [nn "over" (overName, overType) ]
 
 
-            let quanTop = EQuan Sum (BIn (EVar (Var inName overType)) over)
+            let quanTop = EQuan Sum (Var inName overType) over
 
             quanGuard <- oneof2 [
                 return EEmptyGuard
@@ -166,7 +167,8 @@ boolExprUsingRef var@(Var ref refType) = do
 exprFromToType :: Var -> TType -> GG Expr
 exprFromToType var@(Var _ from) to | from == to =  return $ EVar var
 
-exprFromToType var@(Var _ (TSet _)) TInt = return $ EUniOp $ UBar $ EVar var
+exprFromToType var@(Var _ (TSet _)) TInt = return  [essencee| |&v| |]
+  where v = EVar var
 
 
 

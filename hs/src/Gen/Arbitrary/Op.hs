@@ -1,16 +1,24 @@
+{-# LANGUAGE QuasiQuotes #-}
+module Gen.Arbitrary.Op(
+    Bop
+  , Uop
+  , bop
+  , opOf
+  , bopOf
+  , equivExpr
+  , arithmeticExprOf
+  , relationExpr
+  , boolOpFor
+  ) where
 
-
-
-
-module Gen.Arbitrary.Op where
-
+import Conjure.Language.Expression.Op
+import Gen.Arbitrary.Expr
+import Gen.AST.TH
 import Gen.Prelude
 
-import Gen.Arbitrary.Expr
 
-
-type Bop = (Expr -> Expr -> BinOp)
-type Uop = (Expr -> UniOp)
+type Bop = (Expr -> Expr -> Expr)
+type Uop = (Expr -> Expr)
 
 bop :: Bop ->  GG Expr
 bop op = do
@@ -25,7 +33,7 @@ bop op = do
             e1 <- withDepthDec (exprOf exprType)
             e2 <- withDepthDec (exprOf exprType)
 
-            return $ EBinOp $  op e1 e2
+            return $ op e1 e2
 
 
 bopOf :: Bop -> TType -> GG Expr
@@ -41,7 +49,7 @@ bopOf op exprType = do
             e1 <- withDepthDec (exprOf exprType)
             e2 <- withDepthDec (exprOf exprType)
 
-            return $ EBinOp $ op e1 e2
+            return $ op e1 e2
 
 
 opOf :: Uop -> TType ->  GG Expr
@@ -53,70 +61,74 @@ opOf op exprType =  do
         | depth_ < 1 -> ggError "opOf depth_ < 1" [ pretty . groom $ exprType ]
         | otherwise -> do
             e1 <- withDepthDec (exprOf exprType)
-            return $ EUniOp $ op e1
+            return $ op e1
 
 
 equivExpr :: GG Expr
-equivExpr = oneof2 $ map bop [ BEQ, BNEQ ]
-
+equivExpr = oneof2 $ map bop [ opEq, opNeq ]
 
 arithmeticTypes :: GG TType
 arithmeticTypes  = return TInt
 
 arithmeticExpr :: GG Expr
 arithmeticExpr = do
-    kind <- arithmeticTypes
-    arithmeticExprOf kind
+  kind <- arithmeticTypes
+  arithmeticExprOf kind
 
 arithmeticExprOf :: TType ->  GG Expr
 arithmeticExprOf kind = do
-    oneof2 $ map (flip (bopOf) kind ) [BPlus, BMult, BDiv, BPow, BMod]
+-- oneof2 $ map (flip (bopOf) kind ) [BPlus, BMult, BDiv, BPow, BMod]
+  oneof2 $ map (flip (bopOf) kind ) [opSum]
 
 
 relationExpr :: GG Expr
 relationExpr =  do
-    oneof2 $ map (`bopOf` TBool ) [BOr, BAnd, Bimply, Biff]
+  -- oneof2 $ map (`bopOf` TBool ) [BOr, BAnd, Bimply, Biff]
+  oneof2 $ map (`bopOf` TBool ) [opOr]
 
 comparisonExpr :: GG Expr
 comparisonExpr =  do
-    oneof2 $ map (`bopOf` TBool ) [BLT, BLTE, BGT, BGTE]
+  -- oneof2 $ map (`bopOf` TBool ) [BLT, BLTE, BGT, BGTE]
+  oneof2 $ map (`bopOf` TBool ) [opOr]
 
 
 boolOpFor :: TType -> GG (Expr -> Expr -> Expr)
 boolOpFor TBool = do
-    op <- elements2 [ BEQ, BNEQ, BOr, BAnd, Bimply, Biff ]
-    return (\a b -> EBinOp $ op a  b )
+  -- elements2 [ BEQ, BNEQ, BOr, BAnd, Bimply, Biff ]
+  elements2 [ opEq ]
 
 boolOpFor TInt = do
-    op <- elements2 [ BEQ, BNEQ, BLT, BLTE, BGT, BGTE]
-    return (\a b -> EBinOp $ op a  b )
+  -- op <- elements2 [ BEQ, BNEQ, BLT, BLTE, BGT, BGTE]
+  elements2 [ opEq ]
 
 boolOpFor (TSet _) =  do
-    op <-  elements2 [ BEQ, BNEQ, Bsubset, BsubsetEq, Bsupset, BsupsetEq ]
-    return (\a b -> EBinOp $ op a  b )
+  -- elements2 [ BEQ, BNEQ, Bsubset, BsubsetEq, Bsupset, BsupsetEq ]
+  elements2 [ opEq ]
 
 boolOpFor (TMSet _) =  do
-    op <-  elements2 [ BEQ, BNEQ, BLT, Bsubset, BsubsetEq, Bsupset, BsupsetEq ]
-    return (\a b -> EBinOp $ op a  b )
+  -- elements2 [ BEQ, BNEQ, BLT, Bsubset, BsubsetEq, Bsupset, BsupsetEq ]
+  elements2 [ opEq ]
 
 boolOpFor (TMatix _) = do
-    op <- elements2 [BEQ, BNEQ ]
-    return (\a b -> EBinOp $ op a  b )
+  elements2 [ opEq, opNeq ]
 
 boolOpFor (TTuple _) = do
-    op <- elements2 [BEQ, BNEQ ]
-    return (\a b -> EBinOp $ op a  b )
+  elements2 [ opEq, opNeq ]
 
 boolOpFor (TRel _) = do
-    op <- elements2 [BEQ, BNEQ ]
-    return (\a b -> EBinOp $ op a  b )
+  elements2 [ opEq, opNeq ]
 
 boolOpFor (TFunc _ _) = do
-    op <- elements2 [BEQ, BNEQ ]
-    return (\a b -> EBinOp $ op a  b )
+  elements2 [ opEq, opNeq ]
 
 boolOpFor (TPar _) = do
-    op <- elements2 [BEQ, BNEQ ]
-    return (\a b -> EBinOp $ op a  b )
+  elements2 [ opEq, opNeq ]
 
 boolOpFor t = ggError "boolOpFor" [pretty t]
+
+
+opEq a b  = [essencee| &a = &b |]
+opNeq a b = [essencee| &a != &b |]
+opSum a b = [essencee| &a + &b |]
+opOr a b  = [essencee| &a /\ &b |]
+opLt a b  = [essencee| &a < &b |]

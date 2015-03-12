@@ -2,8 +2,8 @@
 
 module Gen.Helpers.SizeOf where
 
-import Conjure.Language.AbstractLiteral
 import Conjure.Language.Constant
+import Conjure.Language.Expression.Op
 import Gen.Helpers.Debug
 import Gen.Helpers.StandardImports      as X
 import Gen.Helpers.TypeOf               (typeOfDom)
@@ -69,17 +69,19 @@ instance DepthOf Expr where
     depthOf (ELit e)      = depthOf e
     depthOf (ECon c)      = depthOf c
     depthOf (EVar _ )     = 0
-    depthOf (EBinOp e)    = depthOf e
-    depthOf (EUniOp e)    = depthOf e
-    depthOf (EProc e)     = depthOf e
-    depthOf (EDom e)      =  depthOf e
+    depthOf (EOp e)       = depthOf e
+    depthOf (EDom e)      = depthOf e
     depthOf (ETyped _ e2) = depthOf e2
     depthOf EEmptyGuard   = 0
 
-    depthOf (EQuan _ e2 e3 e4) = 1 + maximum ([depthOf e2, depthOf e3, depthOf e4])
+    depthOf (EQuan _ _ e2 e3 e4) = 1 + maximum ([depthOf e2, depthOf e3, depthOf e4])
 
 
+-- FIXME check if fold has the same effect as the old hand written one
 instance DepthOf Literal where
+    depthOf x = F.foldl (\y e -> y + depthOf e ) 0 x
+
+instance DepthOf (Op Expr) where
     depthOf x = F.foldl (\y e -> y + depthOf e ) 0 x
 
 instance DepthOf Constant where
@@ -88,63 +90,6 @@ instance DepthOf Constant where
     depthOf (ConstantEnum _ _ _ )     = 0
     depthOf x = error . show . vcat $ [pretty x]
 
-
-instance DepthOf UniOp where
-    depthOf (UBar u) = 1 + depthOf u
-    depthOf (UNeg u) = 1 + depthOf u
-
-instance DepthOf BinOp where
-    depthOf (BIn b1 b2)        = 1 +  max (depthOf b1) (depthOf b2)
-    depthOf (BOver b1 b2)      = 1 +  max (depthOf b1) (depthOf b2)
-    depthOf (BEQ b1 b2)        = 1 +  max (depthOf b1) (depthOf b2)
-    depthOf (BNEQ b1 b2)       = 1 +  max (depthOf b1) (depthOf b2)
-    depthOf (BLT b1 b2)        = 1 +  max (depthOf b1) (depthOf b2)
-    depthOf (BLTE b1 b2)       = 1 +  max (depthOf b1) (depthOf b2)
-    depthOf (BGT b1 b2)        = 1 +  max (depthOf b1) (depthOf b2)
-    depthOf (BGTE b1 b2)       = 1 +  max (depthOf b1) (depthOf b2)
-    depthOf (BDiff b1 b2)      = 1 +  max (depthOf b1) (depthOf b2)
-    depthOf (BPlus b1 b2)      = 1 +  max (depthOf b1) (depthOf b2)
-    depthOf (BMult b1 b2)      = 1 +  max (depthOf b1) (depthOf b2)
-    depthOf (BDiv b1 b2)       = 1 +  max (depthOf b1) (depthOf b2)
-    depthOf (BPow b1 b2)       = 1 +  max (depthOf b1) (depthOf b2)
-    depthOf (BMod b1 b2)       = 1 +  max (depthOf b1) (depthOf b2)
-    depthOf (BAnd b1 b2)       = 1 +  max (depthOf b1) (depthOf b2)
-    depthOf (BOr b1 b2)        = 1 +  max (depthOf b1) (depthOf b2)
-    depthOf (Bimply b1 b2)     = 1 +  max (depthOf b1) (depthOf b2)
-    depthOf (Biff b1 b2)       = 1 +  max (depthOf b1) (depthOf b2)
-    depthOf (Bsubset b1 b2)    = 1 +  max (depthOf b1) (depthOf b2)
-    depthOf (BsubsetEq b1 b2)  = 1 +  max (depthOf b1) (depthOf b2)
-    depthOf (Bsupset b1 b2)    = 1 +  max (depthOf b1) (depthOf b2)
-    depthOf (BsupsetEq b1 b2)  = 1 +  max (depthOf b1) (depthOf b2)
-    depthOf (Bintersect b1 b2) = 1 +  max (depthOf b1) (depthOf b2)
-    depthOf (Bunion b1 b2)     = 1 +  max (depthOf b1) (depthOf b2)
-    depthOf (BlexLT b1 b2)     = 1 +  max (depthOf b1) (depthOf b2)
-    depthOf (BlexLTE b1 b2)    = 1 +  max (depthOf b1) (depthOf b2)
-    depthOf (BlexGT b1 b2)     = 1 +  max (depthOf b1) (depthOf b2)
-    depthOf (BlexGTE b1 b2)    = 1 +  max (depthOf b1) (depthOf b2)
-
-instance DepthOf Proc where
-    depthOf (PallDiff p)         = 1 + depthOf p
-    depthOf (Pindex p1 p2)       = 1 + max  (depthOf p1) (depthOf p2)
-    depthOf (Papply p1 p2)       = 1 + max  (depthOf p1) (depthOfOrZero p2)
-    depthOf (Pfreq p1 p2)        = 1 + max  (depthOf p1) (depthOf p2)
-    depthOf (Phist p1 p2)        = 1 + max  (depthOf p1) (depthOf p2)
-    depthOf (Pmax p)             = 1 + depthOf p
-    depthOf (Pmin p)             = 1 + depthOf p
-    depthOf (PtoInt p)           = 1 + depthOf p
-    depthOf (PtoMSet p)          = 1 + depthOf p
-    depthOf (PtoRelation p)      = 1 + depthOf p
-    depthOf (PtoSet p)           = 1 + depthOf p
-    depthOf (Pdefined p)         = 1 + depthOf p
-    depthOf (Pimage p1 p2)       = 1 + max  (depthOf p1) (depthOf p2)
-    depthOf (Pinverse p1 p2)     = 1 + max  (depthOf p1) (depthOf p2)
-    depthOf (PpreImage p1 p2)    = 1 + max  (depthOf p1) (depthOf p2)
-    depthOf (Prange p)           = 1 + depthOf p
-    depthOf (Papart p1 p2 p3)    = 1 + maximum (map depthOf [p1,p2,p3])
-    depthOf (Pparts p)           = 1 + depthOf p
-    depthOf (Pparty p1 p2)       = 1 + max  (depthOf p1) (depthOf p2)
-    depthOf (Pparticipants p)    = 1 + depthOf p
-    depthOf (Ptogether p1 p2 p3) = 1 + maximum (map depthOf [p1,p2,p3])
 
 instance DepthOf (Domainn Expr) where
     depthOf =  depthOf .  typeOfDom

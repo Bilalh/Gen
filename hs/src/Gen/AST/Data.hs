@@ -46,11 +46,11 @@ data Expr =
   | EMetaVar String -- For TH
 
   | EEmptyGuard
-  | EQuan QType BinOp Expr Expr
+  | EQuan QType Var  -- should var be a  litetal?
+    Expr -- over/ in expr
+    Expr -- guard
+    Expr -- inner
 
-  | EBinOp BinOp
-  | EUniOp UniOp
-  | EProc Proc  -- e.g alldiff
   deriving (Eq, Ord, Show, Data, Typeable, Generic)
 
 
@@ -77,98 +77,6 @@ instance Serialize QType
 instance Hashable  QType
 instance ToJSON    QType where toJSON = genericToJSON jsonOptions
 instance FromJSON  QType where parseJSON = genericParseJSON jsonOptions
-
-data BinOp = BIn   Expr  Expr
-           | BOver Expr  Expr
-
-           | BEQ   Expr  Expr
-           | BNEQ  Expr  Expr
-
-           | BLT   Expr  Expr
-           | BLTE  Expr  Expr
-           | BGT   Expr  Expr
-           | BGTE  Expr  Expr
-
-           | BDiff Expr  Expr
-
-           | BPlus Expr  Expr
-           | BMult Expr  Expr
-           | BDiv  Expr  Expr
-
-           | BPow  Expr  Expr
-           | BMod  Expr  Expr
-
-           | BAnd  Expr  Expr
-           | BOr   Expr  Expr
-
-           | Bimply Expr Expr
-           | Biff   Expr Expr
-
-           | Bsubset   Expr Expr
-           | BsubsetEq Expr Expr
-           | Bsupset   Expr Expr
-           | BsupsetEq Expr Expr
-
-           | Bintersect Expr Expr
-           | Bunion     Expr Expr
-
-           | BlexLT   Expr  Expr
-           | BlexLTE  Expr  Expr
-           | BlexGT   Expr  Expr
-           | BlexGTE  Expr  Expr
-
-           deriving (Eq, Ord, Show, Data, Typeable, Generic)
-
-instance Serialize BinOp
-instance Hashable  BinOp
-instance ToJSON    BinOp where toJSON = genericToJSON jsonOptions
-instance FromJSON  BinOp where parseJSON = genericParseJSON jsonOptions
-
-
-data UniOp = UBar Expr
-           | UNeg Expr
-           deriving (Eq, Ord, Show, Data, Typeable, Generic)
-
-instance Serialize UniOp
-instance Hashable  UniOp
-instance ToJSON    UniOp where toJSON = genericToJSON jsonOptions
-instance FromJSON  UniOp where parseJSON = genericParseJSON jsonOptions
-
-data Proc =   PallDiff Expr
-
-            | Pindex Expr Expr   -- ref, constant expression
-            | Papply Expr [Expr] -- ref, args
-
-            | Pfreq Expr Expr
-            | Phist Expr Expr
-
-            -- Has different meaning in SR?
-            | Pmax Expr
-            | Pmin Expr
-
-            | PtoInt Expr
-            | PtoMSet Expr
-            | PtoRelation Expr
-            | PtoSet Expr
-
-            | Pdefined Expr
-            | Pimage Expr Expr
-            | Pinverse Expr Expr
-            | PpreImage Expr Expr
-            | Prange Expr
-
-            | Papart Expr Expr Expr
-            | Pparts Expr
-            | Pparty Expr Expr
-            | Pparticipants Expr
-            | Ptogether Expr Expr Expr
-
-          deriving (Eq, Ord, Show, Data, Typeable, Generic)
-
-instance Serialize Proc
-instance Hashable  Proc
-instance ToJSON    Proc where toJSON = genericToJSON jsonOptions
-instance FromJSON  Proc where parseJSON = genericParseJSON jsonOptions
 
 data TType =
       TAny
