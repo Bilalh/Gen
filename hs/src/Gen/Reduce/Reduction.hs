@@ -1,5 +1,6 @@
-{-# LANGUAGE FlexibleContexts, FlexibleInstances, MultiParamTypeClasses,
-             ParallelListComp, PatternGuards, TupleSections, KindSignatures #-}
+{-# LANGUAGE FlexibleContexts, FlexibleInstances, KindSignatures,
+             MultiParamTypeClasses, ParallelListComp, PatternGuards, QuasiQuotes,
+             TupleSections #-}
 module Gen.Reduce.Reduction where
 
 import Conjure.Language.AbstractLiteral
@@ -7,9 +8,12 @@ import Conjure.Language.Constant
 import Conjure.Language.Expression.Op
 import Data.List                        (splitAt)
 import Gen.Arbitrary.Type               (typesUnify)
+import Gen.AST.TH
 import Gen.Prelude
 import Gen.Reduce.Data
 import Gen.Reduce.Simpler
+import Data.Data
+import Data.Maybe(fromJust)
 
 import qualified Data.Foldable as F
 
@@ -158,22 +162,39 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce (Op Expr) m where
 
     single o = ttypeOf o >>= singleLitExpr
 
-    -- Generic version only works on things [essencee| 1 ** 2 |]  e.g
+    -- Generic versions only works on things like [essencee| 1 ** 2 |]  i.e
     -- EOp (MkOpPow (OpPow (ECon (ConstantInt 1)) (ECon (ConstantInt 2))))
-    -- where the sub terms are the direct child of the Op
-    -- does not work on things like [essencee| 1 + 2 |]
+    -- where the sub terms are the direct child of the Op.
+    -- It does not work on things like [essencee| 1 + 2 |]
+
+
+    subterms [opp| &a + &b |]  = return []
+    subterms [opp| &a - &b |]  = return []
+    subterms [opp| &a * &b |]  = return []
+    subterms [opp| &a /\ &b |] = return []
+    subterms [opp| &a \/ &b |] = return []
+
     subterms e  =  do
       resType <- ttypeOf e
       let subs = F.toList e
       tys <- mapM ttypeOf subs
+      -- FIXME typesUnify or typesEqual?
       let allowed  = [ x | x<-subs | ty <- tys, typesUnify resType ty  ]
       return allowed
-      -- error . show . vcat $ map pretty allowed
-      -- error . show . vcat $ map pretty subs
-      -- error . show . vcat $ [pretty $ groom resType]
 
 
-    reduce x = return []
+    reduce [opp| &a + &b |]  = return []
+    reduce [opp| &a - &b |]  = return []
+    reduce [opp| &a * &b |]  = return []
+    reduce [opp| &a /\ &b |] = return []
+    reduce [opp| &a \/ &b |] = return []
+
+    reduce x = do
+      let subs = F.toList x
+      case subs of
+        -- [a,b] -> reduceBop _d a b
+        _ -> return []
+
 
 instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce (Domainn Expr) m where
     reduce _   = return []
