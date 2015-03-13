@@ -9,6 +9,7 @@ import Gen.Helpers.StandardImports    as X
 import Gen.Helpers.TypeOf             (typeOfDom)
 
 import qualified Data.Foldable as F
+import qualified Data.Traversable as T
 
 
 class DepthOf a where
@@ -50,39 +51,30 @@ minB m v f          = min m (f v)
 instance DepthOf TType where
     depthOf TInt  = 0
     depthOf TBool = 0
-
-    depthOf (TMatix inner)   = 1 + depthOf inner
-    depthOf (TSet inner)     = 1 + depthOf inner
-    depthOf (TMSet inner)    = 1 + depthOf inner
-    depthOf (TFunc from to ) = 1 + nonEmpty (maximum . map depthOf) [from, to]
-    depthOf (TTuple inners ) = 1 + nonEmpty (maximum . map depthOf) inners
-    depthOf (TRel inners )   = 2 + nonEmpty (maximum . map depthOf) inners
-    depthOf (TPar inner)     = 1 + depthOf inner
-
-    --TODO what should the depth of any be?
+    --FIXME what should the depth of any be?
     depthOf TAny             = 0
+    depthOf x = nonEmpty (maximum . map depthOf_p1) . children $ x
 
-    depthOf ty@(TUnamed _) = docError [ "depthOf not implemented", pretty . show $ ty ]
-    depthOf ty@(TEnum _)   = docError [ "depthOf not implemented", pretty . show $ ty ]
 
 instance DepthOf Expr where
     depthOf (ELit e)      = depthOf e
     depthOf (ECon c)      = depthOf c
-    depthOf (EVar _ )     = 0
     depthOf (EOp e)       = depthOf e
     depthOf (EDom e)      = depthOf e
     depthOf (ETyped _ e2) = depthOf e2
+
+    depthOf (EVar _ )     = 0
     depthOf EEmptyGuard   = 0
+    depthOf EMetaVar{}    = 0
 
     depthOf (EQuan _ _ e2 e3 e4) = 1 + maximum ([depthOf e2, depthOf e3, depthOf e4])
 
 
--- FIXME check if fold has the same effect as the old hand written one
 instance DepthOf Literal where
-    depthOf x = F.foldl (\y e -> y + depthOf e ) 0 x
+    depthOf x = nonEmpty (maximum . map depthOf_p1) . F.toList $ x
 
 instance DepthOf (Op Expr) where
-    depthOf x = F.foldl (\y e -> y + depthOf e ) 0 x
+    depthOf x = nonEmpty (maximum . map depthOf_p1) . F.toList $ x
 
 instance DepthOf Constant where
     depthOf (ConstantBool _)          = 0
@@ -102,10 +94,9 @@ instance DepthOf (OObjective, Expr) where
     depthOf (_, a) = depthOf a
 
 
-depthOfOrZero :: (DepthOf x) => [x] -> Integer
-depthOfOrZero []    = 0
-depthOfOrZero (x:_) = depthOf x
-
 nonEmpty :: ([t] -> Integer) -> [t] -> Integer
 nonEmpty _ [] = 0
 nonEmpty f xs = f xs
+
+depthOf_p1 :: (DepthOf x) => x -> Integer
+depthOf_p1 x = depthOf x + 1
