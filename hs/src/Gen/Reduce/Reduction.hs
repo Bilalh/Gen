@@ -5,18 +5,21 @@ module Gen.Reduce.Reduction where
 
 import Conjure.Language.AbstractLiteral
 import Conjure.Language.Constant
+import Conjure.Language.Definition
 import Conjure.Language.Expression.Op
+import Data.Data
+import Data.Generics.Biplate
 import Data.List                        (splitAt)
+import Data.Maybe                       (fromJust)
 import Gen.Arbitrary.Type               (typesUnify)
 import Gen.AST.TH
 import Gen.Prelude
 import Gen.Reduce.Data
 import Gen.Reduce.Simpler
-import Data.Data
-import Data.Maybe(fromJust)
+import Data.Generics.Uniplate.Data ()
 
 import qualified Data.Foldable as F
-
+import qualified Data.Traversable as T
 
 class (HasGen m, WithDoms m, HasLogger m) => Reduce a m where
     reduce   :: a -> m [a]    -- list of smaller exprs
@@ -371,3 +374,19 @@ __run f ee = do
       res             = runIdentity $ flip evalStateT state $ f ee
   mapM_ (print  . pretty )  res
   return res
+
+
+
+
+_replaceOpChildren :: Op Expr -> [Expr] -> Op Expr
+_replaceOpChildren op news = fst . flip runState news $ f1 <$> T.mapM fff ch1
+   where
+     (ch1, f1) = biplate op
+     fff _ = do
+       (x:xs) <- get
+       put xs
+       return x
+
+_replaceOpChildren_ex :: Op Expr
+_replaceOpChildren_ex = _replaceOpChildren
+  [opp| 8 ** 3  |]  [  [essencee| 4 |], [essencee| 2 |] ]
