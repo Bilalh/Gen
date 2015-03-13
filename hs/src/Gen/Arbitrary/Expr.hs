@@ -178,7 +178,9 @@ exprOf ty = do
     nestedOfType <-  maybeToList <$> nestedVarsOf ty
     -- nestedOfType <-  return []
     ofType <-  varsOf ty
+    -- ofType <-  return []
     tyCons <-   maybeToList <$> toTypeWithConversions ty
+    -- tyCons <-   return []
 
     let refs = (ofType ++ nestedOfType ++ tyCons )
 

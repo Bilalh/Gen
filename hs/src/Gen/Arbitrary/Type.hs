@@ -1,7 +1,3 @@
-
-
-
-
 module Gen.Arbitrary.Type where
 
 import Gen.Prelude
