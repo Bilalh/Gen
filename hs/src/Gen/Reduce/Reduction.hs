@@ -195,7 +195,7 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce (Op Expr) m where
     reduce x = do
       let subs = F.toList x
       case subs of
-        -- [a,b] -> reduceBop _d a b
+        [a,b] -> reduceBop (_replaceOpChildren x) a b
         _ -> return []
 
 
@@ -206,10 +206,10 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce (Domainn Expr) m where
 
 
 reduceBop :: (WithDoms m, HasGen m, HasLogger m) =>
-             (Expr -> Expr -> Op Expr) -> Expr -> Expr -> m [Op Expr]
+             ( [Expr] -> Op Expr) -> Expr -> Expr -> m [Op Expr]
 reduceBop t a b=  do
   addLog "reduceBop" [nn "a" a, nn "b" b]
-  fmap (  map (uncurry t) . catMaybes ) . sequence $
+  fmap (  map (\(aa,bb) -> t [aa, bb] ) . catMaybes ) . sequence $
        [
          (a, )  -| (single b >>= logArr "reduceBopSingle 1" >>= oneofR, b)
        , (, b)  -| (single a >>= logArr "reduceBopSingle 2" >>= oneofR , a)
