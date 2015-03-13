@@ -8,7 +8,6 @@ import Conjure.Language.Constant
 import Conjure.Language.Definition
 import Conjure.Language.Expression.Op
 import Data.Data
-import Data.Generics.Biplate
 import Data.List                        (splitAt)
 import Data.Maybe                       (fromJust)
 import Gen.Arbitrary.Type               (typesUnify)
@@ -16,7 +15,8 @@ import Gen.AST.TH
 import Gen.Prelude
 import Gen.Reduce.Data
 import Gen.Reduce.Simpler
-import Data.Generics.Uniplate.Data ()
+import Data.Generics.Uniplate.Data
+
 
 import qualified Data.Foldable as F
 import qualified Data.Traversable as T

@@ -1,4 +1,5 @@
-{-# LANGUAGE FlexibleInstances, KindSignatures, MultiParamTypeClasses, QuasiQuotes #-}
+{-# LANGUAGE FlexibleInstances, KindSignatures, MultiParamTypeClasses,
+             TypeSynonymInstances #-}
 module Gen.Reduce.Simpler where
 
 import Conjure.Language.AbstractLiteral
@@ -6,15 +7,15 @@ import Conjure.Language.Constant
 import Conjure.Language.Expression.Op
 import Data.List                        (foldl1)
 import Gen.Arbitrary.Type               (typesUnify)
-import Gen.Prelude
 import Gen.AST.TH
+import Gen.Prelude
 
 -- True if a1 is simpler then a2
 class (Pretty a, Eq a, Show a, Pretty b, Eq b, Show b, Standardise a, Standardise b)
     => Simpler a b where
-  simplerImp :: (WithDoms m, HasLogger m) => a -> b -> m Ordering
-  simpler  :: (WithDoms m, HasLogger m) => a -> b -> m Ordering
-  simpler1 :: (WithDoms m, HasLogger m) => a -> b -> m Bool
+  simplerImp :: (HasLogger m) => a -> b -> m Ordering
+  simpler  :: (HasLogger m) => a -> b -> m Ordering
+  simpler1 :: (HasLogger m) => a -> b -> m Bool
 
   simpler a b = do
     -- addLog "simplerStart" [nn "a" a, nn "b" b]
@@ -120,67 +121,8 @@ instance Simpler Expr Expr where
 
 
 instance Simpler (Op Expr) (Op Expr) where
-    -- simplerImp (UBar f) (UBar t) = simplerImp f t
-    -- simplerImp [essencee| |&f| |] [essencee| |&t| |] = simplerImp f t
 
-    -- simplerImp (UBar f) (UNeg t) = simplerImp f t
-    -- simplerImp (UNeg f) (UBar t) = simplerImp f t
-    -- simplerImp (UNeg f) (UNeg t) = simplerImp f t
-
-    -- simplerImp x@(BIn _ _) y   = simplerImpError x y
-    -- simplerImp x@(BOver _ _) y = simplerImpError x y
-
-    -- simplerImp (BEQ x1 x2) y        = simplerTu2 (x1,x2) y
-    -- simplerImp (BNEQ x1 x2) y       = simplerTu2 (x1,x2) y
-    -- simplerImp (BLT x1 x2) y        = simplerTu2 (x1,x2) y
-    -- simplerImp (BLTE x1 x2) y       = simplerTu2 (x1,x2) y
-    -- simplerImp (BGT x1 x2) y        = simplerTu2 (x1,x2) y
-    -- simplerImp (BGTE x1 x2) y       = simplerTu2 (x1,x2) y
-    -- simplerImp (BDiff x1 x2) y      = simplerTu2 (x1,x2) y
-    -- simplerImp (BPlus x1 x2) y      = simplerTu2 (x1,x2) y
-    -- simplerImp (BMult x1 x2) y      = simplerTu2 (x1,x2) y
-    -- simplerImp (BDiv x1 x2) y       = simplerTu2 (x1,x2) y
-    -- simplerImp (BPow x1 x2) y       = simplerTu2 (x1,x2) y
-    -- simplerImp (BMod x1 x2) y       = simplerTu2 (x1,x2) y
-    -- simplerImp (BAnd x1 x2) y       = simplerTu2 (x1,x2) y
-    -- simplerImp (BOr x1 x2) y        = simplerTu2 (x1,x2) y
-    -- simplerImp (Bimply x1 x2) y     = simplerTu2 (x1,x2) y
-    -- simplerImp (Biff x1 x2) y       = simplerTu2 (x1,x2) y
-    -- simplerImp (Bsubset x1 x2) y    = simplerTu2 (x1,x2) y
-    -- simplerImp (BsubsetEq x1 x2) y  = simplerTu2 (x1,x2) y
-    -- simplerImp (Bsupset x1 x2) y    = simplerTu2 (x1,x2) y
-    -- simplerImp (BsupsetEq x1 x2) y  = simplerTu2 (x1,x2) y
-    -- simplerImp (Bintersect x1 x2) y = simplerTu2 (x1,x2) y
-    -- simplerImp (Bunion x1 x2) y     = simplerTu2 (x1,x2) y
-    -- simplerImp (BlexLT x1 x2) y     = simplerTu2 (x1,x2) y
-    -- simplerImp (BlexLTE x1 x2) y    = simplerTu2 (x1,x2) y
-    -- simplerImp (BlexGT x1 x2) y     = simplerTu2 (x1,x2) y
-    -- simplerImp (BlexGTE x1 x2) y    = simplerTu2 (x1,x2) y
-
-    -- simplerImp (PallDiff p) q         = simplerImp p q
-    -- simplerImp (Pindex p1 p2) q       = simplerTu2 (p1, p2) q
-    -- simplerImp (Pfreq p1 p2) q        = simplerTu2 (p1, p2) q
-    -- simplerImp (Phist p1 p2) q        = simplerTu2 (p1, p2) q
-    -- simplerImp (Pmax p) q             = simplerImp p q
-    -- simplerImp (Pmin p) q             = simplerImp p q
-    -- simplerImp (PtoInt p) q           = simplerImp p q
-    -- simplerImp (PtoMSet p) q          = simplerImp p q
-    -- simplerImp (PtoRelation p) q      = simplerImp p q
-    -- simplerImp (PtoSet p) q           = simplerImp p q
-    -- simplerImp (Pdefined p) q         = simplerImp p q
-    -- simplerImp (Pimage p1 p2) q       = simplerTu2 (p1, p2) q
-    -- simplerImp (Pinverse p1 p2) q     = simplerTu2 (p1, p2) q
-    -- simplerImp (PpreImage p1 p2) q    = simplerTu2 (p1, p2) q
-    -- simplerImp (Prange p) q           = simplerImp p q
-    -- simplerImp (Pparts p) q           = simplerImp p q
-    -- simplerImp (Pparty p1 p2) q       = simplerTu2 (p1, p2) q
-    -- simplerImp (Pparticipants p) q    = simplerImp p q
-    -- simplerImp (Papart p1 p2 p3) q    = simplerTu3 (p1, p2, p3) q
-    -- simplerImp (Ptogether p1 p2 p3) q = simplerTu3 (p1, p2, p3) q
-    -- simplerImp (Papply p1 p2) q       = do
-    --     a <- simplerImp p1 q
-    --     bs  <- mapM (\x -> simplerImp x q) p2
-    --     return $ chainCompare (a:bs)
+    simplerImp x y = return EQ
 
 instance Simpler Constant Constant where
     simplerImp (ConstantBool _) (ConstantBool _) = return EQ
@@ -279,7 +221,7 @@ instance Simpler (Op Expr) Literal where
         simplerImp tya tyb
 
 simplerTu2 :: forall (m :: * -> *) a a1 b.
-              (Simpler a1 b, Simpler a b, HasLogger m, WithDoms m) =>
+              (Simpler a1 b, Simpler a b, HasLogger m) =>
               (a, a1) -> b -> m Ordering
 simplerTu2 (a,b) c = do
     ac <- simplerImp a c
@@ -287,8 +229,7 @@ simplerTu2 (a,b) c = do
     return $ compareChain [ac,bc]
 
 simplerTu3 :: forall (m :: * -> *) a a1 a2 b.
-              (Simpler a2 b, Simpler a1 b, Simpler a b, HasLogger m,
-               WithDoms m) =>
+              (Simpler a2 b, Simpler a1 b, Simpler a b, HasLogger m) =>
               (a, a1, a2) -> b -> m Ordering
 simplerTu3 (a,b,c) x = do
     ax <- simplerImp a x
