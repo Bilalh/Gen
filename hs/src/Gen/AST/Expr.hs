@@ -76,7 +76,7 @@ instance Translate Expr Expression where
   -- fromConjure (WithLocals t1 t2)    = _f
   -- fromConjure (Comprehension t1 t2) = _f
   fromConjure (Typed t1 t2)            = ETyped <$> fromConjure t2 <*> fromConjure t1
-  fromConjure (Op op) = EOp <$> mapM fromConjure op
+  fromConjure (Op op) = EOp <$> fromConjure op
 
   -- fromConjure (Reference t1 x)         = EVar   <$> fromConjure t1
   fromConjure (ExpressionMetaVar t) = return $ EMetaVar t
@@ -88,7 +88,7 @@ instance Translate Expr Expression where
   toConjure (ELit x )      =  AbstractLiteral <$> toConjure x
   toConjure (EDom x)       =  Domain <$> toConjure x
   toConjure (ETyped x1 x2) =  Typed <$> toConjure x2 <*> toConjure x1
-  toConjure (EOp x)        =  Op <$> mapM toConjure x
+  toConjure (EOp x)        =  Op <$> toConjure x
 
   --FIXME correct? not the first
   toConjure (EVar (Var x _) ) =  Reference <$> toConjure x <*> return Nothing
@@ -149,3 +149,8 @@ instance ExpressionLike Expr where
     listOut (ELit (AbsLitMatrix _ xs)) = return xs
     listOut (ECon (ConstantAbstract (AbsLitMatrix _ xs))) = return (map ECon xs)
     listOut c = fail ("Expecting a matrix literal, but found:" <+> pretty c)
+
+
+instance Translate (Op Expr) (Op Expression) where
+    toConjure x   =  mapM toConjure x
+    fromConjure x =  mapM fromConjure x
