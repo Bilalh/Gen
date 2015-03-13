@@ -181,11 +181,6 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce (Domainn Expr) m where
     subterms _ = return []
 
 
-subtermsBoolBop :: (WithDoms m) => Expr -> Expr ->  m [Expr]
-subtermsBoolBop a b = ttypeOf a >>= \case
-                      TBool -> return [a,b]
-                      _     -> return []
-
 reduceBop :: (WithDoms m, HasGen m, HasLogger m) =>
              (Expr -> Expr -> Op Expr) -> Expr -> Expr -> m [Op Expr]
 reduceBop t a b=  do
