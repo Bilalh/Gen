@@ -131,6 +131,10 @@ instance (Monad m, Functor m) => HasLogger (StateT () m)  where
     getLog   = return LSEmpty
     putLog _ = return ()
 
+instance  HasLogger Identity  where
+    getLog   = return LSEmpty
+    putLog _ = return ()
+
 nullLogs :: forall (m :: * -> *) a. Monad m => StateT () m a -> m a
 nullLogs f = evalStateT f ()
 

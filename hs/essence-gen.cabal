@@ -160,8 +160,8 @@ Executable gen
        -rtsopts
        -with-rtsopts=-K200M
        -with-rtsopts=-M1G
-       
-       
+
+
 test-suite gen-testing
     type             : exitcode-stdio-1.0
     default-language : Haskell2010
@@ -177,6 +177,7 @@ test-suite gen-testing
                      , tasty-golden
                      , tasty-hunit
                      , text
+                     , tasty-quickcheck
     default-extensions:
         NoImplicitPrelude
         OverloadedStrings
@@ -199,4 +200,4 @@ test-suite gen-testing
         -Wall
         -rtsopts
         -with-rtsopts=-K200M
-        -with-rtsopts=-M1G       
+        -with-rtsopts=-M1G

@@ -8,8 +8,13 @@ clean:
 	@bash scripts/clean.sh
 
 tests:
-	@RUN_TESTS=yes bash scripts/install.sh
-	
+	@BUILD_TESTS=yes bash scripts/install.sh && \
+	./dist/build/gen-testing/gen-testing  -j 4 --color always   +RTS -s  | grep -v OK
+
+tests_run:
+	@./dist/build/gen-testing/gen-testing  -j 4 --color always   +RTS -s  | grep -v OK
+
+
 
 ghci:
 	@cabal exec ghci -- -isrc -isrc/test -idist/build/autogen  \
@@ -62,5 +67,3 @@ etags:
 
 vtags:
 	hasktags --ctags --ignore-close-implementation `find -L src -name '*.hs' | grep -v \#`
-
-

@@ -44,7 +44,6 @@ atype_only tys = do
 
 
 atype_def :: GG TType
--- TODO partition should also be of depth 2?
 atype_def = do
     addLog "atype_def" ["start"]
     d <- gets depth_

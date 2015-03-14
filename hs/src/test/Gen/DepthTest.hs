@@ -11,7 +11,7 @@ typeDepth :: DepthOf a
           => String -> Integer -> a -> TestTree
 typeDepth name expected ty = testCase (name ++ " (" ++ show expected ++ ")") $ depthOf ty @?= expected
 
-tests :: TestTree
+tests ::  TestTree
 tests = testGroup "depthOf"
   [
    testGroup "type"

@@ -1,7 +1,4 @@
-
-
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-
 module Gen.Arbitrary.Generators(
       atype
     , dom
