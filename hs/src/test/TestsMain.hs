@@ -6,6 +6,7 @@ import Test.Tasty.Runners.AntXML
 
 import qualified Gen.DepthTest   (tests)
 import qualified Gen.SimplerTest (tests)
+import qualified Gen.ReduceTest (tests)
 
 main :: IO ()
 main = do
@@ -13,4 +14,5 @@ main = do
         $ testGroup "gen"
             [ Gen.DepthTest.tests
             , Gen.SimplerTest.tests
+            , Gen.ReduceTest.tests
             ]
