@@ -11,75 +11,33 @@ import Conjure.Prelude
 import Gen.AST.Data
 import Gen.AST.Domain                 (dintRange)
 import Gen.AST.Type                   ()
-import Text.Groom                     (groom)
 
-
-fromConjureM :: (Translate a b, MonadFail m) => [b] -> m [a]
-fromConjureM as =  mapM fromConjure as
-
-toConjureM :: (Translate a b, MonadFail m) => [a] -> m [b]
-toConjureM as =  mapM toConjure as
-
-instance (Translate a b) => Translate (a,a) (b,b) where
-    toConjure (x,y) = do
-      xx <- toConjure x
-      yy <- toConjure y
-      return (xx, yy)
-
-    fromConjure (x,y) = do
-      xx <- fromConjure x
-      yy <- fromConjure y
-      return (xx, yy)
 
 instance Translate Constant Constant where
     fromConjure = return . id
     toConjure   = return . id
 
-
 instance Translate Literal (AbstractLiteral Expression) where
-    fromConjure (AbsLitTuple x)             = AbsLitTuple <$> fromConjureM x
-    -- fromConjure (AbsLitRecord x)         = AbsLitRecord <$> fromConjureM x
-    -- fromConjure (AbsLitVariant x1 x2 x3) = AbsLitVariant <$> fromConjure x1
-    --                                                      <*> fromConjure x2
-    --                                                      <*> fromConjure x3
-    fromConjure (AbsLitMatrix x1 x2)        =  AbsLitMatrix <$> fromConjure x1
-                                                         <*> fromConjureM x2
-    fromConjure (AbsLitSet x)               = AbsLitSet <$> fromConjureM x
-    fromConjure (AbsLitMSet x)              = AbsLitMSet <$> fromConjureM x
-    fromConjure (AbsLitFunction x)          = AbsLitFunction <$> fromConjureM x
-    -- fromConjure (AbsLitSequence x)       = _d
-    -- fromConjure (AbsLitRelation x)       = _d
-    -- fromConjure (AbsLitPartition x)      = _d
+    fromConjure x = mapM fromConjure x
+    toConjure x   = mapM toConjure x
 
-    fromConjure x = fromConjureFail "Literal Literalession)" x
+instance Translate (Op Expr) (Op Expression) where
+    toConjure x   =  mapM toConjure x
+    fromConjure x =  mapM fromConjure x
 
-    toConjure (AbsLitTuple x)             = AbsLitTuple     <$> toConjureM x
-    -- toConjure (AbsLitRecord x)         = AbsLitRecord    <$> toConjure x
-    -- toConjure (AbsLitVariant x1 x2 x3) = AbsLitVariant   <$> toConjure x1
-    --                                                      <*> toConjure x2
-    --                                                      <*> toConjure x3
-    toConjure (AbsLitMatrix x1 x2)        = AbsLitMatrix    <$> toConjure x1
-                                                            <*> toConjureM x2
-    toConjure (AbsLitSet x)               = AbsLitSet       <$> toConjureM x
-    toConjure (AbsLitMSet x)              = AbsLitMSet      <$> toConjureM x
-    toConjure (AbsLitFunction x)          = AbsLitFunction  <$> toConjureM x
-    toConjure (AbsLitSequence x)          = AbsLitSequence  <$> toConjureM x
-    toConjure (AbsLitRelation x)          = AbsLitRelation  <$> mapM toConjureM x
-    toConjure (AbsLitPartition x)         = AbsLitPartition <$> mapM toConjureM x
-
-    toConjure x = toConjureFail "Literal Literalession)" x
 
 instance Translate Expr Expression where
-  fromConjure (Constant t)             = ECon   <$> fromConjure t
-  fromConjure (AbstractLiteral t)      = ELit   <$> fromConjure t
-  fromConjure (Domain t)               = EDom   <$> fromConjure t
+  fromConjure (Constant t)          = ECon   <$> fromConjure t
+  fromConjure (AbstractLiteral t)   = ELit   <$> fromConjure t
+  fromConjure (Domain t)            = EDom   <$> fromConjure t
+  fromConjure (Typed t1 t2)         = ETyped <$> fromConjure t2 <*> fromConjure t1
+  fromConjure (Op op)               = EOp <$> fromConjure op
+  fromConjure (ExpressionMetaVar t) = return $ EMetaVar t
+
   -- fromConjure (WithLocals t1 t2)    = _f
   -- fromConjure (Comprehension t1 t2) = _f
-  fromConjure (Typed t1 t2)            = ETyped <$> fromConjure t2 <*> fromConjure t1
-  fromConjure (Op op) = EOp <$> fromConjure op
-
   -- fromConjure (Reference t1 x)         = EVar   <$> fromConjure t1
-  fromConjure (ExpressionMetaVar t) = return $ EMetaVar t
+
 
   fromConjure x = fromConjureFail "Expr Expression" x
 
@@ -129,6 +87,18 @@ instance Translate Expr Expression where
   toConjure x = toConjureFail "Expr Expression" x
 
 
+instance (Translate a b) => Translate (a,a) (b,b) where
+    toConjure (x,y) = do
+      xx <- toConjure x
+      yy <- toConjure y
+      return (xx, yy)
+
+    fromConjure (x,y) = do
+      xx <- fromConjure x
+      yy <- fromConjure y
+      return (xx, yy)
+
+
 instance Pretty Expr where
   pretty = pretty . (toConjureNote "Pretty Expr" :: Expr -> Expression)
 
@@ -149,8 +119,3 @@ instance ExpressionLike Expr where
     listOut (ELit (AbsLitMatrix _ xs)) = return xs
     listOut (ECon (ConstantAbstract (AbsLitMatrix _ xs))) = return (map ECon xs)
     listOut c = fail ("Expecting a matrix literal, but found:" <+> pretty c)
-
-
-instance Translate (Op Expr) (Op Expression) where
-    toConjure x   =  mapM toConjure x
-    fromConjure x =  mapM fromConjure x

@@ -1,6 +1,5 @@
-
 -- really only for usage in ghci
-module Gen.AST.TH(domain, domainn,essencee,opp) where
+module Gen.AST.TH(domain, domainn,essencee,opp,conn) where
 
 import Conjure.Language.Definition
 
@@ -64,6 +63,8 @@ essencee = QuasiQuoter
     , quoteDec  = error "quoteDec"
     }
 
+
+-- Only for matching in reduce
 opp :: QuasiQuoter
 opp = QuasiQuoter
     { quoteExp = \ str -> do
@@ -80,6 +81,22 @@ opp = QuasiQuoter
     , quoteDec  = error "quoteDec"
     }
 
+-- Really only for tests
+conn :: QuasiQuoter
+conn = QuasiQuoter
+    { quoteExp = \ str -> do
+        l <- locationTH
+        e <- runIO $ parseIO (setPosition l *> parseExpr) str
+        let ECon f  = fromConjureNote "in essencee quoteExp TH" e
+        dataToExpQ (const Nothing `extQ` expEg `extQ` expDg) f
+    , quotePat  = \ str -> do
+        l <- locationTH
+        e <- runIO $ parseIO (setPosition l *> parseExpr) str
+        let ECon f  = fromConjureNote "in essencee quotePat TH" e
+        dataToPatQ (const Nothing `extQ` patEg `extQ` patDg) f
+    , quoteType = error "quoteType"
+    , quoteDec  = error "quoteDec"
+    }
 
 
 locationTH :: Q SourcePos

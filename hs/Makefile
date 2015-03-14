@@ -7,6 +7,10 @@ trace_install:
 clean:
 	@bash scripts/clean.sh
 
+tests:
+	@RUN_TESTS=yes bash scripts/install.sh
+	
+
 ghci:
 	@cabal exec ghci -- -isrc -isrc/test -idist/build/autogen  \
             -XNoImplicitPrelude                        \
@@ -28,7 +32,7 @@ ghci:
 	    -fwarn-unused-do-bind                      \
 	    -fwarn-unused-matches                      \
 	    -Wall                                      \
-	    `find src -name '*.hs' | grep -v 'exec' | grep -v '\.#' `
+	    `find src -name '*.hs' | egrep -v 'exec|test/' | grep -v '\.#' `
 
 ghci_main:
 	@cabal exec ghci -- -isrc -isrc/test -idist/build/autogen  \
