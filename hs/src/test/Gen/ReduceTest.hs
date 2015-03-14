@@ -6,7 +6,7 @@ import Gen.Arbitrary.Type
 import Gen.AST.TH
 import Gen.Prelude
 import Gen.Reduce.Data
-import Gen.Reduce.Reduction
+import Gen.Reduce.Reduction as R
 import Gen.Reduce.Simpler
 import Test.Tasty               (TestTree, testGroup)
 import Test.Tasty.HUnit         (testCase, (@?=))
@@ -24,8 +24,9 @@ tests = testGroup "reduce"
 
   [ testGroup "Expr Gen"
     [
-      testGroup "DepthOf <=" (map r_depth_leq gen_exprs)
-    , testGroup "Simpler <=" (map r_simp_leq gen_exprs)
+      testGroup "Simpler subterms <=" (map r_subterms_simp_leq gen_exprs)
+    , testGroup "DepthOf reduce <=" (map r_depth_leq gen_exprs)
+    , testGroup "Simpler reduce <=" (map r_reduce_simp_leq gen_exprs)
     , testGroup "TypeOf <="  (map r_type_leq gen_exprs)
     , testGroup "Reducing Single can not decrease the depth "  (map r_single_depth gen_exprs)
     ]
@@ -64,9 +65,13 @@ r_depth_leq a = testCase (show $ pretty a) $
           ( all (\b -> depthOf b <= depthOf a )  $ __runner reduce a ) @?= True
 
 
-r_simp_leq :: Expr -> TestTree
-r_simp_leq a = testCase (show $ pretty a) $
+r_reduce_simp_leq :: Expr -> TestTree
+r_reduce_simp_leq a = testCase (show $ pretty a) $
           ( all (\b -> simpler_leq a b )  $ __runner reduce a ) @?= True
+
+r_subterms_simp_leq :: Expr -> TestTree
+r_subterms_simp_leq a = testCase (show $ pretty a) $
+          ( all (\b -> simpler_leq a b )  $ __runner R.subterms a ) @?= True
 
 r_type_leq :: Expr -> TestTree
 r_type_leq a = testCase (show $ pretty a) $
