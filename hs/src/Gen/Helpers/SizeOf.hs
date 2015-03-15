@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleInstances, QuasiQuotes #-}
 
 module Gen.Helpers.SizeOf where
 
@@ -7,6 +7,7 @@ import Conjure.Language.Expression.Op
 import Gen.Helpers.Debug
 import Gen.Helpers.StandardImports    as X
 import Gen.Helpers.TypeOf             (typeOfDom)
+import Gen.AST.TH
 
 import qualified Data.Foldable as F
 import qualified Data.Traversable as T
@@ -71,9 +72,15 @@ instance DepthOf Expr where
 
 
 instance DepthOf Literal where
-    depthOf x = nonEmpty (maximum . map depthOf_p1) . F.toList $ x
+    depthOf x = empty_p1 (maximum . map depthOf_p1) . F.toList $ x
 
 instance DepthOf (Op Expr) where
+    depthOf [opp| &a + &b |]  = nonEmpty (maximum . map depthOf_p1) [a,b]
+    depthOf [opp| &a - &b |]  = nonEmpty (maximum . map depthOf_p1) [a,b]
+    depthOf [opp| &a * &b |]  = nonEmpty (maximum . map depthOf_p1) [a,b]
+    depthOf [opp| &a /\ &b |] = nonEmpty (maximum . map depthOf_p1) [a,b]
+    depthOf [opp| &a \/ &b |] = nonEmpty (maximum . map depthOf_p1) [a,b]
+
     depthOf x = nonEmpty (maximum . map depthOf_p1) . F.toList $ x
 
 instance DepthOf Constant where
@@ -97,6 +104,10 @@ instance DepthOf (OObjective, Expr) where
 nonEmpty :: ([t] -> Integer) -> [t] -> Integer
 nonEmpty _ [] = 0
 nonEmpty f xs = f xs
+
+empty_p1 :: ([t] -> Integer) -> [t] -> Integer
+empty_p1 _ [] = 1
+empty_p1 f xs = f xs
 
 depthOf_p1 :: (DepthOf x) => x -> Integer
 depthOf_p1 x = depthOf x + 1
