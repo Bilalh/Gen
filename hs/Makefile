@@ -9,10 +9,10 @@ clean:
 
 tests:
 	@BUILD_TESTS=yes bash scripts/install.sh && \
-	./dist/build/gen-testing/gen-testing  -j 4 --color always   +RTS -s  | grep -v OK
+	./dist/build/gen-testing/gen-testing  -j 4 --color always  | grep -v OK
 
 tests_run:
-	@./dist/build/gen-testing/gen-testing  -j 4 --color always   +RTS -s  | grep -v OK
+	@./dist/build/gen-testing/gen-testing  -j 4 --color always | grep -v OK
 
 
 

@@ -178,6 +178,7 @@ test-suite gen-testing
                      , tasty-hunit
                      , text
                      , tasty-quickcheck
+                     , pretty
     default-extensions:
         NoImplicitPrelude
         OverloadedStrings

@@ -1,18 +1,19 @@
 {-# LANGUAGE QuasiQuotes #-}
 module Gen.DepthTest ( tests ) where
 
-import Gen.Prelude
-import Test.Tasty ( TestTree, testGroup )
-import Test.Tasty.HUnit ( testCase, (@?=) )
 import Gen.AST.TH
+import Gen.Prelude
+import Gen.Reduce.Simpler
+import Gen.TestPrelude
 
 
 typeDepth :: DepthOf a
-          => String -> Integer -> a -> TestTree
-typeDepth name expected ty = testCase (name ++ " {" ++ show expected ++ "}") $ depthOf ty @?= expected
+          => Doc -> Integer -> a -> TestTree
+typeDepth name expected ty = testCase (name <+> braces (pretty expected)) $
+                               depthOf ty @?= expected
 
 te :: (DepthOf a, Pretty a) => Integer -> a -> TestTree
-te i e= typeDepth (show $ pretty e) i e
+te i e= typeDepth (pretty e) i e
 
 tests ::  TestTree
 tests = testGroup "depthOf"

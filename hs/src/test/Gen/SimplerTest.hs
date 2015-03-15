@@ -2,16 +2,14 @@
 module Gen.SimplerTest ( tests ) where
 
 import Gen.Arbitrary.Generators
-import Gen.Arbitrary.Type
 import Gen.AST.TH
 import Gen.Prelude
+import Gen.TestPrelude
 import Gen.Reduce.Simpler
-import Test.Tasty               (TestTree, testGroup)
-import Test.Tasty.HUnit         (testCase, (@?=))
 import Test.Tasty.QuickCheck    as QC
 
 st :: (Simpler a b) => Ordering -> a -> b -> TestTree
-st ord a b = testCase (show $ pretty a <+> pretty b) $
+st ord a b = testCase ( pretty a <+> pretty b) $
   (runIdentity $ simpler a b) @?= ord
 
 eq_same :: (Simpler a a) => a -> TestTree
@@ -21,7 +19,6 @@ eq_same a = st EQ a a
 use_qc :: [Maybe a] -> [Maybe a]
 -- use_qc = return []
 use_qc xs = xs
-
 no _ = Nothing
 
 

@@ -5,12 +5,10 @@ import Gen.Arbitrary.Generators
 import Gen.Arbitrary.Type
 import Gen.AST.TH
 import Gen.Prelude
+import Gen.TestPrelude
 import Gen.Reduce.Data
 import Gen.Reduce.Reduction as R
 import Gen.Reduce.Simpler
-import Test.Tasty               (TestTree, testGroup)
-import Test.Tasty.HUnit         (testCase, (@?=))
-import Test.Tasty.QuickCheck    as QC
 
 
 use_qc :: [Maybe a] -> [Maybe a]
@@ -61,32 +59,31 @@ __runner f ee = do
 
 
 r_depth_leq :: Expr -> TestTree
-r_depth_leq a = testCase (show $ pretty a) $
+r_depth_leq a = testCase (pretty a) $
           ( all (\b -> depthOf b <= depthOf a )  $ __runner reduce a ) @?= True
 
 
 r_reduce_simp_leq :: Expr -> TestTree
-r_reduce_simp_leq a = testCase (show $ pretty a) $
+r_reduce_simp_leq a = testCase (pretty a) $
           ( all (\b -> simpler_leq a b )  $ __runner reduce a ) @?= True
 
 r_subterms_simp_leq :: Expr -> TestTree
-r_subterms_simp_leq a = testCase (show $ pretty a) $
+r_subterms_simp_leq a = testCase (pretty a) $
           ( all (\b -> simpler_leq a b )  $ __runner R.subterms a ) @?= True
 
 r_type_leq :: Expr -> TestTree
-r_type_leq a = testCase (show $ pretty a) $
-          ( all (\b -> simpler_leq (runIdentity . ttypeOf $ a) (runIdentity . ttypeOf $ a) )
+r_type_leq a = testCase (pretty a) $
+          ( all (\b -> simpler_leq (runIdentity . ttypeOf $ b) (runIdentity . ttypeOf $ a) )
                     $ __runner reduce a ) @?= True
 
 
 r_single_depth :: Expr -> TestTree
 r_single_depth a =
     let reduced = __runner single a
-        minDepth = minimum $ map depthOf reduced
         res  = map (\rr -> (all (\l -> depthOf l == depthOf rr  )  $ __runner reduce rr  )  )
                $ reduced
 
-    in testCase (show $ pretty a) $ (and res)  @?= True
+    in testCase (pretty a) $ (and res)  @?= True
 
 
 
