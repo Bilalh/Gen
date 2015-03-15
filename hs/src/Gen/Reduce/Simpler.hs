@@ -41,40 +41,40 @@ instance Simpler TType TType where
     simplerImp TInt _      = return  LT
     simplerImp  _  TInt    = return  GT
 
-    simplerImp (TSet x)   (TSet y)   = simplerImp x y
-    simplerImp (TMSet x)  (TMSet y)  = simplerImp x y
-    simplerImp (TMatix x) (TMatix y) = simplerImp x y
+    -- simplerImp (TSet x)   (TSet y)   = simplerImp x y
+    -- simplerImp (TMSet x)  (TMSet y)  = simplerImp x y
+    -- simplerImp (TMatix x) (TMatix y) = simplerImp x y
 
-    simplerImp (TSet x)   (TMSet y)  = simplerImp x y
-    simplerImp (TSet x)   (TMatix y) = simplerImp x y
+    -- simplerImp (TSet x)   (TMSet y)  = simplerImp x y
+    -- simplerImp (TSet x)   (TMatix y) = simplerImp x y
 
-    simplerImp (TMSet x)  (TSet y)   = simplerImp x y
-    simplerImp (TMSet x)  (TMatix y) = simplerImp x y
+    -- simplerImp (TMSet x)  (TSet y)   = simplerImp x y
+    -- simplerImp (TMSet x)  (TMatix y) = simplerImp x y
 
-    simplerImp (TMatix x)  (TMSet y) = simplerImp x y
-    simplerImp (TMatix x)  (TSet y)  = simplerImp x y
+    -- simplerImp (TMatix x)  (TMSet y) = simplerImp x y
+    -- simplerImp (TMatix x)  (TSet y)  = simplerImp x y
 
-    simplerImp (TPar x)   (TPar y) = simplerImp x y
+    -- simplerImp (TPar x)   (TPar y) = simplerImp x y
 
-    simplerImp (TFunc x1 x2) (TFunc y1 y2) = do
-        a <- simplerImp x1 x2
-        b <- simplerImp y1 y2
-        return $ compareCombine a b
+    -- simplerImp (TFunc x1 x2) (TFunc y1 y2) = do
+    --     a <- simplerImp x1 x2
+    --     b <- simplerImp y1 y2
+    --     return $ compareCombine a b
 
-    simplerImp (TTuple x) (TTuple y) = do
-        res <- zipWithM simplerImp x y
-        return $ chainCompare res
+    -- simplerImp (TTuple x) (TTuple y) = do
+    --     res <- zipWithM simplerImp x y
+    --     return $ chainCompare res
 
-    simplerImp (TRel x) (TRel y) = do
-        res <- zipWithM simplerImp x y
-        return $ chainCompare res
+    -- simplerImp (TRel x) (TRel y) = do
+    --     res <- zipWithM simplerImp x y
+    --     return $ chainCompare res
 
-    simplerImp a@(TUnamed _) b =  rrError "simplerImp"
-                                  [pretty $ a, pretty $  b
-                                  , pretty $ groom a, pretty $ groom b ]
-    simplerImp a@(TEnum _) b = rrError "simplerImp"
-                                  [pretty $ a, pretty $  b
-                                  , pretty $ groom a, pretty $ groom b ]
+    -- simplerImp a@(TUnamed _) b =  rrError "simplerImp"
+    --                               [pretty $ a, pretty $  b
+    --                               , pretty $ groom a, pretty $ groom b ]
+    -- simplerImp a@(TEnum _) b = rrError "simplerImp"
+    --                               [pretty $ a, pretty $  b
+    --                               , pretty $ groom a, pretty $ groom b ]
 
     simplerImp TAny TAny  = return EQ
     simplerImp TAny _     = return LT

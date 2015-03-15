@@ -9,7 +9,7 @@ import Gen.Reduce.Simpler
 import Test.Tasty.QuickCheck    as QC
 
 st :: (Simpler a b) => Ordering -> a -> b -> TestTree
-st ord a b = testCase ( pretty a <+> pretty b) $
+st ord a b = testCase ( pretty a <+> "|" <+> pretty b) $
   (runIdentity $ simpler a b) @?= ord
 
 eq_same :: (Simpler a a) => a -> TestTree
@@ -19,6 +19,8 @@ eq_same a = st EQ a a
 use_qc :: [Maybe a] -> [Maybe a]
 -- use_qc = return []
 use_qc xs = xs
+
+no :: a -> Maybe a
 no _ = Nothing
 
 
@@ -35,11 +37,12 @@ tests = testGroup "simpler"
      eq_same (TFunc TInt TBool)
    , eq_same (TSet (TFunc TInt TBool))
    , eq_same (TTuple [TRel [TInt,TBool],TTuple [TTuple [TBool],TTuple [TBool,TInt],TTuple [TInt,TInt],TInt],TTuple [TFunc TBool TInt]])
+   , eq_same (TRel [TInt,TBool])
    ]
 
   ,testGroup "type_QC" $
    catMaybes $ use_qc [
-     no $ QC.testProperty "type is equal to self" $
+     Just $ QC.testProperty "type is equal to self" $
        \(AType a) ->  (runIdentity $ simpler a a) == EQ
    , no $ QC.testProperty "atype and depthOf argee" $
        \(BType ty gen_depth) ->  depthOf ty == fromIntegral gen_depth
