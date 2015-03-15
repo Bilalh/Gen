@@ -18,6 +18,8 @@ eq_same a = st EQ a a
 lt :: (Simpler a b) => a -> b -> TestTree
 lt = st LT
 
+gt :: (Simpler a b) => a -> b -> TestTree
+gt = st LT
 
 
 
@@ -69,7 +71,7 @@ tests = testGroup "simpler"
     , eq_same [essencee| toInt(toInt(true) in mset(-5, 4)) = 9 |]
    ]
 
-  ,testGroup "Expr_gen <"
+  ,testGroup "Expr_gen LT"
    [
       lt [essencee| false |]          [essencee| false \/ false |]
     , lt [essencee| false \/ false |] [essencee| (true \/ true) != true |]
@@ -78,6 +80,18 @@ tests = testGroup "simpler"
     , lt [essencee| 1 in mset(-5, 4)                  |] [essencee| toInt(toInt(true) in mset(-5, 4))  |]
     , lt [essencee| toInt(true) in mset(-5, 4)        |] [essencee| toInt(toInt(true) in mset(-5, 4))  |]
     , lt [essencee| toInt(toInt(true) in mset(-5, 4)) |] [essencee| toInt(toInt(true) in mset(-5, 4)) = 9 |]
+
+   ]
+
+  ,testGroup "Expr_gen GT"
+   [
+      (flip gt) [essencee| false |]          [essencee| false \/ false |]
+    , (flip gt) [essencee| false \/ false |] [essencee| (true \/ true) != true |]
+
+    , (flip gt) [essencee| mset(-5, 4)                       |] [essencee| 1 in mset(-5, 4)  |]
+    , (flip gt) [essencee| 1 in mset(-5, 4)                  |] [essencee| toInt(toInt(true) in mset(-5, 4))  |]
+    , (flip gt) [essencee| toInt(true) in mset(-5, 4)        |] [essencee| toInt(toInt(true) in mset(-5, 4))  |]
+    , (flip gt) [essencee| toInt(toInt(true) in mset(-5, 4)) |] [essencee| toInt(toInt(true) in mset(-5, 4)) = 9 |]
 
    ]
 
