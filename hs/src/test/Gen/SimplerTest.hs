@@ -15,6 +15,11 @@ st ord a b = testCase ( pretty a <+> "|" <+> pretty b) $
 eq_same :: (Simpler a a) => a -> TestTree
 eq_same a = st EQ a a
 
+lt :: (Simpler a b) => a -> b -> TestTree
+lt = st LT
+
+
+
 
 use_qc :: [Maybe a] -> [Maybe a]
 -- use_qc = return []
@@ -27,12 +32,12 @@ no _ = Nothing
 tests :: TestTree
 tests = testGroup "simpler"
   [
-   testGroup "type"
+   testGroup "type eq"
    [
     eq_same TBool
    ]
 
-  ,testGroup "type complex"
+  ,testGroup "type complex eq"
    [
      eq_same (TFunc TInt TBool)
    , eq_same (TSet (TFunc TInt TBool))
@@ -48,7 +53,7 @@ tests = testGroup "simpler"
        \(BType ty gen_depth) ->  depthOf ty == fromIntegral gen_depth
    ]
 
-  ,testGroup "Expr_gen"
+  ,testGroup "Expr_gen eq"
    [
       eq_same [essencee| false |]
     , eq_same [essencee| false \/ false |]
@@ -62,6 +67,18 @@ tests = testGroup "simpler"
     , eq_same [essencee| 2 != 2 /\ (true \/ true) |]
     , eq_same [essencee| preImage(function(true --> true), false) |]
     , eq_same [essencee| toInt(toInt(true) in mset(-5, 4)) = 9 |]
+   ]
+
+  ,testGroup "Expr_gen <"
+   [
+      lt [essencee| false |]          [essencee| false \/ false |]
+    , lt [essencee| false \/ false |] [essencee| (true \/ true) != true |]
+
+    , lt [essencee| mset(-5, 4)                       |] [essencee| 1 in mset(-5, 4)  |]
+    , lt [essencee| 1 in mset(-5, 4)                  |] [essencee| toInt(toInt(true) in mset(-5, 4))  |]
+    , lt [essencee| toInt(true) in mset(-5, 4)        |] [essencee| toInt(toInt(true) in mset(-5, 4))  |]
+    , lt [essencee| toInt(toInt(true) in mset(-5, 4)) |] [essencee| toInt(toInt(true) in mset(-5, 4)) = 9 |]
+
    ]
 
 
