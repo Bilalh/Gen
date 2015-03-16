@@ -57,6 +57,9 @@ data Expr =
 data Var = Var Text TType
   deriving (Eq, Ord, Show, Data, Typeable, Generic)
 
+instance Pretty Var where
+    pretty = pretty . groom
+
 instance Serialize (Var)
 instance Hashable  (Var)
 instance ToJSON    (Var) where toJSON    = genericToJSON jsonOptions

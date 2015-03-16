@@ -72,11 +72,13 @@ complex1 t1 t2 = do
      | a >  b -> return GT
 
 
-complex :: (WithDoms m) => TType -> TType -> m Ordering
-complex t1 t2 = do
-  a <- nullLogs $ simpler t1 t1
-  b <- nullLogs $ simpler t2 t1
-  return $ chainCompare [a, b]
+-- complex :: (WithDoms m) => TType -> TType -> m Ordering
+-- complex t1 t2 = do
+--   a <- nullLogs $ simpler t1 t1
+--   b <- nullLogs $ simpler t2 t1
+--   return $ case (a,b) of
+--              (EQ,EQ) -> EQ
+--              (EQ,LT) ->
 
 
 maximumByM :: (Monad m) => (a -> a -> m Ordering) -> [a] -> m a

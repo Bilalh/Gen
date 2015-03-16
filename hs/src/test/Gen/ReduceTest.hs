@@ -65,11 +65,11 @@ r_depth_leq a = testCase (pretty a) $
 
 r_reduce_simp_leq :: Expr -> TestTree
 r_reduce_simp_leq a = testCase (pretty a) $
-          ( all (\b -> simpler_leq a b )  $ __runner reduce a ) @?= True
+          ( all (\b -> simpler_leq b a )  $ __runner reduce a ) @?= True
 
 r_subterms_simp_leq :: Expr -> TestTree
 r_subterms_simp_leq a = testCase (pretty a) $
-          ( all (\b -> simpler_leq a b )  $ __runner R.subterms a ) @?= True
+          ( all (\b -> simpler_leq b a )  $ __runner R.subterms a ) @?= True
 
 r_type_leq :: Expr -> TestTree
 r_type_leq a = testCase (pretty a) $

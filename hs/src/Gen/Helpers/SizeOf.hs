@@ -76,7 +76,6 @@ instance DepthOf Literal where
 
 instance DepthOf (Op Expr) where
     depthOf [opp| &a + &b |]  = nonEmpty (maximum . map depthOf_p1) [a,b]
-    depthOf [opp| &a - &b |]  = nonEmpty (maximum . map depthOf_p1) [a,b]
     depthOf [opp| &a * &b |]  = nonEmpty (maximum . map depthOf_p1) [a,b]
     depthOf [opp| &a /\ &b |] = nonEmpty (maximum . map depthOf_p1) [a,b]
     depthOf [opp| &a \/ &b |] = nonEmpty (maximum . map depthOf_p1) [a,b]
