@@ -54,7 +54,7 @@ instance Simpler Expr Expr where
     simplerImp (ETyped _ a) (ELit b) = simplerImp a b
     simplerImp (ETyped _ a) (EOp b)  = simplerImp a b
 
-    simplerImp a b = simplerImpError a b
+    simplerImp a b = simplerImpError "Expr" a b
 
 
 
@@ -127,7 +127,7 @@ instance Simpler Expr (Op Expr) where
     -- simplerImp (EDom a) b       = _h
 
 
-    simplerImp a b = simplerImpError a b
+    simplerImp a b = simplerImpError "Expr Op" a b
 
 
 instance Simpler (Literal) Expr where simplerImp = negSimplerImp
@@ -144,7 +144,7 @@ instance Simpler Expr (Literal) where
     simplerImp (EOp a) b        = simplerImp a b
     -- simplerImp (EDom a) b       = simplerImp a b
 
-    simplerImp a b = simplerImpError a b
+    simplerImp a b = simplerImpError "Expr Literal" a b
 
 instance Simpler (Op Expr) Literal where simplerImp = negSimplerImp
 instance Simpler Literal (Op Expr) where
@@ -154,8 +154,8 @@ instance Simpler Literal (Op Expr) where
         c  -> c
 
 
-simplerImpError :: (Simpler a b, HasLogger m) => a -> b -> m Ordering
-simplerImpError a b = rrError "simplerImp"
+simplerImpError :: (Simpler a b, HasLogger m) => String -> a -> b -> m Ordering
+simplerImpError t a b = rrError ("simplerImp " ++ t)
                       [ nn "a" a
                       , nn  "b" b
                       , nn "a" (groom a)
