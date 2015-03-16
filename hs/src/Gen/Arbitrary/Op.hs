@@ -101,7 +101,6 @@ boolOpFor (TSet _) =  do
   elements2 [ opEq, opNeq, opSubset, opSubsetEq, opSupset, opSupsetEq ]
 
 boolOpFor (TMSet _) =  do
-  -- elements2 [ BEQ, BNEQ, BLT, Bsubset, BsubsetEq, Bsupset, BsupsetEq ]
   elements2 [ opEq, opNeq, opLt, opSubset, opSubsetEq, opSupset, opSupsetEq ]
 
 boolOpFor (TMatix _) = do

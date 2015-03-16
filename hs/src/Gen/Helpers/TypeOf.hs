@@ -35,8 +35,7 @@ instance TTypeOf Literal  where
 
 instance TTypeOf (Op Expr) where
     ttypeOf x = do
-      let cx :: Op Expression = toConjureNote "TTypeOf (Op Expr)" x
-      toTType cx
+      toTType x
 
 instance TTypeOf Expr  where
   ttypeOf (ELit x)            = ttypeOf x
@@ -92,6 +91,7 @@ instance TypeOf TType  where
   typeOf t = return $ toConjureNote "typeOf TType" t
 
 instance TypeOf Expr  where
+  typeOf (EVar (Var _ ty )) =  return $ toConjureNote "typeOf TType" ty
   typeOf t = do
-      ty <- (ttypeOf t)
+      ty :: TType <- ttypeOf t
       return $ toConjureNote "typeOf TType" ty

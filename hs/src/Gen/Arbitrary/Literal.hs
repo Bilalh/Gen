@@ -98,7 +98,7 @@ relLitOf :: [TType] -> GG Expr
 relLitOf types = do
     depth_ <- gets depth_
     if
-        | depth_ < 2 -> ggError "relLitOf depth_ <2" [pretty $ groom types]
+        | depth_ < 1 -> ggError "relLitOf depth_ <1" [pretty $ groom types]
         | otherwise -> do
             parts <- vectorOf2 3 $ mkParts types
             t2 <- deAny $ TRel types

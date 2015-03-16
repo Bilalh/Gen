@@ -119,3 +119,10 @@ instance ExpressionLike Expr where
     listOut (ELit (AbsLitMatrix _ xs)) = return xs
     listOut (ECon (ConstantAbstract (AbsLitMatrix _ xs))) = return (map ECon xs)
     listOut c = fail ("Expecting a matrix literal, but found:" <+> pretty c)
+
+
+instance ReferenceContainer Expr where
+    fromName (Name t)                   = EVar $ Var t (error "d")
+    nameOut (EVar (Var nm _))           = return $ Name nm
+    nameOut (ECon (ConstantField nm _)) = return $  nm
+    nameOut p = fail ("This expression isn't a 'name':" <+> pretty p)

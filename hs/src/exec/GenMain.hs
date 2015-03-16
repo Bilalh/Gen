@@ -168,7 +168,7 @@ mainWithArgs Reduce{..} = do
   seed_ <- giveSeed _seed
   let args = def{oErrKind_          = error_kind
                 ,oErrStatus_        = error_status
-                ,oErrChoices_       = Just "/Users/bilalh/Desktop/Results/_notable/reduce_examples/1425940601_40/model000000.choices.json"
+                ,oErrChoices_       = Just "/Users/bilalh/Desktop/Results/_notable/newtestCases/2015-03-16_01-13_1426468400/_errors/RefineCompact_/RuleApplication_/1426468424_52/model000000.choices.json"
                 ,outputDir_         = output_directory
                 ,specDir_           = spec_directory
                 ,R.cores_           = _cores
