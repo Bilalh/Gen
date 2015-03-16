@@ -16,8 +16,8 @@ spec  depth gens  = do
     let state =  def{depth_= (depth+1) `div` 2, generators_=gens}
 
 
-    let domsCount = (1, min ((depth+1)*2) 10)
-    let exprCount = (0, min ((depth+1)*2) 10)
+    let domsCount = (1, min ((depth+1)*2) 7)
+    let exprCount = (0, min ((depth+1)*2) 7)
 
     (doms,state') <- runStateT (addDepth "domDepth" >> listOfBounds domsCount dom) state
 

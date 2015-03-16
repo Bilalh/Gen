@@ -45,11 +45,14 @@ instance Simpler Expr Expr where
     simplerImp (ECon a) (EOp b)  = simplerImp a b
     simplerImp (EOp a)  (ECon b) = simplerImp a b
 
+    simplerImp (ELit a) (EOp b)  = simplerImp a b
+    simplerImp (EOp a)  (ELit b) = simplerImp a b
+
     simplerImp (ETyped _ a) (EVar b) = simplerImp a b
     -- simplerImp (ETyped _ a) (EDom b) = simplerImp a b
     simplerImp (ETyped _ a) (ECon b) = simplerImp a b
     simplerImp (ETyped _ a) (ELit b) = simplerImp a b
-
+    simplerImp (ETyped _ a) (EOp b)  = simplerImp a b
 
     simplerImp a b = simplerImpError a b
 
@@ -119,9 +122,10 @@ instance Simpler Expr (Op Expr) where
 
     simplerImp (EOp a) b        = simplerImp a b
     simplerImp (ETyped _ a) b   = simplerImp a b
+    simplerImp (ELit a) b       = simplerImp a b
 
     -- simplerImp (EDom a) b       = _h
-    -- simplerImp (ELit a) b       = _h
+
 
     simplerImp a b = simplerImpError a b
 
@@ -137,10 +141,17 @@ instance Simpler Expr (Literal) where
     simplerImp (ELit a) b       = simplerImp a b
     simplerImp (ETyped _ a) b   = simplerImp a b
 
-    -- simplerImp (EOp a) b        = simplerImp a b
+    simplerImp (EOp a) b        = simplerImp a b
     -- simplerImp (EDom a) b       = simplerImp a b
 
     simplerImp a b = simplerImpError a b
+
+instance Simpler (Op Expr) Literal where simplerImp = negSimplerImp
+instance Simpler Literal (Op Expr) where
+    simplerImp a b = do
+      return $ case compare (depthOf a) (depthOf b) of
+        EQ -> LT
+        c  -> c
 
 
 simplerImpError :: (Simpler a b, HasLogger m) => a -> b -> m Ordering

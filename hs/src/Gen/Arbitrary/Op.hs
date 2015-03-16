@@ -78,37 +78,31 @@ arithmeticExpr = do
 
 arithmeticExprOf :: TType ->  GG Expr
 arithmeticExprOf kind = do
--- oneof2 $ map (flip (bopOf) kind ) [BPlus, BMult, BDiv, BPow, BMod]
-  oneof2 $ map (flip (bopOf) kind ) [opPlus]
+  oneof2 $ map (flip (bopOf) kind ) [opPlus, opMult, opDiv, opMod]
 
 
 relationExpr :: GG Expr
 relationExpr =  do
-  -- oneof2 $ map (`bopOf` TBool ) [BOr, BAnd, Bimply, Biff]
-  oneof2 $ map (`bopOf` TBool ) [opOr]
+  oneof2 $ map (`bopOf` TBool ) [opOr, opAnd, opImply, opIff]
 
 comparisonExpr :: GG Expr
 comparisonExpr =  do
-  -- oneof2 $ map (`bopOf` TBool ) [BLT, BLTE, BGT, BGTE]
-  oneof2 $ map (`bopOf` TBool ) [opOr]
+  oneof2 $ map (`bopOf` TBool ) [opLt, opLeq, opGt, opGeq]
 
 
 boolOpFor :: TType -> GG (Expr -> Expr -> Expr)
 boolOpFor TBool = do
-  -- elements2 [ BEQ, BNEQ, BOr, BAnd, Bimply, Biff ]
-  elements2 [ opEq ]
+  elements2 [ opEq, opNeq, opOr, opAnd, opImply, opIff ]
 
 boolOpFor TInt = do
-  -- op <- elements2 [ BEQ, BNEQ, BLT, BLTE, BGT, BGTE]
-  elements2 [ opEq ]
+  elements2 [ opEq, opNeq, opLt, opLeq, opGt, opGeq ]
 
 boolOpFor (TSet _) =  do
-  -- elements2 [ BEQ, BNEQ, Bsubset, BsubsetEq, Bsupset, BsupsetEq ]
-  elements2 [ opEq ]
+  elements2 [ opEq, opNeq, opSubset, opSubsetEq, opSupset, opSupsetEq ]
 
 boolOpFor (TMSet _) =  do
   -- elements2 [ BEQ, BNEQ, BLT, Bsubset, BsubsetEq, Bsupset, BsupsetEq ]
-  elements2 [ opEq ]
+  elements2 [ opEq, opNeq, opLt, opSubset, opSubsetEq, opSupset, opSupsetEq ]
 
 boolOpFor (TMatix _) = do
   elements2 [ opEq, opNeq ]

@@ -70,6 +70,8 @@ tests = testGroup "simpler"
     , eq_same [essencee| preImage(function(true --> true), false) |]
     , eq_same [essencee| toInt(toInt(true) in mset(-5, 4)) = 9 |]
     , eq_same [essencee| (function() : `function int --> int`) |]
+    , eq_same [essencee| ( {} : `set of int`) |]
+
    ]
 
   ,testGroup "Expr_gen LT"
@@ -80,7 +82,7 @@ tests = testGroup "simpler"
     , lt [essencee| 1 in mset(-5, 4)                  |] [essencee| toInt(toInt(true) in mset(-5, 4))  |]
     , lt [essencee| toInt(true) in mset(-5, 4)        |] [essencee| toInt(toInt(true) in mset(-5, 4))  |]
     , lt [essencee| toInt(toInt(true) in mset(-5, 4)) |] [essencee| toInt(toInt(true) in mset(-5, 4)) = 9 |]
-
+    , lt [essencee| {true}|]                             [essencee| preImage(function(true --> false), false) |]
    ]
 
   ,testGroup "Expr_gen GT"
@@ -90,7 +92,7 @@ tests = testGroup "simpler"
 
     , (flip gt) [essencee| toInt(true) in mset(-5, 4)        |] [essencee| toInt(toInt(true) in mset(-5, 4))  |]
     , (flip gt) [essencee| toInt(toInt(true) in mset(-5, 4)) |] [essencee| toInt(toInt(true) in mset(-5, 4)) = 9 |]
-
+    , (flip gt) [essencee| {true}|]                             [essencee| preImage(function(true --> false), false) |]
    ]
 
 
