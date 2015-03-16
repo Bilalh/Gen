@@ -38,13 +38,13 @@ class Pretty a => PrettyWithQuan a where
 
 data Expr =
     EVar Var
-  | EDom (Domainn Expr)
   | ECon Constant
   | ELit Literal
-  | ETyped TType Expr
   | EOp (Op Expr)
-  | EMetaVar String -- For TH
+  | ETyped TType Expr
+  | EDom (Domainn Expr)
 
+  | EMetaVar String -- For TH
   | EEmptyGuard
   | EQuan QType Var  -- should var be a  litetal?
     Expr -- over/ in expr

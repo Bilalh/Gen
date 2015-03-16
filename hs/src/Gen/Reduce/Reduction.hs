@@ -29,22 +29,20 @@ class (HasGen m, WithDoms m, HasLogger m) => Reduce a m where
 
 instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
 
-    reduce EEmptyGuard = return []
-
-    reduce (EVar (Var _ ty)) = do
-      singleLitExpr ty
+    reduce EEmptyGuard       = return []
+    reduce EMetaVar{}        = return []
+    reduce (EVar (Var _ ty)) = singleLitExpr ty
 
     reduce (ETyped t ex) = do
       exs <- reduce ex
       return $ map (ETyped t) exs
 
-    reduce a@(EQuan _ _ _ _ _) = single a
 
-    reduce (EOp e) = do
+    reduce (EDom e) = do
       a1 <- single e
       a2 <- subterms e
       a3 <- reduce e
-      return $ a1 ++ a2 ++ (map EOp a3)
+      return $ a1 ++ a2 ++ (map EDom a3)
 
     reduce (ECon e) = do
       a1 <- single e
@@ -52,18 +50,37 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
       a3 <- reduce e
       return $ a1 ++ a2 ++ (map ECon a3)
 
+    reduce (ELit e) = do
+      a1 <- single e
+      a2 <- subterms e
+      a3 <- reduce e
+      return $ a1 ++ a2 ++ (map ELit a3)
+
+    reduce (EOp e) = do
+      a1 <- single e
+      a2 <- subterms e
+      a3 <- reduce e
+      return $ a1 ++ a2 ++ (map EOp a3)
+
+
+    reduce e@EQuan{} = do
+        a1 <- single e
+        a2 <- subterms e
+        -- a3 <- reduce _f
+        return $ a1 ++ a2
+
+
+
     single EEmptyGuard  = return []
-    single (EDom t)     = single t
+    single (ECon t)     = single t
+    single (ELit t)     = single t
     single (EOp t)      = single t
-    single (ETyped _ e) = single e
-    single (ECon e)     = single e
+    single (EDom t)     = single t
 
-    single e@(EMetaVar _)    = rrError "single EMetaVar" [pretty e]
+    single (ETyped ty _)     = singleLitExpr ty
     single (EVar (Var _ ty)) = singleLitExpr ty
+    single e@(EMetaVar _)    = rrError "single EMetaVar" [pretty e]
 
-    single (ELit t)   = do
-      addLog "singleELit" [nn "t" t]
-      single t
 
 
     single (EQuan Sum t2 to t3 t4) = do
