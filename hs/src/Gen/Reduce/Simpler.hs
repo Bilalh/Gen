@@ -14,9 +14,10 @@ import Gen.Prelude
 class (Pretty a, Eq a, Show a, Pretty b, Eq b, Show b
       )
     => Simpler a b where
-  simplerImp :: (HasLogger m) => a -> b -> m Ordering
   simpler  :: (HasLogger m) => a -> b -> m Ordering
   simpler1 :: (HasLogger m) => a -> b -> m Bool
+
+  simplerImp :: (HasLogger m) => a -> b -> m Ordering
 
   simpler a b = do
     -- addLog "simplerStart" [nn "a" a, nn "b" b]

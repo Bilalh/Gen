@@ -12,6 +12,7 @@ import Data.List                        (splitAt)
 import Data.Maybe                       (fromJust)
 import Gen.Arbitrary.Type               (typesUnify)
 import Gen.AST.TH
+import Gen.AST.Ops
 import Gen.Prelude
 import Gen.Reduce.Data
 import Gen.Reduce.Simpler
@@ -33,9 +34,8 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
     reduce EMetaVar{}        = return []
     reduce (EVar (Var _ ty)) = singleLitExpr ty
 
-    reduce (ETyped t ex) = do
-      exs <- reduce ex
-      return $ map (ETyped t) exs
+    reduce (ETyped ty _) = do
+      singleLitExpr ty
 
 
     reduce (EDom e) = do
@@ -112,70 +112,10 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
 
 instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Constant m where
 
-    subterms _ = return []
     single t = ttypeOf t >>= singleLitExpr
 
-    reduce (ConstantBool _) = return []
-    reduce (ConstantInt _)  = return []
-
-
-instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Literal m where
-
     subterms _ = return []
-    single t = ttypeOf t >>= singleLitExpr
-
-    reduce (AbsLitSet [])     = return []
-    reduce (AbsLitSet (t:ts)) = return [AbsLitSet [t], AbsLitSet ts ]
-
-    reduce (AbsLitMSet [])     = return []
-    reduce (AbsLitMSet (t:ts)) = return [AbsLitMSet [t], AbsLitMSet ts ]
-
-    -- FIXME indexes
-    reduce (AbsLitMatrix _ [] )     = rrError "reduce empty matrix" []
-    reduce (AbsLitMatrix d [a] )    = do
-      reduce a >>= \case
-             [] -> return []
-             xs -> do
-               x <- oneofR xs
-               return $ [AbsLitMatrix d [x] ]
-
-    reduce (AbsLitMatrix d [a,_] )  = return $ [AbsLitMatrix d [a] ]
-    reduce (AbsLitMatrix _ (t:ts) ) = do
-      nts <- mapM (reduce) ts
-      case filter (/= []) nts of
-        [] -> return [ AbsLitMatrix  (dintRange 1 1) [t]
-                 -- , AbsLitMatrix [nts] (dintRange 1 (genericLength nts))
-                 , AbsLitMatrix  (dintRange 1 (length ts)) ts]
-
-        nt -> do
-          ns <- mapM oneofR nt
-          return [ AbsLitMatrix  (dintRange 1 1) [t]
-                 , AbsLitMatrix  (dintRange 1 (genericLength ns)) ns
-                 , AbsLitMatrix  (dintRange 1 (genericLength ts)) ts]
-
-
-    reduce (AbsLitTuple t) = do
-      ts <- mapM (reduce) t
-      case ts of
-        [] -> return []
-        _  -> do
-          let f l (xs,_) | length xs == l = xs
-              f l (xs,r)                  = xs ++ (replicate (l - length xs ) r)
-
-          let maxLength = maximum $ map length ts
-              ts' = map (f maxLength) (zip ts t)
-          -- -- TODo shuffle?
-          let ts'' = take 3 . filter ((==) (length t) . length) . transpose $ ts'
-          return $ map AbsLitTuple ts''
-          -- error . show . vcat $ [pretty maxLength
-          --                       , pretty . groom $ ts
-          --                       , pretty . groom $ ts']
-
-
-
-    reduce (AbsLitFunction _)  = return []
-    reduce (AbsLitRelation _)  = return []
-    reduce (AbsLitPartition _) = return []
+    reduce _   = return []
 
 
 instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce (Op Expr) m where
@@ -188,32 +128,48 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce (Op Expr) m where
     -- It does not work on things like [essencee| 1 + 2 |]
 
 
-    subterms [opp| &a + &b |]  = return []
-    subterms [opp| &a - &b |]  = return []
-    subterms [opp| &a * &b |]  = return []
-    subterms [opp| &a /\ &b |] = return []
-    subterms [opp| &a \/ &b |] = return []
+    subterms e@[opp| &a + &b |]  = subterms_op e [a,b]
+    subterms e@[opp| &a * &b |]  = subterms_op e [a,b]
+    subterms e@[opp| &a /\ &b |] = subterms_op e [a,b]
+    subterms e@[opp| &a \/ &b |] = subterms_op e [a,b]
 
     subterms e  =  do
-      resType <- ttypeOf e
       let subs = F.toList e
-      tys <- mapM ttypeOf subs
-      -- FIXME typesUnify or typesEqual?
-      let allowed  = [ x | x<-subs | ty <- tys, typesUnify resType ty  ]
-      return allowed
+      subterms_op e subs
 
 
-    reduce [opp| &a + &b |]  = return []
-    reduce [opp| &a - &b |]  = return []
-    reduce [opp| &a * &b |]  = return []
-    reduce [opp| &a /\ &b |] = return []
-    reduce [opp| &a \/ &b |] = return []
+    reduce [opp| &a + &b |]  = reduce_op2 (\[c,d] ->  [opp| &c + &d |]) [a,b]
+    reduce [opp| &a * &b |]  = reduce_op2 (\[c,d] ->  [opp| &c * &d |]) [a,b]
+    reduce [opp| &a /\ &b |] = reduce_op2 (\[c,d] ->  [opp| &c /\ &d |]) [a,b]
+    reduce [opp| &a \/ &b |] = reduce_op2 (\[c,d] ->  [opp| &c \/ &d |]) [a,b]
 
-    reduce x = do
-      let subs = F.toList x
-      case subs of
-        [a,b] -> reduceBop (_replaceOpChildren x) a b
-        _ -> return []
+    reduce e = do
+      let subs = F.toList e
+      reduce_op e subs
+
+
+subterms_op :: forall (m :: * -> *) a t.
+               (TTypeOf t, TTypeOf a, Applicative m, Monad m) =>
+               a -> [t] -> m [t]
+subterms_op e subs =  do
+  resType <- ttypeOf e
+  tys <- mapM ttypeOf subs
+  -- FIXME typesUnify or typesEqual?
+  let allowed  = [ x | x<-subs | ty <- tys, typesUnify resType ty  ]
+  return allowed
+
+reduce_op :: forall (m :: * -> *).
+             (HasGen m, WithDoms m, HasLogger m) =>
+             Op Expr -> [Expr] -> m [Op Expr]
+reduce_op x subs = reduce_op2 (_replaceOpChildren x) subs
+
+reduce_op2 :: forall (m :: * -> *).
+              (HasGen m, WithDoms m, HasLogger m) =>
+              ([Expr] -> Op Expr) -> [Expr] -> m [Op Expr]
+reduce_op2 f subs = do
+  case subs of
+    [a,b] -> reduceBop f a b
+    _ -> return []
 
 
 instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce (Domainn Expr) m where
@@ -222,19 +178,30 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce (Domainn Expr) m where
     subterms _ = return []
 
 
+instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Literal m where
+    single t   = ttypeOf t >>= singleLitExpr
+    subterms _ = return []
+
+    reduce   _ = return []
+
+
 reduceBop :: (WithDoms m, HasGen m, HasLogger m) =>
              ( [Expr] -> Op Expr) -> Expr -> Expr -> m [Op Expr]
 reduceBop t a b=  do
   addLog "reduceBop" [nn "a" a, nn "b" b]
-  fmap (  map (\(aa,bb) -> t [aa, bb] ) . catMaybes ) . sequence $
+  singles <- fmap (  map (\(aa,bb) -> t [aa, bb] ) . catMaybes ) . sequence $
        [
          (a, )  -| (single b >>= logArr "reduceBopSingle 1" >>= oneofR, b)
        , (, b)  -| (single a >>= logArr "reduceBopSingle 2" >>= oneofR , a)
-       , rr
+
        ]
 
+  reduced <- rr
+
+  return $ singles ++ reduced
+
    where
-     rr :: (WithDoms m, HasGen m, HasLogger m) => m (Maybe (Expr, Expr))
+     rr :: (WithDoms m, HasGen m, HasLogger m) => m ( [Op Expr] )
      rr = do
        addLog "rr" []
        ra <- reduce a
@@ -242,17 +209,21 @@ reduceBop t a b=  do
        rb <- reduce b
        addLog "rr" [nn "rb" (vcat $ map pretty rb)]
        case (ra, rb) of
-        ([], []) -> return Nothing
-        ([], xs) -> do
-            x <- oneofR xs
-            return $ Just (a,x)
-        (xs,[]) -> do
-            x <- oneofR xs
-            return $ Just (x,b)
-        (as,bs) -> do
-            ea <- oneofR as
-            eb <- oneofR bs
-            return $ Just (ea,eb)
+        ([],[])   -> return $ []
+
+        (as, bs) -> do
+          xa <- giveVals a as
+          xb <- giveVals b bs
+
+          return [ t vs | vs <- sequence [xa,xb]
+                 , or $ zipWith (\z1 z2 -> runIdentity $ simpler1 z1 z2) vs [a,b]]
+
+
+     giveVals defaul []  = return [defaul]
+     giveVals defaul [x] = return [x,defaul]
+     giveVals _ (x:xs) = do
+       x2 <- oneofR xs
+       return [x,x2]
 
 
 infixl 1 -|
@@ -407,3 +378,30 @@ _replaceOpChildren op news = fst . flip runState news $ f1 <$> T.mapM fff ch1
 _replaceOpChildren_ex :: Op Expr
 _replaceOpChildren_ex = _replaceOpChildren
   [opp| 8 ** 3  |]  [  [essencee| 4 |], [essencee| 2 |] ]
+
+
+--http://stackoverflow.com/questions/3015962/zipping-with-padding-in-haskell
+data OneOrBoth a b = OneL a | OneR b | Both a b
+
+class Align f where
+  align :: (OneOrBoth a b -> c) -> f a -> f b -> f c
+
+instance Align [] where
+  align f []     []     = []
+  align f (x:xs) []     = f (OneL x)   : align f xs []
+  align f []     (y:ys) = f (OneR y)   : align f [] ys
+  align f (x:xs) (y:ys) = f (Both x y) : align f xs ys
+
+liftAlign2 f a b = align t
+  where t (OneL l)   = f l b
+        t (OneR r)   = f a r
+        t (Both l r) = f l r
+
+zipPad a b = liftAlign2 (,) a b
+
+liftAlign3 f a b c xs ys = align t (zipPad a b xs ys)
+  where t (OneL (x,y))   = f x y c
+        t (OneR r)       = f a b r
+        t (Both (x,y) r) = f x y r
+
+zipPad3 a b c = liftAlign3 (,,) a b c
