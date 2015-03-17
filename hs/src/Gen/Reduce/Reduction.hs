@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleContexts, FlexibleInstances, KindSignatures,
              MultiParamTypeClasses, ParallelListComp, PatternGuards, QuasiQuotes,
-             TupleSections #-}
+             TupleSections, RankNTypes #-}
 module Gen.Reduce.Reduction where
 
 import Conjure.Language.AbstractLiteral
@@ -16,8 +16,9 @@ import Gen.AST.Ops
 import Gen.Prelude
 import Gen.Reduce.Data
 import Gen.Reduce.Simpler
+import Gen.Reduce.Inners
 import Data.Generics.Uniplate.Data
-
+import Gen.Reduce.Inners
 
 import qualified Data.Foldable as F
 import qualified Data.Traversable as T
@@ -40,34 +41,34 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
 
     reduce (EDom e) = do
       a1 <- single e
-      a2 <- subterms e
-      a3 <- reduce e
-      return $ a1 ++ a2 ++ (map EDom a3)
+      a2 <- reduce e
+      a3 <- subterms e
+      return $ a1 ++ a3 ++ (map EDom a2)
 
     reduce (ECon e) = do
       a1 <- single e
-      a2 <- subterms e
-      a3 <- reduce e
-      return $ a1 ++ a2 ++ (map ECon a3)
+      a2 <- reduce e
+      a3 <- subterms e
+      return $ a1 ++ a3 ++ (map ECon a2)
 
     reduce (ELit e) = do
       a1 <- single e
-      a2 <- subterms e
-      a3 <- reduce e
-      return $ a1 ++ a2 ++ (map ELit a3)
+      a2 <- reduce e
+      a3 <- subterms e
+      return $ a1 ++ a3 ++ (map ELit a2)
 
     reduce (EOp e) = do
       a1 <- single e
-      a2 <- subterms e
-      a3 <- reduce e
-      return $ nub2 $ a1 ++ a2 ++ (map EOp a3)
+      a2 <- reduce e
+      a3 <- subterms e
+      return $ nub2 $ a1 ++ a3 ++ (map EOp a2)
 
 
     reduce e@EQuan{} = do
         a1 <- single e
-        a2 <- subterms e
-        -- a3 <- reduce _f
-        return $ a1 ++ a2
+        -- a2 <- reduce _f
+        a3 <- subterms e
+        return $ a1 ++ a3
 
 
 
@@ -180,9 +181,28 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce (Domainn Expr) m where
 
 instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Literal m where
     single t   = ttypeOf t >>= singleLitExpr
-    subterms _ = return []
+    subterms x = return . map ELit .  innersExpand doSubs $ x
 
-    reduce   _ = return []
+    reduce lit = do
+        rLits <- reduceAllChildren lit
+        return . innersExpand doSubs $ rLits
+
+
+reduceAllChildren :: (Monad m, Applicative m, HasGen m, WithDoms m, HasLogger m)
+                  => Literal  -> m Literal
+reduceAllChildren lit  = fmap (\(ELit l) -> l )  $  descendM f (ELit lit)
+  where
+    f e = do
+      r <- reduce e
+      oneofR r
+
+
+doSubs :: forall a. [a] -> [[a]]
+doSubs xs =  heads_tails . init $ inits xs
+  where
+  heads_tails [] = []
+  heads_tails (_:es) = [e | (e,i) <- zip es [0..], (i >= length es - 2) || (i < 2)  ]
+
 
 
 reduceBop :: (WithDoms m, HasGen m, HasLogger m) =>

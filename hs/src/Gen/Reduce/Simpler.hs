@@ -5,8 +5,6 @@ module Gen.Reduce.Simpler where
 import Conjure.Language.AbstractLiteral
 import Conjure.Language.Constant
 import Conjure.Language.Expression.Op
-import Data.List                        (foldl1)
-import Gen.Arbitrary.Type               (typesUnify)
 import Gen.AST.TH
 import Gen.Prelude
 
@@ -49,11 +47,9 @@ instance Simpler Expr Expr where
     simplerImp (ELit a) (EOp b)  = simplerImp a b
     simplerImp (EOp a)  (ELit b) = simplerImp a b
 
-    simplerImp (ETyped _ a) (EVar b) = simplerImp a b
-    -- simplerImp (ETyped _ a) (EDom b) = simplerImp a b
-    simplerImp (ETyped _ a) (ECon b) = simplerImp a b
-    simplerImp (ETyped _ a) (ELit b) = simplerImp a b
-    simplerImp (ETyped _ a) (EOp b)  = simplerImp a b
+
+    simplerImp (ETyped _ a) b  = simplerImp a b
+    simplerImp a (ETyped _ b)  = simplerImp a b
 
     simplerImp a b = simplerImpError "Expr" a b
 
