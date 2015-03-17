@@ -29,7 +29,28 @@ tests = testGroup "reduce"
     , testGroup "Reducing Single can not decrease the depth "  (map r_single_depth gen_exprs)
     ]
 
+  , testGroup "Reducing produces exprs of lower depth"
+    [
+     testGroup "Ops" $ map r_depth_lt
+       [
+         [essencee| true /\ false |]
+       , [essencee| true /\ false /\ true|]
+       , [essencee| 10 = 7 \/ (7 % 10 = 3) |]
+       , [essencee| preImage(function(true --> true), false) |]
+       , [essencee| toInt(toInt(true) in mset(-5, 4)) = 9 |]
+       , [essencee| true|]
+       ]
+    ]
+
   ]
+
+__runner :: forall a t. (t -> StateT EState Identity a) -> t -> a
+__runner f ee = do
+  let spe   :: Spec   = $never
+      seed            = 32
+      state :: EState = newEStateWithSeed seed spe
+      res             = runIdentity $ flip evalStateT state $ f ee
+  res
 
 gen_exprs :: [Expr]
 gen_exprs =
@@ -49,14 +70,14 @@ gen_exprs =
 
 
 
-__runner :: forall a t. (t -> StateT EState Identity a) -> t -> a
-__runner f ee = do
-  let spe   :: Spec   = $never
-      seed            = 32
-      state :: EState = newEStateWithSeed seed spe
-      res             = runIdentity $ flip evalStateT state $ f ee
-  res
+r_depth_lt :: Expr -> TestTree
+r_depth_lt a = testCase (pretty a) $
+          ( all (\b -> depthOf b < depthOf a ) $ __runner reduce a ) @?= (True)
 
+r_depth_some_lt :: Expr -> TestTree
+r_depth_some_lt a = testCase (pretty a) $
+          ( all (\b -> depthOf b <= depthOf a ) &&& any (\b -> depthOf b < depthOf a )
+                    $ __runner reduce a ) @?= (True,True)
 
 r_depth_leq :: Expr -> TestTree
 r_depth_leq a = testCase (pretty a) $

@@ -75,4 +75,11 @@ tests = testGroup "depthOf"
     , te 5 [essencee| toInt(toInt(true) in mset(-5, 4)) = 9 |]
    ]
 
+  ,testGroup "Breaking"
+   [
+     te 2 [essencee| 10 = 7 \/ -2 = 0 |]
+   , te 3 [essencee| true \/ 7 % 10 = 3 |]
+   , te 4 [essencee| 10 = 7 \/ (7 % 10 = 3) |]
+   ]
+
   ]
