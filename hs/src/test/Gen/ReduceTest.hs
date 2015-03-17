@@ -29,16 +29,22 @@ tests = testGroup "reduce"
     , testGroup "Reducing Single can not decrease the depth "  (map r_single_depth gen_exprs)
     ]
 
-  , testGroup "Reducing produces exprs of lower depth"
+  , testGroup "Reducing produces exprs of stictly lower depth"
     [
      testGroup "Ops" $ map r_depth_lt
        [
          [essencee| true /\ false |]
        , [essencee| true /\ false /\ true|]
-       , [essencee| 10 = 7 \/ (7 % 10 = 3) |]
+       ]
+    ]
+
+  , testGroup "Reducing produces exprs of <= depth"
+    [
+     testGroup "Ops" $ map r_depth_some_lt
+       [
+         [essencee| 10 = 7 \/ (7 % 10 = 3) |]
        , [essencee| preImage(function(true --> true), false) |]
        , [essencee| toInt(toInt(true) in mset(-5, 4)) = 9 |]
-       , [essencee| true|]
        ]
     ]
 

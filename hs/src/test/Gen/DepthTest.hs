@@ -77,9 +77,8 @@ tests = testGroup "depthOf"
 
   ,testGroup "Breaking"
    [
-     te 2 [essencee| 10 = 7 \/ -2 = 0 |]
+     te 3 [essencee| 10 = 7 \/ -2 = 0 |]
    , te 3 [essencee| true \/ 7 % 10 = 3 |]
-   , te 4 [essencee| 10 = 7 \/ (7 % 10 = 3) |]
    ]
 
   ]

@@ -363,7 +363,20 @@ __run f ee = do
   mapM_ (print  . pretty )  res
   return res
 
-
+-- __depths :: forall t c'.
+--             (DepthOf c', Pretty c', Ord c') =>
+--             (t -> StateT EState Identity [c']) -> t -> IO ()
+__depths :: forall c' c'1.
+            (DepthOf c'1, DepthOf c', Pretty c'1, Pretty c', Ord c') =>
+            (c'1 -> StateT EState Identity [c']) -> c'1 -> IO ()
+__depths f ee = do
+  let spe   :: Spec   = $never
+      seed            = 32
+      state :: EState = newEStateWithSeed seed spe
+      res             = runIdentity $ flip evalStateT state $ f ee
+  putStrLn . show . pretty . vcat .  map pretty .  sort . map (depthOf &&& id) $  res
+  putStrLn "---"
+  putStrLn . show . pretty . (depthOf &&& id) $ ee
 
 
 _replaceOpChildren :: Op Expr -> [Expr] -> Op Expr
