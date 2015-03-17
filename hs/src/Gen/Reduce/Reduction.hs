@@ -60,7 +60,7 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
       a1 <- single e
       a2 <- subterms e
       a3 <- reduce e
-      return $ a1 ++ a2 ++ (map EOp a3)
+      return $ nub2 $ a1 ++ a2 ++ (map EOp a3)
 
 
     reduce e@EQuan{} = do
