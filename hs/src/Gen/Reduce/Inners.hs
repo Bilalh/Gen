@@ -2,6 +2,7 @@
 module Gen.Reduce.Inners where
 
 import Conjure.Language.AbstractLiteral
+import Conjure.Language.Domain
 import Gen.Prelude
 
 
@@ -12,14 +13,15 @@ class Inners x where
                   => (forall a.  [a] -> m [a] ) -> x -> m x
 
 instance Inners (Literal) where
-  innersReduce f (AbsLitFunction xs)      = (f xs)
+  innersReduce f (AbsLitFunction x)       = (f x)
   innersReduce f (AbsLitTuple x)          = (f x)
   innersReduce f (AbsLitSet x)            = (f x)
   innersReduce f (AbsLitMSet x)           = (f x)
-  innersReduce f (AbsLitFunction x)       = (f x)
   innersReduce f (AbsLitSequence x)       = (f x)
   innersReduce f (AbsLitRelation x)       = (f x)
   innersReduce f (AbsLitPartition x)      = (f x)
+  innersReduce f (AbsLitMatrix _ x )      = (f x)
+
 
   innersExpand f (AbsLitFunction xs)      = map AbsLitFunction (f xs)
   innersExpand f (AbsLitTuple x)          = map AbsLitTuple (f x)
@@ -29,6 +31,15 @@ instance Inners (Literal) where
   innersExpand f (AbsLitSequence x)       = map AbsLitSequence (f x)
   innersExpand f (AbsLitRelation x)       = map AbsLitRelation (f x)
   innersExpand f (AbsLitPartition x)      = map AbsLitPartition (f x)
+  innersExpand f (AbsLitMatrix d x)       = map doMatrix (f x)
+    where
+      doMatrix nx | length nx == length x = AbsLitMatrix d nx
+      --TODO could remove/add to made the old range fit
+      doMatrix nx = AbsLitMatrix (dintRange 1 (length nx)) nx
+
+
+  -- innersExpand f (AbsLitRecord x)         = map _x (f x)
+  -- innersExpand f (AbsLitVariant x1 x2 x3) = map _x (f x)
 
   innersMap f (AbsLitFunction xs) = AbsLitFunction  <$> (f xs)
   innersMap f (AbsLitTuple x)     = AbsLitTuple     <$> (f x)
@@ -38,8 +49,3 @@ instance Inners (Literal) where
   innersMap f (AbsLitSequence x)  = AbsLitSequence  <$> (f x)
   innersMap f (AbsLitRelation x)  = AbsLitRelation  <$> (f x)
   innersMap f (AbsLitPartition x) = AbsLitPartition <$> (f x)
-
-
-  -- innersExpand f (AbsLitRecord x)         = map _x (f x)
-  -- innersExpand f (AbsLitVariant x1 x2 x3) = map _x (f x)
-  -- innersExpand f (AbsLitMatrix x1 x2)     = map _x (f x)

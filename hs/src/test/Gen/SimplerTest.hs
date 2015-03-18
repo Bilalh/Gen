@@ -15,11 +15,17 @@ st ord a b = testCase ( pretty a <+> "|" <+> pretty b) $
 eq_same :: (Simpler a a) => a -> TestTree
 eq_same a = st EQ a a
 
-lt :: (Simpler a b) => (a, b) -> TestTree
-lt = uncurry (st LT)
+eq :: (Simpler a b) => a -> b -> TestTree
+eq = st EQ
 
-gt :: (Simpler b a) => (a, b) -> TestTree
-gt = uncurry (flip (st GT))
+testGroup_lt_gt :: forall a b. (Simpler b a, Simpler a b)
+                => String -> [(a, b)] -> TestTree
+testGroup_lt_gt name ls =
+  testGroup name
+   [
+     testGroup (name ++  "LT") (map ( uncurry (st LT)) ls)
+    ,testGroup (name ++  "GT") (map (uncurry (flip (st GT)))  ls)
+   ]
 
 
 
@@ -74,23 +80,44 @@ tests = testGroup "simpler"
 
    ]
 
-  ,testGroup "Expr_gen LT" (map lt for_comp)
+  ,testGroup "Expr_gen eq"
+   [
+     eq_same [essencee| [false] |]
+   , eq_same [essencee| [false; int(1,1,1)] |]
+   , eq [essencee| [1,2;int(1,2)] |] [essencee| [5,5;int(5,6)] |]
+   , eq [essencee| [1,2;int(1,2,2,1)] |] [essencee| [1,2;int(1,2)] |]
+   ]
 
-  ,testGroup "Expr_gen GT" (map gt for_comp)
+
+  ,testGroup_lt_gt "exprs"
+   [
+     ([essencee| false |],          [essencee| false \/ false |])
+   , ([essencee| false \/ false |], [essencee| (true \/ true) != true |])
+   , ([essencee| 1 in mset(-5, 4)                  |], [essencee| toInt(toInt(true) in mset(-5, 4))  |])
+   , ([essencee| toInt(true) in mset(-5, 4)        |], [essencee| toInt(toInt(true) in mset(-5, 4))  |])
+   , ([essencee| toInt(toInt(true) in mset(-5, 4)) |], [essencee| toInt(toInt(true) in mset(-5, 4)) = 9 |])
+   , ([essencee| {true}|],                             [essencee| preImage(function(true --> false), false) |])
+  ]
+
+  ,testGroup_lt_gt "literals"
+   [
+     ([essencee| {false} |],  [essencee| {false,true} |] )
+   , ([essencee| {} |],       [essencee| {false,true} |] )
+   , ([essencee| {true} |],   [essencee| {} |] )
+
+   , ([essencee| [1,2] |],    [essencee| [1,2,3] |] )
+   , ([essencee| [1] |],     [essencee| [1,2] |] )
+   , ([essencee| [5] |],     [essencee| [] |] )
+
+   , ([essencee| [1,2; int(1,3)] |],    [essencee| [1,2,3; int(2,4,6)] |] )
+
+   , ([essencee| function(true = false --> 5) |], [essencee| function(true = false --> 5,  3=1+2 --> 9) |] )
+  ]
 
   ]
 
-for_comp :: [(Expr, Expr)]
-for_comp=
-  [
-    ([essencee| false |],          [essencee| false \/ false |])
-  , ([essencee| false \/ false |], [essencee| (true \/ true) != true |])
 
-  , ([essencee| 1 in mset(-5, 4)                  |], [essencee| toInt(toInt(true) in mset(-5, 4))  |])
-  , ([essencee| toInt(true) in mset(-5, 4)        |], [essencee| toInt(toInt(true) in mset(-5, 4))  |])
-  , ([essencee| toInt(toInt(true) in mset(-5, 4)) |], [essencee| toInt(toInt(true) in mset(-5, 4)) = 9 |])
-  , ([essencee| {true}|],                             [essencee| preImage(function(true --> false), false) |])
-  ]
+
 
 newtype AType =  AType TType
     deriving (Show,Eq)

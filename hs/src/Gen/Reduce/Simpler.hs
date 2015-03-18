@@ -7,6 +7,8 @@ import Conjure.Language.Constant
 import Conjure.Language.Expression.Op
 import Gen.AST.TH
 import Gen.Prelude
+import Gen.Reduce.Inners
+
 
 -- True if a1 is simpler then a2
 class (Pretty a, Eq a, Show a, Pretty b, Eq b, Show b
@@ -71,7 +73,7 @@ instance Simpler TType TType where
 
 
 instance Simpler Var Var where
-    simplerImp (Var _ a) (Var _ b) = simplerImp a b
+    simplerImp (Var _ a) (Var _ b) = return EQ
 
 
 instance Simpler Constant Constant where
@@ -82,7 +84,13 @@ instance Simpler Constant Constant where
 
 
 instance Simpler Literal Literal where
-    simplerImp a b = return $ compare (depthOf a) (depthOf b)
+    simplerImp a b = case compare (depthOf a) (depthOf b) of
+     EQ -> return $ case ((innersReduce length a), (innersReduce length b)) of
+                      (1,1)   -> EQ
+                      (1,_)   -> LT
+                      (_,1)   -> GT
+                      (ca,cb) -> compare ca cb
+     x  -> return x
 
 
 instance Simpler (Domainn Expr) (Domainn Expr) where
