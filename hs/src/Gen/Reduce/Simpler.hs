@@ -51,6 +51,9 @@ instance Simpler Expr Expr where
     simplerImp (ETyped _ a) b  = simplerImp a b
     simplerImp a (ETyped _ b)  = simplerImp a b
 
+    simplerImp (EVar a) b  = simplerImp a b
+    simplerImp a (EVar b)  = simplerImp a b
+
     simplerImp a b = simplerImpError "Expr" a b
 
 
