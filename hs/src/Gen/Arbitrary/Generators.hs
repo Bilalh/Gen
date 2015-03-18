@@ -26,7 +26,7 @@ useFunc fs = gets generators_ >>= \m -> return (  (gen_useFunc m) fs)
 
 instance Default SS where
      def = SS
-             { depth_      = error "no depth"
+             { depth_      = error "e.g. def{depth_=3}"
              , doms_       = M.empty
              , nextNum_    = 1
              , newVars_    = []

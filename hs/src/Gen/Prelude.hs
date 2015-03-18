@@ -10,15 +10,15 @@ module Gen.Prelude (
     , nn
     , _genlogs
     , _genfile
-    , _gen
+    , _genSample
     , renderSmall
-    , _ss
     , prettyBrackets
     , nub2
     , renderSized
     , noteFormat
     , rrError
     , logArr
+    , genSample
 ) where
 
 import Gen.Helpers.StandardImports as X
@@ -176,12 +176,16 @@ _genfile e ss  = do
                 P.$+$ nest 2 (pretty (logs_ st) )
 
 
-_gen :: Pretty a =>  GG a -> SpecState -> IO ()
-_gen e ss  = do
+_genSample :: Pretty a =>  GG a -> SpecState -> IO ()
+_genSample e ss  = do
     res <-  (sample' (runStateT e (ss) ))
     forM_ res $ \(r,_) -> do
         putStrLn . renderSmall $ ""
             P.$+$ ( pretty r )
+
+-- genSample :: GG a -> SpecState -> IO [a]
+genSample e ss  = do
+   mapM (\_ -> generate $ evalStateT  e ss ) [0..10]
 
 renderSmall :: Pretty a => a -> String
 renderSmall = P.renderStyle (P.style { P.lineLength = 120 }) . pretty
@@ -192,9 +196,6 @@ renderSized n  = P.renderStyle (P.style { P.lineLength = n }) . pretty
 noteFormat :: MonadIO m => Doc -> [Doc] -> m ()
 noteFormat tx pr = liftIO . putStrLn . renderSized 120 $ hang tx 4 (vcat  pr)
 
-
-_ss :: Depth -> SS
-_ss d = def{depth_=d}
 
 
 prettyBrackets :: Pretty a => a -> Doc

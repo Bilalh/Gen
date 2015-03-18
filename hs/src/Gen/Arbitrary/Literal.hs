@@ -11,6 +11,24 @@ import Gen.Prelude
 import qualified Data.IntSet               as I
 import qualified Data.Set                  as S
 
+aLiteral :: GG Expr
+aLiteral =do
+  oneof2
+    [
+      boolLit
+    , intLit
+    , setLitOf =<< dd
+    , setLitOf =<< dd
+    , matrixLitOf =<< dd
+    , parLitOf    =<< dd
+    , tupleLitOf  =<< (do; i <- choose2 (1,5); mapM (\_-> dd) [1..i :: Int])
+    , relLitOf    =<< (do; i <- choose2 (1,5); mapM (\_-> dd) [1..i :: Int])
+    , uncurry funcLitOf =<< (do; a <- dd; b <- dd; return (a,b) )
+    ]
+
+  where
+    dd = withDepthDec atype
+
 boolLit :: GG Expr
 boolLit = do
     b <- lift arbitrary
@@ -30,6 +48,7 @@ setLit = do
 setLitOf :: TType ->  GG Expr
 setLitOf innerType = do
     depth_ <- gets depth_
+    addLog "s" [nn "innerType" innerType, nn "depth" depth_ ]
     t2 <- deAny $ TSet innerType
     listOfBounds (0,  min 15 (2 * depth_) ) (withDepthDec $ exprOf innerType) >>= \case
                      [] -> return $ ETyped t2 (ELit $ AbsLitSet [])
@@ -58,17 +77,19 @@ matrixLitOf innerType = do
     return $ ELit $ AbsLitMatrix idx exprs
 
     where
-      ints (DomainInt rs)         = map rsInts rs
+      ints (DomainInt rs) = map rsInts rs
       ints x = docError ["not matched ints", pretty x]
-      rsInts (RangeSingle x)      = [getInt x]
-      rsInts (RangeBounded a b)   = [(getInt a) .. (getInt b)]
+
+      rsInts (RangeSingle x)    = [getInt x]
+      rsInts (RangeBounded a b) = [(getInt a) .. (getInt b)]
       rsInts x = docError ["not matched rsInts", pretty x]
+
       getInt (ECon (ConstantInt x)) = x
       getInt x = docError ["not matched getInt", pretty x]
 
 -- FIXME from mappings should be distinct?
 funcLitOf :: TType -> TType -> GG Expr
-funcLitOf fromType toType = do
+funcLitOf fromType toType  = do
     depth_ <- gets depth_
     numElems <- choose2 (1, min 15 (2 * depth_) )
     froms <- vectorOf2 numElems  ( withDepthDec $ exprOf fromType)

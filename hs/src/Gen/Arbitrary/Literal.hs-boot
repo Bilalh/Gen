@@ -17,3 +17,4 @@ funcLitOf  :: TType -> TType -> GG Expr
 relLitOf   :: [TType] -> GG Expr
 parLitOf   :: TType -> GG Expr
 tupleLitOf :: [TType] -> GG Expr
+aLiteral :: GG Expr

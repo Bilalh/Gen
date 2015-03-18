@@ -8,7 +8,7 @@ import Gen.AST.Imports as X
 
 import Text.Groom as X(groom)
 
-import Gen.Helpers.Placeholders as X (placeholder,notDone,todo, never)
+import Gen.Helpers.Placeholders as X
 import Control.Monad.State.Strict as X (execStateT)
 import Control.Monad.State.Strict as X ( MonadState(get, put))
 

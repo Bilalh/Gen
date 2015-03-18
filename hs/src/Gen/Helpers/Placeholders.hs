@@ -1,16 +1,14 @@
--- https://github.com/ahammar/placeholders with some patches
-
 {-# LANGUAGE TemplateHaskell, DeriveDataTypeable #-}
-
 -- | This module defines placeholders that you can use while coding to
 -- allow incomplete code to compile. They work just like 'undefined',
 -- but with improved error messages and compile-time warnings.
+-- Changed from https://github.com/ahammar/placeholders
+-- quite a few changes
 module Gen.Helpers.Placeholders (
     notDone,
     todo,
-    placeholder,
-    placeholderNoWarning,
     never,
+    neverNote,
     PlaceholderException(..)
 ) where
 
@@ -40,6 +38,10 @@ todo msg = placeholder $ "TODO: " ++ msg
 -- | replacement for when undefined is needed
 never :: Q Exp
 never = placeholderNoWarning "Should never Happen"
+
+-- | replacement for when undefined is needed
+neverNote :: String -> Q Exp
+neverNote msg = placeholderNoWarning msg
 
 -- | Generates an expression of any type that, if evaluated at runtime will
 -- throw a 'PlaceholderException'. It is therefore similar to 'error', except
