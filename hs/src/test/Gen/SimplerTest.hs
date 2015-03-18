@@ -15,11 +15,11 @@ st ord a b = testCase ( pretty a <+> "|" <+> pretty b) $
 eq_same :: (Simpler a a) => a -> TestTree
 eq_same a = st EQ a a
 
-lt :: (Simpler a b) => a -> b -> TestTree
-lt = st LT
+lt :: (Simpler a b) => (a, b) -> TestTree
+lt = uncurry (st LT)
 
-gt :: (Simpler a b) => a -> b -> TestTree
-gt = st GT
+gt :: (Simpler b a) => (a, b) -> TestTree
+gt = uncurry (flip (st GT))
 
 
 
@@ -74,28 +74,22 @@ tests = testGroup "simpler"
 
    ]
 
-  ,testGroup "Expr_gen LT"
-   [
-      lt [essencee| false |]          [essencee| false \/ false |]
-    , lt [essencee| false \/ false |] [essencee| (true \/ true) != true |]
+  ,testGroup "Expr_gen LT" (map lt for_comp)
 
-    , lt [essencee| 1 in mset(-5, 4)                  |] [essencee| toInt(toInt(true) in mset(-5, 4))  |]
-    , lt [essencee| toInt(true) in mset(-5, 4)        |] [essencee| toInt(toInt(true) in mset(-5, 4))  |]
-    , lt [essencee| toInt(toInt(true) in mset(-5, 4)) |] [essencee| toInt(toInt(true) in mset(-5, 4)) = 9 |]
-    , lt [essencee| {true}|]                             [essencee| preImage(function(true --> false), false) |]
-   ]
+  ,testGroup "Expr_gen GT" (map gt for_comp)
 
-  ,testGroup "Expr_gen GT"
-   [
-      (flip gt) [essencee| false |]          [essencee| false \/ false |]
-    , (flip gt) [essencee| false \/ false |] [essencee| (true \/ true) != true |]
+  ]
 
-    , (flip gt) [essencee| toInt(true) in mset(-5, 4)        |] [essencee| toInt(toInt(true) in mset(-5, 4))  |]
-    , (flip gt) [essencee| toInt(toInt(true) in mset(-5, 4)) |] [essencee| toInt(toInt(true) in mset(-5, 4)) = 9 |]
-    , (flip gt) [essencee| {true}|]                             [essencee| preImage(function(true --> false), false) |]
-   ]
+for_comp :: [(Expr, Expr)]
+for_comp=
+  [
+    ([essencee| false |],          [essencee| false \/ false |])
+  , ([essencee| false \/ false |], [essencee| (true \/ true) != true |])
 
-
+  , ([essencee| 1 in mset(-5, 4)                  |], [essencee| toInt(toInt(true) in mset(-5, 4))  |])
+  , ([essencee| toInt(true) in mset(-5, 4)        |], [essencee| toInt(toInt(true) in mset(-5, 4))  |])
+  , ([essencee| toInt(toInt(true) in mset(-5, 4)) |], [essencee| toInt(toInt(true) in mset(-5, 4)) = 9 |])
+  , ([essencee| {true}|],                             [essencee| preImage(function(true --> false), false) |])
   ]
 
 newtype AType =  AType TType
