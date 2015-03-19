@@ -121,11 +121,11 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Constant m where
 
 instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Literal m where
     single t   = ttypeOf t >>= singleLitExpr
-    subterms x = return . map ELit .  innersExpand doSubs $ x
+    subterms x = return . map ELit .  innersExpand reduceLength $ x
 
     reduce li = do
         rLits <- reduceAllChildren li
-        return . innersExpand doSubs $ rLits
+        return . innersExpand reduceLength $ rLits
 
       where
       reduceAllChildren :: (Monad m, Applicative m, HasGen m, WithDoms m, HasLogger m)
@@ -197,13 +197,6 @@ reduce_op2 f subs = do
     _ -> return []
 
 
-doSubs :: forall a. [a] -> [[a]]
-doSubs xs =  heads_tails . init $ inits xs
-  where
-  heads_tails [] = []
-  heads_tails (_:es) = [e | (e,i) <- zip es [0..], (i >= length es - 2) || (i < 2)  ]
-
-
 
 reduceBop :: (WithDoms m, HasGen m, HasLogger m) =>
              ( [Expr] -> Op Expr) -> Expr -> Expr -> m [Op Expr]
@@ -254,6 +247,14 @@ f  -| (a,e) = do
    simpler1 aa e >>= \case
      True  -> return $ Just (f aa)
      False -> return Nothing
+
+
+-- | Return the two shortest & two longest sequence of the elements
+reduceLength :: forall a. [a] -> [[a]]
+reduceLength xs =  heads_tails . init $ inits xs
+  where
+  heads_tails [] = []
+  heads_tails (_:es) = [e | (e,i) <- zip es [0..], (i >= length es - 2) || (i < 2)  ]
 
 
 

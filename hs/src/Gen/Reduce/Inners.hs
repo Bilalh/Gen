@@ -9,8 +9,6 @@ import Gen.Prelude
 class Inners x where
     innersReduce  :: (forall a.  [a] -> b)      -> x -> b
     innersExpand  :: (forall a.  [a] -> [[a]] ) -> x -> [x]
-    innersMap     :: (Monad m, Applicative m )
-                  => (forall a.  [a] -> m [a] ) -> x -> m x
 
 instance Inners (Literal) where
   innersReduce f (AbsLitFunction x)       = (f x)
@@ -36,16 +34,3 @@ instance Inners (Literal) where
       doMatrix nx | length nx == length x = AbsLitMatrix d nx
       --TODO could remove/add to made the old range fit
       doMatrix nx = AbsLitMatrix (dintRange 1 (length nx)) nx
-
-
-  -- innersExpand f (AbsLitRecord x)         = map _x (f x)
-  -- innersExpand f (AbsLitVariant x1 x2 x3) = map _x (f x)
-
-  innersMap f (AbsLitFunction xs) = AbsLitFunction  <$> (f xs)
-  innersMap f (AbsLitTuple x)     = AbsLitTuple     <$> (f x)
-  innersMap f (AbsLitSet x)       = AbsLitSet       <$> (f x)
-  innersMap f (AbsLitMSet x)      = AbsLitMSet      <$> (f x)
-  innersMap f (AbsLitFunction x)  = AbsLitFunction  <$> (f x)
-  innersMap f (AbsLitSequence x)  = AbsLitSequence  <$> (f x)
-  innersMap f (AbsLitRelation x)  = AbsLitRelation  <$> (f x)
-  innersMap f (AbsLitPartition x) = AbsLitPartition <$> (f x)
