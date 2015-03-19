@@ -119,6 +119,30 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Constant m where
     reduce _   = return []
 
 
+instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Literal m where
+    single t   = ttypeOf t >>= singleLitExpr
+    subterms x = return . map ELit .  innersExpand doSubs $ x
+
+    reduce li = do
+        rLits <- reduceAllChildren li
+        return . innersExpand doSubs $ rLits
+
+      where
+      reduceAllChildren :: (Monad m, Applicative m, HasGen m, WithDoms m, HasLogger m)
+                        => Literal  -> m Literal
+      reduceAllChildren lit  = fmap (\(ELit l) -> l )  $  descendM f (ELit lit)
+        where
+          f e = do
+            r <- reduce e
+            oneofR r
+
+
+instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce (Domainn Expr) m where
+    reduce _   = return []
+    single x   = return [EDom x]
+    subterms _ = return []
+
+
 instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce (Op Expr) m where
 
     single o = ttypeOf o >>= singleLitExpr
@@ -171,30 +195,6 @@ reduce_op2 f subs = do
   case subs of
     [a,b] -> reduceBop f a b
     _ -> return []
-
-
-instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce (Domainn Expr) m where
-    reduce _   = return []
-    single x   = return [EDom x]
-    subterms _ = return []
-
-
-instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Literal m where
-    single t   = ttypeOf t >>= singleLitExpr
-    subterms x = return . map ELit .  innersExpand doSubs $ x
-
-    reduce lit = do
-        rLits <- reduceAllChildren lit
-        return . innersExpand doSubs $ rLits
-
-
-reduceAllChildren :: (Monad m, Applicative m, HasGen m, WithDoms m, HasLogger m)
-                  => Literal  -> m Literal
-reduceAllChildren lit  = fmap (\(ELit l) -> l )  $  descendM f (ELit lit)
-  where
-    f e = do
-      r <- reduce e
-      oneofR r
 
 
 doSubs :: forall a. [a] -> [[a]]
