@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleInstances, KindSignatures, FlexibleContexts #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Gen.Reduce.Data where
 
@@ -174,6 +174,30 @@ instance WithDoms (StateT Spec Identity) where
 instance HasGen (StateT TFGen Identity) where
   getGen  = get
   putGen  = put
+
+data WithGen a = WithGen { withGen_gen :: TFGen
+                         , withGen_val :: a
+                         }
+
+withGen_new :: HasGen m => a -> m (WithGen a)
+withGen_new a = do
+  g <- getGen
+  return $ WithGen{withGen_gen=g, withGen_val = a}
+
+withGen_put :: forall (m :: * -> *) t.
+               MonadState (WithGen t) m =>
+               t -> m ()
+withGen_put val = do
+  modify $ \st -> st{withGen_val = val }
+
+instance (Monad m, Applicative m) => HasLogger (StateT (WithGen a) m) where
+    getLog   = return LSEmpty
+    putLog _ = return ()
+
+
+instance (Monad m, Applicative m) => HasGen (StateT (WithGen a) m) where
+  getGen   = gets withGen_gen
+  putGen g = modify $ \st -> st{withGen_gen = g }
 
 
 instance HasLogger (StateT RState IO)  where
