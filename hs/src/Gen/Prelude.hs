@@ -183,9 +183,9 @@ _genSample e ss  = do
         putStrLn . renderSmall $ ""
             P.$+$ ( pretty r )
 
--- genSample :: GG a -> SpecState -> IO [a]
+genSample :: GG a -> SpecState -> IO [a]
 genSample e ss  = do
-   mapM (\_ -> generate $ evalStateT  e ss ) [0..10]
+   mapM (\_ -> generate $ evalStateT  e ss ) [0..10 :: Int]
 
 renderSmall :: Pretty a => a -> String
 renderSmall = P.renderStyle (P.style { P.lineLength = 120 }) . pretty

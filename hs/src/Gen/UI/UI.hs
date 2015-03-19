@@ -40,6 +40,7 @@ data UI
     { spec_directory     :: FilePath
     , error_kind         :: KindI
     , error_status       :: StatusI
+    , error_choices      :: Maybe FilePath
 
     , list_kinds         :: Bool
     , list_statuses      :: Bool
@@ -207,6 +208,11 @@ ui  = modes
                                      &= groupname "Reduction"
                                      &= explicit
                                      &= help "The error Status e.g. ParseError_"
+     , error_choices    = Nothing    &= typFile
+                                     &= name "choices"
+                                     &= groupname "Reduction"
+                                     &= explicit
+                                     &= help "Use log-following if given otherwise refine all models"
      , list_statuses    = False      &= name "list-statuses"
                                      &= groupname "Reduction"
                                      &= explicit
