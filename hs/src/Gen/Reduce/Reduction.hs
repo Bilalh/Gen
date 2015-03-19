@@ -192,10 +192,23 @@ reduce_op2 :: forall (m :: * -> *).
               (HasGen m, WithDoms m, HasLogger m) =>
               ([Expr] -> Op Expr) -> [Expr] -> m [Op Expr]
 reduce_op2 f subs = do
-  case subs of
-    [a,b] -> reduceBop f a b
-    _ -> return []
+  rs <- mapM reduce subs
 
+  case all (== []) rs of
+    True   -> return []
+    False -> do
+      xrs <- zipWithM giveVals subs rs
+      return [ f vs | vs <- sequence xrs
+             , or $ zipWith (\z1 z2 -> runIdentity $ simpler1 z1 z2) vs subs ]
+
+  where
+  giveVals :: (HasGen m, HasLogger m)
+           => t -> [t] -> m [t]
+  giveVals defaul []  = return [defaul]
+  giveVals defaul [x] = return [x,defaul]
+  giveVals _ (x:xs) = do
+    x2 <- oneofR xs
+    return [x,x2]
 
 
 reduceBop :: (WithDoms m, HasGen m, HasLogger m) =>
