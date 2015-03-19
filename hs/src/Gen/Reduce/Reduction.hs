@@ -206,50 +206,10 @@ reduce_op2 f subs = do
            => t -> [t] -> m [t]
   giveVals defaul []  = return [defaul]
   giveVals defaul [x] = return [x,defaul]
-  giveVals _ (x:xs) = do
-    x2 <- oneofR xs
-    return [x,x2]
-
-
-reduceBop :: (WithDoms m, HasGen m, HasLogger m) =>
-             ( [Expr] -> Op Expr) -> Expr -> Expr -> m [Op Expr]
-reduceBop t a b=  do
-  addLog "reduceBop" [nn "a" a, nn "b" b]
-  singles <- fmap (  map (\(aa,bb) -> t [aa, bb] ) . catMaybes ) . sequence $
-       [
-         (a, )  -| (single b >>= logArr "reduceBopSingle 1" >>= oneofR, b)
-       , (, b)  -| (single a >>= logArr "reduceBopSingle 2" >>= oneofR , a)
-
-       ]
-
-  reduced <- rr
-
-  return $ singles ++ reduced
-
-   where
-     rr :: (WithDoms m, HasGen m, HasLogger m) => m ( [Op Expr] )
-     rr = do
-       addLog "rr" []
-       ra <- reduce a
-       addLog "rr" [nn "ra" (vcat $ map pretty ra)]
-       rb <- reduce b
-       addLog "rr" [nn "rb" (vcat $ map pretty rb)]
-       case (ra, rb) of
-        ([],[])   -> return $ []
-
-        (as, bs) -> do
-          xa <- giveVals a as
-          xb <- giveVals b bs
-
-          return [ t vs | vs <- sequence [xa,xb]
-                 , or $ zipWith (\z1 z2 -> runIdentity $ simpler1 z1 z2) vs [a,b]]
-
-
-     giveVals defaul []  = return [defaul]
-     giveVals defaul [x] = return [x,defaul]
-     giveVals _ (x:xs) = do
-       x2 <- oneofR xs
-       return [x,x2]
+  giveVals _ [x,y]    = return [x,y]
+  giveVals _ (x:xs)   = do
+       return (x:xs)
+    -- return [x,last xs]
 
 
 infixl 1 -|
