@@ -23,13 +23,13 @@ import Gen.Reduce.Inners
 import qualified Data.Foldable as F
 import qualified Data.Traversable as T
 
-class (HasGen m, WithDoms m, HasLogger m) => Reduce a m where
+class (HasGen m,  HasLogger m) => Reduce a m where
     reduce   :: a -> m [a]    -- list of smaller exprs
     single   :: a -> m [Expr] -- smallest literal e.g  [true, false] for  a /\ b
     subterms :: a -> m [Expr] -- a /\ b  -->   [a, b]
 
 
-instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
+instance (HasGen m,  HasLogger m) =>  Reduce Expr m where
 
     reduce EEmptyGuard       = return []
     reduce EMetaVar{}        = return []
@@ -111,7 +111,7 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Expr m where
     subterms (EMetaVar _)      = return []
 
 
-instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Constant m where
+instance (HasGen m,  HasLogger m) =>  Reduce Constant m where
 
     single t = ttypeOf t >>= singleLitExpr
 
@@ -119,31 +119,70 @@ instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Constant m where
     reduce _   = return []
 
 
-instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce Literal m where
+instance (HasGen m,  HasLogger m) =>  Reduce Literal m where
     single t   = ttypeOf t >>= singleLitExpr
     subterms x = return . map ELit .  innersExpand reduceLength $ x
 
     reduce li = do
-        rLits <- reduceAllChildren li
-        return . innersExpand reduceLength $ rLits
+        rLits <- getReducedChildren li
+        let lss = map (replaceChildren li) (transposeFill rLits)
+        let res = concatMap (innersExpand reduceLength) lss
+        return res
 
       where
-      reduceAllChildren :: (Monad m, Applicative m, HasGen m, WithDoms m, HasLogger m)
-                        => Literal  -> m Literal
-      reduceAllChildren lit  = fmap (\(ELit l) -> l )  $  descendM f (ELit lit)
+
+      getReducedChildren :: (Monad m, Applicative m, HasGen m,  HasLogger m)
+                         => Literal -> m ([([Expr], Expr)])
+      getReducedChildren lit = do
+        start <- withGen_new []
+        fin <- flip runStateT start $ descendM fff (ELit lit)
+        return $ reverse . withGen_val . snd $ fin
         where
-          f e = do
-            r <- reduce e
-            oneofR r
+           fff (x :: Expr) = do
+             xs :: [([Expr],Expr)] <- gets withGen_val
+             c <- reduce x
+             let ht = heads_tails c
+             withGen_put ((ht,x) : xs)
+
+             return x
+
+transposeFill :: (Eq a) => [([a], a)] -> [[a]]
+transposeFill ee =
+  let len    = maximum $ map (length . fst) ee
+      padded = [ ll ++ (replicate (len - length ll) defVal)
+               | (ll, defVal) <- ee ]
+  in  transpose padded
 
 
-instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce (Domainn Expr) m where
+replaceChildren :: Literal -> [Expr] -> Literal
+replaceChildren lit news = fst . flip runState news $ f1
+                           <$> T.mapM fff ch1
+   where
+    (ch1, f1) = biplate lit
+    fff _ = do
+      (x:xs) <- get
+      put xs
+      return x
+
+    exprToLit :: Expr -> Literal
+    exprToLit (ELit l ) = l
+    exprToLit e = error . show . vcat $
+                  [ "exprToLit"
+                  , nn "e" e
+                  , nn "e" (pretty . groom $ e)
+                  , nn "org" lit
+                  , nn "org" (pretty . groom $ lit)
+                  , nn "news" (vcat . map pretty $ news)
+                  , nn "news" (vcat . map (pretty. groom) $ news)]
+
+
+instance (HasGen m,  HasLogger m) =>  Reduce (Domainn Expr) m where
     reduce _   = return []
     single x   = return [EDom x]
     subterms _ = return []
 
 
-instance (HasGen m, WithDoms m, HasLogger m) =>  Reduce (Op Expr) m where
+instance (HasGen m,  HasLogger m) =>  Reduce (Op Expr) m where
 
     single o = ttypeOf o >>= singleLitExpr
 
@@ -184,12 +223,12 @@ subterms_op e subs =  do
   return allowed
 
 reduce_op :: forall (m :: * -> *).
-             (HasGen m, WithDoms m, HasLogger m) =>
+             (HasGen m,  HasLogger m) =>
              Op Expr -> [Expr] -> m [Op Expr]
 reduce_op x subs = reduce_op2 (_replaceOpChildren x) subs
 
 reduce_op2 :: forall (m :: * -> *).
-              (HasGen m, WithDoms m, HasLogger m) =>
+              (HasGen m,  HasLogger m) =>
               ([Expr] -> Op Expr) -> [Expr] -> m [Op Expr]
 reduce_op2 f subs = do
   rs <- mapM reduce subs
@@ -213,7 +252,7 @@ reduce_op2 f subs = do
 
 
 infixl 1 -|
-(-|) :: (Simpler a e, HasGen m, WithDoms m, HasLogger m) =>
+(-|) :: (Simpler a e, HasGen m,  HasLogger m) =>
         (a -> (c,d) ) -> (m a, e) -> m (Maybe ((c,d)))
 f  -| (a,e) = do
    aa <-a
@@ -226,13 +265,15 @@ f  -| (a,e) = do
 reduceLength :: forall a. [a] -> [[a]]
 reduceLength xs =  heads_tails . init $ inits xs
   where
-  heads_tails [] = []
-  heads_tails (_:es) = [e | (e,i) <- zip es [0..], (i >= length es - 2) || (i < 2)  ]
+
+heads_tails :: forall t. [t] -> [t]
+heads_tails [] = []
+heads_tails (_:es) = [e | (e,i) <- zip es [0..], (i >= length es - 2) || (i < 2)  ]
 
 
 
 -- | return the simplest literals, two at most
-singleLit :: (HasGen m, HasLogger m, WithDoms m) => TType -> m [Expr]
+singleLit :: (HasGen m, HasLogger m) => TType -> m [Expr]
 singleLit TInt = do
   pure ConstantInt<*> chooseR (-5, 5) >>= return . (\a ->  [ECon a ] )
 
@@ -325,7 +366,7 @@ singleLit l@(TPar x) = do
 singleLit TAny = rrError "singleLit of TAny" []
 singleLit ty   = rrError "singleLit" [nn "ty" ty ]
 
-singleLitExpr :: (HasGen m, HasLogger m, WithDoms m) => TType -> m [Expr]
+singleLitExpr :: (HasGen m, HasLogger m) => TType -> m [Expr]
 singleLitExpr ty = do
   addLog "singleLitExpr" [nn "ty" ty]
   singleLit $ ty
@@ -385,6 +426,7 @@ _replaceOpChildren op news = fst . flip runState news $ f1 <$> T.mapM fff ch1
 _replaceOpChildren_ex :: Op Expr
 _replaceOpChildren_ex = _replaceOpChildren
   [opp| 8 ** 3  |]  [  [essencee| 4 |], [essencee| 2 |] ]
+
 
 
 --http://stackoverflow.com/questions/3015962/zipping-with-padding-in-haskell
