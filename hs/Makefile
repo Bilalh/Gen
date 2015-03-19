@@ -7,11 +7,11 @@ trace_install:
 clean:
 	@bash scripts/clean.sh
 
-tests:
+failures:
 	@BUILD_TESTS=yes bash scripts/install.sh && \
 	./dist/build/gen-testing/gen-testing  -j 4 --color always  | grep -v OK
 
-tests_run:
+failures_run:
 	@./dist/build/gen-testing/gen-testing  -j 4 --color always | grep -v OK
 
 
