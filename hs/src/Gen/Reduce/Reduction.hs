@@ -141,7 +141,8 @@ instance (HasGen m,  HasLogger m) =>  Reduce Literal m where
            fff (x :: Expr) = do
              xs :: [([Expr],Expr)] <- gets withGen_val
              c <- reduce x
-             let ht = heads_tails c
+             -- let ht = heads_tails c
+             let ht = c
              withGen_put ((ht,x) : xs)
 
              return x
@@ -263,8 +264,8 @@ f  -| (a,e) = do
 
 -- | Return the two shortest & two longest sequence of the elements
 reduceLength :: forall a. [a] -> [[a]]
-reduceLength xs =  heads_tails . init $ inits xs
-  where
+-- reduceLength xs =  heads_tails . init $ inits xs
+reduceLength xs =  init $ inits xs
 
 heads_tails :: forall t. [t] -> [t]
 heads_tails [] = []
