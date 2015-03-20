@@ -169,18 +169,19 @@ mainWithArgs Reduce{..} = do
   seed_ <- giveSeed _seed
   db <- giveDb db_directory
 
-  let args = def{oErrKind_          = error_kind
-                ,oErrStatus_        = error_status
-                ,oErrChoices_       = error_choices
-                ,outputDir_         = output_directory
-                ,specDir_           = spec_directory
-                ,R.cores_           = _cores
-                ,rgen_              = mkrGen (seed_)
-                ,specTime_          = per_spec_time
-                ,binariesDirectory_ = binaries_directory
-                ,toolchainOutput_   = toolchain_ouput
-                ,deletePassing_     = delete_passing
+  let args = def{oErrKind_           = error_kind
+                ,oErrStatus_         = error_status
+                ,oErrChoices_        = error_choices
+                ,outputDir_          = output_directory
+                ,specDir_            = spec_directory
+                ,R.cores_            = _cores
+                ,rgen_               = mkrGen (seed_)
+                ,specTime_           = per_spec_time
+                ,binariesDirectory_  = binaries_directory
+                ,toolchainOutput_    = toolchain_ouput
+                ,deletePassing_      = delete_passing
                 ,resultsDB_          = db
+                ,mostReducedChoices_ = error_choices
                 }
 
   doMeta output_directory no_csv binaries_directory

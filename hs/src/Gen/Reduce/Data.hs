@@ -23,7 +23,7 @@ type Hash = Int
 data RState = RState
     { oErrKind_         :: KindI
     , oErrStatus_       :: StatusI
-    , oErrChoices_       :: Maybe FilePath
+    , oErrChoices_      :: Maybe FilePath
     , outputDir_        :: FilePath
     , specDir_          :: FilePath
 
@@ -35,10 +35,11 @@ data RState = RState
     , binariesDirectory_ :: Maybe FilePath
     , toolchainOutput_   :: ToolchainOutput
 
-    , mostReduced_      :: Maybe RunResult
-    , otherErrors_      :: [RunResult]
-    , rlogs_            :: LogsTree
-    , deletePassing_    :: Bool
+    , mostReduced_        :: Maybe RunResult
+    , mostReducedChoices_ :: Maybe FilePath
+    , otherErrors_        :: [RunResult]
+    , rlogs_              :: LogsTree
+    , deletePassing_      :: Bool
 
     , resultsDB_        :: ResultsDB
     } deriving (Show)
@@ -94,21 +95,22 @@ instance Pretty RState where
                 ])
 
 instance Default RState where
-    def =  RState{oErrKind_          = error "need oErrKind_"
-                 ,oErrStatus_        = error "need oErrStatus_"
-                 ,oErrChoices_        = error "need oErrEprime"
-                 ,cores_             = error "need cores"
-                 ,outputDir_         = error "need outputDir_"
-                 ,rgen_              = error "need rgen_"
-                 ,specDir_           = error "need specDir_"
-                 ,specTime_          = error "need specTime_"
-                 ,mostReduced_       = Nothing
-                 ,otherErrors_       = []
-                 ,rlogs_             = LSEmpty
-                 ,binariesDirectory_ = Nothing
-                 ,toolchainOutput_   = def
-                 ,deletePassing_     = False
-                 , resultsDB_        = H.empty
+    def =  RState{oErrKind_           = error "need oErrKind_"
+                 ,oErrStatus_         = error "need oErrStatus_"
+                 ,oErrChoices_        = error "need oErrChoices_"
+                 ,cores_              = error "need cores"
+                 ,outputDir_          = error "need outputDir_"
+                 ,rgen_               = error "need rgen_"
+                 ,specDir_            = error "need specDir_"
+                 ,specTime_           = error "need specTime_"
+                 ,mostReduced_        = Nothing
+                 ,otherErrors_        = []
+                 ,rlogs_              = LSEmpty
+                 ,binariesDirectory_  = Nothing
+                 ,toolchainOutput_    = def
+                 ,deletePassing_      = False
+                 ,resultsDB_          = H.empty
+                 ,mostReducedChoices_ = error "set mostReducedChoices_=oErrChoices_"
                  }
 
 instance Pretty RunResult where
