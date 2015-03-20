@@ -5,20 +5,15 @@ module Gen.Reduce.Reduction where
 
 import Conjure.Language.AbstractLiteral
 import Conjure.Language.Constant
-import Conjure.Language.Definition
 import Conjure.Language.Expression.Op
-import Data.Data
 import Data.List                        (splitAt)
-import Data.Maybe                       (fromJust)
 import Gen.Arbitrary.Type               (typesUnify)
 import Gen.AST.TH
-import Gen.AST.Ops
 import Gen.Prelude
 import Gen.Reduce.Data
 import Gen.Reduce.Simpler
 import Gen.Reduce.Inners
 import Data.Generics.Uniplate.Data
-import Gen.Reduce.Inners
 
 import qualified Data.Foldable as F
 import qualified Data.Traversable as T

@@ -5,14 +5,12 @@ module Gen.Reduce.Data where
 
 import Conjure.Language.Constant
 import Data.HashMap.Strict       (HashMap)
-import Data.IntSet               (IntSet)
 import Gen.IO.Toolchain          (KindI, StatusI)
 import Gen.Prelude
 import System.Random
 import System.Random.TF
 
 import qualified Data.HashMap.Strict as H
-import qualified Data.IntSet         as IS
 import qualified Text.PrettyPrint    as Pr
 
 etrue, efalse :: Expr
@@ -20,7 +18,7 @@ etrue  = ECon (ConstantBool True)
 efalse = ECon (ConstantBool False)
 
 type RR a = StateT RState IO a
-
+type Hash = Int
 
 data RState = RState
     { oErrKind_         :: KindI
@@ -39,18 +37,25 @@ data RState = RState
 
     , mostReduced_      :: Maybe RunResult
     , otherErrors_      :: [RunResult]
-    , hashes_           :: IntSet
     , rlogs_            :: LogsTree
     , deletePassing_    :: Bool
 
-    , resultsDB_         :: Maybe ResultsDB
+    , resultsDB_        :: ResultsDB
     } deriving (Show)
 
-data RunResult = RunResult{
+data RunResult =
+    OurError{
       resDirectory_ :: FilePath
     , resErrKind_   :: KindI
     , resErrStatus_ :: StatusI
-    } deriving (Eq, Ord, Show, Read, Data, Typeable, Generic)
+    }
+    | StoredError{
+      resDirectory_ :: FilePath
+    , resErrKind_   :: KindI
+    , resErrStatus_ :: StatusI
+    }
+    | Passing
+    deriving (Eq, Ord, Show, Read, Data, Typeable, Generic)
 
 
 type ResultsDB = HashMap Int RunResult
@@ -63,7 +68,6 @@ instance ToJSON (HashMap Int RunResult) where
 
 instance FromJSON (HashMap Int RunResult) where
     parseJSON  val = H.fromList <$> parseJSON val
-
 
 
 
@@ -87,7 +91,6 @@ instance Pretty RState where
                 , nn "otherErrors_ =" (prettyArr otherErrors_)
 
                 -- , nn "rgen_ =" (show rgen_)
-                , nn "hashes_ =" (groom hashes_)
                 ])
 
 instance Default RState where
@@ -99,30 +102,14 @@ instance Default RState where
                  ,rgen_              = error "need rgen_"
                  ,specDir_           = error "need specDir_"
                  ,specTime_          = error "need specTime_"
-                 ,hashes_            = IS.empty
                  ,mostReduced_       = Nothing
                  ,otherErrors_       = []
                  ,rlogs_             = LSEmpty
                  ,binariesDirectory_ = Nothing
                  ,toolchainOutput_   = def
                  ,deletePassing_     = False
-                 , resultsDB_        = def
+                 , resultsDB_        = H.empty
                  }
-
-
--- | Check if the spec's hash is contained, (add it if it is not)
-containHashAdd :: Spec -> RR Bool
-containHashAdd newE= do
-  let newHash = hash newE
-  is <- gets hashes_
-  case newHash `IS.member` is of
-    True -> return True
-    False -> do
-        let is' = newHash `IS.insert` is
-        modify (\st -> st{ hashes_=is'} )
-        return False
-
-
 
 instance Pretty RunResult where
     pretty = pretty . groom

@@ -8,6 +8,8 @@ module Gen.IO.Toolchain (
   , runCommand
   , saveBinariesCsv
   , copyMetaToSpecDir
+  , logSpec
+  , doMeta
   )where
 
 import Conjure.Language.Definition (Model)
@@ -26,10 +28,13 @@ import System.Process              (StdStream (..), createProcess, proc,
                                     showCommandForUser, std_err, std_out,
                                     waitForProcess)
 
+logSpec :: MonadIO m => Spec -> m ()
+logSpec sp = do
+  liftIO $ putStrLn . renderSmall . nest 4 . vcat $ ["Processing", pretty sp]
+  liftIO $ putStrLn "\n\n"
 
 writeModelDef :: MonadIO m => FilePath -> Model -> m FilePath
 writeModelDef dir spec = do
-    liftIO $ putStrLn . renderSmall . nest 4 . vcat $ ["Processing", pretty spec]
     liftIO $ createDirectoryIfMissing True  dir
 
     let name = (dir </> "spec" <.> ".essence")

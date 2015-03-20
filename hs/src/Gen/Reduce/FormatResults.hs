@@ -1,19 +1,16 @@
+module Gen.Reduce.FormatResults(formatResults, copyDirectory) where
 
-
-module Gen.Reduce.FormatResults(formatResults) where
-
-import Gen.Reduce.Data
 import Gen.Prelude
-
-import System.FilePath(takeFileName)
-import System.Directory(renameDirectory, copyFile)
+import Gen.Reduce.Data
+import System.Directory (copyFile, renameDirectory)
+import System.FilePath  (takeFileName)
 
 formatResults :: RState -> IO ()
 formatResults RState{..} = do
 
   case mostReduced_ of
-    Just RunResult{..} -> do
-      renameDirectory  resDirectory_ finalDir
+    Just r -> do
+      renameDirectory  (resDirectory_ r) finalDir
 
     Nothing -> do
       if True then
@@ -35,7 +32,6 @@ formatResults RState{..} = do
   createDirectoryIfMissing True stepsDir
 
   forM_ toDelete $ \d -> do
-    -- removeDirectoryRecursive (outputDir_ </> d)
     renameDirectory (outputDir_ </> d) (stepsDir </> d)
 
 
@@ -46,10 +42,11 @@ formatResults RState{..} = do
     stepsDir  = outputDir_ </> "zsteps"
 
     classify :: RunResult -> IO ()
-    classify (RunResult{..}) = do
-      let newDir = othersDir </> (show resErrKind_) </> (show resErrStatus_)
+    classify r = do
+      let newDir = othersDir </> (show (resErrKind_ r)) </> (show (resErrStatus_ r))
       createDirectoryIfMissing True newDir
-      renameDirectory resDirectory_ (newDir </> (takeFileName resDirectory_) )
+      renameDirectory (resDirectory_ r) (newDir </> (takeFileName (resDirectory_ r)) )
+
 
 copyDirectory :: FilePath -> FilePath -> IO ()
 copyDirectory from to = do

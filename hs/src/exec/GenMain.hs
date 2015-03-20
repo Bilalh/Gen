@@ -15,6 +15,7 @@ import Gen.IO.Toolchain            (KindI (..), StatusI (..), kindsList,
 import Gen.Reduce.Data             (RState (..), mkrGen)
 import Gen.Reduce.FormatResults    (formatResults)
 import Gen.Reduce.Reduce           (reduceMain)
+import Gen.Reduce.Runner           (giveDb, saveDB)
 import Gen.UI.UI
 import System.Console.CmdArgs      (cmdArgs)
 import System.CPUTime              (getCPUTime)
@@ -166,6 +167,8 @@ mainWithArgs Reduce{..} = do
 
 
   seed_ <- giveSeed _seed
+  db <- giveDb db_directory
+
   let args = def{oErrKind_          = error_kind
                 ,oErrStatus_        = error_status
                 ,oErrChoices_       = error_choices
@@ -177,10 +180,13 @@ mainWithArgs Reduce{..} = do
                 ,binariesDirectory_ = binaries_directory
                 ,toolchainOutput_   = toolchain_ouput
                 ,deletePassing_     = delete_passing
+                ,resultsDB_          = db
                 }
 
   doMeta output_directory no_csv binaries_directory
+
   (_,state) <- reduceMain args
+  saveDB db_directory (resultsDB_  state)
   formatResults state
 
 
@@ -315,5 +321,6 @@ _reduceDebug = do
                    , limit_time         = Nothing
                    , no_csv             = False
                    , delete_passing     = False
+                   , db_directory       = Nothing
                    }
     limiter (limit_time ec) (mainWithArgs ec)
