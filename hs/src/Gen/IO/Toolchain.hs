@@ -31,7 +31,6 @@ import System.Process              (StdStream (..), createProcess, proc,
 logSpec :: MonadIO m => Spec -> m ()
 logSpec sp = do
   liftIO $ putStrLn . renderSmall . nest 4 . vcat $ ["Processing", pretty sp]
-  liftIO $ putStrLn "\n\n"
 
 writeModelDef :: MonadIO m => FilePath -> Model -> m FilePath
 writeModelDef dir spec = do

@@ -174,7 +174,7 @@ runSpec spE = do
       let stillErroed  = sameError res
       storeInDB spE (snd stillErroed)
 
-      liftIO $ print $ ("Hasr rError?" :: String, fst stillErroed)
+      liftIO $ print $ ("Has rrError?" :: String, fst stillErroed)
       liftIO $ putStrLn "\n\n"
 
       case stillErroed of

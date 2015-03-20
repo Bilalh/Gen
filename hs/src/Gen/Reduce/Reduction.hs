@@ -356,8 +356,6 @@ singleLit l@(TPar x) = do
             return $ [par, empty]
 
 
--- singleLit (TUnamed x) = _x
--- singleLit (TEnum x) = _x
 
 singleLit TAny = rrError "singleLit of TAny" []
 singleLit ty   = rrError "singleLit" [nn "ty" ty ]
@@ -394,9 +392,7 @@ __run f ee = do
   mapM_ (print  . pretty )  res
   return res
 
--- __depths :: forall t c'.
---             (DepthOf c', Pretty c', Ord c') =>
---             (t -> StateT EState Identity [c']) -> t -> IO ()
+
 __depths :: forall c' c'1.
             (DepthOf c'1, DepthOf c', Pretty c'1, Pretty c', Ord c') =>
             (c'1 -> StateT EState Identity [c']) -> c'1 -> IO ()
