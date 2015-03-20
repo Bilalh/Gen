@@ -2,11 +2,9 @@
 # Completion for gen
 _gen()
 {
-    # local CMDARGS_DEBUG=1 # uncomment to debug this script
-
 
     local last=${COMP_WORDS[COMP_CWORD-1]}
-    # MODIFY THIS IF  ONLY for a new command
+    # MODIFY THIS IF  ONLY for a new sub command
     if [ "${last}x" = "genx" ]; then
         COMPREPLY=( $(compgen -W "essence reduce link meta json script-toolchain script-recheck" -- $cur) )
         return 0
@@ -26,10 +24,6 @@ _gen()
     export CMDARGS_COMPLETE=$((${COMP_CWORD} - 1))
     result=`gen ${COMP_WORDS[@]:1}`
 
-    if [ -n $CMDARGS_DEBUG ]; then
-        echo Call \(${COMP_WORDS[@]:1}, $CMDARGS_COMPLETE\) > cmdargs.tmp
-        echo $result >> cmdargs.tmp
-    fi
     unset CMDARGS_COMPLETE
     unset CMDARGS_COMPLETE_POS
 
@@ -48,8 +42,5 @@ _gen()
     done
     unset IFS
 
-    if [ -n $CMDARGS_DEBUG ]; then
-        echo echo COMPREPLY: ${#COMPREPLY[@]} = ${COMPREPLY[@]} >> cmdargs.tmp
-    fi
 }
 complete -o bashdefault -F _gen gen
