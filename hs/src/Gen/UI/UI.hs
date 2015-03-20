@@ -55,6 +55,7 @@ data UI
     , binaries_directory :: Maybe FilePath
     , limit_time         :: Maybe Int
     , no_csv             :: Bool
+    , db_directory       :: Maybe FilePath
     }
 
   | Link
@@ -246,6 +247,11 @@ ui  = modes
                                      &= typDir
                                      &= explicit
                                      &= help "Directory to prepend the $PATH before running progams."
+     , db_directory       = Nothing  &= name "db-dir"
+                                     &= groupname "Other"
+                                     &= typDir
+                                     &= explicit
+                                     &= help "Cache the result of running a spec. Useful for development"
      , limit_time       = Nothing    &= name "limit-time"
                                      &= groupname "Other"
                                      &= explicit
