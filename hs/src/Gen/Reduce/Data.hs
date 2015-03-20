@@ -1,17 +1,19 @@
-{-# LANGUAGE FlexibleInstances, KindSignatures, FlexibleContexts #-}
+{-# LANGUAGE DeriveDataTypeable, DeriveGeneric, FlexibleContexts, FlexibleInstances,
+             KindSignatures #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Gen.Reduce.Data where
 
 import Conjure.Language.Constant
+import Data.HashMap.Strict       (HashMap)
 import Data.IntSet               (IntSet)
 import Gen.IO.Toolchain          (KindI, StatusI)
 import Gen.Prelude
 import System.Random
 import System.Random.TF
 
-import qualified Data.IntSet      as IS
-import qualified Text.PrettyPrint as Pr
-
+import qualified Data.HashMap.Strict as H
+import qualified Data.IntSet         as IS
+import qualified Text.PrettyPrint    as Pr
 
 etrue, efalse :: Expr
 etrue  = ECon (ConstantBool True)
@@ -40,13 +42,30 @@ data RState = RState
     , hashes_           :: IntSet
     , rlogs_            :: LogsTree
     , deletePassing_    :: Bool
+
+    , resultsDB_         :: Maybe ResultsDB
     } deriving (Show)
 
 data RunResult = RunResult{
       resDirectory_ :: FilePath
     , resErrKind_   :: KindI
     , resErrStatus_ :: StatusI
-    } deriving (Show)
+    } deriving (Eq, Ord, Show, Read, Data, Typeable, Generic)
+
+
+type ResultsDB = HashMap Int RunResult
+
+instance FromJSON RunResult
+instance ToJSON   RunResult
+
+instance ToJSON (HashMap Int RunResult) where
+    toJSON  = toJSON . H.toList
+
+instance FromJSON (HashMap Int RunResult) where
+    parseJSON  val = H.fromList <$> parseJSON val
+
+
+
 
 instance Pretty RState where
     pretty RState{..} =
@@ -87,6 +106,7 @@ instance Default RState where
                  ,binariesDirectory_ = Nothing
                  ,toolchainOutput_   = def
                  ,deletePassing_     = False
+                 , resultsDB_        = def
                  }
 
 

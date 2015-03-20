@@ -41,6 +41,7 @@ runSpec spE = do
         choices <- gets oErrChoices_
 
         let refineWay :: Maybe FilePath -> KindI -> RefineType
+            --FIXME hadle Compact
             refineWay Nothing  RefineCompact_ = Refine_All
             refineWay Nothing  RefineRandom_  = Refine_All
             refineWay (Just _) RefineCompact_ = Refine_Only
