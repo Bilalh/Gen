@@ -139,21 +139,25 @@ if __name__ == "__main__":
     startTime = time.time()
 
     # Make the eprimes
-    if op.refine_all:
-        (essence_refine, refine_wall_time) = run.run_refine_all_essence(
-            op=op, commands=commands, extra_env=extra_env)
+    if op.choices:
+        (essence_refine, refine_wall_time) = run.run_refine_essence_with_choices(
+                op=op, commands=commands, extra_env=extra_env)
+        successful = essence_refine['cmd_used']['status_'] in [Status.success, Status.timeout]
     else:
-        (essence_refine, refine_wall_time) = run.run_refine_essence(
-            op=op, commands=commands, random=op.num_cores - 1, cores=op.num_cores,
-            extra_env=extra_env)
-
+        if op.refine_all:
+            (essence_refine, refine_wall_time) = run.run_refine_all_essence(
+                op=op, commands=commands, extra_env=extra_env)
+        else:
+            (essence_refine, refine_wall_time) = run.run_refine_essence(
+                op=op, commands=commands, random=op.num_cores - 1, cores=op.num_cores,
+                extra_env=extra_env)
+        successful = all(  res['status_'] in [Status.success, Status.timeout]
+            for res in essence_refine.values() )
 
     endTime = time.time()
     logger.info("essence_refine: %s", pformat(essence_refine))
 
 
-    successful = all(  res['status_'] in [Status.success, Status.timeout]
-            for res in essence_refine.values() )
     settings = with_settings(essence_refine, op=op,
             time_taken=refine_wall_time,
             successful=successful, consistent=True)

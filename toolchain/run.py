@@ -49,6 +49,41 @@ class Status(Enum):
 
 
 
+def run_refine_essence_with_choices(*, op, commands, extra_env):
+    limit = op.timeout
+    date_start = datetime.utcnow()
+
+    mapping = dict(essence=op.essence, outdir=op.outdir)
+    mapping['itimeout']  = int(math.ceil(limit))
+    mapping['seed'] = uniform_int(0, 2 ** 24)
+    mapping['saved_choices'] = op.choices
+    mapping['choices_json']  = op.outdir / 'follow.choices.json'
+
+
+    (cmd_kind, cmd_template) = commands.log_follow
+
+    cmd_arr=shlex.split(cmd_template.format(**mapping))
+
+    logger.warn("running %s:  %s\n\t%s", cmd_kind, cmd_arr, " ".join(cmd_arr))
+    (res, output0) = run_with_timeout(mapping['itimeout'], cmd_kind, cmd_arr, extra_env=extra_env, vals=mapping)
+    output = "###" + " ".join(cmd_arr) + "\n" + output0
+
+    date_end=datetime.utcnow()
+    diff = date_end - date_start
+
+    with (op.outdir / "_refine.outputs").open("w") as f:
+        f.write(output)
+
+    with (op.outdir / "follow.refine-output").open("w") as f:
+        f.write(output0)
+
+    dic = res.__dict__
+    dic.update(vals=mapping)
+
+    eprimes = [ ep.name for ep in op.outdir.glob('*.eprime') ]
+    return (dict(eprime_names=eprimes, cmd_used=dic), res.real_time)
+
+
 def run_refine_essence(*, op, commands, random, cores, extra_env):
     limit = op.timeout
     date_start = datetime.utcnow()
@@ -84,22 +119,16 @@ def run_refine_essence(*, op, commands, random, cores, extra_env):
 
 
 
-
 # global function for run_refine_essence
 # because nested function can't be pickled
 def run_refine(extra_env, commands, kwargs, i):
 
-    if kwargs['saved_choices']:
+    if i == 0:
+        eprime = kwargs['outdir'] / "model000000.eprime"
+        (cmd_kind, cmd_template) = commands.refine_compact
+    else:
         eprime = kwargs['outdir'] / "model{:06}.eprime".format(i)
         (cmd_kind, cmd_template) = commands.refine_random
-        cmd_template =commands.refine_log_follow(cmd_kind)
-    else:
-        if i == 0:
-            eprime = kwargs['outdir'] / "model000000.eprime"
-            (cmd_kind, cmd_template) = commands.refine_compact
-        else:
-            eprime = kwargs['outdir'] / "model{:06}.eprime".format(i)
-            (cmd_kind, cmd_template) = commands.refine_random
 
     choices_json= eprime.with_suffix('.choices.json')
 

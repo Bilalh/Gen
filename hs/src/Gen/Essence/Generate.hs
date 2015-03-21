@@ -235,7 +235,7 @@ classifySettingI :: EssenceConfig
                  -> SettingI RefineM
                  -> IO Double -- timetaken
 classifySettingI ec errdir out uname
-                 ee@SettingI{successful_=False,data_=RefineM ms,time_taken_} = do
+                 ee@SettingI{successful_=False,data_=RefineMap ms,time_taken_} = do
     let inErrDir = errdir </> "zPerSpec" </> uname
     createDirectoryIfMissing True inErrDir
     renameDirectory (out </> uname ) inErrDir
@@ -358,9 +358,9 @@ copyFiles names inn out needed = forM needed $ \g -> do
     "refine_essence.json" -> do
        readFromJSON (inn </> g) >>= \case
          Nothing -> error $ "Could not parse json of : "  ++ (inn </> g)
-         Just (ss@SettingI{data_=RefineM ms } ) -> do
+         Just (ss@SettingI{data_=RefineMap ms } ) -> do
            let ms' =  M.filterWithKey (\k _ ->  k `S.member` names) ms
-               ss'      = ss{data_=RefineM ms'}
+               ss'      = ss{data_=RefineMap ms'}
            writeToJSON (out </> g) ss'
 
     "solve_eprime.json" -> do

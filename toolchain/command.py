@@ -147,9 +147,10 @@ class ConjureNew(Commands):
                 conjureNew             '{essence}'
                     -q f -a x
                     --output-directory '{outdir}'
-                    --limit-time       {itimeout}
-                    --seed             {seed}
+                    --limit-time        {itimeout}
+                    --seed              {seed}
                     --log-choices
+                    --log-level=logfollow
                 """,
 
                 refine_random="""
@@ -199,16 +200,20 @@ class ConjureNew(Commands):
                 )
 
 
+        log_follow_template="""
+                conjureNew             '{essence}'
+                    -q f -a l
+                    --output-directory '{outdir}'
+                    --limit-time        {itimeout}
+                    --seed              {seed}
+                    --log-choices
+                    --log-level=logfollow
+                    --choices {saved_choices}
+                """
+
         self.sovlve_cmds=[self.refine_param, self.savilerow, self.translate_up,
                             self.validate]
 
-    def refine_log_follow(self, kind):
-        if kind not in [K.refineRandom]:
-            print("Not a vaild kind for log-following {}".format(kind), file=sys.stderr)
-            sys.exit(1)
-        (_, template) = self.kind_to_template(kind)
-        template += "\n--choices {saved_choices}"
-        return template.replace("-a r", "-a l")
-
+        self.log_follow = (K.refineRandom, log_follow_template)
 
 

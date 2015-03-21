@@ -1,10 +1,12 @@
 {-# LANGUAGE DeriveDataTypeable, DeriveGeneric #-}
 module Gen.IO.ToolchainData where
 
-import qualified Data.Aeson as A
 import Data.Data
 import Data.Map (Map)
 import Gen.Prelude
+
+import qualified Data.Aeson as A
+import qualified Data.HashMap.Strict as H
 
 data ToolchainData = ToolchainData
     {
@@ -162,13 +164,28 @@ instance ToJSON ValsM where
     toJSON (ValsM m) =  toJSON m
 
 
-newtype RefineM = RefineM (Map String CmdI)
-    deriving (Show, Eq, Generic, Typeable, Data)
+data RefineM = RefineMap (Map String CmdI)
+             | RefineMultiOutput
+               {
+                 eprime_names :: [FilePath]
+               , cmd_used      :: CmdI
+               } deriving (Show, Eq, Generic, Typeable, Data)
 
 instance FromJSON RefineM where
-  parseJSON val = RefineM <$> parseJSON val
+  parseJSON (A.Object c)
+      |  "cmd_used"     `H.member` c
+      && "eprime_names" `H.member` c
+      && H.size c == 2 = RefineMultiOutput <$>
+                            c A..: "eprime_names" <*>
+                            c A..: "cmd_used"
+  parseJSON val = RefineMap <$> parseJSON val
+
 instance ToJSON RefineM where
-    toJSON (RefineM m) =  toJSON m
+  toJSON (RefineMap m)           =  toJSON m
+  toJSON RefineMultiOutput{..}   =  A.object [ "eprime_names" A..= eprime_names
+                                             , "cmd_used"     A..= cmd_used ]
+
+
 
 newtype SolveM = SolveM (Map String ResultI)
     deriving (Show, Eq, Generic, Typeable, Data)

@@ -92,7 +92,7 @@ runSpec spE = do
 
       let
           sameError :: ToolchainResult -> IO (Bool,Maybe RunResult)
-          sameError (RefineResult SettingI{successful_=False, data_=RefineM ms,outdir_})
+          sameError (RefineResult SettingI{successful_=False, data_=RefineMap ms,outdir_})
               | modelRefineError rrErrorKind = do
               let sks = M.toList $  M.map ( status_ &&& kind_) ms
               resErrChoices_ <- choicesUsed
