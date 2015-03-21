@@ -167,23 +167,27 @@ instance ToJSON ValsM where
 data RefineM = RefineMap (Map String CmdI)
              | RefineMultiOutput
                {
-                 eprime_names :: [FilePath]
+                 eprime_names  :: [FilePath]
                , cmd_used      :: CmdI
+               , choices_made  :: FilePath
                } deriving (Show, Eq, Generic, Typeable, Data)
 
 instance FromJSON RefineM where
   parseJSON (A.Object c)
       |  "cmd_used"     `H.member` c
       && "eprime_names" `H.member` c
-      && H.size c == 2 = RefineMultiOutput <$>
-                            c A..: "eprime_names" <*>
-                            c A..: "cmd_used"
+      && "choices_made" `H.member` c
+      && H.size c == 3 = RefineMultiOutput <$>
+                          c A..: "eprime_names" <*>
+                          c A..: "cmd_used" <*>
+                          c A..: "choices_made"
   parseJSON val = RefineMap <$> parseJSON val
 
 instance ToJSON RefineM where
   toJSON (RefineMap m)           =  toJSON m
   toJSON RefineMultiOutput{..}   =  A.object [ "eprime_names" A..= eprime_names
-                                             , "cmd_used"     A..= cmd_used ]
+                                             , "cmd_used"     A..= cmd_used
+                                             , "choices_made" A..= choices_made ]
 
 
 
