@@ -46,14 +46,16 @@ data RState = RState
 
 data RunResult =
     OurError{
-      resDirectory_ :: FilePath
-    , resErrKind_   :: KindI
-    , resErrStatus_ :: StatusI
+      resDirectory_  :: FilePath
+    , resErrKind_    :: KindI
+    , resErrStatus_  :: StatusI
+    , resErrChoices_ :: FilePath
     }
     | StoredError{
-      resDirectory_ :: FilePath
-    , resErrKind_   :: KindI
-    , resErrStatus_ :: StatusI
+      resDirectory_  :: FilePath
+    , resErrKind_    :: KindI
+    , resErrStatus_  :: StatusI
+    , resErrChoices_ :: FilePath
     }
     | Passing
     deriving (Eq, Ord, Show, Read, Data, Typeable, Generic)
@@ -89,6 +91,7 @@ instance Pretty RState where
                 , nn "toolchainOutput_" toolchainOutput_
 
                 , nn "mostReduced_ =" mostReduced_
+                , nn "mostReducedChoices_ =" mostReducedChoices_
                 , nn "otherErrors_ =" (prettyArr otherErrors_)
 
                 -- , nn "rgen_ =" (show rgen_)

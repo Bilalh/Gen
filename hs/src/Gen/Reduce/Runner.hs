@@ -1,16 +1,19 @@
 module Gen.Reduce.Runner where
 
-import Gen.Classify.Meta (mkMeta)
+import Gen.Classify.Meta        (mkMeta)
 import Gen.IO.Formats
-import Gen.IO.Toolchain  hiding (ToolchainData (..))
+import Gen.IO.Toolchain         hiding (ToolchainData (..))
 import Gen.Prelude
 import Gen.Reduce.Data
 import Gen.Reduce.FormatResults
-import System.FilePath(takeBaseName)
+import System.FilePath          (takeBaseName, replaceDirectory)
+import System.Posix             (getFileStatus)
+import System.Posix.Files       (fileSize)
 
 import qualified Data.HashMap.Strict as H
 import qualified Data.Map            as M
 import qualified Gen.IO.Toolchain    as Toolchain
+
 
 
 -- Just means rrError still happens
@@ -53,7 +56,7 @@ runSpec spE = do
       cores <- gets Gen.Reduce.Data.cores_
       bd   <- gets binariesDirectory_
       oo   <- gets toolchainOutput_
-      choices <- gets oErrChoices_
+      choices <- gets mostReducedChoices_
 
       let refineWay :: Maybe FilePath -> KindI -> RefineType
           --FIXME hadle Compact
@@ -88,23 +91,35 @@ runSpec spE = do
                                ,nn "res" (pretty . groom $ res)]
 
       let
-          sameError :: ToolchainResult -> (Bool,Maybe RunResult)
-          sameError (RefineResult SettingI{successful_=False, data_=RefineM ms})
-              | modelRefineError rrErrorKind =
-
+          sameError :: ToolchainResult -> IO (Bool,Maybe RunResult)
+          sameError (RefineResult SettingI{successful_=False, data_=RefineM ms,outdir_})
+              | modelRefineError rrErrorKind = do
               let sks = M.toList $  M.map ( status_ &&& kind_) ms
-              in case anyFirst (rrErrorStatus,rrErrorKind) sks of
+              resErrChoices_ <- choicesUsed
+              case anyFirst (rrErrorStatus,rrErrorKind) sks of
                 Just (resErrStatus_,resErrKind_) ->
-                    (True, Just $ OurError{resDirectory_ = path
-                                          ,resErrKind_
-                                          ,resErrStatus_})
+                  return (True, Just $ OurError{resDirectory_ = path
+                                               ,resErrKind_
+                                               ,resErrStatus_
+                                               ,resErrChoices_})
 
-                Nothing -> (False, Just $
-                                 OurError{resDirectory_ = path
-                                         ,resErrKind_   = fstKind sks
-                                         ,resErrStatus_ = fstStatus sks})
+                Nothing ->
+                  return (False, Just $ OurError{resDirectory_ = path
+                                                ,resErrKind_   = fstKind sks
+                                                ,resErrStatus_ = fstStatus sks
+                                                ,resErrChoices_})
 
               where
+                choicesUsed = do
+                  sizes <- forM (M.keys ms) $ \ep -> do
+                      let choicesPath = outdir_
+                                     </> replaceExtensions ep ".choices.json"
+                      size <- getFileSize choicesPath
+                      return (choicesPath, size)
+
+                  let (minChoice,_)  = minimumBy (comparing snd) sizes
+                  return minChoice
+
                 anyFirst (StatusAny_,KindAny_) ((_,(x,y)):_) = Just (x,y)
                 anyFirst (StatusAny_, ki)      ((_,(x,_)):_) = Just (x,ki)
                 anyFirst (si,KindAny_)       v@((_,(_,y)):_) =
@@ -120,7 +135,8 @@ runSpec spE = do
                       Nothing
 
 
-          sameError (SolveResult (_, SettingI{successful_=False,data_=SolveM ms })) =
+
+          sameError (SolveResult (_, SettingI{successful_=False,data_=SolveM ms,outdir_})) = do
               let
                   f ResultI{erroed= Just index, results } =
                       let ix = results `at` index
@@ -128,18 +144,29 @@ runSpec spE = do
                   f _ = Nothing
 
                   sks = M.toList $  M.mapMaybe f ms
-
-              in case anyFirst (rrErrorStatus,rrErrorKind) sks of
+              resErrChoices_ <- choicesUsed
+              case anyFirst (rrErrorStatus,rrErrorKind) sks of
                  Just (resErrStatus_,resErrKind_)   ->
-                     (True, Just $ OurError{resDirectory_ = path
-                                            ,resErrKind_
-                                            ,resErrStatus_})
-                 Nothing -> (False, Just $
-                                  OurError{resDirectory_ = path
-                                          ,resErrKind_   = fstKind sks
-                                          ,resErrStatus_ = fstStatus sks})
+                   return (True, Just $ OurError{resDirectory_ = path
+                                                ,resErrKind_
+                                                ,resErrStatus_
+                                                ,resErrChoices_})
+                 Nothing -> return
+                  (False, Just $ OurError{resDirectory_ = path
+                                         ,resErrKind_   = fstKind sks
+                                         ,resErrStatus_ = fstStatus sks
+                                         ,resErrChoices_})
 
               where
+                choicesUsed = do
+                    sizes <- forM (M.keys ms) $ \ep -> do
+                        let choicesPath = outdir_ </> ep
+                        size <- getFileSize choicesPath
+                        return (choicesPath, size)
+
+                    let (minChoice,_)  = minimumBy (comparing snd) sizes
+                    return minChoice
+
                 anyFirst (StatusAny_,KindAny_) ((_,(x,y)):_) = Just (x,y)
                 anyFirst (StatusAny_,ki) v@((_,(x,_)):_) =
                     if any (\(_,(_,k)) -> kindsEqual k ki ) v then
@@ -161,7 +188,7 @@ runSpec spE = do
 
 
 
-          sameError _ = (False, Nothing)
+          sameError _ = return (False, Nothing)
 
           fstStatus []            = error "fstStatus no statuses"
           fstStatus ((_,(s,_)):_) = s
@@ -171,7 +198,7 @@ runSpec spE = do
 
 
 
-      let stillErroed  = sameError res
+      stillErroed  <- liftIO $ sameError res
       storeInDB spE (snd stillErroed)
 
       liftIO $ print $ ("Has rrError?" :: String, fst stillErroed)
@@ -239,11 +266,14 @@ checkDB newE= do
         Just StoredError{..} -> do
           out <- gets outputDir_
           let outDir = (out </> takeBaseName resDirectory_ )
+          let newChoices = replaceDirectory resErrChoices_ outDir
+          let err = OurError{resDirectory_=outDir, resErrChoices_=newChoices, .. }
+
           liftIO $ doesDirectoryExist outDir >>= \case
-            True  -> return $ Just OurError{resDirectory_=outDir, .. }
+            True  -> return $ Just err
             False -> do
               liftIO $ copyDirectory resDirectory_  outDir
-              return $ Just OurError{resDirectory_=outDir, .. }
+              return $ Just err
 
 
 storeInDB :: Spec -> Maybe RunResult  -> RR ()
@@ -270,6 +300,11 @@ saveDB (Just dir) db = do
       liftIO $ putStrLn ""
       let newDir = dir </> takeBaseName resDirectory_
       copyDirectory resDirectory_ newDir
-      return $ StoredError{resDirectory_= newDir, ..}
+      let newChoices = replaceDirectory resErrChoices_ newDir
+      return $ StoredError{resDirectory_= newDir, resErrChoices_=newChoices, ..}
 
     f _ x = return x
+
+getFileSize :: FilePath -> IO Integer
+getFileSize path = getFileStatus
+                   path >>= \s -> return $ fromIntegral $ fileSize s

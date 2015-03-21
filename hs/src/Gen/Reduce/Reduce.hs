@@ -202,5 +202,5 @@ singleElem _   = False
 
 recordResult :: RunResult -> RR ()
 recordResult r= do
-  modify $ \st -> st{mostReduced_=Just r}
+  modify $ \st -> st{mostReduced_=Just r, mostReducedChoices_=Just (resErrChoices_ r) }
   return ()
