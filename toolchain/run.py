@@ -60,7 +60,13 @@ def run_refine_essence(*, op, commands, random, cores, extra_env):
 
     rr = partial(run_refine, extra_env, commands, mapping)
     pool = Pool(cores)
-    rnds = list(pool.map(rr, range(0, random + 1)))
+
+    if op.choices:
+        end = 1
+    else:
+        end = random + 1
+
+    rnds = list(pool.map(rr, range(0, end)))
     (results, outputs) =list(zip( *(  rnds ) ))
 
     with (op.outdir / "_refine.outputs").open("w") as f:
@@ -82,15 +88,18 @@ def run_refine_essence(*, op, commands, random, cores, extra_env):
 # global function for run_refine_essence
 # because nested function can't be pickled
 def run_refine(extra_env, commands, kwargs, i):
-    if i == 0:
-        eprime = kwargs['outdir'] / "model000000.eprime"
-        (cmd_kind, cmd_template) = commands.refine_compact
-    else:
-        eprime = kwargs['outdir'] / "model{:06}.eprime".format(i)
-        (cmd_kind, cmd_template) = commands.refine_random
 
     if kwargs['saved_choices']:
+        eprime = kwargs['outdir'] / "model{:06}.eprime".format(i)
+        (cmd_kind, cmd_template) = commands.refine_random
         cmd_template =commands.refine_log_follow(cmd_kind)
+    else:
+        if i == 0:
+            eprime = kwargs['outdir'] / "model000000.eprime"
+            (cmd_kind, cmd_template) = commands.refine_compact
+        else:
+            eprime = kwargs['outdir'] / "model{:06}.eprime".format(i)
+            (cmd_kind, cmd_template) = commands.refine_random
 
     choices_json= eprime.with_suffix('.choices.json')
 
