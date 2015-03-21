@@ -203,12 +203,12 @@ class ConjureNew(Commands):
                             self.validate]
 
     def refine_log_follow(self, kind):
-        if kind not in [K.refineCompact, K.refineRandom]:
+        if kind not in [K.refineRandom]:
             print("Not a vaild kind for log-following {}".format(kind), file=sys.stderr)
             sys.exit(1)
         (_, template) = self.kind_to_template(kind)
         template += "\n--choices {saved_choices}"
-        return template
+        return template.replace("-a r", "-a l")
 
 
 
