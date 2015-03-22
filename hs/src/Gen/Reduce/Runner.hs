@@ -24,11 +24,11 @@ runSpec spE = do
   checkDB spE >>= \case
     Just StoredError{} -> rrError "StoredResult in runSpec" []
     Just Passing -> do
-      liftIO $ print $ ("Stored no rrError"  :: String)
+      liftIO $ print $ ("Stored no rrError(P)"  :: String)
       liftIO $ putStrLn ""
       return Nothing
     Just r@OurError{}  -> do
-      liftIO $ print $ ("Stored has rrError" :: String)
+      liftIO $ print $ ("Stored has rrError(O)" :: String)
       liftIO $ putStrLn ""
       return $ Just r
 
@@ -72,7 +72,6 @@ runSpec spE = do
 
       (_, res)  <- toolchain Toolchain.ToolchainData{
                     Toolchain.essencePath       = essencePath
-                  , Toolchain.outputDirectory   = path
                   , Toolchain.toolchainTime     = perSpec
                   , Toolchain.essenceParam      = Nothing
                   , Toolchain.refineType        = refineWay choices  rrErrorKind
@@ -82,6 +81,7 @@ runSpec spE = do
                   , Toolchain.oldConjure        = False
                   , Toolchain.toolchainOutput   = oo
                   , Toolchain.choicesPath       = choices
+                  , Toolchain.outputDirectory   = path
                   }
 
 
@@ -92,11 +92,17 @@ runSpec spE = do
 
       let
           sameError :: ToolchainResult -> IO (Bool,Maybe RunResult)
-          sameError (RefineResult SettingI{successful_=False, data_=RefineMap ms,outdir_})
+          sameError e@(RefineResult SettingI{data_=RefineMap _}) = do
+            error . show . vcat $ [ "Got back a result with no log following"
+                                  , (pretty . groom) e
+                                  ]
+
+
+          sameError (RefineResult SettingI{successful_=False
+                      ,data_=RefineMultiOutput{choices_made,cmd_used=CmdI{..}}})
               | modelRefineError rrErrorKind = do
-              let sks = M.toList $  M.map ( status_ &&& kind_) ms
-              resErrChoices_ <- choicesUsed
-              case anyFirst (rrErrorStatus,rrErrorKind) sks of
+              let resErrChoices_ = choices_made
+              case match (rrErrorStatus,rrErrorKind) (status_, kind_) of
                 Just (resErrStatus_,resErrKind_) ->
                   return (True, Just $ OurError{resDirectory_ = path
                                                ,resErrKind_
@@ -105,35 +111,21 @@ runSpec spE = do
 
                 Nothing ->
                   return (False, Just $ OurError{resDirectory_ = path
-                                                ,resErrKind_   = fstKind sks
-                                                ,resErrStatus_ = fstStatus sks
+                                                ,resErrKind_   = kind_
+                                                ,resErrStatus_ = status_
                                                 ,resErrChoices_})
 
               where
-                choicesUsed = do
-                  sizes <- forM (M.keys ms) $ \ep -> do
-                      let choicesPath = outdir_
-                                     </> replaceExtensions ep ".choices.json"
-                      size <- getFileSize choicesPath
-                      return (choicesPath, size)
-
-                  let (minChoice,_)  = minimumBy (comparing snd) sizes
-                  return minChoice
-
-                anyFirst (StatusAny_,KindAny_) ((_,(x,y)):_) = Just (x,y)
-                anyFirst (StatusAny_, ki)      ((_,(x,_)):_) = Just (x,ki)
-                anyFirst (si,KindAny_)       v@((_,(_,y)):_) =
-                    if any (\(_,(s,_)) -> s == si ) v then
-                        Just (si,y)
+                match :: (StatusI, KindI) -> (StatusI, KindI) -> Maybe (StatusI, KindI)
+                match (StatusAny_,KindAny_) (x,y)   = Just (x, y)
+                match (StatusAny_, ki)      (x,_)   = Just (x,ki)
+                match (si,KindAny_) (s,_) | s /= si = Nothing
+                match (si,KindAny_) (_,y) = Just (si,y)
+                match (si,ki) (x,y) =
+                    if si == x && kindsEqual ki y  then
+                        Just (si,ki)
                     else
                         Nothing
-
-                anyFirst skIn@(sIn, kIn) sks =
-                  if any (\(_,(ss,kk))-> ss==sIn && kindsEqual kk kIn) sks then
-                      Just skIn
-                  else
-                      Nothing
-
 
 
           sameError (SolveResult (_, SettingI{successful_=False,data_=SolveM ms,outdir_})) = do
@@ -202,6 +194,8 @@ runSpec spE = do
       storeInDB spE (snd stillErroed)
 
       liftIO $ print $ ("Has rrError?" :: String, fst stillErroed)
+      -- liftIO $ putStrLn $ groom stillErroed
+
       liftIO $ putStrLn "\n\n"
 
       case stillErroed of
@@ -232,11 +226,15 @@ kindsEqual :: KindI -> KindI -> Bool
 kindsEqual KindAny_ _ = True
 kindsEqual _ KindAny_ = True
 
-kindsEqual RefineCompact_ RefineAll_ = True
-kindsEqual RefineRandom_  RefineAll_ = True
+kindsEqual RefineAll_ RefineCompact_    = True
+kindsEqual RefineAll_ RefineRandom_     = True
 
-kindsEqual RefineAll_ RefineCompact_  = True
-kindsEqual RefineAll_ RefineRandom_   = True
+kindsEqual RefineCompact_ RefineAll_    = True
+kindsEqual RefineCompact_ RefineRandom_ = True
+
+kindsEqual RefineRandom_  RefineAll_     = True
+kindsEqual RefineRandom_  RefineCompact_ = True
+
 
 kindsEqual a b = a == b
 
