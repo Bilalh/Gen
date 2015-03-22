@@ -233,9 +233,9 @@ ui  = modes
                                      &= groupname "Required"
                                      &= explicit
                                      &= help "Time per Spec"
-     , _cores           = def        &= name "cores"
+     , _cores           = 1          &= name "cores"
                                      &= name "c"
-                                     &= groupname "Required"
+                                     &= groupname "Other"
                                      &= explicit
                                      &= help "Number of cores to Use"
      , _seed            = def        &= name "seed"

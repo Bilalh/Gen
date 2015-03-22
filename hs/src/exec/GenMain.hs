@@ -158,7 +158,7 @@ mainWithArgs Reduce{..} = do
         [ aerr "spec-directory" (null spec_directory)
         , aerr "-o|--output-directory" (null output_directory)
         , aerr "-p|--per-spec-time" (per_spec_time == 0)
-        , aerr "-c|--cores" (_cores == 0)
+        , aerr "-c|--cores >0" (_cores == 0)
         ]
 
   case errors of
