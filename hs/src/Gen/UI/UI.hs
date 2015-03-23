@@ -76,11 +76,12 @@ data UI
     {
       essence_path       :: FilePath
     , total_time         :: Int
-    , output_directory   :: Maybe FilePath
 
-    , essence_param       :: Maybe FilePath
-    , refine_type         :: RefineType
-    , choices_path        :: Maybe FilePath
+    , essence_param      :: Maybe FilePath
+    , choices_path       :: Maybe FilePath
+
+    , refine_type        :: RefineType
+    , output_directory   :: Maybe FilePath
 
     , _cores             :: Int
     , _seed              :: Maybe Int
@@ -363,7 +364,7 @@ ui  = modes
 
      , essence_param      = def     &= typFile
                                     &= name "essence-param"
-                                    &= groupname "Control"
+                                    &= groupname "Input"
                                     &= explicit
                                     &= help "Essence param to use"
      , refine_type        = enum
@@ -389,7 +390,7 @@ ui  = modes
      , choices_path      = Nothing  &= name "choices"
                                     &= explicit
                                     &= typ "FILE"
-                                    &= groupname "Control"
+                                    &= groupname "Input"
                                     &= help "Use an .eprime/.json file to try to pick the given choices as far as possible"
 
      , _seed              = def     &= name "seed"
