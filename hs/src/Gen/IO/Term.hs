@@ -1,4 +1,4 @@
-module Gen.IO.CmdArgsHelpers where
+module Gen.IO.Term where
 
 import Gen.Prelude
 import Gen.IO.TermSize

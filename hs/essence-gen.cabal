@@ -52,8 +52,8 @@ Library
                      , Gen.Helpers.StandardImports
                      , Gen.Helpers.Standardise
                      , Gen.Helpers.TypeOf
-                     , Gen.IO.CmdArgsHelpers
                      , Gen.IO.Formats
+                     , Gen.IO.Term
                      , Gen.IO.TermSize
                      , Gen.IO.Toolchain
                      , Gen.IO.ToolchainData
@@ -68,7 +68,6 @@ Library
                      , Gen.Reduce.Simpler
                      , Gen.Reduce.UnusedDomains
                      , Gen.UI.UI
-
 
 
     build-depends    : base

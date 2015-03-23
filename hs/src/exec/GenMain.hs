@@ -10,7 +10,7 @@ import Gen.Classify.AddSpecE       (specEMain)
 import Gen.Classify.Sorter         (sorterMain')
 import Gen.Essence.Generate        (generateEssence)
 import Gen.Helpers.StandardImports
-import Gen.IO.CmdArgsHelpers
+import Gen.IO.Term
 import Gen.IO.Toolchain            (KindI (..), StatusI (..), kindsList,
                                     saveBinariesCsv, statusesList)
 import Gen.Reduce.Data             (RState (..), mkrGen)
