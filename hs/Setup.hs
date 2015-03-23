@@ -24,7 +24,7 @@ main = defaultMainWithHooks myHooks
 copyScripts :: PackageDescription -> LocalBuildInfo -> CopyDest -> IO ()
 copyScripts pkg local copy = do
     let dirs = absoluteInstallDirs pkg local copy
-    copyFile "scripts/genEssenceDate.sh" (bindir dirs </> "genEssenceDate.sh")
+    copyFile "scripts/genLogged.sh" (bindir dirs </> "genLogged.sh")
     createDirectoryIfMissing True (datadir dirs)
     copyDirectory "../toolchain" (datadir dirs </> "toolchain")
 

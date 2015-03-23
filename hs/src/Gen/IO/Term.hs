@@ -2,6 +2,22 @@ module Gen.IO.Term where
 
 import Gen.Prelude
 import Gen.IO.TermSize
+import System.IO.Error(catchIOError)
+import System.Environment(lookupEnv)
+
+getColumns :: MonadIO m => m Int
+getColumns = do
+    cs :: Maybe Int <-  liftIO $ lookupEnv "COLUMNS" >>= \case
+            Just s  -> return $ readMay s
+            Nothing -> return Nothing
+
+    case cs of
+      Just i -> return i
+      Nothing -> do
+        (_,cols) <- liftIO $ catchIOError getTermSize
+            (\_ -> return (40,80) )
+        return cols
+
 
 helpArg :: MonadIO m => m String
 helpArg = do
@@ -18,7 +34,8 @@ replaceOldHelpArg ins = mapM f ins
 
 getHelpLength :: MonadIO m => m Int
 getHelpLength = do
-    (_,cols) <- liftIO getTermSize
+    cols <- liftIO getColumns
+
     let helpLength =  getHelpLength' cols
     return helpLength
   where
