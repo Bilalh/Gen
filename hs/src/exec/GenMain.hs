@@ -3,6 +3,7 @@
 
 module Main where
 
+import Data.Time                   (formatTime, getCurrentTime)
 import Gen.Arbitrary.Data
 import Gen.Classify.AddMeta        (metaMain)
 import Gen.Classify.AddSpecE       (specEMain)
@@ -22,6 +23,7 @@ import System.CPUTime              (getCPUTime)
 import System.Directory            (copyFile)
 import System.Environment          (withArgs)
 import System.Exit                 (exitFailure, exitSuccess, exitWith)
+import System.Locale               (defaultTimeLocale)
 import System.Timeout              (timeout)
 import Text.Printf                 (printf)
 
@@ -110,9 +112,11 @@ mainWithArgs Essence{..} = do
     xs -> mapM putStrLn xs >> exitFailure
 
 
+  out   <- giveOutputDirectory output_directory
+
   seed_ <- giveSeed _seed
   let config = EC.EssenceConfig
-               { outputDirectory_ = output_directory
+               { outputDirectory_ = out
                , mode_            = toEssenceMode _mode
                , totalTime_       = total_time
                , perSpecTime_     = per_spec_time
@@ -128,7 +132,7 @@ mainWithArgs Essence{..} = do
                , notUseful          = S.fromList [(Savilerow_, NumberToLarge_)]
                }
 
-  doMeta output_directory no_csv binaries_directory
+  doMeta out no_csv binaries_directory
   generateEssence config
 
   where
@@ -156,7 +160,6 @@ mainWithArgs Reduce{..} = do
 
   let errors = catMaybes
         [ aerr "spec-directory" (null spec_directory)
-        , aerr "-o|--output-directory" (null output_directory)
         , aerr "-p|--per-spec-time" (per_spec_time == 0)
         , aerr "-c|--cores >0" (_cores == 0)
         ]
@@ -167,12 +170,13 @@ mainWithArgs Reduce{..} = do
 
 
   seed_ <- giveSeed _seed
-  db <- giveDb db_directory
+  db    <- giveDb db_directory
+  out   <- giveOutputDirectory output_directory
 
   let args = def{oErrKind_           = error_kind
                 ,oErrStatus_         = error_status
                 ,oErrChoices_        = error_choices
-                ,outputDir_          = output_directory
+                ,outputDir_          = out
                 ,specDir_            = spec_directory
                 ,R.cores_            = _cores
                 ,rgen_               = mkrGen (seed_)
@@ -184,7 +188,7 @@ mainWithArgs Reduce{..} = do
                 ,mostReducedChoices_ = error_choices
                 }
 
-  doMeta output_directory no_csv binaries_directory
+  doMeta out no_csv binaries_directory
 
   (_,state) <- reduceMain args
   saveDB db_directory (resultsDB_  state)
@@ -202,8 +206,7 @@ mainWithArgs SpecEE{..} = do
 
 mainWithArgs Script_Toolchain{..} = do
   let errors = catMaybes
-        [ aerr "-o|--output-directory" (null output_directory)
-        , aerr "-t|--total-time" (total_time == 0)
+        [ aerr "-t|--total-time" (total_time == 0)
         , aerr "-c|--cores" (_cores == 0)
         ]
 
@@ -212,10 +215,12 @@ mainWithArgs Script_Toolchain{..} = do
     [] -> return ()
     xs -> mapM putStrLn xs >> exitFailure
 
+  out <- giveOutputDirectory output_directory
+
   (code,_) <- Toolchain.toolchain Toolchain.ToolchainData
            {
              Toolchain.essencePath       = essence_path
-           , Toolchain.outputDirectory   = output_directory
+           , Toolchain.outputDirectory   = out
            , Toolchain.toolchainTime     = total_time
            , Toolchain.essenceParam      = essence_param
            , Toolchain.refineType        = f refine_type choices_path
@@ -237,18 +242,19 @@ mainWithArgs Script_Toolchain{..} = do
 
 mainWithArgs Script_ToolchainRecheck{..} = do
   let errors = catMaybes
-        [ aerr "-o|--output-directory" (null output_directory)
-        , aerr "-c|--cores" (_cores == 0)
+        [ aerr "-c|--cores" (_cores == 0)
         ]
 
   case errors of
     [] -> return ()
     xs -> mapM putStrLn xs >> exitFailure
 
+  out <- giveOutputDirectory output_directory
+
   (code,_) <- Recheck.toolchainRecheck Recheck.RecheckData
            {
              Recheck.essencePath       = essence_path
-           , Recheck.outputDirectory   = output_directory
+           , Recheck.outputDirectory   = out
            , Recheck.cores             = _cores
            , Recheck.binariesDirectory = binaries_directory
            , Recheck.oldConjure        = old_conjure
@@ -282,11 +288,17 @@ giveSeed :: Maybe Int -> IO Int
 giveSeed (Just s)  = return s
 giveSeed Nothing = randomRIO (0,2^(31 :: Int)-1)
 
+giveOutputDirectory :: Maybe FilePath -> IO FilePath
+giveOutputDirectory (Just fp) = return fp
+giveOutputDirectory Nothing   = do
+  t <- getCurrentTime
+  return $ formatTime defaultTimeLocale "%F_%H-%M_%s" t
+
 
 _essenceDebug :: IO ()
 _essenceDebug = do
     let ec = Essence
-             { output_directory   = "__/solve"
+             { output_directory   = Just "__/solve"
              , _mode              = Solve
 
              , total_time         = 20
@@ -313,7 +325,7 @@ _reduceDebug = do
                    , error_choices      = Nothing
                    , list_kinds         = False
                    , list_statuses      = False
-                   , output_directory   = "/Users/bilalh/Desktop/Results/_notable/reduce_examples/1425940601_40/out"
+                   , output_directory   = Just "/Users/bilalh/Desktop/Results/_notable/reduce_examples/1425940601_40/out"
                    , per_spec_time      = 60
                    , _cores             = 1
                    , _seed              = Nothing

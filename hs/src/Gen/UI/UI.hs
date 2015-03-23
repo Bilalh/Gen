@@ -10,11 +10,11 @@ import System.Console.CmdArgs hiding (Default (..))
 
 data UI
   = Essence
-    { output_directory :: FilePath
-    , _mode            :: ModeChoice
-
-    , total_time         :: Int
+    {
+      total_time         :: Int
     , per_spec_time      :: Int
+    , _mode              :: ModeChoice
+    ,  output_directory  :: Maybe FilePath
     , _size              :: Int  -- should not be greater then 5
     , _cores             :: Int
     , _seed              :: Maybe Int
@@ -29,7 +29,7 @@ data UI
     }
 
   | Instance
-    { output_directory   :: FilePath
+    { output_directory   :: Maybe FilePath
 
     , binaries_directory :: Maybe FilePath
     , old_conjure        :: Bool
@@ -37,7 +37,9 @@ data UI
     }
 
   | Reduce
-    { spec_directory     :: FilePath
+    {
+      per_spec_time      :: Int
+    , spec_directory     :: FilePath
     , error_kind         :: KindI
     , error_status       :: StatusI
     , error_choices      :: Maybe FilePath
@@ -45,8 +47,7 @@ data UI
     , list_kinds         :: Bool
     , list_statuses      :: Bool
 
-    , output_directory   :: FilePath
-    , per_spec_time      :: Int
+    , output_directory   :: Maybe FilePath
     , _cores             :: Int
     , _seed              :: Maybe Int
 
@@ -74,8 +75,8 @@ data UI
   | Script_Toolchain
     {
       essence_path       :: FilePath
-    , output_directory   :: FilePath
     , total_time         :: Int
+    , output_directory   :: Maybe FilePath
 
     , essence_param       :: Maybe FilePath
     , refine_type         :: RefineType
@@ -92,9 +93,9 @@ data UI
   | Script_ToolchainRecheck
     {
       essence_path       :: FilePath
-    , output_directory   :: FilePath
-
     , _cores             :: Int
+    , output_directory   :: Maybe FilePath
+
     , toolchain_ouput    :: ToolchainOutput
     , binaries_directory :: Maybe FilePath
     , old_conjure        :: Bool
@@ -117,8 +118,13 @@ ui :: UI
 ui  = modes
 
   [ Essence
-     { output_directory   = def     &= typ "OUT-DIR"
-                                    &= argPos 0
+     {
+       output_directory  = def      &= typDir
+                                    &= name "output-directory"
+                                    &= name "o"
+                                    &= groupname "Other"
+                                    &= explicit
+                                    &= help "Output directory default is %F_%H-%M_%s e.g. 2015-03-23_01-04_1427072681"
      , _mode              = def     &= name "mode"
                                     &= typ "mode"
                                     &= groupname "Generation"
@@ -225,9 +231,9 @@ ui  = modes
      , output_directory = def        &= typDir
                                      &= name "output-directory"
                                      &= name "o"
-                                     &= groupname "Required"
+                                     &= groupname "Other"
                                      &= explicit
-                                     &= help "Output directory "
+                                     &= help "Output directory default is %F_%H-%M_%s e.g. 2015-03-23_01-04_1427072681"
      , per_spec_time    = def        &= name "per-spec-time"
                                      &= name "p"
                                      &= groupname "Required"
@@ -341,9 +347,9 @@ ui  = modes
      , output_directory   = def     &= typDir
                                     &= name "output-directory"
                                     &= name "o"
-                                    &= groupname "Required"
+                                    &= groupname "Other"
                                     &= explicit
-                                    &= help "Output directory "
+                                    &= help "Output directory default is %F_%H-%M_%s e.g. 2015-03-23_01-04_1427072681"
      , total_time         = def     &= name "total-time"
                                     &= name "t"
                                     &= groupname "Required"
@@ -429,9 +435,9 @@ ui  = modes
      , output_directory   = def     &= typDir
                                     &= name "output-directory"
                                     &= name "o"
-                                    &= groupname "Required"
+                                    &= groupname "Other"
                                     &= explicit
-                                    &= help "Output directory "
+                                    &= help "Output directory default is %F_%H-%M_%s e.g. 2015-03-23_01-04_1427072681"
      , _cores             = def     &= name "cores"
                                     &= name "c"
                                     &= groupname "Required"
