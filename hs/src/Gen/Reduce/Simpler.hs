@@ -84,6 +84,15 @@ instance Simpler Constant Constant where
 
 
 instance Simpler Literal Literal where
+    simplerImp a@(AbsLitPartition as) b@(AbsLitPartition bs) =
+      case compare (depthOf a) (depthOf b) of
+        EQ -> return $ case (sum $ map length as,sum $ map length bs) of
+                        (1,1)   -> EQ
+                        (1,_)   -> LT
+                        (_,1)   -> GT
+                        (ca,cb) -> compare ca cb
+        x  -> return x
+
     simplerImp a b = case compare (depthOf a) (depthOf b) of
      EQ -> return $ case ((innersReduce length a), (innersReduce length b)) of
                       (1,1)   -> EQ

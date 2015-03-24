@@ -29,7 +29,7 @@ class (HasGen m,  HasLogger m) => Reduce a m where
 
     mutate :: a -> m [Expr] --
        -- Try type specific changes
-       -- e.g partitions reduceing the number of items in each part
+       -- e.g partitions/relation reducing the number of items in each part
 
     mutate  _ = return []
 
@@ -133,34 +133,37 @@ instance (HasGen m,  HasLogger m) =>  Reduce Literal m where
 
     subterms x = return . map ELit .  innersExpand reduceLength $ x
 
+
     reduce li = do
         rLits <- getReducedChildren li
         let lss = map (replaceChildren li) (transposeFill rLits)
-        let res = concatMap (innersExpand reduceLength) lss
+        let res = concatMap (innersExpand reduceLength1) lss
         return res
 
-      where
-        getReducedChildren :: (Monad m, Applicative m, HasGen m,  HasLogger m)
-                           => Literal -> m ([([Expr], Expr)])
-        getReducedChildren lit = do
-          start <- withGen_new []
-          fin <- flip runStateT start $ descendM fff (ELit lit)
-          return $ reverse . withGen_val . snd $ fin
-          where
-             fff (x :: Expr) = do
-               xs :: [([Expr],Expr)] <- gets withGen_val
-               c <- reduce x
-               -- let ht = heads_tails c
-               let ht = c
-               withGen_put ((ht,x) : xs)
 
-               return x
 
     mutate (AbsLitRelation xs)  = mutate_2d (ELit . AbsLitPartition) xs
     mutate (AbsLitPartition xs) = mutate_2d (ELit . AbsLitPartition) xs
+    -- mutate (AbsLitFunction xs)  = _f
+
 
     mutate _ = return []
 
+getReducedChildren :: (Monad m, Applicative m, HasGen m,  HasLogger m)
+                   => Literal -> m ([([Expr], Expr)])
+getReducedChildren lit = do
+  start <- withGen_new []
+  fin <- flip runStateT start $ descendM fff (ELit lit)
+  return $ reverse . withGen_val . snd $ fin
+  where
+     fff (x :: Expr) = do
+       xs :: [([Expr],Expr)] <- gets withGen_val
+       c <- reduce x
+       -- let ht = heads_tails c
+       let ht = c
+       withGen_put ((ht,x) : xs)
+
+       return x
 
 mutate_2d :: forall a (m :: * -> *) b.
              (Monad m, Eq a) =>
@@ -295,6 +298,10 @@ f  -| (a,e) = do
 reduceLength :: Eq a =>  [a] -> [[a]]
 -- reduceLength xs =  heads_tails . init $ inits xs
 reduceLength xs = filter (/=[]) $ init $ inits xs
+
+reduceLength1 :: Eq a =>  [a] -> [[a]]
+-- reduceLength1 xs =  heads_tails  $ inits xs
+reduceLength1 xs = filter (/=[]) $ inits xs
 
 heads_tails :: forall t. [t] -> [t]
 heads_tails [] = []
@@ -496,8 +503,8 @@ liftAlign3 f a b c xs ys = align t (zipPad a b xs ys)
 zipPad3 a b c = liftAlign3 (,,) a b c
 
 
--- instance Pretty [Expr] where
---     pretty = prettyBrackets  . pretty . vcat . map pretty
+instance Pretty [Expr] where
+    pretty = prettyBrackets  . pretty . vcat . map pretty
 
--- instance Pretty [Literal] where
---     pretty = prettyBrackets  . pretty . vcat . map pretty
+instance Pretty [Literal] where
+    pretty = prettyBrackets  . pretty . vcat . map pretty
