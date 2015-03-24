@@ -1,15 +1,14 @@
 {-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, QuasiQuotes #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-module Gen.AST.Expr where
+module Gen.AST.Translate where
 
 import Conjure.Language.Definition
-import Conjure.Language.Domain        (Domain)
+import Conjure.Language.Domain        
 import Conjure.Language.Expression.Op
 import Conjure.Language.Pretty
 import Conjure.Language.TH
 import Conjure.Prelude
 import Gen.AST.Data
-import Gen.AST.Domain                 (dintRange)
 import Gen.AST.Type                   ()
 
 
@@ -24,6 +23,18 @@ instance Translate Literal (AbstractLiteral Expression) where
 instance Translate (Op Expr) (Op Expression) where
     toConjure x   =  mapM toConjure x
     fromConjure x =  mapM fromConjure x
+
+instance Translate (Domainn Expr) (Domain () Expression) where
+    fromConjure x =  mapM f x
+        where
+          f y = fromConjure y
+
+    toConjure x = mapM toConjure x
+
+dintRange :: Int -> Int -> Domainn Expr
+dintRange a b = DomainInt [RangeBounded (ECon . ConstantInt $ fromIntegral a)
+                                        (ECon . ConstantInt $ fromIntegral b)]
+
 
 
 instance Translate Expr Expression where
@@ -105,6 +116,8 @@ instance Pretty Expr where
 instance Pretty QType where
     pretty = error "Pretty Qtype"
 
+
+-- Conjure required instances
 
 instance ExpressionLike Expr where
     fromInt = ECon . fromInt

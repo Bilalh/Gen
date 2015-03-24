@@ -8,7 +8,7 @@ import Conjure.Language.Pretty
 import Conjure.Prelude
 import Data.Map                    (Map)
 import Gen.AST.Data
-import Gen.AST.Expr                ()
+import Gen.AST.Translate           ()
 import Text.Groom                  (groom)
 
 import qualified Data.Map as M
