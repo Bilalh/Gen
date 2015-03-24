@@ -3,13 +3,14 @@
 module Gen.AST.Translate where
 
 import Conjure.Language.Definition
-import Conjure.Language.Domain        
+import Conjure.Language.Domain
 import Conjure.Language.Expression.Op
 import Conjure.Language.Pretty
 import Conjure.Language.TH
 import Conjure.Prelude
 import Gen.AST.Data
 import Gen.AST.Type                   ()
+import Conjure.Language.TypeOf
 
 
 instance Translate Constant Constant where
@@ -21,20 +22,12 @@ instance Translate Literal (AbstractLiteral Expression) where
     toConjure x   = mapM toConjure x
 
 instance Translate (Op Expr) (Op Expression) where
-    toConjure x   =  mapM toConjure x
     fromConjure x =  mapM fromConjure x
+    toConjure x   =  mapM toConjure x
 
 instance Translate (Domainn Expr) (Domain () Expression) where
-    fromConjure x =  mapM f x
-        where
-          f y = fromConjure y
-
-    toConjure x = mapM toConjure x
-
-dintRange :: Int -> Int -> Domainn Expr
-dintRange a b = DomainInt [RangeBounded (ECon . ConstantInt $ fromIntegral a)
-                                        (ECon . ConstantInt $ fromIntegral b)]
-
+    fromConjure x = mapM fromConjure x
+    toConjure x   = mapM toConjure x
 
 
 instance Translate Expr Expression where
@@ -42,16 +35,19 @@ instance Translate Expr Expression where
   fromConjure (AbstractLiteral t)   = ELit   <$> fromConjure t
   fromConjure (Domain t)            = EDom   <$> fromConjure t
   fromConjure (Typed t1 t2)         = ETyped <$> fromConjure t2 <*> fromConjure t1
-  fromConjure (Op op)               = EOp <$> fromConjure op
+  fromConjure (Op op)               = EOp    <$> fromConjure op
   fromConjure (ExpressionMetaVar t) = return $ EMetaVar t
 
   -- fromConjure (WithLocals t1 t2)    = _f
   -- fromConjure (Comprehension t1 t2) = _f
-  -- fromConjure (Reference t1 x)         = EVar   <$> fromConjure t1
+  fromConjure r@(Reference t1 _)         = do
+    name <- fromConjure t1
+    ty   <- typeOf r
+    tty  <- fromConjure ty
+    return . EVar $ Var name tty
 
 
   fromConjure x = fromConjureFail "Expr Expression" x
-
 
   toConjure (ECon x )      =  return $ Constant x
   toConjure (ELit x )      =  AbstractLiteral <$> toConjure x
@@ -139,3 +135,10 @@ instance ReferenceContainer Expr where
     nameOut (EVar (Var nm _))           = return $ Name nm
     nameOut (ECon (ConstantField nm _)) = return $  nm
     nameOut p = fail ("This expression isn't a 'name':" <+> pretty p)
+
+
+-- functions
+
+dintRange :: Int -> Int -> Domainn Expr
+dintRange a b = DomainInt [RangeBounded (ECon . ConstantInt $ fromIntegral a)
+                                        (ECon . ConstantInt $ fromIntegral b)]
