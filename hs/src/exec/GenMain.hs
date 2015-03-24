@@ -186,6 +186,7 @@ mainWithArgs Reduce{..} = do
                 ,deletePassing_      = delete_passing
                 ,resultsDB_          = db
                 ,mostReducedChoices_ = error_choices
+                ,resultsDB_dir       = db_directory
                 }
 
   doMeta out no_csv binaries_directory

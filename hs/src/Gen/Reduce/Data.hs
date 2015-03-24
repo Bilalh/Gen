@@ -41,7 +41,8 @@ data RState = RState
     , rlogs_              :: LogsTree
     , deletePassing_      :: Bool
 
-    , resultsDB_        :: ResultsDB
+    , resultsDB_          :: ResultsDB
+    , resultsDB_dir       :: Maybe FilePath
     } deriving (Show)
 
 data RunResult =
@@ -114,6 +115,7 @@ instance Default RState where
                  ,deletePassing_      = False
                  ,resultsDB_          = H.empty
                  ,mostReducedChoices_ = error "set mostReducedChoices_=oErrChoices_"
+                 ,resultsDB_dir       = Nothing
                  }
 
 instance Pretty RunResult where

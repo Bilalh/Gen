@@ -267,10 +267,14 @@ checkDB newE= do
           let newChoices = replaceDirectory resErrChoices_ outDir
           let err = OurError{resDirectory_=outDir, resErrChoices_=newChoices, .. }
 
+          db_dir <- gets resultsDB_dir >>= \case
+                    Just df -> return df
+                    Nothing -> $(neverNote "Using an StoredError with knowing the filepath")
+
           liftIO $ doesDirectoryExist outDir >>= \case
             True  -> return $ Just err
             False -> do
-              liftIO $ copyDirectory resDirectory_  outDir
+              liftIO $ copyDirectory (db_dir </> resDirectory_)  outDir
               return $ Just err
 
 
@@ -296,8 +300,9 @@ saveDB (Just dir) db = do
   where
     f _ OurError{..} = do
       liftIO $ putStrLn ""
-      let newDir = dir </> takeBaseName resDirectory_
-      copyDirectory resDirectory_ newDir
+      let newDir = takeBaseName resDirectory_
+      copyDirectory resDirectory_ (dir </>
+                                       newDir)
       let newChoices = replaceDirectory resErrChoices_ newDir
       return $ StoredError{resDirectory_= newDir, resErrChoices_=newChoices, ..}
 
