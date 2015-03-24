@@ -63,13 +63,10 @@ data UI
     { directories :: [FilePath]
     , limit_time  :: Maybe Int
     }
-  | Meta
-    { directories :: [FilePath]
-    , limit_time  :: Maybe Int
-    }
   | SpecEE
     { directories :: [FilePath]
     , print_specs :: Bool
+    , meta_only   :: Bool
     , limit_time  :: Maybe Int
     }
   | Script_Toolchain
@@ -308,21 +305,6 @@ ui  = modes
        &= name "link"
        &= help "Classify the specs by creating symlinks (using .meta.json files)"
 
-  , Meta
-     {
-       directories = def &= typDir
-                         &= name "directory"
-                         &= name "d"
-                         &= explicit
-                         &= help "Directories containing spec.specE files "
-     , limit_time  = def &= name "limit-time"
-                         &= explicit
-                         &= help "Time limit in seconds of CPU time of this program"
-
-     } &= explicit
-       &= name "meta"
-       &= help "Create .meta.json files for each .specE file recursively"
-
   , SpecEE
      {
        directories = def   &= typDir
@@ -337,10 +319,13 @@ ui  = modes
                            &= name "v"
                            &= explicit
                            &= help "Print the the spec before and after conversion"
+     , meta_only   = False &= name "meta-only"
+                           &= explicit
+                           &= help "Only create the .meta.json file from previously created .spec.json"
 
      } &= explicit
        &= name "json"
-       &= help "Create .spec.json files for each .essence file recursively"
+       &= help "Create .spec.json and .meta.json files for each .essence file recursively"
 
   , Script_Toolchain
      { essence_path       = def     &= typ "essence"

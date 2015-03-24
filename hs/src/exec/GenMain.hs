@@ -199,11 +199,15 @@ mainWithArgs Reduce{..} = do
 mainWithArgs Link{..} = do
   sorterMain' directories
 
-mainWithArgs Meta{..} = do
-  metaMain directories
-
 mainWithArgs SpecEE{..} = do
-  specEMain print_specs directories
+  if meta_only then
+      return ()
+  else do
+    putStrLn "Creating .spec.json files"
+    specEMain print_specs directories
+
+  putStrLn "Creating .meta.json files"
+  metaMain directories
 
 mainWithArgs Script_Toolchain{..} = do
   let errors = catMaybes

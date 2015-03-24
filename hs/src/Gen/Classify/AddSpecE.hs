@@ -24,7 +24,7 @@ import qualified Data.ByteString.Lazy as L
 
 specEMain :: Bool ->  [FilePath] -> IO ()
 specEMain printSpecs = \case
-   []     ->  putStrLn "gen specE <dir+>"
+   []     ->  putStrLn "gen json {-d <dir>}+"
    [x]    ->  addSpecE printSpecs x
    (x:xs) ->  addSpecE printSpecs x >> specEMain printSpecs xs
 
@@ -41,7 +41,7 @@ addSpecE printSpecs fp_ = do
     let inlined = inlineParamAndLettings start Nothing
     let specE  = fromModel inlined
 
-    putStrLn fp
+    putStrLn ("processing: " ++ fp)
 
     case specE of
       Left r -> error . show . vcat $ ["Error for " <+> (pretty fp)

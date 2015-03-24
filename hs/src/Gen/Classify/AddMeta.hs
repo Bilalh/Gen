@@ -9,11 +9,11 @@ import Gen.Classify.Sorter(getRecursiveContents)
 import Gen.IO.Formats
 import Gen.Prelude
 
-import System.FilePath (takeExtension)
+import System.FilePath (takeExtensions)
 
 metaMain :: [FilePath] -> IO ()
 metaMain = \case
-   []     ->  putStrLn "gen meta <dir+>"
+   []     ->  putStrLn "gen meta {-d <dir>}+"
    [x]    ->  addMeta x
    (x:xs) ->  addMeta x >> metaMain xs
 
@@ -28,7 +28,7 @@ addMeta fp_ = do
 
   where
   f spec fp = do
-    putStrLn fp
+    putStrLn ("processing: " ++ fp)
     let meta = mkMeta spec
     writeFile (replaceExtensions fp ".meta" ) (show meta)
     writeToJSON (replaceExtensions fp ".meta.json" ) (meta)
@@ -41,4 +41,4 @@ ffind path = do
 
   where
     p fp = do
-      return $ (takeExtension $ fp)  == ".spec.json"
+      return $ (takeExtensions $ fp)  == ".spec.json"

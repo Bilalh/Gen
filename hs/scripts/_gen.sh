@@ -3,9 +3,9 @@
 _gen()
 {
     local last=${COMP_WORDS[COMP_CWORD-1]}
-    # MODIFY THIS IF  ONLY for a new sub command
+    # MODIFY THIS IF  ONLY for a new sub-command
     if [ "${last}x" = "genx" ]; then
-        COMPREPLY=( $(compgen -W "essence reduce link meta json script-toolchain script-recheck" -- $cur) )
+        COMPREPLY=( $(compgen -W "essence reduce link json script-toolchain script-recheck" -- $cur) )
         return 0
     fi
 
@@ -43,16 +43,16 @@ _gen()
 
 }
 
-# Does not complete on -- 
+# Does not complete on --
 # only on -  for some reason
 _genLogged()
 {
     local last=${COMP_WORDS[COMP_CWORD-2]}
     # MODIFY THIS IF  ONLY for a new sub command
-	
-	
+
+
     if [[ ${#COMP_WORDS[@]} -gt 1 &&  "${last}x" = "genLogged.shx" ]]; then
-        COMPREPLY=( $(compgen -W "essence reduce link meta json script-toolchain script-recheck" -- $cur) )
+        COMPREPLY=( $(compgen -W "essence reduce link json script-toolchain script-recheck" -- $cur) )
         return 0
     fi
 
