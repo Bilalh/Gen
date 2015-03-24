@@ -21,7 +21,17 @@ import qualified Data.Traversable as T
 class (HasGen m,  HasLogger m) => Reduce a m where
     reduce   :: a -> m [a]    -- list of smaller exprs
     single   :: a -> m [Expr] -- smallest literal e.g  [true, false] for  a /\ b
-    subterms :: a -> m [Expr] -- a /\ b  -->   [a, b]
+
+    subterms :: a -> m [Expr]
+      -- replace the term with one it's children
+      -- a /\ b   -->  [a, b]
+      -- [a, b,c] -->  [], [a], [a,b]
+
+    mutate :: a -> m [Expr] --
+       -- Try type specific changes
+       -- e.g partitions reduceing the number of items in each part
+
+    mutate  _ = return []
 
 
 instance (HasGen m,  HasLogger m) =>  Reduce Expr m where
@@ -48,9 +58,10 @@ instance (HasGen m,  HasLogger m) =>  Reduce Expr m where
 
     reduce (ELit e) = do
       a1 <- single e
-      a2 <- reduce e
       a3 <- subterms e
-      return $ a1 ++ a3 ++ (map ELit a2)
+      a2 <- reduce e
+      a4 <- mutate e
+      return $ a1 ++ a3 ++ (map ELit a2) ++ a4
 
     reduce (EOp e) = do
       a1 <- single e
@@ -110,12 +121,16 @@ instance (HasGen m,  HasLogger m) =>  Reduce Constant m where
 
     single t = ttypeOf t >>= singleLitExpr
 
+    subterms (ConstantAbstract x) = $notDone
     subterms _ = return []
+
+    reduce (ConstantAbstract x) = $notDone
     reduce _   = return []
 
 
 instance (HasGen m,  HasLogger m) =>  Reduce Literal m where
     single t   = ttypeOf t >>= singleLitExpr
+
     subterms x = return . map ELit .  innersExpand reduceLength $ x
 
     reduce li = do
@@ -125,22 +140,41 @@ instance (HasGen m,  HasLogger m) =>  Reduce Literal m where
         return res
 
       where
+        getReducedChildren :: (Monad m, Applicative m, HasGen m,  HasLogger m)
+                           => Literal -> m ([([Expr], Expr)])
+        getReducedChildren lit = do
+          start <- withGen_new []
+          fin <- flip runStateT start $ descendM fff (ELit lit)
+          return $ reverse . withGen_val . snd $ fin
+          where
+             fff (x :: Expr) = do
+               xs :: [([Expr],Expr)] <- gets withGen_val
+               c <- reduce x
+               -- let ht = heads_tails c
+               let ht = c
+               withGen_put ((ht,x) : xs)
 
-      getReducedChildren :: (Monad m, Applicative m, HasGen m,  HasLogger m)
-                         => Literal -> m ([([Expr], Expr)])
-      getReducedChildren lit = do
-        start <- withGen_new []
-        fin <- flip runStateT start $ descendM fff (ELit lit)
-        return $ reverse . withGen_val . snd $ fin
-        where
-           fff (x :: Expr) = do
-             xs :: [([Expr],Expr)] <- gets withGen_val
-             c <- reduce x
-             -- let ht = heads_tails c
-             let ht = c
-             withGen_put ((ht,x) : xs)
+               return x
 
-             return x
+    mutate (AbsLitRelation xs)  = mutate_2d (ELit . AbsLitPartition) xs
+    mutate (AbsLitPartition xs) = mutate_2d (ELit . AbsLitPartition) xs
+
+    mutate _ = return []
+
+
+mutate_2d :: forall a (m :: * -> *) b.
+             (Monad m, Eq a) =>
+             ([[a]] -> b) -> [[a]] -> m [b]
+mutate_2d wrap xs = do
+  let reductions = map (\(x,i) -> (reduceLength x,i) ) ixs
+      res = map f reductions
+
+  return $ map wrap (concat res)
+
+  where
+    ixs = zip xs allNats
+    f (es,ei) = [ [ if xi == ei then e else x | (x,xi) <-ixs ]  | e <- es ]
+
 
 transposeFill :: (Eq a) => [([a], a)] -> [[a]]
 transposeFill ee =
@@ -257,10 +291,10 @@ f  -| (a,e) = do
      False -> return Nothing
 
 
--- | Return the two shortest & two longest sequence of the elements
-reduceLength :: forall a. [a] -> [[a]]
+-- | Return the two shortest & two longest sub sequence of the elements
+reduceLength :: Eq a =>  [a] -> [[a]]
 -- reduceLength xs =  heads_tails . init $ inits xs
-reduceLength xs =  init $ inits xs
+reduceLength xs = filter (/=[]) $ init $ inits xs
 
 heads_tails :: forall t. [t] -> [t]
 heads_tails [] = []
@@ -341,19 +375,22 @@ singleLit l@(TPar x) = do
   ty <- ttypeOf l
   let empty = ETyped ty (ELit $ AbsLitPartition [])
 
-  lits <- concatMapM (singleLit) [x,x]
-  let lits' = take 3 $  nub2 lits
+  litsAll <- concatMapM (singleLit) [x,x]
+  num <- chooseR (1,3)
+  let lits = take num $  nub2 litsAll
+
+  addLog "singleLit-Par-lits" (map pretty lits)
 
   -- Choose if all the elements should go in one part
   chooseR (True,False) >>= \case
           True  -> do
             let par = ELit $ AbsLitPartition [lits]
-            return $ [par, empty]
+            return $ [empty, par]
           False -> do
-            point <- chooseR (0,length lits')
-            let (as,bs) = splitAt point lits'
-                par     = ELit $ AbsLitPartition [as, bs]
-            return $ [par, empty]
+            point <- chooseR (0,length lits)
+            let (as,bs) = splitAt point lits
+                par     = ELit $ AbsLitPartition [ pa | pa <- [as, bs], pa /= [] ]
+            return $ [empty, par]
 
 
 
@@ -383,13 +420,24 @@ runReduce spe x = do
 
 __run :: forall t a (t1 :: * -> *).
          (Pretty a, Foldable t1) =>
+         Bool -> (t -> StateT EState Identity (t1 a)) -> t -> IO (t1 a)
+__run b f ee  = do
+  res <- __run1 b f ee
+  mapM_ (print  . pretty )  res
+  return res
+
+__run1 :: forall t a (t1 :: * -> *).
+         (Foldable t1) => Bool ->
          (t -> StateT EState Identity (t1 a)) -> t -> IO (t1 a)
-__run f ee = do
+__run1 b f ee = do
   let spe   :: Spec   = $never
       seed            = 32
       state :: EState = newEStateWithSeed seed spe
-      res             = runIdentity $ flip evalStateT state $ f ee
-  mapM_ (print  . pretty )  res
+      (res, fstate)   = runIdentity $ flip runStateT state $ f ee
+  if b then
+      return ()
+  else
+      print . pretty $ (elogs_ fstate)
   return res
 
 
@@ -446,3 +494,10 @@ liftAlign3 f a b c xs ys = align t (zipPad a b xs ys)
         t (Both (x,y) r) = f x y r
 
 zipPad3 a b c = liftAlign3 (,,) a b c
+
+
+-- instance Pretty [Expr] where
+--     pretty = prettyBrackets  . pretty . vcat . map pretty
+
+-- instance Pretty [Literal] where
+--     pretty = prettyBrackets  . pretty . vcat . map pretty

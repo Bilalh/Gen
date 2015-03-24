@@ -2,13 +2,12 @@
 module Gen.Reduce.Inners where
 
 import Conjure.Language.AbstractLiteral
-import Conjure.Language.Domain
 import Gen.Prelude
 
 
 class Inners x where
     innersReduce  :: (forall a.  [a] -> b)      -> x -> b
-    innersExpand  :: (forall a.  [a] -> [[a]] ) -> x -> [x]
+    innersExpand  ::  (forall a. Eq a => [a] -> [[a]] ) -> x -> [x]
 
 instance Inners (Literal) where
   innersReduce f (AbsLitFunction x)       = (f x)
