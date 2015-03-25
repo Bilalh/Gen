@@ -317,7 +317,7 @@ giveSpec (Just path)  = do
   files <- getDirectoryContents path
   case [ f | f <- files, (takeExtensions $ f) == ".spec.json" ] of
     [] -> error . show . vcat  $[ "No .spec.json files in " <+>  pretty path
-                                , "Did you run gen json -d" <+> pretty path]
+                                , "Did you run ` gen json -d" <+> pretty path <+> "`?" ]
     xs -> return $ Just xs
 
 
