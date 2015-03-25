@@ -255,16 +255,17 @@ subterms_op e subs =  do
   let allowed  = [ x | x<-subs | ty <- tys, typesUnify resType ty  ]
   return allowed
 
-reduce_op :: forall (m :: * -> *).
-             (HasGen m,  HasLogger m) =>
-             Op Expr -> [Expr] -> m [Op Expr]
+
+reduce_op :: forall (m :: * -> *). (HasGen m,  HasLogger m)
+          => Op Expr -> [Expr] -> m [Op Expr]
 reduce_op x subs = reduce_op2 (_replaceOpChildren x) subs
 
-reduce_op2 :: forall (m :: * -> *).
-              (HasGen m,  HasLogger m) =>
-              ([Expr] -> Op Expr) -> [Expr] -> m [Op Expr]
+
+-- TODO need to also reduce only one side
+reduce_op2 :: forall (m :: * -> *). (HasGen m,  HasLogger m)
+           => ([Expr] -> Op Expr) -> [Expr] -> m [Op Expr]
 reduce_op2 f subs = do
-  rs <- mapM reduce subs
+  rs <- mapM reduceAdd subs
 
   case all (== []) rs of
     True   -> return []
@@ -282,6 +283,10 @@ reduce_op2 f subs = do
   giveVals _ (x:xs)   = do
        return (x:xs)
     -- return [x,last xs]
+
+  reduceAdd e = do
+    re <- reduce e
+    return $ re ++ [e]
 
 
 infixl 1 -|
@@ -426,11 +431,13 @@ runReduce spe x = do
 
 
 __run :: forall t a (t1 :: * -> *).
-         (Pretty a, Foldable t1) =>
+         (Pretty a, Foldable t1, Pretty t) =>
          Bool -> (t -> StateT EState Identity (t1 a)) -> t -> IO (t1 a)
 __run b f ee  = do
   res <- __run1 b f ee
   mapM_ (print  . pretty )  res
+  putStrLn "---"
+  putStrLn . show . pretty  $ ee
   return res
 
 __run1 :: forall t a (t1 :: * -> *).
@@ -481,3 +488,10 @@ instance Pretty [Expr] where
 
 instance Pretty [Literal] where
     pretty = prettyBrackets  . pretty . vcat . map pretty
+
+
+_ll :: Op Expr
+_ll = [opp| function(false --> (partition() : `partition from partition from bool`)) = function(false --> partition({partition({false})}, {partition({true})})) |]
+
+_le :: Expr
+_le = [essencee| function(false --> (partition() : `partition from partition from bool`)) = function(false --> partition({partition({false})}, {partition({true})})) |]
