@@ -68,7 +68,7 @@ doRefine ec@EC.EssenceConfig{..} = do
       (sp,logs) <- generateWrap mayGiven $ Gen.spec useSize def{gen_useFunc = myUseFunc}
       model :: Model <- toConjure sp
       case ignoreLogs (typeCheckModel model)  of
-        Left _ -> process timeLeft mayGiven
+        Left _ -> process timeLeft (nextElem mayGiven)
         Right () -> do
           num <- (randomRIO (10,99) :: IO Int)  >>= return . show
           ts <- timestamp >>= return . show
@@ -105,8 +105,8 @@ doRefine ec@EC.EssenceConfig{..} = do
 
           runTime <- classifySettingI ec errdir out uname result
           case totalIsRealTime of
-            False -> process (timeLeft - (floor runTime)) givenSpecs_
-            True  -> process (timeLeft - realTime) givenSpecs_
+            False -> process (timeLeft - (floor runTime)) (nextElem mayGiven)
+            True  -> process (timeLeft - realTime) (nextElem mayGiven)
 
 
 doSolve :: EssenceConfig -> IO ()
@@ -124,7 +124,7 @@ doSolve ec@EC.EssenceConfig{..} = do
       (sp,logs) <- generateWrap mayGiven $ Gen.spec size_ def{gen_useFunc = myUseFunc}
       model :: Model <- toConjure sp
       case ignoreLogs (typeCheckModel model)  of
-        Left _ -> process timeLeft mayGiven
+        Left _ -> process timeLeft (nextElem mayGiven)
         Right () -> do
           num <- (randomRIO (10,99) :: IO Int)  >>= return . show
           ts <- timestamp >>= return . show
@@ -164,8 +164,8 @@ doSolve ec@EC.EssenceConfig{..} = do
 
           runTime <-  classifyError uname result
           case totalIsRealTime of
-            False -> process (timeLeft - (floor runTime)) mayGiven
-            True  -> process (timeLeft - realTime) mayGiven
+            False -> process (timeLeft - (floor runTime)) (nextElem mayGiven)
+            True  -> process (timeLeft - realTime) (nextElem mayGiven)
 
 
     classifyError uname (RefineResult a) = classifySettingI ec errdir out uname a
@@ -316,18 +316,17 @@ classifySettingI ec _ out uname SettingI{time_taken_}  = do
 
 doTypeCheck :: EssenceConfig -> IO ()
 doTypeCheck EC.EssenceConfig{..}= do
-  process givenSpecs_
+  process
 
   where
-    process (Just []) = return ()
-    process mayGiven = do
-      (sp,_) <- generateWrap mayGiven $ Gen.spec size_ def{gen_useFunc = myUseFunc}
+    process = do
+      (sp,_) <- generate $ Gen.spec size_ def{gen_useFunc = myUseFunc}
       model :: Model <- toConjure sp
 
 
-      let (res :: Either Doc ())  =ignoreLogs $ typeCheckModel model
+      let (res :: Either Doc ()) = ignoreLogs $ typeCheckModel model
       handleResult sp model res
-      process mayGiven
+      process
 
 
     handleResult sp model (Left d) = do
@@ -392,6 +391,10 @@ copyFiles names inn out needed = forM needed $ \g -> do
     _ ->  copyFile (inn </> g) (out </> g)
 
 
+nextElem :: Maybe [a] -> Maybe [a]
+nextElem Nothing       = Nothing
+nextElem (Just [])     = $(neverNote "nextElem No given specs left")
+nextElem (Just (_:xs)) = Just xs
 
 -- Does not work completely
 myUseFunc :: FuncsNames -> Bool
