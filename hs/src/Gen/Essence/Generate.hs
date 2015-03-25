@@ -42,21 +42,33 @@ generateEssence ec@EC.EssenceConfig{..} = do
             True  -> removeDirectoryRecursive fp
 
 
+generateWrap :: Maybe [FilePath] -> Gen (Spec, LogsTree) -> IO (Spec, LogsTree)
+generateWrap (Just [])  _ =
+    $(neverNote "generateWrap No given specs left")
+
+generateWrap (Just (x:_)) _ = do
+  spec :: Spec <- readFromJSON x
+  return (spec, def)
+
+generateWrap _ f = generate f
+
 doRefine :: EssenceConfig -> IO ()
 doRefine ec@EC.EssenceConfig{..} = do
-  process totalTime_
+  process totalTime_ givenSpecs_
 
     where
     out    = outputDirectory_ </> "_passing"
     errdir = outputDirectory_ </> "_errors"
 
-    process timeLeft | timeLeft <= 0 = return ()
-    process timeLeft = do
+    process timeLeft _ | timeLeft <= 0 = return ()
+    process _ (Just []) = return ()
+
+    process timeLeft mayGiven = do
       useSize <- (randomRIO (0, size_) :: IO Int)
-      (sp,logs) <- generate $ Gen.spec useSize def{gen_useFunc = myUseFunc}
+      (sp,logs) <- generateWrap mayGiven $ Gen.spec useSize def{gen_useFunc = myUseFunc}
       model :: Model <- toConjure sp
       case ignoreLogs (typeCheckModel model)  of
-        Left _ -> process timeLeft
+        Left _ -> process timeLeft mayGiven
         Right () -> do
           num <- (randomRIO (10,99) :: IO Int)  >>= return . show
           ts <- timestamp >>= return . show
@@ -93,24 +105,26 @@ doRefine ec@EC.EssenceConfig{..} = do
 
           runTime <- classifySettingI ec errdir out uname result
           case totalIsRealTime of
-            False -> process (timeLeft - (floor runTime))
-            True  -> process (timeLeft - realTime)
+            False -> process (timeLeft - (floor runTime)) givenSpecs_
+            True  -> process (timeLeft - realTime) givenSpecs_
 
 
 doSolve :: EssenceConfig -> IO ()
 doSolve ec@EC.EssenceConfig{..} = do
-  process totalTime_
+  process totalTime_ givenSpecs_
 
     where
     out    = outputDirectory_ </> "_passing"
     errdir = outputDirectory_ </> "_errors"
 
-    process timeLeft | timeLeft <= 0 = return ()
-    process timeLeft = do
-      (sp,logs) <- generate $ Gen.spec size_ def{gen_useFunc = myUseFunc}
+    process timeLeft _ | timeLeft <= 0 = return ()
+    process _ (Just []) = return ()
+
+    process timeLeft mayGiven= do
+      (sp,logs) <- generateWrap mayGiven $ Gen.spec size_ def{gen_useFunc = myUseFunc}
       model :: Model <- toConjure sp
       case ignoreLogs (typeCheckModel model)  of
-        Left _ -> process timeLeft
+        Left _ -> process timeLeft mayGiven
         Right () -> do
           num <- (randomRIO (10,99) :: IO Int)  >>= return . show
           ts <- timestamp >>= return . show
@@ -150,8 +164,8 @@ doSolve ec@EC.EssenceConfig{..} = do
 
           runTime <-  classifyError uname result
           case totalIsRealTime of
-            False -> process (timeLeft - (floor runTime))
-            True  -> process (timeLeft - realTime)
+            False -> process (timeLeft - (floor runTime)) mayGiven
+            True  -> process (timeLeft - realTime) mayGiven
 
 
     classifyError uname (RefineResult a) = classifySettingI ec errdir out uname a
@@ -302,17 +316,18 @@ classifySettingI ec _ out uname SettingI{time_taken_}  = do
 
 doTypeCheck :: EssenceConfig -> IO ()
 doTypeCheck EC.EssenceConfig{..}= do
-  process
+  process givenSpecs_
 
   where
-    process = do
-      (sp,_) <- generate $ Gen.spec size_ def{gen_useFunc = myUseFunc}
+    process (Just []) = return ()
+    process mayGiven = do
+      (sp,_) <- generateWrap mayGiven $ Gen.spec size_ def{gen_useFunc = myUseFunc}
       model :: Model <- toConjure sp
 
 
       let (res :: Either Doc ())  =ignoreLogs $ typeCheckModel model
       handleResult sp model res
-      process
+      process mayGiven
 
 
     handleResult sp model (Left d) = do
@@ -362,6 +377,9 @@ copyFiles names inn out needed = forM needed $ \g -> do
            let ms' =  M.filterWithKey (\k _ ->  k `S.member` names) ms
                ss'      = ss{data_=RefineMap ms'}
            writeToJSON (out </> g) ss'
+
+         Just (ss) -> do
+           error . show .  vcat $ ["copyFiles unhandled", nn "ss" (groom ss) ]
 
     "solve_eprime.json" -> do
        readFromJSON (inn </> g) >>= \case

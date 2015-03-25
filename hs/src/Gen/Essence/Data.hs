@@ -34,6 +34,7 @@ data EssenceConfig = EssenceConfig
       , oldConjure_        :: Bool
       , toolchainOutput_   :: ToolchainOutput
       , notUseful          :: Set ( KindI, StatusI )
+      , givenSpecs_        :: Maybe [FilePath]
       } deriving (Show)
 
 instance Default EssenceConfig where
@@ -53,4 +54,5 @@ instance Default EssenceConfig where
       , oldConjure_        = False
       , toolchainOutput_   = def
       , notUseful          = def
+      , givenSpecs_        = Nothing
       }

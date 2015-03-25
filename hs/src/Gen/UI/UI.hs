@@ -26,6 +26,7 @@ data UI
     , old_conjure        :: Bool
     , limit_time         :: Maybe Int
     , no_csv             :: Bool
+    , given_dir          :: Maybe FilePath
     }
 
   | Instance
@@ -132,7 +133,7 @@ ui  = modes
                                     &= name "t"
                                     &= groupname "Required"
                                     &= explicit
-                                    &= help "Total time for running specs"
+                                    &= help "Total time for running specs. If --given is used this can not be specified"
      , per_spec_time      = def     &= name "per-spec-time"
                                     &= name "p"
                                     &= groupname "Required"
@@ -180,6 +181,11 @@ ui  = modes
                                     &= groupname "Other"
                                     &= explicit
                                     &= help "Don't save version of the tools used, The script if used requires bash"
+     , given_dir         = Nothing  &= typDir
+                                    &= name "given"
+                                    &= groupname "Other"
+                                    &= explicit
+                                    &= help "Instead of generating specs, act like the .spec.json files in the given dir were the generated specs, -t/--total-time can not be used with this option"
      , toolchain_ouput    = enum
                             [
                               ToolchainScreen_ &= name "show-toolchain-output"

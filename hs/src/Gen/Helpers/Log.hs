@@ -21,6 +21,9 @@ import qualified Text.PrettyPrint as P
 data LogsTree = LSEmpty | LSSingle !LogNamed | LSMultiple !LogsTree !LogsTree
     deriving (Show, GHC.Generics.Generic)
 
+instance Default LogsTree where
+    def = LSEmpty
+
 logTreeToList :: LogsTree -> DList.DList LogNamed
 logTreeToList LSEmpty          = DList.empty
 logTreeToList (LSSingle   x  ) = DList.singleton x

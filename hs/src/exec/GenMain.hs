@@ -26,6 +26,7 @@ import System.Exit                 (exitFailure, exitSuccess, exitWith)
 import System.Locale               (defaultTimeLocale)
 import System.Timeout              (timeout)
 import Text.Printf                 (printf)
+import System.FilePath(takeExtensions)
 
 import qualified Data.Set                as S
 import qualified Gen.Essence.Data        as EC
@@ -100,12 +101,17 @@ limiter (Just sec) f  =  do
 
 mainWithArgs :: UI -> IO ()
 mainWithArgs Essence{..} = do
-  let errors = catMaybes
-        [ aerr "-t|--total-time" (total_time == 0)
-        , aerr "-p|--per-spec-time" (per_spec_time == 0)
+  let ls = case given_dir of
+             (Just _) -> []
+             Nothing  -> [ aerr "-t|--total-time" (total_time == 0) ]
+
+  let errors = catMaybes $
+        [ aerr "-p|--per-spec-time" (per_spec_time == 0)
         , aerr "-c|--cores" (_cores == 0)
         , aerr "--size > 0" (_size <= 0)
+        , aerr "--given and -t/--total-time can not be used together" (isJust given_dir && total_time /= 0)
         ]
+        ++ ls
 
   case errors of
     [] -> return ()
@@ -113,8 +119,9 @@ mainWithArgs Essence{..} = do
 
 
   out   <- giveOutputDirectory output_directory
-
   seed_ <- giveSeed _seed
+  givenSpecs <- giveSpec given_dir
+
   let config = EC.EssenceConfig
                { outputDirectory_ = out
                , mode_            = toEssenceMode _mode
@@ -130,6 +137,7 @@ mainWithArgs Essence{..} = do
                , oldConjure_        = old_conjure
                , toolchainOutput_   = toolchain_ouput
                , notUseful          = S.fromList [(Savilerow_, NumberToLarge_)]
+               , givenSpecs_        = givenSpecs
                }
 
   doMeta out no_csv binaries_directory
@@ -300,6 +308,16 @@ giveOutputDirectory Nothing   = do
   return $ formatTime defaultTimeLocale "%F_%H-%M_%s" t
 
 
+giveSpec :: Maybe FilePath -> IO (Maybe [FilePath])
+giveSpec Nothing  = return Nothing
+giveSpec (Just path)  = do
+  files <- getDirectoryContents path
+  case [ f | f <- files, (takeExtensions $ f) == ".spec.json" ] of
+    [] -> error . show . vcat  $[ "No .spec.json files in " <+>  pretty path
+                                , "Did you run gen json -d" <+> pretty path]
+    xs -> return $ Just xs
+
+
 _essenceDebug :: IO ()
 _essenceDebug = do
     let ec = Essence
@@ -319,6 +337,7 @@ _essenceDebug = do
              , total_is_real_time = True
              , toolchain_ouput    = ToolchainNull_
              , no_csv             = False
+             , given_dir          = Nothing
              }
     limiter (limit_time ec) (mainWithArgs ec)
 

@@ -140,6 +140,7 @@ Executable gen
                      , directory
                      , time
                      , old-locale
+                     , filepath
 
    default-extensions:
         NoImplicitPrelude
