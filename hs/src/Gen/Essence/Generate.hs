@@ -60,7 +60,7 @@ doRefine ec@EC.EssenceConfig{..} = do
     out    = outputDirectory_ </> "_passing"
     errdir = outputDirectory_ </> "_errors"
 
-    process timeLeft _ | timeLeft <= 0 = return ()
+    process timeLeft Nothing | timeLeft <= 0 = return ()
     process _ (Just []) = return ()
 
     process timeLeft mayGiven = do
@@ -117,7 +117,7 @@ doSolve ec@EC.EssenceConfig{..} = do
     out    = outputDirectory_ </> "_passing"
     errdir = outputDirectory_ </> "_errors"
 
-    process timeLeft _ | timeLeft <= 0 = return ()
+    process timeLeft Nothing | timeLeft <= 0 = return ()
     process _ (Just []) = return ()
 
     process timeLeft mayGiven= do

@@ -75,8 +75,10 @@ main = do
    where
 
 
+     getLimit (Essence{_mode=TypeCheck, given_dir=Just{}}) =
+         error "--given and --mode typecheck can not be used together"
      getLimit x | Just i <- limit_time x, i <=0  = error "--limit-time must be > then 0"
-     getLimit (Essence{_mode=m,limit_time = Nothing, total_time=t}) | m == TypeCheck=Just t
+     getLimit (Essence{_mode=TypeCheck, limit_time=Nothing, total_time=t}) = Just t
      getLimit input = limit_time input
 
 
@@ -121,6 +123,7 @@ mainWithArgs Essence{..} = do
   out   <- giveOutputDirectory output_directory
   seed_ <- giveSeed _seed
   givenSpecs <- giveSpec given_dir
+
 
   let config = EC.EssenceConfig
                { outputDirectory_ = out
