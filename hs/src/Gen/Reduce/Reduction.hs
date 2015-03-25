@@ -135,19 +135,83 @@ instance (HasGen m,  HasLogger m) =>  Reduce Literal m where
 
 
     reduce li = do
-        rLits <- getReducedChildren li
-        let lss = map (replaceChildren li) (transposeFill rLits)
-        let res = concatMap (innersExpand reduceLength1) lss
-        return res
+      rLits <- getReducedChildren li
+      let lss = map (replaceChildren li) (transposeFill rLits)
+      let res = concatMap (innersExpand reduceLength1) lss
+      return res
 
 
 
     mutate (AbsLitRelation xs)  = mutate_2d (ELit . AbsLitPartition) xs
     mutate (AbsLitPartition xs) = mutate_2d (ELit . AbsLitPartition) xs
-    -- mutate (AbsLitFunction xs)  = _f
+    mutate (AbsLitFunction xs) | False  = do
+      reductions <- mapM reduceTuple ixs
+      let fixedOthers = [ if xi == ei then e else Fixed x
+                        | (x,xi)  <- ixs
+                        | (e, ei) <- reductions ]
+      let fixed = map fixReduced fixedOthers
+      let fixed_i = zip fixed [0..]
+      let expanded =  map (expand ixs)  fixed_i
 
+      -- addLog "given" (map pretty xs)
+      -- addLog "reductions" (map pretty reductions)
+      -- addLog "fixedOthers" (map pretty fixedOthers)
+      -- addLog "fixed" (map pretty fixed)
+
+      return $ concatMap (map (ELit . AbsLitFunction)) expanded
+
+      where
+        ixs = zip xs [0 :: Int ..]
+
+        reduceTuple ( (a,b) ,i) = do
+           ra <- reduce a
+           rb <- reduce b
+           return ( Reduced (ra,rb) (a, b) , i)
+
+        fixReduced :: RFuncChoices -> RFuncChoices
+        fixReduced (Reduced (as,bs) (da,db)) =
+            let fixa = [ (ra,db)  |  ra <- as ]
+                fixb = [ (da,rb)  |  rb <- bs ]
+            in  ReducedFixed (fixa ++ fixb)
+
+        fixReduced x = x
+
+        expand :: [((Expr,Expr), Int)] -> (RFuncChoices, Int)
+               -> [[(Expr,Expr)]]
+        expand ys (ReducedFixed xx, i)  =
+            [ [ if i == yi then x else y | (y,yi) <- ys ] | x <- xx ]
+
+        expand _ _ = $(neverNote "expend invaild argument")
 
     mutate _ = return []
+
+type RFuncChoices = RChoices ([Expr],[Expr])  (Expr,Expr)
+data RChoices a b = Reduced a b
+                  | Fixed b
+                  | ReducedFixed [b]
+                    deriving Show
+
+
+instance Pretty RFuncChoices where
+    pretty (Reduced (xa,xb) x2)  = hang ("Reduced" <+> pretty x2) 4 $
+                                     "fst" <+> (sep . punctuate  "," $ map pretty xa)
+                                 <+> "snd" <+> (sep . punctuate  "," $ map pretty xb)
+    pretty (Fixed x)        = "Fixed" <+> pretty x
+    pretty (ReducedFixed x) = "ReducedFixed" <+>  (vcat . map pretty)  x
+
+mutate_2d :: forall a (m :: * -> *) b.
+             (Monad m, Eq a) =>
+             ([[a]] -> b) -> [[a]] -> m [b]
+mutate_2d wrap xs = do
+  let reductions = map (\(x,i) -> (reduceLength x,i) ) ixs
+      res = map f reductions
+
+  return $ map wrap (concat res)
+
+  where
+    ixs = zip xs allNats
+    f (es,ei) = [ [ if xi == ei then e else x | (x,xi) <-ixs ]  | e <- es ]
+
 
 getReducedChildren :: (Monad m, Applicative m, HasGen m,  HasLogger m)
                    => Literal -> m ([([Expr], Expr)])
@@ -164,19 +228,6 @@ getReducedChildren lit = do
        withGen_put ((ht,x) : xs)
 
        return x
-
-mutate_2d :: forall a (m :: * -> *) b.
-             (Monad m, Eq a) =>
-             ([[a]] -> b) -> [[a]] -> m [b]
-mutate_2d wrap xs = do
-  let reductions = map (\(x,i) -> (reduceLength x,i) ) ixs
-      res = map f reductions
-
-  return $ map wrap (concat res)
-
-  where
-    ixs = zip xs allNats
-    f (es,ei) = [ [ if xi == ei then e else x | (x,xi) <-ixs ]  | e <- es ]
 
 
 transposeFill :: (Eq a) => [([a], a)] -> [[a]]
@@ -258,10 +309,9 @@ subterms_op e subs =  do
 
 reduce_op :: forall (m :: * -> *). (HasGen m,  HasLogger m)
           => Op Expr -> [Expr] -> m [Op Expr]
-reduce_op x subs = reduce_op2 (_replaceOpChildren x) subs
+reduce_op x subs = reduce_op2 (replaceOpChildren x) subs
 
 
--- TODO need to also reduce only one side
 reduce_op2 :: forall (m :: * -> *). (HasGen m,  HasLogger m)
            => ([Expr] -> Op Expr) -> [Expr] -> m [Op Expr]
 reduce_op2 f subs = do
@@ -415,6 +465,17 @@ singleLitExpr ty = do
   singleLit $ ty
 
 
+replaceOpChildren :: Op Expr -> [Expr] -> Op Expr
+replaceOpChildren op news = fst . flip runState news $ f1 <$> T.mapM fff ch1
+   where
+     (ch1, f1) = biplate op
+     fff _ = do
+       (x:xs) <- get
+       put xs
+       return x
+
+
+
 runReduce :: (HasGen m, Standardise a, HasLogger m, Reduce a (StateT EState (IdentityT m)) )
              => Spec -> a -> m [a]
 runReduce spe x = do
@@ -468,20 +529,12 @@ __depths f ee = do
   putStrLn . show . pretty . (depthOf &&& id) $ ee
 
 
-_replaceOpChildren :: Op Expr -> [Expr] -> Op Expr
-_replaceOpChildren op news = fst . flip runState news $ f1 <$> T.mapM fff ch1
-   where
-     (ch1, f1) = biplate op
-     fff _ = do
-       (x:xs) <- get
-       put xs
-       return x
-
 _replaceOpChildren_ex :: Op Expr
-_replaceOpChildren_ex = _replaceOpChildren
+_replaceOpChildren_ex = replaceOpChildren
   [opp| 8 ** 3  |]  [  [essencee| 4 |], [essencee| 2 |] ]
 
 
+-- REMOVE below
 
 instance Pretty [Expr] where
     pretty = prettyBrackets  . pretty . vcat . map pretty
@@ -490,8 +543,12 @@ instance Pretty [Literal] where
     pretty = prettyBrackets  . pretty . vcat . map pretty
 
 
-_ll :: Op Expr
-_ll = [opp| function(false --> (partition() : `partition from partition from bool`)) = function(false --> partition({partition({false})}, {partition({true})})) |]
 
-_le :: Expr
-_le = [essencee| function(false --> (partition() : `partition from partition from bool`)) = function(false --> partition({partition({false})}, {partition({true})})) |]
+_var1 = EVar $ Var "var1" (TPar $ TSet $ TInt)
+
+_lf = [opp| (function() : `function bool --> partition from partition from bool`) = function(&_var1 = &_var1 --> partition({(partition() : `partition from bool`)}, {partition({false, true})})) |]
+
+_lg = [opp| (function() : `function bool --> partition from bool`) = function(&_var1 = &_var1 --> partition( {true,false} ) ) |]
+
+
+_lh = [litt|  function(&_var1 = &_var1 --> partition( {true,false} ) ) |]

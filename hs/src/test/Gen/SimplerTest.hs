@@ -103,11 +103,11 @@ tests = testGroup "simpler"
    [
      ([essencee| {false} |],  [essencee| {false,true} |] )
    , ([essencee| {} |],       [essencee| {false,true} |] )
-   , ([essencee| {true} |],   [essencee| {} |] )
+   , ([essencee| {} |],       [essencee| {true} |] )
 
    , ([essencee| [1,2] |],    [essencee| [1,2,3] |] )
-   , ([essencee| [1] |],     [essencee| [1,2] |] )
-   , ([essencee| [5] |],     [essencee| [] |] )
+   , ([essencee| [1] |],      [essencee| [1,2] |] )
+   , ([essencee| [] |],       [essencee| [5] |] )
 
    , ([essencee| [1,2; int(1,3)] |],    [essencee| [1,2,3; int(2,4,6)] |] )
 
