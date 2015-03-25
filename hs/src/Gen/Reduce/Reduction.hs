@@ -476,33 +476,6 @@ _replaceOpChildren_ex = _replaceOpChildren
 
 
 
---http://stackoverflow.com/questions/3015962/zipping-with-padding-in-haskell
-data OneOrBoth a b = OneL a | OneR b | Both a b
-
-class Align f where
-  align :: (OneOrBoth a b -> c) -> f a -> f b -> f c
-
-instance Align [] where
-  align f []     []     = []
-  align f (x:xs) []     = f (OneL x)   : align f xs []
-  align f []     (y:ys) = f (OneR y)   : align f [] ys
-  align f (x:xs) (y:ys) = f (Both x y) : align f xs ys
-
-liftAlign2 f a b = align t
-  where t (OneL l)   = f l b
-        t (OneR r)   = f a r
-        t (Both l r) = f l r
-
-zipPad a b = liftAlign2 (,) a b
-
-liftAlign3 f a b c xs ys = align t (zipPad a b xs ys)
-  where t (OneL (x,y))   = f x y c
-        t (OneR r)       = f a b r
-        t (Both (x,y) r) = f x y r
-
-zipPad3 a b c = liftAlign3 (,,) a b c
-
-
 instance Pretty [Expr] where
     pretty = prettyBrackets  . pretty . vcat . map pretty
 
