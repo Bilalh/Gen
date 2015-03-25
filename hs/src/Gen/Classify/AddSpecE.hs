@@ -77,7 +77,7 @@ addSpecE printSpecs fp_ = do
          else
              return ()
 
-         writeFile (replaceExtensions fp ".spec" )      (show r)
+         -- writeFile (replaceExtensions fp ".spec" )      (show r)
          L.writeFile (replaceExtensions fp ".spec.json" ) (A.encode r)
 
 

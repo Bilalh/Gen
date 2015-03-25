@@ -30,7 +30,7 @@ addMeta fp_ = do
   f spec fp = do
     putStrLn ("processing: " ++ fp)
     let meta = mkMeta spec
-    writeFile (replaceExtensions fp ".meta" ) (show meta)
+    -- writeFile (replaceExtensions fp ".meta" ) (show meta)
     writeToJSON (replaceExtensions fp ".meta.json" ) (meta)
 
 
