@@ -138,13 +138,20 @@ instance (HasGen m,  HasLogger m) =>  Reduce Literal m where
       rLits <- getReducedChildren li
       let lss = map (replaceChildren li) (transposeFill rLits)
       let res = concatMap (innersExpand reduceLength1) lss
-      return res
+      let sim =  [ r | r <- res, runIdentity $ simpler1 r li ]
+
+      addLog "rlits" (map pretty rLits)
+      addLog "rlitsT" (map pretty $ transposeFill rLits)
+      addLog "lss" (map pretty lss)
+      addLog "sim" (map pretty sim)
+
+      return sim
 
 
 
     mutate (AbsLitRelation xs)  = mutate_2d (ELit . AbsLitPartition) xs
     mutate (AbsLitPartition xs) = mutate_2d (ELit . AbsLitPartition) xs
-    mutate (AbsLitFunction xs) | False  = do
+    mutate (AbsLitFunction xs)  = do
       reductions <- mapM reduceTuple ixs
       let fixedOthers = [ if xi == ei then e else Fixed x
                         | (x,xi)  <- ixs
@@ -153,10 +160,10 @@ instance (HasGen m,  HasLogger m) =>  Reduce Literal m where
       let fixed_i = zip fixed [0..]
       let expanded =  map (expand ixs)  fixed_i
 
-      -- addLog "given" (map pretty xs)
-      -- addLog "reductions" (map pretty reductions)
-      -- addLog "fixedOthers" (map pretty fixedOthers)
-      -- addLog "fixed" (map pretty fixed)
+      addLog "given" (map pretty xs)
+      addLog "reductions" (map pretty reductions)
+      addLog "fixedOthers" (map pretty fixedOthers)
+      addLog "fixed" (map pretty fixed)
 
       return $ concatMap (map (ELit . AbsLitFunction)) expanded
 
@@ -247,17 +254,6 @@ replaceChildren lit news = fst . flip runState news $ f1
       (x:xs) <- get
       put xs
       return x
-
-    exprToLit :: Expr -> Literal
-    exprToLit (ELit l ) = l
-    exprToLit e = error . show . vcat $
-                  [ "exprToLit"
-                  , nn "e" e
-                  , nn "e" (pretty . groom $ e)
-                  , nn "org" lit
-                  , nn "org" (pretty . groom $ lit)
-                  , nn "news" (vcat . map pretty $ news)
-                  , nn "news" (vcat . map (pretty. groom) $ news)]
 
 
 instance (HasGen m,  HasLogger m) =>  Reduce (Domainn Expr) m where
