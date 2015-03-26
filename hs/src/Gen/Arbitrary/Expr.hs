@@ -235,7 +235,7 @@ exprOf ty = do
           funcLitOf a b
         ]
 
-    exprOf' d ofType (TRel tys) = oneof2 $ ofType ++ [
+    exprOf' _ ofType (TRel tys) = oneof2 $ ofType ++ [
           relLitOf tys
         ]
 

@@ -6,7 +6,6 @@ module Gen.Helpers.TypeOf(WithDoms(..), TTypeOf(..), typeOfDom) where
 import Conjure.Language.Constant
 import Conjure.Language.TypeOf
 import Conjure.Language.Expression.Op
-import Conjure.Language.Definition
 import Gen.Helpers.StandardImports
 
 import qualified Data.Map as M

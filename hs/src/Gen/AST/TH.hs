@@ -1,4 +1,4 @@
--- really only for usage in ghci
+{-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
 module Gen.AST.TH(domain, domainn,essencee,opp,conn,litt) where
 
 import Conjure.Language.Definition

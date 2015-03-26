@@ -1,14 +1,12 @@
-
 {-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Gen.AST.Type where
 
-import Conjure.Prelude
+import Conjure.Language.Name
 import Conjure.Language.Pretty
 import Conjure.Language.Type
-import Conjure.Language.Name
-
+import Conjure.Prelude
 import Gen.AST.Data
 
 
