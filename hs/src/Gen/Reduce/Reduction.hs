@@ -76,6 +76,16 @@ instance (HasGen m,  HasLogger m) =>  Reduce Expr m where
         a3 <- subterms e
         return $ a1 ++ a3
 
+    reduce (EComp inner gens cons) = do
+      cr <- mapM reduce cons
+      let rs  = concat $ reduceLength1 cr
+      let r_cons = map (EComp inner gens) rs
+
+      ir <- reduce inner
+      let r_inner = map (\r -> EComp r gens cons) (ir)
+
+      return $ r_cons ++ r_inner
+
 
 
     single EEmptyGuard  = return []
@@ -87,6 +97,10 @@ instance (HasGen m,  HasLogger m) =>  Reduce Expr m where
     single (ETyped ty _)     = singleLitExpr ty
     single (EVar (Var _ ty)) = singleLitExpr ty
     single e@(EMetaVar _)    = rrError "single EMetaVar" [pretty e]
+
+    single (EComp inner gens _) = do
+      r_inner <- single inner
+      return $ map (\i -> EComp i gens []) r_inner
 
 
 
@@ -115,6 +129,7 @@ instance (HasGen m,  HasLogger m) =>  Reduce Expr m where
     subterms (EQuan _ _ _ _ _) = return []
     subterms (ECon _)          = return []
     subterms (EMetaVar _)      = return []
+    subterms EComp{}           = return []
 
 
 instance (HasGen m,  HasLogger m) =>  Reduce Constant m where
@@ -482,6 +497,8 @@ runReduce spe x = do
   return res
 
 
+-- For ghci
+
 __run :: forall t a (t1 :: * -> *).
          (Pretty a, Foldable t1, Pretty t) =>
          Bool -> (t -> StateT EState Identity (t1 a)) -> t -> IO (t1 a)
@@ -524,8 +541,6 @@ _replaceOpChildren_ex :: Op Expr
 _replaceOpChildren_ex = replaceOpChildren
   [opp| 8 ** 3  |]  [  [essencee| 4 |], [essencee| 2 |] ]
 
-
--- REMOVE below
 
 -- instance Pretty [Expr] where
 --     pretty = prettyBrackets  . pretty . vcat . map pretty
