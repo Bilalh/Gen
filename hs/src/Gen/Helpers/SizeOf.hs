@@ -4,13 +4,11 @@ module Gen.Helpers.SizeOf where
 
 import Conjure.Language.Constant
 import Conjure.Language.Expression.Op
-import Gen.Helpers.Debug
+import Gen.AST.TH
 import Gen.Helpers.StandardImports    as X
 import Gen.Helpers.TypeOf             (typeOfDom)
-import Gen.AST.TH
 
 import qualified Data.Foldable as F
-import qualified Data.Traversable as T
 
 
 class DepthOf a where
@@ -70,6 +68,7 @@ instance DepthOf Expr where
 
     depthOf (EQuan _ _ e2 e3 e4) = 1 + maximum ([depthOf e2, depthOf e3, depthOf e4])
 
+    depthOf (EComp inner _ cons) = maximum $ depthOf inner : map depthOf cons
 
 instance DepthOf Literal where
     depthOf x = empty_p1 (maximum . map depthOf_p1) . F.toList $ x

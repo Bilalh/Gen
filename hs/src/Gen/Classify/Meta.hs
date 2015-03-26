@@ -1,4 +1,5 @@
-{-# LANGUAGE DeriveDataTypeable, DeriveGeneric, FlexibleInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE DeriveDataTypeable, DeriveGeneric, FlexibleInstances,
+             MultiParamTypeClasses #-}
 
 module Gen.Classify.Meta where
 
@@ -6,7 +7,6 @@ import Conjure.Language.AbstractLiteral
 import Conjure.Language.Expression.Op
 import Gen.Classify.DomTypes
 import Gen.Prelude
-import Gen.Reduce.Simpler
 
 import qualified Data.Foldable as F
 import qualified Data.Map      as M
@@ -20,6 +20,7 @@ data Feature = Fquan
               | Fref            -- references variables
               | Fsum            -- quan sum
               | Ftyped
+              | FComp
                 deriving(Show, Generic, Typeable, Eq, Read)
 
 data SpecMeta = SpecMeta
@@ -115,13 +116,16 @@ class HasFeature e where
     getFeatures :: e -> [Feature]
 
 instance HasFeature Expr where
-    getFeatures (ELit e)             = Fliterals : getFeatures e
-    getFeatures (ECon _)             = []
-    getFeatures (EVar _)             = [Fref]
-    getFeatures (EOp e)            = Fop : getFeatures e
-    getFeatures (EDom e)             = getFeatures e
-    getFeatures (ETyped _ e2)        = Ftyped : getFeatures e2
-    getFeatures EEmptyGuard          = []
+    getFeatures (ELit e)         = Fliterals : getFeatures e
+    getFeatures (ECon _)         = []
+    getFeatures (EVar _)         = [Fref]
+    getFeatures (EOp e)          = Fop : getFeatures e
+    getFeatures (EDom e)         = getFeatures e
+    getFeatures (ETyped _ e2)    = Ftyped : getFeatures e2
+    getFeatures EEmptyGuard      = []
+    getFeatures (EComp _ _ cons) = FComp : concatMap getFeatures cons
+    getFeatures (EMetaVar _)     = []
+
     getFeatures (EQuan Sum _ e2 e3 e4) = Fsum : (concat
           [getFeatures  e2, getFeatures  e3, getFeatures e4] )
     getFeatures (EQuan _ _ e2 e3 e4)  = Fquan : (concat
@@ -140,6 +144,12 @@ instance HasFeature Literal where
     getFeatures (AbsLitFunction l)  = concatMap (\(a,b) ->  getFeatures a ++ getFeatures b) l
     getFeatures (AbsLitRelation l)  = concatMap (concatMap getFeatures) l
     getFeatures (AbsLitPartition l) = concatMap (concatMap getFeatures) l
+
+    getFeatures (AbsLitSequence x) = concatMap getFeatures x
+    getFeatures (AbsLitRecord x)   = concatMap (getFeatures . snd)  x
+    getFeatures (AbsLitVariant x1 _ x3) = getFeatures x3 ++ fromMaybe []
+                                            (fmap ( concatMap (getFeatures . snd ) ) x1)
+
 
 
 instance HasFeature (Domainn Expr) where
