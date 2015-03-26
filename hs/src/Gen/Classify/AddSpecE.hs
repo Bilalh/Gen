@@ -18,10 +18,6 @@ import System.FilePath ( takeExtension)
 import qualified Data.Aeson as A
 import qualified Data.ByteString.Lazy as L
 
--- import Gen.AST.TH
--- ee3 [essencee| false /\ &e |] = e
--- dd3 [domainn| set of &f |] = f
-
 specEMain :: Bool ->  [FilePath] -> IO ()
 specEMain printSpecs = \case
    []     ->  putStrLn "gen json {-d <dir>}+"

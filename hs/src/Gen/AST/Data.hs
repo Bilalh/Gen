@@ -51,7 +51,29 @@ data Expr =
     Expr -- guard
     Expr -- inner
 
+  | EComp
+    Expr    -- inner
+    [EGen]  -- Generators
+    [Expr]  -- Conditions
+
   deriving (Eq, Ord, Show, Data, Typeable, Generic)
+
+
+instance Serialize (Expr)
+instance Hashable  (Expr)
+instance ToJSON    (Expr) where toJSON    = genericToJSON jsonOptions
+instance FromJSON  (Expr) where parseJSON = genericParseJSON jsonOptions
+
+
+data EGen =
+    GenDom AbstractPattern (Domainn Expr)
+  | GenIn  AbstractPattern Expr
+  deriving (Eq, Ord, Show, Data, Typeable, Generic)
+
+instance Serialize (EGen)
+instance Hashable  (EGen)
+instance ToJSON    (EGen) where toJSON    = genericToJSON jsonOptions
+instance FromJSON  (EGen) where parseJSON = genericParseJSON jsonOptions
 
 
 data Var = Var Text TType
@@ -65,11 +87,6 @@ instance Hashable  (Var)
 instance ToJSON    (Var) where toJSON    = genericToJSON jsonOptions
 instance FromJSON  (Var) where parseJSON = genericParseJSON jsonOptions
 
-
-instance Serialize (Expr)
-instance Hashable  (Expr)
-instance ToJSON    (Expr) where toJSON    = genericToJSON jsonOptions
-instance FromJSON  (Expr) where parseJSON = genericParseJSON jsonOptions
 
 data QType = ForAll
            | Exists

@@ -29,6 +29,14 @@ instance Translate (Domainn Expr) (Domain () Expression) where
     fromConjure x = mapM fromConjure x
     toConjure x   = mapM toConjure x
 
+instance Translate (EGen) (Generator) where
+    fromConjure (GenDomainNoRepr x1 x2)  = GenDom <$> return x1 <*> fromConjure x2
+    fromConjure (GenInExpr x1 x2)        = GenIn  <$> return x1 <*> fromConjure x2
+
+    fromConjure x = fromConjureFail "Translate (EGen) (Generator)" x
+
+    toConjure (GenDom x1 x2) = GenDomainNoRepr <$> return x1 <*> toConjure x2
+    toConjure (GenIn x1 x2)  = GenInExpr       <$> return x1 <*> toConjure x2
 
 instance Translate Expr Expression where
   fromConjure (Constant t)          = ECon   <$> fromConjure t
@@ -39,12 +47,19 @@ instance Translate Expr Expression where
   fromConjure (ExpressionMetaVar t) = return $ EMetaVar t
 
   -- fromConjure (WithLocals t1 t2)    = _f
-  -- fromConjure (Comprehension t1 t2) = _f
   fromConjure r@(Reference t1 _)         = do
     name <- fromConjure t1
     ty   <- typeOf r
     tty  <- fromConjure ty
     return . EVar $ Var name tty
+
+  fromConjure (Comprehension inner genCon) = EComp <$> fromConjure inner
+                                                   <*> mapM fromConjure gens
+                                                   <*> mapM fromConjure cons
+    where
+      gens = [ g | Generator g <- genCon ]
+      cons = [ c | Condition c <- genCon ]
+
 
 
   fromConjure x = fromConjureFail "Expr Expression" x
@@ -58,6 +73,15 @@ instance Translate Expr Expression where
   --FIXME correct? not the first
   toConjure (EVar (Var x _) ) =  Reference <$> toConjure x <*> return Nothing
   toConjure (EMetaVar x)      = return $ ExpressionMetaVar x
+
+  toConjure (EComp inner gens cons) =
+                    Comprehension
+                <$> toConjure inner
+                <*> (
+                     (++) <$> (mapM ( fmap  Generator . toConjure) gens)
+                          <*> (mapM ( fmap  Condition . toConjure) cons)
+                    )
+
 
 
   toConjure (EQuan q (Var x _) (EDom dom) g inner) = do
@@ -112,6 +136,8 @@ instance Pretty Expr where
 instance Pretty QType where
     pretty = error "Pretty Qtype"
 
+instance Pretty EGen where
+    pretty =  pretty . (toConjureNote "Pretty EGen" :: EGen -> Generator)
 
 -- Conjure required instances
 

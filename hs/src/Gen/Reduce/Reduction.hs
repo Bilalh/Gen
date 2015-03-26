@@ -140,11 +140,6 @@ instance (HasGen m,  HasLogger m) =>  Reduce Literal m where
       let res = concatMap (innersExpand reduceLength1) lss
       let sim =  [ r | r <- res, runIdentity $ simpler1 r li ]
 
-      addLog "rlits" (map pretty rLits)
-      addLog "rlitsT" (map pretty $ transposeFill rLits)
-      addLog "lss" (map pretty lss)
-      addLog "sim" (map pretty sim)
-
       return sim
 
 
@@ -532,11 +527,11 @@ _replaceOpChildren_ex = replaceOpChildren
 
 -- REMOVE below
 
-instance Pretty [Expr] where
-    pretty = prettyBrackets  . pretty . vcat . map pretty
+-- instance Pretty [Expr] where
+--     pretty = prettyBrackets  . pretty . vcat . map pretty
 
-instance Pretty [Literal] where
-    pretty = prettyBrackets  . pretty . vcat . map pretty
+-- instance Pretty [Literal] where
+--     pretty = prettyBrackets  . pretty . vcat . map pretty
 
 
 
