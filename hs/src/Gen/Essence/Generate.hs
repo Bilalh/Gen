@@ -80,7 +80,6 @@ doRefine ec@EC.EssenceConfig{..} = do
           writeToJSON (dir </> "spec.spec.json") sp
 
           let meta = mkMeta sp
-          writeFile (dir </> "spec.meta" ) (show meta)
           writeToJSON  (dir </> "spec.meta.json" ) (meta)
           Toolchain.copyMetaToSpecDir outputDirectory_ dir
 
