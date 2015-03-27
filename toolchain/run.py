@@ -496,7 +496,10 @@ def run_conjure_with_choices(timeout, kind, cmd, *, extra_env, vals):
                     print(line, end='')
                     lines.append(line)
 
-            code = proc.poll()
+            proc.stdout.close()
+            proc.stderr.close()
+            code = proc.wait()
+
 
         choices.write("]")
 
