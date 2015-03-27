@@ -356,12 +356,13 @@ doTypeCheck EC.EssenceConfig{..}= do
 
 allow :: String -> FilePath -> Bool
 allow k f
-    | k `isPrefixOf` f       = True
-    | "json" `isSuffixOf` f  = True
-    | "param" `isSuffixOf` f = True
-    | "spec" `isPrefixOf` f  = True
-    | "_" `isPrefixOf` f     = True
-    | otherwise              = False
+    | k `isPrefixOf` f              = True
+    | "choices.json" `isSuffixOf` f = False
+    | "json" `isSuffixOf` f         = True
+    | "param" `isSuffixOf` f        = True
+    | "spec" `isPrefixOf` f         = True
+    | "_" `isPrefixOf` f            = True
+    | otherwise                     = False
 
 
 copyFiles :: Traversable t =>
