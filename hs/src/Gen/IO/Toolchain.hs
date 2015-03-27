@@ -65,7 +65,13 @@ toolchain ToolchainData{..} = do
   return $ case (refineF, solveF) of
              (Just r, Just s)  -> (code, SolveResult (r,s))
              (Just r, Nothing) -> (code, RefineResult r)
-             (r, s)            -> error . show $ (r,s)
+             (r, s)            -> error . show . vcat $
+                                    [
+                                      nn "toolchain error on" essencePath
+                                    , nn "outputDirectory"  outputDirectory
+                                    , nn "rs" (groom ( r,s) )
+                                    , nn "cmd" (showCommandForUser script args)
+                                    ]
 
 
 outputArg :: ToolchainOutput -> FilePath -> Maybe String
