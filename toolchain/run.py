@@ -348,6 +348,8 @@ def classify_error(*, kind, output, returncode):
     if kind in kind_conjure:
         if returncode == 252:
             return Status.heapSpace
+        if 'conjureNew: Heap exhausted' in output:
+            return Status.heapSpace
 
     if kind == K.validateOld and 'Value not in' in output:
         return Status.valueNotInDom
