@@ -90,3 +90,7 @@ cabal copy                                  # install in ${BIN_DIR}
 if [ $RUN_TESTS = "yes" ]; then
     time dist/build/gen-testing/gen-testing --hide-successes -j ${TEST_CORES:-4} +RTS -s
 fi
+
+pushd "${BIN_DIR}"
+ln -sf conjure conjureNew
+popd
