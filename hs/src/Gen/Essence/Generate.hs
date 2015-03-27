@@ -7,7 +7,7 @@ import Data.Time.Clock.POSIX       (getPOSIXTime)
 import Gen.Classify.Meta           (mkMeta)
 import Gen.Essence.Data            (EssenceConfig)
 import Gen.IO.Formats
-import Gen.IO.Toolchain            hiding (ToolchainData (..), copyMetaToSpecDir)
+import Gen.IO.Toolchain            hiding (ToolchainData (..))
 import Gen.Prelude
 import GHC.Real                    (floor)
 import System.Directory            (copyFile, renameDirectory)
@@ -359,6 +359,7 @@ allow k f
     | k `isPrefixOf` f              = True
     | "choices.json" `isSuffixOf` f = False
     | "json" `isSuffixOf` f         = True
+    | "csv" `isSuffixOf` f          = True
     | "param" `isSuffixOf` f        = True
     | "spec" `isPrefixOf` f         = True
     | "_" `isPrefixOf` f            = True

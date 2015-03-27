@@ -11,8 +11,8 @@ import Gen.Classify.Sorter         (sorterMain')
 import Gen.Essence.Generate        (generateEssence)
 import Gen.Helpers.StandardImports
 import Gen.IO.Term
-import Gen.IO.Toolchain            (KindI (..), StatusI (..), kindsList,
-                                    saveBinariesCsv, statusesList)
+import Gen.IO.Toolchain            (KindI (..), StatusI (..), doMeta, kindsList,
+                                    statusesList)
 import Gen.Reduce.Data             (RState (..), mkrGen)
 import Gen.Reduce.FormatResults    (formatResults)
 import Gen.Reduce.Reduce           (reduceMain)
@@ -20,13 +20,12 @@ import Gen.Reduce.Runner           (giveDb, saveDB)
 import Gen.UI.UI
 import System.Console.CmdArgs      (cmdArgs)
 import System.CPUTime              (getCPUTime)
-import System.Directory            (copyFile)
 import System.Environment          (withArgs)
 import System.Exit                 (exitFailure, exitSuccess, exitWith)
+import System.FilePath             (takeExtensions)
 import System.Locale               (defaultTimeLocale)
 import System.Timeout              (timeout)
 import Text.Printf                 (printf)
-import System.FilePath(takeExtensions)
 
 import qualified Data.Set                as S
 import qualified Gen.Essence.Data        as EC
@@ -277,22 +276,6 @@ mainWithArgs Script_ToolchainRecheck{..} = do
            , Recheck.toolchainOutput   = toolchain_ouput
            }
   exitWith code
-
-
-doMeta :: FilePath -> Bool -> Maybe FilePath -> IO ()
-doMeta out no_csv_copy bin_dir = do
-  createDirectoryIfMissing True out
-
-  case no_csv_copy of
-    True  -> return ()
-    False -> saveBinariesCsv out
-
-  case bin_dir of
-    Nothing -> return ()
-    Just bp -> doesFileExist (bp </> "meta.json") >>= \case
-               False -> return ()
-               True  -> copyFile (bp </> "meta.json") (out </> "meta.json")
-
 
 
 aerr :: String -> Bool -> Maybe String
