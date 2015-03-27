@@ -1,6 +1,6 @@
 Requires
 
-	Python 3.4
+	Python 3.4   (`./scripts/misc/install_python3.4.sh` can install python 3.4 locally as ~/bin/python3 )
 	ghc 7.8 to compile
 	Compatible Conjure, Savilerow & Minion to run
 
