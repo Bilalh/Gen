@@ -37,7 +37,7 @@ addSpecE printSpecs fp_ = do
     let inlined = inlineParamAndLettings start Nothing
     let specE  = fromModel inlined
 
-    putStrLn ("processing: " ++ fp)
+    putStrLn ("    processing: " ++ fp)
 
     case specE of
       Left r -> error . show . vcat $ ["Error for " <+> (pretty fp)
