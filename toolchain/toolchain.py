@@ -143,14 +143,14 @@ if __name__ == "__main__":
         (essence_refine, refine_wall_time) = run.run_refine_essence_with_choices(
                 op=op, commands=commands, extra_env=extra_env)
         successful = essence_refine['cmd_used']['status_'] in [Status.success, Status.timeout]
+    if op.refine_all:
+        (essence_refine, refine_wall_time) = run.run_refine_all_essence(
+            op=op, commands=commands, extra_env=extra_env)
+        successful = essence_refine['cmd_used']['status_'] in [Status.success, Status.timeout]
     else:
-        if op.refine_all:
-            (essence_refine, refine_wall_time) = run.run_refine_all_essence(
-                op=op, commands=commands, extra_env=extra_env)
-        else:
-            (essence_refine, refine_wall_time) = run.run_refine_essence(
-                op=op, commands=commands, random=op.num_cores - 1, cores=op.num_cores,
-                extra_env=extra_env)
+        (essence_refine, refine_wall_time) = run.run_refine_essence(
+            op=op, commands=commands, random=op.num_cores - 1, cores=op.num_cores,
+            extra_env=extra_env)
         successful = all(  res['status_'] in [Status.success, Status.timeout]
             for res in essence_refine.values() )
 

@@ -395,7 +395,7 @@ def classify_error(*, kind, output, returncode):
 def run_with_timeout(timeout, kind, cmd, *, extra_env, vals):
     logging.warn("Running %s", " ".join(cmd))
 
-    if kind == K.refineCompact or kind == K.refineRandom:
+    if kind == K.refineCompact or kind == K.refineRandom or kind == K.refineAll:
         return run_conjure_with_choices(timeout, kind, cmd, extra_env=extra_env, vals=vals)
     else:
         return run_process(timeout, kind, cmd, extra_env=extra_env, vals=vals)
