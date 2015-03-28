@@ -82,6 +82,7 @@ runSpec spE = do
                   , Toolchain.toolchainOutput   = oo
                   , Toolchain.choicesPath       = choices
                   , Toolchain.outputDirectory   = path
+                  , Toolchain.dryRun            = False
                   }
 
 

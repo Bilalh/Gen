@@ -24,6 +24,7 @@ data ToolchainData = ToolchainData
     , oldConjure         :: Bool
     , toolchainOutput    :: ToolchainOutput
     , choicesPath        :: Maybe FilePath
+    , dryRun             :: Bool
     }
   deriving (Show, Eq, Generic, Typeable, Data)
 
@@ -41,6 +42,7 @@ instance Default ToolchainData where
           , oldConjure        = False
           , toolchainOutput   = def
           , choicesPath       = Nothing
+          , dryRun            = False
           }
 
 data RefineType =

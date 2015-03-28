@@ -21,7 +21,7 @@ import Gen.Prelude
 import Paths_essence_gen           (getDataDir)
 import System.Directory            (copyFile)
 import System.Environment          (lookupEnv)
-import System.Exit                 (ExitCode)
+import System.Exit                 (ExitCode,exitSuccess)
 import System.FilePath             ((<.>))
 import System.IO                   (IOMode (..), withFile)
 import System.Process              (StdStream (..), createProcess, proc,
@@ -57,6 +57,8 @@ toolchain ToolchainData{..} = do
 
 
   liftIO . putStrLn $ "Running: " ++ showCommandForUser script args
+  when dryRun $ liftIO exitSuccess
+
   code    <- runCommand script args (outputArg toolchainOutput outputDirectory)
   refineF <- readFromJSONMay $ outputDirectory </> "refine_essence.json"
   solveF  <- readFromJSONMay $ outputDirectory </> "solve_eprime.json"

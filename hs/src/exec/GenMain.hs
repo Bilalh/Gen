@@ -245,6 +245,7 @@ mainWithArgs Script_Toolchain{..} = do
            , Toolchain.oldConjure        = old_conjure
            , Toolchain.toolchainOutput   = toolchain_ouput
            , Toolchain.choicesPath       = choices_path
+           , dryRun                      = dry_run
            }
   exitWith code
 
@@ -274,6 +275,7 @@ mainWithArgs Script_ToolchainRecheck{..} = do
            , Recheck.binariesDirectory = binaries_directory
            , Recheck.oldConjure        = old_conjure
            , Recheck.toolchainOutput   = toolchain_ouput
+           , Recheck.dryRun            = dry_run
            }
   exitWith code
 

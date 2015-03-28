@@ -8,8 +8,8 @@ import Data.Data
 import Gen.IO.Formats
 import Gen.IO.Toolchain
 import Gen.Prelude
+import System.Exit      (ExitCode, exitSuccess)
 import System.Process   (showCommandForUser)
-import System.Exit                 (ExitCode)
 
 
 
@@ -26,6 +26,8 @@ toolchainRecheck RecheckData{..} = do
 
 
   liftIO . putStrLn $ "Running: " ++ showCommandForUser script args
+  when dryRun $ liftIO exitSuccess
+
   code   <- runCommand script args (outputArg toolchainOutput outputDirectory)
   refineF <- readFromJSONMay $ outputDirectory </> "refine_essence.json"
   solveF  <- readFromJSONMay $ outputDirectory </> "solve_eprime.json"
@@ -61,6 +63,7 @@ data RecheckData = RecheckData
     , binariesDirectory  :: Maybe FilePath
     , oldConjure         :: Bool
     , toolchainOutput    :: ToolchainOutput
+    , dryRun             :: Bool
     }
   deriving (Show, Eq, Generic, Typeable, Data)
 
@@ -73,4 +76,5 @@ instance Default RecheckData where
           , binariesDirectory = Nothing
           , oldConjure        = False
           , toolchainOutput   = def
+          , dryRun            = False
           }

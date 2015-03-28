@@ -98,6 +98,7 @@ doRefine ec@EC.EssenceConfig{..} = do
                     , Toolchain.oldConjure        = oldConjure_
                     , Toolchain.toolchainOutput   = toolchainOutput_
                     , Toolchain.choicesPath       = Nothing
+                    , Toolchain.dryRun            = False
                     }
           endTime <- round `fmap` getPOSIXTime
           let realTime = endTime - startTime
@@ -156,6 +157,7 @@ doSolve ec@EC.EssenceConfig{..} = do
                     , Toolchain.oldConjure        = oldConjure_
                     , Toolchain.toolchainOutput   = toolchainOutput_
                     , Toolchain.choicesPath       = Nothing
+                    , Toolchain.dryRun            = False
                     }
 
           endTime <- round `fmap` getPOSIXTime

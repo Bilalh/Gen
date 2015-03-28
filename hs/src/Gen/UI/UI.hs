@@ -88,6 +88,7 @@ data UI
     , binaries_directory :: Maybe FilePath
     , old_conjure        :: Bool
     , limit_time         :: Maybe Int
+    , dry_run            :: Bool
     }
   | Script_ToolchainRecheck
     {
@@ -99,6 +100,7 @@ data UI
     , binaries_directory :: Maybe FilePath
     , old_conjure        :: Bool
     , limit_time         :: Maybe Int
+    , dry_run            :: Bool
     }
   deriving (Show, Data, Typeable)
 
@@ -377,7 +379,10 @@ ui  = modes
                                                &= groupname "Control"
                                                &= help "Refine, solve and validate the spec while genrating all models"
                             ]
-
+     , dry_run            = False   &= name "dry-run"
+                                    &= groupname "Other"
+                                    &= explicit
+                                    &= help "Just output the command that would be executed"
      , choices_path      = Nothing  &= name "choices"
                                     &= explicit
                                     &= typ "FILE"
@@ -448,6 +453,10 @@ ui  = modes
                                     &= groupname "Other"
                                     &= explicit
                                     &= help "Time limit in seconds of CPU time of this program"
+     , dry_run            = False   &= name "dry-run"
+                                    &= groupname "Other"
+                                    &= explicit
+                                    &= help "Just output the command that would be executed"
      , toolchain_ouput    = enum
                             [
                               ToolchainScreen_ &= name "show-toolchain-output"
