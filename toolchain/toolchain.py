@@ -98,7 +98,7 @@ if __name__ == "__main__":
         extra_env = {}
 
     def setup_logging(outdir):
-        p = outdir / "_toolchain.log"
+        p = outdir / "_toolchain.logs"
 
         rootLogger = logging.getLogger()
         rootLogger.setLevel(logging.INFO)
@@ -111,7 +111,7 @@ if __name__ == "__main__":
 
         fileHandler = logging.FileHandler(str(p))
         fileHandler.setLevel(logging.INFO)
-        logFormatter = logging.Formatter('%(asctime)s⦙%(levelname)-10s⦙%(name)-10s⦙%(lineno)-4d⦙%(funcName)-30s⦙\n    %(message)s')
+        logFormatter = logging.Formatter('%(asctime)s⦙%(levelname)-10s⦙%(name)-10s⦙%(lineno)-4d⦙%(funcName)-50s⦙ %(message)s')
         fileHandler.setFormatter(logFormatter)
         logging.getLogger().addHandler(fileHandler)
 
