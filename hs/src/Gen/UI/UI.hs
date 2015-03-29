@@ -53,6 +53,7 @@ data UI
     , _seed              :: Maybe Int
 
     , delete_passing     :: Bool
+    , delete_steps       :: Bool
     , toolchain_ouput    :: ToolchainOutput
     , binaries_directory :: Maybe FilePath
     , limit_time         :: Maybe Int
@@ -277,6 +278,10 @@ ui  = modes
                                      &= groupname "Other"
                                      &= explicit
                                      &= help "Delete non failing test cases as soon as they have been generated"
+     , delete_steps       = False    &= name "delete-steps"
+                                     &= groupname "Other"
+                                     &= explicit
+                                     &= help "Delete intermediate test case generated which have the same error"
      , toolchain_ouput    = enum
                             [
                               ToolchainScreen_ &= name "show-toolchain-output"

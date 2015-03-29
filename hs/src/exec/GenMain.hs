@@ -210,7 +210,7 @@ mainWithArgs Reduce{..} = do
 
   (_,state) <- reduceMain args
   saveDB db_directory (resultsDB_  state)
-  formatResults state
+  formatResults (delete_steps) state
 
 
 mainWithArgs Link{..} = do
@@ -354,5 +354,6 @@ _reduceDebug = do
                    , no_csv             = False
                    , delete_passing     = False
                    , db_directory       = Nothing
+                   , delete_steps       = False
                    }
     limiter (limit_time ec) (mainWithArgs ec)

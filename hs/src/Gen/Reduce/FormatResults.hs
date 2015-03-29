@@ -5,18 +5,15 @@ import Gen.Reduce.Data
 import System.Directory (copyFile, renameDirectory)
 import System.FilePath  (takeFileName)
 
-formatResults :: RState -> IO ()
-formatResults RState{..} = do
+formatResults :: Bool -> RState -> IO ()
+formatResults delete_steps RState{..} = do
 
   case mostReduced_ of
     Just r -> do
       renameDirectory  (resDirectory_ r) finalDir
 
     Nothing -> do
-      if True then
-          return ()
-       else
-           copyDirectory specDir_ finalDir
+      return ()
 
   writeFile (finalDir </> "zreduce.logs") (renderSized 120 rlogs_)
 
@@ -34,6 +31,10 @@ formatResults RState{..} = do
   forM_ toDelete $ \d -> do
     renameDirectory (outputDir_ </> d) (stepsDir </> d)
 
+  if delete_steps then
+      removeDirectoryRecursive stepsDir
+  else
+      return ()
 
   where
 

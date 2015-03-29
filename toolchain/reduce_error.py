@@ -42,7 +42,7 @@ elif (essence_dir / "refine_essence.json").exists():
 			status = "StatusAny_"
 
 		cmd_str="""
-			gen reduce {essence_dir} -o '{output}' -p {total_time}  --kind {kind} --status {status} -D
+			gen reduce {essence_dir} -o '{output}' -p {total_time}  --kind {kind} --status {status} -D --delete-steps
 		""".format(essence_dir=essence_dir, kind=kind, status=status,
 			       total_time=args.total_time, output=args.output)
 
