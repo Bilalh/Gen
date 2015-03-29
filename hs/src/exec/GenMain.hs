@@ -168,10 +168,17 @@ mainWithArgs Reduce{..} = do
   else
       return ()
 
+  exists_sd <- doesDirectoryExist spec_directory
+  exists_ch <-  case error_choices of
+    Just x  -> doesFileExist x
+    Nothing -> return True
+
   let errors = catMaybes
         [ aerr "spec-directory" (null spec_directory)
         , aerr "-p|--per-spec-time" (per_spec_time == 0)
         , aerr "-c|--cores >0" (_cores == 0)
+        , aerr ("Does not exist:" ++ spec_directory ) (not exists_sd)
+        , aerr ("Does not exist:" ++ (show error_choices) ) (not exists_ch)
         ]
 
   case errors of
