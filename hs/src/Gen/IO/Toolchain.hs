@@ -21,12 +21,15 @@ import Gen.Prelude
 import Paths_essence_gen           (getDataDir)
 import System.Directory            (copyFile)
 import System.Environment          (lookupEnv)
-import System.Exit                 (ExitCode,exitSuccess)
+import System.Exit                 (ExitCode, exitSuccess)
 import System.FilePath             ((<.>))
 import System.IO                   (IOMode (..), withFile)
 import System.Process              (StdStream (..), createProcess, proc,
-                                    showCommandForUser, std_err, std_out,
+                                    showCommandForUser, std_err, std_out, env,
                                     waitForProcess)
+import System.Posix.Env(getEnvironment)
+
+import qualified Data.Map as M
 
 logSpec :: MonadIO m => Spec -> m ()
 logSpec sp = do
@@ -137,27 +140,53 @@ getToolchainDir binDir = liftIO $ lookupEnv "REPO_GEN" >>= \case
         fail . vcat $ [" Can't find toolchain directory in data dir"
                       , "set REPO_GEN to gen/" ]
 
-
 runCommand :: MonadIO m => FilePath -> [String] -> Maybe String -> m ExitCode
-runCommand cmd args (Just fout)  =
+runCommand = runCommand' Nothing
+
+runCommand' :: MonadIO m => Maybe [(String,String) ] ->
+                            FilePath -> [String] -> Maybe String -> m ExitCode
+runCommand' env cmd args (Just fout)  = do
+  envUse <- doEnv env
   liftIO $ withFile fout  WriteMode  $ \hout  -> do
     (_, _, _, ph) <- createProcess (proc cmd args)
                      { std_out  = UseHandle hout
                      , std_err  = UseHandle hout
+                     , env      = envUse
                      }
     waitForProcess ph
 
-runCommand cmd args Nothing  =
+runCommand' env cmd args Nothing  = do
+  envUse <- doEnv env
   liftIO $ do
-    (_, _, _, ph) <- createProcess (proc cmd args)
+    (_, _, _, ph) <- createProcess (proc cmd args){env = envUse}
     waitForProcess ph
 
+doEnv :: MonadIO m
+      => Maybe [(String, String)] -> m (Maybe [(String, String)])
+doEnv Nothing  = return Nothing
+doEnv (Just newNew) = do
+  curEnv <- liftIO $ getEnvironment
+  -- liftIO $ print $ "PATH" `lookup`  curEnv
+  let merged = M.toList $ (M.fromList newNew)  `M.union` (M.fromList curEnv)
+  -- liftIO $ print $ "PATH" `lookup`  merged
+  return $ Just $  merged
 
-saveBinariesCsv :: FilePath -> IO ()
-saveBinariesCsv fp= do
+
+saveBinariesCsv :: FilePath -> Maybe FilePath -> IO ()
+saveBinariesCsv fp bin_dir= do
   toolchainDir <- getToolchainDir Nothing
+  env_use <- bin_env bin_dir
   let cmd = toolchainDir </> "save_binaries_csv.sh"
-  void $ runCommand cmd [fp] Nothing
+  void $ runCommand' env_use  cmd [fp] Nothing
+
+  where
+    bin_env Nothing  = return Nothing
+    bin_env (Just x) = do
+      liftIO $ lookupEnv ("PATH" :: String) >>= \case
+                Nothing -> liftIO $ error "No PATH variable"
+                Just p -> do
+                    let newPath = x ++ ":" ++ p
+                    return $ Just [("PATH", newPath)]
 
 
 doMeta :: FilePath -> Bool -> Maybe FilePath -> IO ()
@@ -166,7 +195,7 @@ doMeta out no_csv_copy bin_dir = do
 
   case no_csv_copy of
     True  -> return ()
-    False -> saveBinariesCsv out
+    False -> saveBinariesCsv out bin_dir
 
   case bin_dir of
     Nothing -> return ()

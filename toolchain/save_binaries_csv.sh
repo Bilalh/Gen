@@ -1,7 +1,6 @@
 #!/bin/bash
-set -o nounset
-
 # save a csv of the tools used
+set -o nounset
 
 
 if [ -z "${1:-}" ]; then
