@@ -27,7 +27,7 @@ import random
 from collections import defaultdict
 from command import K
 
-
+from pathlib import Path
 logger = logging.getLogger(__name__)
 
 import hashlib
@@ -140,6 +140,10 @@ if __name__ == "__main__":
 
     # Make the eprimes
     if op.choices:
+        if not Path(op.choices).exists():
+            print("--choices does not exist {}".format(op.choices))
+            sys.exit(4)
+
         (essence_refine, refine_wall_time) = run.run_refine_essence_with_choices(
                 op=op, commands=commands, extra_env=extra_env)
         successful = essence_refine['cmd_used']['status_'] in [Status.success, Status.timeout]
