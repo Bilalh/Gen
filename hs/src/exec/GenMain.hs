@@ -7,7 +7,7 @@ import Data.Time                   (formatTime, getCurrentTime)
 import Gen.Arbitrary.Data
 import Gen.Classify.AddMeta        (metaMain)
 import Gen.Classify.AddSpecE       (specEMain)
-import Gen.Classify.Sorter         (sorterMain')
+import Gen.Classify.Sorter         (sorterMain',getRecursiveContents)
 import Gen.Essence.Generate        (generateEssence)
 import Gen.Helpers.StandardImports
 import Gen.IO.Term
@@ -299,7 +299,7 @@ giveOutputDirectory Nothing   = do
 giveSpec :: Maybe FilePath -> IO (Maybe [FilePath])
 giveSpec Nothing  = return Nothing
 giveSpec (Just path)  = do
-  files <- getDirectoryContents path
+  files <- getRecursiveContents path
   case [ f | f <- files, (takeExtensions $ f) == ".spec.json" ] of
     [] -> error . show . vcat  $[ "No .spec.json files in " <+>  pretty path
                                 , "Did you run ` gen json -d" <+> pretty path <+> "`?" ]
