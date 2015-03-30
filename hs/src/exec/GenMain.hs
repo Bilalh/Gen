@@ -103,16 +103,21 @@ limiter (Just sec) f  =  do
 mainWithArgs :: UI -> IO ()
 mainWithArgs Essence{..} = do
   let ls = case given_dir of
-             (Just _) -> []
-             Nothing  -> [ aerr "-t|--total-time" (total_time == 0) ]
+             Nothing  -> [ aerr "-t|--total-time" (total_time == 0)]
+             Just{} -> []
+
+  fileErr <- sequence
+            [
+              dirExistsMay "--givens"  given_dir
+            , dirExistsMay "--bin-dir" binaries_directory
+            ]
 
   let errors = catMaybes $
         [ aerr "-p|--per-spec-time" (per_spec_time == 0)
         , aerr "-c|--cores" (_cores == 0)
         , aerr "--size > 0" (_size <= 0)
         , aerr "--given and -t/--total-time can not be used together" (isJust given_dir && total_time /= 0)
-        ]
-        ++ ls
+        ]  ++ fileErr ++ ls
 
   case errors of
     [] -> return ()
@@ -168,18 +173,18 @@ mainWithArgs Reduce{..} = do
   else
       return ()
 
-  exists_sd <- doesDirectoryExist spec_directory
-  exists_ch <-  case error_choices of
-    Just x  -> doesFileExist x
-    Nothing -> return True
+  fileErr <- catMaybes <$> sequence
+            [
+              dirExists     "spec_directory" spec_directory
+            , fileExistsMay "choices" error_choices
+            , dirExistsMay "--bin-dir" binaries_directory
+            ]
 
   let errors = catMaybes
         [ aerr "spec-directory" (null spec_directory)
         , aerr "-p|--per-spec-time" (per_spec_time == 0)
         , aerr "-c|--cores >0" (_cores == 0)
-        , aerr ("Does not exist:" ++ spec_directory ) (not exists_sd)
-        , aerr ("Does not exist:" ++ (show error_choices) ) (not exists_ch)
-        ]
+        ] ++ fileErr
 
   case errors of
     [] -> return ()
@@ -214,9 +219,21 @@ mainWithArgs Reduce{..} = do
 
 
 mainWithArgs Link{..} = do
+  errors <- catMaybes <$> (mapM (dirExists "-d") directories )
+
+  case errors of
+    [] -> return ()
+    xs -> mapM putStrLn xs >> exitFailure
+
   sorterMain' directories
 
 mainWithArgs SpecEE{..} = do
+  errors <- catMaybes <$> (mapM (dirExists "-d") directories )
+
+  case errors of
+    [] -> return ()
+    xs -> mapM putStrLn xs >> exitFailure
+
   if meta_only then
       return ()
   else do
@@ -227,10 +244,19 @@ mainWithArgs SpecEE{..} = do
   metaMain directories
 
 mainWithArgs Script_Toolchain{..} = do
+
+  fileErr <- catMaybes <$> sequence
+            [
+              fileExists    "essence path" essence_path
+            , fileExistsMay "--essence-param" essence_param
+            , fileExistsMay "--choices" choices_path
+            , dirExistsMay "--bin-dir" binaries_directory
+            ]
+
   let errors = catMaybes
         [ aerr "-t|--total-time" (total_time == 0)
         , aerr "-c|--cores" (_cores == 0)
-        ]
+        ] ++ fileErr
 
 
   case errors of
@@ -264,9 +290,16 @@ mainWithArgs Script_Toolchain{..} = do
     f r _ = r
 
 mainWithArgs Script_ToolchainRecheck{..} = do
+  fileErr <- catMaybes <$> sequence
+            [
+              fileExists    "essence path" essence_path
+            , dirExistsMay "--bin-dir" binaries_directory
+            ]
+
+
   let errors = catMaybes
         [ aerr "-c|--cores" (_cores == 0)
-        ]
+        ] ++ fileErr
 
   case errors of
     [] -> return ()
@@ -290,6 +323,25 @@ mainWithArgs Script_ToolchainRecheck{..} = do
 aerr :: String -> Bool -> Maybe String
 aerr n b | b = Just $ "Required: " ++ n
 aerr _ _     = Nothing
+
+dirExistsMay :: String -> Maybe FilePath -> IO (Maybe String)
+dirExistsMay _ Nothing  = return Nothing
+dirExistsMay s (Just x) = dirExists s x
+
+dirExists :: String -> FilePath -> IO (Maybe String)
+dirExists s x = do
+  b <- doesDirectoryExist x
+  return $ aerr (s ++ " ~ Directory does not exist " ++ x ) (not b)
+
+fileExistsMay :: String -> Maybe FilePath -> IO (Maybe String)
+fileExistsMay _ Nothing  = return Nothing
+fileExistsMay s (Just x) = fileExists s x
+
+fileExists ::String -> FilePath -> IO (Maybe String)
+fileExists s x = do
+  b <- doesFileExist x
+  return $ aerr (s ++ " ~ File does not exist " ++ x ) (not b)
+
 
 
 giveSeed :: Maybe Int -> IO Int
