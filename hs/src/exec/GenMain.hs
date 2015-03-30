@@ -310,7 +310,7 @@ giveSpec (Just path)  = do
   case [ f | f <- files, (takeExtensions $ f) == ".spec.json" ] of
     [] -> error . show . vcat  $[ "No .spec.json files in " <+>  pretty path
                                 , "Did you run ` gen json -d" <+> pretty path <+> "`?" ]
-    xs -> return $ Just (map (path </>) xs)
+    xs -> return $ Just xs
 
 
 _essenceDebug :: IO ()
