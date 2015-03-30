@@ -22,13 +22,13 @@ formatResults delete_steps RState{..} = do
     xs  -> mapM_ classify xs
 
   files <- getDirectoryContents outputDir_
-  let toDelete = flip filter files
+  let toMove = flip filter files
                  (`notElem` [
                    "others", "final", "zsteps", ".", ".."
-                  , "zreduce.logs", "versions.csv", "meta.json"] )
+                  , "zreduce.logs", "versions.csv", "meta.json","_reduced.logs"] )
   createDirectoryIfMissing True stepsDir
 
-  forM_ toDelete $ \d -> do
+  forM_ toMove $ \d -> do
     renameDirectory (outputDir_ </> d) (stepsDir </> d)
 
   if delete_steps then
