@@ -10,9 +10,16 @@ formatResults delete_steps RState{..} = do
 
   case mostReduced_ of
     Just r -> do
+      putStrLn . show . vcat $
+                   [ "Renaming "
+                   , pretty (resDirectory_ r)
+                   , " --> "
+                   , pretty finalDir
+                   ]
       renameDirectory  (resDirectory_ r) finalDir
 
     Nothing -> do
+      putStrLn "No final directory"
       createDirectoryIfMissing True finalDir
 
   writeFile (finalDir </> "zreduce.logs") (renderSized 120 rlogs_)
@@ -29,6 +36,12 @@ formatResults delete_steps RState{..} = do
   createDirectoryIfMissing True stepsDir
 
   forM_ toMove $ \d -> do
+    putStrLn . show . vcat $
+             [ "Renaming "
+             , pretty  (outputDir_ </> d)
+             , " --> "
+             , pretty  (stepsDir </> d)
+             ]
     renameDirectory (outputDir_ </> d) (stepsDir </> d)
 
   if delete_steps then
