@@ -109,27 +109,38 @@ arel = do
     return $ TRel vs
 
 
-
 typesUnify :: TType -> TType -> Bool
-typesUnify TAny  _     = True
-typesUnify _     TAny  = True
-typesUnify TInt  TInt  = True
+typesUnify TAny _      = True
+typesUnify _ TAny      = True
 typesUnify TBool TBool = True
+typesUnify TInt TInt   = True
+
+typesUnify (TEnum a) (TEnum b)     = a == b
+typesUnify (TUnamed a) (TUnamed b) = a == b
+
+typesUnify (TTuple as) (TTuple bs) = and (zipWith typesUnify as bs)
+-- typesUnify (TypeRecord as) (TypeRecord bs)
+--     | length as /= length bs = False
+--     | otherwise = and [ case lookup n bs of
+--                              Nothing -> False
+--                              Just b -> typesUnify a b
+--                       | (n,a) <- as
+--                       ]
+-- typesUnify (TypeVariant as) (TypeVariant bs)
+--     | length as /= length bs = False
+--     | otherwise = and [ case lookup n bs of
+--                              Nothing -> False
+--                              Just b -> typesUnify a b
+--                       | (n,a) <- as
+--                       ]
+-- typesUnify (TypeList a) (TypeList b) = typesUnify a b
 
 typesUnify (TMatix i1) (TMatix i2) = typesUnify i1 i2
 typesUnify (TSet i1)   (TSet i2)   = typesUnify i1 i2
 typesUnify (TMSet i1)  (TMSet i2)  = typesUnify i1 i2
 
-typesUnify (TPar i1)   (TPar i2)   = typesUnify i1 i2
-
-typesUnify (TRel i1)   (TRel i2)   | length i1 == length i2  =
-    all (uncurry typesUnify)  $ zip i1 i2
-typesUnify (TTuple i1) (TTuple i2) | length i1 == length i2 =
-    all (uncurry typesUnify)  $ zip i1 i2
-
-typesUnify (TFunc i1 j1) (TFunc i2 j2)  =
-    all (uncurry typesUnify)  $ [(i1, i2), (j1, j2)]
-
-typesUnify (TUnamed t1) (TUnamed t2) = t1 == t2
-typesUnify (TEnum t1)   (TEnum t2)   = t1 == t2
+typesUnify (TFunc a1 a2) (TFunc b1 b2) = and (zipWith typesUnify [a1,a2] [b1,b2])
+-- typesUnify (TypeSequence a) (TypeSequence b) = typesUnify a b
+typesUnify (TRel as) (TRel bs) = and (zipWith typesUnify as bs)
+typesUnify (TPar a) (TPar b) = typesUnify a b
 typesUnify _ _ = False

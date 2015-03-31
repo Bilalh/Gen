@@ -9,11 +9,12 @@ module Gen.Arbitrary.Op(
   , arithmeticExprOf
   , relationExpr
   , boolOpFor
+  , arithmeticTypes
+  , comparisonExpr
+  , arithmeticExpr
   ) where
 
-import Conjure.Language.Expression.Op
 import Gen.Arbitrary.Expr
-import Gen.AST.TH
 import Gen.AST.Ops
 import Gen.Prelude
 

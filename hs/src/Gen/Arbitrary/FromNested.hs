@@ -5,7 +5,6 @@ import Conjure.Language.Constant
 import Gen.Arbitrary.Expr
 import Gen.Arbitrary.Op
 import Gen.Prelude
-import Gen.AST.TH
 import Gen.AST.Ops
 
 import qualified Data.Map as M
@@ -121,7 +120,7 @@ exprFromRefTo :: Var -> TType -> GG Expr
 exprFromRefTo var@(Var ref tyFrom) tyTo = do
     addLog "exprFromRefTo" []
     -- TODO inefficient
-    minSteps <- typeReachable tyTo tyFrom
+    -- minSteps <- typeReachable tyTo tyFrom
 
     d <- gets depth_
     addLog "exprFromRefTo" ["depth, ref, fromTy, tyTo"

@@ -157,7 +157,9 @@ instance ExpressionLike Expr where
 
 
 instance ReferenceContainer Expr where
-    fromName (Name t)                   = EVar $ Var t (error "d")
+    fromName (Name t)                  = EVar $ Var t (error $ "no type for fromName " ++ show t)
+    fromName m@MachineName{}           = EVar $ Var (stringToText $ show $ pretty $ m) (error $ "no type for fromName " ++ show m)
+
     nameOut (EVar (Var nm _))           = return $ Name nm
     nameOut (ECon (ConstantField nm _)) = return $  nm
     nameOut p = fail ("This expression isn't a 'name':" <+> pretty p)
