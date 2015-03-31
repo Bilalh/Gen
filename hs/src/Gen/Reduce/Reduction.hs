@@ -136,10 +136,10 @@ instance (HasGen m,  HasLogger m) =>  Reduce Constant m where
 
     single t = ttypeOf t >>= singleLitExpr
 
-    subterms (ConstantAbstract x) = $notDone
+    subterms (ConstantAbstract _) = $notDone
     subterms _ = return []
 
-    reduce (ConstantAbstract x) = $notDone
+    reduce (ConstantAbstract _) = $notDone
     reduce _   = return []
 
 
@@ -277,7 +277,7 @@ instance (HasGen m,  HasLogger m) =>  Reduce (Op Expr) m where
     single o = ttypeOf o >>= singleLitExpr
 
     -- Generic versions only works on things like [essencee| 1 ** 2 |]  i.e
-    -- EOp (MkOpPow (OpPow (ECon (ConstantInt 1)) (ECon (ConstantInt 2))))
+    -- EOp (MkOpPow (OpPow (ECon (ConstantInt 1)) (ECon (ConstantInt 2w))))
     -- where the sub terms are the direct child of the Op.
     -- It does not work on things like [essencee| 1 + 2 |]
 
@@ -292,10 +292,10 @@ instance (HasGen m,  HasLogger m) =>  Reduce (Op Expr) m where
       subterms_op e subs
 
 
-    reduce [opp| &a + &b |]  = reduce_op2 (\[c,d] ->  [opp| &c + &d |]) [a,b]
-    reduce [opp| &a * &b |]  = reduce_op2 (\[c,d] ->  [opp| &c * &d |]) [a,b]
-    reduce [opp| &a /\ &b |] = reduce_op2 (\[c,d] ->  [opp| &c /\ &d |]) [a,b]
-    reduce [opp| &a \/ &b |] = reduce_op2 (\[c,d] ->  [opp| &c \/ &d |]) [a,b]
+    reduce [opp| &a + &b |]  = reduce_op2 ( m2t $ \(c,d) ->  [opp| &c + &d |])  [a,b]
+    reduce [opp| &a * &b |]  = reduce_op2 (m2t  $ \(c,d) ->  [opp| &c * &d |])  [a,b]
+    reduce [opp| &a /\ &b |] = reduce_op2 (m2t  $ \(c,d) ->  [opp| &c /\ &d |]) [a,b]
+    reduce [opp| &a \/ &b |] = reduce_op2 (m2t  $ \(c,d) ->  [opp| &c \/ &d |]) [a,b]
 
     reduce e = do
       let subs = F.toList e
@@ -431,10 +431,7 @@ singleLit l@(TRel x) = do
   let empty = ETyped ty  (ELit $ AbsLitRelation [])
 
   lits <- mapM (singleLit) x
-
-  let minLength = minimum $ map length lits
-      lits'     = map (take minLength) lits
-      rel       = ELit $ AbsLitRelation $  lits
+  let rel       = ELit $ AbsLitRelation $  lits
 
   return [rel, empty]
 
@@ -550,11 +547,18 @@ _replaceOpChildren_ex = replaceOpChildren
 
 
 
+m2t :: Show a => ((a,a) -> b) -> [a] -> b
+m2t f [a,b] = f (a,b)
+m2t _ x     = error . show . vcat $ ["m2t not two elements", pretty . show $ x ]
+
 _var1 = EVar $ Var "var1" (TPar $ TSet $ TInt)
 
 _lf = [opp| (function() : `function bool --> partition from partition from bool`) = function(&_var1 = &_var1 --> partition({(partition() : `partition from bool`)}, {partition({false, true})})) |]
 
 _lg = [opp| (function() : `function bool --> partition from bool`) = function(&_var1 = &_var1 --> partition( {true,false} ) ) |]
 
-
 _lh = [litt|  function(&_var1 = &_var1 --> partition( {true,false} ) ) |]
+
+_lf, _lg :: Op Expr
+_lh      :: Literal
+_var1    :: Expr
