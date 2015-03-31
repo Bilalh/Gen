@@ -8,7 +8,7 @@ import Conjure.Language.Expression.Op
 import Gen.AST.TH
 import Gen.Prelude
 import Gen.Reduce.Inners
-
+import Gen.Classify.Meta(maximum')
 
 -- True if a1 is simpler then a2
 class (Pretty a, Eq a, Show a, Pretty b, Eq b, Show b
@@ -55,6 +55,21 @@ instance Simpler Expr Expr where
 
     simplerImp (EVar a) b  = simplerImp a b
     simplerImp a (EVar b)  = simplerImp a b
+
+    simplerImp _ EComp{} = return LT
+    simplerImp EComp{} _ = return GT
+
+    simplerImp (EComp i1 _ cs1)  (EComp i2 _ cs2) = do
+         let c1Depth = maximum' 0 $ map depthOf cs1
+         let c2Depth = maximum' 0 $ map depthOf cs2
+
+         case compare c1Depth c2Depth of
+           EQ -> case compare (length cs1) (length cs2) of
+               EQ -> return $ compare (depthOf i1) (depthOf i2)
+
+               o  -> return o
+           o  -> return o
+
 
     simplerImp a b = simplerImpError "Expr" a b
 

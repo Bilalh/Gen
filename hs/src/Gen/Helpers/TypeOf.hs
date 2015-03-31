@@ -33,8 +33,7 @@ instance TTypeOf Literal  where
     ttypeOf x = toTType x
 
 instance TTypeOf (Op Expr) where
-    ttypeOf x = do
-      toTType x
+    ttypeOf x = toTType x
 
 instance TTypeOf Expr  where
   ttypeOf (ELit x)            = ttypeOf x
@@ -46,7 +45,12 @@ instance TTypeOf Expr  where
   ttypeOf (EVar v)            = ttypeOf v
   ttypeOf (ETyped t _)        = return t
   ttypeOf (EOp op)            = ttypeOf op
-  ttypeOf x = error . show . vcat $ ["ttypeOf ", pretty x]
+  -- TODO could also be a set
+  ttypeOf (EComp inner _ _)   = TMatix <$> ttypeOf inner
+
+  ttypeOf x = error . show . vcat $ ["ttypeOf failed for "
+                                    , pretty x
+                                    , pretty . groom $ x]
 
 
 
