@@ -43,19 +43,27 @@ elif (essence_dir / "refine_essence.json").exists():
 
 		cmd_str="""
 			gen reduce {essence_dir} -o '{output}' -p {total_time}  --kind {kind} --status {status} -D --delete-steps -N
-		""".format(essence_dir=essence_dir, kind=kind, status=status,
-			       total_time=args.total_time, output=args.output)
+		"""
 
 		if 'choices_json' in vals['vals']:
 			cs=Path(vals['vals']['choices_json']).name
 			choices = essence_dir / cs
+
 
 			if choices.suffixes == [".choices", ".json"]:
 				new_name = choices.name.replace(".choices.json", ".choices-new.json")
 				if (essence_dir / new_name).exists():
 					choices = essence_dir / new_name
 
+			out_dir = Path(args.output) / choices.stem
+
 			cmd_str += " --choices {}".format(choices)
+			
+		else:
+			out_dir = Path(args.output) / "all"
+
+		cmd_str = cmd_str.format(essence_dir=essence_dir, kind=kind, status=status,
+					       total_time=args.total_time, output=out_dir)
 
 		if args.bin_dir:
 			cmd_str += " --bin-dir {}".format(args.bin_dir)
