@@ -13,7 +13,7 @@ formatResults delete_steps RState{..} = do
       renameDirectory  (resDirectory_ r) finalDir
 
     Nothing -> do
-      return ()
+      createDirectoryIfMissing True finalDir
 
   writeFile (finalDir </> "zreduce.logs") (renderSized 120 rlogs_)
 
