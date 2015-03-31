@@ -151,7 +151,7 @@ instance Simpler Expr (Op Expr) where
     simplerImp (ELit a) b       = simplerImp a b
 
     -- simplerImp (EDom a) b       = _h
-
+    simplerImp EComp{} _ = return GT
 
     simplerImp a b = simplerImpError "Expr Op" a b
 
@@ -169,6 +169,8 @@ instance Simpler Expr (Literal) where
 
     simplerImp (EOp a) b        = simplerImp a b
     -- simplerImp (EDom a) b       = simplerImp a b
+
+    simplerImp EComp{} _  = return GT
 
     simplerImp a b = simplerImpError "Expr Literal" a b
 
