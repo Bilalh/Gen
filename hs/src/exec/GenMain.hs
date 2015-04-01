@@ -41,7 +41,7 @@ main = do
     [] -> do
        args <- helpArg
        void $ withArgs [args] (cmdArgs ui)
-    [x] | x `elem` [ "essence", "reduce", "link", "meta", "json"
+    [x] | x `elem` [ "essence", "reduce", "link", "meta", "json", "generalise"
                    , "script-toolchain", "script-recheck"] -> do
        args <- helpArg
        void $ withArgs [x, args] (cmdArgs ui)
@@ -53,11 +53,18 @@ main = do
         mapM_ (putStrLn) statusesList
         exitSuccess
 
+    ["generalise", "--list-kinds"] -> do
+        mapM_ (putStrLn) kindsList
+        exitSuccess
+    ["generalise", "--list-statuses"] -> do
+        mapM_ (putStrLn) statusesList
+        exitSuccess
+
     ["--toolchain-path"] -> do
          dir <- Toolchain.getToolchainDir Nothing
          putStrLn dir
 
-    ["", "--toolchain-path"] -> do
+    [_, "--toolchain-path"] -> do
          dir <- Toolchain.getToolchainDir Nothing
          putStrLn dir
 
@@ -216,6 +223,63 @@ mainWithArgs Reduce{..} = do
   (_,state) <- reduceMain args
   saveDB db_directory (resultsDB_  state)
   formatResults (delete_steps) state
+
+mainWithArgs Generalise{..} = do
+
+  if list_kinds then do
+        mapM_ (putStrLn) kindsList
+        exitSuccess
+  else
+      return ()
+
+  if list_statuses then do
+        mapM_ (putStrLn) statusesList
+        exitSuccess
+  else
+      return ()
+
+  fileErr <- catMaybes <$> sequence
+            [
+              dirExists     "spec_directory" spec_directory
+            , fileExistsMay "choices" error_choices
+            , dirExistsMay "--bin-dir" binaries_directory
+            ]
+
+  let errors = catMaybes
+        [ aerr "spec-directory" (null spec_directory)
+        , aerr "-p|--per-spec-time" (per_spec_time == 0)
+        , aerr "-c|--cores >0" (_cores == 0)
+        ] ++ fileErr
+
+  case errors of
+    [] -> return ()
+    xs -> mapM putStrLn xs >> exitFailure
+
+
+  seed_ <- giveSeed _seed
+  db    <- giveDb db_directory
+  out   <- giveOutputDirectory output_directory
+
+  let args = def{oErrKind_           = error_kind
+                ,oErrStatus_         = error_status
+                ,oErrChoices_        = error_choices
+                ,outputDir_          = out
+                ,specDir_            = spec_directory
+                ,R.cores_            = _cores
+                ,rgen_               = mkrGen (seed_)
+                ,specTime_           = per_spec_time
+                ,binariesDirectory_  = binaries_directory
+                ,toolchainOutput_    = toolchain_ouput
+                ,deletePassing_      = delete_passing
+                ,resultsDB_          = db
+                ,mostReducedChoices_ = error_choices
+                ,resultsDB_dir       = db_directory
+                }
+
+  doMeta out no_csv binaries_directory
+
+  (_,state) <- reduceMain args
+  saveDB db_directory (resultsDB_  state)
 
 
 mainWithArgs Link{..} = do

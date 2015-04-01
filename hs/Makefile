@@ -18,7 +18,7 @@ failures_run:
 
 ghci:
 	@cabal exec ghci -- -isrc -isrc/test -idist/build/autogen  \
-            -XNoImplicitPrelude                        \
+        -XNoImplicitPrelude                        \
 	    -XOverloadedStrings                        \
 	    -XScopedTypeVariables                      \
 	    -XTemplateHaskell                          \

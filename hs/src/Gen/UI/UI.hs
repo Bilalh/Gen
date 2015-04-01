@@ -61,6 +61,28 @@ data UI
     , db_directory       :: Maybe FilePath
     }
 
+  | Generalise
+    {
+      per_spec_time      :: Int
+    , spec_directory     :: FilePath
+    , error_kind         :: KindI
+    , error_status       :: StatusI
+    , error_choices      :: Maybe FilePath
+
+    , list_kinds         :: Bool
+    , list_statuses      :: Bool
+
+    , output_directory   :: Maybe FilePath
+    , _cores             :: Int
+    , _seed              :: Maybe Int
+
+    , delete_passing     :: Bool
+    , toolchain_ouput    :: ToolchainOutput
+    , binaries_directory :: Maybe FilePath
+    , limit_time         :: Maybe Int
+    , no_csv             :: Bool
+    , db_directory       :: Maybe FilePath
+    }
   | Link
     { directories :: [FilePath]
     , limit_time  :: Maybe Int
@@ -302,6 +324,95 @@ ui  = modes
      } &= explicit
        &= name "reduce"
        &= help "Reduces a .spec.json file"
+
+  , Generalise
+     { spec_directory   = def        &= typ "SPEC-DIR"
+                                     &= argPos 0
+     , error_status     = StatusAny_ &= name "status"
+                                     &= groupname "Generalisation"
+                                     &= explicit
+                                     &= help "The error Kind e.g. RefineRandom_"
+     , error_kind       = KindAny_   &= name "kind"
+                                     &= groupname "Generalisation"
+                                     &= explicit
+                                     &= help "The error Status e.g. ParseError_"
+     , error_choices    = Nothing    &= typFile
+                                     &= name "choices"
+                                     &= groupname "Generalisation"
+                                     &= explicit
+                                     &= help "Use log-following if given otherwise refine all models"
+     , list_statuses    = False      &= name "list-statuses"
+                                     &= groupname "Generalisation"
+                                     &= explicit
+                                     &= help "Just list the statuses then exit"
+     , list_kinds       = False      &= name "list-kinds"
+                                     &= groupname "Generalisation"
+                                     &= explicit
+                                     &= help "Just list the kinds then exit"
+     , output_directory = def        &= typDir
+                                     &= name "output-directory"
+                                     &= name "o"
+                                     &= groupname "Other"
+                                     &= explicit
+                                     &= help "Output directory default is %F_%H-%M_%s e.g. 2015-03-23_01-04_1427072681"
+     , per_spec_time    = def        &= name "per-spec-time"
+                                     &= name "p"
+                                     &= groupname "Required"
+                                     &= explicit
+                                     &= help "Time per Spec"
+     , _cores           = 1          &= name "cores"
+                                     &= name "c"
+                                     &= groupname "Other"
+                                     &= explicit
+                                     &= help "Number of cores to Use"
+     , _seed            = def        &= name "seed"
+                                     &= groupname "Other"
+                                     &= explicit
+                                     &= help "Random Seed to use"
+     , binaries_directory = Nothing  &= name "bin-dir"
+                                     &= groupname "Other"
+                                     &= typDir
+                                     &= explicit
+                                     &= help "Directory to prepend the $PATH before running progams."
+     , db_directory       = Nothing  &= name "db-dir"
+                                     &= groupname "Other"
+                                     &= typDir
+                                     &= explicit
+                                     &= help "Cache the result of running a spec. Useful for development"
+     , limit_time       = Nothing    &= name "limit-time"
+                                     &= groupname "Other"
+                                     &= explicit
+                                     &= help "Time limit in seconds of CPU time of this program"
+     , no_csv              = False   &= name "no-save-csv"
+                                     &= groupname "Other"
+                                     &= explicit
+                                     &= help "Don't save version of the tools used, The script if used requires bash"
+     , delete_passing     = False    &= name "delete-passing"
+                                     &= name "D"
+                                     &= groupname "Other"
+                                     &= explicit
+                                     &= help "Delete non failing test cases as soon as they have been generated"
+     , toolchain_ouput    = enum
+                            [
+                              ToolchainScreen_ &= name "show-toolchain-output"
+                                               &= explicit
+                                               &= groupname "Output"
+                                               &= help "Show toolchain output (default)"
+                            , ToolchainFile_   &= name "redirect-toolchain-output"
+                                               &= name "F"
+                                               &= explicit
+                                               &= groupname "Output"
+                                               &= help "Redirect toolchain output to file"
+                            , ToolchainNull_   &= name "null-toolchain-output"
+                                               &= name "N"
+                                               &= explicit
+                                               &= groupname "Output"
+                                               &= help "Discard toolchain output"
+                            ]
+     } &= explicit
+       &= name "generalise"
+       &= help "Generalises a .spec.json file"
+
 
   , Link
      {
