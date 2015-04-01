@@ -29,12 +29,9 @@ testGroup_lt_gt name ls =
 
 
 
-use_qc :: [Maybe a] -> [Maybe a]
--- use_qc = return []
-use_qc xs = xs
-
-no :: a -> Maybe a
-no _ = Nothing
+_use_qc :: [Maybe a] -> [Maybe a]
+-- _use_qc = return []
+_use_qc xs = xs
 
 
 tests :: TestTree
@@ -54,7 +51,7 @@ tests = testGroup "simpler"
    ]
 
   ,testGroup "type_QC" $
-   catMaybes $ use_qc [
+   catMaybes $ _use_qc [
      Just $ QC.testProperty "type is equal to self" $
        \(AType a) ->  (runIdentity $ simpler a a) == EQ
    , no $ QC.testProperty "atype and depthOf argee" $

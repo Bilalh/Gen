@@ -564,7 +564,7 @@ reachableToType d oty@(TMatix TInt) = concatMapM process types
             ]
 
         hist :: PType -> GG (ToTypeFn, Depth)
-        hist i =  do
+        hist _ =  do
             return $ raise $ (opHist, 1)
 
     process ty = ggError "reachableToType missing"

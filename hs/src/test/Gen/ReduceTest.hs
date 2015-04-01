@@ -1,8 +1,6 @@
 {-# LANGUAGE FlexibleInstances, QuasiQuotes #-}
 module Gen.ReduceTest ( tests ) where
 
-import Gen.Arbitrary.Generators
-import Gen.Arbitrary.Type
 import Gen.AST.TH
 import Gen.Prelude
 import Gen.TestPrelude
@@ -11,10 +9,9 @@ import Gen.Reduce.Reduction as R
 import Gen.Reduce.Simpler
 
 
-use_qc :: [Maybe a] -> [Maybe a]
+_use_qc :: [Maybe a] -> [Maybe a]
 -- use_qc = return []
-use_qc xs = xs
-no _ = Nothing
+_use_qc xs = xs
 
 
 tests :: TestTree

@@ -1,4 +1,4 @@
-module Gen.TestPrelude ( module X, testCase) where
+module Gen.TestPrelude ( module X, testCase,no) where
 
 import Gen.Prelude
 import Test.Tasty       as X (TestTree, testGroup)
@@ -9,3 +9,6 @@ import qualified Test.Tasty.HUnit as H
 
 testCase :: Doc -> H.Assertion -> TestTree
 testCase x =  H.testCase (renderSized 1000 $ ">" <+>  x)
+
+no :: forall t a. t -> Maybe a
+no _ = Nothing
