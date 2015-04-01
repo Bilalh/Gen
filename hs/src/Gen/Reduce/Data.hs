@@ -45,6 +45,7 @@ data RState = RState
     , resultsDB_dir       :: Maybe FilePath
     } deriving (Show)
 
+
 data RunResult =
     OurError{
       resDirectory_  :: FilePath

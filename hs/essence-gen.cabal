@@ -44,6 +44,7 @@ Library
                      , Gen.Essence.Rnd
                      , Gen.Generalise.Data
                      , Gen.Generalise.Generalise
+                     , Gen.Generalise.Runner
                      , Gen.Helpers.Debug
                      , Gen.Helpers.Log
                      , Gen.Helpers.OrderedType
@@ -69,6 +70,7 @@ Library
                      , Gen.Reduce.Simpler
                      , Gen.Reduce.UnusedDomains
                      , Gen.UI.UI
+                     
 
     build-depends    : base
                      , aeson
