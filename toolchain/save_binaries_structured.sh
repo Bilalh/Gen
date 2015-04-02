@@ -204,13 +204,11 @@ mkdir -p "${dateDir}"
 
 pushd "${dateDir}"
 
-ln -sf "../../../hash/${version}/${host_type}/savilerow.jar" "${name}.jar"
 cat << EOF > savilerow
 #!/bin/bash
 DIR="\$( cd "\$( dirname "\$0" )" && pwd )"
 DIR="\${DIR}/../../../hash/${version}/${host_type}"
-cd "\$DIR"
-./savilerow "\$@"
+"\${DIR}/savilerow" "\$@"
 EOF
 
 chmod +x "./savilerow"
@@ -219,13 +217,11 @@ popd
 pushd "${tbase}"
 echo "${name},hg,${version},${version_date},${rest_line}" >> data.csv
 
-ln -sf "../../../versions/${name}/hash/${version}/${host_type}/${name}" "${name}.jar"
 cat << EOF > savilerow
 #!/bin/bash
 DIR="\$( cd "\$( dirname "\$0" )" && pwd )"
 DIR="\${DIR}/../../../versions/${name}/hash/${version}/${host_type}/"
-cd "\$DIR"
-./savilerow "\$@"
+"\${DIR}/savilerow" "\$@"
 EOF
 
 chmod +x "./savilerow"
