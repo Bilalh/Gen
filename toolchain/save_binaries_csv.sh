@@ -106,16 +106,18 @@ echo "${name},hg,${version},,${rest_line}" >> "${base}/${csv_name}"
 
 
 #gen
+if ( which gen &> /dev/null ); then
+	name="gen"
+	version="$("${name}" --version | grep 'Git version' | egrep -o "'\w+" | egrep -o '\w+')"
 
-name="gen"
-version="$("${name}" --version | grep 'Git version' | egrep -o "'\w+" | egrep -o '\w+')"
+	vd="$("${name}" --version | egrep 'Git version' | egrep -o '\w+,.*[0-9]' )"
 
-vd="$("${name}" --version | egrep 'Git version' | egrep -o '\w+,.*[0-9]' )"
+	if (sw_vers &>/dev/null); then
+		version_date="$(date -jf '%a, %d %b %Y %T %z' "${vd}" '+%F_%s')"
+	else
+		version_date="$(date --date="${vd}" '+%F_%s')"
+	fi
 
-if (sw_vers &>/dev/null); then
-	version_date="$(date -jf '%a, %d %b %Y %T %z' "${vd}" '+%F_%s')"
-else
-	version_date="$(date --date="${vd}" '+%F_%s')"
+	echo "${name},git,${version},${version_date},${rest_line}" >> "${base}/${csv_name}"
 fi
 
-echo "${name},git,${version},${version_date},${rest_line}" >> "${base}/${csv_name}"
