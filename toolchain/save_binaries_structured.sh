@@ -291,7 +291,7 @@ function gen_save(){
 
 	pushd "${dateDir}"
 	ln -sf "../../../hash/${version}/${host_type}/${name}" "${name}"
-	ln -sf "../../../hash/${version}/${host_type}/toolchain" "toolchain"
+	ln -nsf "../../../hash/${version}/${host_type}/toolchain" "toolchain"
 	popd
 
 	pushd "${tbase}"
