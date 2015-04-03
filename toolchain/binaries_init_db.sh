@@ -123,6 +123,56 @@ sqlite3 "${SAVED_BINARIES}/info.sqlite" <<SQL
 		) AND srcHostType != dstHostType
 	Order by srcId, srcHostType, dstHostType;
 
+	CREATE VIEW IF NOT EXISTS "GenGroup"  as
+	Select 
+	id as groupId, 
+	( Select hash from Groups G 
+	  Join GroupItems Gi ON Gi.groupId = g.id
+	  Join Versions V ON Gi.binId = V.id 
+	  where name = 'gen' and G.id = H.id ) as gen,
 
+	( Select hash from Groups G 
+	  Join GroupItems Gi ON Gi.groupId = g.id
+	  Join Versions V ON Gi.binId = V.id 
+	  where name = 'conjureNew' and G.id = H.id ) as conjureNew,
+
+	( Select hash from Groups G 
+	  Join GroupItems Gi ON Gi.groupId = g.id
+	  Join Versions V ON Gi.binId = V.id 
+	  where name = 'savilerow' and G.id = H.id ) as savilerow,
+
+	( Select hash from Groups G 
+	  Join GroupItems Gi ON Gi.groupId = g.id
+	  Join Versions V ON Gi.binId = V.id 
+	  where name = 'minion' and G.id = H.id ) as minion,
+	  
+	H.filePath
+
+	From Groups H
+	Where gen is not NULL
+	Order by H.filePath;
+	
+	CREATE VIEW IF NOT EXISTS "ToolchainGroup"  as
+	Select 
+	id as groupId,
+	( Select hash from Groups G 
+	  Join GroupItems Gi ON Gi.groupId = g.id
+	  Join Versions V ON Gi.binId = V.id 
+	  where name = 'conjureNew' and G.id = H.id ) as conjureNew,
+
+	( Select hash from Groups G 
+	  Join GroupItems Gi ON Gi.groupId = g.id
+	  Join Versions V ON Gi.binId = V.id 
+	  where name = 'savilerow' and G.id = H.id ) as savilerow,
+
+	( Select hash from Groups G 
+	  Join GroupItems Gi ON Gi.groupId = g.id
+	  Join Versions V ON Gi.binId = V.id 
+	  where name = 'minion' and G.id = H.id ) as minion,
+	  
+	H.filePath
+
+	From Groups H
+	Order by H.filePath;	
 	
 SQL
