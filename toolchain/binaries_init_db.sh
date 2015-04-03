@@ -35,8 +35,8 @@ sqlite3 "${SAVED_BINARIES}/info.sqlite" <<SQL
 	FOREIGN KEY(groupId) REFERENCES Groups(id)
 	);
 	
+	
 	CREATE VIEW IF NOT EXISTS "EquivalentGroups"  as
-
 	Select Src.id as srcId, Src.filePath as srcFilePath, Src.hostType as srcHostType,
            Dst.id as dstId, Dst.filePath as dstFilePath, Dst.hostType as dstHostType,
            Dst.bins as bins
@@ -58,8 +58,71 @@ sqlite3 "${SAVED_BINARIES}/info.sqlite" <<SQL
 			From GroupItems Gi 
 			Group By Gi.groupId 
 		) O Where O.groupId =  Src.id
-		) ;
+		)  AND srcHostType != dstHostType
+	Order by srcId, srcHostType, dstHostType;
+
+	CREATE VIEW IF NOT EXISTS "EquivalentToolchain"  as
+	Select Src.id as srcId, Src.filePath as srcFilePath, Src.hostType as srcHostType,
+           Dst.id as dstId, Dst.filePath as dstFilePath, Dst.hostType as dstHostType,
+           Dst.bins as bins
+	From Groups Src
+
+	Join (
+		Select G.id, G.filePath, G.hostType, I.bins 
+        From Groups G
+
+	    Join (
+			Select group_concat(Gi.binId) As bins , groupId
+			From GroupItems Gi 
+            Join Versions V 
+            On Gi.binId = V.id
+            where V.name not in  ("testSample", "testReduce", "gen")
+			Group By Gi.groupId 
+		) I On I.groupId = G.id 
+
+	) Dst Where Dst.id != Src.id And Dst.bins = 
+		(Select bins from (   
+		    Select group_concat(Gi.binId) As bins , groupId
+			From GroupItems Gi 
+			Join Versions V 
+            On Gi.binId = V.id
+            where V.name not in  ("testSample", "testReduce", "gen")
+			Group By Gi.groupId  
+		) O Where O.groupId =  Src.id
+		) AND srcHostType != dstHostType
+	Order by srcId, srcHostType, dstHostType;
+
 	
-	
+	CREATE VIEW IF NOT EXISTS "EquivalentConjure"  as
+	Select Src.id as srcId, Src.filePath as srcFilePath, Src.hostType as srcHostType,
+           Dst.id as dstId, Dst.filePath as dstFilePath, Dst.hostType as dstHostType
+	From Groups Src
+
+	Join (
+		Select G.id, G.filePath, G.hostType, I.bins 
+        From Groups G
+
+	    Join (
+			Select group_concat(Gi.binId) As bins , groupId
+			From GroupItems Gi 
+            Join Versions V 
+            On Gi.binId = V.id
+            where V.name in  ("conjureNew", "conjureOld")
+			Group By Gi.groupId 
+		) I On I.groupId = G.id 
+
+	) Dst Where Dst.id != Src.id And Dst.bins = 
+		(Select bins from (   
+		    Select group_concat(Gi.binId) As bins , groupId
+			From GroupItems Gi 
+			Join Versions V 
+            On Gi.binId = V.id
+            where V.name in  ("conjureNew", "conjureOld")
+			Group By Gi.groupId  
+		) O Where O.groupId =  Src.id
+		) AND srcHostType != dstHostType
+	Order by srcId, srcHostType, dstHostType;
+
+
 	
 SQL
