@@ -45,7 +45,7 @@ runSpec spE = do
       liftIO $ writeToJSON (path </> "spec.spec.json" )  spE
 
       let meta = mkMeta spE
-      liftIO $  writeFile    (path </> "spec.meta" ) (show meta)
+      -- liftIO $  writeFile    (path </> "spec.meta" ) (show meta)
       liftIO $  writeToJSON  (path </> "spec.meta.json" ) (meta)
 
       liftIO $ Toolchain.copyMetaToSpecDir outdir path
