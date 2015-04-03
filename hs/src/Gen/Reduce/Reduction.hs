@@ -494,6 +494,22 @@ runReduce spe x = do
   return res
 
 
+runSingle :: forall (m :: * -> *) a.
+    (Reduce a (StateT EState (IdentityT m)), HasGen m, Standardise a, HasLogger m)
+ => Spec -> a -> m [Expr]
+runSingle spe x = do
+  addLog "runSingle" []
+  state <- (newEState spe)
+  olg <- getLog
+  (res,resState) <- runIdentityT $ flip runStateT state{elogs_=olg} $ do
+                    nx <- standardise x
+                    single nx
+
+  putLog (elogs_ resState)
+  addLog "endSingle" []
+  return res
+
+
 -- For ghci
 
 __run :: forall t a (t1 :: * -> *).

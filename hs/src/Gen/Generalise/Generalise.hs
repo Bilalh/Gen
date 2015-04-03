@@ -2,11 +2,15 @@ module Gen.Generalise.Generalise where
 
 import Gen.Generalise.Data
 import Gen.Generalise.Runner
+import Gen.Reduce.Reduction
 import Gen.Reduce.Data  hiding (RState(..))
 import Gen.Prelude
 import Gen.IO.Formats
 
 import qualified Data.HashMap.Strict as H
+
+import Data.Generics.Uniplate.Zipper ( Zipper, zipperBi, fromZipper, hole, replaceHole )
+import qualified Data.Generics.Uniplate.Zipper as Zipper
 
 generaliseMain :: GState -> IO GState
 generaliseMain ee = do
@@ -18,7 +22,7 @@ generaliseMain ee = do
 
   (sfin,state) <- (flip runStateT) ee $
       return sp
-      >>= (note "generaliseLiterals") generaliseLiterals
+      >>= (note "ConstraintsWithSingle") generaliseConstraintsWithSingle
       >>= \ret -> get >>= \g -> addLog "FinalState" [pretty g] >> return ret
 
 
@@ -38,9 +42,39 @@ generaliseMain ee = do
       return newSp
 
 
-generaliseLiterals :: Spec -> EE Spec
-generaliseLiterals  sp = do
+type SpecZipper = Zipper Spec Expr
+
+allContextsExcept :: SpecZipper -> [SpecZipper]
+allContextsExcept z0 = concatMap subtreeOf (allSiblings z0)
+    where
+        -- the input has to be the left most
+        allSiblings :: SpecZipper -> [SpecZipper]
+        allSiblings z = z : maybe [] allSiblings (Zipper.right z)
+
+        subtreeOf :: SpecZipper -> [SpecZipper]
+        subtreeOf z = z : case hole z of
+            EVar{}   -> []     -- don't go through a Reference
+            ETyped{} -> []     -- don't go through a Typed
+            _      -> maybe [] allContextsExcept (Zipper.down z)
+
+
+generaliseConstraintsWithSingle :: Spec -> EE Spec
+generaliseConstraintsWithSingle sp = do
+  let (Just (specZipper :: SpecZipper) )= zipperBi sp
+  forM_ (allContextsExcept specZipper) $ \ x -> do
+    let pre = fromZipper x
+    let ehole =  hole x
+    singles   <- runSingle pre ehole
+
+    forM_ singles $ \s -> do
+      let whole = fromZipper (replaceHole s x)
+      -- liftIO $ print . pretty $ whole
+      runSpec whole
+
+    return ()
+
   return sp
+
 
 recordResult :: RunResult -> EE ()
 recordResult r= do

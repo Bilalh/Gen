@@ -7,8 +7,9 @@ import Data.Time                   (formatTime, getCurrentTime)
 import Gen.Arbitrary.Data
 import Gen.Classify.AddMeta        (metaMain)
 import Gen.Classify.AddSpecE       (specEMain)
-import Gen.Classify.Sorter         (sorterMain',getRecursiveContents)
+import Gen.Classify.Sorter         (getRecursiveContents, sorterMain')
 import Gen.Essence.Generate        (generateEssence)
+import Gen.Generalise.Generalise   (generaliseMain)
 import Gen.Helpers.StandardImports
 import Gen.IO.Term
 import Gen.IO.Toolchain            (KindI (..), StatusI (..), doMeta, kindsList,
@@ -32,7 +33,7 @@ import qualified Gen.Essence.Data        as EC
 import qualified Gen.IO.Toolchain        as Toolchain
 import qualified Gen.IO.ToolchainRecheck as Recheck
 import qualified Gen.Reduce.Data         as R
-
+import qualified Gen.Generalise.Data     as E
 
 
 main :: IO ()
@@ -260,26 +261,27 @@ mainWithArgs Generalise{..} = do
   db    <- giveDb db_directory
   out   <- giveOutputDirectory output_directory
 
-  let args = def{oErrKind_           = error_kind
-                ,oErrStatus_         = error_status
-                ,oErrChoices_        = error_choices
-                ,outputDir_          = out
-                ,specDir_            = spec_directory
-                ,R.cores_            = _cores
-                ,rgen_               = mkrGen (seed_)
-                ,specTime_           = per_spec_time
-                ,binariesDirectory_  = binaries_directory
-                ,toolchainOutput_    = toolchain_ouput
-                ,deletePassing_      = delete_passing
-                ,resultsDB_          = db
-                ,mostReducedChoices_ = error_choices
-                ,resultsDB_dir       = db_directory
+  let args :: E.GState =
+             def{E.oErrKind_           = error_kind
+                ,E.oErrStatus_         = error_status
+                ,E.oErrChoices_        = error_choices
+                ,E.outputDir_          = out
+                ,E.specDir_            = spec_directory
+                ,E.cores_              = _cores
+                ,E.rgen_               = mkrGen (seed_)
+                ,E.specTime_           = per_spec_time
+                ,E.binariesDirectory_  = binaries_directory
+                ,E.toolchainOutput_    = toolchain_ouput
+                ,E.deletePassing_      = delete_passing
+                ,E.resultsDB_          = db
+                ,E.choicesToUse_       = error_choices
+                ,E.resultsDB_dir       = db_directory
                 }
 
   doMeta out no_csv binaries_directory
 
-  (_,state) <- reduceMain args
-  saveDB db_directory (resultsDB_  state)
+  state <- generaliseMain args
+  saveDB db_directory (E.resultsDB_  state)
 
 
 mainWithArgs Link{..} = do

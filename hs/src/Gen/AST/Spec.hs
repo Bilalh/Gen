@@ -15,7 +15,7 @@ import qualified Data.Map as M
 
 
 data Spec = Spec Domains [Expr] (Maybe (OObjective, Expr) )
-    deriving(Show, Generic, Typeable, Eq)
+    deriving(Show, Generic, Typeable, Eq, Data)
 
 instance Hashable  (Map Text GF) where
     hashWithSalt salt m = hashWithSalt salt (M.toList m)
@@ -27,7 +27,7 @@ instance FromJSON  Spec where parseJSON = genericParseJSON jsonOptions
 
 data GF = Givenn (Domainn Expr)
         | Findd  (Domainn Expr)
-    deriving(Show, Generic, Typeable, Eq)
+    deriving(Show, Generic, Typeable, Eq, Data)
 
 instance Serialize GF
 instance Hashable  GF
