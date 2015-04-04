@@ -3,6 +3,7 @@
 import logging
 import argparse
 import shutil
+import sys
 
 from pprint import pprint
 from pathlib import Path
@@ -16,8 +17,16 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument("db", help='info.sqlite')
 parser.add_argument("csv", help='versions*.csv')
-parser.add_argument("filePath", help='relative file path')
+parser.add_argument("filePath", help='relative file path e.g. `date/2015-02-24_1424776251/eno`')
 args = parser.parse_args()
+
+exists_query = "SELECT ? in (Select filePath from Groups)"
+with sqlite3.connect(args.db) as conn:
+	if list(conn.execute(exists_query, (args.filePath,) ))[0][0] == 1:
+		print("Already added: {} ".format(args.filePath))
+		sys.exit(0)
+	
+
 
 versions_query = 'INSERT OR IGNORE  INTO Versions ( name, hash, buildDate, scm, id) VALUES(?,?,?,?, (SELECT IFNULL(MAX(id), 0) + 1 FROM Versions))'
 versions_values = []

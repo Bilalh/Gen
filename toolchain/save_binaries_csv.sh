@@ -44,7 +44,6 @@ else
 	host_type="${HOST_TYPE}"
 fi
 
-set -o errexit
 
 mkdir -p "${base}"
 echo "name,scm,hash,ver_date,uname,whoami,host_type,hostname" > "${base}/${csv_name}"
@@ -102,8 +101,23 @@ name=minion
 
 version="$(minion | grep 'HG version:' | egrep -o '"\w+' | egrep -o '\w+')"
 
-echo "${name},hg,${version},,${rest_line}" >> "${base}/${csv_name}"
+set +o errexit
 
+version_date_="$(hg log --template "{date(date, '%F_%s')}\n" --cwd "$(dirname "$(which minion)")" -rd48824b75e5b 2>&1)"
+
+if [[ $? -eq 0  ]]; then
+	if ( echo "${version_date}_" | egrep -q "^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]_"  ); then 
+		version_date="${version_date_}"
+	else
+		version_date=""
+	fi
+else
+	version_date=""
+fi
+
+echo "${name},hg,${version},${version_date},${rest_line}" >> "${base}/${csv_name}"
+
+set -o errexit
 
 #gen
 if ( which gen &> /dev/null ); then
