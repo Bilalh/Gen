@@ -35,7 +35,7 @@ hosts_values = []
 group_hostType = None
 group_query = "INSERT INTO Groups(hostType,filePath) Values(?,?)"
 
-groupItems_query = """INSERT OR IGNORE INTO
+groupItems_query = """INSERT INTO
 GroupItems ( groupId, binId, id) VALUES(
 	?,
 	(SELECT id FROM Versions WHERE name = ? and hash=?),
