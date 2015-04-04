@@ -5,7 +5,7 @@ sqlite3 "${SAVED_BINARIES}/info.sqlite" <<SQL
 	CREATE TABLE IF NOT EXISTS  "Versions" (
 	"name" TEXT NOT NULL,
 	"hash" TEXT NOT NULL,
-	"buildDate" TEXT,
+	"commitDate" TEXT,
 	"scm" TEXT NOT NULL,
 	"id" INTEGER NOT NULL UNIQUE ,	
 	PRIMARY KEY ("name", "hash")
@@ -130,23 +130,38 @@ sqlite3 "${SAVED_BINARIES}/info.sqlite" <<SQL
 	  Join GroupItems Gi ON Gi.groupId = g.id
 	  Join Versions V ON Gi.binId = V.id 
 	  where name = 'gen' and G.id = H.id ) as gen,
+  	( Select commitDate from Groups G 
+  	  Join GroupItems Gi ON Gi.groupId = g.id
+  	  Join Versions V ON Gi.binId = V.id 
+  	  where name = 'gen' and G.id = H.id ) as genDate,	  
+  	( Select hash from Groups G 
+  	  Join GroupItems Gi ON Gi.groupId = g.id
+  	  Join Versions V ON Gi.binId = V.id 
+  	  where name = 'conjureNew' and G.id = H.id ) as conjureNew,
+  	( Select commitDate from Groups G 
+  	  Join GroupItems Gi ON Gi.groupId = g.id
+  	  Join Versions V ON Gi.binId = V.id 
+  	  where name = 'conjureNew' and G.id = H.id ) as conjureNewDate,
 
-	( Select hash from Groups G 
-	  Join GroupItems Gi ON Gi.groupId = g.id
-	  Join Versions V ON Gi.binId = V.id 
-	  where name = 'conjureNew' and G.id = H.id ) as conjureNew,
+  	( Select hash from Groups G 
+  	  Join GroupItems Gi ON Gi.groupId = g.id
+  	  Join Versions V ON Gi.binId = V.id 
+  	  where name = 'savilerow' and G.id = H.id ) as savilerow,
+  	( Select commitDate from Groups G 
+  	  Join GroupItems Gi ON Gi.groupId = g.id
+  	  Join Versions V ON Gi.binId = V.id 
+  	  where name = 'savilerow' and G.id = H.id ) as savilerowDate,
 
-	( Select hash from Groups G 
-	  Join GroupItems Gi ON Gi.groupId = g.id
-	  Join Versions V ON Gi.binId = V.id 
-	  where name = 'savilerow' and G.id = H.id ) as savilerow,
-
-	( Select hash from Groups G 
-	  Join GroupItems Gi ON Gi.groupId = g.id
-	  Join Versions V ON Gi.binId = V.id 
-	  where name = 'minion' and G.id = H.id ) as minion,
+  	( Select hash from Groups G 
+  	  Join GroupItems Gi ON Gi.groupId = g.id
+  	  Join Versions V ON Gi.binId = V.id 
+  	  where name = 'minion' and G.id = H.id ) as minion,
+  	( Select commitDate from Groups G 
+  	  Join GroupItems Gi ON Gi.groupId = g.id
+  	  Join Versions V ON Gi.binId = V.id 
+  	  where name = 'minion' and G.id = H.id ) as minionDate,
 	  
-	H.filePath
+  	H.filePath
 
 	From Groups H
 	Where gen is not NULL
@@ -159,16 +174,28 @@ sqlite3 "${SAVED_BINARIES}/info.sqlite" <<SQL
 	  Join GroupItems Gi ON Gi.groupId = g.id
 	  Join Versions V ON Gi.binId = V.id 
 	  where name = 'conjureNew' and G.id = H.id ) as conjureNew,
+	( Select commitDate from Groups G 
+	  Join GroupItems Gi ON Gi.groupId = g.id
+	  Join Versions V ON Gi.binId = V.id 
+	  where name = 'conjureNew' and G.id = H.id ) as conjureNewDate,
 
 	( Select hash from Groups G 
 	  Join GroupItems Gi ON Gi.groupId = g.id
 	  Join Versions V ON Gi.binId = V.id 
 	  where name = 'savilerow' and G.id = H.id ) as savilerow,
+	( Select commitDate from Groups G 
+	  Join GroupItems Gi ON Gi.groupId = g.id
+	  Join Versions V ON Gi.binId = V.id 
+	  where name = 'savilerow' and G.id = H.id ) as savilerowDate,
 
 	( Select hash from Groups G 
 	  Join GroupItems Gi ON Gi.groupId = g.id
 	  Join Versions V ON Gi.binId = V.id 
 	  where name = 'minion' and G.id = H.id ) as minion,
+	( Select commitDate from Groups G 
+	  Join GroupItems Gi ON Gi.groupId = g.id
+	  Join Versions V ON Gi.binId = V.id 
+	  where name = 'minion' and G.id = H.id ) as minionDate,
 	  
 	H.filePath
 

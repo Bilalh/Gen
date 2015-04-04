@@ -28,7 +28,7 @@ with sqlite3.connect(args.db) as conn:
 	
 
 
-versions_query = 'INSERT OR IGNORE  INTO Versions ( name, hash, buildDate, scm, id) VALUES(?,?,?,?, (SELECT IFNULL(MAX(id), 0) + 1 FROM Versions))'
+versions_query = 'INSERT OR IGNORE  INTO Versions ( name, hash, commitDate, scm, id) VALUES(?,?,?,?, (SELECT IFNULL(MAX(id), 0) + 1 FROM Versions))'
 versions_values = []
 
 hosts_query = """INSERT OR IGNORE INTO
