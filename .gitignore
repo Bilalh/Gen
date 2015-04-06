@@ -59,3 +59,4 @@ tmtags
 TestSampleMain
 TestSampleExample
 _docs
+Build_autoversion.hs

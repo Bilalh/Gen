@@ -41,7 +41,7 @@ myPreBuild _ _ = do
       doesFileExist "Build_autoversion.hs" >>= \case
            True  -> renameFile "Build_autoversion.hs" "dist/build/autogen/Build_autoversion.hs"
            False -> do
-             error "Not inside a git repo,  additionally Build_autoversion.hs not found"
+             error "Error: Not inside a git repo and ./Build_autoversion.hs not found"
       
     ExitSuccess -> do
       makeVersionInfo
@@ -52,7 +52,6 @@ myPreBuild _ _ = do
 makeVersionInfo :: IO ()
 makeVersionInfo = do
   desc <- readProcess "git" ["log", "-1", "--format='%H (%cD)'"] ""
-  now  <- readProcess "date" ["+%s"] ""
 
   writeFile "dist/build/autogen/Build_autoversion.hs.tmp" $ unlines
       [ "module Build_autoversion where"

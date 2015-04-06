@@ -1,11 +1,15 @@
 install:
 	@bash scripts/install.sh
 
-trace_install:
-	@bash scripts/install.sh --ghc-options="-DLOGS_TRACE"
+test:
+	@RUN_TESTS=yes bash scripts/install.sh
 
 clean:
 	@bash scripts/clean.sh
+
+autoversion:
+	# Useful to make an archive that does not require git
+	bash scripts/make_autoversion.sh
 
 failures:
 	@BUILD_TESTS=yes bash scripts/install.sh && \
@@ -14,6 +18,15 @@ failures:
 failures_run:
 	@./dist/build/gen-testing/gen-testing  -j 4 --color always | grep -v OK
 
+
+trace_install:
+	@bash scripts/install.sh --ghc-options="-DLOGS_TRACE"
+
+etags:
+	hasktags --etags --ignore-close-implementation `find -L src -name '*.hs' | grep -v \#`
+
+vtags:
+	hasktags --ctags --ignore-close-implementation `find -L src -name '*.hs' | grep -v \#`
 
 
 ghci:
@@ -61,9 +74,3 @@ ghci_main:
 	    -fwarn-unused-matches                      \
 	    -Wall                                      \
 		src/exec/GenMain.hs
-
-etags:
-	hasktags --etags --ignore-close-implementation `find -L src -name '*.hs' | grep -v \#`
-
-vtags:
-	hasktags --ctags --ignore-close-implementation `find -L src -name '*.hs' | grep -v \#`
