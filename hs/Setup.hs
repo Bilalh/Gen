@@ -1,7 +1,7 @@
 {-# LANGUAGE LambdaCase #-}
 import Prelude
 import Distribution.Simple
-import Distribution.PackageDescription (emptyHookedBuildInfo, PackageDescription(..) )
+import Distribution.PackageDescription (emptyHookedBuildInfo, PackageDescription(..), HookedBuildInfo )
 import System.Directory (createDirectoryIfMissing)
 import System.Process (readProcess, readProcessWithExitCode)
 import System.Directory ( copyFile, renameFile, doesFileExist,renameDirectory, copyFile, doesDirectoryExist, getDirectoryContents )
@@ -10,7 +10,7 @@ import System.Exit(ExitCode(..))
 
 import Distribution.Simple.LocalBuildInfo ( LocalBuildInfo(..), absoluteInstallDirs, bindir)
 import Distribution.Simple.InstallDirs( datadir)
-import Distribution.Simple.Setup ( fromFlag, copyDest, CopyDest(..) )
+import Distribution.Simple.Setup ( fromFlag, copyDest, CopyDest(..),BuildFlags )
 
 import Control.Monad(forM_)
 
@@ -28,41 +28,55 @@ copyScripts pkg local copy = do
     createDirectoryIfMissing True (datadir dirs)
     copyDirectory "../toolchain" (datadir dirs </> "toolchain")
 
+myPreBuild :: Args 
+           -> BuildFlags
+           -> IO HookedBuildInfo
 myPreBuild _ _ = do
-    putStrLn "Generating dist/build/autogen/Build_autoversion.hs ..."
-    createDirectoryIfMissing True "dist/build/autogen/"
+  putStrLn "Generating dist/build/autogen/Build_autoversion.hs ..."
+  createDirectoryIfMissing True "dist/build/autogen/"
 
-    desc <- readProcess "git" ["log", "-1", "--format='%H (%cD)'"] ""
-    now  <- readProcess "date" ["+%s"] ""
+  (scode,_,_) <- readProcessWithExitCode "git" ["rev-parse", "--is-inside-work-tree"] ""
+  case scode of
+    ExitFailure{} -> do
+      doesFileExist "Build_autoversion.hs" >>= \case
+           True  -> renameFile "Build_autoversion.hs" "dist/build/autogen/Build_autoversion.hs"
+           False -> do
+             error "Not inside a git repo,  additionally Build_autoversion.hs not found"
+      
+    ExitSuccess -> do
+      makeVersionInfo
 
-    writeFile "dist/build/autogen/Build_autoversion.hs.tmp" $ unlines
-        [ "module Build_autoversion where"
-        -- , "import Data.DateTime"
-        , "import Prelude(String)"
-        , "autoVersion :: String"
-        , "autoVersion = " ++ show (init desc)
-        -- , "buildDateTime :: DateTime"
-        -- , "buildDateTime = fromSeconds " ++ now
-        -- , "buildDateRFC2822 :: String"
-        -- , "buildDateRFC2822 = formatDateTime \"%a, %d %b %Y %T %z\" buildDateTime"
-        ]
+  return emptyHookedBuildInfo
 
-    doesFileExist "dist/build/autogen/Build_autoversion.hs" >>= \case
-      False -> renameFile
-                           "dist/build/autogen/Build_autoversion.hs.tmp"
-                           "dist/build/autogen/Build_autoversion.hs"
-      True  -> do
-        (code,_,_) <- readProcessWithExitCode "diff" [
-                       "dist/build/autogen/Build_autoversion.hs",
-                       "dist/build/autogen/Build_autoversion.hs.tmp"]
-                      ""
-        case code of
-          ExitSuccess -> return ()
-          _           -> renameFile
-                           "dist/build/autogen/Build_autoversion.hs.tmp"
-                           "dist/build/autogen/Build_autoversion.hs"
 
-    return emptyHookedBuildInfo
+makeVersionInfo :: IO ()
+makeVersionInfo = do
+  desc <- readProcess "git" ["log", "-1", "--format='%H (%cD)'"] ""
+  now  <- readProcess "date" ["+%s"] ""
+
+  writeFile "dist/build/autogen/Build_autoversion.hs.tmp" $ unlines
+      [ "module Build_autoversion where"
+      , "import Prelude(String)"
+      , "autoVersion :: String"
+      , "autoVersion = " ++ show (init desc)
+      ]
+
+  doesFileExist "dist/build/autogen/Build_autoversion.hs" >>= \case
+    False -> renameFile
+                         "dist/build/autogen/Build_autoversion.hs.tmp"
+                         "dist/build/autogen/Build_autoversion.hs"
+    True  -> do
+      (code,_,_) <- readProcessWithExitCode "diff" [
+                     "dist/build/autogen/Build_autoversion.hs",
+                     "dist/build/autogen/Build_autoversion.hs.tmp"]
+                    ""
+      case code of
+        ExitSuccess -> return ()
+        _           -> renameFile
+                         "dist/build/autogen/Build_autoversion.hs.tmp"
+                         "dist/build/autogen/Build_autoversion.hs"
+
+
 
 
 copyDirectory :: FilePath -> FilePath -> IO ()
