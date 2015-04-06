@@ -29,6 +29,10 @@ vtags:
 	hasktags --ctags --ignore-close-implementation `find -L src -name '*.hs' | grep -v \#`
 
 
+store:
+	# Storing dependency infomation in cabal.config.freeze
+	( mv cabal.config cabal.config.org && cabal freeze && mv cabal.config cabal.config.freeze && mv cabal.config.org cabal.config  )
+
 ghci:
 	@cabal exec ghci -- -isrc -isrc/test -idist/build/autogen  \
         -XNoImplicitPrelude                        \
