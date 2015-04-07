@@ -70,18 +70,17 @@ Library
                      , Gen.Reduce.Simpler
                      , Gen.Reduce.UnusedDomains
                      , Gen.UI.UI
-                     
+
 
     build-depends    : base
+                     , conjure-cp
                      , aeson
                      , bytestring
                      , cereal
                      , cmdargs
-                     , conjure-cp
                      , containers
                      , data-default
                      , datetime
-                     , derive
                      , directory
                      , dlist
                      , filepath
