@@ -2,7 +2,7 @@ module Gen.IO.Formats where
 
 import Gen.Prelude
 import Data.Time(formatTime,getCurrentTime)
-import System.Locale(defaultTimeLocale)
+import Data.Time.Format(defaultTimeLocale)
 import Conjure.UI.IO(readModelFromFile)
 import System.FilePath((<.>))
 

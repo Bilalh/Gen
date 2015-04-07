@@ -4,6 +4,7 @@
 module Main where
 
 import Data.Time                   (formatTime, getCurrentTime)
+import Data.Time.Format            (defaultTimeLocale)
 import Gen.Arbitrary.Data
 import Gen.Classify.AddMeta        (metaMain)
 import Gen.Classify.AddSpecE       (specEMain)
@@ -24,16 +25,15 @@ import System.CPUTime              (getCPUTime)
 import System.Environment          (withArgs)
 import System.Exit                 (exitFailure, exitSuccess, exitWith)
 import System.FilePath             (takeExtensions)
-import System.Locale               (defaultTimeLocale)
 import System.Timeout              (timeout)
 import Text.Printf                 (printf)
 
 import qualified Data.Set                as S
 import qualified Gen.Essence.Data        as EC
+import qualified Gen.Generalise.Data     as E
 import qualified Gen.IO.Toolchain        as Toolchain
 import qualified Gen.IO.ToolchainRecheck as Recheck
 import qualified Gen.Reduce.Data         as R
-import qualified Gen.Generalise.Data     as E
 
 
 main :: IO ()

@@ -74,33 +74,31 @@ Library
 
     build-depends    : base
                      , conjure-cp
+                     , QuickCheck
                      , aeson
                      , bytestring
                      , cmdargs
                      , containers
-                     , data-default
-                     , datetime
                      , directory
                      , dlist
                      , filepath
                      , groom
                      , hashable
                      , mtl
-                     , old-locale
+                     , parsec
                      , pretty
                      , process
-                     , QuickCheck
                      , random
+                     , syb
                      , template-haskell
                      , text
+                     , tf-random
                      , time
                      , transformers
-                     , unordered-containers
-                     , tf-random
-                     , unix
                      , uniplate
-                     , syb
-                     , parsec
+                     , unix
+                     , unordered-containers
+
 
    default-extensions:
         NoImplicitPrelude
@@ -139,7 +137,6 @@ Executable gen
                      , containers
                      , directory
                      , time
-                     , old-locale
                      , filepath
 
    default-extensions:
