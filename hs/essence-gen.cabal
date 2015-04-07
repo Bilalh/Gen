@@ -76,7 +76,6 @@ Library
                      , conjure-cp
                      , aeson
                      , bytestring
-                     , cereal
                      , cmdargs
                      , containers
                      , data-default
@@ -92,7 +91,6 @@ Library
                      , process
                      , QuickCheck
                      , random
-                     , smallcheck
                      , template-haskell
                      , text
                      , time
