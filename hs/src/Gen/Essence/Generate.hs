@@ -67,9 +67,9 @@ doRefine ec@EC.EssenceConfig{..} = do
       useSize <- (randomRIO (0, size_) :: IO Int)
       (sp,logs) <- generateWrap mayGiven $ Gen.spec useSize def{gen_useFunc = myUseFunc}
       model :: Model <- toConjure sp
-      case ignoreLogs (typeCheckModel model)  of
+      case (ignoreLogs . runNameGen) (typeCheckModel model)  of
         Left _ -> process timeLeft (nextElem mayGiven)
-        Right () -> do
+        Right{} -> do
           num <- (randomRIO (10,99) :: IO Int)  >>= return . show
           ts <- timestamp >>= return . show
           let uname  =  (ts ++ "_" ++ num )
@@ -123,9 +123,9 @@ doSolve ec@EC.EssenceConfig{..} = do
     process timeLeft mayGiven= do
       (sp,logs) <- generateWrap mayGiven $ Gen.spec size_ def{gen_useFunc = myUseFunc}
       model :: Model <- toConjure sp
-      case ignoreLogs (typeCheckModel model)  of
+      case (ignoreLogs . runNameGen) (typeCheckModel model)  of
         Left _ -> process timeLeft (nextElem mayGiven)
-        Right () -> do
+        Right{} -> do
           num <- (randomRIO (10,99) :: IO Int)  >>= return . show
           ts <- timestamp >>= return . show
           let uname  =  (ts ++ "_" ++ num )
@@ -325,7 +325,7 @@ doTypeCheck EC.EssenceConfig{..}= do
       model :: Model <- toConjure sp
 
 
-      let (res :: Either Doc ()) = ignoreLogs $ typeCheckModel model
+      let (res :: Either Doc Model) = (ignoreLogs . runNameGen) $ typeCheckModel model
       handleResult sp model res
       process
 

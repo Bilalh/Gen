@@ -33,7 +33,7 @@ addSpecE printSpecs fp_ = do
 
   where
   f spec fp = do
-    start <- ignoreLogs $ resolveNames spec >>= return . removeTrueConstraints
+    start <- ignoreLogs . runNameGen $ resolveNames spec >>= return . removeTrueConstraints
     let inlined = inlineParamAndLettings start Nothing
     let specE  = fromModel inlined
 
