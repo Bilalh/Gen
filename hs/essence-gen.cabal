@@ -113,6 +113,8 @@ Library
         RecordWildCards
         NamedFieldPuns
         MultiWayIf
+        FlexibleContexts
+        FlexibleInstances
 
    ghc-options:
        -fwarn-incomplete-patterns
