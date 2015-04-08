@@ -99,7 +99,7 @@ Library
                      , uniplate
                      , unordered-containers
 
-    if impl(ghc == 7.8)
+    if impl(ghc < 7.10)
         build-depends: unix==2.7.0.1
     else
         build-depends: unix
