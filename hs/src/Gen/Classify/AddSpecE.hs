@@ -3,17 +3,14 @@
 
 module Gen.Classify.AddSpecE where
 
-import Conjure.Language.TH
 import Conjure.Language.NameResolution(resolveNames)
 import Conjure.UI.IO(readModelFromFile)
 import Conjure.Language.Definition
-
 import Gen.Classify.Sorter(getRecursiveContents)
 import Gen.Prelude
 import Gen.IO.Formats
-
-
 import System.FilePath ( takeExtension)
+import Conjure.Language.Expression.Op( Op( MkOpTrue ) )
 
 import qualified Data.Aeson as A
 import qualified Data.ByteString.Lazy as L
@@ -46,18 +43,6 @@ addSpecE printSpecs fp_ = do
                                       , "groom" <+> (pretty . groom $ spec)
                                       , "--"  ]
       Right r -> do
-         -- b <- (compareSpecs r inlined)
-         -- if not  b then do
-         --     putStrLn "--mismatched--"
-         --     putStrLn fp
-         --     putStrLn . show . pretty $ inlined
-         --     putStrLn . show . pretty $ r
-         --     putStrLn . groom $ r
-
-         --     putStrLn "--end--"
-         -- else
-         --     return ()
-
          if printSpecs then
              putStrLn . show . vcat $ [
                             "Original"
@@ -72,8 +57,6 @@ addSpecE printSpecs fp_ = do
                           ]
          else
              return ()
-
-         -- writeFile (replaceExtensions fp ".spec" )      (show r)
          L.writeFile (replaceExtensions fp ".spec.json" ) (A.encode r)
 
 
@@ -87,7 +70,7 @@ removeTrueConstraints m =
      f (SuchThat es) = SuchThat $ filter g es
      f s =s
 
-     g [essence| true(&_) |] = False
+     g (Op (MkOpTrue _)) = False
      g _ = True
 
 -- FIXME param file
