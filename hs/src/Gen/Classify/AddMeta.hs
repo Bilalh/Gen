@@ -1,6 +1,4 @@
-
-
-{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveDataTypeable, FlexibleContexts #-}
 
 module Gen.Classify.AddMeta where
 
