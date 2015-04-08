@@ -70,6 +70,7 @@ Library
                      , Gen.Reduce.Simpler
                      , Gen.Reduce.UnusedDomains
                      , Gen.UI.UI
+                     
 
 
     build-depends    : base
@@ -96,10 +97,13 @@ Library
                      , time
                      , transformers
                      , uniplate
-                     , unix
                      , unordered-containers
 
-
+    if impl(ghc == 7.8)
+        build-depends: unix==2.7.0.1
+    else
+        build-depends: unix
+    
    default-extensions:
         NoImplicitPrelude
         OverloadedStrings
