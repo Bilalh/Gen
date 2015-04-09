@@ -454,6 +454,30 @@ _essenceDebug = do
              }
     limiter (limit_time ec) (mainWithArgs ec)
 
+_givenDebug :: IO ()
+_givenDebug = do
+    let ec = Essence
+             { output_directory   = Just "out"
+             , _mode              = Solve
+
+             , total_time         = 0
+             , per_spec_time      = 120
+             , _size              = 4
+             , _cores             = 1
+             , _seed              = Just 44
+
+             , delete_passing     = False
+             , binaries_directory = Nothing
+             , old_conjure        = False
+             , limit_time         = Nothing
+             , total_is_real_time = True
+             , toolchain_ouput    = ToolchainScreen_
+             , no_csv             = True
+             , given_dir          = Just "zz"
+             }
+    limiter (limit_time ec) (mainWithArgs ec)
+
+
 _reduceDebug :: IO ()
 _reduceDebug = do
     let ec = Reduce{spec_directory      = "/Users/bilalh/Desktop/Results/_notable/reduce_examples/1425940601_40"

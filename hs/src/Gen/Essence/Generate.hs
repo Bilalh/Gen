@@ -1,16 +1,17 @@
 module Gen.Essence.Generate(generateEssence) where
 
 import Conjure.Language.Definition
-import Conjure.UI.IO               (writeModel)
-import Conjure.UI.TypeCheck        (typeCheckModel)
-import Data.Time.Clock.POSIX       (getPOSIXTime)
-import Gen.Classify.Meta           (mkMeta)
-import Gen.Essence.Data            (EssenceConfig)
+import Conjure.Language.NameResolution (resolveNames)
+import Conjure.UI.IO                   (writeModel)
+import Conjure.UI.TypeCheck            (typeCheckModel)
+import Data.Time.Clock.POSIX           (getPOSIXTime)
+import Gen.Classify.Meta               (mkMeta)
+import Gen.Essence.Data                (EssenceConfig)
 import Gen.IO.Formats
-import Gen.IO.Toolchain            hiding (ToolchainData (..))
+import Gen.IO.Toolchain                hiding (ToolchainData (..))
 import Gen.Prelude
-import GHC.Real                    (floor)
-import System.Directory            (copyFile, renameDirectory)
+import GHC.Real                        (floor)
+import System.Directory                (copyFile, renameDirectory)
 
 import qualified Data.Map                as M
 import qualified Data.Set                as S
@@ -67,8 +68,19 @@ doRefine ec@EC.EssenceConfig{..} = do
       useSize <- (randomRIO (0, size_) :: IO Int)
       (sp,logs) <- generateWrap mayGiven $ Gen.spec useSize def{gen_useFunc = myUseFunc}
       model :: Model <- toConjure sp
-      case (ignoreLogs . runNameGen) (typeCheckModel model)  of
-        Left _ -> process timeLeft (nextElem mayGiven)
+      case typeCheck model  of
+
+        Left x ->
+            case givenSpecs_ of
+              Just{} ->
+                error . show . vcat $
+                    [ "Spec failed type checking"
+                    , pretty model
+                    , pretty x
+                    , pretty . groom $ model
+                    ]
+              Nothing -> process timeLeft (nextElem mayGiven)
+
         Right{} -> do
           num <- (randomRIO (10,99) :: IO Int)  >>= return . show
           ts <- timestamp >>= return . show
@@ -121,10 +133,21 @@ doSolve ec@EC.EssenceConfig{..} = do
     process _ (Just []) = return ()
 
     process timeLeft mayGiven= do
+
       (sp,logs) <- generateWrap mayGiven $ Gen.spec size_ def{gen_useFunc = myUseFunc}
       model :: Model <- toConjure sp
-      case (ignoreLogs . runNameGen) (typeCheckModel model)  of
-        Left _ -> process timeLeft (nextElem mayGiven)
+      case typeCheck model  of
+        Left x ->
+            case givenSpecs_ of
+              Just{} ->
+                error . show . vcat $
+                    [ "Spec failed type checking"
+                    , pretty model
+                    , pretty x
+                    , pretty . groom $ model
+                    ]
+              Nothing -> process timeLeft (nextElem mayGiven)
+
         Right{} -> do
           num <- (randomRIO (10,99) :: IO Int)  >>= return . show
           ts <- timestamp >>= return . show
@@ -137,7 +160,6 @@ doSolve ec@EC.EssenceConfig{..} = do
           writeToJSON (dir </> "spec.spec.json") sp
 
           let meta = mkMeta sp
-          -- writeFile (dir </> "spec.meta" ) (show meta)
           writeToJSON  (dir </> "spec.meta.json" ) (meta)
           Toolchain.copyMetaToSpecDir outputDirectory_ dir
 
@@ -159,7 +181,6 @@ doSolve ec@EC.EssenceConfig{..} = do
                     , Toolchain.choicesPath       = Nothing
                     , Toolchain.dryRun            = False
                     }
-
           endTime <- round `fmap` getPOSIXTime
           let realTime = endTime - startTime
 
@@ -315,6 +336,9 @@ classifySettingI ec _ out uname SettingI{time_taken_}  = do
   return time_taken_
 
 
+typeCheck :: MonadFail m => Model -> m Model
+typeCheck m = ignoreLogs . runNameGen  $ (resolveNames $ m) >>= typeCheckModel
+
 doTypeCheck :: EssenceConfig -> IO ()
 doTypeCheck EC.EssenceConfig{..}= do
   process
@@ -325,7 +349,7 @@ doTypeCheck EC.EssenceConfig{..}= do
       model :: Model <- toConjure sp
 
 
-      let (res :: Either Doc Model) = (ignoreLogs . runNameGen) $ typeCheckModel model
+      let (res :: Either Doc Model) =  typeCheck  model
       handleResult sp model res
       process
 
