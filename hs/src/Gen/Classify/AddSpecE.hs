@@ -1,18 +1,18 @@
-{-# LANGUAGE QuasiQuotes, ViewPatterns #-}
-{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveDataTypeable, QuasiQuotes #-}
 
 module Gen.Classify.AddSpecE where
 
-import Conjure.Language.NameResolution(resolveNames)
-import Conjure.UI.IO(readModelFromFile)
 import Conjure.Language.Definition
-import Gen.Classify.Sorter(getRecursiveContents)
-import Gen.Prelude
+import Conjure.Language.Expression.Op  (Op (MkOpTrue))
+import Conjure.Language.NameResolution (resolveNames)
+import Conjure.UI.IO                   (readModelFromFile)
+import Conjure.UI.TypeCheck            (typeCheckModel)
+import Gen.Classify.Sorter             (getRecursiveContents)
 import Gen.IO.Formats
-import System.FilePath ( takeExtension)
-import Conjure.Language.Expression.Op( Op( MkOpTrue ) )
+import Gen.Prelude
+import System.FilePath                 (takeExtension)
 
-import qualified Data.Aeson as A
+import qualified Data.Aeson           as A
 import qualified Data.ByteString.Lazy as L
 
 specEMain :: Bool ->  [FilePath] -> IO ()
@@ -31,33 +31,44 @@ addSpecE printSpecs fp_ = do
   where
   f spec fp = do
     start <- ignoreLogs . runNameGen $ resolveNames spec >>= return . removeTrueConstraints
-    let inlined = inlineParamAndLettings start Nothing
-    let specE  = fromModel inlined
 
-    putStrLn ("    processing: " ++ fp)
+    case (ignoreLogs . runNameGen . typeCheckModel) start of
+      Left x ->  error . show . vcat $
+                  [ "model failed type checking"
+                  , pretty fp
+                  , pretty x
+                  , pretty start
+                  , pretty . groom $ start
+                  ]
 
-    case specE of
-      Left r -> error . show . vcat $ ["Error for " <+> (pretty fp)
-                                      , "spec"  <+> pretty spec
-                                      , "msg"   <+> (pretty r)
-                                      , "groom" <+> (pretty . groom $ spec)
-                                      , "--"  ]
-      Right r -> do
-         if printSpecs then
-             putStrLn . show . vcat $ [
-                            "Original"
-                          , pretty spec
-                          , "Converted"
-                          , pretty r
-                          ,  "Original AST"
-                          , pretty . groom $ spec
-                          , "Converted AST"
-                          , pretty . groom $ inlined
-                          , pretty . groom $ r
-                          ]
-         else
-             return ()
-         L.writeFile (replaceExtensions fp ".spec.json" ) (A.encode r)
+      Right{} -> do
+        let inlined = inlineParamAndLettings start Nothing
+        let specE  = fromModel inlined
+
+        putStrLn ("    processing: " ++ fp)
+
+        case specE of
+          Left r -> error . show . vcat $ ["Error for " <+> (pretty fp)
+                                          , "spec"  <+> pretty spec
+                                          , "msg"   <+> (pretty r)
+                                          , "groom" <+> (pretty . groom $ spec)
+                                          , "--"  ]
+          Right r -> do
+             if printSpecs then
+                 putStrLn . show . vcat $ [
+                                "Original"
+                              , pretty spec
+                              , "Converted"
+                              , pretty r
+                              ,  "Original AST"
+                              , pretty . groom $ spec
+                              , "Converted AST"
+                              , pretty . groom $ inlined
+                              , pretty . groom $ r
+                              ]
+             else
+                 return ()
+             L.writeFile (replaceExtensions fp ".spec.json" ) (A.encode r)
 
 
 
@@ -98,7 +109,7 @@ inlineLettings model =
                 -- The following doesn't work when the identifier is used in a domain
                 -- Declaration (Letting nm x@Reference{})
                 --     -> modify ((nm,x) :) >> return Nothing
-                st' -> Just <$> transformBiM inline (st' :: Statement) 
+                st' -> Just <$> transformBiM inline (st' :: Statement)
     in
         model { mStatements = statements }
 
