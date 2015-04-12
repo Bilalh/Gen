@@ -26,61 +26,74 @@ args = parser.parse_args()
 essence = Path(args.essence)
 essence_dir = essence.parent
 
+def process(status, kind,refinement, name):
+    if status == "ErrorUnknown_":
+        status = "StatusAny_"
+
+    cmd_str="""
+        gen reduce {essence_dir} -o '{output}' -p {total_time}  --kind {kind} --status {status} -D --delete-steps -N
+    """
+
+    if refinement:
+        if 'choices_json' in vals['vals']:
+            cs=Path(vals['vals']['choices_json']).name
+            choices = essence_dir / cs
+
+
+            if choices.suffixes == [".choices", ".json"]:
+                new_name = choices.name.replace(".choices.json", ".choices-new.json")
+                if (essence_dir / new_name).exists():
+                    choices = essence_dir / new_name
+
+            out_dir = Path(args.output) / choices.stem
+
+            cmd_str += " --choices {}".format(choices)
+
+        else:
+            out_dir = Path(args.output) / "all"
+    else:
+        cmd_str += " --choices {}".format( (essence_dir / name).with_suffix('.eprime')  )
+        out_dir = Path(args.output) / name
+
+    cmd_str = cmd_str.format(essence_dir=essence_dir, kind=kind, status=status,
+                       total_time=args.total_time, output=out_dir)
+
+    if args.bin_dir:
+        cmd_str += " --bin-dir {}".format(args.bin_dir)
+
+    if args.cores:
+        cmd_str += " --cores {}".format(args.cores)
+
+
+    cmd_arr=shlex.split(cmd_str)
+    try:
+        subprocess.check_call(cmd_arr)
+    except subprocess.CalledProcessError as e:
+        print("error")
+        sys.exit(e.returncode)
+
+
 if (essence_dir / "solve_eprime.json").exists():
-	data = json.load(open(essence_dir / "solve_eprime.json"))
-	raise NotImplementedError("solve_eprime.json not done yet")
+    with (essence_dir / "solve_eprime.json").open() as f:
+        data = json.load(f)
+
+    for (name, vals) in data['data_'].items():
+        kind   = vals['last_kind']
+        status = vals['last_status']
+        process(status, kind, refinement=False, name=name)
+
 
 elif (essence_dir / "refine_essence.json").exists():
-	with (essence_dir / "refine_essence.json").open() as f:
-	    data=json.load(f)
+    with (essence_dir / "refine_essence.json").open() as f:
+        data=json.load(f)
 
 
-	for (names, vals) in data['data_'].items():
-		kind   = vals['kind_']
-		status = vals['status_']
-		if status == "ErrorUnknown_":
-			status = "StatusAny_"
-
-		cmd_str="""
-			gen reduce {essence_dir} -o '{output}' -p {total_time}  --kind {kind} --status {status} -D --delete-steps -N
-		"""
-
-		if 'choices_json' in vals['vals']:
-			cs=Path(vals['vals']['choices_json']).name
-			choices = essence_dir / cs
-
-
-			if choices.suffixes == [".choices", ".json"]:
-				new_name = choices.name.replace(".choices.json", ".choices-new.json")
-				if (essence_dir / new_name).exists():
-					choices = essence_dir / new_name
-
-			out_dir = Path(args.output) / choices.stem
-
-			cmd_str += " --choices {}".format(choices)
-			
-		else:
-			out_dir = Path(args.output) / "all"
-
-		cmd_str = cmd_str.format(essence_dir=essence_dir, kind=kind, status=status,
-					       total_time=args.total_time, output=out_dir)
-
-		if args.bin_dir:
-			cmd_str += " --bin-dir {}".format(args.bin_dir)
-
-		if args.cores:
-			cmd_str += " --cores {}".format(args.cores)
-
-
-		cmd_arr=shlex.split(cmd_str)
-		try:
-			subprocess.check_call(cmd_arr)
-		except subprocess.CalledProcessError as e:
-			print("error")
-			sys.exit(e.returncode)
-
+    for (name, vals) in data['data_'].items():
+        kind   = vals['kind_']
+        status = vals['status_']
+        process(status, kind, refinement=True, name=name)
 
 else:
-	print("no solve_eprime.json or refine_essence.json file found")
-	sys.exit(3)
+    print("no solve_eprime.json or refine_essence.json file found")
+    sys.exit(3)
 

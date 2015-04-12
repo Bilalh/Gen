@@ -28,6 +28,7 @@ import System.Process              (StdStream (..), createProcess, proc,
                                     showCommandForUser, std_err, std_out, env,
                                     waitForProcess)
 import System.Posix.Env(getEnvironment)
+import System.Environment(getExecutablePath)
 
 import qualified Data.Map as M
 
