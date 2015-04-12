@@ -17,6 +17,7 @@ if [ -z "${1:-}" ]; then
 fi
 
 base="$1"
+export BASE_DIR="${base}"
 
 declare -a host_index
 host_index=(
@@ -50,6 +51,7 @@ if [ -z "${HOST_TYPE:-}" ]; then
 else
 	host_type="${HOST_TYPE}"
 fi
+export host_type
 
 set -o errexit
 now="${DATE_PREFIX:-}$(date +'%F_%s')"
@@ -58,7 +60,7 @@ tbase_="date/${now}/${host_type}/"
 tbase="${base}/date/${now}/${host_type}/"
 mkdir -p "${tbase}"
 echo "name,scm,hash,ver_date,uname,whoami,host_type,hostname" > "${tbase}/data.csv"
-rest_line="$(uname),$(whoami),${host_type},$(hostname)"]
+rest_line="$(uname),$(whoami),${host_type},$(hostname)"
 
 cat << EOF > "${tbase}/meta.json"
 {
@@ -82,7 +84,31 @@ val="$(java -version  2>&1 | cat)"
 printf "***${prog}\n%s\n" "${val}" >> "${tbase}/data_other.txt"
 echo "+++" >> "${tbase}/data_other.txt"
 
+function relative_to(){
+	rel="$(python3 -c "import sys; from pathlib import Path;  print( Path(sys.argv[1]).resolve().relative_to(Path('${2}').resolve()) )" "${1}")"
+	echo "$rel"
+}
 
+function store_latest(){
+	name="$1"
+	host="$2"
+	date="$3"
+	loc="$4"
+
+	rel="$(relative_to "${loc}" "${BASE_DIR}")"
+	pushd "${BASE_DIR}"
+
+	dir="latest/${name}"
+	mkdir -p "${dir}"
+	if [[  ( ! -d "${dir}/${host}" ) || ( ! -f  "${dir}/${host}_date" )  || (  "$(cat "${dir}/${host}_date" )" -lt "${date:11}" )  ]]; then
+		[ -L "${dir}/${host}" ] &&  rm "${dir}/${host}"
+		ln -s "../../${rel}" "${dir}/${host}"
+		printf "%s" "${date:11}" > "$dir/${host}_date"
+		echo "${date}"
+	fi
+	popd
+
+}
 
 ## Conjure
 cbase="${base}/versions/conjureNew/"
@@ -125,6 +151,11 @@ ln -sf "../../../versions/conjureNew/hash/${conjureNew_version}/${host_type}/con
 ln -sf "../../../versions/conjureNew/hash/${conjureNew_version}/${host_type}/conjure" conjureNew
 echo "conjureNew,hg,${conjureNew_version},${conjureNew_date},${rest_line}" >> data.csv
 
+popd
+
+store_latest "conjure" "${host_type}" "${conjureNew_date}" "${newDstDir}"
+pushd "${BASE_DIR}/latest"
+[ ! -e "conjureNew" ] &&   ln -s conjure conjureNew
 popd
 
 
@@ -227,6 +258,7 @@ EOF
 chmod +x "./savilerow"
 popd
 
+store_latest "${name}" "${host_type}" "${version_date}" "${newDstDir}"
 
 
 #Minion
@@ -296,6 +328,7 @@ function gen_save(){
 	ln -sf "../../../versions/${name}/hash/${version}/${host_type}/${name}" "${name}"
 	ln -sf "../../../versions/${name}/hash/${version}/${host_type}/toolchain" "toolchain"
 	popd
+	store_latest "${name}" "${host_type}" "${version_date}" "${newDstDir}"
 }
 
 gen_save

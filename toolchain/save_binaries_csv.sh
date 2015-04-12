@@ -50,6 +50,7 @@ echo "name,scm,hash,ver_date,uname,whoami,host_type,hostname" > "${base}/${csv_n
 rest_line="$(uname),$(whoami),${host_type},$(hostname)"
 
 
+
 ## Conjure
 conjureNew_version="$(conjure --version | egrep -o 'Version: \w+' | egrep -o ': \w+' | egrep -o '\w+')"
 
@@ -106,7 +107,7 @@ set +o errexit
 version_date_="$(hg log --template "{date(date, '%F_%s')}\n" --cwd "$(dirname "$(which minion)")" -rd${version} 2>&1)"
 
 if [[ $? -eq 0  ]]; then
-	if ( echo "${version_date}_" | egrep -q "^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]_"  ); then 
+	if ( echo "${version_date}_" | egrep -q "^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]_"  ); then
 		version_date="${version_date_}"
 	else
 		version_date=""
