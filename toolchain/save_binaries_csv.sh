@@ -103,8 +103,9 @@ name=minion
 version="$(minion | grep 'HG version:' | egrep -o '"\w+' | egrep -o '\w+')"
 
 set +o errexit
-
-version_date_="$(hg log --template "{date(date, '%F_%s')}\n" --cwd "$(dirname "$(which minion)")" -rd${version} 2>&1)"
+set -x
+version_date_="$(hg log --template "{date(date, '%F_%s')}\n" --cwd "$(dirname "$(which minion)")" -r"${version}" 2>&1)"
+set +x
 
 if [[ $? -eq 0  ]]; then
 	if ( echo "${version_date}_" | egrep -q "^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]_"  ); then
