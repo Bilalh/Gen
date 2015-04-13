@@ -16,9 +16,9 @@ logger = logging.getLogger(__name__)
 parser = argparse.ArgumentParser()
 parser.add_argument("essence", help='essence file')
 parser.add_argument('-o',  dest='output',          help='output base dir ', required=True)
-parser.add_argument('-p',  dest='total_time',      help='time per run', required=True)
+parser.add_argument('-p',  dest='total_time',      help='time per run', required=True, type=int)
 parser.add_argument('-bin_dir',  dest='bin_dir',   help='--bin-dir' )
-parser.add_argument('-c',  dest='cores',           help='cores to use, default 1' )
+parser.add_argument('-c',  dest='cores',           help='cores to use, default 1', type=int)
 
 
 args = parser.parse_args()
@@ -26,7 +26,7 @@ args = parser.parse_args()
 essence = Path(args.essence)
 essence_dir = essence.parent
 
-def process(status, kind,refinement, name):
+def process(status, kind,refinement, name, vals,refine_times):
     if status == "ErrorUnknown_":
         status = "StatusAny_"
 
@@ -34,6 +34,7 @@ def process(status, kind,refinement, name):
         gen reduce {essence_dir} -o '{output}' -p {total_time}  --kind {kind} --status {status} -D --delete-steps -N
     """
 
+    total_time=args.total_time
     if refinement:
         if 'choices_json' in vals['vals']:
             cs=Path(vals['vals']['choices_json']).name
@@ -51,12 +52,19 @@ def process(status, kind,refinement, name):
 
         else:
             out_dir = Path(args.output) / "all"
+
+        cpu_used = vals['cpu_time']
+        total_time = min( max(cpu_used * 1.5, 10), total_time)
+
     else:
         cmd_str += " --choices {}".format( (essence_dir / name).with_suffix('.eprime')  )
         out_dir = Path(args.output) / name
+        cpu_used = refine_times[name] + vals['total_cpu_time']
+        total_time = min( max(cpu_used * 1.5, 10), total_time)
 
+    total_time=int(total_time)
     cmd_str = cmd_str.format(essence_dir=essence_dir, kind=kind, status=status,
-                       total_time=args.total_time, output=out_dir)
+                       total_time=total_time, output=out_dir)
 
     if args.bin_dir:
         cmd_str += " --bin-dir {}".format(args.bin_dir)
@@ -69,18 +77,22 @@ def process(status, kind,refinement, name):
     try:
         subprocess.check_call(cmd_arr)
     except subprocess.CalledProcessError as e:
-        print("error")
+        print("error for {} - {} ".format(args.essence, name) )
         sys.exit(e.returncode)
 
 
 if (essence_dir / "solve_eprime.json").exists():
+
+    with (essence_dir / "refine_essence.json").open() as f:
+        refine_times = { k:vs['cpu_time']  for (k,vs) in  json.load(f)['data_'].items()   }
+
     with (essence_dir / "solve_eprime.json").open() as f:
         data = json.load(f)
 
     for (name, vals) in data['data_'].items():
         kind   = vals['last_kind']
         status = vals['last_status']
-        process(status, kind, refinement=False, name=name)
+        process(status, kind, refinement=False, name=name, vals=vals, refine_times=refine_times)
 
 
 elif (essence_dir / "refine_essence.json").exists():
@@ -91,7 +103,7 @@ elif (essence_dir / "refine_essence.json").exists():
     for (name, vals) in data['data_'].items():
         kind   = vals['kind_']
         status = vals['status_']
-        process(status, kind, refinement=True, name=name)
+        process(status, kind, refinement=True, name=name, vals=vals, refine_times=None)
 
 else:
     print("no solve_eprime.json or refine_essence.json file found")
