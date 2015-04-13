@@ -510,6 +510,11 @@ runSingle spe x = do
   return res
 
 
+m2t :: Show a => ((a,a) -> b) -> [a] -> b
+m2t f [a,b] = f (a,b)
+m2t _ x     = error . show . vcat $ ["m2t not two elements", pretty . show $ x ]
+
+
 -- For ghci
 
 __run :: forall t a (t1 :: * -> *).
@@ -561,11 +566,6 @@ _replaceOpChildren_ex = replaceOpChildren
 -- instance Pretty [Literal] where
 --     pretty = prettyBrackets  . pretty . vcat . map pretty
 
-
-
-m2t :: Show a => ((a,a) -> b) -> [a] -> b
-m2t f [a,b] = f (a,b)
-m2t _ x     = error . show . vcat $ ["m2t not two elements", pretty . show $ x ]
 
 _var1 = EVar $ Var "var1" (TPar $ TSet $ TInt)
 
