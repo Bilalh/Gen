@@ -8,7 +8,7 @@ import Data.Time.Clock.POSIX           (getPOSIXTime)
 import Gen.Classify.Meta               (mkMeta)
 import Gen.Essence.Data                (EssenceConfig)
 import Gen.IO.Formats
-import Gen.IO.Toolchain                hiding (ToolchainData (..))
+import Gen.IO.Toolchain                hiding (ToolchainData (..), DirError(..))
 import Gen.Prelude
 import GHC.Real                        (floor)
 import System.Directory                (copyFile, renameDirectory)
@@ -227,6 +227,7 @@ doSolve ec@EC.EssenceConfig{..} = do
                 let mvDirBase = errdir </> (show kind) </> (show last_status)
                 let mvDir     = mvDirBase </> uname
                 createDirectoryIfMissing True mvDir
+                writeToJSON (mvDir </> "dir_error.json") Toolchain.DirError{dirStatus =last_status, dirKind = kind}
 
                 fps <- getDirectoryContents inErrDir
                 let needed =  filter (allow k) fps
@@ -301,6 +302,8 @@ classifySettingI ec errdir out uname
             let mvDir = mvDirBase </> uname
 
             createDirectoryIfMissing True mvDir
+            writeToJSON (mvDir </> "dir_error.json") Toolchain.DirError{dirStatus =status_, dirKind = kind_ }
+
             fps <- getDirectoryContents inErrDir
             let needed =  filter (allow k) fps
 
