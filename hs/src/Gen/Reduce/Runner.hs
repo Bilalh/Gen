@@ -291,14 +291,20 @@ storeInDB sp mr = do
 
 
 -- | Cache the results if given a filepath
-saveDB :: Maybe FilePath -> ResultsDB -> IO ()
-saveDB Nothing  _    = return ()
-saveDB (Just dir) db = do
+saveDB :: Bool -> Maybe FilePath -> ResultsDB -> IO ()
+saveDB _ Nothing  _    = return ()
+saveDB onlyPassing (Just dir) db = do
   createDirectoryIfMissing True dir
-  ndb <- H.traverseWithKey f db
+  let dbUse = H.filter (removeErrors onlyPassing) db
+
+  ndb <- H.traverseWithKey f dbUse
   writeToJSON (dir </> "db.json") ndb
 
   where
+    removeErrors False _      = True
+    removeErrors True Passing = True
+    removeErrors _  _         = False
+
     f _ OurError{..} = do
       liftIO $ putStrLn ""
       let newDir = takeBaseName resDirectory_

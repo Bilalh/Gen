@@ -222,7 +222,7 @@ mainWithArgs Reduce{..} = do
   doMeta out no_csv binaries_directory
 
   (_,state) <- reduceMain args
-  saveDB db_directory (resultsDB_  state)
+  saveDB db_only_passing db_directory (resultsDB_  state)
   formatResults (delete_steps) state
 
 mainWithArgs Generalise{..} = do
@@ -281,7 +281,7 @@ mainWithArgs Generalise{..} = do
   doMeta out no_csv binaries_directory
 
   state <- generaliseMain args
-  saveDB db_directory (E.resultsDB_  state)
+  saveDB False db_directory (E.resultsDB_  state)
 
 
 mainWithArgs Link{..} = do
@@ -497,5 +497,6 @@ _reduceDebug = do
                    , delete_passing     = False
                    , db_directory       = Nothing
                    , delete_steps       = False
+                   , db_only_passing    = False
                    }
     limiter (limit_time ec) (mainWithArgs ec)

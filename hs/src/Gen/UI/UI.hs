@@ -59,6 +59,7 @@ data UI
     , limit_time         :: Maybe Int
     , no_csv             :: Bool
     , db_directory       :: Maybe FilePath
+    , db_only_passing    :: Bool
     }
 
   | Generalise
@@ -287,6 +288,10 @@ ui  = modes
                                      &= typDir
                                      &= explicit
                                      &= help "Cache the result of running a spec. Useful for development"
+     , db_only_passing    = False    &= name "db-only-passing"
+                                     &= groupname "Other"
+                                     &= explicit
+                                     &= help "Only store the which specs have no errors"
      , limit_time       = Nothing    &= name "limit-time"
                                      &= groupname "Other"
                                      &= explicit
