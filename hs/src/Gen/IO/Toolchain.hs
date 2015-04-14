@@ -22,7 +22,7 @@ import Paths_essence_gen           (getDataDir)
 import System.Directory            (copyFile)
 import System.Environment          (lookupEnv)
 import System.Exit                 (ExitCode, exitSuccess)
-import System.FilePath             ((<.>))
+import System.FilePath             ((<.>), dropFileName)
 import System.IO                   (IOMode (..), withFile)
 import System.Process              (StdStream (..), createProcess, proc,
                                     showCommandForUser, std_err, std_out, env,
@@ -116,30 +116,42 @@ getToolchainDir :: (MonadFail m, MonadIO m) => Maybe FilePath -> m FilePath
 getToolchainDir binDir = liftIO $ lookupEnv "REPO_GEN" >>= \case
                   Nothing -> do
                     case binDir of
-                      Nothing -> useDataDir
+                      Nothing -> useNextToApp >>= \case
+                                 Just tc -> return tc
+                                 Nothing -> useDataDir
+
                       Just bp -> doesDirectoryExist (bp </> "toolchain") >>= \case
                                     True  -> do
                                       return (bp </> "toolchain")
                                     False -> fail . vcat $
                                        [" Can't find toolchain directory in" <+> pretty bp
-                                       , "set REPO_GEN to gen/" ]
+                                       , "set REPO_GEN to gen/ repo" ]
                   Just fp -> do
                     doesDirectoryExist (fp </> "toolchain") >>= \case
                        True -> do
                          return $ fp </> "toolchain"
                        False -> do
-                         fail . vcat $ [" Can't find toolchain directory in data dir"
-                                       , "set REPO_GEN to gen/"]
+                         fail . vcat $ [" Can't find toolchain directory in REPO_GEN "
+                                       , "set REPO_GEN to gen/ repo"]
 
   where
+
+  useNextToApp = do
+    p <- getExecutablePath
+    let tc = dropFileName p </> "toolchain"
+    doesDirectoryExist tc >>= \case
+      True   -> return $ Just tc
+      False  -> return Nothing
+
+
   useDataDir = do
     fp <- getDataDir
     doesDirectoryExist (fp </> "toolchain") >>= \case
       True -> do
         return $ fp </> "toolchain"
       False -> do
-        fail . vcat $ [" Can't find toolchain directory in data dir"
-                      , "set REPO_GEN to gen/" ]
+         fail . vcat $ [" Can't find toolchain directory next to gen binary or in data dir"
+                       , "place toolchain/ next to gen binary or set REPO_GEN to gen/ repo"]
 
 runCommand :: MonadIO m => FilePath -> [String] -> Maybe String -> m ExitCode
 runCommand = runCommand' Nothing
