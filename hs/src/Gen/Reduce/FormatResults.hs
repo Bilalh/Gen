@@ -19,7 +19,7 @@ formatResults delete_steps RState{..} = do
       renameDirectory  (resDirectory_ r) finalDir
 
     Nothing -> do
-      putStrLn "No final directory"
+      putStrLn "No final directory: no reductions produced"
       createDirectoryIfMissing True finalDir
 
   writeFile (finalDir </> "zreduce.logs") (renderSized 120 rlogs_)

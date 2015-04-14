@@ -18,25 +18,33 @@ reduceMain rr = do
       fp   =  base </> "spec.spec.json"
 
   sp <- readFromJSON fp
-  noteFormat "Starting with" [pretty sp]
 
-  (sfin,state) <- (flip runStateT) rr $
-      return sp
-      >>= (note "tryRemoveConstraints") tryRemoveConstraints
-      >>= (note "removeUnusedDomains")  removeUnusedDomains
-      >>= (note "removeConstraints")    removeConstraints
-      >>= (note "simplyConstraints")    simplyConstraints
-      >>= (note "removeUnusedDomains")  removeUnusedDomains
-      >>= \ret -> get >>= \g -> addLog "FinalState" [pretty g] >> return ret
+  (flip runStateT) rr (return sp >>= noteMsg "Checking if error still occurs"  >>= runSpec ) >>= \case
+    (Nothing, st) -> do
+        putStrLn "Spec has no error with the given settings, not reducing"
+        return (sp, st)
+    _ -> do
+      (sfin,state) <- (flip runStateT) rr $
+          return sp
+          >>= (note "tryRemoveConstraints") tryRemoveConstraints
+          >>= (note "removeUnusedDomains")  removeUnusedDomains
+          >>= (note "removeConstraints")    removeConstraints
+          >>= (note "simplyConstraints")    simplyConstraints
+          >>= (note "removeUnusedDomains")  removeUnusedDomains
+          >>= \ret -> get >>= \g -> addLog "FinalState" [pretty g] >> return ret
 
 
-  noteFormat "State" [pretty state]
-  noteFormat "Start" [pretty sp]
-  noteFormat "Final" [pretty sfin]
+      noteFormat "State" [pretty state]
+      noteFormat "Start" [pretty sp]
+      noteFormat "Final" [pretty sfin]
 
-  return (sfin,state)
+      return (sfin,state)
 
   where
+  noteMsg tx s = do
+      noteFormat ("@" <+> tx) []
+      return s
+
   note tx f s = do
       noteFormat ("@" <+> tx <+> "Start") []
 
