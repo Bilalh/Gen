@@ -6,6 +6,7 @@ import Data.Map (Map)
 import Gen.Prelude
 
 import qualified Data.Aeson as A
+import qualified Data.Aeson.Types as A
 import qualified Data.HashMap.Strict as H
 
 data ToolchainData = ToolchainData
@@ -58,6 +59,20 @@ instance Default RefineType where
 data ToolchainResult =  RefineResult RefineR | SolveResult (RefineR, SolveR )
   deriving (Show, Eq, Generic, Typeable, Data)
 
+
+data DirError = DirError {
+                dirStatus :: StatusI
+              , dirKind   :: KindI
+              }  deriving (Show,Eq,Generic,Typeable, Data, Read, Ord)
+
+dirErrorJSONOptions :: A.Options
+dirErrorJSONOptions = jsonOptions { A.fieldLabelModifier = onHead toLower . drop 3 }
+    where onHead f (x:xs) = f x : xs
+          onHead _ [] = []
+
+
+instance FromJSON DirError  where parseJSON  = genericParseJSON dirErrorJSONOptions
+instance ToJSON   DirError  where toJSON     = genericToJSON dirErrorJSONOptions
 
 
 -- For reading json from toolchain.py
