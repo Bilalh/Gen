@@ -10,10 +10,10 @@ import sys
 
 
 from functools import partial
-from pprint import pprint, pformat
 from multiprocessing import Pool
 from enum import Enum
 from shutil import which
+from pprint import pformat
 
 import args
 import run
@@ -115,7 +115,6 @@ if __name__ == "__main__":
         fileHandler.setFormatter(logFormatter)
         logging.getLogger().addHandler(fileHandler)
 
-
     setup_logging(op.outdir)
     logger.warn("args %s", op)
     logger.info("@@sha1_spec.essence:%s", sha1_file(op.essence))
@@ -125,23 +124,67 @@ if __name__ == "__main__":
 
     if op.new_conjure:
         if not which('conjureNew'):
-            print('conjureNew not in $PATH')
+            logger.error('ERROR: conjureNew not in $PATH')
             sys.exit(5)
-
         commands = command.ConjureNew()
 
     else:
         commands = command.ConjureOld()
 
 
+    def get_refine_time(fp, arg):
+        with (fp).open() as f:
+            data = json.load(f)['data_']
+            if "choices_made" in data:
+                return data['cmd_used']['cpu_time']
+            else:
+                refine_times = { k:vs['cpu_time']  for (k,vs) in data.items()   }
+                if arg  not in refine_times:
+                    logger.error('{} not in {}'.format(arg, fp))
+                    sys.exit(9)
+                return refine_times[arg]
 
+    def get_solve_time(fp, arg):
+        with (fp).open() as f:
+            solve_times = { k:vs['total_cpu_time']  for (k,vs) in  json.load(f)['data_'].items()   }
+            if arg not in solve_times:
+                logger.error('%s not in %s', arg, fp)
+                sys.exit(10)
+            return solve_times[arg]
+
+
+    if op.reduce_time:
+        refine = op.essence.with_name('refine_essence.json')
+        solve  = op.essence.with_name('solve_eprime.json')
+
+        new_timeout=None
+        if solve.exists():
+            if not refine.exists():
+                logger.error("ERROR: solve_eprime exists but refine_essence is missing")
+                sys.exit(8)
+            else:
+                refine_time = get_refine_time(refine, op.reduce_time)
+                solve_time  = get_solve_time(solve, op.reduce_time)
+                new_timeout = refine_time + solve_time
+
+
+        elif refine.exists():
+            new_timeout = get_refine_time(refine, op.reduce_time)
+
+        if new_timeout:
+            if new_timeout > op.timeout:
+                logger.warn("Timeout previously used %s, is less then given time %s", new_timeout, op.timeout)
+            old=op.timeout
+            op.timeout = int(min( max(new_timeout * 1.5, 10), op.timeout))
+
+            logger.warn("Timeout changed from %s to %s", old, op.timeout)
 
     startTime = time.time()
 
     # Make the eprimes
     if op.choices:
         if not Path(op.choices).exists():
-            print("--choices does not exist {}".format(op.choices))
+            logger.error("ERROR: --choices does not exist {}".format(op.choices))
             sys.exit(4)
 
         (essence_refine, refine_wall_time) = run.run_refine_essence_with_choices(

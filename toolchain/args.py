@@ -22,6 +22,7 @@ def do_args():
             help='Produces all models')
     parse_args.add_argument("--bin_dir", help='Use the specifed directory for binaries (give a full path)')
     parse_args.add_argument("--choices", help='Use the following choices when refining if possible, can not be used with --refine_all')
+    parse_args.add_argument("--reduce_time", help='look for solve_eprime.json &| refine_essence.json in `essence`  dir  to reduce the running time if they exist, the given arg must exist if they do ')
 
 
     args = parse_args.parse_args()
@@ -39,13 +40,13 @@ def do_args():
         args.param = Path(args.param)
 
     if args.refine_all and args.choices:
-        print("--refine_all can not be used with --choices", file=sys.stderr)
+        logger.error("ERROR: --refine_all can not be used with --choices")
         sys.exit(1)
 
     if args.choices:
         args.choices = Path(args.choices)
         if not args.choices.exists():
-            print("{} does not exist ".format(args.choices))
+            logger.error("ERROR: %s does not exist", args.choices)
 
     args.essence = Path(args.essence)
     return args
