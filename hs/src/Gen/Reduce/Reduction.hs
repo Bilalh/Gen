@@ -15,6 +15,8 @@ import Gen.Reduce.Simpler
 import Gen.Reduce.Inners
 import Data.Generics.Uniplate.Data
 import Conjure.Language.Definition(AbstractPattern(Single))
+import Data.Generics.Uniplate.Zipper ( Zipper, zipperBi, fromZipper, hole, replaceHole )
+import qualified Data.Generics.Uniplate.Zipper as Zipper
 
 import qualified Data.Foldable as F
 import qualified Data.Traversable as T
@@ -81,9 +83,16 @@ instance (HasGen m,  HasLogger m) =>  Reduce Expr m where
       cr <- mapM reduce cons
       let rs  = concat $ reduceLength1 cr
       let r_cons = map (EComp inner gens) rs
-
       ir <- reduce inner
       let r_inner = map (\r -> EComp r gens cons) (ir)
+
+
+      addLog "cr" (map pretty cr)
+      addLog "rs" (map pretty $ reduceLength1 cr)
+      addLog "rs" (map pretty $ rs)
+      addLog "r_cons" (map pretty r_cons)
+      addLog "ir" (map pretty ir)
+      addLog "r_inner" (map pretty r_inner)
 
       return $ r_cons ++ r_inner
 
@@ -561,14 +570,34 @@ _replaceOpChildren_ex = replaceOpChildren
   [opp| 8 ** 3  |]  [  [essencee| 4 |], [essencee| 2 |] ]
 
 
--- instance Pretty [Expr] where
---     pretty = prettyBrackets  . pretty . vcat . map pretty
+instance Pretty [Expr] where
+    pretty = prettyBrackets  . pretty . vcat . map pretty
 
--- instance Pretty [Literal] where
---     pretty = prettyBrackets  . pretty . vcat . map pretty
+instance Pretty [[Expr]] where
+    pretty = prettyBrackets  . pretty . vcat . map pretty
+
+instance Pretty [Literal] where
+    pretty = prettyBrackets  . pretty . vcat . map pretty
 
 
 _var2 = EVar $ Var "var2" (TBool)
 _q_128 = EVar $ Var "q_128" (TInt)
 _x = Single "q_128"
 _l = [essencee| or([true | &_x : int(1), |toMSet({&_var2})| != &_q_128]) |]
+
+
+type EListZipper = Zipper [Int] Int
+
+ll :: forall (m :: * -> *). Monad m => [Int] -> m [[Int]]
+ll as = do
+  let (Just (lzip :: EListZipper)) = zipperBi as
+  vs <- forM (allSiblings lzip) $ \ x -> do
+    let cur = hole x
+    let ls = map (flip replaceHole x) [cur *10, cur * 100]
+    return $ map fromZipper ls
+
+  return . concat $ vs
+
+    where
+      allSiblings :: EListZipper -> [EListZipper]
+      allSiblings z = z : maybe [] allSiblings (Zipper.right z)
