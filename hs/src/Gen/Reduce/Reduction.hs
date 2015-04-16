@@ -565,16 +565,3 @@ _replaceOpChildren_ex = replaceOpChildren
 
 -- instance Pretty [Literal] where
 --     pretty = prettyBrackets  . pretty . vcat . map pretty
-
-
-_var1 = EVar $ Var "var1" (TPar $ TSet $ TInt)
-
-_lf = [opp| (function() : `function bool --> partition from partition from bool`) = function(&_var1 = &_var1 --> partition({(partition() : `partition from bool`)}, {partition({false, true})})) |]
-
-_lg = [opp| (function() : `function bool --> partition from bool`) = function(&_var1 = &_var1 --> partition( {true,false} ) ) |]
-
-_lh = [litt|  function(&_var1 = &_var1 --> partition( {true,false} ) ) |]
-
-_lf, _lg :: Op Expr
-_lh      :: Literal
-_var1    :: Expr
