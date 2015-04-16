@@ -186,7 +186,11 @@ mainWithArgs Reduce{..} = do
               dirExists     "spec_directory" spec_directory
             , fileExistsMay "choices" error_choices
             , dirExistsMay "--bin-dir" binaries_directory
+            , case from_essence of
+                True -> return Nothing
+                False -> fileExists "spec.spec.json is required unless --from-essence is specifed" (spec_directory </> "spec.spec.json")
             ]
+
 
   let errors = catMaybes
         [ aerr "spec-directory" (null spec_directory)
@@ -244,6 +248,9 @@ mainWithArgs Generalise{..} = do
               dirExists     "spec_directory" spec_directory
             , fileExistsMay "choices" error_choices
             , dirExistsMay "--bin-dir" binaries_directory
+            , case from_essence of
+                True -> return Nothing
+                False -> fileExists "spec.spec.json is required unless --from-essence is specifed" (spec_directory </> "spec.spec.json")
             ]
 
   let errors = catMaybes
