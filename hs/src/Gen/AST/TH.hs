@@ -17,6 +17,33 @@ import Language.Haskell.TH.Quote ( QuasiQuoter(..), dataToExpQ, dataToPatQ )
 
 import Data.Generics.Aliases ( extQ )
 
+-- For matching in Reduce and for ghci
+essencee, opp, conn, litt :: QuasiQuoter
+essencee = ee (id :: Expr -> Expr)
+opp      = ee (\(EOp x)  -> x)
+conn     = ee (\(ECon x) -> x)
+litt     = ee (\(ELit x) -> x)
+
+ee :: forall ast a.
+      (Translate ast Expression, Data a) =>
+      (ast -> a) -> QuasiQuoter
+ee after  = QuasiQuoter
+    { quoteExp = \ str -> do
+        l <- locationTH
+        e <- runIO $ parseIO (setPosition l *> parseExpr) str
+        let f = fromConjureNote "in cc quoteExp TH" e
+        dataToExpQ (const Nothing `extQ` expEg `extQ` expDg `extQ` expAPg) (after f)
+    , quotePat  = \ str -> do
+        l <- locationTH
+        e <- runIO $ parseIO (setPosition l *> parseExpr) str
+        let f = fromConjureNote "in cc quotePat TH" e
+        dataToPatQ (const Nothing `extQ` patEg `extQ` patDg `extQ` patAPg) (after f)
+    , quoteType = error "quoteType"
+    , quoteDec  = error "quoteDec"
+    }
+
+
+
 domain :: QuasiQuoter
 domain = QuasiQuoter
     { quoteExp = \ str -> do
@@ -46,45 +73,6 @@ domainn = QuasiQuoter
     , quoteType = error "quoteType"
     , quoteDec  = error "quoteDec"
     }
-
-essencee :: QuasiQuoter
-essencee = QuasiQuoter
-    { quoteExp = \ str -> do
-        l <- locationTH
-        e <- runIO $ parseIO (setPosition l *> parseExpr) str
-        let f :: Expr = fromConjureNote "in essencee quoteExp TH" e
-        dataToExpQ (const Nothing `extQ` expEg `extQ` expDg `extQ` expAPg) f
-    , quotePat  = \ str -> do
-        l <- locationTH
-        e <- runIO $ parseIO (setPosition l *> parseExpr) str
-        let f :: Expr = fromConjureNote "in essencee quotePat TH" e
-        dataToPatQ (const Nothing `extQ` patEg `extQ` patDg `extQ` patAPg) f
-    , quoteType = error "quoteType"
-    , quoteDec  = error "quoteDec"
-    }
-
-
-cc :: forall a. Data a => (Expr -> a) -> QuasiQuoter
-cc after  = QuasiQuoter
-    { quoteExp = \ str -> do
-        l <- locationTH
-        e <- runIO $ parseIO (setPosition l *> parseExpr) str
-        let f :: Expr = fromConjureNote "in essencee quoteExp TH" e
-        dataToExpQ (const Nothing `extQ` expEg `extQ` expDg `extQ` expAPg) (after f)
-    , quotePat  = \ str -> do
-        l <- locationTH
-        e <- runIO $ parseIO (setPosition l *> parseExpr) str
-        let f :: Expr = fromConjureNote "in essencee quotePat TH" e
-        dataToPatQ (const Nothing `extQ` patEg `extQ` patDg `extQ` patAPg) (after f)
-    , quoteType = error "quoteType"
-    , quoteDec  = error "quoteDec"
-    }
-
--- For matching in Reduce and for ghci
-opp, conn, litt :: QuasiQuoter
-opp  = cc (\(EOp x) -> x)
-conn = cc (\(ECon x) -> x)
-litt = cc (\(ELit x) -> x)
 
 
 locationTH :: Q SourcePos
