@@ -7,7 +7,8 @@ import Data.Time                   (formatTime, getCurrentTime)
 import Data.Time.Format            (defaultTimeLocale)
 import Gen.Arbitrary.Data
 import Gen.Classify.AddMeta        (metaMain)
-import Gen.Classify.AddSpecE       (specEMain)
+import Gen.Classify.AddMeta        (addMeta)
+import Gen.Classify.AddSpecE       (addSpecJson, specEMain)
 import Gen.Classify.Sorter         (getRecursiveContents, sorterMain')
 import Gen.Essence.Generate        (generateEssence)
 import Gen.Generalise.Generalise   (generaliseMain)
@@ -203,6 +204,11 @@ mainWithArgs Reduce{..} = do
     xs -> mapM putStrLn xs >> exitFailure
 
 
+  case from_essence of
+    False -> return ()
+    True  ->  addSpecJson False (spec_directory </> "spec.essence")
+          >>  addMeta (spec_directory </> "spec.spec.json")
+
   seed_ <- giveSeed _seed
   db    <- giveDb db_directory
   out   <- giveOutputDirectory output_directory
@@ -263,6 +269,10 @@ mainWithArgs Generalise{..} = do
     [] -> return ()
     xs -> mapM putStrLn xs >> exitFailure
 
+  case from_essence of
+    False -> return ()
+    True  ->  addSpecJson False (spec_directory </> "spec.essence")
+          >>  addMeta (spec_directory </> "spec.spec.json")
 
   seed_ <- giveSeed _seed
   db    <- giveDb db_directory
@@ -438,6 +448,7 @@ giveSpec (Just path)  = do
     xs -> return $ Just xs
 
 
+
 _essenceDebug :: IO ()
 _essenceDebug = do
     let ec = Essence
@@ -505,5 +516,6 @@ _reduceDebug = do
                    , db_directory       = Nothing
                    , delete_steps       = False
                    , db_only_passing    = False
+                   , from_essence       = False
                    }
     limiter (limit_time ec) (mainWithArgs ec)

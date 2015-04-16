@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable, QuasiQuotes #-}
 
-module Gen.Classify.AddSpecE where
+module Gen.Classify.AddSpecE(specEMain, addSpecJson, compareSpecs) where
 
 import Conjure.Language.Definition
 import Conjure.Language.Expression.Op  (Op (MkOpTrue))
@@ -18,57 +18,55 @@ import qualified Data.ByteString.Lazy as L
 specEMain :: Bool ->  [FilePath] -> IO ()
 specEMain printSpecs = \case
    []     ->  putStrLn "gen json {-d <dir>}+"
-   [x]    ->  addSpecE printSpecs x
-   (x:xs) ->  addSpecE printSpecs x >> specEMain printSpecs xs
+   [x]    ->  addSpecJsons printSpecs x
+   (x:xs) ->  addSpecJsons printSpecs x >> specEMain printSpecs xs
 
-addSpecE :: Bool -> FilePath -> IO ()
-addSpecE printSpecs fp_ = do
-  specs_ :: [FilePath] <- ffind fp_
-  specs  :: [Model]    <- mapM readModelFromFile specs_
 
-  void $ zipWithM f specs specs_
+addSpecJsons :: Bool -> FilePath -> IO ()
+addSpecJsons printSpecs = mapM_ (addSpecJson printSpecs)  <=< ffind
 
-  where
-  f spec fp = do
-    start <- ignoreLogs . runNameGen $ resolveNames spec >>= return . removeTrueConstraints
+addSpecJson :: Bool -> FilePath -> IO ()
+addSpecJson printSpecs fp = do
+  spec <- readModelFromFile fp
+  start <- ignoreLogs . runNameGen $ resolveNames spec >>= return . removeTrueConstraints
 
-    case (ignoreLogs . runNameGen . typeCheckModel) start of
-      Left x ->  error . show . vcat $
-                  [ "model failed type checking"
-                  , pretty fp
-                  , pretty x
-                  , pretty start
-                  , pretty . groom $ start
-                  ]
+  case (ignoreLogs . runNameGen . typeCheckModel) start of
+    Left x ->  error . show . vcat $
+                [ "model failed type checking"
+                , pretty fp
+                , pretty x
+                , pretty start
+                , pretty . groom $ start
+                ]
 
-      Right{} -> do
-        let inlined = inlineParamAndLettings start Nothing
-        let specE  = fromModel inlined
+    Right{} -> do
+      let inlined = inlineParamAndLettings start Nothing
+      let specE  = fromModel inlined
 
-        putStrLn ("    processing: " ++ fp)
+      putStrLn ("    processing: " ++ fp)
 
-        case specE of
-          Left r -> error . show . vcat $ ["Error for " <+> (pretty fp)
-                                          , "spec"  <+> pretty spec
-                                          , "msg"   <+> (pretty r)
-                                          , "groom" <+> (pretty . groom $ spec)
-                                          , "--"  ]
-          Right r -> do
-             if printSpecs then
-                 putStrLn . show . vcat $ [
-                                "Original"
-                              , pretty spec
-                              , "Converted"
-                              , pretty r
-                              ,  "Original AST"
-                              , pretty . groom $ spec
-                              , "Converted AST"
-                              , pretty . groom $ inlined
-                              , pretty . groom $ r
-                              ]
-             else
-                 return ()
-             L.writeFile (replaceExtensions fp ".spec.json" ) (A.encode r)
+      case specE of
+        Left r -> error . show . vcat $ ["Error for " <+> (pretty fp)
+                                        , "spec"  <+> pretty spec
+                                        , "msg"   <+> (pretty r)
+                                        , "groom" <+> (pretty . groom $ spec)
+                                        , "--"  ]
+        Right r -> do
+           if printSpecs then
+               putStrLn . show . vcat $ [
+                              "Original"
+                            , pretty spec
+                            , "Converted"
+                            , pretty r
+                            ,  "Original AST"
+                            , pretty . groom $ spec
+                            , "Converted AST"
+                            , pretty . groom $ inlined
+                            , pretty . groom $ r
+                            ]
+           else
+               return ()
+           L.writeFile (replaceExtensions fp ".spec.json" ) (A.encode r)
 
 
 

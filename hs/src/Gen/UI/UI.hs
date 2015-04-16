@@ -60,6 +60,7 @@ data UI
     , no_csv             :: Bool
     , db_directory       :: Maybe FilePath
     , db_only_passing    :: Bool
+    , from_essence       :: Bool
     }
 
   | Generalise
@@ -83,6 +84,7 @@ data UI
     , limit_time         :: Maybe Int
     , no_csv             :: Bool
     , db_directory       :: Maybe FilePath
+    , from_essence       :: Bool
     }
   | Link
     { directories :: [FilePath]
@@ -309,6 +311,10 @@ ui  = modes
                                      &= groupname "Other"
                                      &= explicit
                                      &= help "Delete intermediate test case generated which have the same error"
+     , from_essence       = False    &= name "from-essence"
+                                     &= groupname "Other"
+                                     &= explicit
+                                     &= help "Convert spec.essence to json (spec.spec.json), automatically for convenience"
      , toolchain_ouput    = enum
                             [
                               ToolchainScreen_ &= name "show-toolchain-output"
@@ -397,6 +403,10 @@ ui  = modes
                                      &= groupname "Other"
                                      &= explicit
                                      &= help "Delete non failing test cases as soon as they have been generated"
+     , from_essence       = False    &= name "from-essence"
+                                     &= groupname "Other"
+                                     &= explicit
+                                     &= help "Convert spec.essence to json (spec.spec.json), automatically for convenience"
      , toolchain_ouput    = enum
                             [
                               ToolchainScreen_ &= name "show-toolchain-output"
