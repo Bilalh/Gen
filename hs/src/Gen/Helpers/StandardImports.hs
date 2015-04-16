@@ -2,7 +2,9 @@ module Gen.Helpers.StandardImports (
       module X,
 ) where
 
-import Conjure.Prelude as X
+import Conjure.Prelude as X hiding (dropExtension, dropExtensions)
+import System.FilePath as X (dropExtension, dropExtensions)
+
 import Conjure.Language.Pretty as X(Pretty(..))
 import Gen.AST.Imports as X
 
