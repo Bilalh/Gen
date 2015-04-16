@@ -37,12 +37,12 @@ domainn = QuasiQuoter
         l <- locationTH
         e <- runIO $ parseIO (setPosition l *> parseDomain) str
         let f :: Domainn Expr = fromConjureNote "in domainn quoteExp TH" e
-        dataToExpQ (const Nothing `extQ` expEg `extQ` expDg ) f
+        dataToExpQ (const Nothing `extQ` expEg `extQ` expDg  `extQ` expAPg ) f
     , quotePat  = \ str -> do
         l <- locationTH
         e <- runIO $ parseIO (setPosition l *> parseDomain) str
         let f :: Domainn Expr = fromConjureNote "in domainn quotePat TH" e
-        dataToPatQ (const Nothing `extQ` patEg `extQ` patDg) f
+        dataToPatQ (const Nothing `extQ` patEg `extQ` patDg `extQ` patAPg) f
     , quoteType = error "quoteType"
     , quoteDec  = error "quoteDec"
     }
@@ -53,67 +53,38 @@ essencee = QuasiQuoter
         l <- locationTH
         e <- runIO $ parseIO (setPosition l *> parseExpr) str
         let f :: Expr = fromConjureNote "in essencee quoteExp TH" e
-        dataToExpQ (const Nothing `extQ` expEg `extQ` expDg) f
+        dataToExpQ (const Nothing `extQ` expEg `extQ` expDg `extQ` expAPg) f
     , quotePat  = \ str -> do
         l <- locationTH
         e <- runIO $ parseIO (setPosition l *> parseExpr) str
         let f :: Expr = fromConjureNote "in essencee quotePat TH" e
-        dataToPatQ (const Nothing `extQ` patEg `extQ` patDg) f
+        dataToPatQ (const Nothing `extQ` patEg `extQ` patDg `extQ` patAPg) f
     , quoteType = error "quoteType"
     , quoteDec  = error "quoteDec"
     }
 
 
--- Only for matching in reduce
-opp :: QuasiQuoter
-opp = QuasiQuoter
+cc :: forall a. Data a => (Expr -> a) -> QuasiQuoter
+cc after  = QuasiQuoter
     { quoteExp = \ str -> do
         l <- locationTH
         e <- runIO $ parseIO (setPosition l *> parseExpr) str
-        let EOp f  = fromConjureNote "in essencee quoteExp TH" e
-        dataToExpQ (const Nothing `extQ` expEg `extQ` expDg) f
+        let f :: Expr = fromConjureNote "in essencee quoteExp TH" e
+        dataToExpQ (const Nothing `extQ` expEg `extQ` expDg `extQ` expAPg) (after f)
     , quotePat  = \ str -> do
         l <- locationTH
         e <- runIO $ parseIO (setPosition l *> parseExpr) str
-        let EOp f  = fromConjureNote "in essencee quotePat TH" e
-        dataToPatQ (const Nothing `extQ` patEg `extQ` patDg) f
+        let f :: Expr = fromConjureNote "in essencee quotePat TH" e
+        dataToPatQ (const Nothing `extQ` patEg `extQ` patDg `extQ` patAPg) (after f)
     , quoteType = error "quoteType"
     , quoteDec  = error "quoteDec"
     }
 
--- Really only for ghci
-conn :: QuasiQuoter
-conn = QuasiQuoter
-    { quoteExp = \ str -> do
-        l <- locationTH
-        e <- runIO $ parseIO (setPosition l *> parseExpr) str
-        let ECon f  = fromConjureNote "in essencee quoteExp TH" e
-        dataToExpQ (const Nothing `extQ` expEg `extQ` expDg) f
-    , quotePat  = \ str -> do
-        l <- locationTH
-        e <- runIO $ parseIO (setPosition l *> parseExpr) str
-        let ECon f  = fromConjureNote "in essencee quotePat TH" e
-        dataToPatQ (const Nothing `extQ` patEg `extQ` patDg) f
-    , quoteType = error "quoteType"
-    , quoteDec  = error "quoteDec"
-    }
-
--- Really only for ghci
-litt :: QuasiQuoter
-litt = QuasiQuoter
-    { quoteExp = \ str -> do
-        l <- locationTH
-        e <- runIO $ parseIO (setPosition l *> parseExpr) str
-        let ELit f  = fromConjureNote "in essencee quoteExp TH" e
-        dataToExpQ (const Nothing `extQ` expEg `extQ` expDg) f
-    , quotePat  = \ str -> do
-        l <- locationTH
-        e <- runIO $ parseIO (setPosition l *> parseExpr) str
-        let ELit f  = fromConjureNote "in essencee quotePat TH" e
-        dataToPatQ (const Nothing `extQ` patEg `extQ` patDg) f
-    , quoteType = error "quoteType"
-    , quoteDec  = error "quoteDec"
-    }
+-- For matching in Reduce and for ghci
+opp, conn, litt :: QuasiQuoter
+opp  = cc (\(EOp x) -> x)
+conn = cc (\(ECon x) -> x)
+litt = cc (\(ELit x) -> x)
 
 
 locationTH :: Q SourcePos
@@ -160,9 +131,9 @@ expDg (DomainMetaVar x) = Just $ [| $(varE (mkName "forgetRepr")) |]
                          `appE` [| $(varE (mkName x)) |]
 expDg _ = Nothing
 
--- expAPg :: AbstractPattern -> Maybe ExpQ
--- expAPg (AbstractPatternMetaVar x) = Just [| $(varE (mkName x)) |]
--- expAPg _ = Nothing
+expAPg :: AbstractPattern -> Maybe ExpQ
+expAPg (AbstractPatternMetaVar x) = Just [| $(varE (mkName x)) |]
+expAPg _ = Nothing
 
 
 patEg :: Expr -> Maybe PatQ
@@ -173,6 +144,6 @@ patDg :: Domain () Expr -> Maybe PatQ
 patDg (DomainMetaVar x) = Just (varP (mkName x))
 patDg _ = Nothing
 
--- patAPg :: AbstractPattern -> Maybe PatQ
--- patAPg (AbstractPatternMetaVar x) = Just (varP (mkName x))
--- patAPg _ = Nothing
+patAPg :: AbstractPattern -> Maybe PatQ
+patAPg (AbstractPatternMetaVar x) = Just (varP (mkName x))
+patAPg _ = Nothing

@@ -14,6 +14,7 @@ import Gen.Reduce.Data
 import Gen.Reduce.Simpler
 import Gen.Reduce.Inners
 import Data.Generics.Uniplate.Data
+import Conjure.Language.Definition(AbstractPattern(Single))
 
 import qualified Data.Foldable as F
 import qualified Data.Traversable as T
@@ -565,3 +566,9 @@ _replaceOpChildren_ex = replaceOpChildren
 
 -- instance Pretty [Literal] where
 --     pretty = prettyBrackets  . pretty . vcat . map pretty
+
+
+_var2 = EVar $ Var "var2" (TBool)
+_q_128 = EVar $ Var "q_128" (TInt)
+_x = Single "q_128"
+_l = [essencee| or([true | &_x : int(1), |toMSet({&_var2})| != &_q_128]) |]
