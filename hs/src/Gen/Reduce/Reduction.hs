@@ -70,7 +70,7 @@ instance (HasGen m,  HasLogger m) =>  Reduce Expr m where
       a1 <- single e
       a2 <- reduce e
       a3 <- subterms e
-      return $ nub2 $ a1 ++ a3 ++ (map EOp a2)
+      return $ a1 ++ a3 ++ (map EOp a2)
 
 
     reduce e@EQuan{} = do
@@ -79,22 +79,18 @@ instance (HasGen m,  HasLogger m) =>  Reduce Expr m where
         a3 <- subterms e
         return $ a1 ++ a3
 
-    reduce (EComp inner gens cons) = do
-      cr <- mapM reduce cons
-      let rs  = concat $ reduceLength1 cr
-      let r_cons = map (EComp inner gens) rs
-      ir <- reduce inner
-      let r_inner = map (\r -> EComp r gens cons) (ir)
+    reduce e@(EComp inner gens cons) = do
+      sin     <- single e
+      subs    <- subterms e
+      r_cons  <- reduceList cons
+      r_inner <- reduce inner
+      let res = concat [ [EComp i gens cs | cs <- r_cons ] | i <- r_inner  ]
 
-
-      addLog "cr" (map pretty cr)
-      addLog "rs" (map pretty $ reduceLength1 cr)
-      addLog "rs" (map pretty $ rs)
+      addLog "sin" (map pretty sin)
+      addLog "subs" (map pretty subs)
       addLog "r_cons" (map pretty r_cons)
-      addLog "ir" (map pretty ir)
       addLog "r_inner" (map pretty r_inner)
-
-      return $ r_cons ++ r_inner
+      return $ sin ++ subs ++ res
 
 
 
@@ -139,7 +135,10 @@ instance (HasGen m,  HasLogger m) =>  Reduce Expr m where
     subterms (EQuan _ _ _ _ _) = return []
     subterms (ECon _)          = return []
     subterms (EMetaVar _)      = return []
-    subterms EComp{}           = return []
+
+    subterms (EComp inners gens cons) = do
+      let l_cs = [] : reduceLength cons
+      return $ [ EComp inners gens c | c <- l_cs ]
 
 
 instance (HasGen m,  HasLogger m) =>  Reduce Constant m where
@@ -488,9 +487,26 @@ replaceOpChildren op news = fst . flip runState news $ f1 <$> T.mapM fff ch1
        return x
 
 
+reduceList :: forall (m :: * -> *)
+           .  (HasGen m, HasLogger m)
+           => [Expr] -> m [[Expr]]
+reduceList as = do
+  let (Just (lzip :: Zipper [Expr] Expr )) = zipperBi as
+  vs <- forM (allSiblings lzip) $ \ x -> do
+    let cur = hole x
+    rs <- reduce cur
+    let ls = map (flip replaceHole x) rs
+    return $ map fromZipper ls
+
+  return . concat $ vs
+
+    where
+      allSiblings :: Zipper [Expr] Expr -> [Zipper [Expr] Expr]
+      allSiblings z = z : maybe [] allSiblings (Zipper.right z)
+
 
 runReduce :: (HasGen m, Standardise a, HasLogger m, Reduce a (StateT EState (IdentityT m)) )
-             => Spec -> a -> m [a]
+          => Spec -> a -> m [a]
 runReduce spe x = do
   addLog "runReduce" []
   state <- (newEState spe)
@@ -519,10 +535,10 @@ runSingle spe x = do
   addLog "endSingle" []
   return res
 
-
 m2t :: Show a => ((a,a) -> b) -> [a] -> b
 m2t f [a,b] = f (a,b)
 m2t _ x     = error . show . vcat $ ["m2t not two elements", pretty . show $ x ]
+
 
 
 -- For ghci
@@ -542,7 +558,7 @@ __run1 :: forall t a (t1 :: * -> *).
          (t -> StateT EState Identity (t1 a)) -> t -> IO (t1 a)
 __run1 b f ee = do
   let spe   :: Spec   = $never
-      seed            = 32
+      seed            = 323
       state :: EState = newEStateWithSeed seed spe
       (res, fstate)   = runIdentity $ flip runStateT state $ f ee
   if b then
