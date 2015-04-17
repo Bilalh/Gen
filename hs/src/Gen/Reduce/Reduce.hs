@@ -19,10 +19,18 @@ reduceMain rr = do
 
   sp <- readFromJSON fp
 
-  (flip runStateT) rr (return sp >>= noteMsg "Checking if error still occurs"  >>= runSpec ) >>= \case
-    (Nothing, st) -> do
+  (flip runStateT) rr (return sp >>= noteMsg "Checking if error still occurs"
+                                 >>= runSpec
+                                 >>= \case
+                          Nothing -> return Nothing
+                          Just x -> do
+                            liftIO $ removeDirectoryRecursive (resDirectory_ x)
+                            return (Just x)
+
+                      ) >>= \case
+    (Nothing, _) -> do
         putStrLn "Spec has no error with the given settings, not reducing"
-        return (sp, st)
+        return (sp, rr)
     _ -> do
       (sfin,state) <- (flip runStateT) rr $
           return sp
@@ -34,7 +42,7 @@ reduceMain rr = do
           >>= \ret -> get >>= \g -> addLog "FinalState" [pretty g] >> return ret
 
 
-      noteFormat "State" [pretty state]
+      noteFormat "StateF" [pretty state]
       noteFormat "Start" [pretty sp]
       noteFormat "Final" [pretty sfin]
 
@@ -108,7 +116,7 @@ removeConstraints (Spec ds oes obj) = do
 
     choices :: [Expr] -> [[Expr]]
     choices ts =
-        let ways = sortBy (comparing length) . subsequences $ ts
+        let ways = sortBy (comparing length) . (init . subsequences) $ ts
         in  ways
 
     process :: [[Expr]] -> RR (Maybe [Expr])

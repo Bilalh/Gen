@@ -23,7 +23,7 @@ instance Translate Literal (AbstractLiteral Expression) where
 
 instance Translate (Op Expr) (Op Expression) where
     fromConjure x =  mapM fromConjure x
-    toConjure x   =  mapM toConjure x
+    toConjure x   =  fixRelationProj <$> mapM toConjure x
 
 instance Translate (Domainn Expr) (Domain () Expression) where
     fromConjure x = mapM fromConjure x
