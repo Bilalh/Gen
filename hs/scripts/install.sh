@@ -59,7 +59,7 @@ fi
 
 if [ -f cabal.sandbox.config ]; then
     echo "Reusing existing cabal sandbox."
-	if [ -z "${CABAL_UPDATE_SKIP}" ]; then
+	if [ -z "${CABAL_UPDATE_SKIP:-}" ]; then
 		cabal update
 	fi
 else
