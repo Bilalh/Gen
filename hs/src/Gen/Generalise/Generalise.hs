@@ -60,7 +60,7 @@ allContextsExcept z0 = concatMap subtreeOf (allSiblings z0)
 
 generaliseConstraintsWithSingle :: Spec -> EE Spec
 generaliseConstraintsWithSingle sp = do
-  let (Just (specZipper :: SpecZipper) )= zipperBi sp
+  let (specZipper :: SpecZipper) = fromJustNote "generaliseCons" $ zipperBi sp
   forM_ (allContextsExcept specZipper) $ \ x -> do
     let pre = fromZipper x
     let ehole =  hole x

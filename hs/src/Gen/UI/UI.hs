@@ -59,6 +59,7 @@ data UI
     , limit_time         :: Maybe Int
     , no_csv             :: Bool
     , db_directory       :: Maybe FilePath
+    , db_passing_in      :: Maybe FilePath
     , db_only_passing    :: Bool
     , from_essence       :: Bool
     }
@@ -290,6 +291,12 @@ ui  = modes
                                      &= typDir
                                      &= explicit
                                      &= help "Cache the result of running a spec. Useful for development"
+     , db_passing_in      = Nothing  &= name "db-passing-in"
+                                     &= groupname "Other"
+                                     &= typFile
+                                     &= explicit
+                                     &= help "Addition specs marked as passing,  Useful for development"
+
      , db_only_passing    = False    &= name "db-only-passing"
                                      &= groupname "Other"
                                      &= explicit

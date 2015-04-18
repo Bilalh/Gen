@@ -5,8 +5,9 @@ import Gen.Generalise.Data
 import Gen.IO.Formats
 import Gen.IO.Toolchain         hiding (ToolchainData (..))
 import Gen.Prelude
-import Gen.Reduce.Data          hiding (RState(..))
+import Gen.Reduce.Data          hiding (RState (..))
 import Gen.Reduce.FormatResults
+import GHC.Real                 (floor)
 import System.FilePath          (replaceDirectory, takeBaseName)
 import System.Posix             (getFileStatus)
 import System.Posix.Files       (fileSize)
@@ -22,7 +23,7 @@ runSpec spE = do
 
   checkDB spE >>= \case
     Just StoredError{} -> rrError "StoredResult in runSpec" []
-    Just Passing -> do
+    Just Passing{} -> do
       liftIO $ print $ ("Stored no rrError(P)"  :: String)
       liftIO $ putStrLn ""
       return Nothing
@@ -83,6 +84,7 @@ runSpec spE = do
                   , Toolchain.outputDirectory   = path
                   , Toolchain.dryRun            = False
                   }
+      let timeTaken_ = floor $ Toolchain.getRunTime res
 
 
       addLog "runSpec" [pretty spE]
@@ -91,7 +93,7 @@ runSpec spE = do
                                ,nn "res" (pretty . groom $ res)]
 
       let
-          sameError :: ToolchainResult -> IO (Bool,Maybe RunResult)
+          sameError :: ToolchainResult -> IO (Bool,RunResult)
           sameError e@(RefineResult SettingI{data_=RefineMap _}) = do
             error . show . vcat $ [ "Got back a result with no log following"
                                   , (pretty . groom) e
@@ -104,16 +106,18 @@ runSpec spE = do
               let resErrChoices_ = choices_made
               case match (rrErrorStatus,rrErrorKind) (status_, kind_) of
                 Just (resErrStatus_,resErrKind_) ->
-                  return (True, Just $ OurError{resDirectory_ = path
-                                               ,resErrKind_
-                                               ,resErrStatus_
-                                               ,resErrChoices_})
+                  return (True, OurError{resDirectory_ = path
+                                        ,resErrKind_
+                                        ,resErrStatus_
+                                        ,resErrChoices_
+                                        ,timeTaken_})
 
                 Nothing ->
-                  return (False, Just $ OurError{resDirectory_ = path
-                                                ,resErrKind_   = kind_
-                                                ,resErrStatus_ = status_
-                                                ,resErrChoices_})
+                  return (False, OurError{resDirectory_ = path
+                                         ,resErrKind_   = kind_
+                                         ,resErrStatus_ = status_
+                                         ,resErrChoices_
+                                         ,timeTaken_})
 
               where
                 match :: (StatusI, KindI) -> (StatusI, KindI) -> Maybe (StatusI, KindI)
@@ -139,15 +143,17 @@ runSpec spE = do
               resErrChoices_ <- choicesUsed
               case anyFirst (rrErrorStatus,rrErrorKind) sks of
                  Just (resErrStatus_,resErrKind_)   ->
-                   return (True, Just $ OurError{resDirectory_ = path
-                                                ,resErrKind_
-                                                ,resErrStatus_
-                                                ,resErrChoices_})
+                   return (True, OurError{resDirectory_ = path
+                                         ,resErrKind_
+                                         ,resErrStatus_
+                                         ,resErrChoices_
+                                         ,timeTaken_})
                  Nothing -> return
-                  (False, Just $ OurError{resDirectory_ = path
-                                         ,resErrKind_   = fstKind sks
-                                         ,resErrStatus_ = fstStatus sks
-                                         ,resErrChoices_})
+                  (False, OurError{resDirectory_ = path
+                                  ,resErrKind_   = fstKind sks
+                                  ,resErrStatus_ = fstStatus sks
+                                  ,resErrChoices_
+                                  ,timeTaken_})
 
               where
                 choicesUsed = do
@@ -180,7 +186,7 @@ runSpec spE = do
 
 
 
-          sameError _ = return (False, Nothing)
+          sameError _ = return (False, Passing{timeTaken_})
 
           fstStatus []            = error "fstStatus no statuses"
           fstStatus ((_,(s,_)):_) = s
@@ -199,18 +205,19 @@ runSpec spE = do
       liftIO $ putStrLn "\n\n"
 
       case stillErroed of
-        (True, Just r)   -> return $ Just $ r
-        (True, Nothing)  -> rrError "Same error but no result" []
-        (False, Just r)  -> do
-          addOtherError r
-          return Nothing
+        (True, Passing{})  -> rrError "Same error but no result" []
+        (True, r)   -> return $ Just $ r
 
-        (False, Nothing) -> do
+        (False, Passing{}) -> do
            gets deletePassing_ >>= \case
                 False -> return Nothing
                 True  -> do
                      liftIO $ removeDirectoryRecursive path
                      return Nothing
+        (False, r)  -> do
+          addOtherError r
+          return Nothing
+
 
 
 
@@ -243,15 +250,6 @@ addOtherError r = do
   return ()
   modify $ \st -> st{otherErrors_ =r : otherErrors_ st }
 
-
-giveDb :: Maybe FilePath -> IO ResultsDB
-giveDb Nothing    = return $ H.empty
-giveDb (Just dir) = do
-  readFromJSONMay (dir </> "db.json") >>= \case
-    Nothing  -> return $ H.empty
-    (Just x) -> return x
-
-
 -- | Check if the spec's hash is contained, return the result if it is
 checkDB :: Spec -> EE (Maybe RunResult)
 checkDB newE= do
@@ -278,35 +276,15 @@ checkDB newE= do
               return $ Just err
 
 
-storeInDB :: Spec -> Maybe RunResult  -> EE ()
-storeInDB sp mr = do
+storeInDB :: Spec -> RunResult  -> EE ()
+storeInDB sp r = do
   let newHash = hash sp
   gets resultsDB_ >>=  \m -> do
-      let r = case mr of
-                Just v  -> v
-                Nothing -> Passing
       let newDB = H.insert newHash r m
       modify $ \st -> st{resultsDB_ = newDB}
 
 
--- | Cache the results if given a filepath
-saveDB :: Maybe FilePath -> ResultsDB -> IO ()
-saveDB Nothing  _    = return ()
-saveDB (Just dir) db = do
-  createDirectoryIfMissing True dir
-  ndb <- H.traverseWithKey f db
-  writeToJSON (dir </> "db.json") ndb
 
-  where
-    f _ OurError{..} = do
-      liftIO $ putStrLn ""
-      let newDir = takeBaseName resDirectory_
-      copyDirectory resDirectory_ (dir </>
-                                       newDir)
-      let newChoices = replaceDirectory resErrChoices_ newDir
-      return $ StoredError{resDirectory_= newDir, resErrChoices_=newChoices, ..}
-
-    f _ x = return x
 
 getFileSize :: FilePath -> IO Integer
 getFileSize path = getFileStatus

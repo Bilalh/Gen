@@ -98,6 +98,7 @@ Library
                      , transformers
                      , uniplate
                      , unordered-containers
+                     , safe
 
     if impl(ghc < 7.10)
         build-depends: unix==2.7.0.1

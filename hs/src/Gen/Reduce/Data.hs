@@ -52,15 +52,18 @@ data RunResult =
     , resErrKind_    :: KindI
     , resErrStatus_  :: StatusI
     , resErrChoices_ :: FilePath
+    , timeTaken_     :: Int
     }
     | StoredError{
       resDirectory_  :: FilePath
     , resErrKind_    :: KindI
     , resErrStatus_  :: StatusI
     , resErrChoices_ :: FilePath
+    , timeTaken_     :: Int
     }
-    | Passing
-    deriving (Eq, Ord, Show, Read, Data, Typeable, Generic)
+    | Passing {
+      timeTaken_     :: Int
+    } deriving (Eq, Ord, Show, Read, Data, Typeable, Generic)
 
 
 type ResultsDB = HashMap Int RunResult

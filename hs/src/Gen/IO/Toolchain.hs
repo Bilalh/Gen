@@ -10,6 +10,7 @@ module Gen.IO.Toolchain (
   , copyMetaToSpecDir
   , logSpec
   , doMeta
+  , getRunTime
   )where
 
 import Conjure.Language.Definition (Model)
@@ -227,3 +228,7 @@ copyMetaToSpecDir base_out spec_out = do
   doesFileExist (base_out </> "versions.csv") >>= \case
            False -> return ()
            True  -> copyFile (base_out </> "versions.csv") (spec_out </> "versions-ran.csv")
+
+getRunTime :: ToolchainResult -> Double
+getRunTime (RefineResult x)      = time_taken_ x
+getRunTime (SolveResult (x1,x2)) = time_taken_ x1 + time_taken_ x2
