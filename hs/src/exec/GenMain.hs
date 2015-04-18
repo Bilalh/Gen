@@ -210,7 +210,7 @@ mainWithArgs Reduce{..} = do
           >>  addMeta (spec_directory </> "spec.spec.json")
 
   seed_ <- giveSeed _seed
-  db    <- giveDb db_directory db_passing_in
+  db    <- giveDb per_spec_time db_directory db_passing_in
   out   <- giveOutputDirectory output_directory
 
   let args = def{oErrKind_           = error_kind
@@ -275,7 +275,7 @@ mainWithArgs Generalise{..} = do
           >>  addMeta (spec_directory </> "spec.spec.json")
 
   seed_ <- giveSeed _seed
-  db    <- giveDb db_directory Nothing
+  db    <- giveDb per_spec_time db_directory Nothing
   out   <- giveOutputDirectory output_directory
 
   let args :: E.GState =

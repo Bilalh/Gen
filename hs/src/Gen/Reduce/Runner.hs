@@ -252,16 +252,17 @@ addOtherError r = do
   modify $ \st -> st{otherErrors_ =r : otherErrors_ st }
 
 
-giveDb ::Maybe FilePath -> Maybe FilePath -> IO ResultsDB
-giveDb dir passing = do
+-- What about timeouts?
+giveDb :: Int -> Maybe FilePath -> Maybe FilePath -> IO ResultsDB
+giveDb perSpec dir passing = do
     h_dir  <- getData dir
     h_passing <- getData passing
 
     return $ H.union h_dir (flip H.filter h_passing $
-                                     (\x -> case x of
-                                          Passing{} -> True
-                                          _         -> False
-                                     ))
+                             (\x -> case x of
+                                  Passing{timeTaken_} -> True
+                                  _                   -> False
+                             ))
 
   where
     getData Nothing   = return $ H.empty
