@@ -19,6 +19,7 @@ parser.add_argument('-o',  dest='output',          help='output base dir ', requ
 parser.add_argument('-p',  dest='total_time',      help='time per run', required=True, type=int)
 parser.add_argument('-bin_dir',  dest='bin_dir',   help='--bin-dir' )
 parser.add_argument('-c',  dest='cores',           help='cores to use, default 1', type=int)
+parser.add_argument('--passing_db',                help='for gen reduce --db-passing-in')
 
 
 args = parser.parse_args()
@@ -26,15 +27,22 @@ args = parser.parse_args()
 essence = Path(args.essence)
 essence_dir = essence.parent
 
-def process(status, kind,refinement, name, vals,refine_times):
+cmd_str="""
+     gen reduce {essence_dir} -o '{output}' -p {total_time}  --kind {kind} --status {status} --delete-passing --delete-steps -N  --db-dir '{db_dir}'
+"""
+
+if args.passing_db:
+    cmd_str+= " --db-passing-in '{}'".format(args.passing_db)
+
+def process(status, kind,refinement, name, vals,refine_times,cmd_str,is_last):
+    if is_last:
+        cmd_str+=" --db-only-passing "
+
     if status == "ErrorUnknown_":
         status = "StatusAny_"
 
-    cmd_str="""
-        gen reduce {essence_dir} -o '{output}' -p {total_time}  --kind {kind} --status {status} -D --delete-steps -N
-    """
-
     total_time=args.total_time
+    db_dir = Path(args.output) / "temp_db"
     if refinement:
         if 'choices_json' in vals['vals']:
             cs=Path(vals['vals']['choices_json']).name
@@ -64,7 +72,7 @@ def process(status, kind,refinement, name, vals,refine_times):
 
     total_time=int(total_time)
     cmd_str = cmd_str.format(essence_dir=essence_dir, kind=kind, status=status,
-                       total_time=total_time, output=out_dir)
+                       total_time=total_time, output=out_dir, db_dir=db_dir)
 
     if args.bin_dir:
         cmd_str += " --bin-dir {}".format(args.bin_dir)
@@ -80,6 +88,13 @@ def process(status, kind,refinement, name, vals,refine_times):
         print("error for {} - {} ".format(args.essence, name) )
         sys.exit(e.returncode)
 
+def lookahead(iterable):
+    it = iter(iterable)
+    last = next(it)
+    for val in it:
+        yield last, False
+        last = val
+    yield last, True
 
 if (essence_dir / "solve_eprime.json").exists():
 
@@ -89,10 +104,11 @@ if (essence_dir / "solve_eprime.json").exists():
     with (essence_dir / "solve_eprime.json").open() as f:
         data = json.load(f)
 
-    for (name, vals) in data['data_'].items():
+    for ((name, vals),is_last) in lookahead(data['data_'].items()):
         kind   = vals['last_kind']
         status = vals['last_status']
-        process(status, kind, refinement=False, name=name, vals=vals, refine_times=refine_times)
+        process(status, kind, refinement=False, name=name,
+                vals=vals, refine_times=refine_times,cmd_str=cmd_str,is_last=is_last)
 
 
 elif (essence_dir / "refine_essence.json").exists():
@@ -100,10 +116,11 @@ elif (essence_dir / "refine_essence.json").exists():
         data=json.load(f)
 
 
-    for (name, vals) in data['data_'].items():
+    for ((name, vals),is_last) in lookahead(data['data_'].items()):
         kind   = vals['kind_']
         status = vals['status_']
-        process(status, kind, refinement=True, name=name, vals=vals, refine_times=None)
+        process(status, kind, refinement=True, name=name,
+                vals=vals, refine_times=None, cmd_str=cmd_str, is_last=is_last)
 
 else:
     print("no solve_eprime.json or refine_essence.json file found")
