@@ -6,8 +6,8 @@ import Gen.IO.Formats
 import Gen.Reduce.Reduction
 import Gen.Reduce.UnusedDomains
 import Gen.Prelude
-
 import Conjure.Language.Domain
+import Gen.Reduce.QuanToComp(quanToComp)
 
 import qualified Data.Map as M
 
@@ -17,7 +17,8 @@ reduceMain rr = do
   let base = specDir_ rr
       fp   =  base </> "spec.spec.json"
 
-  sp <- readFromJSON fp
+  sp_ <- readFromJSON fp
+  sp <-  quanToComp sp_
 
   (flip runStateT) rr (return sp >>= noteMsg "Checking if error still occurs"
                                  >>= runSpec

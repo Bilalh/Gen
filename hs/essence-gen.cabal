@@ -64,13 +64,13 @@ Library
                      , Gen.Reduce.Data
                      , Gen.Reduce.FormatResults
                      , Gen.Reduce.Inners
+                     , Gen.Reduce.QuanToComp
                      , Gen.Reduce.Reduce
                      , Gen.Reduce.Reduction
                      , Gen.Reduce.Runner
                      , Gen.Reduce.Simpler
                      , Gen.Reduce.UnusedDomains
                      , Gen.UI.UI
-
 
 
     build-depends    : base
