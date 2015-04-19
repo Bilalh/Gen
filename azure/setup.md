@@ -2,7 +2,7 @@
 
 The current version only accepts SSH public keys that are encapsulated in an X509 certificate. Follow the steps below to generate and use SSH keys with Azure.
 
-## Generate Azure Compatible Keys in Linux ##
+## Generate Azure Compatible Keys ##
 
 
 1. Use `openssl` to generate an X509 certificate with a 2048-bit RSA keypair. Please answer the few questions that the `openssl` prompts for (or you may leave them blank). The content in these fields is not used by the platform:
@@ -36,7 +36,7 @@ Install all dependencies for our stuff.
 	sudo apt-get install build-essential libssl-dev libreadline-dev libsqlite3-dev   make  ruby g++ cmake  git mercurial htop screen  zsh subversion  llvm clang  sqlite3  pigz r-base r-base-dev  openjdk-7-jdk openjdk-7-jre  libgmp3-dev binutils  libboost-all-dev python-pip
 
 
-## Setup a ssh key 
+## Setup a ssh key on azure
 
 	cd ~/.ssh
 	ssh-keygen 
