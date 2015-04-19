@@ -12,7 +12,7 @@ _gen()
     local cur=${COMP_WORDS[COMP_CWORD]}
 
     if [ "${cur:0:1}x" != '-x' ]; then
-        COMPREPLY=( $( compgen -o filename -f  -- $cur ) )
+        COMPREPLY=( $( compgen -f  -- $cur ) )
         return 0
     fi
 
@@ -32,10 +32,10 @@ _gen()
                 add ${x:6}
                 ;;
             FILE\ *)
-                COMPREPLY=( $( compgen -o filename -f  -- $cur ) )
+                COMPREPLY=( $( compgen -f  -- $cur ) )
                 ;;
             *)
-                COMPREPLY=( $( compgen -o plusdirs  -f  -- $cur ) )
+                COMPREPLY=( $( compgen -o plusdirs -f -- $cur ) )
                 ;;
         esac
     done
@@ -79,7 +79,7 @@ _genLogged()
                 add ${x:6}
                 ;;
             FILE\ *)
-                COMPREPLY=( $( compgen -o filename -f  -- $cur ) )
+                COMPREPLY=( $( compgen -o -f -- $cur ) )
                 ;;
             *)
                 COMPREPLY=( $( compgen -o plusdirs  -f  -- $cur ) )
