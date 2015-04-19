@@ -20,6 +20,7 @@ host_index=(
 	"babbage"
 	"lovelace"
 	"azure"
+	"gen_azure"
 	"bh_laptop"
 	"$(whoami)_$( hostname | awk -F. '{print $1}' )"
 )
@@ -32,8 +33,9 @@ function host_selector() {
 		babbage*)        return 2;;
 		lovelace*)       return 3;;
 		instancegen1*)   return 4;;
-		'b.home')        return 5;;
-		*)               return 6;;
+		gen-a*)          return 5;;
+		'b.home')        return 6;;
+		*)               return 7;;
 	esac
 }
 
