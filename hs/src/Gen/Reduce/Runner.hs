@@ -7,7 +7,7 @@ import Gen.Prelude
 import Gen.Reduce.Data
 import Gen.Reduce.FormatResults
 import GHC.Real                 (floor)
-import System.FilePath          (replaceDirectory, takeBaseName)
+import System.FilePath          (replaceDirectory, takeBaseName, (<.>))
 import System.Posix             (getFileStatus)
 import System.Posix.Files       (fileSize)
 
@@ -159,7 +159,7 @@ runSpec spE = do
               where
                 choicesUsed = do
                     sizes <- forM (M.keys ms) $ \ep -> do
-                        let choicesPath = outdir_ </> ep
+                        let choicesPath = outdir_ </> ep <.> ".eprime"
                         size <- getFileSize choicesPath
                         return (choicesPath, size)
 
@@ -254,14 +254,14 @@ addOtherError r = do
 
 -- What about timeouts?
 giveDb :: Int -> Maybe FilePath -> Maybe FilePath -> IO ResultsDB
-giveDb perSpec dir passing = do
+giveDb _perSpec dir passing = do
     h_dir  <- getData dir
     h_passing <- getData passing
 
     return $ H.union h_dir (flip H.filter h_passing $
                              (\x -> case x of
-                                  Passing{timeTaken_} -> True
-                                  _                   -> False
+                                  Passing{} -> True
+                                  _         -> False
                              ))
 
   where

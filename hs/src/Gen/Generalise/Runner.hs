@@ -8,7 +8,7 @@ import Gen.Prelude
 import Gen.Reduce.Data          hiding (RState (..))
 import Gen.Reduce.FormatResults
 import GHC.Real                 (floor)
-import System.FilePath          (replaceDirectory, takeBaseName)
+import System.FilePath          (replaceDirectory, takeBaseName, (<.>))
 import System.Posix             (getFileStatus)
 import System.Posix.Files       (fileSize)
 
@@ -158,7 +158,7 @@ runSpec spE = do
               where
                 choicesUsed = do
                     sizes <- forM (M.keys ms) $ \ep -> do
-                        let choicesPath = outdir_ </> ep
+                        let choicesPath = outdir_ </> ep <.> ".eprime"
                         size <- getFileSize choicesPath
                         return (choicesPath, size)
 

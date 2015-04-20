@@ -82,6 +82,7 @@ def process(status, kind,refinement, name, vals,refine_times,cmd_str,is_last):
 
 
     cmd_arr=shlex.split(cmd_str)
+    print("running {}".format(cmd_str))
     try:
         subprocess.check_call(cmd_arr)
     except subprocess.CalledProcessError as e:

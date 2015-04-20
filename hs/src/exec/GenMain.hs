@@ -498,25 +498,45 @@ _givenDebug = do
 
 _reduceDebug :: IO ()
 _reduceDebug = do
-    let ec = Reduce{spec_directory      = "/Users/bilalh/Desktop/Results/_notable/reduce_examples/1425940601_40"
-                   , error_kind         = RefineRandom_
-                   , error_status       = StatusAny_
-                   , error_choices      = Nothing
-                   , list_kinds         = False
-                   , list_statuses      = False
-                   , output_directory   = Just "/Users/bilalh/Desktop/Results/_notable/reduce_examples/1425940601_40/out"
-                   , per_spec_time      = 60
-                   , _cores             = 1
-                   , _seed              = Nothing
-                   , toolchain_ouput    = ToolchainNull_
-                   , binaries_directory = Nothing
-                   , limit_time         = Nothing
-                   , no_csv             = False
-                   , delete_passing     = False
-                   , db_directory       = Nothing
-                   , delete_steps       = False
-                   , db_only_passing    = False
-                   , from_essence       = False
-                   , db_passing_in      = Nothing
-                   }
+    let ec =Reduce{per_spec_time = 93,
+       spec_directory =
+         "/Users/bilalh/CS/breaking_conjure/Errors/2015-04-12_03-52_1428807136/_errors/Savilerow_/ParseError_/1428823562_74",
+       error_kind = Savilerow_, error_status = ParseError_,
+       error_choices =
+         Just
+           "/Users/bilalh/CS/breaking_conjure/Errors/2015-04-12_03-52_1428807136/_errors/Savilerow_/ParseError_/1428823562_74/model000012.eprime",
+       list_kinds = False, list_statuses = False,
+       output_directory =
+         Just
+           "/Users/bilalh/CS/breaking_conjure/Errors/2015-04-12_03-52_1428807136/_reduce/Savilerow_/ParseError_/1428823562_74/model000012",
+       _cores = 1, _seed = Nothing, delete_passing = True,
+       delete_steps = True, toolchain_ouput = ToolchainNull_,
+       binaries_directory = Nothing, limit_time = Nothing, no_csv = False,
+       db_directory =
+         Just
+           "/Users/bilalh/CS/breaking_conjure/Errors/2015-04-12_03-52_1428807136/_reduce/Savilerow_/ParseError_/1428823562_74/temp_db",
+       db_passing_in = Nothing, db_only_passing = True,
+       from_essence = False}
+
+            -- Reduce{spec_directory      = "/Users/bilalh/Desktop/Results/_notable/reduce_examples/1425940601_40"
+            --       , error_kind         = RefineRandom_
+            --       , error_status       = StatusAny_
+            --       , error_choices      = Nothing
+            --       , list_kinds         = False
+            --       , list_statuses      = False
+            --       , output_directory   = Just "/Users/bilalh/Desktop/Results/_notable/reduce_examples/1425940601_40/out"
+            --       , per_spec_time      = 60
+            --       , _cores             = 1
+            --       , _seed              = Nothing
+            --       , toolchain_ouput    = ToolchainNull_
+            --       , binaries_directory = Nothing
+            --       , limit_time         = Nothing
+            --       , no_csv             = False
+            --       , delete_passing     = False
+            --       , db_directory       = Nothing
+            --       , delete_steps       = False
+            --       , db_only_passing    = False
+            --       , from_essence       = False
+            --       , db_passing_in      = Nothing
+            --       }
     limiter (limit_time ec) (mainWithArgs ec)
