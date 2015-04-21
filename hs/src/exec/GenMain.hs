@@ -195,8 +195,11 @@ mainWithArgs Reduce{..} = do
 
   let errors = catMaybes
         [ aerr "spec-directory" (null spec_directory)
-        , aerr "-p|--per-spec-time" (per_spec_time == 0)
+        , aerr "-p|--per-spec-time >0" (per_spec_time == 0)
         , aerr "-c|--cores >0" (_cores == 0)
+        , aerr "-t|--total-time > 0 if specified" (total_time_may == Just 0)
+        , aerr "-@/--total-is-real-time requires -t/--total-time to be specified"
+                   (total_is_real_time && total_time_may == Nothing)
         ] ++ fileErr
 
   case errors of
@@ -227,6 +230,7 @@ mainWithArgs Reduce{..} = do
                 ,resultsDB_          = db
                 ,mostReducedChoices_ = error_choices
                 ,resultsDB_dir       = db_directory
+                ,timeLeft_           =  total_time_may
                 }
 
   doMeta out no_csv binaries_directory
@@ -498,45 +502,28 @@ _givenDebug = do
 
 _reduceDebug :: IO ()
 _reduceDebug = do
-    let ec =Reduce{per_spec_time = 93,
-       spec_directory =
-         "/Users/bilalh/CS/breaking_conjure/Errors/2015-04-12_03-52_1428807136/_errors/Savilerow_/ParseError_/1428823562_74",
-       error_kind = Savilerow_, error_status = ParseError_,
-       error_choices =
-         Just
-           "/Users/bilalh/CS/breaking_conjure/Errors/2015-04-12_03-52_1428807136/_errors/Savilerow_/ParseError_/1428823562_74/model000012.eprime",
-       list_kinds = False, list_statuses = False,
-       output_directory =
-         Just
-           "/Users/bilalh/CS/breaking_conjure/Errors/2015-04-12_03-52_1428807136/_reduce/Savilerow_/ParseError_/1428823562_74/model000012",
-       _cores = 1, _seed = Nothing, delete_passing = True,
-       delete_steps = True, toolchain_ouput = ToolchainNull_,
-       binaries_directory = Nothing, limit_time = Nothing, no_csv = False,
-       db_directory =
-         Just
-           "/Users/bilalh/CS/breaking_conjure/Errors/2015-04-12_03-52_1428807136/_reduce/Savilerow_/ParseError_/1428823562_74/temp_db",
-       db_passing_in = Nothing, db_only_passing = True,
-       from_essence = False}
-
-            -- Reduce{spec_directory      = "/Users/bilalh/Desktop/Results/_notable/reduce_examples/1425940601_40"
-            --       , error_kind         = RefineRandom_
-            --       , error_status       = StatusAny_
-            --       , error_choices      = Nothing
-            --       , list_kinds         = False
-            --       , list_statuses      = False
-            --       , output_directory   = Just "/Users/bilalh/Desktop/Results/_notable/reduce_examples/1425940601_40/out"
-            --       , per_spec_time      = 60
-            --       , _cores             = 1
-            --       , _seed              = Nothing
-            --       , toolchain_ouput    = ToolchainNull_
-            --       , binaries_directory = Nothing
-            --       , limit_time         = Nothing
-            --       , no_csv             = False
-            --       , delete_passing     = False
-            --       , db_directory       = Nothing
-            --       , delete_steps       = False
-            --       , db_only_passing    = False
-            --       , from_essence       = False
-            --       , db_passing_in      = Nothing
-            --       }
+    let ec =
+            Reduce{spec_directory      = "/Users/bilalh/Desktop/Results/_notable/reduce_examples/1425940601_40"
+                  , error_kind         = RefineRandom_
+                  , error_status       = StatusAny_
+                  , error_choices      = Nothing
+                  , list_kinds         = False
+                  , list_statuses      = False
+                  , output_directory   = Just "/Users/bilalh/Desktop/Results/_notable/reduce_examples/1425940601_40/out"
+                  , per_spec_time      = 60
+                  , _cores             = 1
+                  , _seed              = Nothing
+                  , toolchain_ouput    = ToolchainNull_
+                  , binaries_directory = Nothing
+                  , limit_time         = Nothing
+                  , no_csv             = False
+                  , delete_passing     = False
+                  , db_directory       = Nothing
+                  , delete_steps       = False
+                  , db_only_passing    = False
+                  , from_essence       = False
+                  , db_passing_in      = Nothing
+                  , total_is_real_time = False
+                  , total_time_may     = Nothing
+                  }
     limiter (limit_time ec) (mainWithArgs ec)

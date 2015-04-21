@@ -1,5 +1,8 @@
+{-# LANGUAGE DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveGeneric,
+             DeriveTraversable #-}
 module Gen.Reduce.Runner where
 
+import Data.Time.Clock.POSIX    (getPOSIXTime)
 import Gen.Classify.Meta        (mkMeta)
 import Gen.IO.Formats
 import Gen.IO.Toolchain         hiding (ToolchainData (..))
@@ -16,22 +19,63 @@ import qualified Data.Map            as M
 import qualified Gen.IO.Toolchain    as Toolchain
 
 
+data Timed a = NoTimeLeft a
+             | Continue a
+  deriving (Eq, Ord, Show, Read, Data, Foldable, Functor, Generic, Traversable, Typeable)
+
+instance Pretty a => Pretty (Timed a) where
+    pretty (Continue a)   = "Continue"   <+> (pretty a)
+    pretty (NoTimeLeft a) = "NoTimeLeft" <+> (pretty a)
+
+timedExtract :: Timed a -> a
+timedExtract (Continue a)   = a
+timedExtract (NoTimeLeft a) = a
+
+
+timedSpec :: Spec
+          -> (Maybe RunResult -> RR a)          -- No time left
+          -> (Maybe RunResult -> RR (Timed a))  -- Time left
+          -> RR (Timed a)
+timedSpec sp f g= do
+    startTime <- liftIO $ round `fmap` getPOSIXTime
+    (res, cpuTimeUsed) <- runSpec sp
+    endTime <- liftIO $ round `fmap` getPOSIXTime
+    let realTimeUsed = endTime - startTime
+
+    timeUsed <- gets totalIsRealTime_ >>= \case
+                True  -> return realTimeUsed
+                False -> return cpuTimeUsed
+
+    modify $ \st -> st{timeLeft_ = fmap (\x -> x - timeUsed )  (timeLeft_ st) }
+
+    gets timeLeft_ >>= \case
+         Just r   -> liftIO $ putStrLn $  "# " ++  (show (max r 0) ) ++ " seconds left"
+         Nothing  -> return ()
+
+    let process (Just a) b | a < b = do
+          inner <- f res
+          return $ NoTimeLeft inner
+        process _ _ = g res
+
+    get >>= \RState{timeLeft_,specTime_} -> process timeLeft_ specTime_
+
+
 
 -- Just means rrError still happens
-runSpec :: Spec -> RR (Maybe RunResult)
+runSpec :: Spec -> RR (Maybe RunResult, Int)
 runSpec spE = do
   liftIO $ logSpec spE
 
   checkDB spE >>= \case
     Just StoredError{} -> rrError "StoredResult in runSpec" []
-    Just Passing{} -> do
+    Just Passing{timeTaken_} -> do
       liftIO $ print $ ("Stored no rrError(P)"  :: String)
       liftIO $ putStrLn ""
-      return Nothing
-    Just r@OurError{}  -> do
+      return (Nothing, timeTaken_)
+    Just r@OurError{timeTaken_}  -> do
       liftIO $ print $ ("Stored has rrError(O)" :: String)
       liftIO $ putStrLn ""
-      return $ Just r
+      return $ (Just r, timeTaken_)
 
     Nothing -> do
       sp <- liftIO $ toModel spE
@@ -207,17 +251,17 @@ runSpec spE = do
 
       case stillErroed of
         (True, Passing{})  -> rrError "Same error but no result" []
-        (True, r)   -> return $ Just $ r
+        (True, r)   -> return ( Just r, timeTaken_)
 
         (False, Passing{}) -> do
            gets deletePassing_ >>= \case
-                False -> return Nothing
+                False -> return (Nothing, timeTaken_)
                 True  -> do
-                     liftIO $ removeDirectoryRecursive path
-                     return Nothing
+                    liftIO $ removeDirectoryRecursive path
+                    return (Nothing, timeTaken_)
         (False,r)  -> do
           addOtherError r
-          return Nothing
+          return (Nothing, timeTaken_)
 
 
 

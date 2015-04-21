@@ -43,6 +43,8 @@ data RState = RState
 
     , resultsDB_          :: ResultsDB
     , resultsDB_dir       :: Maybe FilePath
+    , timeLeft_           :: Maybe Int
+    , totalIsRealTime_    :: Bool
     } deriving (Show)
 
 
@@ -120,6 +122,8 @@ instance Default RState where
                  ,resultsDB_          = H.empty
                  ,mostReducedChoices_ = error "set mostReducedChoices_=oErrChoices_"
                  ,resultsDB_dir       = Nothing
+                 ,timeLeft_           = Nothing
+                 ,totalIsRealTime_    = False
                  }
 
 instance Pretty RunResult where

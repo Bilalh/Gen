@@ -48,6 +48,9 @@ data UI
     , list_kinds         :: Bool
     , list_statuses      :: Bool
 
+    , total_time_may     :: Maybe Int
+    , total_is_real_time :: Bool
+
     , output_directory   :: Maybe FilePath
     , _cores             :: Int
     , _seed              :: Maybe Int
@@ -57,11 +60,14 @@ data UI
     , toolchain_ouput    :: ToolchainOutput
     , binaries_directory :: Maybe FilePath
     , limit_time         :: Maybe Int
+
     , no_csv             :: Bool
     , db_directory       :: Maybe FilePath
     , db_passing_in      :: Maybe FilePath
     , db_only_passing    :: Bool
     , from_essence       :: Bool
+
+
     }
 
   | Generalise
@@ -261,6 +267,16 @@ ui  = modes
                                      &= groupname "Reduction"
                                      &= explicit
                                      &= help "Just list the kinds then exit"
+     , total_time_may    = Nothing   &= name "total-time"
+                                     &= name "t"
+                                     &= groupname "Timing"
+                                     &= explicit
+                                     &= help "Total time for running specs"
+     , total_is_real_time = False    &= name "total-is-real-time"
+                                     &= name "@"
+                                     &= groupname "Timing"
+                                     &= explicit
+                                     &= help "The total time is real time, not cpu time "
      , output_directory = def        &= typDir
                                      &= name "output-directory"
                                      &= name "o"

@@ -11,20 +11,20 @@ import Gen.Reduce.QuanToComp(quanToComp)
 
 import qualified Data.Map as M
 
-
 reduceMain :: RState -> IO (Spec, RState)
 reduceMain rr = do
   let base = specDir_ rr
       fp   =  base </> "spec.spec.json"
 
   sp_ <- readFromJSON fp
+  -- Remove quantification
   sp <-  quanToComp sp_
 
   (flip runStateT) rr (return sp >>= noteMsg "Checking if error still occurs"
                                  >>= runSpec
                                  >>= \case
-                          Nothing -> return Nothing
-                          Just x -> do
+                          (Nothing,_) -> return Nothing
+                          (Just x, _) -> do
                             liftIO $ removeDirectoryRecursive (resDirectory_ x)
                             return (Just x)
 
@@ -35,50 +35,65 @@ reduceMain rr = do
     _ -> do
       (sfin,state) <- (flip runStateT) rr $
           return sp
-          >>= (note "tryRemoveConstraints") tryRemoveConstraints
-          >>= (note "removeUnusedDomains")  removeUnusedDomains
-          >>= (note "removeConstraints")    removeConstraints
-          >>= (note "simplyConstraints")    simplyConstraints
-          >>= (note "removeUnusedDomains")  removeUnusedDomains
+          >>= doReductions
           >>= \ret -> get >>= \g -> addLog "FinalState" [pretty g] >> return ret
 
 
-      noteFormat "StateF" [pretty state]
+      noteFormat "StateState" [pretty state]
       noteFormat "Start" [pretty sp]
       noteFormat "Final" [pretty sfin]
 
-      return (sfin,state)
+      return (timedExtract sfin,state)
 
   where
   noteMsg tx s = do
       noteFormat ("@" <+> tx) []
       return s
 
-  note tx f s = do
-      noteFormat ("@" <+> tx <+> "Start") []
 
-      newSp <- f s
-      noteFormat ("@" <+> tx <+> "End") [pretty newSp]
+doReductions :: Spec -> RR (Timed Spec)
+doReductions start =
+    return (Continue start)
+    >>= con "tryRemoveConstraints" tryRemoveConstraints
+    >>= con "removeUnusedDomains"  removeUnusedDomains
+    >>= con "removeConstraints"    removeConstraints
+    >>= con "simplyConstraints"    simplyConstraints
 
-      return newSp
+
+  where
+    con tx _ (NoTimeLeft s) = do
+        noteFormat ("@" <+> tx <+> "Start/NoTimeLeft") []
+        return $ NoTimeLeft s
+
+    con tx f (Continue s) = do
+        noteFormat ("@" <+> tx <+> "Start") []
+
+        newSp <- f s
+        noteFormat ("@" <+> tx <+> "End") [pretty newSp]
+
+        return newSp
 
 
-tryRemoveConstraints :: Spec -> RR Spec
-tryRemoveConstraints  sp@(Spec ds _ obj) = do
-  runSpec (Spec ds [] obj) >>= \case
-    Just r  -> do
+tryRemoveConstraints :: Spec -> RR (Timed Spec)
+tryRemoveConstraints sp@(Spec _ [] _ )  = return . Continue $ sp
+tryRemoveConstraints sp@(Spec ds _ obj) = do
+  timedSpec (Spec ds [] obj) f (  fmap Continue . f )
+
+
+  where
+    f (Just r) = do
       recordResult r
-      return (Spec ds [] obj)
-    Nothing -> return sp
+      return $ Spec ds [] obj
 
-removeUnusedDomains :: Spec -> RR Spec
+    f Nothing = return sp
+
+removeUnusedDomains :: Spec -> RR (Timed Spec)
 removeUnusedDomains sp@(Spec ods es obj) = do
     let unusedNames = unusedDomains sp
 
-    nds <- process (choices ods unusedNames)
-    case nds of
-        Just ds -> return (Spec ds es obj)
-        Nothing -> return (Spec ods es obj)
+    process (choices ods unusedNames) >>= return . fmap (\x -> case x of
+          Just ds -> (Spec ds es obj)
+          Nothing -> (Spec ods es obj))
 
     where
     choices :: Domains -> [Text] -> [Domains]
@@ -89,15 +104,22 @@ removeUnusedDomains sp@(Spec ods es obj) = do
             res = fmap (\wy -> M.filterWithKey (\k _ -> k `notElem` wy) ds ) ways
         in res
 
-    process :: [Domains]-> RR (Maybe Domains)
-    process []     = return Nothing
-    process (x:xs) = runSpec (Spec y es obj) >>= \case
-        Just r  -> do
-          recordResult r
-          return $ Just y
-        Nothing -> process xs
+    process :: [Domains]-> RR (Timed (Maybe Domains))
+    process []     = return $ Continue $ Nothing
+    process (x:xs) = timedSpec (Spec y es obj) f g
+        where
+          y = ensureADomain x
 
-        where y = ensureADomain x
+          f Nothing  = return $ Just y
+          f (Just r) = do
+            recordResult r
+            return $ Just y
+
+          g Nothing = process xs
+          g (Just r) = do
+            recordResult r
+            return . Continue . Just $ y
+
 
 
     ensureADomain :: Domains -> Domains
@@ -105,13 +127,12 @@ removeUnusedDomains sp@(Spec ods es obj) = do
     ensureADomain ds = ds
 
 
-removeConstraints :: Spec -> RR Spec
+removeConstraints :: Spec -> RR (Timed Spec)
 removeConstraints (Spec ds oes obj) = do
     let nubbed = nub2 oes
-    nes <- process (choices nubbed)
-    case nes of
-        Just es -> return (Spec ds es obj)
-        Nothing -> return (Spec ds nubbed obj)
+    process (choices nubbed) >>= return . fmap (\x -> case x of
+        Just es -> Spec ds es obj
+        Nothing -> Spec ds nubbed obj )
 
     where
 
@@ -120,59 +141,75 @@ removeConstraints (Spec ds oes obj) = do
         let ways = sortBy (comparing length) . (init . subsequences) $ ts
         in  ways
 
-    process :: [[Expr]] -> RR (Maybe [Expr])
-    process []     = return Nothing
-    process (x:xs) = runSpec (Spec ds x obj) >>= \case
-        Just r  -> do
-          recordResult r
-          return $ Just x
-        Nothing -> process xs
+    process :: [[Expr]] -> RR (Timed (Maybe [Expr]))
+    process []     = return $ Continue $ Nothing
+    process (x:xs) = timedSpec (Spec ds x obj) f g
+        where
+          f Nothing  = return $ Just x
+          f (Just r) = do
+            recordResult r
+            return $ Just x
 
-    -- process ts = rrError . show . prettyBrackets . vcat $ map (prettyBrackets .  vcat . map pretty) ts
+          g Nothing = process xs
+          g (Just r) = do
+            recordResult r
+            return . Continue . Just $ x
 
-simplyConstraints :: Spec -> RR Spec
+    -- process ts = error . show . prettyBrackets . vcat $ map (prettyBrackets .  vcat . map pretty) ts
+
+simplyConstraints :: Spec -> RR (Timed Spec)
 simplyConstraints sp@(Spec ds es obj) = do
     csToDo <- doConstraints es
     addLog "Got Constraints" []
     fin    <- process csToDo
     addLog "finished processing" []
-    if fin == [] then
-        runSpec (Spec ds [] obj) >>= \case
-            Just r  -> do
+
+    --FIXME check
+    if (timedExtract fin) == [] then
+        let f (Just r) = do
               recordResult r
               return (Spec ds [] obj)
-            Nothing -> return (Spec ds es obj)
+            f Nothing = return $ Spec ds es obj
+        in
+        timedSpec (Spec ds [] obj)  f (fmap Continue . f)
     else
-        return (Spec ds fin obj)
+        return $ fmap (const $ Spec ds (timedExtract fin) obj) fin
 
     where
-    process :: [[Expr]] -> RR [Expr]
+    process :: [[Expr]] -> RR (Timed [Expr])
 
     -- cannot simply any futher
-    process xs | any (== []) xs = return []
+    process xs | any (== []) xs = return . Continue $ []
 
     process xs | all (singleElem) xs = do
         addLog "processsingleElem" []
         let fix = map head xs
-        runSpec (Spec ds fix obj) >>= \case
-          Just r -> do
-            recordResult r
-            return fix
-          Nothing -> return []
+        let f (Just r) = do
+              recordResult r
+              return fix
+            f Nothing = return []
+        timedSpec (Spec ds fix obj) f (fmap Continue . f)
 
     process esR = do
         addLog "process esR" []
         fix <- choose esR
-        runSpec (Spec ds fix obj) >>= \case
-                Nothing -> removeNext esR >>= process
-                Just r  -> do
-                    recordResult r
-                    innerToDo <- doConstraints fix
-                    inner     <- process innerToDo
-                    if inner == [] then
-                        return fix
-                    else
-                        return inner
+
+        let f Nothing  = return fix
+            f (Just r) = do
+              recordResult r
+              return fix
+
+            g Nothing   = removeNext esR >>= process
+            g (Just r)  = do
+              recordResult r
+              innerToDo <- doConstraints fix
+              inner     <- process innerToDo
+              if (timedExtract inner) == [] then
+                  return $ fmap (const fix) inner
+              else
+                  return inner
+
+        timedSpec (Spec ds fix obj) f g
 
     -- Fix the next constraint
     choose :: [[Expr]] -> RR [Expr]
