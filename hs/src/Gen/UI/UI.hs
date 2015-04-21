@@ -271,7 +271,7 @@ ui  = modes
                                      &= name "t"
                                      &= groupname "Timing"
                                      &= explicit
-                                     &= help "Total time for running specs"
+                                     &= help "Total time for running specs, if specifed, Otherwise specs are reduced until a fixed point is reached"
      , total_is_real_time = False    &= name "total-is-real-time"
                                      &= name "@"
                                      &= groupname "Timing"

@@ -71,11 +71,11 @@ runSpec spE = do
     Just Passing{timeTaken_} -> do
       liftIO $ print $ ("Stored no rrError(P)"  :: String)
       liftIO $ putStrLn ""
-      return (Nothing, timeTaken_)
+      return (Nothing, 0)
     Just r@OurError{timeTaken_}  -> do
       liftIO $ print $ ("Stored has rrError(O)" :: String)
       liftIO $ putStrLn ""
-      return $ (Just r, timeTaken_)
+      return $ (Just r, 0)
 
     Nothing -> do
       sp <- liftIO $ toModel spE
