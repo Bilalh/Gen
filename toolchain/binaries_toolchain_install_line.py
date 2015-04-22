@@ -21,5 +21,5 @@ with sqlite3.connect(args.db) as conn:
         sys.exit(1)
     else:
         row = res[0]
-        print("SR_REV={savilerow} MINION={minion} CONJURE_REV={conjureNew} ~/server-settings/install_repos.sh ".format(**row))
+        print("SR_REV={savilerow} MINION_REV={minion} CONJURE_REV={conjureNew} ~/server-settings/install_repos.sh ".format(**row))
 
