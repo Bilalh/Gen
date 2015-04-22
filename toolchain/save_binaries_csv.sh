@@ -105,7 +105,7 @@ name=minion
 version="$(minion | grep 'HG version:' | egrep -o '"\w+' | egrep -o '\w+')"
 
 set +o errexit
-# Stupid hg only added date functions recently  
+# Stupid hg only added date functions recently
 #version_date_="$(hg log --template "{date(date, '%F_%s')}\n" --cwd "$(dirname "$(which minion)")" -r"${version}" 2>&1)"
 version_date_="$(hg log --template "{date}\n" --cwd "$(dirname "$(which minion)")" -r"${version}" 2>&1)"
 

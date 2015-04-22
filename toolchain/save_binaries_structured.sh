@@ -282,8 +282,30 @@ name=minion
 cbase="${base}/versions/${name}/"
 mkdir -p "${cbase}"
 
+
+
 binPath="$(which ${name})"
 version="$(minion | grep 'HG version:' | egrep -o '"\w+' | egrep -o '\w+')"
+
+# Stupid hg only added date functions recently
+#version_date_="$(hg log --template "{date(date, '%F_%s')}\n" --cwd "$(dirname "$(which minion)")" -r"${version}" 2>&1)"
+version_date_="$(hg log --template "{date}\n" --cwd "$(dirname "$(which minion)")" -r"${version}" 2>&1)"
+
+if [[ $? -eq 0  ]]; then
+	if ( echo "_${version_date_}" | egrep -q "^_[0-9]+\.[0-9]+"  ); then
+		version_date_="${version_date_:0:10}"
+		if (sw_vers &>/dev/null); then
+			version_date="$(date -jf '%s' "${version_date_}" '+%F_%s')"
+		else
+			version_date="$(date --date="@${version_date_}" '+%F_%s')"
+		fi
+	else
+		version_date=""
+	fi
+else
+	version_date=""
+fi
+
 
 newDstDir="${cbase}/hash/${version}/${host_type}"
 mkdir -p "${newDstDir}"
@@ -296,7 +318,7 @@ echo  "../../../../../${tbase_}" >> dates
 popd
 
 pushd "${tbase}"
-echo "${name},hg,${version},,${rest_line}" >> data.csv
+echo "${name},hg,${version},${version_date},${rest_line}" >> data.csv
 ln -sf "../../../versions/${name}/hash/${version}/${host_type}/${name}" "${name}"
 popd
 
