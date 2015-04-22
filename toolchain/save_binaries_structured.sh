@@ -364,7 +364,7 @@ function gen_save(){
 	echo "${name},git,${version},${version_date},${rest_line}" >> data.csv
 
 	ln -sf "../../../versions/${name}/hash/${version}/${host_type}/${name}" "${name}"
-	ln -sf "../../../versions/${name}/hash/${version}/${host_type}/toolchain" "toolchain"
+	ln -nsf "../../../versions/${name}/hash/${version}/${host_type}/toolchain" "toolchain"
 	popd
 	store_latest "${name}" "${host_type}" "${version_date}" "${newDstDir}"
 }
