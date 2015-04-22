@@ -5,6 +5,7 @@ module Gen.Essence.Data  where
 
 import Gen.Prelude
 import Gen.IO.Toolchain(KindI,StatusI)
+import Data.IntSet
 
 type Depth = Int
 
@@ -35,6 +36,7 @@ data EssenceConfig = EssenceConfig
       , toolchainOutput_   :: ToolchainOutput
       , notUseful          :: Set ( KindI, StatusI )
       , givenSpecs_        :: Maybe [FilePath]
+      , runHashes_         :: IntSet
       } deriving (Show)
 
 instance Default EssenceConfig where
@@ -55,4 +57,5 @@ instance Default EssenceConfig where
       , toolchainOutput_   = def
       , notUseful          = def
       , givenSpecs_        = Nothing
+      , runHashes_         = def
       }

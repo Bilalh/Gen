@@ -154,6 +154,7 @@ mainWithArgs Essence{..} = do
                , toolchainOutput_   = toolchain_ouput
                , notUseful          = S.fromList [(Savilerow_, NumberToLarge_)]
                , givenSpecs_        = givenSpecs
+               , runHashes_         = def
                }
 
   doMeta out no_csv binaries_directory

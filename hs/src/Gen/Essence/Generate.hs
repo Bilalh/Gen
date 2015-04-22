@@ -18,7 +18,7 @@ import qualified Data.Set                as S
 import qualified Gen.Arbitrary.Arbitrary as Gen
 import qualified Gen.Essence.Data        as EC
 import qualified Gen.IO.Toolchain        as Toolchain
-
+import qualified Data.IntSet             as I
 
 generateEssence :: EssenceConfig -> IO ()
 generateEssence ec@EC.EssenceConfig{..} = do
@@ -55,139 +55,152 @@ generateWrap _ f = generate f
 
 doRefine :: EssenceConfig -> IO ()
 doRefine ec@EC.EssenceConfig{..} = do
-  process totalTime_ givenSpecs_
+  process totalTime_ givenSpecs_ runHashes_
 
     where
     out    = outputDirectory_ </> "_passing"
     errdir = outputDirectory_ </> "_errors"
 
-    process timeLeft Nothing | timeLeft <= 0 = return ()
-    process _ (Just []) = return ()
+    process timeLeft Nothing _ | timeLeft <= 0 = return ()
+    process _ (Just []) _ = return ()
 
-    process timeLeft mayGiven = do
+    process timeLeft mayGiven hashes = do
       useSize <- (randomRIO (0, size_) :: IO Int)
       (sp,logs) <- generateWrap mayGiven $ Gen.spec useSize def{gen_useFunc = myUseFunc}
-      model :: Model <- toConjure sp
-      case typeCheck model  of
 
-        Left x ->
-            case givenSpecs_ of
-              Just{} ->
-                error . show . vcat $
-                    [ "Spec failed type checking"
-                    , pretty model
-                    , pretty x
-                    , pretty . groom $ model
-                    ]
-              Nothing -> process timeLeft (nextElem mayGiven)
+      case (hash sp) `I.member` (hashes) of
+        True -> do
+          putStrLn $ "Not running spec with hash, already tested " ++ (show $ hash sp)
+          process (timeLeft) (nextElem mayGiven) hashes
+        False -> do
+          let hashesNext = (hash sp) `I.insert` hashes
+          model :: Model <- toConjure sp
+          case typeCheck model  of
 
-        Right{} -> do
-          num <- (randomRIO (10,99) :: IO Int)  >>= return . show
-          ts <- timestamp >>= return . show
-          let uname  =  (ts ++ "_" ++ num )
+            Left x ->
+                case givenSpecs_ of
+                  Just{} ->
+                    error . show . vcat $
+                        [ "Spec failed type checking"
+                        , pretty model
+                        , pretty x
+                        , pretty . groom $ model
+                        ]
+                  Nothing -> process timeLeft (nextElem mayGiven) hashesNext
 
-          let dir = outputDirectory_ </> "_passing" </> uname
-          createDirectoryIfMissing True dir
-          writeFile (dir </> "spec.logs" ) (renderSized 120 logs)
-          writeToJSON (dir </> "spec.spec.json") sp
+            Right{} -> do
+              num <- (randomRIO (10,99) :: IO Int)  >>= return . show
+              ts <- timestamp >>= return . show
+              let uname  =  (ts ++ "_" ++ num )
 
-          let meta = mkMeta sp
-          writeToJSON  (dir </> "spec.meta.json" ) (meta)
-          Toolchain.copyMetaToSpecDir outputDirectory_ dir
+              let dir = outputDirectory_ </> "_passing" </> uname
+              createDirectoryIfMissing True dir
+              writeFile (dir </> "spec.logs" ) (renderSized 120 logs)
+              writeToJSON (dir </> "spec.spec.json") sp
 
-          runSeed <- (randomRIO (1,2147483647) :: IO Int)
-          essencePath <- writeModelDef dir model
-          startTime <- round `fmap` getPOSIXTime
-          (_, RefineResult result) <- toolchain Toolchain.ToolchainData{
-                      Toolchain.essencePath       = essencePath
-                    , Toolchain.outputDirectory   = dir
-                    , Toolchain.toolchainTime     = perSpecTime_
-                    , Toolchain.essenceParam      = Nothing
-                    , Toolchain.refineType        = Refine_Only
-                    , Toolchain.cores             = cores_
-                    , Toolchain.seed              = Just runSeed
-                    , Toolchain.binariesDirectory = binariesDirectory_
-                    , Toolchain.oldConjure        = oldConjure_
-                    , Toolchain.toolchainOutput   = toolchainOutput_
-                    , Toolchain.choicesPath       = Nothing
-                    , Toolchain.dryRun            = False
-                    }
-          endTime <- round `fmap` getPOSIXTime
-          let realTime = endTime - startTime
+              let meta = mkMeta sp
+              writeToJSON  (dir </> "spec.meta.json" ) (meta)
+              Toolchain.copyMetaToSpecDir outputDirectory_ dir
 
-          runTime <- classifySettingI ec errdir out uname result
-          case totalIsRealTime of
-            False -> process (timeLeft - (floor runTime)) (nextElem mayGiven)
-            True  -> process (timeLeft - realTime) (nextElem mayGiven)
+              runSeed <- (randomRIO (1,2147483647) :: IO Int)
+              essencePath <- writeModelDef dir model
+              startTime <- round `fmap` getPOSIXTime
+              (_, RefineResult result) <- toolchain Toolchain.ToolchainData{
+                          Toolchain.essencePath       = essencePath
+                        , Toolchain.outputDirectory   = dir
+                        , Toolchain.toolchainTime     = perSpecTime_
+                        , Toolchain.essenceParam      = Nothing
+                        , Toolchain.refineType        = Refine_Only
+                        , Toolchain.cores             = cores_
+                        , Toolchain.seed              = Just runSeed
+                        , Toolchain.binariesDirectory = binariesDirectory_
+                        , Toolchain.oldConjure        = oldConjure_
+                        , Toolchain.toolchainOutput   = toolchainOutput_
+                        , Toolchain.choicesPath       = Nothing
+                        , Toolchain.dryRun            = False
+                        }
+              endTime <- round `fmap` getPOSIXTime
+              let realTime = endTime - startTime
+
+              runTime <- classifySettingI ec errdir out uname result
+              case totalIsRealTime of
+                False -> process (timeLeft - (floor runTime)) (nextElem mayGiven) hashesNext
+                True  -> process (timeLeft - realTime) (nextElem mayGiven) hashesNext
 
 
 doSolve :: EssenceConfig -> IO ()
 doSolve ec@EC.EssenceConfig{..} = do
-  process totalTime_ givenSpecs_
+  process totalTime_ givenSpecs_ runHashes_
 
     where
     out    = outputDirectory_ </> "_passing"
     errdir = outputDirectory_ </> "_errors"
 
-    process timeLeft Nothing | timeLeft <= 0 = return ()
-    process _ (Just []) = return ()
+    process timeLeft Nothing _ | timeLeft <= 0 = return ()
+    process _ (Just []) _ = return ()
 
-    process timeLeft mayGiven= do
+    process timeLeft mayGiven hashes = do
 
       (sp,logs) <- generateWrap mayGiven $ Gen.spec size_ def{gen_useFunc = myUseFunc}
-      model :: Model <- toConjure sp
-      case typeCheck model  of
-        Left x ->
-            case givenSpecs_ of
-              Just{} ->
-                error . show . vcat $
-                    [ "Spec failed type checking"
-                    , pretty model
-                    , pretty x
-                    , pretty . groom $ model
-                    ]
-              Nothing -> process timeLeft (nextElem mayGiven)
+      case (hash sp) `I.member` (hashes) of
+        True -> do
+          putStrLn $ "Not running spec with hash, already tested " ++ (show $ hash sp)
+          process (timeLeft) (nextElem mayGiven) hashes
+        False -> do
+          let hashesNext = (hash sp) `I.insert` hashes
+          model :: Model <- toConjure sp
+          case typeCheck model  of
+            Left x ->
+                case givenSpecs_ of
+                  Just{} ->
+                    error . show . vcat $
+                        [ "Spec failed type checking"
+                        , pretty model
+                        , pretty x
+                        , pretty . groom $ model
+                        ]
+                  Nothing -> process timeLeft (nextElem mayGiven) hashesNext
 
-        Right{} -> do
-          num <- (randomRIO (10,99) :: IO Int)  >>= return . show
-          ts <- timestamp >>= return . show
-          let uname  =  (ts ++ "_" ++ num )
+            Right{} -> do
+              num <- (randomRIO (10,99) :: IO Int)  >>= return . show
+              ts <- timestamp >>= return . show
+              let uname  =  (ts ++ "_" ++ num )
 
-          let dir = outputDirectory_ </> "_passing" </> uname
-          createDirectoryIfMissing True dir
-          writeFile (dir </> "spec.logs" ) (renderSized 120 logs)
+              let dir = outputDirectory_ </> "_passing" </> uname
+              createDirectoryIfMissing True dir
+              writeFile (dir </> "spec.logs" ) (renderSized 120 logs)
 
-          writeToJSON (dir </> "spec.spec.json") sp
+              writeToJSON (dir </> "spec.spec.json") sp
 
-          let meta = mkMeta sp
-          writeToJSON  (dir </> "spec.meta.json" ) (meta)
-          Toolchain.copyMetaToSpecDir outputDirectory_ dir
+              let meta = mkMeta sp
+              writeToJSON  (dir </> "spec.meta.json" ) (meta)
+              Toolchain.copyMetaToSpecDir outputDirectory_ dir
 
 
-          runSeed <- (randomRIO (1,2147483647) :: IO Int)
-          essencePath <- writeModelDef dir model
-          startTime <- round `fmap` getPOSIXTime
-          (_, result) <- toolchain Toolchain.ToolchainData{
-                      Toolchain.essencePath       = essencePath
-                    , Toolchain.outputDirectory   = dir
-                    , Toolchain.toolchainTime     = perSpecTime_
-                    , Toolchain.essenceParam      = Nothing
-                    , Toolchain.refineType        = Refine_Solve
-                    , Toolchain.cores             = cores_
-                    , Toolchain.seed              = Just runSeed
-                    , Toolchain.binariesDirectory = binariesDirectory_
-                    , Toolchain.oldConjure        = oldConjure_
-                    , Toolchain.toolchainOutput   = toolchainOutput_
-                    , Toolchain.choicesPath       = Nothing
-                    , Toolchain.dryRun            = False
-                    }
-          endTime <- round `fmap` getPOSIXTime
-          let realTime = endTime - startTime
+              runSeed <- (randomRIO (1,2147483647) :: IO Int)
+              essencePath <- writeModelDef dir model
+              startTime <- round `fmap` getPOSIXTime
+              (_, result) <- toolchain Toolchain.ToolchainData{
+                          Toolchain.essencePath       = essencePath
+                        , Toolchain.outputDirectory   = dir
+                        , Toolchain.toolchainTime     = perSpecTime_
+                        , Toolchain.essenceParam      = Nothing
+                        , Toolchain.refineType        = Refine_Solve
+                        , Toolchain.cores             = cores_
+                        , Toolchain.seed              = Just runSeed
+                        , Toolchain.binariesDirectory = binariesDirectory_
+                        , Toolchain.oldConjure        = oldConjure_
+                        , Toolchain.toolchainOutput   = toolchainOutput_
+                        , Toolchain.choicesPath       = Nothing
+                        , Toolchain.dryRun            = False
+                        }
+              endTime <- round `fmap` getPOSIXTime
+              let realTime = endTime - startTime
 
-          runTime <-  classifyError uname result
-          case totalIsRealTime of
-            False -> process (timeLeft - (floor runTime)) (nextElem mayGiven)
-            True  -> process (timeLeft - realTime) (nextElem mayGiven)
+              runTime <-  classifyError uname result
+              case totalIsRealTime of
+                False -> process (timeLeft - (floor runTime)) (nextElem mayGiven) hashesNext
+                True  -> process (timeLeft - realTime) (nextElem mayGiven) hashesNext
 
 
     classifyError uname (RefineResult a) = classifySettingI ec errdir out uname a
