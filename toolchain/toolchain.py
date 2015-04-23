@@ -235,7 +235,7 @@ if __name__ == "__main__":
 
     if limit <=0:
         logger.warn("No time left after refine")
-        sys.exit(2)
+        sys.exit(0)
 
     # Run the SR Minion translate and vaildate
     solve_op = partial(run.run_solve, extra_env, op, commands, limit)
