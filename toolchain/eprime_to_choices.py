@@ -38,6 +38,8 @@ def process_inner(cur):
 
 
 def process_json(cur):
+    if not args.update:
+        return cur
     if "AnsweredRepr" not in cur:
         return cur
 
