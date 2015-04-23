@@ -1,11 +1,13 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, TypeOperators #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Gen.Helpers.TypeOf(WithDoms(..), TTypeOf(..), typeOfDom) where
 
+import Conjure.Language.AdHoc         ((:<)(..) )
 import Conjure.Language.Constant
-import Conjure.Language.TypeOf
+import Conjure.Language.Domain
 import Conjure.Language.Expression.Op
+import Conjure.Language.TypeOf
 import Gen.Helpers.StandardImports
 
 import qualified Data.Map as M
@@ -98,3 +100,8 @@ instance TypeOf Expr  where
   typeOf t = do
       ty :: TType <- ttypeOf t
       return $ toConjureNote "typeOf TType" ty
+
+instance Domain () Expr :< Expr where
+    inject = EDom
+    project (EDom x) = return x
+    project x = fail ("projecting Domain out of Expr:" <+> pretty x)
