@@ -6,7 +6,6 @@ import Gen.Classify.Meta(mkMeta)
 import Gen.Classify.Sorter(getRecursiveContents)
 import Gen.IO.Formats
 import Gen.Prelude
-
 import System.FilePath (takeExtensions)
 
 metaMain :: [FilePath] -> IO ()

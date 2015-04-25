@@ -39,6 +39,7 @@ Library
                      , Gen.Classify.DomTypes
                      , Gen.Classify.Meta
                      , Gen.Classify.Sorter
+                     , Gen.Classify.UpdateChoices
                      , Gen.Essence.Data
                      , Gen.Essence.Generate
                      , Gen.Essence.Rnd

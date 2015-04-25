@@ -135,6 +135,12 @@ data UI
     , limit_time         :: Maybe Int
     , dry_run            :: Bool
     }
+  | Script_UpdateChoices
+    {
+      choices_in_  :: FilePath
+    , choices_out_ :: FilePath
+    , limit_time   :: Maybe Int
+    }
   deriving (Show, Data, Typeable)
 
 data ModeChoice =
@@ -631,6 +637,21 @@ ui  = modes
      } &= explicit
        &= name "script-recheck"
        &= help "Reruns the toolchain with previous used settings"
+
+  , Script_UpdateChoices
+     {
+       choices_in_  = def     &= typ "IN-JSON"
+                              &= argPos 0
+      ,choices_out_ = def     &= typ "OUT-JSON"
+                              &= argPos 1
+     , limit_time   = Nothing &= name "limit-time"
+                              &= groupname "Other"
+                              &= explicit
+                              &= help "Time limit in seconds of CPU time of this program"
+
+     } &= explicit
+       &= name "script-updateChoices"
+       &= help "Convert AnsweredRepr to AnsweredReprStored from IN to OUT"
 
 
   ] &= program "gen"

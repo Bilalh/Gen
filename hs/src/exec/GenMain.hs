@@ -10,6 +10,7 @@ import Gen.Classify.AddMeta        (metaMain)
 import Gen.Classify.AddMeta        (addMeta)
 import Gen.Classify.AddSpecE       (addSpecJson, specEMain)
 import Gen.Classify.Sorter         (getRecursiveContents, sorterMain')
+import Gen.Classify.UpdateChoices  (updateChoices)
 import Gen.Essence.Generate        (generateEssence)
 import Gen.Generalise.Generalise   (generaliseMain)
 import Gen.Helpers.StandardImports
@@ -44,7 +45,7 @@ main = do
        args <- helpArg
        void $ withArgs [args] (cmdArgs ui)
     [x] | x `elem` [ "essence", "reduce", "link", "meta", "json", "generalise"
-                   , "script-toolchain", "script-recheck"] -> do
+                   , "script-toolchain", "script-recheck", "script-updateChoices"] -> do
        args <- helpArg
        void $ withArgs [x, args] (cmdArgs ui)
 
@@ -406,6 +407,20 @@ mainWithArgs Script_ToolchainRecheck{..} = do
            , Recheck.dryRun            = dry_run
            }
   exitWith code
+
+mainWithArgs Script_UpdateChoices{..} = do
+
+  errors <- catMaybes <$> sequence
+            [
+              fileExists    "First argument " choices_in_
+            ]
+
+  case errors of
+    [] -> return ()
+    xs -> mapM putStrLn xs >> exitFailure
+
+
+  updateChoices choices_in_ choices_out_
 
 
 aerr :: String -> Bool -> Maybe String
