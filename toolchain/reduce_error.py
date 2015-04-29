@@ -16,7 +16,8 @@ logger = logging.getLogger(__name__)
 parser = argparse.ArgumentParser()
 parser.add_argument("essence", help='essence file')
 parser.add_argument('-o',  dest='output',          help='output base dir ', required=True)
-parser.add_argument('-p',  dest='total_time',      help='time per run', required=True, type=int)
+parser.add_argument('-p',  dest='spec_time',       help='time per run', required=True, type=int)
+parser.add_argument('-t',  dest='total_time',      help='Total real time', type=int)
 parser.add_argument('-bin_dir',  dest='bin_dir',   help='--bin-dir' )
 parser.add_argument('-c',  dest='cores',           help='cores to use, default 1', type=int)
 parser.add_argument('--passing_db',                help='for gen reduce --db-passing-in')
@@ -28,11 +29,17 @@ essence = Path(args.essence)
 essence_dir = essence.parent
 
 cmd_str="""
-     gen reduce {essence_dir} -o '{output}' -p {total_time}  --kind {kind} --status {status} --delete-passing --delete-steps -N  --db-dir '{db_dir}'
+     gen reduce {essence_dir} -o '{output}' -p {spec_time}  --kind {kind} --status {status} --delete-passing --delete-steps -N  --db-dir '{db_dir}'
 """
 
 if args.passing_db:
     cmd_str+= " --db-passing-in '{}'".format(args.passing_db)
+
+if args.total_time is not None:
+    cmd_str+= " --total-is-real-time --total-time '{}'".format(args.total_time)
+
+logger.warn("args %s", args)
+
 
 def process(status, kind,refinement, name, vals,refine_times,cmd_str,is_last):
     if is_last:
@@ -41,7 +48,7 @@ def process(status, kind,refinement, name, vals,refine_times,cmd_str,is_last):
     if status == "ErrorUnknown_":
         status = "StatusAny_"
 
-    total_time=args.total_time
+    spec_time=args.spec_time
     db_dir = Path(args.output) / "temp_db"
     if refinement:
         if 'choices_json' in vals['vals']:
@@ -62,17 +69,17 @@ def process(status, kind,refinement, name, vals,refine_times,cmd_str,is_last):
             out_dir = Path(args.output) / "all"
 
         cpu_used = vals['cpu_time']
-        total_time = min( max(cpu_used * 1.5, 10), total_time)
+        spec_time = min( max(cpu_used * 1.5, 10), spec_time)
 
     else:
         cmd_str += " --choices {}".format( (essence_dir / name).with_suffix('.eprime')  )
         out_dir = Path(args.output) / name
         cpu_used = refine_times[name] + vals['total_cpu_time']
-        total_time = min( max(cpu_used * 1.5, 10), total_time)
+        spec_time = min( max(cpu_used * 1.5, 10), spec_time)
 
-    total_time=int(total_time)
+    spec_time=int(spec_time)
     cmd_str = cmd_str.format(essence_dir=essence_dir, kind=kind, status=status,
-                       total_time=total_time, output=out_dir, db_dir=db_dir)
+                       spec_time=spec_time, output=out_dir, db_dir=db_dir)
 
     if args.bin_dir:
         cmd_str += " --bin-dir {}".format(args.bin_dir)
