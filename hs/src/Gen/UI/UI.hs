@@ -16,7 +16,7 @@ data UI
     , _mode              :: ModeChoice
     ,  output_directory  :: Maybe FilePath
     , _size              :: Int  -- should not be greater then 5
-    , _cores             :: Int
+    , _cores             :: Maybe Int
     , _seed              :: Maybe Int
     , delete_passing     :: Bool
     , total_is_real_time :: Bool
@@ -52,7 +52,7 @@ data UI
     , total_is_real_time :: Bool
 
     , output_directory   :: Maybe FilePath
-    , _cores             :: Int
+    , _cores             :: Maybe Int
     , _seed              :: Maybe Int
 
     , delete_passing     :: Bool
@@ -82,7 +82,7 @@ data UI
     , list_statuses      :: Bool
 
     , output_directory   :: Maybe FilePath
-    , _cores             :: Int
+    , _cores             :: Maybe Int
     , _seed              :: Maybe Int
 
     , delete_passing     :: Bool
@@ -114,7 +114,7 @@ data UI
     , refine_type        :: RefineType
     , output_directory   :: Maybe FilePath
 
-    , _cores             :: Int
+    , _cores             :: Maybe Int
     , _seed              :: Maybe Int
 
     , toolchain_ouput    :: ToolchainOutput
@@ -126,7 +126,7 @@ data UI
   | Script_ToolchainRecheck
     {
       essence_path       :: FilePath
-    , _cores             :: Int
+    , _cores             :: Maybe Int
     , output_directory   :: Maybe FilePath
 
     , toolchain_ouput    :: ToolchainOutput
@@ -184,11 +184,11 @@ ui  = modes
                                     &= groupname "Generation"
                                     &= help "Max depth of an expression, 5 should be more then enough"
                                     &= explicit
-     , _cores             = def     &= name "cores"
+     , _cores             = Nothing &= name "cores"
                                     &= name "c"
                                     &= groupname "Required"
                                     &= explicit
-                                    &= help "Number of cores to use"
+                                    &= help "Number of cores to use, required unless CORES is set"
      , _seed              = def     &= name "seed"
                                     &= groupname "Other"
                                     &= explicit
@@ -294,11 +294,11 @@ ui  = modes
                                      &= groupname "Required"
                                      &= explicit
                                      &= help "Time per Spec"
-     , _cores           = 1          &= name "cores"
+     , _cores           = Nothing    &= name "cores"
                                      &= name "c"
                                      &= groupname "Other"
                                      &= explicit
-                                     &= help "Number of cores to Use"
+                                     &= help "Number of cores to use, defualts to 1 unless CORES is set"
      , _seed            = def        &= name "seed"
                                      &= groupname "Other"
                                      &= explicit
@@ -400,11 +400,11 @@ ui  = modes
                                      &= groupname "Required"
                                      &= explicit
                                      &= help "Time per Spec"
-     , _cores           = 1          &= name "cores"
+     , _cores           = Nothing    &= name "cores"
                                      &= name "c"
                                      &= groupname "Other"
                                      &= explicit
-                                     &= help "Number of cores to Use"
+                                     &= help "Number of cores to use, defualts to 1 unless CORES is set"
      , _seed            = def        &= name "seed"
                                      &= groupname "Other"
                                      &= explicit
@@ -509,11 +509,11 @@ ui  = modes
                                     &= groupname "Required"
                                     &= explicit
                                     &= help "Total time for running the toolchain"
-     , _cores             = def     &= name "cores"
+     , _cores             = Nothing &= name "cores"
                                     &= name "c"
                                     &= groupname "Required"
                                     &= explicit
-                                    &= help "Number of cores to Use"
+                                    &= help "Number of cores to use, required unless CORES is set"
 
      , essence_param      = def     &= typFile
                                     &= name "essence-param"
@@ -595,11 +595,11 @@ ui  = modes
                                     &= groupname "Other"
                                     &= explicit
                                     &= help "Output directory default is %F_%H-%M_%s e.g. 2015-03-23_01-04_1427072681"
-     , _cores             = def     &= name "cores"
+     , _cores             = Nothing &= name "cores"
                                     &= name "c"
                                     &= groupname "Required"
                                     &= explicit
-                                    &= help "Number of cores to Use"
+                                    &= help "Number of cores to use, required unless CORES is set"
      , binaries_directory = Nothing &= name "bin-dir"
                                     &= groupname "Other"
                                     &= typDir

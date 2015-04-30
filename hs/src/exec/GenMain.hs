@@ -1,4 +1,4 @@
-{-# LANGUAGE LambdaCase, RecordWildCards #-}
+{-# language LambdaCase, RecordWildCards #-}
 {-# OPTIONS_GHC -fno-cse #-} -- stupid cmdargs?
 
 module Main where
@@ -24,7 +24,7 @@ import Gen.Reduce.Runner           (giveDb, saveDB)
 import Gen.UI.UI
 import System.Console.CmdArgs      (cmdArgs)
 import System.CPUTime              (getCPUTime)
-import System.Environment          (withArgs)
+import System.Environment          (withArgs, lookupEnv)
 import System.Exit                 (exitFailure, exitSuccess, exitWith)
 import System.FilePath             (takeExtensions)
 import System.Timeout              (timeout)
@@ -111,7 +111,7 @@ limiter (Just sec) f  =  do
 
 
 mainWithArgs :: UI -> IO ()
-mainWithArgs Essence{..} = do
+mainWithArgs u@Essence{..} = do
   let ls = case given_dir of
              Nothing  -> [ aerr "-t|--total-time" (total_time == 0)]
              Just{} -> []
@@ -124,10 +124,11 @@ mainWithArgs Essence{..} = do
 
   let errors = catMaybes $
         [ aerr "-p|--per-spec-time" (per_spec_time == 0)
-        , aerr "-c|--cores" (_cores == 0)
         , aerr "--size > 0" (_size <= 0)
         , aerr "--given and -t/--total-time can not be used together" (isJust given_dir && total_time /= 0)
         ]  ++ fileErr ++ ls
+
+
 
   case errors of
     [] -> return ()
@@ -136,6 +137,7 @@ mainWithArgs Essence{..} = do
 
   out   <- giveOutputDirectory output_directory
   seed_ <- giveSeed _seed
+  cores <- giveCores u
   givenSpecs <- giveSpec given_dir
 
 
@@ -145,7 +147,7 @@ mainWithArgs Essence{..} = do
                , totalTime_       = total_time
                , perSpecTime_     = per_spec_time
                , size_            = _size
-               , cores_           = _cores
+               , cores_           = cores
                , seed_            = seed_
 
                , totalIsRealTime    = total_is_real_time
@@ -170,7 +172,7 @@ mainWithArgs Essence{..} = do
 mainWithArgs Instance{..} = do
   error . show . vcat $ ["gen instance not done yet" ]
 
-mainWithArgs Reduce{..} = do
+mainWithArgs u@Reduce{..} = do
 
   if list_kinds then do
         mapM_ (putStrLn) kindsList
@@ -198,7 +200,6 @@ mainWithArgs Reduce{..} = do
   let errors = catMaybes
         [ aerr "spec-directory" (null spec_directory)
         , aerr "-p|--per-spec-time >0" (per_spec_time == 0)
-        , aerr "-c|--cores >0" (_cores == 0)
         , aerr "-t|--total-time > 0 if specified" (total_time_may == Just 0)
         , aerr "-@/--total-is-real-time requires -t/--total-time to be specified"
                    (total_is_real_time && total_time_may == Nothing)
@@ -217,13 +218,14 @@ mainWithArgs Reduce{..} = do
   seed_ <- giveSeed _seed
   db    <- giveDb per_spec_time db_directory db_passing_in
   out   <- giveOutputDirectory output_directory
+  cores <- giveCores u
 
   let args = def{oErrKind_           = error_kind
                 ,oErrStatus_         = error_status
                 ,oErrChoices_        = error_choices
                 ,outputDir_          = out
                 ,specDir_            = spec_directory
-                ,R.cores_            = _cores
+                ,R.cores_            = cores
                 ,rgen_               = mkrGen (seed_)
                 ,specTime_           = per_spec_time
                 ,binariesDirectory_  = binaries_directory
@@ -268,7 +270,6 @@ mainWithArgs Generalise{..} = do
   let errors = catMaybes
         [ aerr "spec-directory" (null spec_directory)
         , aerr "-p|--per-spec-time" (per_spec_time == 0)
-        , aerr "-c|--cores >0" (_cores == 0)
         ] ++ fileErr
 
   case errors of
@@ -283,6 +284,7 @@ mainWithArgs Generalise{..} = do
   seed_ <- giveSeed _seed
   db    <- giveDb per_spec_time db_directory Nothing
   out   <- giveOutputDirectory output_directory
+  cores <- giveCores ui
 
   let args :: E.GState =
              def{E.oErrKind_           = error_kind
@@ -290,7 +292,7 @@ mainWithArgs Generalise{..} = do
                 ,E.oErrChoices_        = error_choices
                 ,E.outputDir_          = out
                 ,E.specDir_            = spec_directory
-                ,E.cores_              = _cores
+                ,E.cores_              = cores
                 ,E.rgen_               = mkrGen (seed_)
                 ,E.specTime_           = per_spec_time
                 ,E.binariesDirectory_  = binaries_directory
@@ -332,7 +334,7 @@ mainWithArgs SpecEE{..} = do
   putStrLn "Creating .meta.json files"
   metaMain directories
 
-mainWithArgs Script_Toolchain{..} = do
+mainWithArgs u@Script_Toolchain{..} = do
 
   fileErr <- catMaybes <$> sequence
             [
@@ -344,7 +346,6 @@ mainWithArgs Script_Toolchain{..} = do
 
   let errors = catMaybes
         [ aerr "-t|--total-time" (total_time == 0)
-        , aerr "-c|--cores" (_cores == 0)
         ] ++ fileErr
 
 
@@ -353,6 +354,7 @@ mainWithArgs Script_Toolchain{..} = do
     xs -> mapM putStrLn xs >> exitFailure
 
   out <- giveOutputDirectory output_directory
+  cores <- giveCores u
 
   (code,_) <- Toolchain.toolchain Toolchain.ToolchainData
            {
@@ -361,7 +363,7 @@ mainWithArgs Script_Toolchain{..} = do
            , Toolchain.toolchainTime     = total_time
            , Toolchain.essenceParam      = essence_param
            , Toolchain.refineType        = f refine_type choices_path
-           , Toolchain.cores             = _cores
+           , Toolchain.cores             = cores
            , Toolchain.seed              = _seed
            , Toolchain.binariesDirectory = binaries_directory
            , Toolchain.oldConjure        = old_conjure
@@ -386,21 +388,18 @@ mainWithArgs Script_ToolchainRecheck{..} = do
             ]
 
 
-  let errors = catMaybes
-        [ aerr "-c|--cores" (_cores == 0)
-        ] ++ fileErr
-
-  case errors of
+  case fileErr of
     [] -> return ()
     xs -> mapM putStrLn xs >> exitFailure
 
   out <- giveOutputDirectory output_directory
+  cores <- giveCores ui
 
   (code,_) <- Recheck.toolchainRecheck Recheck.RecheckData
            {
              Recheck.essencePath       = essence_path
            , Recheck.outputDirectory   = out
-           , Recheck.cores             = _cores
+           , Recheck.cores             = cores
            , Recheck.binariesDirectory = binaries_directory
            , Recheck.oldConjure        = old_conjure
            , Recheck.toolchainOutput   = toolchain_ouput
@@ -467,6 +466,42 @@ giveSpec (Just path)  = do
                                 , "Did you run ` gen json -d" <+> pretty path <+> "`?" ]
     xs -> return $ Just xs
 
+giveCores :: UI -> IO Int
+giveCores u = do
+  lookupEnv "CORES" >>= \case
+    Nothing  -> ci_only u
+    Just ""  -> ci_only u
+    Just str ->
+     case readMay str of
+       Nothing -> error $ "CORES set, but unable to be parsed: " ++ str
+       Just cores_env  -> do
+         let cores_ci = _cores u
+         case (cores_env,  cores_ci) of
+           (0,Just 0)   -> error $ "CORES and -c/--cores are invaild (both 0)"
+           (0,Nothing)  -> error $ "-c/--cores is required unless CORES is set"
+           (i, Nothing) -> return i
+           (i,Just j) | i == j -> return j
+           (i,Just j) -> error . show  $ nn "CORES:" i
+                                      <+> nn "-c/--cores:" j
+                                      <+> "--> not consistent"
+
+
+
+
+  where
+    nn :: Pretty b => Doc -> b -> Doc
+    nn a b =  a <+> pretty b
+
+    ci_only :: UI -> IO Int
+    ci_only Reduce{} =  do
+      case _cores u of
+        Nothing -> return 1
+        Just i  -> return i
+
+    ci_only _ =  do
+      case _cores u of
+        Nothing -> error $ "-c/--cores is required unless CORES is set"
+        Just i  -> return i
 
 
 _essenceDebug :: IO ()
@@ -478,7 +513,7 @@ _essenceDebug = do
              , total_time         = 20
              , per_spec_time      = 5
              , _size              = 2
-             , _cores             = 1
+             , _cores             = Just 1
              , _seed              = Just 44
 
              , delete_passing     = False
@@ -501,7 +536,7 @@ _givenDebug = do
              , total_time         = 0
              , per_spec_time      = 120
              , _size              = 4
-             , _cores             = 1
+             , _cores             = Just 1
              , _seed              = Just 44
 
              , delete_passing     = False
@@ -527,7 +562,7 @@ _reduceDebug = do
                   , list_statuses      = False
                   , output_directory   = Just "/Users/bilalh/Desktop/Results/_notable/reduce_examples/1425940601_40/out"
                   , per_spec_time      = 60
-                  , _cores             = 1
+                  , _cores             = Just 1
                   , _seed              = Nothing
                   , toolchain_ouput    = ToolchainNull_
                   , binaries_directory = Nothing
