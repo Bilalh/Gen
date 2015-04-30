@@ -42,6 +42,7 @@ Library
                      , Gen.Classify.UpdateChoices
                      , Gen.Essence.Data
                      , Gen.Essence.Generate
+                     , Gen.Essence.Info
                      , Gen.Essence.Rnd
                      , Gen.Generalise.Data
                      , Gen.Generalise.Generalise
