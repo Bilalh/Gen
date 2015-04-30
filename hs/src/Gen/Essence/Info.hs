@@ -1,9 +1,10 @@
--- Idea for Better Genration
-
 {-# LANGUAGE DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveGeneric,
              DeriveTraversable, FlexibleInstances, KindSignatures,
              MultiParamTypeClasses #-}
 module Gen.Essence.Info where
+
+-- Idea for Generic Genration of ops
+--
 
 import Conjure.Language.Expression.Op.Internal.Generated (Op (..))
 import Conjure.Language.Expression.Op.Mod
@@ -29,8 +30,8 @@ class OpInfo a where
     minDepth    :: a -> Int
     argsTypes   :: a -> Type -> [Ty]
 
-class OpInfo a => OpApply e a where
-  applyArgs   :: a -> [e] -> (Op e)
+class ApplyOp a e where
+  applyArgs ::  (a e -> Op e) -> [e] -> (Op e)
 
 
 instance OpInfo (OpMod e -> Op e) where
@@ -38,11 +39,11 @@ instance OpInfo (OpMod e -> Op e) where
     minDepth _          =  1
     argsTypes _ TypeInt =  [ Ty (TyId 1) TypeInt, Ty (TyId 2) TypeInt ]
 
-instance OpApply e (OpMod e -> Op e) where
-    applyArgs f [e1,e2] =  f (OpMod e1 e2)
-
 instance Show (OpMod e -> Op e) where
     show _ = "(OpMod e -> Op e)"
+
+instance ApplyOp (OpMod) e where
+    applyArgs f [e1,e2] =  f (OpMod e1 e2)
 
 
 allowdOpsForType :: forall (m :: * -> *) x . Monad m
@@ -52,13 +53,13 @@ allowdOpsForType TypeInt = return [ MkOpMod  ]
 
 opForType :: Monad m => Type -> Int -> m (Maybe Expr)
 opForType ty depth = do
-  opsAllowed ::  [OpMod Expr -> Op Expr] <- allowdOpsForType ty
+  opsAllowed <- allowdOpsForType ty
   let picked = opsAllowed `at` 0
   case depth >= minDepth picked of
     False -> return Nothing
     True  -> do
       es <- mapM exprOfType (argsTypes picked ty)
-      let op :: Op Expr = applyArgs picked es
+      let op  = applyArgs picked es
       return . Just $ (EOp op)
 
 
