@@ -119,4 +119,4 @@ frequency3 rnd xs0 = return $ rnd `pick` xs0
   pick n ((k,x):xs)
     | n <= k    = x
     | otherwise = pick (n-k) xs
-  pick _ _  = error "QuickCheck2.pick used with empty list"
+  pick _ _  = error "frequency3.pick used with empty list"
