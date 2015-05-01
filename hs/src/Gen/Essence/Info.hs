@@ -128,6 +128,8 @@ data OpName
     = NOpGeq
     | NOpMod
     | NOpOr
+  deriving (Eq, Ord, Show, Data, Typeable, Generic)
+
 
 data OpInfo_ = OpInfo_
     { artity_      :: Int
@@ -177,3 +179,29 @@ class (Monad m, Applicative m) => MonadGen_ m where
 
 instance MonadGen_ Identity where
     getOpWeighting_ _ =  return 100
+
+
+instance OpInfo OpName where
+  artity NOpMod = artity MkOpMod
+  artity NOpOr  = artity MkOpOr
+  artity NOpGeq = artity NOpGeq
+
+  minDepth NOpMod = minDepth MkOpMod
+  minDepth NOpOr  = minDepth MkOpOr
+  minDepth NOpGeq = minDepth MkOpGeq
+
+  argsTypes NOpMod = argsTypes MkOpMod
+  argsTypes NOpOr  = argsTypes MkOpOr
+  argsTypes NOpGeq = argsTypes MkOpGeq
+
+opForType2 :: MonadGen_ m => Type -> Int -> m (Maybe Expr)
+opForType2 ty depth =
+  filter (\p -> depth >= minDepth p ) <$> allowdOpsForType_ ty >>= \case
+   [] -> return Nothing
+   allowed -> do
+    ws      <- mapM getOpWeighting_ allowed
+    picked  <- frequency3 132 (zip ws allowed)
+
+    es <- mapM exprOfType (argsTypes picked ty)
+    let op  = applyArgs_ picked es
+    return . Just $ (EOp op)
