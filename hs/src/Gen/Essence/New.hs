@@ -1,5 +1,5 @@
 {-# LANGUAGE FlexibleInstances, ParallelListComp #-}
-module Gen.Essence.Info2 where
+module Gen.Essence.New where
 
 import Conjure.Bug
 import Conjure.Language.Definition
