@@ -43,7 +43,9 @@ Library
                      , Gen.Essence.Data
                      , Gen.Essence.Generate
                      , Gen.Essence.New
-                     , Gen.Essence.Rnd
+                     , Gen.Essence.Old.Info
+                     , Gen.Essence.Old.InfoOld
+                     , Gen.Essence.Old.Rnd
                      , Gen.Essence.St
                      , Gen.Generalise.Data
                      , Gen.Generalise.Generalise
@@ -74,7 +76,6 @@ Library
                      , Gen.Reduce.Simpler
                      , Gen.Reduce.UnusedDomains
                      , Gen.UI.UI
-                     
 
 
     build-depends    : base
