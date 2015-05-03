@@ -47,8 +47,7 @@ instance Generate a => Generate (AbstractLiteral a) where
       return $ AbsLitSet es
 
 
--- Check if the type are allowed
--- Check if we have enough depth
+-- Need to know the possible return types for each op
 instance Generate a => Generate (Op a) where
   give a = do
       ops <- withWeights (allOps a)
