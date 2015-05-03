@@ -55,7 +55,9 @@ instance Generate a => Generate (Op a) where
 
 
 instance Generate a => Generate (OpGeq a) where
-    give a = do
+    give GNone = give (GType TBool)
+
+    give (GType TBool) = do
       -- ty <- pure GType <*> give GNone
       ty <- pure (GType TInt)
       pure OpGeq <*> (give ty) <*> (give ty)

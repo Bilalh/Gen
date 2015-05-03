@@ -30,7 +30,7 @@ class Data a => Generate a where
 type GenSt a = StateT St Gen a
 type Key = String
 data GenerateConstraint = GNone
-                        | GType TType
+                        | GType TType -- The resulting type
  deriving (Eq, Ord, Show, Data, Typeable, Generic)
 
 data St = St{
