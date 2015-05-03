@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveGeneric,
              DeriveTraversable, FlexibleInstances, KindSignatures,
              MultiParamTypeClasses, QuasiQuotes #-}
-module Gen.Essence.Info where
+module Gen.Essence.Old.Info where
 
 -- Idea for Generic Genration of ops
 -- OpInfo instance for artity, depth and arg types for each op
