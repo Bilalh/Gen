@@ -1,17 +1,18 @@
-{-# LANGUAGE FlexibleInstances, ParallelListComp #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, ParallelListComp#-}
 module Gen.Essence.New where
 
 import Conjure.Bug
 import Conjure.Language.Definition
+import Conjure.Language.Domain
 import Conjure.Language.Expression.Op
 import Conjure.Prelude
 import Data.Map                       (Map)
 import Gen.AST.Imports
 import Gen.AST.TH
 import Gen.Essence.St
+import Gen.Helpers.Placeholders       (notDone)
 import System.Random                  (Random)
-import Test.QuickCheck hiding (give)
-import Gen.Helpers.Placeholders(notDone)
+import Test.QuickCheck                hiding (give)
 
 
 instance Generate Expr where
@@ -61,6 +62,41 @@ instance Generate a => Generate (OpGeq a) where
       -- ty <- pure GType <*> give GNone
       ty <- pure (GType TInt)
       pure OpGeq <*> (give ty) <*> (give ty)
+
+
+instance (Generate a, WrapConstant a) => Generate (Domain () a) where
+  give GNone = do
+      -- ty <- give GNone
+      give (GType TInt)
+
+  give (GType TBool)           = return DomainBool
+  give (GType TInt)            = pure DomainInt <*> vectorOf3 2 (give GNone)
+  -- give (GType (TMatix ty))     = _x
+  -- give (GType (TSet ty))       = _x
+  -- give (GType (TMSet ty))      = _x
+  -- give (GType (TFunc ty1 ty2)) = _x
+  -- give (GType (TTuple ty))     = _x
+  -- give (GType (TRel ty))       = _x
+  -- give (GType (TPar ty))       = _x
+  -- give (GType (TUnamed ty))    = _x
+  -- give (GType (TEnum ty))      = _x
+  -- give (GType TAny)            = _x
+
+
+instance (Generate a, WrapConstant a) => Generate (Range a) where
+    give GNone = do
+        parts <- withWeights [("RangeSingle", single),("RangeBounded", bounded) ]
+        frequency3 parts
+
+      where
+        single  = do
+          a <- choose3 (0,5 :: Integer)
+          return $ RangeSingle (wrapConstant . ConstantInt $ a)
+        bounded = do
+          a <- choose3 (0,5 :: Integer)
+          b <- choose3 (a,5)
+          return $ RangeBounded (wrapConstant . ConstantInt $ a)
+                                (wrapConstant . ConstantInt $ b)
 
 
 instance Generate TType where

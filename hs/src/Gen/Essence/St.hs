@@ -2,14 +2,16 @@
 
 module Gen.Essence.St where
 
+import Conjure.Language.Definition (Constant,Expression(..))
 import Conjure.Prelude
-import Data.Data                hiding (Proxy)
-import Data.Map                 (Map)
+import Data.Data                   hiding (Proxy)
+import Data.Map                    (Map)
 import Gen.AST.Imports
-import Gen.Helpers.Placeholders (neverNote)
-import Test.QuickCheck          (Gen)
+import Gen.Helpers.Placeholders    (neverNote)
+import Test.QuickCheck             (Gen)
 
 import qualified Data.Map as M
+
 
 class Data a => Generate a where
   give  :: GenerateConstraint -> GenSt a
@@ -26,12 +28,26 @@ class Data a => Generate a where
             (Just x) -> return x
 
 
-
 type GenSt a = StateT St Gen a
 type Key = String
 data GenerateConstraint = GNone
                         | GType TType -- The resulting type
  deriving (Eq, Ord, Show, Data, Typeable, Generic)
+
+
+-- To allow a Constant Range, or Expr Range for eaxmple
+class WrapConstant a where
+    wrapConstant :: Constant -> a
+
+instance WrapConstant Expr where
+    wrapConstant = ECon
+
+instance WrapConstant Constant where
+    wrapConstant = id
+
+instance WrapConstant Expression where
+    wrapConstant = Constant
+
 
 data St = St{
        weighting :: Map String Int
