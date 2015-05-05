@@ -9,7 +9,7 @@ import Data.Data                   hiding (Proxy)
 import Data.Map                    (Map)
 import Gen.AST.Imports
 import Gen.Helpers.Placeholders    (neverNote)
-import Test.QuickCheck             (Gen)
+import Test.QuickCheck             (Gen, generate)
 import Conjure.Language.Pretty
 
 import qualified Data.Map as M
@@ -135,3 +135,6 @@ giveUnmatched :: forall c a. Pretty a => Doc -> a -> c
 giveUnmatched msg t = error . show . vcat $ ["Unmatched give" <+> msg
                                             , pretty . show $ t
                                             , pretty t]
+
+runGenerate :: Generate a => St -> IO a
+runGenerate st = generate $ evalStateT (give GNone) st

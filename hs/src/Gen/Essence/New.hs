@@ -10,14 +10,12 @@ import Gen.AST.Imports
 import Gen.Essence.St
 import Gen.Helpers.Placeholders       (notDone)
 import System.Random                  (Random)
-import Test.QuickCheck                (generate, choose)
+import Test.QuickCheck                (choose)
 import Gen.Helpers.SizeOf
 
 import qualified Data.Map as M
 
 
--- TODO Need a check if there is an op that matches the requested type
--- which can be generated in the available depth
 instance Generate Expr where
   give g  = do
     let defs =
@@ -132,7 +130,6 @@ instance (Generate a, WrapConstant a) => Generate (Domain () a) where
   -- give (GType (TEnum ty))      = _x
   -- give (GType TAny)            = _x
 
-
   give t = giveUnmatched "Generate (Domain () a)" t
 
   possiblePure _ _ _ = True
@@ -219,9 +216,6 @@ instance Generate Spec where
   possiblePure _ _ _ = True
 
 
-runGenerate :: Generate a => St -> IO a
-runGenerate st = generate $ evalStateT (give GNone) st
-
 
 
 -- Will be auto genrated
@@ -234,8 +228,6 @@ allOps con =
       ( possible (error "getId" :: OpEq a ),  (getId (error "getId" :: OpEq a),   MkOpEq  <$> give con))
     , ( possible (error "getId" :: OpGeq a ), (getId (error "getId" :: OpGeq a),  MkOpGeq <$> give con))
     ]
-
-
 
 -- To Move
 
