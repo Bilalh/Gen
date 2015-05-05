@@ -30,13 +30,15 @@ instance Generate Expr where
         0 -> return [ ("ECon",  ECon <$> give g) ]
         _ -> return [ ("ECon",  ECon <$> give g)
                     , ("EOp",   EOp  <$> give g)
-                    , ("ELit",  ELit <$> give g)
+                    , ("ELit",  wrapLiteral <$> give g)
                     ]
 
       parts <- getWeights defs
       frequency3 parts
 
-
+-- Put a Typed around empty lits e.g a empty set
+wrapLiteral ::  AbstractLiteral Expr -> Expr
+wrapLiteral a = ELit a
 
 instance Generate Constant where
   give GNone = do
