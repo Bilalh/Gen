@@ -2,19 +2,16 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Gen.Essence.New where
 
-import Conjure.Bug
 import Conjure.Language.Definition
 import Conjure.Language.Domain
 import Conjure.Language.Expression.Op
-import Conjure.Language.Pretty
 import Conjure.Prelude
-import Data.Map                       (Map)
 import Gen.AST.Imports
 import Gen.AST.TH
 import Gen.Essence.St
 import Gen.Helpers.Placeholders       (notDone)
 import System.Random                  (Random)
-import Test.QuickCheck                hiding (give)
+import Test.QuickCheck                (generate, choose)
 
 
 instance Generate Expr where
@@ -22,7 +19,7 @@ instance Generate Expr where
       defs <- gets depth >>= \case
         0 -> return [ ("ECon",  ECon <$> give g) ]
         _ -> return [ ("ECon",  ECon <$> give g)
-                    -- , ("EOp",   EOp  <$> give g)
+                    , ("EOp",   EOp  <$> give g)
                     ]
 
       parts <- getWeights defs
@@ -31,13 +28,14 @@ instance Generate Expr where
   give g = do
       defs <- gets depth >>= \case
         0 -> return [ ("ECon",  ECon <$> give g) ]
-        _ -> return [ -- ("ECon",  ECon <$> give g)
-                    -- , ("EOp",   EOp  <$> give g)
-                    ("ELit",  ELit <$> give g)
+        _ -> return [ ("ECon",  ECon <$> give g)
+                    , ("EOp",   EOp  <$> give g)
+                    , ("ELit",  ELit <$> give g)
                     ]
 
       parts <- getWeights defs
       frequency3 parts
+
 
 
 instance Generate Constant where
@@ -48,6 +46,8 @@ instance Generate Constant where
   give (GType TInt)      = pure ConstantInt      <*> choose3 (0,5)
   give (GType TBool)     = pure ConstantBool     <*> choose3 (True,False)
   give (GType ty@TSet{}) = pure ConstantAbstract <*> give (GType ty)
+
+  give t = giveUnmatched "Generate Constant" t
 
 
 instance Generate a => Generate (AbstractLiteral a) where
@@ -70,12 +70,14 @@ instance Generate a => Generate (Op a) where
 
 
 instance Generate a => Generate (OpGeq a) where
-    give GNone = give (GType TBool)
+  give GNone = give (GType TBool)
 
-    give (GType TBool) = do
-      -- ty <- pure GType <*> give GNone
-      ty <- pure (GType TInt)
-      pure OpGeq <*> (give ty) <*> (give ty)
+  give (GType TBool) = do
+    -- ty <- pure GType <*> give GNone
+    ty <- pure (GType TInt)
+    pure OpGeq <*> (give ty) <*> (give ty)
+
+  give t = giveUnmatched "Generate (OpGeq a)" t
 
 
 instance (Generate a, WrapConstant a) => Generate (Domain () a) where
@@ -97,52 +99,59 @@ instance (Generate a, WrapConstant a) => Generate (Domain () a) where
   -- give (GType TAny)            = _x
 
 
+  give t = giveUnmatched "Generate (Domain () a)" t
+
+
 instance (Generate a, WrapConstant a) => Generate (Range a) where
-    give GNone = do
-        parts <- getWeights [("RangeSingle", single),("RangeBounded", bounded) ]
-        frequency3 parts
+  give GNone = do
+      parts <- getWeights [("RangeSingle", single),("RangeBounded", bounded) ]
+      frequency3 parts
 
-      where
-        single  = do
-          a <- choose3 (0,5 :: Integer)
-          return $ RangeSingle (wrapConstant . ConstantInt $ a)
-        bounded = do
-          a <- choose3 (0,5 :: Integer)
-          b <- choose3 (a,5)
-          return $ RangeBounded (wrapConstant . ConstantInt $ a)
-                                (wrapConstant . ConstantInt $ b)
+    where
+      single  = do
+        a <- choose3 (0,5 :: Integer)
+        return $ RangeSingle (wrapConstant . ConstantInt $ a)
+      bounded = do
+        a <- choose3 (0,5 :: Integer)
+        b <- choose3 (a,5)
+        return $ RangeBounded (wrapConstant . ConstantInt $ a)
+                              (wrapConstant . ConstantInt $ b)
 
+  give t = giveUnmatched "Generate (Range a)" t
 
 instance Generate TType where
-    give GNone = do
-      defs <- gets depth >>= \d ->
-         if | d < 0     -> error $ "Generate TType invaild Depth: " ++ show d
-            | d == 0    -> return [ ("TInt",  pure TInt)
-                                  , ("TBool", pure TBool) ]
-            | otherwise -> return [
-                             ("TInt",  pure TInt)
-                           , ("TBool", pure TBool)
-                           , ("TSet",   liftM TSet   (withDepthDec (give GNone) ))
-                           -- , ("TMatix", liftM TMatix (withDepthDec (give GNone) ))
-                           -- , ("TMSet",  liftM TMSet  (withDepthDec (give GNone) ))
-                           -- , ("TPar",   liftM TPar   (withDepthDec (give GNone) ))
-                           ]
+  give GNone = do
+    defs <- gets depth >>= \d ->
+       if | d < 0     -> error $ "Generate TType invaild Depth: " ++ show d
+          | d == 0    -> return [ ("TBool", pure TBool)
+                                -- , ("TInt",  pure TInt)
+                                ]
+          | otherwise -> return [
+                           ("TBool", pure TBool)
+                         -- , ("TInt",  pure TInt)
+                         , ("TSet",   liftM TSet   (withDepthDec (give GNone) ))
+                         -- , ("TMatix", liftM TMatix (withDepthDec (give GNone) ))
+                         -- , ("TMSet",  liftM TMSet  (withDepthDec (give GNone) ))
+                         -- , ("TPar",   liftM TPar   (withDepthDec (give GNone) ))
+                         ]
 
-      parts <- getWeights defs
-      frequency3 parts
+    parts <- getWeights defs
+    frequency3 parts
 
-    give GOnlyLiteralTypes = do
-      defs <- gets depth >>= \d ->
-         if | d <= 0     -> error $ "Generate TType(literal) invaild Depth: " ++ show d
-            | otherwise -> return [
-                             ("TSet",   liftM TSet   (withDepthDec (give GNone) ))
-                           -- , ("TMatix", liftM TMatix (withDepthDec (give GNone) ))
-                           -- , ("TMSet",  liftM TMSet  (withDepthDec (give GNone) ))
-                           -- , ("TPar",   liftM TPar   (withDepthDec (give GNone) ))
-                           ]
+  give GOnlyLiteralTypes = do
+    defs <- gets depth >>= \d ->
+       if | d <= 0     -> error $ "Generate TType(literal) invaild Depth: " ++ show d
+          | otherwise -> return [
+                           ("TSet",   liftM TSet   (withDepthDec (give GNone) ))
+                         -- , ("TMatix", liftM TMatix (withDepthDec (give GNone) ))
+                         -- , ("TMSet",  liftM TMSet  (withDepthDec (give GNone) ))
+                         -- , ("TPar",   liftM TPar   (withDepthDec (give GNone) ))
+                         ]
 
-      parts <- getWeights defs
-      frequency3 parts
+    parts <- getWeights defs
+    frequency3 parts
+
+  give t = giveUnmatched "Generate (TType)" t
 
 
 
