@@ -14,6 +14,8 @@ import System.Random                  (Random)
 import Test.QuickCheck                (generate, choose)
 
 
+import qualified Data.Map as M
+
 instance Generate Expr where
   give g@(GType ty) | ty == TBool || ty == TInt = do
       defs <- gets depth >>= \case
@@ -75,11 +77,21 @@ instance Generate a => Generate (OpGeq a) where
   give GNone = give (GType TBool)
 
   give (GType TBool) = do
-    -- ty <- pure GType <*> give GNone
     ty <- pure (GType TInt)
-    pure OpGeq <*> (give ty) <*> (give ty)
+    pure OpGeq <*> give ty <*> (give ty)
 
   give t = giveUnmatched "Generate (OpGeq a)" t
+
+
+instance Generate a => Generate (OpEq a) where
+  give GNone = give (GType TBool)
+
+  give (GType TBool) = do
+    ty <- GType <$> give GNone
+    pure OpEq <*> give ty <*> give ty
+
+  give t = giveUnmatched "Generate (OpEq a)" t
+
 
 
 instance (Generate a, WrapConstant a) => Generate (Domain () a) where
@@ -126,11 +138,11 @@ instance Generate TType where
     defs <- gets depth >>= \d ->
        if | d < 0     -> error $ "Generate TType invaild Depth: " ++ show d
           | d == 0    -> return [ ("TBool", pure TBool)
-                                -- , ("TInt",  pure TInt)
+                                , ("TInt",  pure TInt)
                                 ]
           | otherwise -> return [
                            ("TBool", pure TBool)
-                         -- , ("TInt",  pure TInt)
+                         , ("TInt",  pure TInt)
                          , ("TSet",   liftM TSet   (withDepthDec (give GNone) ))
                          -- , ("TMatix", liftM TMatix (withDepthDec (give GNone) ))
                          -- , ("TMSet",  liftM TMSet  (withDepthDec (give GNone) ))
@@ -156,9 +168,29 @@ instance Generate TType where
   give t = giveUnmatched "Generate (TType)" t
 
 
+instance Generate Spec where
+  give GNone = do
+    depth <- gets depth
+    let domsCount = (1, min ((depth+1)*2) 7)
+    let exprCount = (0, min ((depth+1)*2) 7)
+    i_d <- choose3 domsCount
+    i_e <- choose3 exprCount
+
+    doms <- mapM (\_ -> give GNone) [1..i_d]
+    let withNames =  zipWith (\d i -> (name i , Findd d)) doms [1 :: Int ..]
+    let mappings  = M.fromList withNames
+
+    exprs <- mapM (\_ -> give (GType TBool) ) [0..i_e]
+
+    return $ Spec mappings exprs Nothing
+
+    where name i =  stringToText $  "var" ++  (show  i)
+
 
 runGenerate :: Generate a => St -> IO a
 runGenerate st = generate $ evalStateT (give GNone) st
+
+
 
 -- Will be auto genrated
 allOps :: forall a . Generate a
@@ -166,7 +198,8 @@ allOps :: forall a . Generate a
        -> [(Key, GenSt (Op a)) ]
 allOps con =
     [
-      (getId (error "getId" :: OpGeq a ), MkOpGeq <$> give con)
+      (getId (error "getId" :: OpEq a ),  MkOpEq <$> give con)
+    -- , (getId (error "getId" :: OpGeq a ), MkOpGeq <$> give con)
     ]
 
 
