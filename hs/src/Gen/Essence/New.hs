@@ -1,7 +1,9 @@
 {-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, ParallelListComp#-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 module Gen.Essence.New where
 
 import Conjure.Bug
+import Conjure.Language.Pretty
 import Conjure.Language.Definition
 import Conjure.Language.Domain
 import Conjure.Language.Expression.Op
@@ -16,15 +18,15 @@ import Test.QuickCheck                hiding (give)
 
 
 instance Generate Expr where
--- --TODO how would I get this to generate Op Constant?
   give g = do
       defs <- gets depth >>= \case
-        0 -> return [ ("ECon", ECon <$> give g) ]
-        _ -> return [ ("ECon", ECon <$> give g)
-                    , ("EOp",  EOp  <$> give g)
+        0 -> return [ ("ECon",  ECon <$> give g) ]
+        _ -> return [ -- ("ECon",  ECon <$> give g)
+                    -- , ("EOp",   EOp  <$> give g)
+                    ("ELit",  ELit <$> give g)
                     ]
 
-      parts <- withWeights defs
+      parts <- getWeights defs
       frequency3 parts
 
 
@@ -40,18 +42,20 @@ instance Generate Constant where
 
 instance Generate a => Generate (AbstractLiteral a) where
   give GNone = do
-      ty <- give GNone
+      ty <- give GOnlyLiteralTypes
       give (GType ty)
 
   give (GType (TSet ty)) = do
       es <- vectorOf3 2 (give (GType ty))
       return $ AbsLitSet es
 
+  give t = giveUnmatched "Generate (AbstractLiteral a)" t
+
 
 -- Need to know the possible return types for each op
 instance Generate a => Generate (Op a) where
   give a = do
-      ops <- withWeights (allOps a)
+      ops <- getWeights (allOps a)
       withDepthDec $ frequency3 ops
 
 
@@ -85,7 +89,7 @@ instance (Generate a, WrapConstant a) => Generate (Domain () a) where
 
 instance (Generate a, WrapConstant a) => Generate (Range a) where
     give GNone = do
-        parts <- withWeights [("RangeSingle", single),("RangeBounded", bounded) ]
+        parts <- getWeights [("RangeSingle", single),("RangeBounded", bounded) ]
         frequency3 parts
 
       where
@@ -100,11 +104,26 @@ instance (Generate a, WrapConstant a) => Generate (Range a) where
 
 
 instance Generate TType where
-  give GNone = do
+    give GNone = do
       defs <- gets depth >>= \d ->
-         if | d < 0     -> error "invaild Depth"
+         if | d < 0     -> error $ "Generate TType invaild Depth: " ++ show d
             | d == 0    -> return [ ("TInt",  pure TInt)
                                   , ("TBool", pure TBool) ]
+            | otherwise -> return [
+                             ("TInt",  pure TInt)
+                           , ("TBool", pure TBool)
+                           , ("TSet",   liftM TSet   (withDepthDec (give GNone) ))
+                           , ("TMatix", liftM TMatix (withDepthDec (give GNone) ))
+                           -- , ("TMSet",  liftM TMSet  (withDepthDec (give GNone) ))
+                           -- , ("TPar",   liftM TPar   (withDepthDec (give GNone) ))
+                           ]
+
+      parts <- getWeights defs
+      frequency3 parts
+
+    give GOnlyLiteralTypes = do
+      defs <- gets depth >>= \d ->
+         if | d <= 0     -> error $ "Generate TType(literal) invaild Depth: " ++ show d
             | otherwise -> return [
                              ("TSet",   liftM TSet   (withDepthDec (give GNone) ))
                            -- , ("TMatix", liftM TMatix (withDepthDec (give GNone) ))
@@ -112,27 +131,13 @@ instance Generate TType where
                            -- , ("TPar",   liftM TPar   (withDepthDec (give GNone) ))
                            ]
 
-      parts <- withWeights defs
+      parts <- getWeights defs
       frequency3 parts
 
 
 
 runGenerate :: Generate a => St -> IO a
 runGenerate st = generate $ evalStateT (give GNone) st
-
-withWeights :: MonadState St m => [(Key,a) ] -> m [(Int, a)]
-withWeights vs= do
-  weights <- mapM (\(x,_) -> weightingForKey x  ) vs
-  return [ (w,p) | (_,p) <- vs
-                 | w <- weights  ]
-
-withDepthDec :: GenSt a -> GenSt a
-withDepthDec f = do
-    oldDepth <- gets depth
-    modify $ \st -> st{ depth = oldDepth - 1 }
-    res <- f
-    modify $ \st -> st{ depth = oldDepth }
-    return res
 
 -- Will be auto genrated
 allOps :: forall a . Generate a
@@ -158,7 +163,7 @@ frequency3 xs0 =  choose3 (1, tot) >>= (`pick` xs0)
     | otherwise = pick (n-k) xs
   pick _ _  = error "frequency3.pick used with empty list"
 
--- choose3 :: Random a => (a,a) -> GenSt a
+choose3 :: Random a => (a,a) -> GenSt a
 choose3 rng = lift $ choose rng
 
 vectorOf3 :: Int -> GenSt a -> GenSt [a]

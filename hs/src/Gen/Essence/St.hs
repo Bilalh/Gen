@@ -1,17 +1,19 @@
-{-# LANGUAGE DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveGeneric #-}
+{-# LANGUAGE DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveGeneric,
+             ParallelListComp #-}
 
 module Gen.Essence.St where
 
-import Conjure.Language.Definition (Constant,Expression(..))
+import Conjure.Language.Definition (Constant, Expression (..))
 import Conjure.Prelude
 import Data.Data                   hiding (Proxy)
 import Data.Map                    (Map)
 import Gen.AST.Imports
 import Gen.Helpers.Placeholders    (neverNote)
 import Test.QuickCheck             (Gen)
+import Conjure.Language.Pretty
 
 import qualified Data.Map as M
-
+import qualified Text.PrettyPrint as Pr
 
 class Data a => Generate a where
   give  :: GenerateConstraint -> GenSt a
@@ -32,7 +34,12 @@ type GenSt a = StateT St Gen a
 type Key = String
 data GenerateConstraint = GNone
                         | GType TType -- The resulting type
+                        | GOnlyLiteralTypes -- for literals
  deriving (Eq, Ord, Show, Data, Typeable, Generic)
+
+instance Pretty GenerateConstraint where
+    pretty (GType x) = "GType" <+> pretty x
+    pretty t = pretty . show $ t
 
 
 -- To allow a Constant Range, or Expr Range for eaxmple
@@ -62,10 +69,37 @@ instance Default St where
           }
 
 
-
 weightingForKey :: MonadState St m => Key -> m Int
 weightingForKey key = do
     gets weighting >>= \kv ->
         case key `M.lookup` kv  of
           Nothing  -> return 100
           (Just x) -> return x
+
+withWeights :: [(Key, Int)] ->  GenSt a -> GenSt a
+withWeights vs f = do
+    old <- gets weighting
+    let new = (M.fromList vs) `M.union` old
+    modify $ \st -> st{ weighting = new }
+    res <- f
+    modify $ \st -> st{ weighting = old }
+    return res
+
+getWeights :: MonadState St m => [(Key,a) ] -> m [(Int, a)]
+getWeights vs= do
+  weights <- mapM (\(x,_) -> weightingForKey x  ) vs
+  return [ (w,p) | (_,p) <- vs
+                 | w <- weights  ]
+
+withDepthDec :: GenSt a -> GenSt a
+withDepthDec f = do
+    oldDepth <- gets depth
+    modify $ \st -> st{ depth = oldDepth - 1 }
+    res <- f
+    modify $ \st -> st{ depth = oldDepth }
+    return res
+
+giveUnmatched :: forall c a. Pretty a => Doc -> a -> c
+giveUnmatched msg t = error . show . vcat $ ["Unmatched give" <+> msg
+                                            , pretty . show $ t
+                                            , pretty t]
