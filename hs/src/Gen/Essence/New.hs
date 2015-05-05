@@ -1,12 +1,12 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, ParallelListComp#-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, ParallelListComp #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Gen.Essence.New where
 
 import Conjure.Bug
-import Conjure.Language.Pretty
 import Conjure.Language.Definition
 import Conjure.Language.Domain
 import Conjure.Language.Expression.Op
+import Conjure.Language.Pretty
 import Conjure.Prelude
 import Data.Map                       (Map)
 import Gen.AST.Imports
@@ -18,6 +18,16 @@ import Test.QuickCheck                hiding (give)
 
 
 instance Generate Expr where
+  give g@(GType ty) | ty == TBool || ty == TInt = do
+      defs <- gets depth >>= \case
+        0 -> return [ ("ECon",  ECon <$> give g) ]
+        _ -> return [ ("ECon",  ECon <$> give g)
+                    -- , ("EOp",   EOp  <$> give g)
+                    ]
+
+      parts <- getWeights defs
+      frequency3 parts
+
   give g = do
       defs <- gets depth >>= \case
         0 -> return [ ("ECon",  ECon <$> give g) ]
@@ -113,7 +123,7 @@ instance Generate TType where
                              ("TInt",  pure TInt)
                            , ("TBool", pure TBool)
                            , ("TSet",   liftM TSet   (withDepthDec (give GNone) ))
-                           , ("TMatix", liftM TMatix (withDepthDec (give GNone) ))
+                           -- , ("TMatix", liftM TMatix (withDepthDec (give GNone) ))
                            -- , ("TMSet",  liftM TMSet  (withDepthDec (give GNone) ))
                            -- , ("TPar",   liftM TPar   (withDepthDec (give GNone) ))
                            ]
