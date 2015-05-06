@@ -28,11 +28,12 @@ main = do
     let outText m = unlines $ concat
             [ [ "{-# OPTIONS_GHC -fno-warn-orphans #-}"
               , ""
-              , "module Gen.Essence.Op.Internal.Generated where"
+              , "module Gen.Essence.Op." ++ m ++ " where"
               , ""
               , "import Conjure.Language.Expression.Op"
               , "import Gen.Essence.St"
               , "import Gen.Helpers.StandardImports"
+              , ""
               , ""
               ]
 
