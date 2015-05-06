@@ -1,23 +1,19 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Gen.Essence.Spec where
 
-import Conjure.Language.Definition
-import Conjure.Language.Domain
-import Conjure.Language.Expression.Op
-import Gen.Essence.St
-import Gen.Helpers.SizeOf
-import Gen.Helpers.StandardImports
-import Gen.Helpers.TypeOf
+import Gen.Essence.Constant           ()
+import Gen.Essence.Domain             ()
+import Gen.Essence.Expr               ()
+import Gen.Essence.Literal            ()
+import Gen.Essence.Op                 ()
+import Gen.Essence.Range              ()
 import Gen.Essence.Rnd
-import Gen.Essence.Type()
-import Gen.Essence.Op()
-import Gen.Essence.Range()
-import Gen.Essence.Literal()
-import Gen.Essence.Constant()
-import Gen.Essence.Domain()
-import Gen.Essence.Expr()
+import Gen.Essence.St
+import Gen.Essence.Type               ()
+import Gen.Helpers.StandardImports
 
-import qualified Data.Map      as M
+import qualified Data.Map as M
+
 
 instance Generate Spec where
   give GNone = do
@@ -38,3 +34,5 @@ instance Generate Spec where
     where name i =  stringToText $  "var" ++  (show  i)
 
   give t = giveUnmatched "Generate (Spec)" t
+
+  possiblePure _ _ _ = True

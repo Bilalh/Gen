@@ -1,13 +1,14 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Gen.Essence.Constant where
 
-import Gen.Essence.St
-import Gen.Helpers.StandardImports
-import Gen.Essence.Rnd
-import Gen.Essence.Type()
 import Conjure.Language.Definition
+import Gen.Essence.Literal         ()
+import Gen.Essence.Rnd
+import Gen.Essence.St
+import Gen.Essence.Type            ()
 import Gen.Helpers.SizeOf
-import Gen.Essence.Literal()
+import Gen.Helpers.StandardImports
+
 
 instance Generate Constant where
   give GNone = do

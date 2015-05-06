@@ -2,23 +2,19 @@
 module Gen.Essence.Expr where
 
 import Conjure.Language.Definition
-import Conjure.Language.Domain
 import Conjure.Language.Expression.Op
+import Gen.Essence.Constant           ()
+import Gen.Essence.Literal            ()
+import Gen.Essence.Op                 ()
+import Gen.Essence.Range              ()
+import Gen.Essence.Rnd
 import Gen.Essence.St
-import Gen.Helpers.SizeOf
+import Gen.Essence.Type               ()
 import Gen.Helpers.StandardImports
 import Gen.Helpers.TypeOf
-import Gen.Essence.Rnd
-import Gen.Essence.Type()
-import Gen.Essence.Op()
-import Gen.Essence.Range()
-import Gen.Essence.Literal()
-import Gen.Essence.Constant()
 
 import qualified Data.Foldable as F
 import qualified Data.Map      as M
-
-
 
 
 instance Generate Expr where

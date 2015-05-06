@@ -8,6 +8,7 @@ import Gen.Essence.St
 import Gen.Helpers.SizeOf
 import Gen.Helpers.StandardImports
 
+
 instance Generate a => Generate (Op a) where
   give a = do
       ops <- getPossibilities a (allOps a)

@@ -1,11 +1,11 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Gen.Essence.Range where
 
-import Gen.Essence.St
-import Gen.Helpers.StandardImports
-import Gen.Essence.Rnd
 import Conjure.Language.Definition
 import Conjure.Language.Domain
+import Gen.Essence.Rnd
+import Gen.Essence.St
+import Gen.Helpers.StandardImports
 
 
 instance (Generate a, WrapConstant a) => Generate (Range a) where

@@ -40,10 +40,21 @@ Library
                      , Gen.Classify.Meta
                      , Gen.Classify.Sorter
                      , Gen.Classify.UpdateChoices
+                     , Gen.Essence.Constant
                      , Gen.Essence.Data
+                     , Gen.Essence.Domain
+                     , Gen.Essence.Expr
                      , Gen.Essence.Generate
-                     , Gen.Essence.New
+                     , Gen.Essence.Literal
+                     , Gen.Essence.Op.Eq
+                     , Gen.Essence.Op.Geq
+                     , Gen.Essence.Op.Internal.Generated
+                     , Gen.Essence.Op
+                     , Gen.Essence.Range
+                     , Gen.Essence.Rnd
+                     , Gen.Essence.Spec
                      , Gen.Essence.St
+                     , Gen.Essence.Type
                      , Gen.Generalise.Data
                      , Gen.Generalise.Generalise
                      , Gen.Generalise.Runner

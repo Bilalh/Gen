@@ -1,15 +1,13 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Gen.Essence.Domain where
 
-import Gen.Essence.St
-import Gen.Helpers.StandardImports
-import Gen.Essence.Rnd
-import Gen.Essence.Type()
-import Gen.Essence.Range()
-import Conjure.Language.Definition
 import Conjure.Language.Domain
-import Gen.Helpers.SizeOf
-import Gen.Essence.Literal()
+import Gen.Essence.Literal         ()
+import Gen.Essence.Range           ()
+import Gen.Essence.Rnd
+import Gen.Essence.St
+import Gen.Essence.Type            ()
+import Gen.Helpers.StandardImports
 
 instance (Generate a, WrapConstant a) => Generate (Domain () a) where
   give GNone = do

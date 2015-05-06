@@ -1,12 +1,13 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Gen.Essence.Literal where
 
-import Gen.Essence.St
-import Gen.Helpers.StandardImports
-import Gen.Essence.Rnd
-import Gen.Essence.Type()
 import Conjure.Language.Definition
+import Gen.Essence.Rnd
+import Gen.Essence.St
+import Gen.Essence.Type            ()
 import Gen.Helpers.SizeOf
+import Gen.Helpers.StandardImports
+
 
 instance Generate a => Generate (AbstractLiteral a) where
   give GNone = do

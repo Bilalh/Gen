@@ -20,6 +20,7 @@ import qualified Gen.Essence.Data        as EC
 import qualified Gen.IO.Toolchain        as Toolchain
 import qualified Data.IntSet             as I
 
+
 generateEssence :: EssenceConfig -> IO ()
 generateEssence ec@EC.EssenceConfig{..} = do
   setRandomSeed seed_

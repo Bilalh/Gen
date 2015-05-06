@@ -1,16 +1,15 @@
 {-# LANGUAGE DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveGeneric,
              ParallelListComp #-}
-
 module Gen.Essence.St where
 
 import Conjure.Language.Definition (Constant, Expression (..))
+import Conjure.Language.Pretty
 import Conjure.Prelude
 import Data.Data                   hiding (Proxy)
 import Data.Map                    (Map)
 import Gen.AST.Imports
 import Gen.Helpers.Placeholders    (neverNote)
 import Test.QuickCheck             (Gen, generate)
-import Conjure.Language.Pretty
 
 import qualified Data.Map as M
 
