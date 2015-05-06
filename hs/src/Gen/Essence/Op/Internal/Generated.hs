@@ -7,6 +7,7 @@ import Gen.Helpers.StandardImports
 
 import Gen.Essence.Op.Eq()
 import Gen.Essence.Op.Geq()
+import Gen.Essence.Op.Leq()
 
 
 allOps :: forall m a
@@ -17,5 +18,6 @@ allOps con =
   [
  (possible (Proxy :: Proxy (OpEq a))               , (getId (Proxy :: Proxy (OpEq a))               , MkOpEq              <$> give con ))
   , (possible (Proxy :: Proxy (OpGeq a))              , (getId (Proxy :: Proxy (OpGeq a))              , MkOpGeq             <$> give con ))
+  , (possible (Proxy :: Proxy (OpLeq a))              , (getId (Proxy :: Proxy (OpLeq a))              , MkOpLeq             <$> give con ))
 
   ]

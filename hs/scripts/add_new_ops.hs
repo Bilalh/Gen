@@ -28,7 +28,7 @@ skip = S.fromList [ "AttributeAsConstraint"
                   ]
 
 only :: S.Set String
-only = S.fromList [ "Geq", "Eq"]
+only = S.fromList [ "Geq", "Eq", "Leq"]
 
 main :: IO ()
 main = do
@@ -50,11 +50,15 @@ main = do
               , "module Gen.Essence.Op." ++ m ++ " where"
               , ""
               , "import Conjure.Language.Expression.Op"
+              , "import Gen.Essence.Rnd"
               , "import Gen.Essence.St"
+              , "import Gen.Essence.Type               ()"
+              , "import Gen.Helpers.SizeOf"
               , "import Gen.Helpers.StandardImports"
               , ""
               , ""
               ]
+
 
             , [ "instance Generate a => Generate (" ++ opName m ++ " a) where"
               , "  give GNone = do"
