@@ -28,7 +28,7 @@ skip = S.fromList [ "AttributeAsConstraint"
                   ]
 
 only :: S.Set String
-only = S.fromList [ "Geq", "Eq", "Leq"]
+only = S.fromList [ "Geq", "Eq", "Leq", "Union"]
 
 main :: IO ()
 main = do
@@ -66,13 +66,23 @@ main = do
               , "    ty <- $notDone"
               , "    give (GType ty)"
               , ""
+              , "  -- When all return types are allowed "
+              , "  -- give GNone = give GNone >>= \\ty -> give (GType ty)"
+              , ""
               , "  give (GType ty) = $notDone"
               , ""
               , "  give t = giveUnmatched \"Generate " ++ opName m ++ "\" t"
               , ""
               , "  -- Returns True if this op can be used with the specified return type"
-              , "  -- and the remaing depth. This Op is counted in the depth calculation"
-              , "  possible _ ty = $notDone"
+              , "  -- and the remaing depth. This Op is counted in the depth calculation."
+              , "  -- Implement either possible or possiblePure:"
+              , "  -- possiblePure is when the result only depends on the depth and the return type."
+              , "  -- possible has access to the GenSt monad"
+              , ""
+              , "  -- possible _ ty = $notDone"
+              , ""
+              , "  -- possiblePure _ ty _ | ty /= TypeBool = False"
+              , "  -- possiblePure _ ty d = depthOf ty + 1 <= (fromIntegral d)"
               ]
             ]
 

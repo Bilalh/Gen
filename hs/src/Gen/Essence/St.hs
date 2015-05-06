@@ -6,21 +6,26 @@ import Conjure.Language.Definition (Constant, Expression (..))
 import Data.Data                   hiding (Proxy)
 import Data.Map                    (Map)
 import Gen.Helpers.StandardImports
-import Test.QuickCheck             (Gen, generate)
 
 import qualified Data.Map as M
 
 
 class Data a => Generate a where
+  {-# MINIMAL give, possible | give, possiblePure  #-}
+
+  -- | Return a random value of type a subject to the constraints
   give  :: GenerateConstraint -> GenSt a
 
+  -- | Returns True if this op can be used with the specified return type
   possible :: (Applicative m, MonadState St m) => Proxy a -> Type -> m Bool
   possible a ty = do
       d <- gets depth
       return $ possiblePure a ty d
-  possiblePure :: Proxy  a ->Type -> Depth -> Bool
+
+  -- | Convenience for a pure implementation, Never call this method
+  possiblePure :: Proxy  a -> Type -> Depth -> Bool
   possiblePure = error "no default possiblePure"
-  {-# MINIMAL give, possible | give, possiblePure  #-}
+
 
   getId ::  Proxy a -> Key
   getId = dataTypeName . dataTypeOf . asProxyTypeOf (error "getID" :: a)
