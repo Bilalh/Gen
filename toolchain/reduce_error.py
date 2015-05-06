@@ -69,13 +69,13 @@ def process(status, kind,refinement, name, vals,refine_times,cmd_str,is_last):
             out_dir = Path(args.output) / "all"
 
         cpu_used = vals['cpu_time']
-        spec_time = min( max(cpu_used * 1.5, 10), spec_time)
+        spec_time = min( max(cpu_used * 2, 20), spec_time)
 
     else:
         cmd_str += " --choices {}".format( (essence_dir / name).with_suffix('.eprime')  )
         out_dir = Path(args.output) / name
         cpu_used = refine_times[name] + vals['total_cpu_time']
-        spec_time = min( max(cpu_used * 1.5, 10), spec_time)
+        spec_time = min( max(cpu_used * 2, 20), spec_time)
 
     spec_time=int(spec_time)
     cmd_str = cmd_str.format(essence_dir=essence_dir, kind=kind, status=status,
