@@ -8,7 +8,7 @@ clean:
 	@bash scripts/clean.sh
 
 add_ops:
-	runhaskell scripts/add_new_ops.hs "${CONJURE_LIB}/src/Conjure/Language/Expression/Op/" \
+	runhaskell scripts/add_new_ops.hs "${CONJURE_LIB}/src/Conjure/Language/Expression/Op/" ${OPS} \
 	&& runhaskell scripts/add_ops_metadata.hs
 
 

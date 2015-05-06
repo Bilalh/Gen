@@ -12,7 +12,7 @@ import Text.Printf
 import qualified Data.Set as S
 
 usage :: String
-usage = "runhaskell scripts/add_new_ops.hs $CONJURE_LIB/src/Conjure/Language/Expression/Op/"
+usage = "runhaskell scripts/add_new_ops.hs $CONJURE_LIB/src/Conjure/Language/Expression/Op/  [<Ops to use>+]"
 
 skip :: S.Set String
 skip = S.fromList [ "AttributeAsConstraint"
@@ -27,22 +27,23 @@ skip = S.fromList [ "AttributeAsConstraint"
                   , "True"
                   ]
 
-only :: S.Set String
-only = S.fromList [ "Geq", "Eq", "Leq", "Union"]
-
 main :: IO ()
 main = do
-    opDir <- getArgs >>= \case
-               [x] -> return x
-               _ -> error $ "Usage:\n" ++ usage
+    (opDir, only) <- getArgs >>= \case
+               []  -> error $ "Usage:\n" ++ usage
+               [x] -> return (x,[])
+               (x:xs) -> return (x,xs)
+
 
     let outDir  = "src/Gen/Essence/Op"
     createDirectoryIfMissing True outDir
     operators_ <- sort . map (head . splitOn '.')
                        . filter (".hs" `isSuffixOf`)
                       <$> getDirectoryContents opDir
-    -- let operators = S.toList  $ (S.fromList operators_ ) `S.difference` skip
-    let operators = S.toList  $ (S.fromList operators_ ) `S.intersection` only
+    let operators =
+          case only of
+            [] -> S.toList  $ (S.fromList operators_ ) `S.difference` skip
+            xs -> S.toList  $ (S.fromList operators_ ) `S.intersection` (S.fromList xs)
 
     let opName m = "Op" ++ m
     let outText m = unlines $ concat
