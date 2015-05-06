@@ -14,21 +14,22 @@ import Conjure.Language.Pretty
 
 import qualified Data.Map as M
 
+
 class Data a => Generate a where
   give  :: GenerateConstraint -> GenSt a
 
-  possible :: (Applicative m, MonadState St m) => a -> TType -> m Bool
+  possible :: (Applicative m, MonadState St m) => Proxy a -> TType -> m Bool
   possible a ty = do
       d <- gets depth
       return $ possiblePure a ty d
-  possiblePure :: a -> TType -> Depth -> Bool
+  possiblePure :: Proxy  a -> TType -> Depth -> Bool
   possiblePure = error "no default possiblePure"
   {-# MINIMAL give, possible | give, possiblePure  #-}
 
-  getId ::  a -> Key
-  getId  = dataTypeName . dataTypeOf
+  getId ::  Proxy a -> Key
+  getId = dataTypeName . dataTypeOf . asProxyTypeOf (error "getID" :: a)
 
-  getWeighting :: MonadState St m => a -> m Int
+  getWeighting :: MonadState St m => Proxy a -> m Int
   getWeighting a = do
       let key = getId a
       gets weighting >>= \kv ->
@@ -145,3 +146,7 @@ giveUnmatched msg t = error . show . vcat $ ["Unmatched give" <+> msg
 
 runGenerate :: Generate a => St -> IO a
 runGenerate st = generate $ evalStateT (give GNone) st
+
+asProxyTypeOf :: a -> Proxy a -> a
+asProxyTypeOf = const
+{-# INLINE asProxyTypeOf #-}

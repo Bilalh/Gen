@@ -19,10 +19,10 @@ import qualified Data.Map      as M
 instance Generate Expr where
   give g  = do
     let defs =
-          [ (possible (error "" :: Constant), ("ECon",  ECon <$> give g))
-          , (possible (error "" :: Var),      ("EVar",  EVar  <$> give g))
-          , (possible (error "" :: Op Expr),  ("EOp",   EOp  <$> give g))
-          , (possible (error "" :: AbstractLiteral Expr), ("ELit",  wrapLiteral <$> give g))
+          [ (possible (Proxy :: Proxy Constant), ("ECon",  ECon <$> give g))
+          , (possible (Proxy :: Proxy  Var),      ("EVar",  EVar  <$> give g))
+          , (possible (Proxy :: Proxy (Op Expr)),  ("EOp",   EOp  <$> give g))
+          , (possible (Proxy :: Proxy (AbstractLiteral Expr)), ("ELit",  wrapLiteral <$> give g))
           ]
 
     parts <- getPossibilities g defs
@@ -241,8 +241,6 @@ instance Generate Spec where
   possiblePure _ _ _ = True
 
 
-
-
 -- Will be auto genrated
 allOps :: forall m a
         . (Generate a, MonadState St m, Applicative m)
@@ -250,8 +248,8 @@ allOps :: forall m a
        -> [((TType -> m Bool ), (Key, GenSt (Op a))) ]
 allOps con =
     [
-      ( possible (error "getId" :: OpEq a ),  (getId (error "getId" :: OpEq a),   MkOpEq  <$> give con))
-    , ( possible (error "getId" :: OpGeq a ), (getId (error "getId" :: OpGeq a),  MkOpGeq <$> give con))
+      ( possible (Proxy :: Proxy (OpEq a) ),  (getId (Proxy :: Proxy (OpEq a)),   MkOpEq  <$> give con))
+    , ( possible (Proxy :: Proxy (OpGeq a) ), (getId (Proxy :: Proxy (OpGeq a)),  MkOpGeq <$> give con))
     ]
 
 -- To Move
