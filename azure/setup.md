@@ -50,7 +50,7 @@ copy the output to https://bitbucket.org/account/user/<USER>/ssh-keys/
 	cd
 	git clone git@bitbucket.org:Bilalh/server-settings.git
 	cd server-settings 
-	mv ~/.bashrc ~/.bashrc.local
+	mv ~/.bashrc ~/.bashrc.sys
 	./link_settings.sh
 	
 Install parallel 
@@ -58,7 +58,7 @@ Install parallel
 	./install_parallel.sh
 
 
-Install Repos
+Install repos
 
 	cd
 	./server-settings/install_repos.sh
