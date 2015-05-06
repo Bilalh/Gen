@@ -2,7 +2,7 @@
 
 import Control.Applicative ((<$>))
 import Control.Exception   (IOException, catch)
-import Data.List           (isSuffixOf, sort, intercalate,intersperse)
+import Data.List           (isSuffixOf, sort, intercalate)
 import Prelude
 import System.Directory    (createDirectoryIfMissing, getDirectoryContents)
 import Text.Printf

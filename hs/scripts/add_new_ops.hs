@@ -9,8 +9,22 @@ import System.Environment  (getArgs)
 import System.FilePath     ((<.>), (</>))
 import Text.Printf
 
+import qualified Data.Set as S
+
 usage :: String
 usage = "runhaskell scripts/add_new_ops.hs $CONJURE_LIB/src/Conjure/Language/Expression/Op/"
+
+skip :: S.Set String
+skip = S.fromList [ "AttributeAsConstraint"
+                  , "DontCare"
+                  , "DotLeq"
+                  , "DotLt"
+                  , "Restrict"
+                  , "TildeLeq"
+                  , "TildeLt"
+                  , "True"
+                  , "Active"
+                  , "generated"]
 
 main :: IO ()
 main = do
@@ -20,14 +34,14 @@ main = do
 
     let outDir  = "src/Gen/Essence/Op"
     createDirectoryIfMissing True outDir
-    operators <- sort . map (head . splitOn '.')
-                      . filter (".hs" `isSuffixOf`)
-                  <$> getDirectoryContents opDir
-    let opName m = "Op" ++ m
+    operators_ <- sort . map (head . splitOn '.')
+                       . filter (".hs" `isSuffixOf`)
+                      <$> getDirectoryContents opDir
+    let operators = S.toList  $ (S.fromList operators_ ) `S.difference` skip
 
+    let opName m = "Op" ++ m
     let outText m = unlines $ concat
             [ [ "{-# OPTIONS_GHC -fno-warn-orphans #-}"
-              , ""
               , "module Gen.Essence.Op." ++ m ++ " where"
               , ""
               , "import Conjure.Language.Expression.Op"
