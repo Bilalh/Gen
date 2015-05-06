@@ -85,8 +85,6 @@ instance Default St where
         , doms_      = def
         }
 
-class OpInfo a where
-  possibleOp :: a -> Depth ->Type -> Bool
 
 weightingForKey :: MonadState St m => Key -> m Int
 weightingForKey key = do
