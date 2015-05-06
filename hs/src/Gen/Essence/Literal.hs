@@ -14,12 +14,12 @@ instance Generate a => Generate (AbstractLiteral a) where
       ty <- give GOnlyLiteralTypes
       give (GType ty)
 
-  give (GType (TSet ty)) = do
+  give (GType (TypeSet ty)) = do
       es <- vectorOf3 2 (withDepthDec $ give (GType ty))
       return $ AbsLitSet es
 
   give t = giveUnmatched "Generate (AbstractLiteral a)" t
 
-  possiblePure _ TBool _  = False
-  possiblePure _ TInt  _  = False
+  possiblePure _ TypeBool _  = False
+  possiblePure _ TypeInt  _  = False
   possiblePure _ ty d = (depthOf ty) <= (fromIntegral d)

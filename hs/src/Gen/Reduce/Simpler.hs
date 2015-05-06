@@ -75,14 +75,14 @@ instance Simpler Expr Expr where
 
 
 
-instance Simpler TType TType where
-    simplerImp TBool TBool = return EQ
-    simplerImp TBool _     = return LT
-    simplerImp TInt  TInt  = return EQ
-    simplerImp TInt  _     = return LT
+instance Simpler Type Type where
+    simplerImp TypeBool TypeBool = return EQ
+    simplerImp TypeBool _     = return LT
+    simplerImp TypeInt  TypeInt  = return EQ
+    simplerImp TypeInt  _     = return LT
 
-    simplerImp TAny TAny   = return EQ
-    simplerImp TAny _      = return LT
+    simplerImp TypeAny TypeAny   = return EQ
+    simplerImp TypeAny _      = return LT
 
     simplerImp a b = return $ compare (depthOf a) (depthOf b)
 

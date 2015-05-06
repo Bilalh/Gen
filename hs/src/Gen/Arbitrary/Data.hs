@@ -1,4 +1,3 @@
-
 {-# LANGUAGE FlexibleInstances, ConstraintKinds #-}
 {-# LANGUAGE RankNTypes, KindSignatures #-}
 {-# LANGUAGE DeriveDataTypeable #-}
@@ -12,7 +11,7 @@ module Gen.Arbitrary.Data (
     , Pretty(..)
     , SpecState
     , SS(..)
-    , TType(..)
+    ,Type(..)
     , FuncsNames(..)
     , HasLogger(..)
     , addLogsTree
@@ -44,8 +43,7 @@ type GG a =  StateT SpecState Gen a
 type Depth = Int
 
 data SS = SS
-    {
-      depth_      :: Depth       --  how many levels to genrate
+    { depth_      :: Depth       --  how many levels to genrate
     , doms_       :: Domains
     , nextNum_    :: Int             -- Number to name next var
     , newVars_    :: [Var] -- Domains from e.g. forall
@@ -62,7 +60,7 @@ type SpecState=SS
 
 data Generators = Generators
     {
-        gen_atype      :: GG TType
+        gen_atype      :: GG Type
     ,   gen_dom        :: GG (Domainn Expr)
     ,   gen_useFunc    :: FuncsNames -> Bool
     }

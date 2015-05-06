@@ -12,20 +12,20 @@ import Gen.Helpers.StandardImports
 instance (Generate a, WrapConstant a) => Generate (Domain () a) where
   give GNone = do
       -- ty <- give GNone
-      give (GType TInt)
+      give (GType TypeInt)
 
-  give (GType TBool)           = return DomainBool
-  give (GType TInt)            = pure DomainInt <*> vectorOf3 2 (give GNone)
-  -- give (GType (TMatix ty))     = _x
-  -- give (GType (TSet ty))       = _x
-  -- give (GType (TMSet ty))      = _x
-  -- give (GType (TFunc ty1 ty2)) = _x
-  -- give (GType (TTuple ty))     = _x
-  -- give (GType (TRel ty))       = _x
-  -- give (GType (TPar ty))       = _x
-  -- give (GType (TUnamed ty))    = _x
+  give (GType TypeBool)           = return DomainBool
+  give (GType TypeInt)            = pure DomainInt <*> vectorOf3 2 (give GNone)
+  -- give (GType (TypeMatrix ty))     = _x
+  -- give (GType (TypeSet ty))       = _x
+  -- give (GType (TypeMSet ty))      = _x
+  -- give (GType (TypeFunction ty1 ty2)) = _x
+  -- give (GType (TypeTuple ty))     = _x
+  -- give (GType (TypeRelation ty))       = _x
+  -- give (GType (TypePartition ty))       = _x
+  -- give (GType (TypeUnnamed ty))    = _x
   -- give (GType (TEnum ty))      = _x
-  -- give (GType TAny)            = _x
+  -- give (GType TypeAny)            = _x
 
   give t = giveUnmatched "Generate (Domain () a)" t
 

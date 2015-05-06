@@ -2,21 +2,18 @@ module Gen.Helpers.StandardImports (
       module X,
 ) where
 
-import Conjure.Prelude as X hiding (dropExtension)
-import System.FilePath as X (dropExtension, dropExtensions)
-
-import Conjure.Language.Pretty as X(Pretty(..))
-import Gen.AST.Imports as X
-
-import Text.Groom as X(groom)
-
-import Gen.Helpers.Placeholders as X
+import Conjure.Language.Pretty    as X (Pretty (..))
+import Conjure.Language.Type      as X
+import Conjure.Prelude            as X hiding (dropExtension)
 import Control.Monad.State.Strict as X (execStateT)
-import Control.Monad.State.Strict as X ( MonadState(get, put))
+import Control.Monad.State.Strict as X (MonadState (get, put))
+import Data.Set                   as X (Set)
+import Gen.AST.Imports            as X
+import Gen.Helpers.Placeholders   as X
+import System.FilePath            as X (dropExtension, dropExtensions)
+import Text.Groom                 as X (groom)
 
-import Data.Set as X (Set)
 
-
-import Test.QuickCheck as X (quickCheckWith, quickCheckWithResult
-    , quickCheckResult, quickCheck, Gen,generate, sample'
-    , Arbitrary(..), CoArbitrary(..), elements, sized)
+import Test.QuickCheck as X (Arbitrary (..), CoArbitrary (..), Gen, elements,
+                             generate, quickCheck, quickCheckResult, quickCheckWith,
+                             quickCheckWithResult, sample', sized)

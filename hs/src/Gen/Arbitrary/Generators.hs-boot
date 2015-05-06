@@ -8,7 +8,7 @@ module Gen.Arbitrary.Generators where
 import Gen.Helpers.StandardImports
 import Gen.Arbitrary.Data
 
-atype :: GG TType
+atype :: GG Type
 dom   :: GG (Domainn Expr)
 useFunc :: FuncsNames -> GG Bool
 

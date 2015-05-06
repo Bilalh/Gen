@@ -19,7 +19,7 @@ import qualified Data.Map as M
         tu[0]        # depth 2   (indexing counts as level)
         tu[ |{0}| ]  # depth 4
 
-    e.g. TBool  from
+    e.g. TypeBool  from
         find f :  set of int -> bool
 
     this could return depending on the depth
@@ -27,13 +27,13 @@ import qualified Data.Map as M
 
 -}
 
-nestedVarsOf :: TType -> GG (Maybe (GG Expr))
+nestedVarsOf ::Type -> GG (Maybe (GG Expr))
 -- nestedVarsOf  ty = return Nothing
 nestedVarsOf ty = gets beConstant_ >>= \case
     True  -> return Nothing
     False -> nestedVarsOf' ty  -- TODO too strict?
 
-nestedVarsOf' :: TType -> GG (Maybe (GG Expr))
+nestedVarsOf' ::Type -> GG (Maybe (GG Expr))
 nestedVarsOf' tyTo = do
     addLog "nestedVarsOf" []
 
@@ -65,32 +65,32 @@ nestedVarsOf' tyTo = do
 --TODO Make sure to handle Tany
 
 -- Returns the min number of steps to convert types
-typeReachable :: TType -> TType -> GG (Maybe Int)
+typeReachable ::Type ->Type -> GG (Maybe Int)
 typeReachable from to  | to == from =  return (Just 0)
 
-typeReachable TBool TInt     = return (Just 1) -- ToInt(bool)
-typeReachable (TSet _) TInt  = return (Just 1) -- |set|
+typeReachable TypeBool TypeInt     = return (Just 1) -- ToInt(bool)
+typeReachable (TypeSet _) TypeInt  = return (Just 1) -- |set|
 
 -- val1 != val2
-typeReachable _ TBool = return (Just 1)
+typeReachable _ TypeBool = return (Just 1)
 
 -- using set literal  {val}
-typeReachable from (TSet inner)  | from == inner = return (Just 1)
+typeReachable from (TypeSet inner)  | from == inner = return (Just 1)
 
 -- -- 1 + converting to the inner type
--- typeReachable (TSet inner) from = do
+-- typeReachable (TypeSet inner) from = do
 --     i <- typeReachable (inner) from
 --     return $  (+1) <$> i
 
 --  t: tuple(ty, ty2 )  ty  -> t[1]
-typeReachable (TTuple inners) to = do
+typeReachable (TypeTuple inners) to = do
     case any (== to ) inners of
         True  -> return . Just $ 2
         False -> return Nothing
 
--- typeReachable (TMatix inner) _ = error "dd"
+-- typeReachable (TypeMatrix inner) _ = error "dd"
 
-typeReachable (TMatix inner) to | inner == to = do
+typeReachable (TypeMatrix _ inner) to | inner == to = do
     d <- gets depth_
     addLog "typeReachable mat of" [pretty inner, "to" <+> pretty to
                                   , "depth_" <+> pretty d ]
@@ -104,7 +104,7 @@ typeReachable (TMatix inner) to | inner == to = do
 -- do we want to make sure ?int is inside the domain of f?
 -- if so we need to use the domains as well
 
-typeReachable (TFunc ffrom fto) to | fto == to  = return . Just . fromInteger $
+typeReachable (TypeFunction ffrom fto) to | fto == to  = return . Just . fromInteger $
     depthOf ffrom
 
 typeReachable _ _ = return Nothing
@@ -116,7 +116,7 @@ typeReachable _ _ = return Nothing
 
 
 -- returns a expr that contraints the Ref
-exprFromRefTo :: Var -> TType -> GG Expr
+exprFromRefTo :: Var ->Type -> GG Expr
 exprFromRefTo var@(Var ref tyFrom) tyTo = do
     addLog "exprFromRefTo" []
     -- TODO inefficient
@@ -146,10 +146,10 @@ exprFromRefTo var@(Var ref tyFrom) tyTo = do
 
 nextt, nextt' ::
     Expr -> -- current  (starts as just the ref)
-    TType -> -- current's Type
-    TType -> -- Final Destination type
+   Type -> -- current's Type
+   Type -> -- Final Destination type
     --TODO should be GG [ GG (Expr, Type) ] ?
-    GG [ (Expr, TType) ] -- A list of possible transformations + their type
+    GG [ (Expr,Type) ] -- A list of possible transformations + their type
 
 nextt cur tyFrom tyTo  = gets depth_ >>= \d -> if
     | d < 0 -> ggError "nextt depth <0 " $ ["cur tyFrom tyTo"
@@ -167,34 +167,34 @@ nextt' cur tyFrom tyTo = do
 
     where
     -- :: from to -> choices
-    ff :: TType -> TType -> GG [(Expr, TType)]
-    ff TBool TInt  = do
-        return [ ( opToInt cur , TInt)  ]
+    ff ::Type ->Type -> GG [(Expr,Type)]
+    ff TypeBool TypeInt  = do
+        return [ ( opToInt cur , TypeInt)  ]
 
-    ff (TSet _) TInt = do
-        return [( opBar cur , TInt) ]
+    ff (TypeSet _) TypeInt = do
+        return [( opBar cur , TypeInt) ]
 
-    ff ty TBool = do
+    ff ty TypeBool = do
         op <- boolOpFor ty
-        return $ [(op cur cur, TBool)]
+        return $ [(op cur cur, TypeBool)]
 
-    ff from to@(TSet inner) | from == inner  = do
+    ff from to@(TypeSet inner) | from == inner  = do
         return [(ELit $ AbsLitSet $ [cur], to )]
 
-    ff (TTuple inners) to | any (==to) inners = do
+    ff (TypeTuple inners) to | any (==to) inners = do
         let withIdx = zip inners [1..]
             possible =  filter (\(f,_) -> f == to ) withIdx
 
         (_, cIndex) <- elements2 possible
         return $ [  (opIndex cur (ECon $ ConstantInt cIndex)  , to)  ]
 
-    ff (TFunc ffrom fto) to | fto == to = do
+    ff (TypeFunction ffrom fto) to | fto == to = do
         indexer <-  exprOf ffrom
         return [ (opApply cur indexer , to) ]
 
-    ff (TMatix inner) to | inner == to = do
+    ff (TypeMatrix _ inner) to | inner == to = do
         addLog "ffmat" []
-        indexer <- exprOf TInt
+        indexer <- exprOf TypeInt
         return $ [ (opIndex cur (indexer ), to) ]
 
 

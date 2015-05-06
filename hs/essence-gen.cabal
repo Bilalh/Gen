@@ -49,6 +49,7 @@ Library
                      , Gen.Essence.Op.Eq
                      , Gen.Essence.Op.Geq
                      , Gen.Essence.Op.Internal.Generated
+                     , Gen.Essence.Op.Leq
                      , Gen.Essence.Op
                      , Gen.Essence.Range
                      , Gen.Essence.Rnd

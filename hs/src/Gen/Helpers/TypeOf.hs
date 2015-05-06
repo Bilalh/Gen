@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, TypeOperators #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Gen.Helpers.TypeOf(WithDoms(..), TTypeOf(..), typeOfDom) where
+module Gen.Helpers.TypeOf(WithDoms(..),TTypeOf(..), typeOfDom) where
 
 import Conjure.Language.AdHoc         ((:<)(..) )
 import Conjure.Language.Constant
@@ -14,9 +14,9 @@ import qualified Data.Map as M
 
 
 class TTypeOf a where
-    ttypeOf :: (Monad m, Applicative m) => a -> m TType
+    ttypeOf :: (Monad m, Applicative m) => a -> m Type
 
-instance TTypeOf TType  where
+instance TTypeOf Type  where
   ttypeOf t = return t
 
 instance TTypeOf Var  where
@@ -41,14 +41,14 @@ instance TTypeOf Expr  where
   ttypeOf (ELit x)            = ttypeOf x
   ttypeOf (ECon x)            = ttypeOf x
   ttypeOf (EDom x)            = ttypeOf x
-  ttypeOf (EQuan Sum _ _ _ _) = return TInt
-  ttypeOf (EQuan _ _ _ _ _)   = return TBool
-  ttypeOf EEmptyGuard         = return TBool
+  ttypeOf (EQuan Sum _ _ _ _) = return TypeInt
+  ttypeOf (EQuan _ _ _ _ _)   = return TypeBool
+  ttypeOf EEmptyGuard         = return TypeBool
   ttypeOf (EVar v)            = ttypeOf v
   ttypeOf (ETyped t _)        = return t
   ttypeOf (EOp op)            = ttypeOf op
   -- TODO could also be a set
-  ttypeOf (EComp inner _ _)   = TMatix <$> ttypeOf inner
+  ttypeOf (EComp inner _ _)   = (TypeMatrix TypeInt) <$> ttypeOf inner
 
   ttypeOf x = error . show . vcat $ ["ttypeOf failed for "
                                     , pretty x
@@ -57,11 +57,11 @@ instance TTypeOf Expr  where
 
 
 
-typeOfDom :: (Domainn Expr) -> TType
+typeOfDom :: (Domainn Expr) ->Type
 typeOfDom d = case typeOf d of
                 Left x -> error . show . vcat $
                           ["typeOfDom failed for", x, (pretty . groom) d, pretty d]
-                Right x -> fromConjureNote "typeOfDom convert type back" x
+                Right x -> x
 
 
 class (Monad a, Applicative a) => WithDoms a where
@@ -83,23 +83,19 @@ instance WithDoms m => WithDoms (StateT () m)  where
 
 -- Conjure TypeOf stuff
 
-
-toTType :: (Monad m, Applicative m, TypeOf a, Show a) => a -> m TType
+toTType :: (Monad m, Applicative m, TypeOf a, Show a) => a -> m Type
 toTType f = case typeOf f of
               Left r   -> error . show . vcat  $ ["toTType error"
                                                  , r
                                                  , pretty . groom $ f ]
-              Right r  -> return $ fromConjureNote "toTType"  r
+              Right r  -> return  r
 
-
-instance TypeOf TType  where
-  typeOf t = return $ toConjureNote "typeOf TType" t
 
 instance TypeOf Expr  where
-  typeOf (EVar (Var _ ty )) =  return $ toConjureNote "typeOf TType" ty
+  typeOf (EVar (Var _ ty )) = return ty
   typeOf t = do
-      ty :: TType <- ttypeOf t
-      return $ toConjureNote "typeOf TType" ty
+      ty ::Type <- ttypeOf t
+      return ty
 
 instance Domain () Expr :< Expr where
     inject = EDom

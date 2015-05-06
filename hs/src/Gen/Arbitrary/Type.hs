@@ -3,11 +3,11 @@ module Gen.Arbitrary.Type where
 import Gen.Prelude
 
 -- return the type of a, knowing b  from  `a in b`
-quanType_in :: TType -> TType
-quanType_in (TSet inner) = inner
+quanType_in ::Type ->Type
+quanType_in (TypeSet inner) = inner
 
 
-atype_only :: [TType] -> GG TType
+atype_only :: [Type] -> GG Type
 atype_only tys = do
     addLog "atype_only" ["start"]
 
@@ -20,30 +20,30 @@ atype_only tys = do
         return choice
 
     where
-        converted :: TType -> GG TType
-        converted (TMatix TAny)  = liftM TMatix (withDepthDec atype)
-        converted (TSet TAny)    = liftM TSet (withDepthDec atype)
-        converted (TMSet TAny)   = liftM TMSet (withDepthDec atype)
-        converted (TPar TAny)    = liftM TPar (withDepthDec atype)
+        converted ::Type -> GG Type
+        converted (TypeMatrix x TypeAny)  = liftM (TypeMatrix x) (withDepthDec atype)
+        converted (TypeSet TypeAny)    = liftM TypeSet (withDepthDec atype)
+        converted (TypeMSet TypeAny)   = liftM TypeMSet (withDepthDec atype)
+        converted (TypePartition TypeAny)    = liftM TypePartition (withDepthDec atype)
 
-        converted (TFunc TAny TAny) = return TFunc
+        converted (TypeFunction TypeAny TypeAny) = return TypeFunction
                     `ap`  (withDepthDec atype)
                     `ap`  (withDepthDec atype)
 
-        converted (TFunc TAny b) = return TFunc
+        converted (TypeFunction TypeAny b) = return TypeFunction
                     `ap`  (withDepthDec atype)
                     `ap`  (return b)
 
-        converted (TFunc a TAny) = return TFunc
+        converted (TypeFunction a TypeAny) = return TypeFunction
                     `ap`  (return a)
                     `ap`  (withDepthDec atype)
 
-        converted (TTuple [TAny]) = atuple
-        converted (TRel   [TAny]) = arel
+        converted (TypeTuple [TypeAny]) = atuple
+        converted (TypeRelation   [TypeAny]) = arel
         converted ty = return ty
 
 
-atype_def :: GG TType
+atype_def :: GG Type
 atype_def = do
     addLog "atype_def" ["start"]
     d <- gets depth_
@@ -52,16 +52,16 @@ atype_def = do
 
     res <- if
         | d < 0  -> ggError "atype_def invalid depth" []
-        | d == 0 -> elements2 [TBool, TInt]
+        | d == 0 -> elements2 [TypeBool, TypeInt]
         | d == 1 -> do
             let inner = withDepth 0
             oneof2 [
-                  elements2 [TBool, TInt]
-                -- , liftM TMatix (inner atype_def)
-                , liftM TSet  (inner atype_def)
-                , liftM TMSet (inner atype_def)
-                , liftM TPar  (inner atype_def)
-                , return TFunc
+                  elements2 [TypeBool, TypeInt]
+                -- , liftM TypeMatrix (inner atype_def)
+                , liftM TypeSet  (inner atype_def)
+                , liftM TypeMSet (inner atype_def)
+                , liftM TypePartition  (inner atype_def)
+                , return TypeFunction
                     `ap`  (inner atype_def)
                     `ap`  (inner atype_def)
                 , atuple
@@ -70,12 +70,12 @@ atype_def = do
         | otherwise -> do
             let inner = withDepth (d - 1)
             oneof2 [
-                  elements2 [TBool, TInt]
-                , liftM TMatix (inner atype_def)
-                , liftM TSet  (inner atype_def)
-                , liftM TMSet (inner atype_def)
-                , liftM TPar  (inner atype_def)
-                , return TFunc
+                  elements2 [TypeBool, TypeInt]
+                , liftM (TypeMatrix TypeInt) (inner atype_def)
+                , liftM TypeSet  (inner atype_def)
+                , liftM TypeMSet (inner atype_def)
+                , liftM TypePartition  (inner atype_def)
+                , return TypeFunction
                     `ap`  (inner atype_def)
                     `ap`  (inner atype_def)
                 , atuple
@@ -85,19 +85,19 @@ atype_def = do
     addLog "atype_def" ["resTy" <+> pretty res, "depth_" <+> pretty d' ]
     return res
 
-atuple :: GG TType
+atuple :: GG Type
 atuple = do
     depth_ <- gets depth_
     addLog "atuple" ["depth_" <+> pretty depth_]
 
     vs <- listOfBounds (1,  min 10 (2 * depth_))
         (withDepth (depth_ - 1) atype_def )
-    return $ TTuple vs
+    return $ TypeTuple vs
 
 -- a relation e.g   relation (  tuple(int,int) )
 -- has a nesting of 2  int -> tuple -> relation
 
-arel :: GG TType
+arel :: GG Type
 arel = do
 
     d <- gets depth_
@@ -106,41 +106,4 @@ arel = do
     vs <- listOfBounds (1,  min 5 (2 * d))
         (withDepth (d - 2) atype_def )
 
-    return $ TRel vs
-
-
-typesUnify :: TType -> TType -> Bool
-typesUnify TAny _      = True
-typesUnify _ TAny      = True
-typesUnify TBool TBool = True
-typesUnify TInt TInt   = True
-
-typesUnify (TEnum a) (TEnum b)     = a == b
-typesUnify (TUnamed a) (TUnamed b) = a == b
-
-typesUnify (TTuple as) (TTuple bs) = and (zipWith typesUnify as bs)
--- typesUnify (TypeRecord as) (TypeRecord bs)
---     | length as /= length bs = False
---     | otherwise = and [ case lookup n bs of
---                              Nothing -> False
---                              Just b -> typesUnify a b
---                       | (n,a) <- as
---                       ]
--- typesUnify (TypeVariant as) (TypeVariant bs)
---     | length as /= length bs = False
---     | otherwise = and [ case lookup n bs of
---                              Nothing -> False
---                              Just b -> typesUnify a b
---                       | (n,a) <- as
---                       ]
--- typesUnify (TypeList a) (TypeList b) = typesUnify a b
-
-typesUnify (TMatix i1) (TMatix i2) = typesUnify i1 i2
-typesUnify (TSet i1)   (TSet i2)   = typesUnify i1 i2
-typesUnify (TMSet i1)  (TMSet i2)  = typesUnify i1 i2
-
-typesUnify (TFunc a1 a2) (TFunc b1 b2) = and (zipWith typesUnify [a1,a2] [b1,b2])
--- typesUnify (TypeSequence a) (TypeSequence b) = typesUnify a b
-typesUnify (TRel as) (TRel bs) = and (zipWith typesUnify as bs)
-typesUnify (TPar a) (TPar b) = typesUnify a b
-typesUnify _ _ = False
+    return $ TypeRelation vs

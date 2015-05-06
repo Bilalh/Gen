@@ -5,20 +5,20 @@ import Gen.Essence.St
 import Gen.Helpers.StandardImports
 import Gen.Essence.Rnd
 
-instance Generate TType where
+instance Generate Type where
   give GNone = do
     defs <- gets depth >>= \d ->
-       if | d < 0     -> error $ "Generate TType invaild Depth: " ++ show d
-          | d == 0    -> return [ ("TBool", pure TBool)
-                                , ("TInt",  pure TInt)
+       if | d < 0     -> error $ "GenerateType invaild Depth: " ++ show d
+          | d == 0    -> return [ ("TypeBool", pure TypeBool)
+                                , ("TypeInt",  pure TypeInt)
                                 ]
           | otherwise -> return [
-                           ("TBool", pure TBool)
-                         , ("TInt",  pure TInt)
-                         , ("TSet",   liftM TSet   (withDepthDec (give GNone) ))
-                         -- , ("TMatix", liftM TMatix (withDepthDec (give GNone) ))
-                         -- , ("TMSet",  liftM TMSet  (withDepthDec (give GNone) ))
-                         -- , ("TPar",   liftM TPar   (withDepthDec (give GNone) ))
+                           ("TypeBool", pure TypeBool)
+                         , ("TypeInt",  pure TypeInt)
+                         , ("TypeSet",   liftM TypeSet   (withDepthDec (give GNone) ))
+                         -- , ("TypeMatrix", liftM TypeMatrix (withDepthDec (give GNone) ))
+                         -- , ("TypeMSet",  liftM TypeMSet  (withDepthDec (give GNone) ))
+                         -- , ("TypePartition",   liftM TypePartition   (withDepthDec (give GNone) ))
                          ]
 
     parts <- getWeights defs
@@ -26,17 +26,17 @@ instance Generate TType where
 
   give GOnlyLiteralTypes = do
     defs <- gets depth >>= \d ->
-       if | d <= 0     -> error $ "Generate TType(literal) invaild Depth: " ++ show d
+       if | d <= 0     -> error $ "GenerateType(literal) invaild Depth: " ++ show d
           | otherwise -> return [
-                           ("TSet",   liftM TSet   (withDepthDec (give GNone) ))
-                         -- , ("TMatix", liftM TMatix (withDepthDec (give GNone) ))
-                         -- , ("TMSet",  liftM TMSet  (withDepthDec (give GNone) ))
-                         -- , ("TPar",   liftM TPar   (withDepthDec (give GNone) ))
+                           ("TypeSet",   liftM TypeSet   (withDepthDec (give GNone) ))
+                         -- , ("TypeMatrix", liftM TypeMatrix (withDepthDec (give GNone) ))
+                         -- , ("TypeMSet",  liftM TypeMSet  (withDepthDec (give GNone) ))
+                         -- , ("TypePartition",   liftM TypePartition   (withDepthDec (give GNone) ))
                          ]
 
     parts <- getWeights defs
     frequency3 parts
 
-  give t = giveUnmatched "Generate (TType)" t
+  give t = giveUnmatched "Generate (Type)" t
 
   possiblePure _ _ _ = True

@@ -3,12 +3,9 @@
 module Gen.Essence.St where
 
 import Conjure.Language.Definition (Constant, Expression (..))
-import Conjure.Language.Pretty
-import Conjure.Prelude
 import Data.Data                   hiding (Proxy)
 import Data.Map                    (Map)
-import Gen.AST.Imports
-import Gen.Helpers.Placeholders    (neverNote)
+import Gen.Helpers.StandardImports
 import Test.QuickCheck             (Gen, generate)
 
 import qualified Data.Map as M
@@ -17,11 +14,11 @@ import qualified Data.Map as M
 class Data a => Generate a where
   give  :: GenerateConstraint -> GenSt a
 
-  possible :: (Applicative m, MonadState St m) => Proxy a -> TType -> m Bool
+  possible :: (Applicative m, MonadState St m) => Proxy a -> Type -> m Bool
   possible a ty = do
       d <- gets depth
       return $ possiblePure a ty d
-  possiblePure :: Proxy  a -> TType -> Depth -> Bool
+  possiblePure :: Proxy  a ->Type -> Depth -> Bool
   possiblePure = error "no default possiblePure"
   {-# MINIMAL give, possible | give, possiblePure  #-}
 
@@ -42,7 +39,7 @@ type Key   = String
 type Depth = Int
 
 data GenerateConstraint = GNone
-                        | GType TType -- The resulting type
+                        | GType Type -- The resulting type
                         | GOnlyLiteralTypes -- for literals
  deriving (Eq, Ord, Show, Data, Typeable, Generic)
 
@@ -84,7 +81,7 @@ instance Default St where
         }
 
 class OpInfo a where
-  possibleOp :: a -> Depth -> TType -> Bool
+  possibleOp :: a -> Depth ->Type -> Bool
 
 weightingForKey :: MonadState St m => Key -> m Int
 weightingForKey key = do
@@ -110,14 +107,14 @@ getWeights vs= do
 
 -- getWeights but with
 getPossibilities :: GenerateConstraint
-                 -> [(TType -> GenSt Bool, (Key, v))]
+                 -> [(Type -> GenSt Bool, (Key, v))]
                  -> GenSt [(Int, v)]
 getPossibilities con vs = do
   mapM (doPossibilities con) vs
 
   where
   doPossibilities :: GenerateConstraint
-                  -> (TType -> GenSt Bool, (Key, v))
+                  -> (Type -> GenSt Bool, (Key, v))
                   -> GenSt (Int, v)
   doPossibilities (GType ty) (f,(k,v)) =
    f ty >>= \case

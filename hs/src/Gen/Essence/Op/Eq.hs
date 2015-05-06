@@ -9,9 +9,9 @@ import Gen.Helpers.StandardImports
 
 
 instance Generate a => Generate (OpEq a) where
-  give GNone = give (GType TBool)
+  give GNone = give (GType TypeBool)
 
-  give (GType TBool) = do
+  give (GType TypeBool) = do
     ty <- GType <$> give GNone
     pure OpEq <*> give ty <*> give ty
 
@@ -19,5 +19,5 @@ instance Generate a => Generate (OpEq a) where
 
   -- Returns True if this op can be used with the specified return type
   -- and the remaing depth. This Op is counted in the depth calculation
-  possiblePure _ ty _ | ty /= TBool = False
+  possiblePure _ ty _ | ty /= TypeBool = False
   possiblePure _ ty d = depthOf ty + 1 <= (fromIntegral d)

@@ -15,9 +15,9 @@ instance Generate Constant where
     ty <- give GNone
     give (GType ty)
 
-  give (GType TInt)      = pure ConstantInt      <*> choose3 (0,5)
-  give (GType TBool)     = pure ConstantBool     <*> choose3 (True,False)
-  give (GType ty@TSet{}) = pure ConstantAbstract <*> give (GType ty)
+  give (GType TypeInt)      = pure ConstantInt      <*> choose3 (0,5)
+  give (GType TypeBool)     = pure ConstantBool     <*> choose3 (True,False)
+  give (GType ty@TypeSet{}) = pure ConstantAbstract <*> give (GType ty)
 
   give t = giveUnmatched "Generate Constant" t
 

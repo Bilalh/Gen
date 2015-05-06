@@ -10,11 +10,11 @@ import Gen.Helpers.StandardImports
 
 
 instance Generate a => Generate (OpLeq a) where
-  give GNone = give (GType TBool)
+  give GNone = give (GType TypeBool)
 
-  give (GType TBool) = do
-    ws <- getWeights [ ("TInt", pure TInt)
-                     , ("TBool", pure TBool)]
+  give (GType TypeBool) = do
+    ws <- getWeights [ ("TypeInt", pure TypeInt)
+                     , ("TypeBool", pure TypeBool)]
     ty <- GType <$> frequency3 ws
     pure OpLeq <*> give ty <*> give ty
 
@@ -22,5 +22,5 @@ instance Generate a => Generate (OpLeq a) where
 
   -- Returns True if this op can be used with the specified return type
   -- and the remaing depth. This Op is counted in the depth calculation
-  possiblePure _ ty _ | ty /= TBool = False
+  possiblePure _ ty _ | ty /= TypeBool = False
   possiblePure _ ty d = depthOf ty + 1 <= (fromIntegral d)

@@ -20,19 +20,19 @@ tests = testGroup "depthOf"
   [
    testGroup "type"
    [
-     typeDepth "Boolean" 0 $ TBool
-   , typeDepth "Int"     0 $ TInt
-   , typeDepth "Set"     1 $ (TSet TBool)
-   , typeDepth "MSet"    1 $ (TMSet TBool)
-   , typeDepth "Matrix"  1 $ (TMatix TBool)
-   , typeDepth "Func"    2 $ TFunc TInt (TSet TBool)
-   , typeDepth "Par"     2 $ TPar (TMSet TBool)
-   , typeDepth "Rel"     3 $ TRel [TSet TInt, TMatix (TSet TBool), TInt]
+     typeDepth "Boolean" 0 $ TypeBool
+   , typeDepth "Int"     0 $ TypeInt
+   , typeDepth "Set"     1 $ (TypeSet TypeBool)
+   , typeDepth "MSet"    1 $ (TypeMSet TypeBool)
+   , typeDepth "Matrix"  1 $ (TypeMatrix TypeInt TypeBool)
+   , typeDepth "Func"    2 $ TypeFunction TypeInt (TypeSet TypeBool)
+   , typeDepth "Par"     2 $ TypePartition (TypeMSet TypeBool)
+   , typeDepth "Rel"     3 $ TypeRelation [TypeSet TypeInt, TypeMatrix TypeInt (TypeSet TypeBool), TypeInt]
    ]
 
    ,testGroup "type_gen"
    [
-     typeDepth "Par"     2 $ (TMatix (TPar TBool))
+     typeDepth "Par"     2 $ (TypeMatrix TypeInt (TypePartition TypeBool))
    ]
 
   ,testGroup "Constants"

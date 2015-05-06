@@ -28,7 +28,7 @@ instance Generate Spec where
     let mappings  = M.fromList withNames
     modify $ \st -> st{doms_=mappings}
 
-    exprs <- mapM (\_ -> give (GType TBool) ) [0..i_e]
+    exprs <- mapM (\_ -> give (GType TypeBool) ) [0..i_e]
     return $ Spec mappings exprs Nothing
 
     where name i =  stringToText $  "var" ++  (show  i)

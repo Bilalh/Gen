@@ -42,7 +42,7 @@ instance Translate Expr Expression where
   fromConjure (Constant t)          = ECon   <$> fromConjure t
   fromConjure (AbstractLiteral t)   = ELit   <$> fromConjure t
   fromConjure (Domain t)            = EDom   <$> fromConjure t
-  fromConjure (Typed t1 t2)         = ETyped <$> fromConjure t2 <*> fromConjure t1
+  fromConjure (Typed t1 t2)         = ETyped <$> pure t2 <*> fromConjure t1
   fromConjure (Op op)               = EOp    <$> fromConjure op
   fromConjure (ExpressionMetaVar t) = return $ EMetaVar t
 
@@ -50,8 +50,7 @@ instance Translate Expr Expression where
   fromConjure r@(Reference t1 _)         = do
     name <- fromConjure t1
     ty   <- typeOf r
-    tty  <- fromConjure ty
-    return . EVar $ Var name tty
+    return . EVar $ Var name ty
 
   fromConjure (Comprehension inner genCon) = EComp <$> fromConjure inner
                                                    <*> mapM fromConjure gens
@@ -67,7 +66,7 @@ instance Translate Expr Expression where
   toConjure (ECon x )      =  return $ Constant x
   toConjure (ELit x )      =  AbstractLiteral <$> toConjure x
   toConjure (EDom x)       =  Domain <$> toConjure x
-  toConjure (ETyped x1 x2) =  Typed <$> toConjure x2 <*> toConjure x1
+  toConjure (ETyped x1 x2) =  Typed <$> toConjure x2 <*> pure x1
   toConjure (EOp x)        =  Op <$> toConjure x
 
   --FIXME correct? not the first

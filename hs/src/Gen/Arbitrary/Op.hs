@@ -38,7 +38,7 @@ bop op = do
             return $ op e1 e2
 
 
-bopOf :: Bop -> TType -> GG Expr
+bopOf :: Bop ->Type -> GG Expr
 bopOf op exprType = do
 
     depth_ <- gets depth_
@@ -54,7 +54,7 @@ bopOf op exprType = do
             return $ op e1 e2
 
 
-opOf :: Uop -> TType ->  GG Expr
+opOf :: Uop ->Type ->  GG Expr
 opOf op exprType =  do
     depth_ <- gets depth_
     addLog "opOf" ["depth_" <+> pretty depth_, "ty" <+> pretty exprType ]
@@ -69,54 +69,54 @@ opOf op exprType =  do
 equivExpr :: GG Expr
 equivExpr = oneof2 $ map bop [ opEq, opNeq ]
 
-arithmeticTypes :: GG TType
-arithmeticTypes  = return TInt
+arithmeticTypes :: GG Type
+arithmeticTypes  = return TypeInt
 
 arithmeticExpr :: GG Expr
 arithmeticExpr = do
   kind <- arithmeticTypes
   arithmeticExprOf kind
 
-arithmeticExprOf :: TType ->  GG Expr
+arithmeticExprOf ::Type ->  GG Expr
 arithmeticExprOf kind = do
   oneof2 $ map (flip (bopOf) kind ) [opPlus, opMult, opDiv, opMod]
 
 
 relationExpr :: GG Expr
 relationExpr =  do
-  oneof2 $ map (`bopOf` TBool ) [opOr, opAnd, opImply, opIff]
+  oneof2 $ map (`bopOf` TypeBool ) [opOr, opAnd, opImply, opIff]
 
 comparisonExpr :: GG Expr
 comparisonExpr =  do
-  oneof2 $ map (`bopOf` TBool ) [opLt, opLeq, opGt, opGeq]
+  oneof2 $ map (`bopOf` TypeBool ) [opLt, opLeq, opGt, opGeq]
 
 
-boolOpFor :: TType -> GG (Expr -> Expr -> Expr)
-boolOpFor TBool = do
+boolOpFor ::Type -> GG (Expr -> Expr -> Expr)
+boolOpFor TypeBool = do
   elements2 [ opEq, opNeq, opOr, opAnd, opImply, opIff ]
 
-boolOpFor TInt = do
+boolOpFor TypeInt = do
   elements2 [ opEq, opNeq, opLt, opLeq, opGt, opGeq ]
 
-boolOpFor (TSet _) =  do
+boolOpFor (TypeSet _) =  do
   elements2 [ opEq, opNeq, opSubset, opSubsetEq, opSupset, opSupsetEq ]
 
-boolOpFor (TMSet _) =  do
+boolOpFor (TypeMSet _) =  do
   elements2 [ opEq, opNeq, opLt, opSubset, opSubsetEq, opSupset, opSupsetEq ]
 
-boolOpFor (TMatix _) = do
+boolOpFor (TypeMatrix _ _) = do
   elements2 [ opEq, opNeq ]
 
-boolOpFor (TTuple _) = do
+boolOpFor (TypeTuple _) = do
   elements2 [ opEq, opNeq ]
 
-boolOpFor (TRel _) = do
+boolOpFor (TypeRelation _) = do
   elements2 [ opEq, opNeq ]
 
-boolOpFor (TFunc _ _) = do
+boolOpFor (TypeFunction _ _) = do
   elements2 [ opEq, opNeq ]
 
-boolOpFor (TPar _) = do
+boolOpFor (TypePartition _) = do
   elements2 [ opEq, opNeq ]
 
 boolOpFor t = ggError "boolOpFor" [pretty t]

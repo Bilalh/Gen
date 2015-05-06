@@ -7,7 +7,7 @@ import qualified Data.Text as T
 
 
 -- Returns a type that can be reached within the allowed depth
-typeFromType :: TType -> GG TType
+typeFromType ::Type -> GG Type
 typeFromType ty = do
     depth_ <- gets depth_
     if
@@ -17,19 +17,19 @@ typeFromType ty = do
 
     where
 
-nextReachable :: GG TType  -> GG TType
+nextReachable :: GG Type  -> GG Type
 nextReachable rs = do
-    r :: TType <- rs
+    r ::Type <- rs
     withDepthDec (typeFromType r)
 
-typeFromType' :: TType -> GG TType
-typeFromType' ty@(TSet _) = oneof2 [
+typeFromType' ::Type -> GG Type
+typeFromType' ty@(TypeSet _) = oneof2 [
       return ty
     , reachable
     , nextReachable reachable
     ]
 
-    where reachable = elements2 [ TInt ] -- with one step
+    where reachable = elements2 [ TypeInt ] -- with one step
 
 typeFromType' ty = return ty
 -- typeFromType' ty =  ggError "typeFromType' unmatched" [ pretty . show $ ty ]

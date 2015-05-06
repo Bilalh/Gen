@@ -14,7 +14,7 @@ import Gen.Arbitrary.Domain(dom_def)
 import qualified Data.Map as M
 
 
-atype :: GG TType
+atype :: GG Type
 atype = gets generators_ >>= \m -> gen_atype m
 
 dom :: GG (Domainn Expr)

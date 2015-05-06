@@ -7,7 +7,6 @@ import Conjure.Language.AbstractLiteral
 import Conjure.Language.Constant
 import Conjure.Language.Expression.Op
 import Data.List                        (splitAt)
-import Gen.Arbitrary.Type               (typesUnify)
 import Gen.AST.TH
 import Gen.Prelude
 import Gen.Reduce.Data
@@ -88,7 +87,7 @@ instance (HasGen m,  HasLogger m) =>  Reduce Expr m where
 
       addLog "sin" (map pretty sin)
       addLog "subs" (map pretty subs)
-      addLog "r_cons" (map pretty r_cons)
+      -- addLog "r_cons" (map pretty r_cons)
       addLog "r_inner" (map pretty r_inner)
       return $ sin ++ subs ++ res
 
@@ -111,9 +110,9 @@ instance (HasGen m,  HasLogger m) =>  Reduce Expr m where
 
 
     single (EQuan Sum t2 to t3 t4) = do
-      i1 <- singleLitExpr TInt >>= oneofR
-      i2 <- singleLitExpr TInt >>= oneofR
-      i3 <- singleLitExpr TInt >>= oneofR
+      i1 <- singleLitExpr TypeInt >>= oneofR
+      i2 <- singleLitExpr TypeInt >>= oneofR
+      i3 <- singleLitExpr TypeInt >>= oneofR
       return [i1
             , EQuan Sum t2 to EEmptyGuard i2
             , EQuan Sum t2 to t3 i3
@@ -318,7 +317,7 @@ subterms_op e subs =  do
   resType <- ttypeOf e
   tys <- mapM ttypeOf subs
   -- FIXME typesUnify or typesEqual?
-  let allowed  = [ x | x<-subs | ty <- tys, typesUnify resType ty  ]
+  let allowed  = [ x | x<-subs | ty <- tys, typesUnify [resType, ty]  ]
   return allowed
 
 
@@ -380,19 +379,19 @@ heads_tails (_:es) = [e | (e,i) <- zip es [0..], (i >= length es - 2) || (i < 2)
 
 
 -- | return the simplest literals, two at most
-singleLit :: (HasGen m, HasLogger m) => TType -> m [Expr]
-singleLit TInt = do
+singleLit :: (HasGen m, HasLogger m) =>Type -> m [Expr]
+singleLit TypeInt = do
   pure ConstantInt<*> chooseR (-5, 5) >>= return . (\a ->  [ECon a ] )
 
-singleLit TBool = oneofR [ConstantBool True, ConstantBool False]
+singleLit TypeBool = oneofR [ConstantBool True, ConstantBool False]
               >>= return . (\a ->  [ECon a ] )
 
--- of TAny are empty
-singleLit (TMatix TAny) = rrError "singleLit TMatix TAny" []
-singleLit (TSet TAny)   = return [ELit $ AbsLitSet []]
-singleLit (TMSet TAny)  = return [ELit $ AbsLitMSet []]
+-- of TypeAny are empty
+singleLit (TypeMatrix _ TypeAny) = rrError "singleLit TypeMatrix TypeAny" []
+singleLit (TypeSet TypeAny)      = return [ELit $ AbsLitSet []]
+singleLit (TypeMSet TypeAny)     = return [ELit $ AbsLitMSet []]
 
-singleLit (TMatix x) = do
+singleLit (TypeMatrix _ x) = do
   s <- singleLit x
   let si = AbsLitMatrix  (dintRange 1 (genericLength s)) s
   let res = case s of -- Return the other combination
@@ -402,14 +401,14 @@ singleLit (TMatix x) = do
 
   return (map ELit res)
 
-singleLit l@(TSet x) = do
+singleLit l@(TypeSet x) = do
   ty <- ttypeOf l
   let empty = ETyped ty (ELit $ AbsLitSet [])
 
   si <- pure AbsLitSet <*> (singleLit x )
   return [ ELit si, empty]
 
-singleLit l@(TMSet x) = do
+singleLit l@(TypeMSet x) = do
   ty <- ttypeOf l
   let empty = ETyped ty $ (ELit $ AbsLitMSet [])
 
@@ -420,7 +419,7 @@ singleLit l@(TMSet x) = do
   chosen <- oneofR [ELit si,ELit dupped]
   return [chosen, empty]
 
-singleLit l@(TFunc x1 x2) = do
+singleLit l@(TypeFunction x1 x2) = do
   ty <- ttypeOf l
   let empty = ETyped ty $ (ELit $ AbsLitFunction [])
 
@@ -430,12 +429,12 @@ singleLit l@(TFunc x1 x2) = do
 
   return [ ELit mu, empty]
 
-singleLit (TTuple x) = do
+singleLit (TypeTuple x) = do
   lits <- mapM singleLit x
   picked <- mapM oneofR lits
   return [ELit $ AbsLitTuple picked]
 
-singleLit l@(TRel x) = do
+singleLit l@(TypeRelation x) = do
   ty <- ttypeOf l
   let empty = ETyped ty  (ELit $ AbsLitRelation [])
 
@@ -445,7 +444,7 @@ singleLit l@(TRel x) = do
   return [rel, empty]
 
 
-singleLit l@(TPar x) = do
+singleLit l@(TypePartition x) = do
   ty <- ttypeOf l
   let empty = ETyped ty (ELit $ AbsLitPartition [])
 
@@ -468,10 +467,10 @@ singleLit l@(TPar x) = do
 
 
 
-singleLit TAny = rrError "singleLit of TAny" []
+singleLit TypeAny = rrError "singleLit of TypeAny" []
 singleLit ty   = rrError "singleLit" [nn "ty" ty ]
 
-singleLitExpr :: (HasGen m, HasLogger m) => TType -> m [Expr]
+singleLitExpr :: (HasGen m, HasLogger m) =>Type -> m [Expr]
 singleLitExpr ty = do
   addLog "singleLitExpr" [nn "ty" ty]
   singleLit $ ty
@@ -586,20 +585,14 @@ _replaceOpChildren_ex = replaceOpChildren
   [opp| 8 ** 3  |]  [  [essencee| 4 |], [essencee| 2 |] ]
 
 
-instance Pretty [Expr] where
-    pretty = prettyBrackets  . pretty . vcat . map pretty
+-- instance Pretty [Expr] where
+--     pretty = prettyBrackets  . pretty . vcat . map pretty
 
-instance Pretty [[Expr]] where
-    pretty = prettyBrackets  . pretty . vcat . map pretty
+-- instance Pretty [[Expr]] where
+--     pretty = prettyBrackets  . pretty . vcat . map pretty
 
-instance Pretty [Literal] where
-    pretty = prettyBrackets  . pretty . vcat . map pretty
-
-
-_var2 = EVar $ Var "var2" (TBool)
-_q_128 = EVar $ Var "q_128" (TInt)
-_x = Single "q_128"
-_l = [essencee| or([true | &_x : int(1), |toMSet({&_var2})| != &_q_128]) |]
+-- instance Pretty [Literal] where
+--     pretty = prettyBrackets  . pretty . vcat . map pretty
 
 
 type EListZipper = Zipper [Int] Int

@@ -72,7 +72,7 @@ quanInExpr  = withQuan $
             return $ quanTop quanGuard quanBody
 
     where
-        overs =  varsOf'  (TSet TAny)
+        overs =  varsOf'  (TypeSet TypeAny)
 
 quanOverExpr :: GG Expr
 quanOverExpr = withQuan $
@@ -109,7 +109,7 @@ quanOverExpr = withQuan $
             return $ quanTop quanGuard quanBody
 
     where
-        overs = domOf [TSet TAny, TInt]
+        overs = domOf [TypeSet TypeAny, TypeInt]
 
 
 quanSum :: GG Expr
@@ -134,11 +134,11 @@ quanSum = withQuan $
                 return EEmptyGuard
                 ]
 
-            quanBody <-  withDepthDec $ exprOf TInt
+            quanBody <-  withDepthDec $ exprOf TypeInt
             return $ quanTop quanGuard quanBody
 
     where
-    overs = varsOf'  (TSet TInt)
+    overs = varsOf'  (TypeSet TypeInt)
 
 
 -- assuming depth > 1 left
@@ -164,16 +164,16 @@ boolExprUsingRef var@(Var ref refType) = do
         return $ op other refExpr
 
 -- Types that can be reached from a type in n levels of nesting
-exprFromToType :: Var -> TType -> GG Expr
+exprFromToType :: Var ->Type -> GG Expr
 exprFromToType var@(Var _ from) to | from == to =  return $ EVar var
 
-exprFromToType var@(Var _ (TSet _)) TInt = return  [essencee| |&v| |]
+exprFromToType var@(Var _ (TypeSet _)) TypeInt = return  [essencee| |&v| |]
   where v = EVar var
 
 
 
 -- Return a expr of the specifed depth and type
-exprOf :: TType -> GG Expr
+exprOf ::Type -> GG Expr
 exprOf ty = do
     nestedOfType <-  maybeToList <$> nestedVarsOf ty
     -- nestedOfType <-  return []
@@ -190,9 +190,9 @@ exprOf ty = do
     -- Simple cases
     if
         | d < 0 -> ggError "exprOf depth_ <0" ["exprTy:" <+> pretty ty]
-        | d == 0 && ty == TInt  -> oneof2 $ intLit : refs
-        | d == 0 && ty == TBool -> oneof2 $ boolLit  : refs
-        | d == 0 && ty == TAny  -> oneof2 $ [intLit, boolLit ] ++ refs
+        | d == 0 && ty == TypeInt  -> oneof2 $ intLit : refs
+        | d == 0 && ty == TypeBool -> oneof2 $ boolLit  : refs
+        | d == 0 && ty == TypeAny  -> oneof2 $ [intLit, boolLit ] ++ refs
         | d == 0 -> ggError "exprOf depth_ <1" ["exprTy:" <+> pretty ty]
         | otherwise  ->  do
             addLog "exprOf" [nn "ty" ty, nn "depth" d ]
@@ -200,50 +200,50 @@ exprOf ty = do
 
 
     where
-    exprOf' :: Depth -> [GG Expr] -> TType -> GG Expr
+    exprOf' :: Depth -> [GG Expr] ->Type -> GG Expr
 
-    exprOf' _ ofType TBool = oneof2 $ ofType ++ [
+    exprOf' _ ofType TypeBool = oneof2 $ ofType ++ [
           boolLit
         , equivExpr
         , relationExpr
         ]
 
-    exprOf' 1 ofType TInt = oneof2 $ ofType ++ [
+    exprOf' 1 ofType TypeInt = oneof2 $ ofType ++ [
           intLit
         , arithmeticExprOf ty
         ]
 
-    exprOf' _ ofType TInt = oneof2 $ ofType ++ [
+    exprOf' _ ofType TypeInt = oneof2 $ ofType ++ [
           intLit
         , arithmeticExprOf ty
         , quanSum
         ]
 
-    exprOf' _ ofType (TSet inner) = oneof2 $ ofType ++ [
+    exprOf' _ ofType (TypeSet inner) = oneof2 $ ofType ++ [
           setLitOf inner
         ]
 
-    exprOf' _ ofType (TMSet inner) = oneof2 $ ofType ++ [
+    exprOf' _ ofType (TypeMSet inner) = oneof2 $ ofType ++ [
           msetLitOf inner
         ]
 
-    exprOf' _ ofType (TMatix inner) = frequency2 $ (map (\t -> (10,t)) ofType ) ++ [
+    exprOf' _ ofType (TypeMatrix _ inner) = frequency2 $ (map (\t -> (10,t)) ofType ) ++ [
           (1,matrixLitOf inner)
         ]
 
-    exprOf' _ ofType (TFunc a b) = oneof2 $ ofType ++ [
+    exprOf' _ ofType (TypeFunction a b) = oneof2 $ ofType ++ [
           funcLitOf a b
         ]
 
-    exprOf' _ ofType (TRel tys) = oneof2 $ ofType ++ [
+    exprOf' _ ofType (TypeRelation tys) = oneof2 $ ofType ++ [
           relLitOf tys
         ]
 
-    exprOf' _ ofType (TPar inner) = oneof2 $ ofType ++ [
+    exprOf' _ ofType (TypePartition inner) = oneof2 $ ofType ++ [
           parLitOf inner
         ]
 
-    exprOf' _ ofType (TTuple tys) = oneof2 $ ofType ++ [
+    exprOf' _ ofType (TypeTuple tys) = oneof2 $ ofType ++ [
           tupleLitOf tys
         ]
 
@@ -253,59 +253,59 @@ exprOf ty = do
 
 -- Remove one level of any
 -- e.g for sets
-deAny :: TType -> GG TType
-deAny TAny = do
+deAny ::Type -> GG Type
+deAny TypeAny = do
     d <- gets depth_
     addLog "deAny" [nn "depth" d]
     ty <- withSameDepth atype
     addLog "deAny" [nn "depth" d, nn "ty" ty]
     return ty
 
-deAny (TSet a)   = return TSet   <*> (withDepthDec $ deAny a)
-deAny (TMSet a)  = return TMSet  <*> (withDepthDec $ deAny a)
-deAny (TMatix a) = return TMatix <*> (withDepthDec $ deAny a)
-deAny (TPar a)   = return TPar   <*> (withDepthDec $ deAny a)
+deAny (TypeSet a)       = return TypeSet   <*> (withDepthDec $ deAny a)
+deAny (TypeMSet a)      = return TypeMSet  <*> (withDepthDec $ deAny a)
+deAny (TypeMatrix x a)  = return (TypeMatrix x) <*> (withDepthDec $ deAny a)
+deAny (TypePartition a) = return TypePartition   <*> (withDepthDec $ deAny a)
 
-deAny (TTuple ts) =  return TTuple <*> (mapM (withDepthDec . deAny) ts)
-deAny (TRel   ts) =  do
+deAny (TypeTuple ts)      =  return TypeTuple <*> (mapM (withDepthDec . deAny) ts)
+deAny (TypeRelation   ts) =  do
     d <- gets depth_
-    return TRel  <*> (mapM (withDepth (d - 2) . deAny) ts)
+    return TypeRelation  <*> (mapM (withDepth (d - 2) . deAny) ts)
 
-deAny (TFunc a b)  = return TFunc
+deAny (TypeFunction a b) = return TypeFunction
                      <*> (withDepthDec $ deAny a)
                      <*> (withDepthDec $ deAny b)
 
 deAny ty = return ty
 
 
-purgeAny :: TType -> GG TType
-purgeAny TAny = do
+purgeAny ::Type -> GG Type
+purgeAny TypeAny = do
     d <- gets depth_
     addLog "purgeAny" [nn "depth" d]
     ty <- withSameDepth atype
     addLog "purgeAny" [nn "depth" d, nn "ty" ty]
     return ty
 
-purgeAny ts@TInt        = return ts
-purgeAny ts@TBool       = return ts
-purgeAny ts@(TUnamed _) = return ts
-purgeAny ts@(TEnum _)   = return ts
+purgeAny ts@TypeInt        = return ts
+purgeAny ts@TypeBool       = return ts
+purgeAny ts@(TypeUnnamed _) = return ts
+purgeAny ts@(TypeEnum _)   = return ts
 
 
-purgeAny (TSet   ts) = return TSet   <*> (withDepthDec $ purgeAny ts )
-purgeAny (TMSet  ts) = return TMSet  <*> (withDepthDec $ purgeAny ts )
-purgeAny (TMatix ts) = return TMatix <*> (withDepthDec $ purgeAny ts )
-purgeAny (TPar   ts) = return TPar   <*> (withDepthDec $ purgeAny ts )
+purgeAny (TypeSet   ts)       = return TypeSet   <*> (withDepthDec $ purgeAny ts )
+purgeAny (TypeMSet  ts)       = return TypeMSet  <*> (withDepthDec $ purgeAny ts )
+purgeAny (TypeMatrix x ts)    = return (TypeMatrix x) <*> (withDepthDec $ purgeAny ts )
+purgeAny (TypePartition   ts) = return TypePartition   <*> (withDepthDec $ purgeAny ts )
 
-purgeAny (TTuple ts) =  return TTuple <*> (mapM (withDepthDec . purgeAny ) ts)
-purgeAny (TRel ts) =  do
+purgeAny (TypeTuple ts)    =  return TypeTuple <*> (mapM (withDepthDec . purgeAny ) ts)
+purgeAny (TypeRelation ts) =  do
     d <- gets depth_
-    return TRel  <*> (mapM (withDepth (d - 2) . purgeAny) ts)
+    return TypeRelation  <*> (mapM (withDepth (d - 2) . purgeAny) ts)
 
-purgeAny (TFunc a b)   = return TFunc <*> (withDepthDec $ purgeAny a)
-                                   <*> (withDepthDec $ purgeAny b)
+purgeAny (TypeFunction a b)   = return TypeFunction <*> (withDepthDec $ purgeAny a)
+                             <*> (withDepthDec $ purgeAny b)
 
-exprOfPurgeAny :: TType -> GG Expr
+exprOfPurgeAny ::Type -> GG Expr
 exprOfPurgeAny ty  = do
     addLog "exprOfPurgeAny" []
     newTy <- purgeAny ty
@@ -315,29 +315,29 @@ exprOfPurgeAny ty  = do
 
 -- at most one element
 -- zero elements if beConstant_
-varsOf :: TType -> GG [GG Expr]
+varsOf ::Type -> GG [GG Expr]
 varsOf ty = gets beConstant_ >>= \case
     False -> return []
     True  -> map lift . maybeToList <$> varsOf' ty
 
 
-varsOf' :: TType -> GG (Maybe (Gen Expr))
+varsOf' ::Type -> GG (Maybe (Gen Expr))
 varsOf' exprType = do
     SS{doms_,newVars_} <- get
 
-    let newVars = filter (\(Var _ ty) -> typesUnify exprType ty   ) newVars_
+    let newVars = filter (\(Var _ ty) -> typesUnify [exprType, ty]   ) newVars_
 
     return $ toGenExpr EVar $ newVars ++ ( map ( uncurry Var) .
-        M.toList  . M.filter (typesUnify exprType ) . M.map (typeOfDom . domOfGF )
+        M.toList  . M.filter (\x -> typesUnify [exprType,x] ) . M.map (typeOfDom . domOfGF )
         )  doms_
 
 
 
-domOf ::  [TType] -> GG (Maybe (Gen (Domainn Expr)))
+domOf ::  [Type] -> GG (Maybe (Gen (Domainn Expr)))
 domOf exprTypes = do
     doms_ <- gets doms_
     return $ toGenExpr id  $ (map (domOfGF . snd) . M.toList  .
-        M.filter (  (\t -> any (typesUnify t) exprTypes )  . typeOfDom . domOfGF ))
+        M.filter (  (\t -> any (\x -> typesUnify [t, x]) exprTypes )  . typeOfDom . domOfGF ))
             doms_
 
 

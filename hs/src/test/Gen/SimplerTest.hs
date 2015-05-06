@@ -39,15 +39,15 @@ tests = testGroup "simpler"
   [
    testGroup "type eq"
    [
-    eq_same TBool
+    eq_same TypeBool
    ]
 
   ,testGroup "type complex eq"
    [
-     eq_same (TFunc TInt TBool)
-   , eq_same (TSet (TFunc TInt TBool))
-   , eq_same (TTuple [TRel [TInt,TBool],TTuple [TTuple [TBool],TTuple [TBool,TInt],TTuple [TInt,TInt],TInt],TTuple [TFunc TBool TInt]])
-   , eq_same (TRel [TInt,TBool])
+     eq_same (TypeFunction TypeInt TypeBool)
+   , eq_same (TypeSet (TypeFunction TypeInt TypeBool))
+   , eq_same (TypeTuple [TypeRelation [TypeInt,TypeBool],TypeTuple [TypeTuple [TypeBool],TypeTuple [TypeBool,TypeInt],TypeTuple [TypeInt,TypeInt],TypeInt],TypeTuple [TypeFunction TypeBool TypeInt]])
+   , eq_same (TypeRelation [TypeInt,TypeBool])
    ]
 
   ,testGroup "type_QC" $
@@ -116,14 +116,14 @@ tests = testGroup "simpler"
 
 
 
-newtype AType =  AType TType
+newtype AType =  AType Type
     deriving (Show,Eq)
 
 instance Arbitrary AType where
     arbitrary = flip evalStateT def{depth_=3} $ fmap AType atype
 
 
-data BType =  BType TType Int
+data BType =  BType Type Int
     deriving (Show,Eq)
 
 instance Arbitrary BType where

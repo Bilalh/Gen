@@ -21,7 +21,7 @@ data Feature = Fquan
               | Fsum            -- quan sum
               | Ftyped
               | FComp
-                deriving(Show, Generic, Typeable, Eq, Read)
+                deriving(Show, Generic, Typeable, Eq)
 
 data SpecMeta = SpecMeta
     {
@@ -29,10 +29,10 @@ data SpecMeta = SpecMeta
       , constraint_count_ :: Int
       , dom_count_        :: Int
       , dom_depth_        :: Integer
-      , dom_most_complex_ :: TType
-      , dom_types_        :: [TType]
+      , dom_most_complex_ ::Type
+      , dom_types_        :: [Type]
       , features_         :: [Feature]
-    }  deriving(Show, Generic, Typeable, Eq, Read)
+    }  deriving(Show, Generic, Typeable, Eq)
 
 
 instance FromJSON Feature
@@ -63,7 +63,7 @@ mkMeta = do
   return sp
 
 
-complex1 :: (WithDoms m) => TType -> TType -> m Ordering
+complex1 :: (WithDoms m) =>Type ->Type -> m Ordering
 complex1 t1 t2 = do
   let a = depthOf t1
       b = depthOf t2
@@ -73,7 +73,7 @@ complex1 t1 t2 = do
      | a >  b -> return GT
 
 
--- complex :: (WithDoms m) => TType -> TType -> m Ordering
+-- complex :: (WithDoms m) =>Type ->Type -> m Ordering
 -- complex t1 t2 = do
 --   a <- nullLogs $ simpler t1 t1
 --   b <- nullLogs $ simpler t2 t1

@@ -45,11 +45,11 @@ setLit = do
     innerType <- withDepthDec atype
     withDepthDec (setLitOf innerType)
 
-setLitOf :: TType ->  GG Expr
+setLitOf ::Type ->  GG Expr
 setLitOf innerType = do
     depth_ <- gets depth_
     addLog "s" [nn "innerType" innerType, nn "depth" depth_ ]
-    t2 <- deAny $ TSet innerType
+    t2 <- deAny $ TypeSet innerType
     listOfBounds (0,  min 15 (2 * depth_) ) (withDepthDec $ exprOf innerType) >>= \case
                      [] -> return $ ETyped t2 (ELit $ AbsLitSet [])
                      xs -> return . ELit . AbsLitSet $ xs
@@ -60,16 +60,16 @@ msetLit = do
     innerType <-  withDepthDec atype
     withDepthDec (msetLitOf innerType)
 
-msetLitOf :: TType ->  GG Expr
+msetLitOf ::Type ->  GG Expr
 msetLitOf innerType = do
     depth_ <- gets depth_
-    t2 <- deAny $ TMSet innerType
+    t2 <- deAny $ TypeMSet innerType
     listOfBounds (0,  min 15 (2 * depth_) ) (withDepthDec $ exprOf innerType) >>= \case
                      [] -> return $ ETyped t2 (ELit $ AbsLitMSet [])
                      xs -> return . ELit . AbsLitMSet  $ xs
 
 
-matrixLitOf :: TType -> GG Expr
+matrixLitOf ::Type -> GG Expr
 matrixLitOf innerType = do
     idx <-  withDepthDec intDom
     let numElems = S.size $ S.fromList $ concat $ ints idx
@@ -88,20 +88,20 @@ matrixLitOf innerType = do
       getInt x = docError ["not matched getInt", pretty x]
 
 -- FIXME from mappings should be distinct?
-funcLitOf :: TType -> TType -> GG Expr
+funcLitOf ::Type ->Type -> GG Expr
 funcLitOf fromType toType  = do
     depth_ <- gets depth_
     numElems <- choose2 (1, min 15 (2 * depth_) )
     froms <- vectorOf2 numElems  ( withDepthDec $ exprOf fromType)
     tos   <- vectorOf2 numElems  ( withDepthDec $ exprOf toType)
 
-    t2 <- deAny $ TFunc fromType toType
+    t2 <- deAny $ TypeFunction fromType toType
     case zipWith (\a b -> (a, b) ) froms tos of
       [] -> return $ ETyped t2 $ (ELit $ AbsLitFunction [])
       xs -> return $ ELit $ AbsLitFunction xs
 
 
-tupleLitOf :: [TType] -> GG Expr
+tupleLitOf :: [Type] -> GG Expr
 tupleLitOf tys = do
     depth_ <- gets depth_
     if
@@ -115,14 +115,14 @@ tupleLitOf tys = do
             e <- withDepthDec $ exprOf ty
             return $ e
 
-relLitOf :: [TType] -> GG Expr
+relLitOf :: [Type] -> GG Expr
 relLitOf types = do
     depth_ <- gets depth_
     if
         | depth_ < 1 -> ggError "relLitOf depth_ <1" [pretty $ groom types]
         | otherwise -> do
             parts <- vectorOf2 3 $ mkParts types
-            t2 <- deAny $ TRel types
+            t2 <- deAny $ TypeRelation types
             case parts of
               [] -> return $ ETyped t2  (ELit $ AbsLitRelation [])
               xs -> return $ ELit $ AbsLitRelation xs
@@ -133,7 +133,7 @@ relLitOf types = do
 
 
 
-parLitOf :: TType -> GG Expr
+parLitOf ::Type -> GG Expr
 parLitOf innerType = do
     depth_ <- gets depth_
 
@@ -141,11 +141,11 @@ parLitOf innerType = do
         | depth_ < 1 -> ggError "parLitOf depth <1" [pretty $ groom innerType]
         | otherwise -> do
 
-            let maxElems :: Int  = fromInteger $ sizeOfLimited 10 (TPar innerType)
+            let maxElems :: Int  = fromInteger $ sizeOfLimited 10 (TypePartition innerType)
 
             numElems <- choose2 (1,  minimum [maxElems, 15,  2 *  depth_  ] )
             numParts <- choose2 (1, numElems)
-            t2 <- deAny $ TPar innerType
+            t2 <- deAny $ TypePartition innerType
             mkParts numElems numParts (I.empty) >>= \case
                     [] -> return $ ETyped t2 (ELit $ AbsLitPartition [])
                     xs -> return $ ELit $ AbsLitPartition xs

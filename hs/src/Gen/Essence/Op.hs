@@ -23,6 +23,6 @@ instance Generate a => Generate (Op a) where
         return $ or bs
     where
     check :: MonadState St m
-          => ((TType -> m Bool), (Key, GenSt (Op a)))
+          => ((Type -> m Bool), (Key, GenSt (Op a)))
           -> m Bool
     check (f,_) = f ty

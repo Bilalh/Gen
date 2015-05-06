@@ -8,6 +8,7 @@ import Conjure.Language.Definition
 import Conjure.Language.Domain
 import Conjure.Language.Expression.Op
 import Conjure.Language.Pretty
+import Conjure.Language.Type
 import Conjure.Prelude
 import Text.Groom                     (groom)
 
@@ -41,7 +42,7 @@ data Expr =
   | ECon Constant
   | ELit Literal
   | EOp (Op Expr)
-  | ETyped TType Expr
+  | ETyped Type Expr
   | EDom (Domainn Expr)
 
   | EMetaVar String -- For TH
@@ -76,7 +77,7 @@ instance ToJSON    (EGen) where toJSON    = genericToJSON jsonOptions
 instance FromJSON  (EGen) where parseJSON = genericParseJSON jsonOptions
 
 
-data Var = Var Text TType
+data Var = Var Text Type
   deriving (Eq, Ord, Show, Data, Typeable, Generic)
 
 instance Pretty Var where
@@ -98,25 +99,6 @@ instance Hashable  QType
 instance ToJSON    QType where toJSON = genericToJSON jsonOptions
 instance FromJSON  QType where parseJSON = genericParseJSON jsonOptions
 
-data TType =
-      TAny
-    | TBool
-    | TInt
-    | TMatix  TType
-    | TSet    TType
-    | TMSet   TType
-    | TFunc   TType TType
-    | TTuple  [TType]
-    | TRel    [TType]
-    | TPar    TType
-    | TUnamed Text   -- each unamed type is unique
-    | TEnum   Text   -- as are enums
-      deriving (Eq, Ord, Show, Data, Typeable, Generic, Read)
-
-instance Serialize TType
-instance Hashable  TType
-instance ToJSON    TType where toJSON = genericToJSON jsonOptions
-instance FromJSON  TType where parseJSON = genericParseJSON jsonOptions
 
 
 toConjureFail :: forall (m :: * -> *) a a1.

@@ -13,10 +13,9 @@ import qualified Data.Traversable as V
 class (Pretty a, Eq a, Show a) => Standardise a  where
     standardise :: (Monad m, Applicative m) => a -> m a
 
-instance Standardise TType where
+instance Standardise Type where
     standardise = return
 
--- FIXME standardise EOP
 instance Standardise Expr where
     standardise (ECon y)      = return $ ECon y
     standardise (ELit y)      = pure ELit   <*> standardise y
@@ -48,9 +47,9 @@ instance Standardise Literal where
 instance Standardise (Domainn Expr) where
     standardise x = return x
 
+-- FIXME standardise EOP
 instance Standardise (Op Expr) where
     standardise x = return x
-
 
 
 instance Standardise GF where
@@ -67,6 +66,7 @@ instance Standardise Spec where
 
 instance Standardise OObjective where
     standardise x = return x
+
 
 instance (Standardise a, Standardise b) =>  Standardise (a,b) where
     standardise (a,b) = do
