@@ -175,7 +175,7 @@ if __name__ == "__main__":
             if new_timeout > op.timeout:
                 logger.warn("Timeout previously used %s, is less then given time %s", new_timeout, op.timeout)
             old=op.timeout
-            op.timeout = int(min( max(new_timeout * 1.5, 10), op.timeout))
+            op.timeout = int(min( max(new_timeout * 3, 20), op.timeout))
 
             logger.warn("Timeout changed from %s to %s", old, op.timeout)
 
