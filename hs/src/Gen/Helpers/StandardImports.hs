@@ -16,6 +16,7 @@ import Control.Monad.State.Strict as X ( MonadState(get, put))
 
 import Data.Set as X (Set)
 
+
 import Test.QuickCheck as X (quickCheckWith, quickCheckWithResult
     , quickCheckResult, quickCheck, Gen,generate, sample'
     , Arbitrary(..), CoArbitrary(..), elements, sized)

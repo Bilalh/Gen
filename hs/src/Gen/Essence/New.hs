@@ -5,17 +5,15 @@ module Gen.Essence.New where
 import Conjure.Language.Definition
 import Conjure.Language.Domain
 import Conjure.Language.Expression.Op
-import Conjure.Prelude
-import Gen.AST.Imports
 import Gen.Essence.St
-import Gen.Helpers.Placeholders       (notDone)
-import System.Random                  (Random)
-import Test.QuickCheck                (choose,elements)
 import Gen.Helpers.SizeOf
+import Gen.Helpers.StandardImports
 import Gen.Helpers.TypeOf
+import System.Random                  (Random)
+import Test.QuickCheck                (choose)
 
 import qualified Data.Foldable as F
-import qualified Data.Map as M
+import qualified Data.Map      as M
 
 
 instance Generate Expr where
@@ -133,7 +131,7 @@ instance Generate a => Generate (OpEq a) where
 
   give t = giveUnmatched "Generate (OpEq a)" t
 
-  -- possiblePure includes the ops type
+  -- possible counts the ops in calculation
   possiblePure _ ty _ | ty /= TBool = False
   possiblePure _ ty d = depthOf ty + 1 <= (fromIntegral d)
 
