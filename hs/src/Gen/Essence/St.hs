@@ -17,12 +17,13 @@ import qualified Data.Map as M
 class Data a => Generate a where
   give  :: GenerateConstraint -> GenSt a
 
-  possible :: MonadState St m => a -> TType -> m Bool
+  possible :: (Applicative m, MonadState St m) => a -> TType -> m Bool
   possible a ty = do
       d <- gets depth
       return $ possiblePure a ty d
   possiblePure :: a -> TType -> Depth -> Bool
-
+  possiblePure = error "no default possiblePure"
+  {-# MINIMAL give, possible | give, possiblePure  #-}
 
   getId ::  a -> Key
   getId  = dataTypeName . dataTypeOf
@@ -67,13 +68,19 @@ instance WrapConstant Expression where
 data St = St{
        weighting :: Map String Int
     ,  depth     :: Int
+    , beConstant :: Bool  -- when true only generate constrant expressions
+    , newVars_   :: [Var] -- Domains from e.g. forall
+    , doms_      :: Domains
     }
- deriving (Eq, Ord, Show, Data, Typeable, Generic)
+ deriving (Eq,Show, Data, Typeable, Generic)
 
 instance Default St where
   def = St{
-          weighting = def
-        , depth = $(neverNote "No depth specified")
+          weighting  = def
+        , depth      = $(neverNote "No depth specified")
+        , beConstant = False
+        , newVars_   = def
+        , doms_      = def
         }
 
 class OpInfo a where

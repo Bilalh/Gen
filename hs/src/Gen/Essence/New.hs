@@ -10,9 +10,11 @@ import Gen.AST.Imports
 import Gen.Essence.St
 import Gen.Helpers.Placeholders       (notDone)
 import System.Random                  (Random)
-import Test.QuickCheck                (choose)
+import Test.QuickCheck                (choose,elements)
 import Gen.Helpers.SizeOf
+import Gen.Helpers.TypeOf
 
+import qualified Data.Foldable as F
 import qualified Data.Map as M
 
 
@@ -20,6 +22,7 @@ instance Generate Expr where
   give g  = do
     let defs =
           [ (possible (error "" :: Constant), ("ECon",  ECon <$> give g))
+          , (possible (error "" :: Var),      ("EVar",  EVar  <$> give g))
           , (possible (error "" :: Op Expr),  ("EOp",   EOp  <$> give g))
           , (possible (error "" :: AbstractLiteral Expr), ("ELit",  wrapLiteral <$> give g))
           ]
@@ -27,11 +30,33 @@ instance Generate Expr where
     parts <- getPossibilities g defs
     frequency3 parts
 
+    where
+    -- Put a Typed around empty lits e.g a empty set
+    wrapLiteral ::  AbstractLiteral Expr -> Expr
+    wrapLiteral a = ELit a
+
   possiblePure _ _ _ = True
 
--- Put a Typed around empty lits e.g a empty set
-wrapLiteral ::  AbstractLiteral Expr -> Expr
-wrapLiteral a = ELit a
+
+instance Generate Var where
+  give (GType ty) = do
+    ds <- gets doms_
+    let ks = M.toList . M.filter (== ty) . M.map (typeOfDom . domOfGF) $ ds
+    let choices =  map (return . uncurry Var) ks
+    oneof3 choices
+
+  give t = giveUnmatched "Generate Var" t
+
+  possible _ ty = do
+    ds <- gets doms_
+    F.foldrM f False ds
+
+    where
+    f _  True  = return True
+    f gf False = do
+       b <- ttypeOf gf
+       return $ b == ty
+
 
 instance Generate Constant where
   give GNone = do
@@ -75,7 +100,7 @@ instance Generate a => Generate (Op a) where
       False -> return False
       True  -> do
         bs <- mapM (check) (allOps GNone)
-        return $ and bs
+        return $ or bs
     where
     check :: MonadState St m
           => ((TType -> m Bool), (Key, GenSt (Op a)))
@@ -83,12 +108,13 @@ instance Generate a => Generate (Op a) where
     check (f,_) = f ty
 
 
-
 instance Generate a => Generate (OpGeq a) where
   give GNone = give (GType TBool)
 
   give (GType TBool) = do
-    ty <- GType <$> give GNone
+    ws <- getWeights [ ("TInt", pure TInt)
+                     , ("TBool", pure TBool)]
+    ty <- GType <$> frequency3 ws
     pure OpGeq <*> give ty <*> give ty
 
   give t = giveUnmatched "Generate (OpGeq a)" t
@@ -96,6 +122,7 @@ instance Generate a => Generate (OpGeq a) where
   -- possiblePure includes the ops type
   possiblePure _ ty _ | ty /= TBool = False
   possiblePure _ ty d = depthOf ty + 1 <= (fromIntegral d)
+
 
 instance Generate a => Generate (OpEq a) where
   give GNone = give (GType TBool)
@@ -203,9 +230,9 @@ instance Generate Spec where
     doms <- mapM (\_ -> give GNone) [1..i_d]
     let withNames =  zipWith (\d i -> (name i , Findd d)) doms [1 :: Int ..]
     let mappings  = M.fromList withNames
+    modify $ \st -> st{doms_=mappings}
 
     exprs <- mapM (\_ -> give (GType TBool) ) [0..i_e]
-
     return $ Spec mappings exprs Nothing
 
     where name i =  stringToText $  "var" ++  (show  i)
@@ -220,7 +247,7 @@ instance Generate Spec where
 
 -- Will be auto genrated
 allOps :: forall m a
-        . (Generate a, MonadState St m)
+        . (Generate a, MonadState St m, Applicative m)
        => GenerateConstraint
        -> [((TType -> m Bool ), (Key, GenSt (Op a))) ]
 allOps con =
@@ -245,5 +272,13 @@ frequency3 xs0 =  choose3 (1, tot) >>= (`pick` xs0)
 choose3 :: Random a => (a,a) -> GenSt a
 choose3 rng = lift $ choose rng
 
+oneof3 :: [GenSt a] -> GenSt a
+oneof3 [] = error "oneof3 used with empty list"
+oneof3 gs = choose3 (0,length gs - 1) >>=   (gs `at`)
+
+
 vectorOf3 :: Int -> GenSt a -> GenSt [a]
 vectorOf3 k gen = sequence [ gen | _ <- [1..k] ]
+
+elements3 :: [a] -> GenSt a
+elements3 as  = lift $ elements as
