@@ -7,7 +7,7 @@ test:
 clean:
 	@bash scripts/clean.sh
 
-add_ops: 
+add_ops:
 	runhaskell scripts/add_new_ops.hs "${CONJURE_LIB}/src/Conjure/Language/Expression/Op/"
 
 ops_metadata:
@@ -55,6 +55,7 @@ ghci:
 	    -XNamedFieldPuns                           \
 	    -XMultiWayIf                               \
             -XFlexibleContexts                         \
+            -XFlexibleInstances                        \
 	    -fwarn-incomplete-patterns                 \
 	    -fwarn-incomplete-uni-patterns             \
 	    -fwarn-missing-signatures                  \
@@ -80,6 +81,7 @@ ghci_main:
 	    -XMultiWayIf                               \
             -XFlexibleContexts                         \
 	    -fwarn-incomplete-patterns                 \
+            -XFlexibleInstances                        \
 	    -fwarn-incomplete-uni-patterns             \
 	    -fwarn-missing-signatures                  \
 	    -fwarn-name-shadowing                      \

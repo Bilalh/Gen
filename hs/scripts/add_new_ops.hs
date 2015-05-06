@@ -28,7 +28,7 @@ skip = S.fromList [ "AttributeAsConstraint"
                   ]
 
 only :: S.Set String
-only = S.fromList [ "Geq", "Eq", "Union" ]
+only = S.fromList [ "Geq", "Eq"]
 
 main :: IO ()
 main = do

@@ -197,6 +197,9 @@ test-suite gen-testing
         RecordWildCards
         NamedFieldPuns
         MultiWayIf
+        FlexibleContexts
+        FlexibleInstances
+
     ghc-options:
         -fwarn-incomplete-patterns
         -fwarn-incomplete-uni-patterns

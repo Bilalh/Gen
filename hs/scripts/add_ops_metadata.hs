@@ -19,8 +19,8 @@ main = do
                   <$> getDirectoryContents opDir
 
     let outText = unlines $ concat
-            [ [ "--This is an auto-generated file created by unhaskell scripts/add_ops_metadata.hs"
-              , "module Gen.Essence.Op.Internal.Generated where"
+            [ [ "--This is an auto-generated file created by runhaskell scripts/add_ops_metadata.hs"
+              , "module Gen.Essence.Op.Internal.Generated (allOps) where"
               , ""
               , "import Conjure.Language.Expression.Op"
               , "import Gen.Essence.St"
@@ -40,7 +40,7 @@ main = do
               , "  ["
               , intercalate "  ,"
                 [ let mm :: String = printf "(Proxy :: Proxy (Op%s a))" m
-                  in printf " (possible %-30s, (getId %-30s, MkOp%-15s <$> give con ))\n" mm mm m
+                  in printf " (possible %-40s, (getId %-40s, MkOp%-15s <$> give con ))\n" mm mm m
                 | m <- operators ]
               ,  "  ]"
               ]
