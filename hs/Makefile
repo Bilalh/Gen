@@ -7,10 +7,15 @@ test:
 clean:
 	@bash scripts/clean.sh
 
+# Limit the ops added with one of the following
+# OPS="Eq Union" make add_ops
+# OPS=Eq,Union make add_ops
 add_ops:
-	runhaskell scripts/add_new_ops.hs "${CONJURE_LIB}/src/Conjure/Language/Expression/Op/" ${OPS} \
+	runhaskell scripts/add_new_ops.hs "${CONJURE_LIB}/src/Conjure/Language/Expression/Op/" $(subst ${comma}, ,${OPS}) \
 	&& runhaskell scripts/add_ops_metadata.hs
 
+# to use a comma in $(subst you need to put it in a variable
+comma :=,
 
 update_ops_metadata:
 	runhaskell scripts/add_ops_metadata.hs
