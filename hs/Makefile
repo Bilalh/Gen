@@ -7,9 +7,19 @@ test:
 clean:
 	@bash scripts/clean.sh
 
+add_ops: 
+	runhaskell scripts/add_new_ops.hs "${CONJURE_LIB}/src/Conjure/Language/Expression/Op/"
+
+ops_metadata:
+	runhaskell scripts/add_ops_metadata.hs
+
+
 autoversion:
 	# Useful to make an archive that does not require git
 	bash scripts/make_autoversion.sh
+
+exposed_modules_to_clipboard:
+	./scripts/make_exposed_modules.sh
 
 failures:
 	@BUILD_TESTS=yes bash scripts/install.sh && \

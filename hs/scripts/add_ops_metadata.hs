@@ -38,20 +38,13 @@ main = do
               , "       -> [((TType -> m Bool ), (Key, GenSt (Op a)))]"
               , "allOps con = "
               , "  ["
-              ]
-
-
-
-
-            , [intercalate "  ,"
-                [ (printf "  ( possible (error \"possible generated\" :: Op%-15s a ), (getId (error \"getId generated\" :: Op%-15s a),  MkOp%-15s <$> give con))\n" m m m) :: String
+              , intercalate "  ,"
+                [ let mm :: String = printf "(Proxy :: Proxy (Op%s a))" m
+                  in printf " (possible %-30s, (getId %-30s, MkOp%-15s <$> give con ))\n" mm mm m
                 | m <- operators ]
+              ,  "  ]"
               ]
 
-
-            , [ "  ]"
-
-              ]
             ]
 
     writeOut outFile outText

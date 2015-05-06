@@ -16,15 +16,19 @@ usage = "runhaskell scripts/add_new_ops.hs $CONJURE_LIB/src/Conjure/Language/Exp
 
 skip :: S.Set String
 skip = S.fromList [ "AttributeAsConstraint"
+                  , "Active"
                   , "DontCare"
                   , "DotLeq"
                   , "DotLt"
+                  , "generated"
                   , "Restrict"
                   , "TildeLeq"
                   , "TildeLt"
                   , "True"
-                  , "Active"
-                  , "generated"]
+                  ]
+
+only :: S.Set String
+only = S.fromList [ "Geq", "Eq", "Union" ]
 
 main :: IO ()
 main = do
@@ -37,7 +41,8 @@ main = do
     operators_ <- sort . map (head . splitOn '.')
                        . filter (".hs" `isSuffixOf`)
                       <$> getDirectoryContents opDir
-    let operators = S.toList  $ (S.fromList operators_ ) `S.difference` skip
+    -- let operators = S.toList  $ (S.fromList operators_ ) `S.difference` skip
+    let operators = S.toList  $ (S.fromList operators_ ) `S.intersection` only
 
     let opName m = "Op" ++ m
     let outText m = unlines $ concat
