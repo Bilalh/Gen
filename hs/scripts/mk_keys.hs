@@ -37,12 +37,12 @@ key_templete keys_data key_isString =
 
 
     instance Pretty Key where
-        pretty = pretty . show
+      pretty = pretty . show
 
     instance IsString Key where
-        $key_isString
-        fromString t = error $ "Unknown Key: " ++ t ++
-                      "\n Add new keys to src/Gen/Essence/key_extra_names.txt if needed."
+      $key_isString
+      fromString t = error $ "Unknown Key: " ++ t ++
+                     "\n Add new keys to src/Gen/Essence/key_extra_names.txt if needed."
   |]
 
 main :: IO ()
