@@ -6,19 +6,19 @@ import Conjure.UI.IO                   (writeModel)
 import Conjure.UI.TypeCheck            (typeCheckModel)
 import Data.Time.Clock.POSIX           (getPOSIXTime)
 import Gen.Classify.Meta               (mkMeta)
-import Gen.Essence.Data                (EssenceConfig)
+import Gen.Essence.UIData              (EssenceConfig)
 import Gen.IO.Formats
-import Gen.IO.Toolchain                hiding (ToolchainData (..), DirError(..))
+import Gen.IO.Toolchain                hiding (DirError (..), ToolchainData (..))
 import Gen.Prelude
 import GHC.Real                        (floor)
 import System.Directory                (copyFile, renameDirectory)
 
+import qualified Data.IntSet             as I
 import qualified Data.Map                as M
 import qualified Data.Set                as S
 import qualified Gen.Arbitrary.Arbitrary as Gen
-import qualified Gen.Essence.Data        as EC
+import qualified Gen.Essence.UIData      as EC
 import qualified Gen.IO.Toolchain        as Toolchain
-import qualified Data.IntSet             as I
 
 
 generateEssence :: EssenceConfig -> IO ()
@@ -35,7 +35,7 @@ generateEssence ec@EC.EssenceConfig{..} = do
     False -> return ()
     True  -> do
       delete (outputDirectory_ </> "_passing")
-      delete  (outputDirectory_ </> "_errors" </> "zPerSpec")
+      delete (outputDirectory_ </> "_errors" </> "zPerSpec")
 
       where
         delete fp =

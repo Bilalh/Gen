@@ -41,7 +41,6 @@ Library
                      , Gen.Classify.Sorter
                      , Gen.Classify.UpdateChoices
                      , Gen.Essence.Constant
-                     , Gen.Essence.Data
                      , Gen.Essence.Domain
                      , Gen.Essence.Expr
                      , Gen.Essence.Generate
@@ -58,6 +57,7 @@ Library
                      , Gen.Essence.Spec
                      , Gen.Essence.St
                      , Gen.Essence.Type
+                     , Gen.Essence.UIData
                      , Gen.Generalise.Data
                      , Gen.Generalise.Generalise
                      , Gen.Generalise.Runner

@@ -31,7 +31,7 @@ import System.Timeout              (timeout)
 import Text.Printf                 (printf)
 
 import qualified Data.Set                as S
-import qualified Gen.Essence.Data        as EC
+import qualified Gen.Essence.UIData        as EC
 import qualified Gen.Generalise.Data     as E
 import qualified Gen.IO.Toolchain        as Toolchain
 import qualified Gen.IO.ToolchainRecheck as Recheck

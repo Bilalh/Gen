@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE CPP #-}
 
-module Gen.Essence.Data  where
+module Gen.Essence.UIData  where
 
 import Gen.Prelude
 import Gen.IO.Toolchain(KindI,StatusI)
