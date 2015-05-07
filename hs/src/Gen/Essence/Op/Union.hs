@@ -2,7 +2,6 @@
 module Gen.Essence.Op.Union where
 
 import Conjure.Language.Expression.Op
-import Gen.Essence.Rnd
 import Gen.Essence.St
 import Gen.Essence.Type               ()
 import Gen.Helpers.SizeOf
@@ -13,12 +12,13 @@ import qualified Data.Set as S
 
 instance Generate a => Generate (OpUnion a) where
   give GNone = do
-    let allowed = S.fromList ["TypeSet", "TypeMSet", "TypeFunction", "TypeRelation"]
+    let allowed = S.fromList [K_TypeSet, K_TypeMSet, K_TypeFunction, K_TypeRelation]
     let ws = [ (k,0) | k <- typeKeys, k `S.notMember` allowed ]
     ty <- withWeights ws (give GNone)
     give (GType ty)
 
-  give (GType ty) = $notDone
+  give ty@GType{} = do
+    pure OpUnion <*> give ty <*> give ty
 
   give t = giveUnmatched "Generate OpUnion" t
 

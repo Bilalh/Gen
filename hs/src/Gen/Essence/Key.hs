@@ -58,6 +58,73 @@ data Key = K_Unused
          | K_EVar
          | K_ExpressionMetaVar
          | K_Op
+         | K_OpActive
+         | K_OpAllDiff
+         | K_OpAnd
+         | K_OpApart
+         | K_OpAttributeAsConstraint
+         | K_OpDefined
+         | K_OpDiv
+         | K_OpDontCare
+         | K_OpDotLeq
+         | K_OpDotLt
+         | K_OpEq
+         | K_OpFactorial
+         | K_OpFlatten
+         | K_OpFreq
+         | K_OpGeq
+         | K_OpGt
+         | K_OpHist
+         | K_OpIff
+         | K_OpImage
+         | K_OpImageSet
+         | K_OpImply
+         | K_OpIn
+         | K_OpIndexing
+         | K_OpIntersect
+         | K_OpInverse
+         | K_OpLeq
+         | K_OpLexLeq
+         | K_OpLexLt
+         | K_OpLt
+         | K_OpMax
+         | K_OpMin
+         | K_OpMinus
+         | K_OpMod
+         | K_OpNegate
+         | K_OpNeq
+         | K_OpNot
+         | K_OpOr
+         | K_OpParticipants
+         | K_OpParts
+         | K_OpParty
+         | K_OpPow
+         | K_OpPowerSet
+         | K_OpPreImage
+         | K_OpPred
+         | K_OpProduct
+         | K_OpRange
+         | K_OpRelationProj
+         | K_OpRestrict
+         | K_OpSlicing
+         | K_OpSubsequence
+         | K_OpSubset
+         | K_OpSubsetEq
+         | K_OpSubstring
+         | K_OpSucc
+         | K_OpSum
+         | K_OpSupset
+         | K_OpSupsetEq
+         | K_OpTildeLeq
+         | K_OpTildeLt
+         | K_OpToInt
+         | K_OpToMSet
+         | K_OpToRelation
+         | K_OpToSet
+         | K_OpTogether
+         | K_OpTrue
+         | K_OpTwoBars
+         | K_OpUnion
          | K_RangeBounded
          | K_RangeLowerBounded
          | K_RangeOpen
@@ -150,6 +217,73 @@ instance IsString Key where
     fromString "EVar"                    = K_EVar
     fromString "ExpressionMetaVar"       = K_ExpressionMetaVar
     fromString "Op"                      = K_Op
+    fromString "OpActive"                = K_OpActive
+    fromString "OpAllDiff"               = K_OpAllDiff
+    fromString "OpAnd"                   = K_OpAnd
+    fromString "OpApart"                 = K_OpApart
+    fromString "OpAttributeAsConstraint" = K_OpAttributeAsConstraint
+    fromString "OpDefined"               = K_OpDefined
+    fromString "OpDiv"                   = K_OpDiv
+    fromString "OpDontCare"              = K_OpDontCare
+    fromString "OpDotLeq"                = K_OpDotLeq
+    fromString "OpDotLt"                 = K_OpDotLt
+    fromString "OpEq"                    = K_OpEq
+    fromString "OpFactorial"             = K_OpFactorial
+    fromString "OpFlatten"               = K_OpFlatten
+    fromString "OpFreq"                  = K_OpFreq
+    fromString "OpGeq"                   = K_OpGeq
+    fromString "OpGt"                    = K_OpGt
+    fromString "OpHist"                  = K_OpHist
+    fromString "OpIff"                   = K_OpIff
+    fromString "OpImage"                 = K_OpImage
+    fromString "OpImageSet"              = K_OpImageSet
+    fromString "OpImply"                 = K_OpImply
+    fromString "OpIn"                    = K_OpIn
+    fromString "OpIndexing"              = K_OpIndexing
+    fromString "OpIntersect"             = K_OpIntersect
+    fromString "OpInverse"               = K_OpInverse
+    fromString "OpLeq"                   = K_OpLeq
+    fromString "OpLexLeq"                = K_OpLexLeq
+    fromString "OpLexLt"                 = K_OpLexLt
+    fromString "OpLt"                    = K_OpLt
+    fromString "OpMax"                   = K_OpMax
+    fromString "OpMin"                   = K_OpMin
+    fromString "OpMinus"                 = K_OpMinus
+    fromString "OpMod"                   = K_OpMod
+    fromString "OpNegate"                = K_OpNegate
+    fromString "OpNeq"                   = K_OpNeq
+    fromString "OpNot"                   = K_OpNot
+    fromString "OpOr"                    = K_OpOr
+    fromString "OpParticipants"          = K_OpParticipants
+    fromString "OpParts"                 = K_OpParts
+    fromString "OpParty"                 = K_OpParty
+    fromString "OpPow"                   = K_OpPow
+    fromString "OpPowerSet"              = K_OpPowerSet
+    fromString "OpPreImage"              = K_OpPreImage
+    fromString "OpPred"                  = K_OpPred
+    fromString "OpProduct"               = K_OpProduct
+    fromString "OpRange"                 = K_OpRange
+    fromString "OpRelationProj"          = K_OpRelationProj
+    fromString "OpRestrict"              = K_OpRestrict
+    fromString "OpSlicing"               = K_OpSlicing
+    fromString "OpSubsequence"           = K_OpSubsequence
+    fromString "OpSubset"                = K_OpSubset
+    fromString "OpSubsetEq"              = K_OpSubsetEq
+    fromString "OpSubstring"             = K_OpSubstring
+    fromString "OpSucc"                  = K_OpSucc
+    fromString "OpSum"                   = K_OpSum
+    fromString "OpSupset"                = K_OpSupset
+    fromString "OpSupsetEq"              = K_OpSupsetEq
+    fromString "OpTildeLeq"              = K_OpTildeLeq
+    fromString "OpTildeLt"               = K_OpTildeLt
+    fromString "OpToInt"                 = K_OpToInt
+    fromString "OpToMSet"                = K_OpToMSet
+    fromString "OpToRelation"            = K_OpToRelation
+    fromString "OpToSet"                 = K_OpToSet
+    fromString "OpTogether"              = K_OpTogether
+    fromString "OpTrue"                  = K_OpTrue
+    fromString "OpTwoBars"               = K_OpTwoBars
+    fromString "OpUnion"                 = K_OpUnion
     fromString "RangeBounded"            = K_RangeBounded
     fromString "RangeLowerBounded"       = K_RangeLowerBounded
     fromString "RangeOpen"               = K_RangeOpen

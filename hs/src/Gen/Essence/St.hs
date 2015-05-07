@@ -45,7 +45,7 @@ class Data a => Generate a where
 
 
   getId ::  Proxy a -> Key
-  getId = fromString . dataTypeName . dataTypeOf . asProxyTypeOf (error "getID" :: a)
+  getId = fromString . tyconUQname . dataTypeName . dataTypeOf . asProxyTypeOf (error "getID" :: a)
 
   getWeighting :: MonadState St m => Proxy a -> m Int
   getWeighting a = do

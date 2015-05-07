@@ -1,13 +1,15 @@
 {-# LANGUAGE LambdaCase, OverloadedStrings, QuasiQuotes, ScopedTypeVariables #-}
 
-import Conjure.Language.AbstractLiteral (AbstractLiteral (AbsLitSet))
-import Conjure.Language.Constant        (Constant (ConstantBool))
-import Conjure.Language.Domain          (Domain (DomainBool),Range (RangeOpen))
-import Conjure.Language.Type            (Type (TypeAny))
-import Conjure.Language.Definition      (Expression(Constant))
-import Conjure.Prelude                  (padRight)
+import Conjure.Language.AbstractLiteral                  (AbstractLiteral (AbsLitSet))
+import Conjure.Language.Constant                         (Constant (ConstantBool))
+import Conjure.Language.Definition                       (Expression (Constant))
+import Conjure.Language.Domain                           (Domain (DomainBool),
+                                                          Range (RangeOpen))
+import Conjure.Language.Expression.Op.Internal.Generated (Op (..))
+import Conjure.Language.Type                             (Type (TypeAny))
+import Conjure.Prelude                                   (padRight)
 import Data.Data
-import Data.List                        (intercalate, sort)
+import Data.List                                         (intercalate, sort)
 import NeatInterpolation
 import Prelude
 
@@ -64,6 +66,7 @@ dataNames = [ strs TypeAny
             , strs (Constant     $  ConstantBool True)
             , strs (DomainBool   :: Domain () Constant)
             , strs (RangeOpen    :: Range Constant)
+            , [ drop 2 s | s <- strs (error "OP"   :: Op Constant ) ]
             ]
 
 getNames :: IO [String]
