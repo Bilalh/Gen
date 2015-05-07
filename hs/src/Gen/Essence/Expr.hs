@@ -20,9 +20,9 @@ import qualified Data.Map      as M
 instance Generate Expr where
   give g  = do
     let defs =
-          [ (possible (Proxy :: Proxy Constant),   ("ECon",  ECon <$> give g))
-          , (possible (Proxy :: Proxy  Var),       ("EVar",  EVar  <$> give g))
-          , (possible (Proxy :: Proxy (Op Expr)),  ("EOp",   EOp  <$> give g))
+          [ (possible (Proxy :: Proxy Constant),   (K_ECon,  ECon  <$> give g))
+          , (possible (Proxy :: Proxy  Var),       (K_EVar,  EVar  <$> give g))
+          , (possible (Proxy :: Proxy (Op Expr)),  (K_EOp,   EOp   <$> give g))
           , (possible (Proxy :: Proxy (AbstractLiteral Expr)), ("ELit",  wrapLiteral <$> give g))
           ]
 

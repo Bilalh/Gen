@@ -1,11 +1,28 @@
 {-# LANGUAGE DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveGeneric,
              ParallelListComp #-}
-module Gen.Essence.St where
+module Gen.Essence.St
+  ( module X
+  , Generate(..)
+  , St(..)
+  , GenSt
+  , GenerateConstraint(..)
+  , WrapConstant(..)
+  , weightingForKey
+  , withWeights
+  , getWeights
+  , getPossibilities
+  , withDepthDec
+  , giveUnmatched
+  , runGenerate
+  , asProxyTypeOf
+  , typeKeys
+  ) where
 
 import Conjure.Language.Definition (Constant, Expression (..))
 import Data.Data                   hiding (Proxy)
 import Data.Map                    (Map)
 import Gen.Helpers.StandardImports
+import Gen.Essence.Key as X
 
 import qualified Data.Map as M
 
@@ -28,7 +45,7 @@ class Data a => Generate a where
 
 
   getId ::  Proxy a -> Key
-  getId = dataTypeName . dataTypeOf . asProxyTypeOf (error "getID" :: a)
+  getId = fromString . dataTypeName . dataTypeOf . asProxyTypeOf (error "getID" :: a)
 
   getWeighting :: MonadState St m => Proxy a -> m Int
   getWeighting a = do
@@ -40,7 +57,6 @@ class Data a => Generate a where
 
 
 type GenSt a = StateT St Gen a
-type Key   = String
 type Depth = Int
 
 data GenerateConstraint = GNone
@@ -68,8 +84,8 @@ instance WrapConstant Expression where
 
 
 data St = St{
-       weighting :: Map String Int
-    ,  depth     :: Int
+      weighting  :: Map Key Int
+    , depth      :: Int
     , beConstant :: Bool  -- when true only generate constrant expressions
     , newVars_   :: [Var] -- Domains from e.g. forall
     , doms_      :: Domains
@@ -154,4 +170,4 @@ asProxyTypeOf = const
 typeKeys :: [Key]
 typeKeys = do
   let names = dataTypeConstrs . dataTypeOf $ TypeAny
-  map show names
+  map (fromString . show) names
