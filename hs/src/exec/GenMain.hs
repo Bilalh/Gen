@@ -28,6 +28,7 @@ import System.Exit                (exitFailure, exitSuccess, exitWith)
 import System.FilePath            (takeExtensions)
 import System.Timeout             (timeout)
 import Text.Printf                (printf)
+import Gen.Essence.UIData
 
 import qualified Data.Set                as S
 import qualified Gen.Essence.UIData      as EC
@@ -215,21 +216,21 @@ mainWithArgs u@Reduce{..} = do
   out   <- giveOutputDirectory output_directory
   cores <- giveCores u
 
-  let args = def{oErrKind_           = error_kind
-                ,oErrStatus_         = error_status
-                ,oErrChoices_        = error_choices
-                ,outputDir_          = out
-                ,specDir_            = spec_directory
-                ,R.cores_            = cores
-                ,rgen_               = mkrGen (seed_)
-                ,specTime_           = per_spec_time
-                ,binariesDirectory_  = binaries_directory
-                ,toolchainOutput_    = toolchain_ouput
-                ,deletePassing_      = delete_passing
-                ,resultsDB_          = db
-                ,mostReducedChoices_ = error_choices
-                ,resultsDB_dir       = db_directory
-                ,timeLeft_           =  total_time_may
+  let args = def{oErrKind_            = error_kind
+                ,oErrStatus_          = error_status
+                ,oErrChoices_         = error_choices
+                ,outputDir_           = out
+                ,specDir_             = spec_directory
+                ,R.cores_             = cores
+                ,rgen_                = mkrGen (seed_)
+                ,specTime_            = per_spec_time
+                ,R.binariesDirectory_ = binaries_directory
+                ,R.toolchainOutput_   = toolchain_ouput
+                ,R.deletePassing_     = delete_passing
+                ,resultsDB_           = db
+                ,mostReducedChoices_  = error_choices
+                ,resultsDB_dir        = db_directory
+                ,timeLeft_            =  total_time_may
                 }
 
   doMeta out no_csv binaries_directory
