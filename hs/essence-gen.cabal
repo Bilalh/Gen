@@ -45,11 +45,13 @@ Library
                      , Gen.Essence.Domain
                      , Gen.Essence.Expr
                      , Gen.Essence.Generate
+                     , Gen.Essence.Key
                      , Gen.Essence.Literal
                      , Gen.Essence.Op.Eq
                      , Gen.Essence.Op.Geq
                      , Gen.Essence.Op.Internal.Generated
                      , Gen.Essence.Op.Leq
+                     , Gen.Essence.Op.Union
                      , Gen.Essence.Op
                      , Gen.Essence.Range
                      , Gen.Essence.Rnd
@@ -113,6 +115,7 @@ Library
                      , uniplate
                      , unordered-containers
                      , safe
+                     , neat-interpolation
 
     if impl(ghc < 7.10)
         build-depends: unix==2.7.0.1

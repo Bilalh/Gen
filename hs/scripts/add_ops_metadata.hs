@@ -19,7 +19,7 @@ main = do
                   <$> getDirectoryContents opDir
 
     let outText = unlines $ concat
-            [ [ "--This is an auto-generated file created by runhaskell scripts/add_ops_metadata.hs"
+            [ [ "--This is an auto-generated file created by make update_ops_metadata"
               , "module Gen.Essence.Op.Internal.Generated (allOps) where"
               , ""
               , "import Conjure.Language.Expression.Op"

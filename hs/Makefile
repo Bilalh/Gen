@@ -1,6 +1,8 @@
 install:
 	@bash scripts/install.sh
 
+install_and_meta: keys update_ops_metadata install
+
 test:
 	@RUN_TESTS=yes bash scripts/install.sh
 
@@ -19,6 +21,9 @@ comma :=,
 
 update_ops_metadata:
 	runhaskell scripts/add_ops_metadata.hs
+
+keys:
+	cabal exec -- runhaskell scripts/mk_keys.hs
 
 autoversion:
 	# Useful to make an archive that does not require git

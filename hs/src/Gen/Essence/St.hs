@@ -108,7 +108,8 @@ getWeights vs= do
   return [ (w,p) | (_,p) <- vs
                  | w <- weights  ]
 
--- getWeights but with
+-- | getWeights but takes function. If the function return False the
+-- | weighting for that item is set to 0 regresses of current weighting
 getPossibilities :: GenerateConstraint
                  -> [(Type -> GenSt Bool, (Key, v))]
                  -> GenSt [(Int, v)]
@@ -149,3 +150,8 @@ runGenerate st = generate $ evalStateT (give GNone) st
 asProxyTypeOf :: a -> Proxy a -> a
 asProxyTypeOf = const
 {-# INLINE asProxyTypeOf #-}
+
+typeKeys :: [Key]
+typeKeys = do
+  let names = dataTypeConstrs . dataTypeOf $ TypeAny
+  map show names

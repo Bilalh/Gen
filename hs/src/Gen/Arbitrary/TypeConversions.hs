@@ -289,7 +289,6 @@ reachableToType d oty@(TypeSet ity) =  do
         concatMapM (uncurry (processCommon d))
 
         where
-        -- FIXME weighting
         funcs :: GG [ (Type, [(ToTypeFn, Depth)]) ]
         funcs = catMaybes <$> sequence
             [
