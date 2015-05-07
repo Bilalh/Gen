@@ -1,8 +1,5 @@
-{-# LANGUAGE FlexibleInstances, ConstraintKinds #-}
-{-# LANGUAGE RankNTypes, KindSignatures #-}
-{-# LANGUAGE DeriveDataTypeable #-}
-{-# LANGUAGE CPP #-}
-
+{-# LANGUAGE CPP, ConstraintKinds, DeriveDataTypeable, FlexibleInstances,
+             KindSignatures, RankNTypes #-}
 module Gen.Arbitrary.Data (
       addLog
     , Depth
@@ -20,9 +17,9 @@ module Gen.Arbitrary.Data (
     , ToolchainOutput(..)
     ) where
 
-import Gen.Helpers.StandardImports as X
 import Gen.Helpers.Log
-
+import Gen.Helpers.StandardImports as X
+import Test.QuickCheck(Gen)
 
 import qualified Text.PrettyPrint as Pr
 

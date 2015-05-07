@@ -11,6 +11,7 @@ import {-# SOURCE #-} Gen.Arbitrary.Op
 import {-# SOURCE #-} Gen.Arbitrary.FromNested
 import {-# SOURCE #-} Gen.Arbitrary.TypeConversions
 
+import Test.QuickCheck(arbitrary,Gen,elements)
 
 import qualified Data.Map as M
 

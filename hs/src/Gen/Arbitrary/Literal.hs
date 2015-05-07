@@ -7,6 +7,7 @@ import Data.IntSet               (IntSet)
 import Gen.Arbitrary.Domain
 import Gen.Arbitrary.Expr        (deAny, exprOf)
 import Gen.Prelude
+import Test.QuickCheck(arbitrary)
 
 import qualified Data.IntSet               as I
 import qualified Data.Set                  as S

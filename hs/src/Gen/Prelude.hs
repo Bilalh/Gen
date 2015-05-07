@@ -21,35 +21,29 @@ module Gen.Prelude (
     , genSample
 ) where
 
-import Gen.Helpers.StandardImports as X
-
-import Gen.Arbitrary.Data as X
 import {-# SOURCE #-} Gen.Arbitrary.Generators as X
 
-import Gen.Helpers.Log as X (LogsTree(..))
-import Gen.Helpers.OrderedType as X
-import Gen.Helpers.SizeOf as X
-
-import Gen.Helpers.Debug as X
-import Gen.Helpers.QuickCheck2 as X
-import Gen.Helpers.Standardise as X
+import Gen.Arbitrary.Data          as X
+import Gen.Helpers.Debug           as X
+import Gen.Helpers.Log             as X (LogsTree (..))
+import Gen.Helpers.OrderedType     as X
+import Gen.Helpers.QuickCheck2     as X
+import Gen.Helpers.SizeOf          as X
+import Gen.Helpers.StandardImports as X
+import Gen.Helpers.Standardise     as X
+import Gen.Helpers.TypeOf          as X
 
 import Data.Time
-import Data.Time.Clock.POSIX(getPOSIXTime)
-
-import System.Directory(getHomeDirectory)
-import System.FilePath( (<.>))
-
-import qualified Data.Set as S
-
+import Data.Time.Clock.POSIX (getPOSIXTime)
+import System.Directory      (getHomeDirectory)
+import System.FilePath       ((<.>))
+import Test.QuickCheck( generate, sample')
 
 import qualified Control.Exception as C
-import qualified Text.PrettyPrint as P
+import qualified Data.Set          as S
+import qualified Text.PrettyPrint  as P
 
 
-import Gen.Helpers.TypeOf as X
-
-import GHC.Real as X(round)
 
 withDepth :: Depth -> GG a -> GG a
 withDepth newDepth f = do

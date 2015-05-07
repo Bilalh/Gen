@@ -3,7 +3,6 @@
 module Gen.Arbitrary.TypeConversions(toTypeWithConversions) where
 
 import Gen.Arbitrary.Expr
-import Gen.Arbitrary.Type
 import Gen.AST.Ops
 import Gen.Prelude
 

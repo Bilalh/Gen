@@ -26,9 +26,10 @@ module Gen.Arbitrary.Domain
     , rangeComp
 ) where
 
-import Conjure.Language.Domain
 import Conjure.Language.Constant
+import Conjure.Language.Domain
 import Gen.Prelude
+import Test.QuickCheck(arbitrary)
 
 import qualified Data.Set as S
 

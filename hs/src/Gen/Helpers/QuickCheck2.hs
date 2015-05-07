@@ -2,21 +2,11 @@
 -- Plus some functions that use them
 module Gen.Helpers.QuickCheck2 where
 
+import Gen.Arbitrary.Data          (GG)
 import Gen.Helpers.StandardImports
-
-
-import Gen.Arbitrary.Data(GG)
-
+import System.Random               (Random)
 import Test.QuickCheck.Gen
 
-import System.Random( Random )
-
-import Test.QuickCheck
-import Test.QuickCheck.Test
-import Test.QuickCheck.Text
-import Test.QuickCheck.Random
-import Test.QuickCheck.State(State(..))
-import Test.QuickCheck.Property(unProperty)
 
 -- | Generates a list of the given length.
 vectorOf2 :: Int -> GG a -> GG [a]

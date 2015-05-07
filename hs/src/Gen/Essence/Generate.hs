@@ -12,6 +12,7 @@ import Gen.IO.Toolchain                hiding (DirError (..), ToolchainData (..)
 import Gen.Prelude
 import GHC.Real                        (floor)
 import System.Directory                (copyFile, renameDirectory)
+import Test.QuickCheck                 (generate,Gen)
 
 import qualified Data.IntSet             as I
 import qualified Data.Map                as M

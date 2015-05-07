@@ -1,19 +1,13 @@
-
-
 {-# LANGUAGE DeriveDataTypeable #-}
-
 module Gen.Classify.Sorter where
 
+import Data.Data
+import Data.Maybe         (fromJust)
 import Gen.Classify.Meta
 import Gen.IO.Formats
 import Gen.Prelude
-
-import Conjure.Language.Type
-
-import Data.Data
-import Data.Maybe(fromJust)
-import System.FilePath (takeFileName, takeDirectory,takeExtensions)
-import System.Posix.Files(createSymbolicLink)
+import System.FilePath    (takeDirectory, takeExtensions, takeFileName)
+import System.Posix.Files (createSymbolicLink)
 
 import qualified Data.Text as T
 

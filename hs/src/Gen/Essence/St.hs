@@ -21,8 +21,9 @@ module Gen.Essence.St
 import Conjure.Language.Definition (Constant, Expression (..))
 import Data.Data                   hiding (Proxy)
 import Data.Map                    (Map)
+import Gen.Essence.Key             as X
 import Gen.Helpers.StandardImports
-import Gen.Essence.Key as X
+import Test.QuickCheck             (Gen, generate)
 
 import qualified Data.Map as M
 

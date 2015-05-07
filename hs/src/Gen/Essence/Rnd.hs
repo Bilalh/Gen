@@ -3,7 +3,7 @@ module Gen.Essence.Rnd where
 import Gen.Essence.St
 import Gen.Helpers.StandardImports
 import System.Random               (Random)
-import Test.QuickCheck             (choose)
+import Test.QuickCheck             (choose,elements,choose)
 
 
 frequency3 :: [(Int, GenSt a)] -> GenSt a

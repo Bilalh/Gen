@@ -1,10 +1,10 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-
 module Gen.Arbitrary.Arbitrary where
 
 import Gen.Prelude
 import Gen.Arbitrary.Expr
+import Test.QuickCheck(Gen)
 
 import qualified Data.Map as M
 import qualified Data.Text as T
