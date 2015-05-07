@@ -4,7 +4,7 @@ import Conjure.Language.AbstractLiteral
 import Conjure.Language.Constant
 import Gen.Arbitrary.Expr
 import Gen.Arbitrary.Op
-import Gen.Prelude
+import Gen.Arbitrary.Prelude
 import Gen.AST.Ops
 
 import qualified Data.Map as M

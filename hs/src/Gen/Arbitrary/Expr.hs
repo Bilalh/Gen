@@ -1,7 +1,7 @@
 {-# LANGUAGE QuasiQuotes, ViewPatterns, TupleSections#-}
 module Gen.Arbitrary.Expr where
 
-import Gen.Prelude
+import Gen.Arbitrary.Prelude
 import Gen.AST.TH
 import Gen.Arbitrary.Type
 import Gen.Arbitrary.Common

@@ -4,6 +4,6 @@
 
 module Gen.Arbitrary.TypeConversions where
 
-import Gen.Prelude
+import Gen.Arbitrary.Prelude
 
 toTypeWithConversions :: Type -> GG (Maybe (GG Expr) )

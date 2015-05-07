@@ -7,7 +7,7 @@ module Gen.Arbitrary.Generators(
     , useFunc_def
     ) where
 
-import Gen.Prelude
+import Gen.Arbitrary.Prelude
 
 import Gen.Arbitrary.Type(atype_def)
 import Gen.Arbitrary.Domain(dom_def)

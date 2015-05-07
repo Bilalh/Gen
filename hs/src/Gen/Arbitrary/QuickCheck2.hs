@@ -1,6 +1,6 @@
 -- Basily some Test.QuickCheck functions to work with our stateT.
 -- Plus some functions that use them
-module Gen.Helpers.QuickCheck2 where
+module Gen.Arbitrary.QuickCheck2 where
 
 import Gen.Arbitrary.Data          (GG)
 import Gen.Imports

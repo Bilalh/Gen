@@ -1,5 +1,5 @@
 {-# LANGUAGE CPP #-}
-module Gen.Prelude (
+module Gen.Arbitrary.Prelude (
       module X
     , withDepth
     , withSameDepth
@@ -25,7 +25,7 @@ import Gen.Arbitrary.Data          as X
 import Gen.Helpers.Debug           as X
 import Gen.Helpers.Log             as X (LogsTree (..),nullLogs,HasLogger(..))
 import Gen.Helpers.OrderedType     as X
-import Gen.Helpers.QuickCheck2     as X
+import Gen.Arbitrary.QuickCheck2     as X
 import Gen.Helpers.SizeOf          as X
 import Gen.Imports as X
 import Gen.Helpers.Standardise     as X

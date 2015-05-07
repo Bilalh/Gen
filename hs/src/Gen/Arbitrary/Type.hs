@@ -1,6 +1,6 @@
 module Gen.Arbitrary.Type where
 
-import Gen.Prelude
+import Gen.Arbitrary.Prelude
 
 -- return the type of a, knowing b  from  `a in b`
 quanType_in ::Type ->Type

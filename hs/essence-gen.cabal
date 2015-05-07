@@ -25,6 +25,8 @@ Library
                      , Gen.Arbitrary.Generators
                      , Gen.Arbitrary.Literal
                      , Gen.Arbitrary.Op
+                     , Gen.Arbitrary.Prelude
+                     , Gen.Arbitrary.QuickCheck2
                      , Gen.Arbitrary.Type
                      , Gen.Arbitrary.TypeConversions
                      , Gen.AST.Data
@@ -65,18 +67,16 @@ Library
                      , Gen.Helpers.Log
                      , Gen.Helpers.OrderedType
                      , Gen.Helpers.Placeholders
-                     , Gen.Helpers.QuickCheck2
                      , Gen.Helpers.SizeOf
-                     , Gen.Imports
                      , Gen.Helpers.Standardise
                      , Gen.Helpers.TypeOf
+                     , Gen.Imports
                      , Gen.IO.Formats
                      , Gen.IO.Term
                      , Gen.IO.TermSize
                      , Gen.IO.Toolchain
                      , Gen.IO.ToolchainData
                      , Gen.IO.ToolchainRecheck
-                     , Gen.Prelude
                      , Gen.Reduce.Data
                      , Gen.Reduce.FormatResults
                      , Gen.Reduce.Inners

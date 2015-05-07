@@ -4,7 +4,7 @@ module Gen.Arbitrary.TypeConversions(toTypeWithConversions) where
 
 import Gen.Arbitrary.Expr
 import Gen.AST.Ops
-import Gen.Prelude
+import Gen.Arbitrary.Prelude
 
 --Type that does not have any anys
 type PType =Type

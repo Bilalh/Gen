@@ -3,7 +3,6 @@ module Gen.DepthTest ( tests ) where
 
 import Gen.AST.TH
 import Gen.Imports
-import Gen.Reduce.Simpler
 import Gen.TestPrelude
 import Gen.Helpers.SizeOf
 

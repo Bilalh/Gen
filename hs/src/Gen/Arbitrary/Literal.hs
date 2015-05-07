@@ -6,7 +6,7 @@ import Conjure.Language.Domain
 import Data.IntSet               (IntSet)
 import Gen.Arbitrary.Domain
 import Gen.Arbitrary.Expr        (deAny, exprOf)
-import Gen.Prelude
+import Gen.Arbitrary.Prelude
 import Test.QuickCheck(arbitrary)
 
 import qualified Data.IntSet               as I

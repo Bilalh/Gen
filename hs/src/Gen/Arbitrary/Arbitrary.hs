@@ -2,7 +2,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Gen.Arbitrary.Arbitrary where
 
-import Gen.Prelude
+import Gen.Arbitrary.Prelude
 import Gen.Arbitrary.Expr
 import Test.QuickCheck(Gen)
 

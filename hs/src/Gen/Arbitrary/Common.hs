@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Gen.Arbitrary.Common  where
 
-import Gen.Prelude
+import Gen.Arbitrary.Prelude
 
 import qualified Data.Text as T
 

@@ -16,7 +16,7 @@ module Gen.Arbitrary.Op(
 
 import Gen.Arbitrary.Expr
 import Gen.AST.Ops
-import Gen.Prelude
+import Gen.Arbitrary.Prelude
 
 
 type Bop = (Expr -> Expr -> Expr)
