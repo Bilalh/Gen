@@ -1,27 +1,27 @@
-{-# LANGUAGE FlexibleContexts, FlexibleInstances, KindSignatures,
-             MultiParamTypeClasses, ParallelListComp, PatternGuards, QuasiQuotes,
-             TupleSections, RankNTypes #-}
+{-# LANGUAGE KindSignatures, MultiParamTypeClasses, ParallelListComp, PatternGuards,
+             QuasiQuotes, RankNTypes, TupleSections #-}
 module Gen.Reduce.Reduction where
 
 import Conjure.Language.AbstractLiteral
 import Conjure.Language.Constant
 import Conjure.Language.Expression.Op
+import Data.Generics.Uniplate.Data
+import Data.Generics.Uniplate.Zipper    (Zipper, fromZipper, hole, replaceHole,
+                                         zipperBi)
 import Data.List                        (splitAt)
 import Gen.AST.TH
+import Gen.Helpers.Log
+import Gen.Helpers.SizeOf
+import Gen.Helpers.Standardise
+import Gen.Helpers.TypeOf
 import Gen.Imports
 import Gen.Reduce.Data
-import Gen.Reduce.Simpler
 import Gen.Reduce.Inners
-import Data.Generics.Uniplate.Data
-import Data.Generics.Uniplate.Zipper ( Zipper, zipperBi, fromZipper, hole, replaceHole )
-import Gen.Helpers.SizeOf
-import Gen.Helpers.TypeOf
-import Gen.Helpers.Log
-import Gen.Helpers.Standardise
+import Gen.Reduce.Simpler
 
+import qualified Data.Foldable                 as F
 import qualified Data.Generics.Uniplate.Zipper as Zipper
-import qualified Data.Foldable as F
-import qualified Data.Traversable as T
+import qualified Data.Traversable              as T
 
 class (HasGen m,  HasLogger m) => Reduce a m where
     reduce   :: a -> m [a]    -- list of smaller exprs
@@ -600,8 +600,8 @@ _replaceOpChildren_ex = replaceOpChildren
 
 type EListZipper = Zipper [Int] Int
 
-ll :: forall (m :: * -> *). Monad m => [Int] -> m [[Int]]
-ll as = do
+_ll :: forall (m :: * -> *). Monad m => [Int] -> m [[Int]]
+_ll as = do
   let (Just (lzip :: EListZipper)) = zipperBi as
   vs <- forM (allSiblings lzip) $ \ x -> do
     let cur = hole x
