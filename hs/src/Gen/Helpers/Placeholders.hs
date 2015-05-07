@@ -4,13 +4,13 @@
 -- but with improved error messages and compile-time warnings.
 -- Changed from https://github.com/ahammar/placeholders
 -- quite a few changes
-module Gen.Helpers.Placeholders (
-    notDone,
-    todo,
-    never,
-    neverNote,
-    PlaceholderException(..)
-) where
+module Gen.Helpers.Placeholders
+    ( notDone
+    , todo
+    , never
+    , neverNote
+    , PlaceholderException(..)
+    ) where
 
 import Conjure.Prelude
 
