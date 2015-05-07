@@ -3,11 +3,9 @@
 
 module Gen.Essence.UIData  where
 
-import Gen.Prelude
-import Gen.IO.Toolchain(KindI,StatusI)
+import Gen.Imports
+import Gen.IO.Toolchain(KindI,StatusI,ToolchainOutput)
 import Data.IntSet
-
-type Depth = Int
 
 data EssenceMode =
           TypeCheck_

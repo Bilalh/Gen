@@ -1,6 +1,6 @@
 module Gen.Reduce.FormatResults(formatResults, copyDirectory) where
 
-import Gen.Prelude
+import Gen.Imports
 import Gen.Reduce.Data
 import System.Directory (copyFile, renameDirectory)
 import System.FilePath  (takeFileName)

@@ -2,7 +2,7 @@
 module Gen.Reduce.Inners where
 
 import Conjure.Language.AbstractLiteral
-import Gen.Prelude
+import Gen.Imports
 
 
 class Inners x where

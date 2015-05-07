@@ -3,8 +3,8 @@
 module Gen.UI.UI where
 
 import Build_autoversion      (autoVersion)
-import Gen.IO.Toolchain       (KindI (..), RefineType (..), StatusI (..))
-import Gen.Prelude
+import Gen.IO.Toolchain       (KindI (..), RefineType (..), StatusI (..), ToolchainOutput(..))
+import Gen.Imports
 import System.Console.CmdArgs hiding (Default (..))
 
 

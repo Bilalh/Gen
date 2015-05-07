@@ -1,6 +1,6 @@
 module Gen.Reduce.QuanToComp(quanToComp, fromTo) where
 
-import Gen.Prelude
+import Gen.Imports
 import Conjure.Language.Definition
 import Conjure.Language.NameResolution (resolveNames)
 

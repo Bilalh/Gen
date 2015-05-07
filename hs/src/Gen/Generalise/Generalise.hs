@@ -4,10 +4,10 @@ import Gen.Generalise.Data
 import Gen.Generalise.Runner
 import Gen.Reduce.Reduction
 import Gen.Reduce.Data  hiding (RState(..))
-import Gen.Prelude
+import Gen.Imports
 import Gen.IO.Formats
+import Gen.Helpers.Log
 
-import qualified Data.HashMap.Strict as H
 
 import Data.Generics.Uniplate.Zipper ( Zipper, zipperBi, fromZipper, hole, replaceHole )
 import qualified Data.Generics.Uniplate.Zipper as Zipper

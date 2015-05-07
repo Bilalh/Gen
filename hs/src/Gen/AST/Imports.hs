@@ -4,4 +4,3 @@ import Gen.AST.Data as Y
 import Gen.AST.Spec as Y
 import Gen.AST.Translate as Y
 import Gen.AST.Type as Y()
-

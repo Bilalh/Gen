@@ -5,14 +5,17 @@ import Conjure.Language.NameResolution (resolveNames)
 import Conjure.UI.IO                   (writeModel)
 import Conjure.UI.TypeCheck            (typeCheckModel)
 import Data.Time.Clock.POSIX           (getPOSIXTime)
+import Gen.Arbitrary.Data
 import Gen.Classify.Meta               (mkMeta)
 import Gen.Essence.UIData              (EssenceConfig)
+import Gen.Helpers.Debug
+import Gen.Helpers.Log
+import Gen.Imports
 import Gen.IO.Formats
 import Gen.IO.Toolchain                hiding (DirError (..), ToolchainData (..))
-import Gen.Prelude
 import GHC.Real                        (floor)
 import System.Directory                (copyFile, renameDirectory)
-import Test.QuickCheck                 (generate,Gen)
+import Test.QuickCheck                 (Gen, generate)
 
 import qualified Data.IntSet             as I
 import qualified Data.Map                as M

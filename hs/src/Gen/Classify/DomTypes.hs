@@ -1,13 +1,9 @@
-
-
-
-
 module Gen.Classify.DomTypes where
 
-import Gen.Prelude
+import Gen.Imports
+import Gen.Helpers.TypeOf
 
 import qualified Data.Traversable as T
-
 import qualified Data.Map as M
 
 domTypes :: (WithDoms m) => m [Type]

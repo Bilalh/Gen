@@ -2,10 +2,12 @@
              KindSignatures #-}
 module Gen.Generalise.Data where
 
-import Gen.IO.Toolchain (KindI, StatusI)
-import Gen.Prelude
+import Gen.IO.Toolchain (KindI, StatusI,ToolchainOutput(..))
+import Gen.Imports
 import Gen.Reduce.Data  hiding (RState(..))
 import System.Random.TF
+import Gen.Helpers.Log
+import Gen.Helpers.TypeOf
 
 import qualified Data.HashMap.Strict as H
 import qualified Text.PrettyPrint    as Pr

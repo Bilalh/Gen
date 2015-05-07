@@ -2,12 +2,13 @@
 module Gen.ReduceTest ( tests ) where
 
 import Gen.AST.TH
-import Gen.Prelude
+import Gen.Imports
 import Gen.TestPrelude
 import Gen.Reduce.Data
 import Gen.Reduce.Reduction as R
 import Gen.Reduce.Simpler
-
+import Gen.Helpers.SizeOf
+import Gen.Helpers.TypeOf
 
 _use_qc :: [Maybe a] -> [Maybe a]
 -- use_qc = return []

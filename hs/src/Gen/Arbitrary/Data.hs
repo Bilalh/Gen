@@ -8,13 +8,10 @@ module Gen.Arbitrary.Data (
     , Pretty(..)
     , SpecState
     , SS(..)
-    ,Type(..)
+    , Type(..)
     , FuncsNames(..)
     , HasLogger(..)
-    , addLogsTree
     , prettyArr
-    , nullLogs
-    , ToolchainOutput(..)
     ) where
 
 import Gen.Helpers.Log
@@ -23,21 +20,9 @@ import Test.QuickCheck(Gen)
 
 import qualified Text.PrettyPrint as Pr
 
-data ToolchainOutput =
-    ToolchainScreen_
-  | ToolchainFile_
-  | ToolchainNull_
-  deriving (Show, Data, Typeable, Eq)
-
-instance Default ToolchainOutput where
-    def = ToolchainScreen_
-
-instance Pretty ToolchainOutput where
-    pretty = pretty . show
 
 type GG a =  StateT SpecState Gen a
 
-type Depth = Int
 
 data SS = SS
     { depth_      :: Depth       --  how many levels to genrate
@@ -90,48 +75,9 @@ instance Pretty SS where
             ]
             )
 
-prettyTypeArr :: [Var] -> Doc
-prettyTypeArr [] = "[]"
-prettyTypeArr vs = vcat $ map (\(Var a b) -> pretty (a, show b) ) vs
-
-prettyArr :: Pretty a => [a] -> Doc
-prettyArr [] = "[]"
-prettyArr vs = vcat $ map pretty vs
-
-
-addLog :: HasLogger m => String -> [Doc] ->  m ()
--- addLog nm docs = return ()
-addLog nm docs = do
-    -- case makeLog nm  ( ("__lc" <+> pretty lc) : docs) of
-    ls <- getLog
-    case makeLog nm  docs of
-        Nothing -> return ()
-        Just l -> putLog $ LSMultiple ls (LSSingle l)
-
-addLogsTree :: HasLogger m => LogsTree -> m ()
-addLogsTree ls = do
-  lg <- getLog
-  let nlg = LSMultiple ls lg
-  putLog nlg
-
-class (Monad m, Applicative m) => HasLogger m where
-    getLog :: m LogsTree
-    putLog :: LogsTree -> m ()
-
 instance HasLogger (StateT SpecState Gen)  where
     getLog = gets logs_
     putLog lg = modify $ \st -> st{ logs_=lg}
-
-instance (Monad m, Functor m) => HasLogger (StateT () m)  where
-    getLog   = return LSEmpty
-    putLog _ = return ()
-
-instance  HasLogger Identity  where
-    getLog   = return LSEmpty
-    putLog _ = return ()
-
-nullLogs :: forall (m :: * -> *) a. Monad m => StateT () m a -> m a
-nullLogs f = evalStateT f ()
 
 
 data FuncsNames  = AallDiff

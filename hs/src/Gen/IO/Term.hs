@@ -1,6 +1,6 @@
 module Gen.IO.Term where
 
-import Gen.Prelude
+import Gen.Imports
 import Gen.IO.TermSize
 import System.IO.Error(catchIOError)
 import System.Environment(lookupEnv)

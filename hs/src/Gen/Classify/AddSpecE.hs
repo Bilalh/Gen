@@ -9,7 +9,7 @@ import Conjure.UI.IO                   (readModelFromFile)
 import Conjure.UI.TypeCheck            (typeCheckModel)
 import Gen.Classify.Sorter             (getRecursiveContents)
 import Gen.IO.Formats
-import Gen.Prelude
+import Gen.Imports
 import System.FilePath                 (takeExtension)
 
 import qualified Data.Aeson           as A

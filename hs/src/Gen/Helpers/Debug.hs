@@ -1,6 +1,5 @@
 {-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -fno-warn-unused-binds #-}
-
 module Gen.Helpers.Debug(
     docError, tracer, tracet, tracef
     )

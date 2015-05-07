@@ -5,9 +5,10 @@ import Gen.Reduce.Runner
 import Gen.IO.Formats
 import Gen.Reduce.Reduction
 import Gen.Reduce.UnusedDomains
-import Gen.Prelude
+import Gen.Imports
 import Conjure.Language.Domain
 import Gen.Reduce.QuanToComp(quanToComp)
+import Gen.Helpers.Log
 
 import qualified Data.Map as M
 

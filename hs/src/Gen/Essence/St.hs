@@ -58,7 +58,6 @@ class Data a => Generate a where
 
 
 type GenSt a = StateT St Gen a
-type Depth = Int
 
 data GenerateConstraint = GNone
                         | GType Type -- The resulting type

@@ -5,7 +5,7 @@ module Gen.Classify.AddMeta(metaMain, addMeta) where
 import Gen.Classify.Meta(mkMeta)
 import Gen.Classify.Sorter(getRecursiveContents)
 import Gen.IO.Formats
-import Gen.Prelude
+import Gen.Imports
 import System.FilePath (takeExtensions)
 
 metaMain :: [FilePath] -> IO ()

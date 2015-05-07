@@ -2,7 +2,7 @@ module Gen.Classify.UpdateChoices(updateChoices ) where
 
 import Conjure.Language.Definition
 import Conjure.Language.Pretty
-import Gen.Prelude
+import Gen.Imports
 import Gen.IO.Formats(readFromJSON,writeToJSON)
 
 

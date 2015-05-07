@@ -1,37 +1,36 @@
-{-# language LambdaCase, RecordWildCards #-}
+{-# LANGUAGE LambdaCase, RecordWildCards #-}
 {-# OPTIONS_GHC -fno-cse #-} -- stupid cmdargs?
-
 module Main where
 
-import Data.Time                   (formatTime, getCurrentTime)
-import Data.Time.Format            (defaultTimeLocale)
+import Data.Time                  (formatTime, getCurrentTime)
+import Data.Time.Format           (defaultTimeLocale)
 import Gen.Arbitrary.Data
-import Gen.Classify.AddMeta        (metaMain)
-import Gen.Classify.AddMeta        (addMeta)
-import Gen.Classify.AddSpecE       (addSpecJson, specEMain)
-import Gen.Classify.Sorter         (getRecursiveContents, sorterMain')
-import Gen.Classify.UpdateChoices  (updateChoices)
-import Gen.Essence.Generate        (generateEssence)
-import Gen.Generalise.Generalise   (generaliseMain)
+import Gen.Classify.AddMeta       (metaMain)
+import Gen.Classify.AddMeta       (addMeta)
+import Gen.Classify.AddSpecE      (addSpecJson, specEMain)
+import Gen.Classify.Sorter        (getRecursiveContents, sorterMain')
+import Gen.Classify.UpdateChoices (updateChoices)
+import Gen.Essence.Generate       (generateEssence)
+import Gen.Generalise.Generalise  (generaliseMain)
 import Gen.Imports
 import Gen.IO.Term
-import Gen.IO.Toolchain            (KindI (..), StatusI (..), doMeta, kindsList,
-                                    statusesList)
-import Gen.Reduce.Data             (RState (..), mkrGen)
-import Gen.Reduce.FormatResults    (formatResults)
-import Gen.Reduce.Reduce           (reduceMain)
-import Gen.Reduce.Runner           (giveDb, saveDB)
+import Gen.IO.Toolchain           (KindI (..), StatusI (..), ToolchainOutput (..),
+                                   doMeta, kindsList, statusesList)
+import Gen.Reduce.Data            (RState (..), mkrGen)
+import Gen.Reduce.FormatResults   (formatResults)
+import Gen.Reduce.Reduce          (reduceMain)
+import Gen.Reduce.Runner          (giveDb, saveDB)
 import Gen.UI.UI
-import System.Console.CmdArgs      (cmdArgs)
-import System.CPUTime              (getCPUTime)
-import System.Environment          (withArgs, lookupEnv)
-import System.Exit                 (exitFailure, exitSuccess, exitWith)
-import System.FilePath             (takeExtensions)
-import System.Timeout              (timeout)
-import Text.Printf                 (printf)
+import System.Console.CmdArgs     (cmdArgs)
+import System.CPUTime             (getCPUTime)
+import System.Environment         (lookupEnv, withArgs)
+import System.Exit                (exitFailure, exitSuccess, exitWith)
+import System.FilePath            (takeExtensions)
+import System.Timeout             (timeout)
+import Text.Printf                (printf)
 
 import qualified Data.Set                as S
-import qualified Gen.Essence.UIData        as EC
+import qualified Gen.Essence.UIData      as EC
 import qualified Gen.Generalise.Data     as E
 import qualified Gen.IO.Toolchain        as Toolchain
 import qualified Gen.IO.ToolchainRecheck as Recheck
@@ -489,9 +488,6 @@ giveCores u = do
 
 
   where
-    nn :: Pretty b => Doc -> b -> Doc
-    nn a b =  a <+> pretty b
-
     ci_only :: UI -> IO Int
     ci_only Reduce{} =  do
       case _cores u of

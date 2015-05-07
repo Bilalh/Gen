@@ -3,7 +3,7 @@ module Gen.IO.ToolchainData where
 
 import Data.Data
 import Data.Map (Map)
-import Gen.Prelude
+import Gen.Imports
 
 import qualified Data.Aeson as A
 import qualified Data.Aeson.Types as A
@@ -45,6 +45,20 @@ instance Default ToolchainData where
           , choicesPath       = Nothing
           , dryRun            = False
           }
+
+
+data ToolchainOutput =
+    ToolchainScreen_
+  | ToolchainFile_
+  | ToolchainNull_
+  deriving (Show, Data, Typeable, Eq)
+
+instance Default ToolchainOutput where
+    def = ToolchainScreen_
+
+instance Pretty ToolchainOutput where
+    pretty = pretty . show
+
 
 data RefineType =
                   Refine_Only

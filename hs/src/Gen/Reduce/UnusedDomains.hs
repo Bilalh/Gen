@@ -1,6 +1,6 @@
 module Gen.Reduce.UnusedDomains(unusedDomains) where
 
-import Gen.Prelude
+import Gen.Imports
 import qualified Data.HashSet as S
 import qualified Data.Map as M
 

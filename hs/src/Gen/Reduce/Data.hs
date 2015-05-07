@@ -5,10 +5,12 @@ module Gen.Reduce.Data where
 
 import Conjure.Language.Constant
 import Data.HashMap.Strict       (HashMap)
-import Gen.IO.Toolchain          (KindI, StatusI)
-import Gen.Prelude
+import Gen.Helpers.TypeOf
+import Gen.Imports
+import Gen.IO.Toolchain          (KindI, StatusI,ToolchainOutput(..))
 import System.Random
 import System.Random.TF
+import Gen.Helpers.Log
 
 import qualified Data.HashMap.Strict as H
 import qualified Text.PrettyPrint    as Pr

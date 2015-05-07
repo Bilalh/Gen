@@ -2,10 +2,10 @@
 module Gen.DepthTest ( tests ) where
 
 import Gen.AST.TH
-import Gen.Prelude
+import Gen.Imports
 import Gen.Reduce.Simpler
 import Gen.TestPrelude
-
+import Gen.Helpers.SizeOf
 
 typeDepth :: DepthOf a
           => Doc -> Integer -> a -> TestTree

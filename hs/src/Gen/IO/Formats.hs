@@ -1,6 +1,6 @@
 module Gen.IO.Formats where
 
-import Gen.Prelude
+import Gen.Imports
 import Data.Time(formatTime,getCurrentTime)
 import Data.Time.Format(defaultTimeLocale)
 import Conjure.UI.IO(readModelFromFile)

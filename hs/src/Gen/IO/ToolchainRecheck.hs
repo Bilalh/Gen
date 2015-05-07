@@ -7,7 +7,7 @@ module Gen.IO.ToolchainRecheck (
 import Data.Data
 import Gen.IO.Formats
 import Gen.IO.Toolchain
-import Gen.Prelude
+import Gen.Imports
 import System.Exit      (ExitCode, exitSuccess)
 import System.Process   (showCommandForUser)
 

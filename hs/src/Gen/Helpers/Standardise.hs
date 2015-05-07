@@ -1,6 +1,5 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-
 module Gen.Helpers.Standardise(Standardise(..)) where
 
 import Conjure.Language.Constant

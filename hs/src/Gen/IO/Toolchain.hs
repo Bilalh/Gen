@@ -18,7 +18,7 @@ import Conjure.UI.IO               (writeModel)
 import Data.Data
 import Gen.IO.Formats
 import Gen.IO.ToolchainData        as X
-import Gen.Prelude
+import Gen.Imports
 import Paths_essence_gen           (getDataDir)
 import System.Directory            (copyFile)
 import System.Environment          (lookupEnv)

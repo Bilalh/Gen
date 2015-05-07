@@ -13,10 +13,8 @@ module Gen.Prelude (
     , _genSample
     , renderSmall
     , prettyBrackets
-    , nub2
     , renderSized
     , noteFormat
-    , rrError
     , logArr
     , genSample
 ) where
@@ -25,7 +23,7 @@ import {-# SOURCE #-} Gen.Arbitrary.Generators as X
 
 import Gen.Arbitrary.Data          as X
 import Gen.Helpers.Debug           as X
-import Gen.Helpers.Log             as X (LogsTree (..))
+import Gen.Helpers.Log             as X (LogsTree (..),nullLogs,HasLogger(..))
 import Gen.Helpers.OrderedType     as X
 import Gen.Helpers.QuickCheck2     as X
 import Gen.Helpers.SizeOf          as X
@@ -40,10 +38,7 @@ import System.FilePath       ((<.>))
 import Test.QuickCheck( generate, sample')
 
 import qualified Control.Exception as C
-import qualified Data.Set          as S
 import qualified Text.PrettyPrint  as P
-
-
 
 withDepth :: Depth -> GG a -> GG a
 withDepth newDepth f = do
@@ -91,17 +86,7 @@ withQuan f = do
     return res
 
 
-rrError :: (HasLogger m)  => String -> [Doc] -> m a
-rrError title docs = do
-    lg <- getLog
-    -- addLog "ggError" ["Last log"]
-    error . show $ ( P.text $ padRight 15 ' ' title  )
-        P.$+$ (nest 4 $ vcat (docs ))
-        P.$+$ ""
-#ifndef NO_GGERROR_LOGS
-        P.$+$ nest 16 "==Logs=="
-        P.$+$ (pretty (lg) )
-#endif
+
 
 ggError ::  (HasLogger m, Pretty a, MonadState a m) => String -> [Doc] -> m b
 ggError title docs = do
@@ -120,10 +105,6 @@ ggError title docs = do
 ggAssert :: Bool -> GG ()
 ggAssert b = return $ C.assert b ()
 
--- for printing a name and a value
--- nn "dsd" <some Expr>
-nn :: Pretty b => Doc -> b -> Doc
-nn a b =  a <+> pretty b
 
 
 _genlogs :: Pretty a =>  GG a -> SpecState -> IO ()
@@ -181,28 +162,10 @@ genSample :: GG a -> SpecState -> IO [a]
 genSample e ss  = do
    mapM (\_ -> generate $ evalStateT  e ss ) [0..10 :: Int]
 
-renderSmall :: Pretty a => a -> String
-renderSmall = P.renderStyle (P.style { P.lineLength = 120 }) . pretty
-
-renderSized :: Pretty a => Int -> a -> String
-renderSized n  = P.renderStyle (P.style { P.lineLength = n }) . pretty
-
-noteFormat :: MonadIO m => Doc -> [Doc] -> m ()
-noteFormat tx pr = liftIO . putStrLn . renderSized 120 $ hang tx 4 (vcat  pr)
-
-
 
 prettyBrackets :: Pretty a => a -> Doc
 prettyBrackets = P.brackets . pretty
 
--- Might want to use a hash set at some point
--- nub is O(N^2) this is O(NlogN)
-nub2 :: (Ord a, Hashable a) => [a] -> [a]
-nub2 l = go S.empty l
-  where
-    go _ [] = []
-    go s (x:xs) = if x `S.member` s then go s xs
-                                      else x : go (S.insert x s) xs
 
 logArr :: (HasLogger m, Pretty a) => String -> [a] -> m [a]
 logArr text arr = do

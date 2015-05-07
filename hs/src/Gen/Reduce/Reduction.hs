@@ -8,15 +8,18 @@ import Conjure.Language.Constant
 import Conjure.Language.Expression.Op
 import Data.List                        (splitAt)
 import Gen.AST.TH
-import Gen.Prelude
+import Gen.Imports
 import Gen.Reduce.Data
 import Gen.Reduce.Simpler
 import Gen.Reduce.Inners
 import Data.Generics.Uniplate.Data
-import Conjure.Language.Definition(AbstractPattern(Single))
 import Data.Generics.Uniplate.Zipper ( Zipper, zipperBi, fromZipper, hole, replaceHole )
-import qualified Data.Generics.Uniplate.Zipper as Zipper
+import Gen.Helpers.SizeOf
+import Gen.Helpers.TypeOf
+import Gen.Helpers.Log
+import Gen.Helpers.Standardise
 
+import qualified Data.Generics.Uniplate.Zipper as Zipper
 import qualified Data.Foldable as F
 import qualified Data.Traversable as T
 

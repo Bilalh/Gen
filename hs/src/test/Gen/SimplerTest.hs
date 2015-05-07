@@ -3,10 +3,12 @@ module Gen.SimplerTest ( tests ) where
 
 import Gen.Arbitrary.Generators
 import Gen.AST.TH
-import Gen.Prelude
+import Gen.Imports
 import Gen.TestPrelude
 import Gen.Reduce.Simpler
 import Test.Tasty.QuickCheck    as QC
+import Gen.Helpers.SizeOf
+import Gen.Arbitrary.Data(SS(..))
 
 st :: (Simpler a b) => Ordering -> a -> b -> TestTree
 st ord a b = testCase ( pretty a <+> "|" <+> pretty b) $

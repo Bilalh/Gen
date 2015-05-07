@@ -2,9 +2,10 @@ module Gen.Generalise.Runner where
 
 import Gen.Classify.Meta        (mkMeta)
 import Gen.Generalise.Data
+import Gen.Helpers.Log
+import Gen.Imports
 import Gen.IO.Formats
 import Gen.IO.Toolchain         hiding (ToolchainData (..))
-import Gen.Prelude
 import Gen.Reduce.Data          hiding (RState (..))
 import Gen.Reduce.FormatResults
 import GHC.Real                 (floor)

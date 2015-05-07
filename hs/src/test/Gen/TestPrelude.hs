@@ -1,6 +1,6 @@
 module Gen.TestPrelude ( module X, testCase,no) where
 
-import Gen.Prelude
+import Gen.Imports
 import Test.Tasty       as X (TestTree, testGroup)
 import Test.Tasty.HUnit as X ((@?=))
 import Text.PrettyPrint as X (braces)

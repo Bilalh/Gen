@@ -1,6 +1,6 @@
 module Main where
 
-import Gen.Prelude
+import Gen.Imports
 import Test.Tasty
 import Test.Tasty.Runners.AntXML
 
