@@ -1,15 +1,10 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Gen.Essence.Spec where
 
-import Gen.Essence.Constant           ()
-import Gen.Essence.Domain             ()
-import Gen.Essence.Expr               ()
-import Gen.Essence.Literal            ()
-import Gen.Essence.Op                 ()
-import Gen.Essence.Range              ()
+import Gen.Essence.Domain ()
+import Gen.Essence.Expr   ()
 import Gen.Essence.Rnd
 import Gen.Essence.St
-import Gen.Essence.Type               ()
 import Gen.Imports
 
 import qualified Data.Map as M

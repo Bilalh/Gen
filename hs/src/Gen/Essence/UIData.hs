@@ -16,10 +16,17 @@ data EssenceMode =
 instance Default EssenceMode where
     def = Solve_
 
+data GenType = FirstGen
+             | SecondGen
+  deriving (Show, Data, Typeable, Eq)
+
+instance Default GenType where
+    def = FirstGen
 
 data EssenceConfig = EssenceConfig
       { outputDirectory_ :: FilePath
       , mode_            :: EssenceMode
+      , genType_         :: GenType
 
       , totalTime_       :: Int
       , perSpecTime_     :: Int
@@ -56,4 +63,5 @@ instance Default EssenceConfig where
       , notUseful          = def
       , givenSpecs_        = Nothing
       , runHashes_         = def
+      , genType_           = def
       }

@@ -83,10 +83,10 @@ main = do
    where
 
 
-     getLimit (Essence{_mode=TypeCheck, given_dir=Just{}}) =
+     getLimit (Essence{_mode=EC.TypeCheck_, given_dir=Just{}}) =
          error "--given and --mode typecheck can not be used together"
      getLimit x | Just i <- limit_time x, i <=0  = error "--limit-time must be > then 0"
-     getLimit (Essence{_mode=TypeCheck, limit_time=Nothing, total_time=t}) = Just t
+     getLimit (Essence{_mode=EC.TypeCheck_, limit_time=Nothing, total_time=t}) = Just t
      getLimit input = limit_time input
 
 
@@ -134,15 +134,15 @@ mainWithArgs u@Essence{..} = do
     xs -> mapM putStrLn xs >> exitFailure
 
 
-  out   <- giveOutputDirectory output_directory
-  seed_ <- giveSeed _seed
-  cores <- giveCores u
+  out        <- giveOutputDirectory output_directory
+  seed_      <- giveSeed _seed
+  cores      <- giveCores u
   givenSpecs <- giveSpec given_dir
 
 
   let config = EC.EssenceConfig
                { outputDirectory_ = out
-               , mode_            = toEssenceMode _mode
+               , mode_            = _mode
                , totalTime_       = total_time
                , perSpecTime_     = per_spec_time
                , size_            = _size
@@ -157,16 +157,12 @@ mainWithArgs u@Essence{..} = do
                , notUseful          = S.fromList [(Savilerow_, NumberToLarge_)]
                , givenSpecs_        = givenSpecs
                , runHashes_         = def
+               , genType_           = _gen_type
                }
 
   doMeta out no_csv binaries_directory
   generateEssence config
 
-  where
-    toEssenceMode :: ModeChoice -> EC.EssenceMode
-    toEssenceMode TypeCheck = EC.TypeCheck_
-    toEssenceMode Refine    = EC.Refine_
-    toEssenceMode Solve     = EC.Solve_
 
 mainWithArgs Instance{..} = do
   error . show . vcat $ ["gen instance not done yet" ]
@@ -504,7 +500,7 @@ _essenceDebug :: IO ()
 _essenceDebug = do
     let ec = Essence
              { output_directory   = Just "__/solve"
-             , _mode              = Solve
+             , _mode              = EC.Solve_
 
              , total_time         = 20
              , per_spec_time      = 5
@@ -520,6 +516,7 @@ _essenceDebug = do
              , toolchain_ouput    = ToolchainNull_
              , no_csv             = False
              , given_dir          = Nothing
+             , _gen_type          = def
              }
     limiter (limit_time ec) (mainWithArgs ec)
 
@@ -527,7 +524,7 @@ _givenDebug :: IO ()
 _givenDebug = do
     let ec = Essence
              { output_directory   = Just "out"
-             , _mode              = Solve
+             , _mode              = EC.Solve_
 
              , total_time         = 0
              , per_spec_time      = 120
@@ -543,6 +540,7 @@ _givenDebug = do
              , toolchain_ouput    = ToolchainScreen_
              , no_csv             = True
              , given_dir          = Just "zz"
+             , _gen_type          = def
              }
     limiter (limit_time ec) (mainWithArgs ec)
 

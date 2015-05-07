@@ -6,14 +6,15 @@ import Build_autoversion      (autoVersion)
 import Gen.IO.Toolchain       (KindI (..), RefineType (..), StatusI (..), ToolchainOutput(..))
 import Gen.Imports
 import System.Console.CmdArgs hiding (Default (..))
-
+import Gen.Essence.UIData
 
 data UI
   = Essence
     {
       total_time         :: Int
     , per_spec_time      :: Int
-    , _mode              :: ModeChoice
+    , _mode              :: EssenceMode
+    , _gen_type          :: GenType
     ,  output_directory  :: Maybe FilePath
     , _size              :: Int  -- should not be greater then 5
     , _cores             :: Maybe Int
@@ -143,16 +144,6 @@ data UI
     }
   deriving (Show, Data, Typeable)
 
-data ModeChoice =
-          TypeCheck
-        | Refine
-        | Solve
-  deriving (Show, Data, Typeable,Eq)
-
-instance Default ModeChoice where
-    def = Solve
-
-
 
 ui :: UI
 ui  = modes
@@ -170,6 +161,11 @@ ui  = modes
                                     &= groupname "Generation"
                                     &= explicit
                                     &= help "Mode to use, one of typecheck, refine, solve (default) "
+     , _gen_type          = def     &= name "gen-type"
+                                    &= typ "type"
+                                    &= groupname "Generation"
+                                    &= explicit
+                                    &= help "The generator to use, one of FirstGen (default) or SecondGen"
      , total_time         = def     &= name "total-time"
                                     &= name "t"
                                     &= groupname "Required"

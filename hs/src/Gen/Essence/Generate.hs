@@ -7,6 +7,8 @@ import Conjure.UI.TypeCheck            (typeCheckModel)
 import Data.Time.Clock.POSIX           (getPOSIXTime)
 import Gen.Arbitrary.Data
 import Gen.Classify.Meta               (mkMeta)
+import Gen.Essence.Spec                ()
+import Gen.Essence.St
 import Gen.Essence.UIData              (EssenceConfig)
 import Gen.Helpers.Debug
 import Gen.Helpers.Log
@@ -20,7 +22,7 @@ import Test.QuickCheck                 (Gen, generate)
 import qualified Data.IntSet             as I
 import qualified Data.Map                as M
 import qualified Data.Set                as S
-import qualified Gen.Arbitrary.Arbitrary as Gen
+import qualified Gen.Arbitrary.Arbitrary as FirstGen
 import qualified Gen.Essence.UIData      as EC
 import qualified Gen.IO.Toolchain        as Toolchain
 
@@ -71,7 +73,7 @@ doRefine ec@EC.EssenceConfig{..} = do
 
     process timeLeft mayGiven hashes = do
       useSize <- (randomRIO (0, size_) :: IO Int)
-      (sp,logs) <- generateWrap mayGiven $ Gen.spec useSize def{gen_useFunc = myUseFunc}
+      (sp,logs) <- generateWrap mayGiven $ genToUse useSize ec
 
       case (hash sp) `I.member` (hashes) of
         True -> do
@@ -145,8 +147,8 @@ doSolve ec@EC.EssenceConfig{..} = do
     process _ (Just []) _ = return ()
 
     process timeLeft mayGiven hashes = do
-
-      (sp,logs) <- generateWrap mayGiven $ Gen.spec size_ def{gen_useFunc = myUseFunc}
+      useSize <- (randomRIO (0, size_) :: IO Int)
+      (sp,logs) <- generateWrap mayGiven $ genToUse useSize ec
       case (hash sp) `I.member` (hashes) of
         True -> do
           putStrLn $ "Not running spec with hash, already tested " ++ (show $ hash sp)
@@ -361,12 +363,13 @@ typeCheck :: MonadFail m => Model -> m Model
 typeCheck m = ignoreLogs . runNameGen  $ (resolveNames $ m) >>= typeCheckModel
 
 doTypeCheck :: EssenceConfig -> IO ()
-doTypeCheck EC.EssenceConfig{..}= do
+doTypeCheck ec@EC.EssenceConfig{..}= do
   process
 
   where
     process = do
-      (sp,_) <- generate $ Gen.spec size_ def{gen_useFunc = myUseFunc}
+      useSize <- (randomRIO (0, size_) :: IO Int)
+      (sp,_) <- generate $ genToUse useSize ec
       model :: Model <- toConjure sp
 
 
@@ -444,9 +447,18 @@ nextElem Nothing       = Nothing
 nextElem (Just [])     = $(neverNote "nextElem No given specs left")
 nextElem (Just (_:xs)) = Just xs
 
--- Does not work completely
-myUseFunc :: FuncsNames -> Bool
-myUseFunc Aapply = False
-myUseFunc Ahist = False
-myUseFunc Ainverse = False
-myUseFunc _ = True
+genToUse :: Depth -> EssenceConfig -> Gen (Spec,LogsTree)
+genToUse depth EC.EssenceConfig{genType_=EC.SecondGen} = do
+  runGenerateWithLogs def{depth=depth}
+
+
+genToUse depth EC.EssenceConfig{genType_=EC.FirstGen} =
+    FirstGen.spec depth def{gen_useFunc = myUseFunc}
+
+  where
+  -- For all Gen, does not work completely
+  myUseFunc :: FuncsNames -> Bool
+  myUseFunc Aapply = False
+  myUseFunc Ahist = False
+  myUseFunc Ainverse = False
+  myUseFunc _ = True

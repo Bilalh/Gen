@@ -2,20 +2,21 @@
              ParallelListComp #-}
 module Gen.Essence.St
   ( module X
-  , Generate(..)
-  , St(..)
   , GenSt
+  , Generate(..)
   , GenerateConstraint(..)
+  , St(..)
   , WrapConstant(..)
-  , weightingForKey
-  , withWeights
-  , getWeights
+  , asProxyTypeOf
   , getPossibilities
-  , withDepthDec
+  , getWeights
   , giveUnmatched
   , runGenerate
-  , asProxyTypeOf
+  , runGenerateWithLogs
   , typeKeys
+  , weightingForKey
+  , withDepthDec
+  , withWeights
   ) where
 
 import Conjure.Language.Definition (Constant, Expression (..))
@@ -24,6 +25,7 @@ import Data.Map                    (Map)
 import Gen.Essence.Key             as X
 import Gen.Imports
 import Test.QuickCheck             (Gen, generate)
+import Gen.Helpers.Log
 
 import qualified Data.Map as M
 
@@ -69,7 +71,7 @@ instance Pretty GenerateConstraint where
   pretty t = pretty . show $ t
 
 
--- To allow a Constant Range, or Expr Range for eaxmple
+-- To allow a Range Constant or a Range Expr
 class WrapConstant a where
   wrapConstant :: Constant -> a
 
@@ -162,6 +164,12 @@ giveUnmatched msg t = error . show . vcat $ ["Unmatched give" <+> msg
 
 runGenerate :: Generate a => St -> IO a
 runGenerate st = generate $ evalStateT (give GNone) st
+
+-- No Logs at the moment
+runGenerateWithLogs :: Generate a => St -> Gen (a,LogsTree)
+runGenerateWithLogs st = do
+  res <- evalStateT (give GNone) st
+  return (res,LSEmpty)
 
 asProxyTypeOf :: a -> Proxy a -> a
 asProxyTypeOf = const
