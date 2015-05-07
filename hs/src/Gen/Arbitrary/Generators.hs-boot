@@ -5,7 +5,7 @@
 
 module Gen.Arbitrary.Generators where
 
-import Gen.Helpers.StandardImports
+import Gen.Imports
 import Gen.Arbitrary.Data
 
 atype :: GG Type

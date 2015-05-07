@@ -10,7 +10,7 @@ module Gen.Helpers.Log(
 import Debug.Trace(trace)
 #endif
 
-import Gen.Helpers.StandardImports
+import Gen.Imports
 
 import qualified Data.DList as DList
 import qualified Data.HashSet as S

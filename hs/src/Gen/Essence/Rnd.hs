@@ -1,7 +1,7 @@
 module Gen.Essence.Rnd where
 
 import Gen.Essence.St
-import Gen.Helpers.StandardImports
+import Gen.Imports
 import System.Random               (Random)
 import Test.QuickCheck             (choose,elements,choose)
 

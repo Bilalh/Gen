@@ -6,7 +6,7 @@ import Gen.Essence.Op.Internal.Generated as X
 import Gen.Essence.Rnd
 import Gen.Essence.St
 import Gen.Helpers.SizeOf
-import Gen.Helpers.StandardImports
+import Gen.Imports
 
 
 instance Generate a => Generate (Op a) where

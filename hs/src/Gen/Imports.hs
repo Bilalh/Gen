@@ -1,4 +1,4 @@
-module Gen.Helpers.StandardImports (module X) where
+module Gen.Imports (module X) where
 
 import Conjure.Language.Pretty    as X (Pretty (..))
 import Conjure.Language.Type      as X

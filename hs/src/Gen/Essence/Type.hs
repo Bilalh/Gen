@@ -2,7 +2,7 @@
 module Gen.Essence.Type where
 
 import Gen.Essence.St
-import Gen.Helpers.StandardImports
+import Gen.Imports
 import Gen.Essence.Rnd
 
 instance Generate Type where

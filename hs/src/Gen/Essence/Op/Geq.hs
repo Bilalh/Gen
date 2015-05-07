@@ -5,7 +5,7 @@ import Conjure.Language.Expression.Op
 import Gen.Essence.Rnd
 import Gen.Essence.St
 import Gen.Helpers.SizeOf
-import Gen.Helpers.StandardImports
+import Gen.Imports
 
 
 instance Generate a => Generate (OpGeq a) where

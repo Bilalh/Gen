@@ -67,7 +67,7 @@ Library
                      , Gen.Helpers.Placeholders
                      , Gen.Helpers.QuickCheck2
                      , Gen.Helpers.SizeOf
-                     , Gen.Helpers.StandardImports
+                     , Gen.Imports
                      , Gen.Helpers.Standardise
                      , Gen.Helpers.TypeOf
                      , Gen.IO.Formats

@@ -1,6 +1,6 @@
 module Gen.Helpers.OrderedType where
 
-import Gen.Helpers.StandardImports
+import Gen.Imports
 
 class Ordered a where
     isOrdered :: a -> Bool

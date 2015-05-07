@@ -13,7 +13,7 @@ import Gen.Classify.Sorter         (getRecursiveContents, sorterMain')
 import Gen.Classify.UpdateChoices  (updateChoices)
 import Gen.Essence.Generate        (generateEssence)
 import Gen.Generalise.Generalise   (generaliseMain)
-import Gen.Helpers.StandardImports
+import Gen.Imports
 import Gen.IO.Term
 import Gen.IO.Toolchain            (KindI (..), StatusI (..), doMeta, kindsList,
                                     statusesList)

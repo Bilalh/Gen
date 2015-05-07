@@ -5,7 +5,7 @@ import Conjure.Language.Definition
 import Conjure.Language.Domain
 import Gen.Essence.Rnd
 import Gen.Essence.St
-import Gen.Helpers.StandardImports
+import Gen.Imports
 
 
 instance (Generate a, WrapConstant a) => Generate (Range a) where

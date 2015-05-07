@@ -24,7 +24,7 @@ main = do
               , ""
               , "import Conjure.Language.Expression.Op"
               , "import Gen.Essence.St"
-              , "import Gen.Helpers.StandardImports"
+              , "import Gen.Imports"
               , ""
               ]
             , sort [ (printf "import Gen.Essence.Op.%s()" m ) :: String

@@ -3,7 +3,7 @@
 module Gen.Helpers.QuickCheck2 where
 
 import Gen.Arbitrary.Data          (GG)
-import Gen.Helpers.StandardImports
+import Gen.Imports
 import System.Random               (Random)
 import Test.QuickCheck.Gen
 

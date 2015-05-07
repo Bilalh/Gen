@@ -7,7 +7,7 @@ import Gen.Essence.Range           ()
 import Gen.Essence.Rnd
 import Gen.Essence.St
 import Gen.Essence.Type            ()
-import Gen.Helpers.StandardImports
+import Gen.Imports
 
 instance (Generate a, WrapConstant a) => Generate (Domain () a) where
   give GNone = do

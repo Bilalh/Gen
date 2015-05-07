@@ -6,7 +6,7 @@ module Gen.Helpers.Debug(
     )
     where
 
-import Gen.Helpers.StandardImports as X
+import Gen.Imports as X
 import qualified Data.HashSet as S
 
 #ifdef TTRACE

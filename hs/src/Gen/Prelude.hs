@@ -29,7 +29,7 @@ import Gen.Helpers.Log             as X (LogsTree (..))
 import Gen.Helpers.OrderedType     as X
 import Gen.Helpers.QuickCheck2     as X
 import Gen.Helpers.SizeOf          as X
-import Gen.Helpers.StandardImports as X
+import Gen.Imports as X
 import Gen.Helpers.Standardise     as X
 import Gen.Helpers.TypeOf          as X
 

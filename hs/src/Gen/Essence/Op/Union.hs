@@ -5,7 +5,7 @@ import Conjure.Language.Expression.Op
 import Gen.Essence.St
 import Gen.Essence.Type               ()
 import Gen.Helpers.SizeOf
-import Gen.Helpers.StandardImports
+import Gen.Imports
 
 import qualified Data.Set as S
 

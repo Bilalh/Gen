@@ -3,7 +3,7 @@ module Gen.Essence.Op.Internal.Generated (allOps) where
 
 import Conjure.Language.Expression.Op
 import Gen.Essence.St
-import Gen.Helpers.StandardImports
+import Gen.Imports
 
 import Gen.Essence.Op.Eq()
 import Gen.Essence.Op.Geq()

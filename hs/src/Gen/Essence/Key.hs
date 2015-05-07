@@ -2,7 +2,7 @@
 {-# LANGUAGE DeriveDataTypeable, DeriveGeneric #-}
 module Gen.Essence.Key where
 
-import Gen.Helpers.StandardImports
+import Gen.Imports
 import qualified Data.Aeson as A
 
 data Key = K_Unused

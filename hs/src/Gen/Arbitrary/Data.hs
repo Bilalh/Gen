@@ -18,7 +18,7 @@ module Gen.Arbitrary.Data (
     ) where
 
 import Gen.Helpers.Log
-import Gen.Helpers.StandardImports as X
+import Gen.Imports as X
 import Test.QuickCheck(Gen)
 
 import qualified Text.PrettyPrint as Pr

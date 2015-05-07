@@ -8,7 +8,7 @@ import Conjure.Language.Constant
 import Conjure.Language.Domain
 import Conjure.Language.Expression.Op
 import Conjure.Language.TypeOf
-import Gen.Helpers.StandardImports
+import Gen.Imports
 
 import qualified Data.Map as M
 

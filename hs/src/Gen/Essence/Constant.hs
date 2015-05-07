@@ -7,7 +7,7 @@ import Gen.Essence.Rnd
 import Gen.Essence.St
 import Gen.Essence.Type            ()
 import Gen.Helpers.SizeOf
-import Gen.Helpers.StandardImports
+import Gen.Imports
 
 
 instance Generate Constant where

@@ -5,7 +5,7 @@ module Gen.Helpers.Standardise(Standardise(..)) where
 
 import Conjure.Language.Constant
 import Conjure.Language.Expression.Op.Internal.Generated
-import Gen.Helpers.StandardImports
+import Gen.Imports
 
 import qualified Data.Traversable as V
 

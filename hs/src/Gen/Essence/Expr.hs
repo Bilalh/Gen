@@ -10,7 +10,7 @@ import Gen.Essence.Range              ()
 import Gen.Essence.Rnd
 import Gen.Essence.St
 import Gen.Essence.Type               ()
-import Gen.Helpers.StandardImports
+import Gen.Imports
 import Gen.Helpers.TypeOf
 
 import qualified Data.Foldable as F

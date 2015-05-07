@@ -5,7 +5,7 @@ module Gen.Helpers.SizeOf where
 import Conjure.Language.Constant
 import Conjure.Language.Expression.Op
 import Gen.AST.TH
-import Gen.Helpers.StandardImports    as X
+import Gen.Imports    as X
 import Gen.Helpers.TypeOf             (typeOfDom)
 
 import qualified Data.Foldable as F
