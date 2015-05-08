@@ -1,9 +1,10 @@
 {-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -fno-warn-unused-binds #-}
-module Gen.Helpers.Debug(
-    docError, tracer, tracet, tracef
-    )
-    where
+module Gen.Helpers.Debug
+    ( tracer
+    , tracet
+    , tracef
+    ) where
 
 import Gen.Imports as X
 import qualified Data.HashSet as S
@@ -11,9 +12,6 @@ import qualified Data.HashSet as S
 #ifdef TTRACE
 import Debug.Trace(trace)
 #endif
-
-docError :: [Doc] -> a
-docError = error . show . vcat
 
 suppress :: S.HashSet String
 suppress = S.fromList [

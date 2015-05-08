@@ -503,9 +503,9 @@ _essenceDebug = do
              { output_directory   = Just "__/solve"
              , _mode              = EC.Solve_
 
-             , total_time         = 20
-             , per_spec_time      = 5
-             , _size              = 2
+             , total_time         = 60
+             , per_spec_time      = 10
+             , _size              = 4
              , _cores             = Just 1
              , _seed              = Just 44
 
@@ -517,7 +517,7 @@ _essenceDebug = do
              , toolchain_ouput    = ToolchainNull_
              , no_csv             = False
              , given_dir          = Nothing
-             , _gen_type          = def
+             , _gen_type          = SecondGen
              }
     limiter (limit_time ec) (mainWithArgs ec)
 

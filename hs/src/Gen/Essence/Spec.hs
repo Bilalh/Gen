@@ -13,10 +13,11 @@ import qualified Data.Map as M
 instance Generate Spec where
   give GNone = do
     depth <- gets depth
-    let domsCount = (1, min ((depth+1)*2) 7)
-    let exprCount = (0, min ((depth+1)*2) 7)
-    i_d <- choose3 domsCount
-    i_e <- choose3 exprCount
+    -- let domsCount = (1, min ((depth+1)*2) 7)
+    -- let exprCount = (0, min ((depth+1)*2) 7)
+    -- i_d <- choose3 domsCount
+    -- i_e <- choose3 exprCount
+    let (i_d, i_e) = (1 :: Integer, 1 :: Integer)
 
     doms <- mapM (\_ -> give GNone) [1..i_d]
     let withNames =  zipWith (\d i -> (name i , Findd d)) doms [1 :: Int ..]

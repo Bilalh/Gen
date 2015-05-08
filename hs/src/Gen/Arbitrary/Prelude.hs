@@ -7,14 +7,10 @@ module Gen.Arbitrary.Prelude (
     , withQuan
     , ggError
     , ggAssert
-    , nn
     , _genlogs
     , _genfile
     , _genSample
-    , renderSmall
     , prettyBrackets
-    , renderSized
-    , noteFormat
     , logArr
     , genSample
 ) where
@@ -23,7 +19,7 @@ import {-# SOURCE #-} Gen.Arbitrary.Generators as X
 
 import Gen.Arbitrary.Data          as X
 import Gen.Helpers.Debug           as X
-import Gen.Helpers.Log             as X (LogsTree (..),nullLogs,HasLogger(..))
+import Gen.Helpers.Log             as X (LogsTree (..),nullLogs)
 import Gen.Helpers.OrderedType     as X
 import Gen.Arbitrary.QuickCheck2     as X
 import Gen.Helpers.SizeOf          as X
