@@ -2,6 +2,8 @@
 module Gen.Essence.Domain where
 
 import Conjure.Language.Domain
+import Conjure.Language.Constant
+import Gen.Essence.Constant        ()
 import Gen.Essence.Literal         ()
 import Gen.Essence.Range           ()
 import Gen.Essence.Rnd
@@ -43,10 +45,28 @@ instance Generate a => Generate (SizeAttr a)  where
      , SizeAttr_Size    <$> give (GType TypeInt)
      , SizeAttr_MinSize <$> give (GType TypeInt)
      , SizeAttr_MaxSize <$> give (GType TypeInt)
-     -- FIXME ensure b >= 1?
-     -- , SizeAttr_MinMaxSize <$> give GNone <$> give GNone
+     -- FIXME ensure b >= a?
+     -- , SizeAttr_MinMaxSize <$> give GNone <*> give GNone
      ]
 
   give t = giveUnmatched "Generate (SetAttr a)" t
 
   possiblePure _ _ _ = True
+
+--  Overlapping instances
+-- instance Generate (SizeAttr Constant) where
+--   give GNone = do
+--     oneof3 [
+--        pure SizeAttr_None
+--      , SizeAttr_Size    <$> give (GType TypeInt)
+--      , SizeAttr_MinSize <$> give (GType TypeInt)
+--      , SizeAttr_MaxSize <$> give (GType TypeInt)
+--      , do
+--        a@(ConstantInt i) <- give (GNone)
+--        b <- give (GGTE i)
+--        return $ SizeAttr_MinMaxSize a b
+--      ]
+
+--   give t = giveUnmatched "Generate (SetAttr a)" t
+
+--   possiblePure _ _ _ = True

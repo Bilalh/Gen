@@ -65,8 +65,9 @@ class Data a => Generate a where
 type GenSt a = StateT St Gen a
 
 data GenerateConstraint = GNone
-                        | GType Type -- The resulting type
+                        | GType Type        -- The resulting type
                         | GOnlyLiteralTypes -- for literals
+                        | GGTE Integer    -- for min/max size
  deriving (Eq, Ord, Show, Data, Typeable, Generic)
 
 instance Pretty GenerateConstraint where
