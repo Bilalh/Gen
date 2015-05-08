@@ -8,6 +8,8 @@ import Conjure.Language.Domain                           (Domain (DomainBool),
 import Conjure.Language.Expression.Op.Internal.Generated (Op (..))
 import Conjure.Language.Type                             (Type (TypeAny))
 import Conjure.Prelude                                   (padRight)
+import Control.Applicative                               ((<$>))
+import Control.Exception                                 (IOException, catch)
 import Data.Data
 import Data.List                                         (intercalate, sort)
 import NeatInterpolation
@@ -57,7 +59,22 @@ main = do
                               in [string| fromString $a = K_$n |]
                             | n <- names ]
   let res = key_templete keys_data key_isString
-  writeFile "src/Gen/Essence/key.hs" res
+  writeOut "src/Gen/Essence/key.hs" res
+
+
+writeOut :: FilePath -> String -> IO ()
+writeOut outFile outText= do
+  outText' <- catch (Just <$> readFile outFile)
+                    (\ (_ :: IOException) -> return Nothing )
+  if and [ Just (length outText) /= (length <$> outText')
+         , Just outText /= outText'
+         ]
+      then do
+          putStrLn $ "Generating " ++ outFile
+          writeFile outFile outText
+      else
+          putStrLn $ "Reusing " ++ outFile
+
 
 dataNames :: [[String]]
 dataNames = [ strs TypeAny
