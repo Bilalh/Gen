@@ -57,7 +57,7 @@ instance DepthOf Constant where
     depthOf x                    = notHandled $line "depthOf Constant" x
 
 
-instance DepthOf (Domainn Expr) where
+instance DepthOf (Domain () Expr) where
     depthOf =  depthOf .  typeOfDom
 
 instance DepthOf a => DepthOf (Maybe a) where
