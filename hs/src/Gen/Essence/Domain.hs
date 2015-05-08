@@ -31,8 +31,21 @@ instance (Generate a, WrapConstant a) => Generate (Domain () a) where
 
   possiblePure _ _ _ = True
 
-instance (Generate a) => Generate (SetAttr a) where
-  give GNone = pure def
+instance Generate a => Generate (SetAttr a) where
+  give GNone         = SetAttr <$> give (GNone)
+  give t             = giveUnmatched "Generate (SetAttr a)" t
+  possiblePure _ _ _ = True
+
+instance Generate a => Generate (SizeAttr a)  where
+  give GNone = do
+    oneof3 [
+       pure SizeAttr_None
+     , SizeAttr_Size    <$> give (GType TypeInt)
+     , SizeAttr_MinSize <$> give (GType TypeInt)
+     , SizeAttr_MaxSize <$> give (GType TypeInt)
+     -- FIXME ensure b >= 1?
+     -- , SizeAttr_MinMaxSize <$> give GNone <$> give GNone
+     ]
 
   give t = giveUnmatched "Generate (SetAttr a)" t
 

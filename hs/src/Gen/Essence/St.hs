@@ -1,5 +1,5 @@
-{-# LANGUAGE DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveGeneric,
-             ParallelListComp #-}
+{-# LANGUAGE DeriveDataTypeable, DeriveFoldable, DeriveFunctor,
+             DeriveGeneric, ParallelListComp #-}
 module Gen.Essence.St
   ( module X
   , GenSt
@@ -8,6 +8,8 @@ module Gen.Essence.St
   , St(..)
   , WrapConstant(..)
   , asProxyTypeOf
+  , generateFreq
+  , generateTypeFreq
   , getPossibilities
   , getWeights
   , giveUnmatched
@@ -23,9 +25,10 @@ import Conjure.Language.Definition (Constant, Expression (..))
 import Data.Data                   hiding (Proxy)
 import Data.Map                    (Map)
 import Gen.Essence.Key             as X
+import Gen.Helpers.TypeOf
+import Gen.Helpers.Log
 import Gen.Imports
 import Test.QuickCheck             (Gen, generate)
-import Gen.Helpers.Log
 
 import qualified Data.Map as M
 
@@ -179,3 +182,21 @@ typeKeys :: [Key]
 typeKeys = do
   let names = dataTypeConstrs . dataTypeOf $ TypeAny
   map (fromString . show) names
+
+-- | Generate n values of type a and print the frequency of them
+generateFreq :: forall a . (Generate a, Pretty a, Ord a)
+             => Proxy a -> Int -> St -> IO ()
+generateFreq _ n st = do
+  let freq s = sort . map (\x->(length x,head x)) . group . sort $ s
+  ts :: [a] <-  mapM  (\_ -> runGenerate  st)  [1..n]
+  print .  vcat .  map pretty $ freq ts
+
+
+-- | Generate n values of type a and print the frequency of them
+generateTypeFreq :: forall a . (Generate a, Pretty a, Ord a, TTypeOf a)
+                  => Proxy a -> Int -> St -> IO ()
+generateTypeFreq _ n st = do
+  let freq s = sort . map (\x->(length x,head x)) . group . sort $ s
+  ts :: [a] <-  mapM  (\_ ->   runGenerate  st)  [1..n]
+  tys <- mapM ttypeOf ts
+  print .  vcat .  map pretty $ freq tys
