@@ -1,19 +1,24 @@
 {-# LANGUAGE LambdaCase, OverloadedStrings, QuasiQuotes, ScopedTypeVariables #-}
 
-import Conjure.Language.AbstractLiteral                  (AbstractLiteral (AbsLitSet))
-import Conjure.Language.Constant                         (Constant (ConstantBool))
-import Conjure.Language.Definition                       (Expression (Constant))
-import Conjure.Language.Domain                           (Domain (DomainBool),
-                                                          Range (RangeOpen))
-import Conjure.Language.Expression.Op.Internal.Generated (Op (..))
-import Conjure.Language.Type                             (Type (TypeAny))
-import Conjure.Prelude                                   (padRight)
-import Control.Applicative                               ((<$>))
-import Control.Exception                                 (IOException, catch)
+import Conjure.Language.AbstractLiteral (AbstractLiteral (AbsLitSet))
+import Conjure.Language.Constant        (Constant (ConstantBool))
+import Conjure.Language.Definition      (Expression (Constant))
+import Conjure.Language.Domain          (Domain (DomainBool), JectivityAttr (..),
+                                         OccurAttr (..), PartialityAttr (..),
+                                         PartitionAttr (..), Range (RangeOpen),
+                                         SizeAttr (..))
+import Conjure.Language.Type            (Type (TypeAny))
+import Conjure.Prelude                  (padRight,def)
+import Control.Applicative              ((<$>))
+import Control.Exception                (IOException, catch)
 import Data.Data
-import Data.List                                         (intercalate, sort)
+import Data.List                        (intercalate, sort)
 import NeatInterpolation
 import Prelude
+
+
+import Conjure.Language.Expression.Op.Internal.Generated (Op (..))
+
 
 key_templete :: String -> String -> String
 key_templete keys_data key_isString =
@@ -79,10 +84,15 @@ writeOut outFile outText= do
 dataNames :: [[String]]
 dataNames = [ strs TypeAny
             , strs (ConstantBool True)
-            , strs (AbsLitSet [] :: AbstractLiteral Constant)
-            , strs (Constant     $  ConstantBool True)
-            , strs (DomainBool   :: Domain () Constant)
-            , strs (RangeOpen    :: Range Constant)
+            , strs (AbsLitSet []   :: AbstractLiteral Constant)
+            , strs (Constant        $ ConstantBool True)
+            , strs (DomainBool     :: Domain () Constant)
+            , strs (RangeOpen      :: Range Constant)
+            , strs (SizeAttr_None  :: SizeAttr Constant)
+            , strs (OccurAttr_None :: OccurAttr Constant)
+            , strs (def            :: PartitionAttr Constant)
+            , strs JectivityAttr_None
+            , strs PartialityAttr_Partial
             , [ drop 2 s | s <- strs (error "OP"   :: Op Constant ) ]
             ]
 

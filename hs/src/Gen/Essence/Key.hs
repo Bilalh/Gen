@@ -57,6 +57,14 @@ data Key = K_Unused
          | K_ETyped
          | K_EVar
          | K_ExpressionMetaVar
+         | K_JectivityAttr_Bijective
+         | K_JectivityAttr_Injective
+         | K_JectivityAttr_None
+         | K_JectivityAttr_Surjective
+         | K_OccurAttr_MaxOccur
+         | K_OccurAttr_MinMaxOccur
+         | K_OccurAttr_MinOccur
+         | K_OccurAttr_None
          | K_Op
          | K_OpActive
          | K_OpAllDiff
@@ -125,12 +133,20 @@ data Key = K_Unused
          | K_OpTrue
          | K_OpTwoBars
          | K_OpUnion
+         | K_PartialityAttr_Partial
+         | K_PartialityAttr_Total
+         | K_PartitionAttr
          | K_RangeBounded
          | K_RangeLowerBounded
          | K_RangeOpen
          | K_RangeSingle
          | K_RangeUpperBounded
          | K_Reference
+         | K_SizeAttr_MaxSize
+         | K_SizeAttr_MinMaxSize
+         | K_SizeAttr_MinSize
+         | K_SizeAttr_None
+         | K_SizeAttr_Size
          | K_TypeAny
          | K_TypeBool
          | K_TypeEnum
@@ -216,6 +232,14 @@ instance IsString Key where
   fromString "ETyped"                  = K_ETyped
   fromString "EVar"                    = K_EVar
   fromString "ExpressionMetaVar"       = K_ExpressionMetaVar
+  fromString "JectivityAttr_Bijective" = K_JectivityAttr_Bijective
+  fromString "JectivityAttr_Injective" = K_JectivityAttr_Injective
+  fromString "JectivityAttr_None"      = K_JectivityAttr_None
+  fromString "JectivityAttr_Surjective" = K_JectivityAttr_Surjective
+  fromString "OccurAttr_MaxOccur"      = K_OccurAttr_MaxOccur
+  fromString "OccurAttr_MinMaxOccur"   = K_OccurAttr_MinMaxOccur
+  fromString "OccurAttr_MinOccur"      = K_OccurAttr_MinOccur
+  fromString "OccurAttr_None"          = K_OccurAttr_None
   fromString "Op"                      = K_Op
   fromString "OpActive"                = K_OpActive
   fromString "OpAllDiff"               = K_OpAllDiff
@@ -284,12 +308,20 @@ instance IsString Key where
   fromString "OpTrue"                  = K_OpTrue
   fromString "OpTwoBars"               = K_OpTwoBars
   fromString "OpUnion"                 = K_OpUnion
+  fromString "PartialityAttr_Partial"  = K_PartialityAttr_Partial
+  fromString "PartialityAttr_Total"    = K_PartialityAttr_Total
+  fromString "PartitionAttr"           = K_PartitionAttr
   fromString "RangeBounded"            = K_RangeBounded
   fromString "RangeLowerBounded"       = K_RangeLowerBounded
   fromString "RangeOpen"               = K_RangeOpen
   fromString "RangeSingle"             = K_RangeSingle
   fromString "RangeUpperBounded"       = K_RangeUpperBounded
   fromString "Reference"               = K_Reference
+  fromString "SizeAttr_MaxSize"        = K_SizeAttr_MaxSize
+  fromString "SizeAttr_MinMaxSize"     = K_SizeAttr_MinMaxSize
+  fromString "SizeAttr_MinSize"        = K_SizeAttr_MinSize
+  fromString "SizeAttr_None"           = K_SizeAttr_None
+  fromString "SizeAttr_Size"           = K_SizeAttr_Size
   fromString "TypeAny"                 = K_TypeAny
   fromString "TypeBool"                = K_TypeBool
   fromString "TypeEnum"                = K_TypeEnum
