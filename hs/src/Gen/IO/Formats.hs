@@ -5,6 +5,8 @@ import Data.Time(formatTime,getCurrentTime)
 import Data.Time.Format(defaultTimeLocale)
 import Conjure.UI.IO(readModelFromFile)
 import System.FilePath((<.>))
+import Conjure.Language.NameResolution
+import Conjure.Language.NameGen ( runNameGen )
 
 import qualified Data.ByteString.Lazy as L
 import qualified Data.Aeson as A
@@ -19,7 +21,8 @@ timestamp = do
 readSpecFromEssence :: (MonadFail m, MonadIO m) => FilePath -> m Spec
 readSpecFromEssence fp = do
   model <- readModelFromFile fp
-  fromConjure model
+  start <- ignoreLogs . runNameGen $ resolveNames model
+  fromConjure start
 
 readFromJSON :: (MonadFail m, MonadIO m, FromJSON a) => FilePath -> m a
 readFromJSON fp = do
