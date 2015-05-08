@@ -10,14 +10,14 @@ import Gen.Essence.Type            ()
 import Gen.Imports
 
 instance (Generate a, WrapConstant a) => Generate (Domain () a) where
-  give GNone = do
-      -- ty <- give GNone
-      give (GType TypeInt)
+  give GNone = give GNone >>= \ty -> give (GType ty)
 
-  give (GType TypeBool)           = return DomainBool
-  give (GType TypeInt)            = pure DomainInt <*> vectorOf3 2 (give GNone)
+  give (GType TypeBool)     = pure DomainBool
+  give (GType TypeInt)      = DomainInt <$> vectorOf3 2 (give GNone)
+  give (GType (TypeSet ty)) = DomainSet <$> pure () <*>  give GNone <*> give (GType ty)
+
   -- give (GType (TypeMatrix ty))     = _x
-  -- give (GType (TypeSet ty))       = _x
+
   -- give (GType (TypeMSet ty))      = _x
   -- give (GType (TypeFunction ty1 ty2)) = _x
   -- give (GType (TypeTuple ty))     = _x
@@ -28,5 +28,12 @@ instance (Generate a, WrapConstant a) => Generate (Domain () a) where
   -- give (GType TypeAny)            = _x
 
   give t = giveUnmatched "Generate (Domain () a)" t
+
+  possiblePure _ _ _ = True
+
+instance (Generate a) => Generate (SetAttr a) where
+  give GNone = pure def
+
+  give t = giveUnmatched "Generate (SetAttr a)" t
 
   possiblePure _ _ _ = True

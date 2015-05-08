@@ -10,7 +10,6 @@ import Gen.Classify.Meta               (mkMeta)
 import Gen.Essence.Spec                ()
 import Gen.Essence.St
 import Gen.Essence.UIData              (EssenceConfig)
-import Gen.Helpers.Debug
 import Gen.Helpers.Log
 import Gen.Imports
 import Gen.IO.Formats
