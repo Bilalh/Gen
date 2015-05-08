@@ -1,5 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 module Gen.Helpers.LineError (line,lineError,notHandled) where
+
 import Language.Haskell.TH
 import Conjure.Prelude
 import Conjure.Language.Pretty

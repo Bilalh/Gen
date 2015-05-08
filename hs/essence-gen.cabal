@@ -35,7 +35,6 @@ Library
                      , Gen.AST.Spec
                      , Gen.AST.TH
                      , Gen.AST.Translate
-                     , Gen.AST.Type
                      , Gen.Classify.AddMeta
                      , Gen.Classify.AddSpecE
                      , Gen.Classify.DomTypes

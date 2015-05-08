@@ -7,11 +7,10 @@ import Conjure.Language.Domain
 import Conjure.Language.Expression.Op
 import Conjure.Language.Pretty
 import Conjure.Language.TH
+import Conjure.Language.TypeOf
 import Conjure.Prelude
 import Gen.AST.Data
-import Gen.AST.Type                   ()
-import Conjure.Language.TypeOf
-
+import Gen.Helpers.LineError
 
 instance Translate Constant Constant where
     fromConjure = return . id
@@ -137,6 +136,13 @@ instance Pretty QType where
 
 instance Pretty EGen where
     pretty =  pretty . (toConjureNote "Pretty EGen" :: EGen -> Generator)
+
+
+instance Translate Text Name where
+    toConjure x          = pure $ Name x
+    fromConjure (Name x) = pure x
+    fromConjure x        = notHandled $line "Translate Text Name" x
+
 
 -- Conjure required instances
 
