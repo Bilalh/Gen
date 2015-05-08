@@ -14,6 +14,8 @@ module Gen.Imports
 import Conjure.Language.AbstractLiteral as X (AbstractLiteral)
 import Conjure.Language.Domain          as X (Domain)
 import Conjure.Language.Pretty          as X (Pretty (..))
+import Conjure.Language.Constant        as X (Constant)
+import Conjure.Language.Definition      as X (Expression)
 import Conjure.Language.Type            as X
 import Conjure.Prelude                  as X hiding (dropExtension)
 import Control.Monad.State.Strict       as X (execStateT)
@@ -31,8 +33,7 @@ import qualified Text.PrettyPrint as Pr
 
 type Depth = Int
 
--- Might want to use a hash set at some point
--- nub is O(N^2) this is O(NlogN)
+-- | nub is O(N^2) this is O(NlogN)
 nub2 :: (Ord a, Hashable a) => [a] -> [a]
 nub2 l = go S.empty l
   where

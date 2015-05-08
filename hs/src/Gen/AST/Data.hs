@@ -31,10 +31,10 @@ class (Pretty ast, Pretty conjure, Show ast) => Translate ast conjure where
 type Domainn x = Domain () x
 type Literal = AbstractLiteral Expr
 
+
+--TODO PrettyWithQuan
 class Pretty a => PrettyWithQuan a where
     prettyWithQuan :: Pretty a => a -> Doc
-
-
 
 data Expr =
     EVar Var

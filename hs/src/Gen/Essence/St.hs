@@ -21,7 +21,7 @@ module Gen.Essence.St
   , withWeights
   ) where
 
-import Conjure.Language.Definition (Constant, Expression (..))
+import Conjure.Language.Definition (Expression (..))
 import Data.Data                   hiding (Proxy)
 import Data.Map                    (Map)
 import Gen.Essence.Key             as X
