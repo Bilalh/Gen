@@ -11,6 +11,7 @@ import qualified Text.PrettyPrint as Pr
 lineError :: Line -> [Doc] -> a
 lineError l ds = error . show . vcat $ pretty l : ds
 
+-- | Usage notHandled $line "description" value
 notHandled :: Pretty p => Line -> String -> p -> a
 notHandled l s =
  error . show $ Pr.hang ("Not handled:" <+> pretty s ) 4 $

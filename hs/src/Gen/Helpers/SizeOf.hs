@@ -37,7 +37,7 @@ instance DepthOf Expr where
 
     depthOf (EComp inner _ cons) = maximum $ depthOf inner : map depthOf cons
 
-instance DepthOf Literal where
+instance DepthOf x => DepthOf (AbstractLiteral x) where
     depthOf x = empty_p1 (maximum . map depthOf_p1) . F.toList $ x
 
 instance DepthOf (Op Expr) where
@@ -49,10 +49,12 @@ instance DepthOf (Op Expr) where
     depthOf x = nonEmpty (maximum . map depthOf_p1) . F.toList $ x
 
 instance DepthOf Constant where
-    depthOf (ConstantBool _)          = 0
-    depthOf (ConstantInt _)           = 0
-    depthOf (ConstantEnum _ _ _ )     = 0
-    depthOf x = notHandled $line "DepthOf Constant" x
+    depthOf ConstantBool{}       = 0
+    depthOf ConstantInt{}        = 0
+    depthOf ConstantEnum{}       = 0
+    depthOf (ConstantAbstract x) = depthOf x
+    depthOf (TypedConstant _ x2) = depthOf x2
+    depthOf x                    = notHandled $line "depthOf Constant" x
 
 
 instance DepthOf (Domainn Expr) where
@@ -102,7 +104,7 @@ instance SizeOfLimited Type where
            | (toSize + 1) >= m -> m
            | otherwise         -> min m ( (toSize + 1) ^ (fromSize) )
 
-    sizeOfLimited _ t = error $ "SizeOf Type called with " ++ (show t)
+    sizeOfLimited _ t = notHandled $line "SizeOf Type"  t
 
 
 minB :: Integer -> Integer -> (Integer -> Integer) -> Integer

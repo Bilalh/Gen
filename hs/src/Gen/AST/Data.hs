@@ -1,7 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveGeneric,
              DeriveTraversable, FlexibleInstances, KindSignatures,
              MultiParamTypeClasses #-}
-
 module Gen.AST.Data where
 
 import Conjure.Language.Definition
