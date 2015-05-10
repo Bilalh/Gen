@@ -2,10 +2,8 @@
 module Gen.Essence.Op.Or where
 
 import Conjure.Language.Expression.Op
-import Gen.Essence.Rnd
 import Gen.Essence.St
 import Gen.Essence.Type               ()
-import Gen.Helpers.SizeOf
 import Gen.Imports
 
 

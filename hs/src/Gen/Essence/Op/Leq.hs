@@ -13,8 +13,8 @@ instance Generate a => Generate (OpLeq a) where
   give GNone = give (GType TypeBool)
 
   give (GType TypeBool) = do
-    ws <- getWeights [ ("TypeInt", pure TypeInt)
-                     , ("TypeBool", pure TypeBool)]
+    ws <- getWeights [ (K_TypeInt , pure TypeInt)
+                     , (K_TypeBool, pure TypeBool)]
     ty <- GType <$> frequency3 ws
     pure OpLeq <*> give ty <*> give ty
 

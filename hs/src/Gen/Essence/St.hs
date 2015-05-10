@@ -20,6 +20,8 @@ module Gen.Essence.St
   , withDepthDec
   , withWeights
   , possibleUnmatched
+  , getId
+  , getWeighting
   ) where
 
 import Conjure.Language.Definition (Expression (..))
@@ -56,19 +58,21 @@ class Data a => Generate a where
   possiblePure :: Proxy a -> Type -> Depth -> Bool
   possiblePure = error "no default possiblePure"
 
+  -- | Convenience for a pure implementation, Never call this method
   possibleNoType :: Proxy a -> Depth -> Bool
   possibleNoType _ _ = error "no default possibleNoType"
 
-  getId ::  Proxy a -> Key
-  getId = fromString . tyconUQname . dataTypeName . proxyDataTypeOf
 
-  getWeighting :: MonadState St m => Proxy a -> m Int
-  getWeighting a = do
-      let key = getId a
-      gets weighting >>= \kv ->
-          case key `M.lookup` kv  of
-            Nothing  -> return 100
-            (Just x) -> return x
+getId :: Data a => Proxy a -> Key
+getId = fromString . tyconUQname . dataTypeName . proxyDataTypeOf
+
+getWeighting :: (MonadState St m, Data a) => Proxy a -> m Int
+getWeighting a = do
+    let key = getId a
+    gets weighting >>= \kv ->
+        case key `M.lookup` kv  of
+          Nothing  -> return 100
+          (Just x) -> return x
 
 
 type GenSt a = StateT St Gen a
