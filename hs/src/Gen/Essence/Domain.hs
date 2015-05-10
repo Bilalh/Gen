@@ -31,12 +31,14 @@ instance (Generate a, WrapConstant a) => Generate (Domain () a) where
   give t = giveUnmatched "Generate (Domain () a)" t
 
   possiblePure _ _ _ = True
+  possibleNoType _ _ = True
 
 
 instance Generate a => Generate (SetAttr a) where
   give GNone         = SetAttr <$> give (GNone)
   give t             = giveUnmatched "Generate (SetAttr a)" t
   possiblePure _ _ _ = True
+  possibleNoType _ _ = True
 
 
 instance Generate a => Generate (SizeAttr a)  where
@@ -53,7 +55,7 @@ instance Generate a => Generate (SizeAttr a)  where
   give t = giveUnmatched "Generate (SetAttr a)" t
 
   possiblePure _ _ _ = True
-
+  possibleNoType _ _ = True
 
 --  Overlapping instances
 -- instance Generate (SizeAttr Constant) where

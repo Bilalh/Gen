@@ -76,14 +76,18 @@ main = do
               , ""
               , "  -- Returns True if this op can be used with the specified return type"
               , "  -- and the remaing depth. This Op is counted in the depth calculation."
-              , "  -- Implement either possible or possiblePure:"
+              , "  -- Implement either possible or (possiblePure and possibleNoType):"
               , "  -- possiblePure is when the result only depends on the depth and the return type."
+              , "  -- possibleNoType is when no type is given"
               , "  -- possible has access to the GenSt monad"
               , ""
               , "  -- possible _ ty = $notDone"
               , ""
               , "  -- possiblePure _ ty _ | ty /= TypeBool = False"
               , "  -- possiblePure _ ty d = depthOf ty + 1 <= (fromIntegral d)"
+              , ""
+              , "  -- possibleNoType _ d =False "
+
               ]
             ]
 

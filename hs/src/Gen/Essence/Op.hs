@@ -14,7 +14,7 @@ instance Generate a => Generate (Op a) where
       ops <- getPossibilities a (allOps a)
       withDepthDec $ frequency3 ops
 
-  possible _ ty = do
+  possible _ con@(GType ty) = do
     d <- gets depth
     case depthOf ty + 1 <= fromIntegral d of
       False -> return False
@@ -23,6 +23,8 @@ instance Generate a => Generate (Op a) where
         return $ or bs
     where
     check :: MonadState St m
-          => ((Type -> m Bool), (Key, GenSt (Op a)))
+          => ((GenerateConstraint -> m Bool), (Key, GenSt (Op a)))
           -> m Bool
-    check (f,_) = f ty
+    check (f,_) = f con
+
+  possible _ _ = return False

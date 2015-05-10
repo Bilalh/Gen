@@ -23,3 +23,4 @@ instance Generate Constant where
   give t = giveUnmatched "Generate Constant" t
 
   possiblePure _ ty d = (depthOf ty) <= (fromIntegral d)
+  possibleNoType _ _ = True

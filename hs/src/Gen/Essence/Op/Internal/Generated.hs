@@ -14,7 +14,7 @@ import Gen.Essence.Op.Union()
 allOps :: forall m a
         . (Generate a, MonadState St m, Applicative m)
        => GenerateConstraint
-       -> [((Type -> m Bool ), (Key, GenSt (Op a)))]
+       -> [((GenerateConstraint -> m Bool ), (Key, GenSt (Op a)))]
 allOps con = 
   [
  (possible (Proxy :: Proxy (OpEq a))               , (getId (Proxy :: Proxy (OpEq a))               , MkOpEq              <$> give con ))

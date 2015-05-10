@@ -20,10 +20,10 @@ import qualified Data.Map      as M
 instance Generate Expr where
   give g  = do
     let defs =
-          [ (possible (Proxy :: Proxy Constant),   (K_ECon,  ECon  <$> give g))
-          , (possible (Proxy :: Proxy  Var),       (K_EVar,  EVar  <$> give g))
-          , (possible (Proxy :: Proxy (Op Expr)),  (K_EOp,   EOp   <$> give g))
-          , (possible (Proxy :: Proxy (AbstractLiteral Expr)), ("ELit",  wrapLiteral <$> give g))
+          [ (possible (Proxy :: Proxy Constant),               (K_ECon,  ECon  <$> give g))
+          , (possible (Proxy :: Proxy  Var),                   (K_EVar,  EVar  <$> give g))
+          , (possible (Proxy :: Proxy (Op Expr)),              (K_EOp,   EOp   <$> give g))
+          , (possible (Proxy :: Proxy (AbstractLiteral Expr)), (K_ELit,  wrapLiteral <$> give g))
           ]
 
     parts <- getPossibilities g defs
@@ -46,7 +46,7 @@ instance Generate Var where
 
   give t = giveUnmatched "Generate Var" t
 
-  possible _ ty = do
+  possible _ (GType ty) = do
     ds <- gets doms_
     F.foldrM f False ds
 
@@ -55,3 +55,5 @@ instance Generate Var where
     f gf False = do
        b <- ttypeOf gf
        return $ b == ty
+
+  possible _ _ = return False

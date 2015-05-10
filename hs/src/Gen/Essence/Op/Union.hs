@@ -29,4 +29,5 @@ instance Generate a => Generate (OpUnion a) where
       allow TypeRelation{} = True
       allow _              = False
 
-  possiblePure _ ty d = depthOf ty + 1 <= (fromIntegral d)
+  possiblePure _ ty d   = depthOf ty + 1 <= (fromIntegral d)
+  possibleNoType _ d = (2 :: Integer) <= (fromIntegral d)

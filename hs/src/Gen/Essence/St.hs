@@ -19,6 +19,7 @@ module Gen.Essence.St
   , weightingForKey
   , withDepthDec
   , withWeights
+  , possibleUnmatched
   ) where
 
 import Conjure.Language.Definition (Expression (..))
@@ -36,21 +37,27 @@ import qualified Text.PrettyPrint as Pr
 
 
 class Data a => Generate a where
-  {-# MINIMAL give, possible | give, possiblePure  #-}
+  {-# MINIMAL give, possible | give, possiblePure, possibleNoType  #-}
 
   -- | Return a random value of type a subject to the constraints
   give  :: GenerateConstraint -> GenSt a
 
   -- | Returns True if this op can be used with the specified return type
-  possible :: (Applicative m, MonadState St m) => Proxy a -> Type -> m Bool
-  possible a ty = do
-      d <- gets depth
-      return $ possiblePure a ty d
+  possible :: (Applicative m, MonadState St m) => Proxy a -> GenerateConstraint -> m Bool
+  possible a (GType ty) = do
+    d <- gets depth
+    return $ possiblePure a ty d
+
+  possible a _ = do
+    d <- gets depth
+    return $ possibleNoType a d
 
   -- | Convenience for a pure implementation, Never call this method
-  possiblePure :: Proxy  a -> Type -> Depth -> Bool
+  possiblePure :: Proxy a -> Type -> Depth -> Bool
   possiblePure = error "no default possiblePure"
 
+  possibleNoType :: Proxy a -> Depth -> Bool
+  possibleNoType _ _ = error "no default possibleNoType"
 
   getId ::  Proxy a -> Key
   getId = fromString . tyconUQname . dataTypeName . proxyDataTypeOf
@@ -148,25 +155,22 @@ getWeights vs= do
 -- | getWeights but takes function. If the function return False the
 -- | weighting for that item is set to 0 regresses of current weighting
 getPossibilities :: GenerateConstraint
-                 -> [(Type -> GenSt Bool, (Key, v))]
+                 -> [(GenerateConstraint -> GenSt Bool, (Key, v))]
                  -> GenSt [(Int, v)]
 getPossibilities con vs = do
-  mapM (doPossibilities con) vs
+  mapM doPossibilities vs
 
   where
-  doPossibilities :: GenerateConstraint
-                  -> (Type -> GenSt Bool, (Key, v))
+  doPossibilities ::(GenerateConstraint -> GenSt Bool, (Key, v))
                   -> GenSt (Int, v)
-  doPossibilities (GType ty) (f,(k,v)) =
-   f ty >>= \case
+  doPossibilities (f,(k,v)) =
+   f con >>= \case
      False -> return (0,v)
      True  -> do
        w <- weightingForKey k
        return (w,v)
 
-  doPossibilities _ (_,(k,v)) = do
-   w <- weightingForKey k
-   return (w,v)
+
 
 withDepthDec :: GenSt a -> GenSt a
 withDepthDec f = do
@@ -184,6 +188,17 @@ giveUnmatched msg t = do
                         , "Show  " <+> (pretty . show ) t
                         , "Pretty" <+> pretty t
                         , "St"     <+> pretty st]
+
+
+-- | Error message for give
+possibleUnmatched :: forall m c a. (Pretty a, MonadState St m) => Doc -> a -> m c
+possibleUnmatched msg t = do
+  st  <- get
+  error . show . vcat $ ["Unmatched possible" <+> msg
+                        , "Show  " <+> (pretty . show ) t
+                        , "Pretty" <+> pretty t
+                        , "St"     <+> pretty st]
+
 
 runGenerate :: Generate a => St -> IO a
 runGenerate st = generate $ evalStateT (give GNone) st

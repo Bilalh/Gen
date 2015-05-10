@@ -23,3 +23,5 @@ instance Generate a => Generate (AbstractLiteral a) where
   possiblePure _ TypeBool _  = False
   possiblePure _ TypeInt  _  = False
   possiblePure _ ty d = (depthOf ty) <= (fromIntegral d)
+
+  possibleNoType _ _ = True
