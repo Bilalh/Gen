@@ -2,13 +2,13 @@
 module Gen.Essence.Domain where
 
 import Conjure.Language.Domain
-import Gen.Essence.Constant    ()
-import Gen.Essence.Literal     ()
-import Gen.Essence.Range       ()
+import Gen.Essence.Range
 import Gen.Essence.Rnd
 import Gen.Essence.St
 import Gen.Essence.Type        ()
 import Gen.Imports
+
+import qualified Data.Set as S
 
 instance (Generate a, WrapConstant a) => Generate (Domain () a) where
   give GNone = give GNone >>= \ty -> give (GType ty)
@@ -32,6 +32,16 @@ instance (Generate a, WrapConstant a) => Generate (Domain () a) where
 
   possiblePure _ _ _ = True
   possibleNoType _ _ = True
+
+
+intDomainOfSize :: forall a . WrapConstant a
+               => Integer -> GenSt (Domain () a)
+intDomainOfSize numElems = do
+  numRanges <- choose3 (1 :: Integer, numElems)
+  ranges <- mkRanges numElems numElems numRanges S.empty
+  -- let idx = DomainInt (sortBy  rangeComp ranges)
+  let idx = DomainInt ranges
+  return idx
 
 
 instance Generate a => Generate (SetAttr a) where

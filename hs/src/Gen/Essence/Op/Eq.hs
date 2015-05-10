@@ -21,3 +21,5 @@ instance Generate a => Generate (OpEq a) where
   -- and the remaing depth. This Op is counted in the depth calculation
   possiblePure _ ty _ | ty /= TypeBool = False
   possiblePure _ ty d = depthOf ty + 1 <= (fromIntegral d)
+
+  possibleNoType _ d = (2 :: Integer) <= (fromIntegral d)

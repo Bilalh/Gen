@@ -20,7 +20,7 @@ instance Generate a => Generate (OpLeq a) where
 
   give t = giveUnmatched "Generate OpGeq" t
 
-  -- Returns True if this op can be used with the specified return type
-  -- and the remaing depth. This Op is counted in the depth calculation
   possiblePure _ ty _ | ty /= TypeBool = False
-  possiblePure _ ty d = depthOf ty + 1 <= (fromIntegral d)
+  possiblePure _ ty d = depthOf ty + 1 <= (fromIntegral d
+                                          )
+  possibleNoType _ d = (2 :: Integer) <= (fromIntegral d)

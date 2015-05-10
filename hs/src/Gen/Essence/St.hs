@@ -238,7 +238,7 @@ generateFreq _ con n st = do
 
 -- | Generate n values of type a and print the frequency of them
 generateTypeFreq :: forall a . (Generate a, Pretty a, Ord a, TTypeOf a)
-                  => Proxy a -> GenerateConstraint -> Int -> St -> IO ()
+                  => Proxy a -> GenerateConstraint -> Int -> St -> IO  ()
 generateTypeFreq _ con n st = do
   let freq s = sort . map (\x->(length x,head x)) . group . sort $ s
   ts :: [a] <-  mapM  (\_ ->  runGenerate  con st)  [1..n]
