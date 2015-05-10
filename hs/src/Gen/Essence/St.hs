@@ -200,8 +200,8 @@ possibleUnmatched msg t = do
                         , "St"     <+> pretty st]
 
 
-runGenerate :: Generate a => St -> IO a
-runGenerate st = generate $ evalStateT (give GNone) st
+runGenerate :: Generate a => GenerateConstraint -> St -> IO a
+runGenerate con st = generate $ evalStateT (give con) st
 
 -- No Logs at the moment
 runGenerateWithLogs :: Generate a => St -> Gen (a,LogsTree)
@@ -229,18 +229,18 @@ giveOnly g keys = do
 
 -- | Generate n values of type a and print the frequency of them
 generateFreq :: forall a . (Generate a, Pretty a, Ord a)
-             => Proxy a -> Int -> St -> IO ()
-generateFreq _ n st = do
+             => Proxy a -> GenerateConstraint -> Int -> St -> IO ()
+generateFreq _ con n st = do
   let freq s = sort . map (\x->(length x,head x)) . group . sort $ s
-  ts :: [a] <-  mapM  (\_ -> runGenerate  st)  [1..n]
+  ts :: [a] <-  mapM  (\_ -> runGenerate con st)  [1..n]
   print .  vcat .  map pretty $ freq ts
 
 
 -- | Generate n values of type a and print the frequency of them
 generateTypeFreq :: forall a . (Generate a, Pretty a, Ord a, TTypeOf a)
-                  => Proxy a -> Int -> St -> IO ()
-generateTypeFreq _ n st = do
+                  => Proxy a -> GenerateConstraint -> Int -> St -> IO ()
+generateTypeFreq _ con n st = do
   let freq s = sort . map (\x->(length x,head x)) . group . sort $ s
-  ts :: [a] <-  mapM  (\_ ->   runGenerate  st)  [1..n]
+  ts :: [a] <-  mapM  (\_ ->  runGenerate  con st)  [1..n]
   tys <- mapM ttypeOf ts
   print .  vcat .  map pretty $ freq tys

@@ -53,4 +53,4 @@ instance Generate Type where
 
   give t = giveUnmatched "Generate (Type)" t
 
-  possiblePure _ _ _ = True
+  possible _ _  = return True

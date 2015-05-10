@@ -36,6 +36,7 @@ type Literal = AbstractLiteral Expr
 class Pretty a => PrettyWithQuan a where
     prettyWithQuan :: Pretty a => a -> Doc
 
+type ListComp =  (Expr, [EGen], [Expr])
 data Expr =
     EVar Var
   | ECon Constant

@@ -3,7 +3,6 @@ module Gen.Essence.Spec where
 
 import Gen.Essence.Domain ()
 import Gen.Essence.Expr   ()
-import Gen.Essence.Rnd
 import Gen.Essence.St
 import Gen.Imports
 
@@ -31,4 +30,4 @@ instance Generate Spec where
 
   give t = giveUnmatched "Generate (Spec)" t
 
-  possiblePure _ _ _ = True
+  possible _ _ = return True
