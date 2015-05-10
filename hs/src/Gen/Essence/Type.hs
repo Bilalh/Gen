@@ -4,6 +4,7 @@ module Gen.Essence.Type where
 import Gen.Essence.St
 import Gen.Imports
 import Gen.Essence.Rnd
+import qualified Data.Set as S
 
 instance Generate Type where
   give GNone = do
@@ -23,6 +24,30 @@ instance Generate Type where
 
     parts <- getWeights defs
     frequency3 parts
+
+  give (GOnlyTopLevel ws) = do
+    defs <- gets depth >>= \d ->
+       if | d < 0     -> error $ "GenerateType invaild Depth: " ++ show d
+          | d == 0    -> return [ ("TypeBool", pure TypeBool)
+                                , ("TypeInt",  pure TypeInt)
+                                ]
+          | otherwise -> return [
+                           ("TypeBool", pure TypeBool)
+                         , ("TypeInt",  pure TypeInt)
+                         , ("TypeSet",   liftM TypeSet   (withDepthDec (give GNone) ))
+                         -- , ("TypeMatrix", liftM TypeMatrix (withDepthDec (give GNone) ))
+                         -- , ("TypeMSet",  liftM TypeMSet  (withDepthDec (give GNone) ))
+                         -- , ("TypePartition",   liftM TypePartition   (withDepthDec (give GNone) ))
+                         ]
+
+    let allowed = S.fromList ws
+    let ws' = [ (k,0) | k <- fieldKeys (Proxy :: Proxy Type), k `S.notMember` allowed ]
+
+    parts <- withWeights ws' $ getWeights defs
+    frequency3 parts
+
+
+
 
   give GOnlyLiteralTypes = do
     defs <- gets depth >>= \d ->

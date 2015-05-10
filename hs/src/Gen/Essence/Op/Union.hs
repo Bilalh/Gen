@@ -7,20 +7,17 @@ import Gen.Essence.Type               ()
 import Gen.Helpers.SizeOf
 import Gen.Imports
 
-import qualified Data.Set as S
-
-
 instance Generate a => Generate (OpUnion a) where
+
+  -- Idea to use GLiteralTypes with giveOnly with all the constants as well
+  -- since this not give use a top level onstant
+
   give GNone = do
-    let allowed = S.fromList [K_TypeSet, K_TypeMSet, K_TypeFunction, K_TypeRelation]
-    let ws = [ (k,0) | k <- typeKeys, k `S.notMember` allowed ]
-    ty <- withWeights ws (give GNone)
-    give (GType ty)
+      ty <- give (GOnlyTopLevel [K_TypeSet, K_TypeMSet, K_TypeFunction, K_TypeRelation])
+      give (GType ty)
 
-  give ty@GType{} = do
-    pure OpUnion <*> give ty <*> give ty
-
-  give t = giveUnmatched "Generate OpUnion" t
+  give ty@GType{} = pure OpUnion <*> give ty <*> give ty
+  give t          = giveUnmatched "Generate OpUnion" t
 
   possiblePure _ ty _ | not (allow ty) = False
     where

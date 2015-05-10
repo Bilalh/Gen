@@ -1,13 +1,14 @@
-{-# LANGUAGE DeriveDataTypeable, DeriveFoldable, DeriveFunctor,
-             DeriveGeneric, ParallelListComp #-}
+{-# LANGUAGE DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveGeneric,
+             ParallelListComp #-}
 module Gen.Essence.St
   ( module X
   , GenSt
   , Generate(..)
   , GenerateConstraint(..)
+  , giveOnly
   , St(..)
   , WrapConstant(..)
-  , asProxyTypeOf
+  , fieldKeys
   , generateFreq
   , generateTypeFreq
   , getPossibilities
@@ -15,7 +16,6 @@ module Gen.Essence.St
   , giveUnmatched
   , runGenerate
   , runGenerateWithLogs
-  , typeKeys
   , weightingForKey
   , withDepthDec
   , withWeights
@@ -25,12 +25,14 @@ import Conjure.Language.Definition (Expression (..))
 import Data.Data                   hiding (Proxy)
 import Data.Map                    (Map)
 import Gen.Essence.Key             as X
-import Gen.Helpers.TypeOf
 import Gen.Helpers.Log
+import Gen.Helpers.TypeOf
 import Gen.Imports
 import Test.QuickCheck             (Gen, generate)
 
 import qualified Data.Map as M
+import qualified Data.Set as S
+import qualified Text.PrettyPrint as Pr
 
 
 class Data a => Generate a where
@@ -51,7 +53,7 @@ class Data a => Generate a where
 
 
   getId ::  Proxy a -> Key
-  getId = fromString . tyconUQname . dataTypeName . dataTypeOf . asProxyTypeOf (error "geti" :: a)
+  getId = fromString . tyconUQname . dataTypeName . proxyDataTypeOf
 
   getWeighting :: MonadState St m => Proxy a -> m Int
   getWeighting a = do
@@ -65,9 +67,10 @@ class Data a => Generate a where
 type GenSt a = StateT St Gen a
 
 data GenerateConstraint = GNone
-                        | GType Type        -- The resulting type
-                        | GOnlyLiteralTypes -- for literals
-                        | GGTE Integer    -- for min/max size
+                        | GType Type          -- The resulting type
+                        | GOnlyLiteralTypes   -- for literals
+                        | GGTE Integer        -- for min/max size
+                        | GOnlyTopLevel [Key] -- Weights to use at the toplevel
  deriving (Eq, Ord, Show, Data, Typeable, Generic)
 
 instance Pretty GenerateConstraint where
@@ -97,6 +100,18 @@ data St = St{
     , doms_      :: Domains
     }
  deriving (Eq,Show, Data, Typeable, Generic)
+
+instance Pretty St where
+    pretty (St{..}) =
+        "St" <+> Pr.braces (
+            Pr.sep [
+                    nn "depth"       $ pretty depth
+                  , nn "beConstant " $ pretty beConstant
+                  , nn "newVars_"    $ prettyTypeArr newVars_
+                  , nn "doms"        $ pretty doms_
+                  , nn "weighting" (pretty . groom $  weighting)
+                  ] )
+
 
 instance Default St where
   def = St{
@@ -161,10 +176,14 @@ withDepthDec f = do
   modify $ \st -> st{ depth = oldDepth }
   return res
 
-giveUnmatched :: forall c a. Pretty a => Doc -> a -> c
-giveUnmatched msg t = error . show . vcat $ ["Unmatched give" <+> msg
-                                            , pretty . show $ t
-                                            , pretty t]
+-- | Error message for give
+giveUnmatched :: forall c a. Pretty a => Doc -> a -> GenSt c
+giveUnmatched msg t = do
+  st  <- get
+  error . show . vcat $ ["Unmatched give" <+> msg
+                        , "Show  " <+> (pretty . show ) t
+                        , "Pretty" <+> pretty t
+                        , "St"     <+> pretty st]
 
 runGenerate :: Generate a => St -> IO a
 runGenerate st = generate $ evalStateT (give GNone) st
@@ -175,14 +194,23 @@ runGenerateWithLogs st = do
   res <- evalStateT (give GNone) st
   return (res,LSEmpty)
 
-asProxyTypeOf :: a -> Proxy a -> a
-asProxyTypeOf = const
-{-# INLINE asProxyTypeOf #-}
+-- | DataType of a proxy
+proxyDataTypeOf :: forall a . Data a => Proxy a -> DataType
+proxyDataTypeOf _ = dataTypeOf (error "proxyDataTypeOf" :: a)
 
-typeKeys :: [Key]
-typeKeys = do
-  let names = dataTypeConstrs . dataTypeOf $ TypeAny
+-- | Keys of all fields in a datatype
+fieldKeys :: Data a => Proxy a -> [Key]
+fieldKeys a = do
+  let names = dataTypeConstrs . proxyDataTypeOf $ a
   map (fromString . show) names
+
+giveOnly :: forall a . (Data a, Generate a)
+         => GenerateConstraint ->  [Key] -> GenSt a
+giveOnly g keys = do
+  let allowed = S.fromList keys
+  let ws = [ (k,0) | k <- fieldKeys (Proxy :: Proxy a), k `S.notMember` allowed ]
+  withWeights ws (give g)
+
 
 -- | Generate n values of type a and print the frequency of them
 generateFreq :: forall a . (Generate a, Pretty a, Ord a)
