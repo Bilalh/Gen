@@ -2,13 +2,12 @@
 module Gen.Essence.Domain where
 
 import Conjure.Language.Domain
-import Conjure.Language.Constant
-import Gen.Essence.Constant        ()
-import Gen.Essence.Literal         ()
-import Gen.Essence.Range           ()
+import Gen.Essence.Constant    ()
+import Gen.Essence.Literal     ()
+import Gen.Essence.Range       ()
 import Gen.Essence.Rnd
 import Gen.Essence.St
-import Gen.Essence.Type            ()
+import Gen.Essence.Type        ()
 import Gen.Imports
 
 instance (Generate a, WrapConstant a) => Generate (Domain () a) where
@@ -33,10 +32,12 @@ instance (Generate a, WrapConstant a) => Generate (Domain () a) where
 
   possiblePure _ _ _ = True
 
+
 instance Generate a => Generate (SetAttr a) where
   give GNone         = SetAttr <$> give (GNone)
   give t             = giveUnmatched "Generate (SetAttr a)" t
   possiblePure _ _ _ = True
+
 
 instance Generate a => Generate (SizeAttr a)  where
   give GNone = do
@@ -52,6 +53,7 @@ instance Generate a => Generate (SizeAttr a)  where
   give t = giveUnmatched "Generate (SetAttr a)" t
 
   possiblePure _ _ _ = True
+
 
 --  Overlapping instances
 -- instance Generate (SizeAttr Constant) where

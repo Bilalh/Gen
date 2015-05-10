@@ -27,9 +27,11 @@ import Gen.Helpers.Placeholders         as X
 import GHC.Real                         as X (round)
 import System.FilePath                  as X (dropExtension, dropExtensions)
 import Text.Groom                       as X (groom)
+import qualified Data.Map.Strict as M
 
 import qualified Data.Set         as S
 import qualified Text.PrettyPrint as Pr
+import qualified Data.Foldable    as F
 
 type Depth = Int
 
@@ -66,3 +68,8 @@ prettyArr vs = vcat $ map pretty vs
 
 docError :: [Doc] -> a
 docError = error . show . vcat
+
+instance (Pretty a, Pretty b) => Pretty (M.Map a b) where
+    pretty vs = case M.toList vs of
+               [] -> "[]"
+               xs -> vcat $ map pretty xs
