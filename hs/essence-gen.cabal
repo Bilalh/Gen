@@ -42,11 +42,11 @@ Library
                      , Gen.Classify.Sorter
                      , Gen.Classify.UpdateChoices
                      , Gen.Essence.Constant
+                     , Gen.Essence.Data.Key
                      , Gen.Essence.Data.Types
                      , Gen.Essence.Domain
                      , Gen.Essence.Expr
                      , Gen.Essence.Generate
-                     , Gen.Essence.Key
                      , Gen.Essence.Literal
                      , Gen.Essence.Op.Eq
                      , Gen.Essence.Op.Geq

@@ -25,7 +25,7 @@ key_templete keys_data key_isString =
   [string|
     --This is an auto-generated file created by make keys
     {-# LANGUAGE DeriveDataTypeable, DeriveGeneric #-}
-    module Gen.Essence.Key where
+    module Gen.Essence.Data.Key where
 
     import Gen.Imports
     import qualified Data.Aeson as A
@@ -49,7 +49,7 @@ key_templete keys_data key_isString =
     instance IsString Key where
       $key_isString
       fromString t = error $ "Unknown Key: " ++ t ++
-                     "\n Add new keys to src/Gen/Essence/key_extra_names.txt if needed."
+                     "\n Add new keys to src/Gen/Essence/Data/key_extra_names.txt if needed."
   |]
 
 main :: IO ()
@@ -64,7 +64,7 @@ main = do
                               in [string| fromString $a = K_$n |]
                             | n <- names ]
   let res = key_templete keys_data key_isString
-  writeOut "src/Gen/Essence/key.hs" res
+  writeOut "src/Gen/Essence/Data/key.hs" res
 
 
 writeOut :: FilePath -> String -> IO ()
@@ -98,7 +98,7 @@ dataNames = [ strs TypeAny
 
 getNames :: IO [String]
 getNames = do
-  str <- readFile "src/Gen/Essence/key_extra_names.txt"
+  str <- readFile "src/Gen/Essence/Data/key_extra_names.txt"
   return $ lines str
 
 strs :: (Data a) => a -> [String]

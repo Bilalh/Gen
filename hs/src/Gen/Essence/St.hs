@@ -30,7 +30,7 @@ module Gen.Essence.St
 import Conjure.Language.Definition (Expression (..))
 import Data.Data                   hiding (Proxy)
 import Data.Map                    (Map)
-import Gen.Essence.Key             as X
+import Gen.Essence.Data.Key  as X
 import Gen.Helpers.Log
 import Gen.Helpers.TypeOf
 import Gen.Imports

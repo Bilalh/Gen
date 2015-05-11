@@ -1,6 +1,6 @@
 --This is an auto-generated file created by make keys
 {-# LANGUAGE DeriveDataTypeable, DeriveGeneric #-}
-module Gen.Essence.Key where
+module Gen.Essence.Data.Key where
 
 import Gen.Imports
 import qualified Data.Aeson as A
@@ -344,4 +344,4 @@ instance IsString Key where
   fromString "TypedConstant"           = K_TypedConstant
   fromString "WithLocals"              = K_WithLocals
   fromString t = error $ "Unknown Key: " ++ t ++
-                 "\n Add new keys to src/Gen/Essence/key_extra_names.txt if needed."
+                 "\n Add new keys to src/Gen/Essence/Data/key_extra_names.txt if needed."
