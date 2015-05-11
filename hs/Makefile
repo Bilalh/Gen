@@ -13,8 +13,16 @@ clean:
 # OPS="Eq Union" make add_ops
 # OPS=Eq,Union make add_ops
 add_ops:
+ifeq ($(OPS)x, x)
+	@echo "USAGE: OPS=op1,op2 make add_ops"
+	@echo "USAGE: OPS='op1 op2' make add_ops"
+	@echo ""
+	@echo "Add all new ops "
+	@echo "OPS='' make add_ops"
+else
 	runhaskell scripts/add_new_ops.hs "${CONJURE_LIB}/src/Conjure/Language/Expression/Op/" $(subst ${comma}, ,${OPS}) \
 	&& runhaskell scripts/add_ops_metadata.hs
+endif
 
 # to use a comma in $(subst you need to put it in a variable
 comma :=,
@@ -61,50 +69,50 @@ store:
 
 ghci:
 	@cabal exec ghci -- -isrc -isrc/test -idist/build/autogen  \
-        -XNoImplicitPrelude                        \
-	    -XOverloadedStrings                        \
-	    -XScopedTypeVariables                      \
-	    -XTemplateHaskell                          \
-	    -XQuasiQuotes                              \
-	    -XLambdaCase                               \
-	    -XRecordWildCards                          \
-	    -XNamedFieldPuns                           \
-	    -XMultiWayIf                               \
-            -XFlexibleContexts                         \
-            -XFlexibleInstances                        \
-	    -fwarn-incomplete-patterns                 \
-	    -fwarn-incomplete-uni-patterns             \
-	    -fwarn-missing-signatures                  \
-	    -fwarn-name-shadowing                      \
-	    -fwarn-orphans                             \
-	    -fwarn-overlapping-patterns                \
-	    -fwarn-tabs                                \
-	    -fwarn-unused-do-bind                      \
-	    -fwarn-unused-matches                      \
-	    -Wall                                      \
-	    `find src -name '*.hs' | egrep -v 'exec|test/' | grep -v '\.#' `
+	-XNoImplicitPrelude                        \
+		-XOverloadedStrings                        \
+		-XScopedTypeVariables                      \
+		-XTemplateHaskell                          \
+		-XQuasiQuotes                              \
+		-XLambdaCase                               \
+		-XRecordWildCards                          \
+		-XNamedFieldPuns                           \
+		-XMultiWayIf                               \
+		-XFlexibleContexts                         \
+		-XFlexibleInstances                        \
+		-fwarn-incomplete-patterns                 \
+		-fwarn-incomplete-uni-patterns             \
+		-fwarn-missing-signatures                  \
+		-fwarn-name-shadowing                      \
+		-fwarn-orphans                             \
+		-fwarn-overlapping-patterns                \
+		-fwarn-tabs                                \
+		-fwarn-unused-do-bind                      \
+		-fwarn-unused-matches                      \
+		-Wall                                      \
+		`find src -name '*.hs' | egrep -v 'exec|test/' | grep -v '\.#' `
 
 ghci_main:
 	@cabal exec ghci -- -isrc -isrc/test -idist/build/autogen  \
-            -XNoImplicitPrelude                        \
-	    -XOverloadedStrings                        \
-	    -XScopedTypeVariables                      \
-	    -XTemplateHaskell                          \
-	    -XQuasiQuotes                              \
-	    -XLambdaCase                               \
-	    -XRecordWildCards                          \
-	    -XNamedFieldPuns                           \
-	    -XMultiWayIf                               \
-            -XFlexibleContexts                         \
-	    -fwarn-incomplete-patterns                 \
-            -XFlexibleInstances                        \
-	    -fwarn-incomplete-uni-patterns             \
-	    -fwarn-missing-signatures                  \
-	    -fwarn-name-shadowing                      \
-	    -fwarn-orphans                             \
-	    -fwarn-overlapping-patterns                \
-	    -fwarn-tabs                                \
-	    -fwarn-unused-do-bind                      \
-	    -fwarn-unused-matches                      \
-	    -Wall                                      \
+		-XNoImplicitPrelude                        \
+		-XOverloadedStrings                        \
+		-XScopedTypeVariables                      \
+		-XTemplateHaskell                          \
+		-XQuasiQuotes                              \
+		-XLambdaCase                               \
+		-XRecordWildCards                          \
+		-XNamedFieldPuns                           \
+		-XMultiWayIf                               \
+		-XFlexibleContexts                         \
+		-fwarn-incomplete-patterns                 \
+		-XFlexibleInstances                        \
+		-fwarn-incomplete-uni-patterns             \
+		-fwarn-missing-signatures                  \
+		-fwarn-name-shadowing                      \
+		-fwarn-orphans                             \
+		-fwarn-overlapping-patterns                \
+		-fwarn-tabs                                \
+		-fwarn-unused-do-bind                      \
+		-fwarn-unused-matches                      \
+		-Wall                                      \
 		src/exec/GenMain.hs
