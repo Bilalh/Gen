@@ -47,6 +47,10 @@ trace_install:
 etags:
 	hasktags --etags --ignore-close-implementation `find -L src -name '*.hs' | grep -v \#`
 
+conjure_etags:
+	cd "${CONJURE_LIB}" && \
+	hasktags --etags --ignore-close-implementation `find -L src -name '*.hs' | grep -v \#`
+
 vtags:
 	hasktags --ctags --ignore-close-implementation `find -L src -name '*.hs' | grep -v \#`
 
