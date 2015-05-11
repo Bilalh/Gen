@@ -23,21 +23,35 @@ import qualified Text.PrettyPrint as Pr
 instance Generate Expr where
   give g  = do
     let defs =
-          [ (possible (Proxy :: Proxy Constant),               (K_ECon,  ECon        <$> give g))
-          , (possible (Proxy :: Proxy Var),                    (K_EVar,  EVar        <$> give g))
-          , (possible (Proxy :: Proxy LVar),                   (K_LVar,  wrapLVar    <$> give g))
-          , (possible (Proxy :: Proxy (Op Expr)),              (K_EOp,   EOp         <$> give g))
-          , (possible (Proxy :: Proxy ListComp),               (K_EComp, wrapComp    <$> give g))
-          , (possible (Proxy :: Proxy (AbstractLiteral Expr)), (K_ELit,  wrapLiteral <$> give g))
+          [ (possible (Proxy :: Proxy Constant),               (K_ECon,  doConstant))
+          , (possible (Proxy :: Proxy (AbstractLiteral Expr)), (K_ELit,  doLitetal ))
+          , (possible (Proxy :: Proxy Var),                    (K_EVar,  EVar      <$> give g))
+          , (possible (Proxy :: Proxy LVar),                   (K_LVar,  wrapLVar  <$> give g))
+          , (possible (Proxy :: Proxy (Op Expr)),              (K_EOp,   EOp       <$> give g))
+          , (possible (Proxy :: Proxy ListComp),               (K_EComp, wrapComp  <$> give g))
           ]
 
     parts <- getPossibilities g defs
     frequency3 parts
 
     where
-    -- Put a Typed around empty lits e.g a empty set
-    wrapLiteral ::  AbstractLiteral Expr -> Expr
-    wrapLiteral a = ELit a
+    doConstant = do
+      (con, nty :: Type) <- give g
+      case con of
+        (ConstantAbstract x) -> case isEmpty x of
+                                  False -> return $ ECon con
+                                  True  -> return $ ETyped nty (ECon con)
+        _ -> return $ ECon con
+
+    doLitetal = do
+      (lit, nty :: Type) <- give g
+      case isEmpty lit of
+        False -> return $ ELit lit
+        True  -> return $ ETyped nty (ELit lit)
+
+    isEmpty (AbsLitMatrix _ []) = True
+    isEmpty lit = F.toList lit == []
+
 
     wrapComp (a,b,c) = EComp a b c
 
