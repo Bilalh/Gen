@@ -1,3 +1,4 @@
+{-# LANGUAGE ParallelListComp #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Gen.Essence.Expr where
 
@@ -18,13 +19,15 @@ import qualified Data.Foldable as F
 import qualified Data.Map      as M
 import qualified Text.PrettyPrint as Pr
 
+
 instance Generate Expr where
   give g  = do
     let defs =
-          [ (possible (Proxy :: Proxy Constant),               (K_ECon,  ECon  <$> give g))
-          , (possible (Proxy :: Proxy  Var),                   (K_EVar,  EVar  <$> give g))
-          , (possible (Proxy :: Proxy (Op Expr)),              (K_EOp,   EOp   <$> give g))
-          , (possible (Proxy :: Proxy ListComp),               (K_EComp, wrapComp <$> give g))
+          [ (possible (Proxy :: Proxy Constant),               (K_ECon,  ECon        <$> give g))
+          , (possible (Proxy :: Proxy Var),                    (K_EVar,  EVar        <$> give g))
+          , (possible (Proxy :: Proxy LVar),                   (K_LVar,  wrapLVar    <$> give g))
+          , (possible (Proxy :: Proxy (Op Expr)),              (K_EOp,   EOp         <$> give g))
+          , (possible (Proxy :: Proxy ListComp),               (K_EComp, wrapComp    <$> give g))
           , (possible (Proxy :: Proxy (AbstractLiteral Expr)), (K_ELit,  wrapLiteral <$> give g))
           ]
 
@@ -38,16 +41,24 @@ instance Generate Expr where
 
     wrapComp (a,b,c) = EComp a b c
 
+    wrapLVar (LVar v) = EVar v
+
   possible _ _ = return True
+
 
 instance Generate ListComp where
   give GNone = give (GType $ TypeMatrix TypeInt TypeBool)
 
   give (GType (TypeMatrix TypeInt a)) = do
-    gen <- vectorOf3 1 (withDepthDec $ give (GType a))
-    is  <- give (GType a)
-    cs  <- return []
-    return (is, gen, cs)
+    gen_num <- choose3 (1,2)
+    gen_var <- vectorOf3 gen_num (withDepthDec $ give (GType a))
+    let (gens, vars) = unzip gen_var
+
+    inner <- withVars vars $ give (GType a)
+    cs_num <- choose3 (0,2)
+    cs    <- withVars vars $ vectorOf3 cs_num $ give (GType TypeBool)
+
+    return (inner, gens, cs)
 
   give t = giveUnmatched "Generate ListComp" t
 
@@ -55,11 +66,16 @@ instance Generate ListComp where
   possiblePure _ _ _ = False
   possibleNoType _ _ = False
 
-instance Generate EGen where
+instance Generate (EGen, Var) where
   give GNone       = give (GType TypeInt)
   give con@GType{} = do
     dom <- give con
-    return $ GenDom (Single $ Name "x") dom
+    domTy <- ttypeOf dom
+
+    name <- nextVarName "l"
+    let var = Var name domTy
+
+    return $ (GenDom (Single $ Name name) dom, var)
 
 
   give t = giveUnmatched "Generate EGen" t
@@ -87,6 +103,28 @@ instance Generate Var where
        return $ b == ty
 
   possible _ _ = return False
+
+
+instance Generate LVar where
+  give (GType ty) = do
+    vars <- gets newVars_
+    let zipped  = zipWith (\v i -> (i,v) ) vars [1..]
+    let choices = [ (i,pure (LVar v))  | (i, v@(Var _ vty) ) <- zipped, vty == ty ]
+    frequency3 choices
+
+  give t = giveUnmatched "Generate Var" t
+
+  possible _ (GType ty) = do
+    vars <- gets newVars_
+    F.foldrM f False vars
+
+    where
+    f _  True  = return True
+    f (Var _ vty) False = return $ vty == ty
+
+  possible _ _ = return False
+
+
 
 instance Pretty [Expr] where
     pretty = Pr.brackets  . prettyArr

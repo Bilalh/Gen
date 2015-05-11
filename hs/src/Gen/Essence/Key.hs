@@ -61,6 +61,7 @@ data Key = K_Unused
          | K_JectivityAttr_Injective
          | K_JectivityAttr_None
          | K_JectivityAttr_Surjective
+         | K_LVar
          | K_OccurAttr_MaxOccur
          | K_OccurAttr_MinMaxOccur
          | K_OccurAttr_MinOccur
@@ -236,6 +237,7 @@ instance IsString Key where
   fromString "JectivityAttr_Injective" = K_JectivityAttr_Injective
   fromString "JectivityAttr_None"      = K_JectivityAttr_None
   fromString "JectivityAttr_Surjective" = K_JectivityAttr_Surjective
+  fromString "LVar"                    = K_LVar
   fromString "OccurAttr_MaxOccur"      = K_OccurAttr_MaxOccur
   fromString "OccurAttr_MinMaxOccur"   = K_OccurAttr_MinMaxOccur
   fromString "OccurAttr_MinOccur"      = K_OccurAttr_MinOccur

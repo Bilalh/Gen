@@ -5,23 +5,26 @@ module Gen.Essence.St
   , GenSt
   , Generate(..)
   , GenerateConstraint(..)
-  , giveOnly
   , St(..)
   , WrapConstant(..)
   , fieldKeys
   , generateFreq
   , generateTypeFreq
+  , getId
   , getPossibilities
+  , getWeighting
   , getWeights
+  , giveOnly
   , giveUnmatched
+  , nextVarName
+  , possibleUnmatched
   , runGenerate
   , runGenerateWithLogs
   , weightingForKey
   , withDepthDec
+  , withVars
   , withWeights
-  , possibleUnmatched
-  , getId
-  , getWeighting
+  , LVar(..)
   ) where
 
 import Conjure.Language.Definition (Expression (..))
@@ -75,6 +78,15 @@ getWeighting a = do
           (Just x) -> return x
 
 
+
+nextVarName :: MonadState St m => Text -> m Text
+nextVarName prefix = do
+  i <- gets varCounter
+  modify $ \st -> st{varCounter=i+1}
+  return $  mconcat [prefix, "_", (stringToText . show $ i)]
+
+
+
 type GenSt a = StateT St Gen a
 
 data GenerateConstraint = GNone
@@ -103,12 +115,16 @@ instance WrapConstant Expression where
   wrapConstant = Constant
 
 
+newtype LVar = LVar Var
+    deriving (Data, Typeable, Show)
+
 data St = St{
       weighting  :: Map Key Int
     , depth      :: Int
     , beConstant :: Bool  -- when true only generate constrant expressions
     , newVars_   :: [Var] -- Domains from e.g. forall
     , doms_      :: Domains
+    , varCounter :: Int
     }
  deriving (Eq,Show, Data, Typeable, Generic)
 
@@ -131,6 +147,7 @@ instance Default St where
         , beConstant = False
         , newVars_   = def
         , doms_      = def
+        , varCounter = 1
         }
 
 
@@ -175,7 +192,6 @@ getPossibilities con vs = do
        return (w,v)
 
 
-
 withDepthDec :: GenSt a -> GenSt a
 withDepthDec f = do
   oldDepth <- gets depth
@@ -183,6 +199,16 @@ withDepthDec f = do
   res <- f
   modify $ \st -> st{ depth = oldDepth }
   return res
+
+
+withVars :: [Var] ->  GenSt a -> GenSt a
+withVars nvars f = do
+  old <- gets newVars_
+  modify $ \st -> st{ newVars_ = nvars ++ old }
+  res <- f
+  modify $ \st -> st{ newVars_ = old }
+  return res
+
 
 -- | Error message for give
 giveUnmatched :: forall c a. Pretty a => Doc -> a -> GenSt c
