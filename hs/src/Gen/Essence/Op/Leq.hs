@@ -2,24 +2,21 @@
 module Gen.Essence.Op.Leq where
 
 import Conjure.Language.Expression.Op
-import Gen.Essence.Rnd
 import Gen.Essence.St
 import Gen.Essence.Type               ()
-import Gen.Helpers.SizeOf
 import Gen.Imports
+import qualified Gen.Essence.Data.Types as Types
 
 
 instance Generate a => Generate (OpLeq a) where
   give GNone = give (GType TypeBool)
 
   give (GType TypeBool) = do
-    ws <- getWeights [ (K_TypeInt , pure TypeInt)
-                     ]
-    ty <- GType <$> frequency3 ws
+    ty <- GType <$> giveOnly GNone Types.ordered
     pure OpLeq <*> give ty <*> give ty
 
-  give t = giveUnmatched "Generate OpGeq" t
+  give t = giveUnmatched "Generate OpLeq" t
 
-  possiblePure _ ty _ | ty /= TypeBool = False
-  possiblePure _ ty d = depthOf ty + 1 <= (fromIntegral d )
-  possibleNoType _ d = (2 :: Integer) <= (fromIntegral d)
+  possiblePure a TypeBool d = possibleNoType a d
+  possiblePure _ _ _        = False
+  possibleNoType _ d        = (1 :: Integer) <= (fromIntegral d)
