@@ -40,7 +40,7 @@ import qualified Data.Map as M
 import qualified Data.Set as S
 import qualified Text.PrettyPrint as Pr
 
-
+-- | Generate a random value of a specified type
 class Data a => Generate a where
   {-# MINIMAL give, possible | give, possiblePure, possibleNoType  #-}
 
@@ -57,11 +57,13 @@ class Data a => Generate a where
     d <- gets depth
     return $ possibleNoType a d
 
-  -- | Convenience for a pure implementation, Never call this method
+  -- | Convenience for a pure implementation, Never call this method ouside the instance
+  -- | return True if the return type can be generated within the specified depth
   possiblePure :: Proxy a -> Type -> Depth -> Bool
   possiblePure = error "no default possiblePure"
 
-  -- | Convenience for a pure implementation, Never call this method
+  -- | Convenience for a pure implementation, Never call this method ouside the instance
+  -- | If a type is to be choosen for me, is this achievable with the specifed depth?
   possibleNoType :: Proxy a -> Depth -> Bool
   possibleNoType _ _ = error "no default possibleNoType"
 
@@ -101,7 +103,7 @@ instance Pretty GenerateConstraint where
   pretty t = pretty . show $ t
 
 
--- To allow a Range Constant or a Range Expr
+-- | To allow a Range Constant or a Range Expr
 class WrapConstant a where
   wrapConstant :: Constant -> a
 

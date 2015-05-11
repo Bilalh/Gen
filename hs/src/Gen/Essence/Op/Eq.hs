@@ -4,7 +4,6 @@ module Gen.Essence.Op.Eq where
 import Conjure.Language.Expression.Op
 import Gen.Essence.St
 import Gen.Essence.Type               ()
-import Gen.Helpers.SizeOf
 import Gen.Imports
 
 
@@ -17,9 +16,7 @@ instance Generate a => Generate (OpEq a) where
 
   give t = giveUnmatched "Generate OpEq" t
 
-  -- Returns True if this op can be used with the specified return type
-  -- and the remaing depth. This Op is counted in the depth calculation
-  possiblePure _ ty _ | ty /= TypeBool = False
-  possiblePure _ ty d = depthOf ty + 1 <= (fromIntegral d)
 
-  possibleNoType _ d = (2 :: Integer) <= (fromIntegral d)
+  possiblePure a TypeBool d = possibleNoType a d
+  possiblePure _ _ _ = False
+  possibleNoType _ d = (1 :: Integer) <= (fromIntegral d)
