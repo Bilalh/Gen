@@ -9,20 +9,25 @@ test:
 clean:
 	@bash scripts/clean.sh
 
-# Limit the ops added with one of the following
+# Limit the ops to be added added with one of the following
 # OPS="Eq Union" make add_ops
 # OPS=Eq,Union make add_ops
 add_ops:
 ifeq ($(OPS)x, x)
 	@echo "USAGE: OPS=op1,op2 make add_ops"
 	@echo "USAGE: OPS='op1 op2' make add_ops"
+	@echo "MISSING: make print_missing_ops"
 	@echo ""
-	@echo "Add all new ops "
+	@echo "Add all missing ops "
 	@echo "OPS='' make add_ops"
 else
 	runhaskell scripts/add_new_ops.hs "${CONJURE_LIB}/src/Conjure/Language/Expression/Op/" $(subst ${comma}, ,${OPS}) \
 	&& runhaskell scripts/add_ops_metadata.hs
 endif
+
+# Show the ops that have not been added yet
+print_missing_ops:
+	runhaskell scripts/missing_ops.hs ${CONJURE_LIB}/src/Conjure/Language/Expression/Op/
 
 # to use a comma in $(subst you need to put it in a variable
 comma :=,

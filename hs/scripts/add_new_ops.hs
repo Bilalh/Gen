@@ -1,5 +1,5 @@
 {-# LANGUAGE LambdaCase, ScopedTypeVariables #-}
-
+-- Show the ops that have not been added yet
 import Control.Applicative ((<$>))
 import Data.List           (isSuffixOf, sort)
 import Prelude
