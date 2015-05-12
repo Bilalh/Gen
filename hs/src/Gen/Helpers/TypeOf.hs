@@ -31,7 +31,7 @@ instance TTypeOf (Domainn Expr)  where
 instance TTypeOf Constant  where
     ttypeOf x = toTType x
 
-instance TTypeOf Literal  where
+instance (TTypeOf x, Pretty x, TypeOf x) => TTypeOf (AbstractLiteral x)  where
     ttypeOf x = toTType x
 
 instance TTypeOf (Op Expr) where

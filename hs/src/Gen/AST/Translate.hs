@@ -175,3 +175,7 @@ instance ReferenceContainer Expr where
 dintRange :: Int -> Int -> Domainn Expr
 dintRange a b = DomainInt [RangeBounded (ECon . ConstantInt $ fromIntegral a)
                                         (ECon . ConstantInt $ fromIntegral b)]
+
+cintRange :: Int -> Int -> Domainn Constant
+cintRange a b = DomainInt [RangeBounded ( ConstantInt $ fromIntegral a)
+                                        ( ConstantInt $ fromIntegral b)]

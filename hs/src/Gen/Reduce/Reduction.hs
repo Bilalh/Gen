@@ -143,22 +143,31 @@ instance (HasGen m,  HasLogger m) =>  Reduce Expr m where
       return $ [ EComp inners gens c | c <- l_cs ]
 
 
+-- Making Reduce (AbsLiteral c) is a lot of work
+-- so a basic version for constants
 instance (HasGen m,  HasLogger m) =>  Reduce Constant m where
-
     single t = ttypeOf t >>= singleLitExpr
 
-    subterms (ConstantAbstract _) = $notDone
+    subterms (ConstantAbstract x) = do
+      return . map (ECon . ConstantAbstract) . innersExpand reduceLength $ x
     subterms _ = return []
 
-    reduce (ConstantAbstract _) = $notDone
+    reduce (ConstantAbstract _) = return []
     reduce _   = return []
 
+    mutate (ConstantAbstract xs)  = mutate1 xs
+      where
+        w =ECon . ConstantAbstract
+        mutate1 (AbsLitRelation xx)  = mutate_2d (w . AbsLitRelation) xx
+        mutate1 (AbsLitPartition xx) = mutate_2d (w . AbsLitPartition) xx
+        mutate1 _ = return []
+    mutate _ = return []
 
-instance (HasGen m,  HasLogger m) =>  Reduce Literal m where
+
+instance (HasGen m,  HasLogger m) =>  Reduce (Literal) m where
     single t   = ttypeOf t >>= singleLitExpr
 
     subterms x = return . map ELit .  innersExpand reduceLength $ x
-
 
     reduce li = do
       rLits <- getReducedChildren li
@@ -169,8 +178,7 @@ instance (HasGen m,  HasLogger m) =>  Reduce Literal m where
       return sim
 
 
-
-    mutate (AbsLitRelation xs)  = mutate_2d (ELit . AbsLitPartition) xs
+    mutate (AbsLitRelation xs)  = mutate_2d (ELit . AbsLitRelation) xs
     mutate (AbsLitPartition xs) = mutate_2d (ELit . AbsLitPartition) xs
     mutate (AbsLitFunction xs)  = do
       reductions <- mapM reduceTuple ixs

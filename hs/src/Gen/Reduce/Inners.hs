@@ -9,7 +9,7 @@ class Inners x where
     innersReduce  :: (forall a.  [a] -> b)      -> x -> b
     innersExpand  ::  (forall a. Eq a => [a] -> [[a]] ) -> x -> [x]
 
-instance Inners (Literal) where
+instance (IntRange c, Pretty c, Eq c) => Inners (AbstractLiteral c) where
   innersReduce f (AbsLitFunction x)       = (f x)
   innersReduce f (AbsLitTuple x)          = (f x)
   innersReduce f (AbsLitSet x)            = (f x)
@@ -32,4 +32,13 @@ instance Inners (Literal) where
     where
       doMatrix nx | length nx == length x = AbsLitMatrix d nx
       --TODO could remove/add to made the old range fit
-      doMatrix nx = AbsLitMatrix (dintRange 1 (length nx)) nx
+      doMatrix nx = AbsLitMatrix ( intRange 1 (length nx)) nx
+
+class IntRange a where
+    intRange :: Int -> Int -> Domainn a
+
+instance IntRange Expr where
+    intRange i j = dintRange i j
+
+instance IntRange Constant where
+    intRange i j = cintRange i j

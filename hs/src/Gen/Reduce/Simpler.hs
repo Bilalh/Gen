@@ -52,15 +52,14 @@ instance Simpler Expr Expr where
     simplerImp (ELit a) (EOp b)  = simplerImp a b
     simplerImp (EOp a)  (ELit b) = simplerImp a b
 
+    simplerImp (ELit a) (ECon b)  = simplerImp a b
+    simplerImp (ECon a) (ELit b)  = simplerImp a b
 
     simplerImp (ETyped _ a) b  = simplerImp a b
     simplerImp a (ETyped _ b)  = simplerImp a b
 
     simplerImp (EVar a) b  = simplerImp a b
     simplerImp a (EVar b)  = simplerImp a b
-
-    simplerImp _ EComp{} = return LT
-    simplerImp EComp{} _ = return GT
 
     simplerImp (EComp i1 _ cs1)  (EComp i2 _ cs2) = do
          let c1Depth = maximum' 0 $ map depthOf cs1
@@ -74,6 +73,8 @@ instance Simpler Expr Expr where
            o  -> return o
 
 
+    simplerImp EComp{} _ = return GT
+    simplerImp _ EComp{} = return LT
     simplerImp a b = simplerImpError "Expr" a b
 
 
@@ -95,13 +96,16 @@ instance Simpler Var Var where
 
 
 instance Simpler Constant Constant where
+    simplerImp (ConstantAbstract a) (ConstantAbstract b) =
+        simplerImp a b
     simplerImp a b = do
       ta <- ttypeOf a
       tb <- ttypeOf b
       simplerImp ta tb
 
 
-instance Simpler Literal Literal where
+instance (DepthOf c, IntRange c, DepthOf d, IntRange d, Simpler c d)
+    => Simpler (AbstractLiteral c) (AbstractLiteral d) where
     simplerImp a@(AbsLitPartition as) b@(AbsLitPartition bs) =
       case compare (depthOf a) (depthOf b) of
         EQ -> return $ case (sum $ map length as,sum $ map length bs) of
@@ -124,8 +128,11 @@ instance Simpler (Op Expr) (Op Expr) where
 
 -- Mixed
 
-instance Simpler Literal Constant where simplerImp = negSimplerImp
-instance Simpler Constant Literal where
+instance (Simpler c Constant, Simpler Constant c, IntRange c, DepthOf c)
+    => Simpler (AbstractLiteral c) Constant where simplerImp = negSimplerImp
+instance (Simpler Constant c, IntRange c, DepthOf c )
+    => Simpler Constant (AbstractLiteral c) where
+    simplerImp (ConstantAbstract x) l  = simpler x l
     simplerImp _ _  = return LT
 
 instance Simpler (Op Expr) Constant where simplerImp = negSimplerImp
@@ -159,8 +166,9 @@ instance Simpler Expr (Op Expr) where
     simplerImp a b = simplerImpError "Expr Op" a b
 
 
-instance Simpler (Literal) Expr where simplerImp = negSimplerImp
-instance Simpler Expr (Literal) where
+instance Simpler Literal Expr where simplerImp = negSimplerImp
+instance (Simpler c Expr, Simpler Expr c, IntRange c, DepthOf c)
+    => Simpler Expr (AbstractLiteral c) where
 
     simplerImp (EVar _) _     = return LT
     simplerImp (ECon _) _     = return LT
@@ -177,8 +185,10 @@ instance Simpler Expr (Literal) where
 
     simplerImp a b = simplerImpError "Expr Literal" a b
 
-instance Simpler (Op Expr) Literal where simplerImp = negSimplerImp
-instance Simpler Literal (Op Expr) where
+instance (Simpler c Expr, Simpler Expr c, IntRange c, DepthOf c)
+       => Simpler (Op Expr) (AbstractLiteral c) where simplerImp = negSimplerImp
+instance (Simpler c Expr, Simpler Expr c, IntRange c, DepthOf c)
+    => Simpler (AbstractLiteral c) (Op Expr) where
     simplerImp a b = do
       return $ case compare (depthOf a) (depthOf b) of
         EQ -> LT
