@@ -48,6 +48,7 @@ Library
                      , Gen.Essence.Expr
                      , Gen.Essence.Generate
                      , Gen.Essence.Literal
+                     , Gen.Essence.Objective
                      , Gen.Essence.Op.Eq
                      , Gen.Essence.Op.Geq
                      , Gen.Essence.Op.Internal.Generated
@@ -89,7 +90,6 @@ Library
                      , Gen.Reduce.Simpler
                      , Gen.Reduce.UnusedDomains
                      , Gen.UI.UI
-                     
 
 
     build-depends    : base

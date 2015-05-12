@@ -6,6 +6,7 @@ import Gen.Essence.Expr   ()
 import Gen.Essence.St
 import Gen.Essence.Rnd
 import Gen.Imports
+import Gen.Essence.Objective ()
 
 import qualified Data.Map as M
 
@@ -25,7 +26,7 @@ instance Generate Spec where
     modify $ \st -> st{doms_=mappings}
 
     exprs <- mapM (const . give $ GType TypeBool ) [0..i_e]
-    return $ Spec mappings exprs Nothing
+    Spec mappings exprs <$> (give GNone)
 
     where name i =  stringToText $  "var" ++  (show  i)
 

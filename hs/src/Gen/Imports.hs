@@ -9,6 +9,7 @@ module Gen.Imports
     , renderSmall
     , prettyArr
     , prettyTypeArr
+    , groomPrint
     ) where
 
 import Conjure.Language.AbstractLiteral as X (AbstractLiteral)
@@ -31,7 +32,6 @@ import qualified Data.Map.Strict as M
 
 import qualified Data.Set         as S
 import qualified Text.PrettyPrint as Pr
-import qualified Data.Foldable    as F
 
 type Depth = Int
 
@@ -68,6 +68,9 @@ prettyArr vs = vcat $ map pretty vs
 
 docError :: [Doc] -> a
 docError = error . show . vcat
+
+groomPrint :: Show a => a -> IO ()
+groomPrint = putStrLn . groom
 
 instance (Pretty a, Pretty b) => Pretty (M.Map a b) where
     pretty vs = case M.toList vs of
