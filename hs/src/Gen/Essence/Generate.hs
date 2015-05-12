@@ -17,6 +17,7 @@ import Gen.IO.Toolchain                hiding (DirError (..), ToolchainData (..)
 import GHC.Real                        (floor)
 import System.Directory                (copyFile, renameDirectory)
 import Test.QuickCheck                 (Gen, generate)
+import Gen.Essence.Reduce(reduceErrors, ErrData(..))
 
 import qualified Data.IntSet             as I
 import qualified Data.Map                as M
@@ -128,7 +129,15 @@ doRefine ec@EC.EssenceConfig{..} = do
               endTime <- round `fmap` getPOSIXTime
               let realTime = endTime - startTime
 
-              runTime <- classifySettingI ec errdir out uname result
+              (runTime,rdata) <- classifySettingI ec errdir out uname result
+
+              let reduceAsWell = Just 30
+              case reduceAsWell of
+                Nothing -> return Nothing
+                Just i  -> do
+                  Just <$> reduceErrors ec rdata
+
+
               case totalIsRealTime of
                 False -> process (timeLeft - (floor runTime)) (nextElem mayGiven) hashesNext
                 True  -> process (timeLeft - realTime) (nextElem mayGiven) hashesNext
@@ -203,7 +212,7 @@ doSolve ec@EC.EssenceConfig{..} = do
               endTime <- round `fmap` getPOSIXTime
               let realTime = endTime - startTime
 
-              runTime <-  classifyError uname result
+              (runTime,_) <-  classifyError uname result
               case totalIsRealTime of
                 False -> process (timeLeft - (floor runTime)) (nextElem mayGiven) hashesNext
                 True  -> process (timeLeft - realTime) (nextElem mayGiven) hashesNext
@@ -274,13 +283,13 @@ doSolve ec@EC.EssenceConfig{..} = do
           True  -> do
             removeDirectoryRecursive (inErrDir)
 
-        return time_taken_
+        return (time_taken_, [])
 
     classifyError uname (SolveResult (_, SettingI{time_taken_ })) = do
       case deletePassing_ of
         False -> return ()
         True  -> removeDirectoryRecursive (out </> uname)
-      return time_taken_
+      return (time_taken_, [])
 
 
 
@@ -289,7 +298,8 @@ classifySettingI :: EssenceConfig
                  -> FilePath
                  -> FilePath
                  -> SettingI RefineM
-                 -> IO Double -- timetaken
+                 -- -> IO Double -- timetaken
+                 -> IO (Double, [(ErrData)]) -- timetaken
 classifySettingI ec errdir out uname
                  ee@SettingI{successful_=False,data_=RefineMap ms,time_taken_} = do
     let inErrDir = errdir </> "zPerSpec" </> uname
@@ -321,7 +331,8 @@ classifySettingI ec errdir out uname
             let mvDir = mvDirBase </> uname
 
             createDirectoryIfMissing True mvDir
-            writeToJSON (mvDir </> "dir_error.json") Toolchain.DirError{dirStatus =status_, dirKind = kind_ }
+            writeToJSON (mvDir </> "dir_error.json")
+                        Toolchain.DirError{dirStatus =status_, dirKind = kind_ }
 
             fps <- getDirectoryContents inErrDir
             let needed =  filter (allow k) fps
@@ -337,16 +348,21 @@ classifySettingI ec errdir out uname
                               ]
                 removeDirectoryRecursive mvDir
 
-            return mvDir
+            let err = ErrData { kind = kind_
+                              , status = status_
+                              , choices = mvDir </> k <.> ".choices.json"
+                              , specDir = mvDir
+                              }
+            return err
 
-    void $ M.traverseWithKey f ms
+    err <- M.traverseWithKey f ms
 
     case EC.deletePassing_ ec of
            False -> return ()
            True  -> do
              removeDirectoryRecursive (inErrDir)
 
-    return time_taken_
+    return (time_taken_,  [ v | (_,v) <- M.toList err] )
 
 
 classifySettingI ec _ out uname SettingI{time_taken_}  = do
@@ -355,7 +371,7 @@ classifySettingI ec _ out uname SettingI{time_taken_}  = do
     True  -> do
       removeDirectoryRecursive (out </> uname)
 
-  return time_taken_
+  return (time_taken_, [])
 
 
 typeCheck :: MonadFail m => Model -> m Model

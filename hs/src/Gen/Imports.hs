@@ -26,7 +26,7 @@ import Gen.AST.Imports                  as X
 import Gen.Helpers.LineError            as X
 import Gen.Helpers.Placeholders         as X
 import GHC.Real                         as X (round)
-import System.FilePath                  as X (dropExtension, dropExtensions)
+import System.FilePath                  as X (dropExtension, dropExtensions, (<.>))
 import Text.Groom                       as X (groom)
 import qualified Data.Map.Strict as M
 

@@ -524,8 +524,8 @@ _essenceDebug = do
 _givenDebug :: IO ()
 _givenDebug = do
     let ec = Essence
-             { output_directory   = Just "out"
-             , _mode              = EC.Solve_
+             { output_directory   = Just "/Users/bilalh/Desktop/Results/_notable/zz"
+             , _mode              = EC.Refine_
 
              , total_time         = 0
              , per_spec_time      = 120
@@ -533,12 +533,12 @@ _givenDebug = do
              , _cores             = Just 1
              , _seed              = Just 44
 
-             , delete_passing     = False
+             , delete_passing     = True
              , binaries_directory = Nothing
              , old_conjure        = False
              , limit_time         = Nothing
              , total_is_real_time = True
-             , toolchain_ouput    = ToolchainScreen_
+             , toolchain_ouput    = ToolchainNull_
              , no_csv             = True
              , given_dir          = Just "/Users/bilalh/Desktop/Results/_notable/_new/2015-05-11_01-33_1431308031/_errors/RefineCompact_/RuleApplication_/1431310206_12"
              , _gen_type          = def

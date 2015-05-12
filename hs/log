@@ -1,0 +1,893 @@
+GHCi, version 7.8.4: http://www.haskell.org/ghc/  :? for help
+Loading package ghc-prim ... linking ... done.
+Loading package integer-gmp ... linking ... done.
+Loading package base ... linking ... done.
+unknown option: 'c'
+[ 1 of 83] Compiling Gen.IO.TermSize  ( src/Gen/IO/TermSize.hs, interpreted )
+[ 2 of 83] Compiling Build_autoversion ( dist/build/autogen/Build_autoversion.hs, interpreted )
+[ 3 of 83] Compiling Paths_essence_gen ( dist/build/autogen/Paths_essence_gen.hs, interpreted )
+[ 4 of 83] Compiling Gen.AST.Data     ( src/Gen/AST/Data.hs, interpreted )
+[ 5 of 83] Compiling Gen.Helpers.Placeholders ( src/Gen/Helpers/Placeholders.hs, interpreted )
+[ 6 of 83] Compiling Gen.Helpers.LineError ( src/Gen/Helpers/LineError.hs, interpreted )
+[ 7 of 83] Compiling Gen.AST.Translate ( src/Gen/AST/Translate.hs, interpreted )
+Loading package array-0.5.0.0 ... linking ... done.
+Loading package deepseq-1.3.0.2 ... linking ... done.
+Loading package bytestring-0.10.4.0 ... linking ... done.
+Loading package time-1.5.0.1 ... linking ... done.
+Loading package unix-2.7.0.1 ... linking ... done.
+Loading package old-locale-1.0.0.6 ... linking ... done.
+Loading package containers-0.5.5.1 ... linking ... done.
+Loading package filepath-1.3.0.2 ... linking ... done.
+Loading package random-1.1 ... linking ... done.
+Loading package pretty-1.1.3.2 ... linking ... done.
+Loading package template-haskell ... linking ... done.
+Loading package transformers-0.4.3.0 ... linking ... done.
+Loading package primitive-0.6 ... linking ... done.
+Loading package tf-random-0.5 ... linking ... done.
+Loading package QuickCheck-2.8.1 ... linking ... done.
+Loading package text-1.2.0.4 ... linking ... done.
+Loading package hashable-1.2.3.2 ... linking ... done.
+Loading package scientific-0.3.3.8 ... linking ... done.
+Loading package attoparsec-0.12.1.6 ... linking ... done.
+Loading package dlist-0.7.1.1 ... linking ... done.
+Loading package mtl-2.2.1 ... linking ... done.
+Loading package syb-0.4.4 ... linking ... done.
+Loading package unordered-containers-0.2.5.1 ... linking ... done.
+Loading package vector-0.10.12.3 ... linking ... done.
+Loading package aeson-0.8.0.2 ... linking ... done.
+Loading package cereal-0.4.1.1 ... linking ... done.
+Loading package directory-1.2.2.1 ... linking ... done.
+Loading package process-1.2.3.0 ... linking ... done.
+Loading package cmdargs-0.10.12 ... linking ... done.
+Loading package data-default-class-0.0.1 ... linking ... done.
+Loading package data-default-instances-base-0.0.1 ... linking ... done.
+Loading package data-default-instances-containers-0.0.1 ... linking ... done.
+Loading package data-default-instances-dlist-0.0.1 ... linking ... done.
+Loading package data-default-instances-old-locale-0.0.1 ... linking ... done.
+Loading package data-default-0.5.3 ... linking ... done.
+Loading package parsec-3.1.9 ... linking ... done.
+Loading package mmorph-1.0.4 ... linking ... done.
+Loading package pipes-4.1.5 ... linking ... done.
+Loading package safe-0.3.8 ... linking ... done.
+Loading package stm-2.4.4 ... linking ... done.
+Loading package async-2.0.2 ... linking ... done.
+Loading package transformers-compat-0.4.0.4 ... linking ... done.
+Loading package transformers-base-0.4.4 ... linking ... done.
+Loading package monad-control-1.0.0.4 ... linking ... done.
+Loading package lifted-base-0.2.3.6 ... linking ... done.
+Loading package enclosed-exceptions-1.0.1.1 ... linking ... done.
+Loading package exceptions-0.8.0.2 ... linking ... done.
+Loading package newtype-0.2 ... linking ... done.
+Loading package constraints-0.4.1.3 ... linking ... done.
+Loading package lifted-async-0.7.0 ... linking ... done.
+Loading package system-filepath-0.4.13.2 ... linking ... done.
+Loading package system-fileio-0.3.16.2 ... linking ... done.
+Loading package unix-compat-0.4.1.4 ... linking ... done.
+Loading package shelly-1.6.1.2 ... linking ... done.
+Loading package split-0.2.2 ... linking ... done.
+Loading package uniplate-1.6.12 ... linking ... done.
+Loading package conjure-cp-1.0 ... linking ... done.
+[ 8 of 83] Compiling Gen.AST.Spec     ( src/Gen/AST/Spec.hs, interpreted )
+[ 9 of 83] Compiling Gen.AST.Imports  ( src/Gen/AST/Imports.hs, interpreted )
+[10 of 83] Compiling Gen.AST.TH       ( src/Gen/AST/TH.hs, interpreted )
+[11 of 83] Compiling Gen.AST.Ops      ( src/Gen/AST/Ops.hs, interpreted )
+Loading package old-time-1.1.0.2 ... linking ... done.
+Loading package polyparse-1.11 ... linking ... done.
+Loading package cpphs-1.19 ... linking ... done.
+Loading package haskell-src-exts-1.16.0.1 ... linking ... done.
+Loading package groom-0.1.2 ... linking ... done.
+[12 of 83] Compiling Gen.Imports      ( src/Gen/Imports.hs, interpreted )
+
+src/Gen/Imports.hs:75:10: Warning:
+    Orphan instance:
+      instance (Pretty a, Pretty b) => Pretty (M.Map a b)
+[13 of 83] Compiling Gen.IO.Term      ( src/Gen/IO/Term.hs, interpreted )
+[14 of 83] Compiling Gen.Helpers.TypeOf ( src/Gen/Helpers/TypeOf.hs, interpreted )
+[15 of 83] Compiling Gen.Helpers.Log  ( src/Gen/Helpers/Log.hs, interpreted )
+[16 of 83] Compiling Gen.IO.Formats   ( src/Gen/IO/Formats.hs, interpreted )
+
+src/Gen/IO/Formats.hs:7:1: Warning:
+    The import of ‘System.FilePath’ is redundant
+      except perhaps to import instances from ‘System.FilePath’
+    To import instances alone, use: import System.FilePath()
+[17 of 83] Compiling Gen.IO.ToolchainData ( src/Gen/IO/ToolchainData.hs, interpreted )
+[18 of 83] Compiling Gen.IO.Toolchain ( src/Gen/IO/Toolchain.hs, interpreted )
+
+src/Gen/IO/Toolchain.hs:26:1: Warning:
+    The import of ‘<.>’ from module ‘System.FilePath’ is redundant
+[19 of 83] Compiling Gen.Reduce.Data  ( src/Gen/Reduce/Data.hs, interpreted )
+[20 of 83] Compiling Gen.Reduce.FormatResults ( src/Gen/Reduce/FormatResults.hs, interpreted )
+[21 of 83] Compiling Gen.Essence.UIData ( src/Gen/Essence/UIData.hs, interpreted )
+[22 of 83] Compiling Gen.UI.UI        ( src/Gen/UI/UI.hs, interpreted )
+[23 of 83] Compiling Gen.Generalise.Data ( src/Gen/Generalise/Data.hs, interpreted )
+[24 of 83] Compiling Gen.IO.ToolchainRecheck ( src/Gen/IO/ToolchainRecheck.hs, interpreted )
+[25 of 83] Compiling Gen.Classify.DomTypes ( src/Gen/Classify/DomTypes.hs, interpreted )
+[26 of 83] Compiling Gen.Helpers.SizeOf ( src/Gen/Helpers/SizeOf.hs, interpreted )
+[27 of 83] Compiling Gen.Helpers.Standardise ( src/Gen/Helpers/Standardise.hs, interpreted )
+[28 of 83] Compiling Gen.Classify.Meta ( src/Gen/Classify/Meta.hs, interpreted )
+[29 of 83] Compiling Gen.Reduce.Runner ( src/Gen/Reduce/Runner.hs, interpreted )
+
+src/Gen/Reduce/Runner.hs:14:1: Warning:
+    The import of ‘<.>’ from module ‘System.FilePath’ is redundant
+
+src/Gen/Reduce/Runner.hs:72:18: Warning:
+    Defined but not used: ‘timeTaken_’
+
+src/Gen/Reduce/Runner.hs:76:21: Warning:
+    Defined but not used: ‘timeTaken_’
+[30 of 83] Compiling Gen.Reduce.UnusedDomains ( src/Gen/Reduce/UnusedDomains.hs, interpreted )
+[31 of 83] Compiling Gen.Reduce.QuanToComp ( src/Gen/Reduce/QuanToComp.hs, interpreted )
+[32 of 83] Compiling Gen.Reduce.Inners ( src/Gen/Reduce/Inners.hs, interpreted )
+
+src/Gen/Reduce/Inners.hs:13:3: Warning:
+    Pattern match(es) are non-exhaustive
+    In an equation for ‘innersReduce’:
+        Patterns not matched:
+            _ (AbsLitRecord _)
+            _ (AbsLitVariant _ _ _)
+
+src/Gen/Reduce/Inners.hs:23:3: Warning:
+    Pattern match(es) are overlapped
+    In an equation for ‘innersExpand’:
+        innersExpand f (AbsLitFunction x) = ...
+
+src/Gen/Reduce/Inners.hs:23:3: Warning:
+    Pattern match(es) are non-exhaustive
+    In an equation for ‘innersExpand’:
+        Patterns not matched:
+            _ (AbsLitRecord _)
+            _ (AbsLitVariant _ _ _)
+[33 of 83] Compiling Gen.Reduce.Simpler ( src/Gen/Reduce/Simpler.hs, interpreted )
+
+src/Gen/Reduce/Simpler.hs:8:1: Warning:
+    The import of ‘Gen.AST.TH’ is redundant
+      except perhaps to import instances from ‘Gen.AST.TH’
+    To import instances alone, use: import Gen.AST.TH()
+
+src/Gen/Reduce/Simpler.hs:95:23: Warning: Defined but not used: ‘a’
+
+src/Gen/Reduce/Simpler.hs:95:33: Warning: Defined but not used: ‘b’
+[34 of 83] Compiling Gen.Reduce.Reduction ( src/Gen/Reduce/Reduction.hs, interpreted )
+
+src/Gen/Reduce/Reduction.hs:504:7: Warning:
+    Pattern match(es) are non-exhaustive
+    In a pattern binding: Patterns not matched: Nothing
+
+src/Gen/Reduce/Reduction.hs:613:7: Warning:
+    Pattern match(es) are non-exhaustive
+    In a pattern binding: Patterns not matched: Nothing
+[35 of 83] Compiling Gen.Reduce.Reduce ( src/Gen/Reduce/Reduce.hs, interpreted )
+[36 of 83] Compiling Gen.Generalise.Runner ( src/Gen/Generalise/Runner.hs, interpreted )
+
+src/Gen/Generalise/Runner.hs:12:1: Warning:
+    The import of ‘<.>’ from module ‘System.FilePath’ is redundant
+[37 of 83] Compiling Gen.Essence.Reduce ( src/Gen/Essence/Reduce.hs, interpreted )
+
+src/Gen/Essence/Reduce.hs:12:1: Warning:
+    The import of ‘Gen.Reduce.Runner’ is redundant
+      except perhaps to import instances from ‘Gen.Reduce.Runner’
+    To import instances alone, use: import Gen.Reduce.Runner()
+[38 of 83] Compiling Gen.Helpers.Debug ( src/Gen/Helpers/Debug.hs, interpreted )
+[39 of 83] Compiling Gen.Helpers.OrderedType ( src/Gen/Helpers/OrderedType.hs, interpreted )
+[40 of 83] Compiling Gen.Essence.Data.Key ( src/Gen/Essence/Data/Key.hs, interpreted )
+[41 of 83] Compiling Gen.Essence.St   ( src/Gen/Essence/St.hs, interpreted )
+[42 of 83] Compiling Gen.Essence.Rnd  ( src/Gen/Essence/Rnd.hs, interpreted )
+[43 of 83] Compiling Gen.Essence.Objective ( src/Gen/Essence/Objective.hs, interpreted )
+[44 of 83] Compiling Gen.Essence.Range ( src/Gen/Essence/Range.hs, interpreted )
+[45 of 83] Compiling Gen.Essence.Type ( src/Gen/Essence/Type.hs, interpreted )
+[46 of 83] Compiling Gen.Essence.Domain ( src/Gen/Essence/Domain.hs, interpreted )
+[47 of 83] Compiling Gen.Essence.Literal ( src/Gen/Essence/Literal.hs, interpreted )
+[48 of 83] Compiling Gen.Essence.Constant ( src/Gen/Essence/Constant.hs, interpreted )
+[49 of 83] Compiling Gen.Essence.Op.Eq ( src/Gen/Essence/Op/Eq.hs, interpreted )
+[50 of 83] Compiling Gen.Essence.Op.Or ( src/Gen/Essence/Op/Or.hs, interpreted )
+[51 of 83] Compiling Gen.Essence.Data.Types ( src/Gen/Essence/Data/Types.hs, interpreted )
+[52 of 83] Compiling Gen.Essence.Op.Geq ( src/Gen/Essence/Op/Geq.hs, interpreted )
+[53 of 83] Compiling Gen.Essence.Op.Leq ( src/Gen/Essence/Op/Leq.hs, interpreted )
+[54 of 83] Compiling Gen.Essence.Op.Union ( src/Gen/Essence/Op/Union.hs, interpreted )
+[55 of 83] Compiling Gen.Essence.Op.Internal.Generated ( src/Gen/Essence/Op/Internal/Generated.hs, interpreted )
+[56 of 83] Compiling Gen.Essence.Op   ( src/Gen/Essence/Op.hs, interpreted )
+[57 of 83] Compiling Gen.Essence.Expr ( src/Gen/Essence/Expr.hs, interpreted )
+[58 of 83] Compiling Gen.Essence.Spec ( src/Gen/Essence/Spec.hs, interpreted )
+[59 of 83] Compiling Gen.Generalise.Generalise ( src/Gen/Generalise/Generalise.hs, interpreted )
+[60 of 83] Compiling Gen.Classify.UpdateChoices ( src/Gen/Classify/UpdateChoices.hs, interpreted )
+[61 of 83] Compiling Gen.Classify.Sorter ( src/Gen/Classify/Sorter.hs, interpreted )
+[62 of 83] Compiling Gen.Classify.AddSpecE ( src/Gen/Classify/AddSpecE.hs, interpreted )
+
+src/Gen/Classify/AddSpecE.hs:88:37: Warning: Unimplemented feature
+[63 of 83] Compiling Gen.Classify.AddMeta ( src/Gen/Classify/AddMeta.hs, interpreted )
+[64 of 83] Compiling Gen.Arbitrary.Data ( src/Gen/Arbitrary/Data.hs, interpreted )
+[65 of 83] Compiling Gen.Arbitrary.Literal[boot] ( src/Gen/Arbitrary/Literal.hs-boot, interpreted )
+[66 of 83] Compiling Gen.Arbitrary.Op[boot] ( src/Gen/Arbitrary/Op.hs-boot, interpreted )
+[67 of 83] Compiling Gen.Arbitrary.Generators[boot] ( src/Gen/Arbitrary/Generators.hs-boot, interpreted )
+[68 of 83] Compiling Gen.Arbitrary.QuickCheck2 ( src/Gen/Arbitrary/QuickCheck2.hs, interpreted )
+[69 of 83] Compiling Gen.Arbitrary.Prelude ( src/Gen/Arbitrary/Prelude.hs, interpreted )
+
+src/Gen/Arbitrary/Prelude.hs:33:1: Warning:
+    The import of ‘System.FilePath’ is redundant
+      except perhaps to import instances from ‘System.FilePath’
+    To import instances alone, use: import System.FilePath()
+[70 of 83] Compiling Gen.Arbitrary.Type ( src/Gen/Arbitrary/Type.hs, interpreted )
+
+src/Gen/Arbitrary/Type.hs:7:1: Warning:
+    Pattern match(es) are non-exhaustive
+    In an equation for ‘quanType_in’:
+        Patterns not matched:
+            TypeAny
+            TypeBool
+            TypeInt
+            TypeEnum _
+            ...
+[71 of 83] Compiling Gen.Arbitrary.Common ( src/Gen/Arbitrary/Common.hs, interpreted )
+[72 of 83] Compiling Gen.Arbitrary.FromNested[boot] ( src/Gen/Arbitrary/FromNested.hs-boot, interpreted )
+[73 of 83] Compiling Gen.Arbitrary.TypeConversions[boot] ( src/Gen/Arbitrary/TypeConversions.hs-boot, interpreted )
+[74 of 83] Compiling Gen.Arbitrary.Expr ( src/Gen/Arbitrary/Expr.hs, interpreted )
+
+src/Gen/Arbitrary/Expr.hs:169:1: Warning:
+    Pattern match(es) are non-exhaustive
+    In an equation for ‘exprFromToType’:
+        Patterns not matched:
+            (Var _ TypeAny) _
+            (Var _ TypeBool) _
+            (Var _ TypeInt) _
+            (Var _ (TypeEnum _)) _
+            ...
+
+src/Gen/Arbitrary/Expr.hs:283:1: Warning:
+    Pattern match(es) are non-exhaustive
+    In an equation for ‘purgeAny’:
+        Patterns not matched:
+            TypeRecord _
+            TypeVariant _
+            TypeList _
+            TypeSequence _
+[75 of 83] Compiling Gen.Arbitrary.Arbitrary ( src/Gen/Arbitrary/Arbitrary.hs, interpreted )
+[76 of 83] Compiling Gen.Essence.Generate ( src/Gen/Essence/Generate.hs, interpreted )
+
+src/Gen/Essence/Generate.hs:134:39: Warning:
+    Defaulting the following constraint(s) to type ‘Integer’
+      (Num a0) arising from the literal ‘30’
+    In the first argument of ‘Just’, namely ‘30’
+    In the expression: Just 30
+    In an equation for ‘reduceAsWell’: reduceAsWell = Just 30
+
+src/Gen/Essence/Generate.hs:137:22: Warning:
+    Defined but not used: ‘i’
+
+src/Gen/Essence/Generate.hs:135:15: Warning:
+    A do-notation statement discarded a result of type
+      ‘Maybe [Gen.Essence.Reduce.ReduceResult]’
+    Suppress this warning by saying
+      ‘_ <- case reduceAsWell of {
+              Nothing -> return (Data.Maybe.Nothing)
+              Just i -> do { ... } }’
+    or by using the flag -fno-warn-unused-do-bind
+[77 of 83] Compiling Gen.Arbitrary.Op ( src/Gen/Arbitrary/Op.hs, interpreted )
+[78 of 83] Compiling Gen.Arbitrary.FromNested ( src/Gen/Arbitrary/FromNested.hs, interpreted )
+[79 of 83] Compiling Gen.Arbitrary.TypeConversions ( src/Gen/Arbitrary/TypeConversions.hs, interpreted )
+
+src/Gen/Arbitrary/TypeConversions.hs:269:5: Warning:
+    This binding for ‘join’ shadows the existing binding
+      imported from ‘Gen.Arbitrary.Prelude’ at src/Gen/Arbitrary/TypeConversions.hs:7:1-28
+      (and originally defined in ‘Control.Monad’)
+
+src/Gen/Arbitrary/TypeConversions.hs:100:1: Warning:
+    Pattern match(es) are non-exhaustive
+    In an equation for ‘reachableToType’:
+        Patterns not matched:
+            (GHC.Types.I# _) TypeAny
+            (GHC.Types.I# _) (TypeRecord _)
+            (GHC.Types.I# _) (TypeVariant _)
+            (GHC.Types.I# _) (TypeList _)
+            ...
+[80 of 83] Compiling Gen.Arbitrary.Domain ( src/Gen/Arbitrary/Domain.hs, interpreted )
+[81 of 83] Compiling Gen.Arbitrary.Literal ( src/Gen/Arbitrary/Literal.hs, interpreted )
+[82 of 83] Compiling Gen.Arbitrary.Generators ( src/Gen/Arbitrary/Generators.hs, interpreted )
+[83 of 83] Compiling Main             ( src/exec/GenMain.hs, interpreted )
+Ok, modules loaded: Main, Gen.Arbitrary.Data, Gen.Classify.AddMeta, Gen.Classify.AddSpecE, Gen.Classify.Sorter, Gen.Classify.UpdateChoices, Gen.Essence.Generate, Gen.Generalise.Generalise, Gen.Imports, Gen.IO.Term, Gen.IO.Toolchain, Gen.Reduce.Data, Gen.Reduce.FormatResults, Gen.Reduce.Reduce, Gen.Reduce.Runner, Gen.UI.UI, Gen.Essence.UIData, Gen.Generalise.Data, Gen.IO.ToolchainRecheck, Gen.Helpers.TypeOf, Gen.Helpers.Log, Gen.AST.Imports, Gen.Helpers.LineError, Gen.Helpers.Placeholders, Gen.AST.Data, Gen.AST.Spec, Gen.AST.Translate, Paths_essence_gen, Gen.IO.Formats, Gen.IO.ToolchainData, Build_autoversion, Gen.Classify.Meta, Gen.Classify.DomTypes, Gen.Helpers.SizeOf, Gen.Helpers.Standardise, Gen.AST.TH, Gen.Reduce.Reduction, Gen.Reduce.UnusedDomains, Gen.Reduce.QuanToComp, Gen.Reduce.Inners, Gen.Reduce.Simpler, Gen.IO.TermSize, Gen.Generalise.Runner, Gen.Essence.Spec, Gen.Essence.St, Gen.Essence.Reduce, Gen.Arbitrary.Arbitrary, Gen.Arbitrary.Prelude, Gen.Arbitrary.Expr, Gen.Arbitrary.Type, Gen.Arbitrary.Common, Gen.Arbitrary.Literal, Gen.Arbitrary.Literal, Gen.Arbitrary.Op, Gen.Arbitrary.Op, Gen.Arbitrary.FromNested, Gen.Arbitrary.FromNested, Gen.Arbitrary.TypeConversions, Gen.Arbitrary.TypeConversions, Gen.Arbitrary.Generators, Gen.Arbitrary.Generators, Gen.Helpers.Debug, Gen.Helpers.OrderedType, Gen.Arbitrary.QuickCheck2, Gen.Arbitrary.Domain, Gen.AST.Ops, Gen.Essence.Data.Key, Gen.Essence.Domain, Gen.Essence.Expr, Gen.Essence.Rnd, Gen.Essence.Objective, Gen.Essence.Constant, Gen.Essence.Literal, Gen.Essence.Op, Gen.Essence.Range, Gen.Essence.Type, Gen.Essence.Op.Internal.Generated, Gen.Essence.Op.Eq, Gen.Essence.Op.Geq, Gen.Essence.Op.Leq, Gen.Essence.Op.Or, Gen.Essence.Op.Union, Gen.Essence.Data.Types.
+Running: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_passing/1431474720_18/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_passing/1431474720_18 --timeout 120 --num_cores 1 --refine_only --new_conjure --seed 1023949273
+Finished: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_passing/1431474720_18/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_passing/1431474720_18 --timeout 120 --num_cores 1 --refine_only --new_conjure --seed 1023949273
+@ Checking if error still occurs
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that
+        (true >= (true = true)) >= (var1 <= 5),
+        {4, 3, 0} = {var1, 0, var1, 5, var1} union {0}
+    
+Running: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474724_3528/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474724_3528 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 7291421 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18/model000000.choices.json
+Finished: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474724_3528/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474724_3528 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 7291421 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18/model000000.choices.json
+("Has rrError?",True)
+
+
+
+@ tryRemoveConstraints Start
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    
+Running: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474726_3528/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474726_3528 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 7291421 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18/model000000.choices.json
+Finished: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474726_3528/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474726_3528 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 7291421 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18/model000000.choices.json
+("Has rrError?",False)
+
+
+
+# 60 seconds left
+@ tryRemoveConstraints End
+    Continue language Essence 1.3
+             
+             find var1: int(1..5, 3..4)
+             such that
+                 (true >= (true = true)) >= (var1 <= 5),
+                 {4, 3, 0} = {var1, 0, var1, 5, var1} union {0}
+             
+@ removeUnusedDomains Start
+@ removeUnusedDomains End
+    Continue language Essence 1.3
+             
+             find var1: int(1..5, 3..4)
+             such that
+                 (true >= (true = true)) >= (var1 <= 5),
+                 {4, 3, 0} = {var1, 0, var1, 5, var1} union {0}
+             
+@ removeConstraints Start
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    
+"Stored no rrError(P)"
+
+# 60 seconds left
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that (true >= (true = true)) >= (var1 <= 5)
+    
+Running: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474728_3314/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474728_3314 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 6247293 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18/model000000.choices.json
+Finished: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474728_3314/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474728_3314 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 6247293 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18/model000000.choices.json
+("Has rrError?",False)
+
+
+
+# 60 seconds left
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that {4, 3, 0} = {var1, 0, var1, 5, var1} union {0}
+    
+Running: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474728_6047/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474728_6047 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 3093152 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18/model000000.choices.json
+Finished: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474728_6047/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474728_6047 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 3093152 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18/model000000.choices.json
+("Has rrError?",True)
+
+
+
+# 59 seconds left
+@ removeConstraints End
+    Continue language Essence 1.3
+             
+             find var1: int(1..5, 3..4)
+             such that {4, 3, 0} = {var1, 0, var1, 5, var1} union {0}
+             
+@ simplyConstraints Start
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that true
+    
+Running: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474730_8410/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474730_8410 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 11400222 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474728_6047/follow.choices.json
+Finished: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474730_8410/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474730_8410 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 11400222 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474728_6047/follow.choices.json
+("Has rrError?",False)
+
+
+
+# 59 seconds left
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that {2} = {0}
+    
+Running: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474731_3519/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474731_3519 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 4905526 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474728_6047/follow.choices.json
+Finished: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474731_3519/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474731_3519 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 4905526 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474728_6047/follow.choices.json
+("Has rrError?",False)
+
+
+
+# 59 seconds left
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that {2} = ({} : `set of int`)
+    
+Running: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474732_2763/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474732_2763 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 6217135 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474728_6047/follow.choices.json
+Finished: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474732_2763/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474732_2763 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 6217135 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474728_6047/follow.choices.json
+("Has rrError?",False)
+
+
+
+# 59 seconds left
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that {2} = {var1, 0, var1, 5, var1}
+    
+Running: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474733_5115/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474733_5115 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 8682197 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474728_6047/follow.choices.json
+Finished: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474733_5115/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474733_5115 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 8682197 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474728_6047/follow.choices.json
+("Has rrError?",False)
+
+
+
+# 59 seconds left
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that {2} = {0}
+    
+Running: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474734_3343/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474734_3343 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 12436919 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474728_6047/follow.choices.json
+Finished: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474734_3343/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474734_3343 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 12436919 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474728_6047/follow.choices.json
+("Has rrError?",False)
+
+
+
+# 59 seconds left
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that {2} = {0} union {1}
+    
+Running: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474734_3275/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474734_3275 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 5055046 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474728_6047/follow.choices.json
+Finished: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474734_3275/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474734_3275 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 5055046 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474728_6047/follow.choices.json
+("Has rrError?",False)
+
+
+
+# 59 seconds left
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that {2} = {0} union ({} : `set of int`)
+    
+Running: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474735_3463/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474735_3463 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 4953888 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474728_6047/follow.choices.json
+Finished: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474735_3463/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474735_3463 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 4953888 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474728_6047/follow.choices.json
+("Has rrError?",False)
+
+
+
+# 59 seconds left
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that {2} = {0} union {0}
+    
+Running: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474736_1243/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474736_1243 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 7177075 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474728_6047/follow.choices.json
+Finished: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474736_1243/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474736_1243 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 7177075 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474728_6047/follow.choices.json
+("Has rrError?",False)
+
+
+
+# 59 seconds left
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that {2} = ({} : `set of int`) union {1}
+    
+Running: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474737_3487/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474737_3487 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 5863778 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474728_6047/follow.choices.json
+Finished: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474737_3487/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474737_3487 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 5863778 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474728_6047/follow.choices.json
+("Has rrError?",False)
+
+
+
+# 59 seconds left
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that {2} = ({} : `set of int`) union ({} : `set of int`)
+    
+Running: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474737_9520/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474737_9520 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 10663690 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474728_6047/follow.choices.json
+Finished: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474737_9520/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474737_9520 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 10663690 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474728_6047/follow.choices.json
+("Has rrError?",False)
+
+
+
+# 59 seconds left
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that {2} = ({} : `set of int`) union {0}
+    
+Running: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474738_2566/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474738_2566 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 105892 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474728_6047/follow.choices.json
+Finished: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474738_2566/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474738_2566 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 105892 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474728_6047/follow.choices.json
+("Has rrError?",False)
+
+
+
+# 59 seconds left
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that {2} = {var1} union {1}
+    
+Running: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474739_1117/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474739_1117 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 9201157 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474728_6047/follow.choices.json
+Finished: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474739_1117/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474739_1117 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 9201157 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474728_6047/follow.choices.json
+("Has rrError?",True)
+
+
+
+# 58 seconds left
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that true
+    
+"Stored no rrError(P)"
+
+# 58 seconds left
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that {2} = {3}
+    
+Running: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474741_5631/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474741_5631 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 6330800 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474739_1117/follow.choices.json
+Finished: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474741_5631/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474741_5631 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 6330800 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474739_1117/follow.choices.json
+("Has rrError?",False)
+
+
+
+# 58 seconds left
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that {2} = ({} : `set of int`)
+    
+"Stored no rrError(P)"
+
+# 58 seconds left
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that {2} = {var1}
+    
+Running: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474741_6324/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474741_6324 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 2079585 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474739_1117/follow.choices.json
+Finished: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474741_6324/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474741_6324 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 2079585 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474739_1117/follow.choices.json
+("Has rrError?",False)
+
+
+
+# 58 seconds left
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that {2} = {1}
+    
+Running: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474742_8404/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474742_8404 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 11586495 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474739_1117/follow.choices.json
+Finished: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474742_8404/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474742_8404 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 11586495 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474739_1117/follow.choices.json
+("Has rrError?",False)
+
+
+
+# 58 seconds left
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that ({} : `set of int`) = {3}
+    
+Running: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474743_7858/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474743_7858 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 7192661 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474739_1117/follow.choices.json
+Finished: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474743_7858/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474743_7858 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 7192661 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474739_1117/follow.choices.json
+("Has rrError?",False)
+
+
+
+# 58 seconds left
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that ({} : `set of int`) = ({} : `set of int`)
+    
+Running: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474744_1841/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474744_1841 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 2986905 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474739_1117/follow.choices.json
+Finished: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474744_1841/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474744_1841 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 2986905 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474739_1117/follow.choices.json
+("Has rrError?",False)
+
+
+
+# 58 seconds left
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that ({} : `set of int`) = {var1}
+    
+Running: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474745_1118/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474745_1118 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 14329390 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474739_1117/follow.choices.json
+Finished: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474745_1118/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474745_1118 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 14329390 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474739_1117/follow.choices.json
+("Has rrError?",False)
+
+
+
+# 58 seconds left
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that ({} : `set of int`) = {1}
+    
+Running: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474745_4764/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474745_4764 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 10996158 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474739_1117/follow.choices.json
+Finished: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474745_4764/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474745_4764 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 10996158 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474739_1117/follow.choices.json
+("Has rrError?",False)
+
+
+
+# 58 seconds left
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that ({} : `set of int`) = {-5} union ({} : `set of int`)
+    
+Running: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474746_6144/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474746_6144 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 6592984 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474739_1117/follow.choices.json
+Finished: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474746_6144/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474746_6144 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 6592984 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474739_1117/follow.choices.json
+("Has rrError?",False)
+
+
+
+# 58 seconds left
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that ({} : `set of int`) = ({} : `set of int`) union {3}
+    
+Running: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474747_4268/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474747_4268 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 8964320 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474739_1117/follow.choices.json
+Finished: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474747_4268/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474747_4268 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 8964320 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474739_1117/follow.choices.json
+("Has rrError?",False)
+
+
+
+# 58 seconds left
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that ({} : `set of int`) = ({} : `set of int`) union ({} : `set of int`)
+    
+Running: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474748_5527/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474748_5527 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 555671 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474739_1117/follow.choices.json
+Finished: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474748_5527/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474748_5527 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 555671 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474739_1117/follow.choices.json
+("Has rrError?",False)
+
+
+
+# 58 seconds left
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that ({} : `set of int`) = ({} : `set of int`) union {1}
+    
+Running: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474748_5239/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474748_5239 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 5005427 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474739_1117/follow.choices.json
+Finished: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474748_5239/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474748_5239 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 5005427 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474739_1117/follow.choices.json
+("Has rrError?",False)
+
+
+
+# 58 seconds left
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that ({} : `set of int`) = {var1} union ({} : `set of int`)
+    
+Running: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474749_5531/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474749_5531 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 15816463 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474739_1117/follow.choices.json
+Finished: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474749_5531/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474749_5531 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 15816463 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474739_1117/follow.choices.json
+("Has rrError?",True)
+
+
+
+# 58 seconds left
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that false
+    
+Running: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474750_8155/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474750_8155 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 8327361 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474749_5531/follow.choices.json
+Finished: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474750_8155/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474750_8155 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 8327361 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474749_5531/follow.choices.json
+("Has rrError?",False)
+
+
+
+# 58 seconds left
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that {-4} = {-1}
+    
+Running: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474751_1407/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474751_1407 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 7091495 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474749_5531/follow.choices.json
+Finished: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474751_1407/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474751_1407 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 7091495 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474749_5531/follow.choices.json
+("Has rrError?",False)
+
+
+
+# 58 seconds left
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that {-4} = ({} : `set of int`)
+    
+Running: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474752_2420/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474752_2420 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 12193054 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474749_5531/follow.choices.json
+Finished: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474752_2420/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474752_2420 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 12193054 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474749_5531/follow.choices.json
+("Has rrError?",False)
+
+
+
+# 58 seconds left
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that {-4} = {var1}
+    
+Running: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474752_6767/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474752_6767 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 6826376 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474749_5531/follow.choices.json
+Finished: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474752_6767/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474752_6767 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 6826376 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474749_5531/follow.choices.json
+("Has rrError?",False)
+
+
+
+# 58 seconds left
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that {-4} = ({} : `set of int`)
+    
+"Stored no rrError(P)"
+
+# 58 seconds left
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that ({} : `set of int`) = {-1}
+    
+Running: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474753_9878/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474753_9878 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 16491741 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474749_5531/follow.choices.json
+Finished: /Users/bilalh/CS/gen/toolchain/toolchain.py /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474753_9878/spec.essence --outdir /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474753_9878 --timeout 30 --num_cores 1 --refine_only --new_conjure --seed 16491741 --choices /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474749_5531/follow.choices.json
+("Has rrError?",False)
+
+
+
+# 58 seconds left
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that ({} : `set of int`) = ({} : `set of int`)
+    
+"Stored no rrError(P)"
+
+# 58 seconds left
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that ({} : `set of int`) = {var1}
+    
+"Stored no rrError(P)"
+
+# 58 seconds left
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that ({} : `set of int`) = ({} : `set of int`)
+    
+"Stored no rrError(P)"
+
+# 58 seconds left
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that ({} : `set of int`) = {-1}
+    
+"Stored no rrError(P)"
+
+# 58 seconds left
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that ({} : `set of int`) = ({} : `set of int`)
+    
+"Stored no rrError(P)"
+
+# 58 seconds left
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that ({} : `set of int`) = {var1}
+    
+"Stored no rrError(P)"
+
+# 58 seconds left
+    Processing
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that ({} : `set of int`) = ({} : `set of int`)
+    
+"Stored no rrError(P)"
+
+# 58 seconds left
+@ simplyConstraints End
+    Continue language Essence 1.3
+             
+             find var1: int(1..5, 3..4)
+             such that ({} : `set of int`) = {var1} union ({} : `set of int`)
+             
+StateState
+    RState {oErrKind_ =  RefineCompact_
+            oErrStatus_ = RuleApplication_
+            oErrChoices_ = Just (/Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18/model000000.choices.json)
+            outputDir_ /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r
+            specDir_ /Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18
+            cores_ 1
+            specTime_ 30
+            binariesDirectory_ Nothing
+            toolchainOutput_ ToolchainNull_
+            mostReduced_ = Just (OurError{resDirectory_ =
+           "/Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474749_5531",
+         resErrKind_ = RefineCompact_, resErrStatus_ = RuleApplication_,
+         resErrChoices_ =
+           "/Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474749_5531/follow.choices.json",
+         timeTaken_ = 0})
+            mostReducedChoices_ = Just (/Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474749_5531/follow.choices.json)
+            otherErrors_ = []}
+Start
+    language Essence 1.3
+    
+    find var1: int(1..5, 3..4)
+    such that
+        (true >= (true = true)) >= (var1 <= 5),
+        {4, 3, 0} = {var1, 0, var1, 5, var1} union {0}
+    
+Final
+    Continue language Essence 1.3
+             
+             find var1: int(1..5, 3..4)
+             such that ({} : `set of int`) = {var1} union ({} : `set of int`)
+             
+Renaming 
+/Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474749_5531
+ --> 
+/Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/final
+Renaming 
+/Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474728_6047
+ --> 
+/Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/zsteps/1431474728_6047
+Renaming 
+/Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/1431474739_1117
+ --> 
+/Users/bilalh/Desktop/Results/_notable/zz/_errors/RefineCompact_/RuleApplication_/1431474720_18_r/zsteps/1431474739_1117
+Not running spec with hash, already tested 525860293633860019
