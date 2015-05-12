@@ -235,7 +235,7 @@ mainWithArgs u@Reduce{..} = do
 
   doMeta out no_csv binaries_directory
 
-  (_,state) <- reduceMain args
+  state <- reduceMain args
   saveDB db_only_passing db_directory (resultsDB_  state)
   formatResults (delete_steps) state
 
@@ -540,7 +540,7 @@ _givenDebug = do
              , total_is_real_time = True
              , toolchain_ouput    = ToolchainScreen_
              , no_csv             = True
-             , given_dir          = Just "zz"
+             , given_dir          = Just "/Users/bilalh/Desktop/Results/_notable/_new/2015-05-11_01-33_1431308031/_errors/RefineCompact_/RuleApplication_/1431310206_12"
              , _gen_type          = def
              }
     limiter (limit_time ec) (mainWithArgs ec)

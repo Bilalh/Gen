@@ -12,7 +12,7 @@ import Gen.Helpers.Log
 
 import qualified Data.Map as M
 
-reduceMain :: RState -> IO (Spec, RState)
+reduceMain :: RState -> IO RState
 reduceMain rr = do
   let base = specDir_ rr
       fp   =  base </> "spec.spec.json"
@@ -32,7 +32,7 @@ reduceMain rr = do
                       ) >>= \case
     (Nothing, _) -> do
         putStrLn "Spec has no error with the given settings, not reducing"
-        return (sp, rr)
+        return rr
     _ -> do
       (sfin,state) <- (flip runStateT) rr $
           return sp
@@ -44,7 +44,7 @@ reduceMain rr = do
       noteFormat "Start" [pretty sp]
       noteFormat "Final" [pretty sfin]
 
-      return (timedExtract sfin,state)
+      return (state)
 
   where
   noteMsg tx s = do
