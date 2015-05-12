@@ -17,16 +17,6 @@ instance (Generate a, WrapConstant a) => Generate (Domain () a) where
   give (GType TypeInt)      = DomainInt <$> vectorOf3 2 (give GNone)
   give (GType (TypeSet ty)) = DomainSet <$> pure () <*>  give GNone <*> give (GType ty)
 
-  -- give (GType (TypeMatrix ty))     = _x
-
-  -- give (GType (TypeMSet ty))      = _x
-  -- give (GType (TypeFunction ty1 ty2)) = _x
-  -- give (GType (TypeTuple ty))     = _x
-  -- give (GType (TypeRelation ty))       = _x
-  -- give (GType (TypePartition ty))       = _x
-  -- give (GType (TypeUnnamed ty))    = _x
-  -- give (GType (TEnum ty))      = _x
-  -- give (GType TypeAny)            = _x
 
   give t = giveUnmatched "Generate (Domain () a)" t
 
@@ -66,21 +56,3 @@ instance Generate a => Generate (SizeAttr a)  where
 
   possiblePure _ _ _ = True
   possibleNoType _ _ = True
-
---  Overlapping instances
--- instance Generate (SizeAttr Constant) where
---   give GNone = do
---     oneof3 [
---        pure SizeAttr_None
---      , SizeAttr_Size    <$> give (GType TypeInt)
---      , SizeAttr_MinSize <$> give (GType TypeInt)
---      , SizeAttr_MaxSize <$> give (GType TypeInt)
---      , do
---        a@(ConstantInt i) <- give (GNone)
---        b <- give (GGTE i)
---        return $ SizeAttr_MinMaxSize a b
---      ]
-
---   give t = giveUnmatched "Generate (SetAttr a)" t
-
---   possiblePure _ _ _ = True
