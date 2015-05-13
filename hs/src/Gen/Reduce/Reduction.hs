@@ -144,7 +144,7 @@ instance (HasGen m,  HasLogger m) =>  Reduce Expr m where
 
 
 -- Making Reduce (AbsLiteral c) is a lot of work
--- so a basic version for constants
+-- so a basic version for Reduce (AbsLiteral Constant)
 instance (HasGen m,  HasLogger m) =>  Reduce Constant m where
     single t = ttypeOf t >>= singleLitExpr
 
@@ -152,7 +152,7 @@ instance (HasGen m,  HasLogger m) =>  Reduce Constant m where
       return . map (ECon . ConstantAbstract) . innersExpand reduceLength $ x
     subterms _ = return []
 
-    reduce (ConstantAbstract _) = return []
+    reduce (ConstantAbstract x) =  return []
     reduce _   = return []
 
     mutate (ConstantAbstract xs)  = mutate1 xs
@@ -160,6 +160,7 @@ instance (HasGen m,  HasLogger m) =>  Reduce Constant m where
         w =ECon . ConstantAbstract
         mutate1 (AbsLitRelation xx)  = mutate_2d (w . AbsLitRelation) xx
         mutate1 (AbsLitPartition xx) = mutate_2d (w . AbsLitPartition) xx
+        mutate1 (AbsLitFunction _)   = return [] -- lots of effort
         mutate1 _ = return []
     mutate _ = return []
 
@@ -170,7 +171,7 @@ instance (HasGen m,  HasLogger m) =>  Reduce (Literal) m where
     subterms x = return . map ELit .  innersExpand reduceLength $ x
 
     reduce li = do
-      rLits <- getReducedChildren li
+      rLits <- getReducedChildren (ELit) li
       let lss = map (replaceChildren li) (transposeFill rLits)
       let res = concatMap (innersExpand reduceLength1) lss
       let sim =  [ r | r <- res, runIdentity $ simpler1 r li ]
@@ -250,10 +251,10 @@ mutate_2d wrap xs = do
 
 
 getReducedChildren :: (Monad m, Applicative m, HasGen m,  HasLogger m)
-                   => Literal -> m ([([Expr], Expr)])
-getReducedChildren lit = do
+                   => (z -> Expr) -> z -> m ([([Expr], Expr)])
+getReducedChildren zToExpr lit = do
   start <- withGen_new []
-  fin <- flip runStateT start $ descendM fff (ELit lit)
+  fin <- flip runStateT start $ descendM fff (zToExpr lit)
   return $ reverse . withGen_val . snd $ fin
   where
      fff (x :: Expr) = do
@@ -274,7 +275,7 @@ transposeFill ee =
   in  transpose padded
 
 
-replaceChildren :: Literal -> [Expr] -> Literal
+replaceChildren :: Data c => c -> [Expr] -> c
 replaceChildren lit news = fst . flip runState news $ f1
                            <$> T.mapM fff ch1
    where
@@ -285,10 +286,17 @@ replaceChildren lit news = fst . flip runState news $ f1
       return x
 
 
-instance (HasGen m,  HasLogger m) =>  Reduce (Domainn Expr) m where
-    reduce _   = return []
-    single x   = return [EDom x]
-    subterms _ = return []
+instance (HasGen m,  HasLogger m) => Reduce (Domain () Expr) m where
+  reduce li = do
+    rLits <- getReducedChildren (EDom) li
+    let lss = map (replaceChildren li) (transposeFill rLits)
+    let res = concatMap (innersExpand reduceLength1) lss
+    let sim =  [ r | r <- res, runIdentity $ simpler1 r li ]
+
+    return sim
+
+  single x   = return [EDom x]
+  subterms x = return . map (EDom) . innersExpand reduceLength $ x
 
 
 instance (HasGen m,  HasLogger m) =>  Reduce (Op Expr) m where

@@ -2,6 +2,7 @@
 module Gen.Reduce.Inners where
 
 import Conjure.Language.AbstractLiteral
+import Conjure.Language.Domain
 import Gen.Imports
 
 
@@ -33,6 +34,12 @@ instance (IntRange c, Pretty c, Eq c) => Inners (AbstractLiteral c) where
       doMatrix nx | length nx == length x = AbsLitMatrix d nx
       --TODO could remove/add to made the old range fit
       doMatrix nx = AbsLitMatrix ( intRange 1 (length nx)) nx
+
+instance (IntRange c, Pretty c, Eq c) => Inners (Domain () c) where
+  innersExpand f (DomainInt xs) = map DomainInt (f xs)
+  innersExpand _ DomainBool     = []
+  innersExpand f (DomainSet () a x)  = map (DomainSet () a) (concat $ f [x])
+
 
 class IntRange a where
     intRange :: Int -> Int -> Domainn a

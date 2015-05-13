@@ -12,6 +12,9 @@ import qualified Data.Traversable as V
 class (Pretty a, Eq a, Show a) => Standardise a  where
     standardise :: (Monad m, Applicative m) => a -> m a
 
+instance Standardise Text where
+    standardise = return
+
 instance Standardise Type where
     standardise = return
 

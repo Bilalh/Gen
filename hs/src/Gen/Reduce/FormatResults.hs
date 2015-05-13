@@ -5,10 +5,10 @@ import Gen.Reduce.Data
 import System.Directory (copyFile, renameDirectory)
 import System.FilePath  (takeFileName)
 
-formatResults :: Bool -> RState -> IO ()
+formatResults :: Bool -> RState -> IO (Maybe FilePath)
 formatResults delete_steps RState{..} = do
 
-  case mostReduced_ of
+  res <- case mostReduced_ of
     Just r -> do
       putStrLn . show . vcat $
                    [ "Renaming "
@@ -17,10 +17,12 @@ formatResults delete_steps RState{..} = do
                    , pretty finalDir
                    ]
       renameDirectory  (resDirectory_ r) finalDir
+      return $ Just finalDir
 
     Nothing -> do
       putStrLn "No final directory: no reductions produced"
       createDirectoryIfMissing True finalDir
+      return $ Nothing
 
   writeFile (finalDir </> "zreduce.logs") (renderSized 120 rlogs_)
 
@@ -44,10 +46,8 @@ formatResults delete_steps RState{..} = do
              ]
     renameDirectory (outputDir_ </> d) (stepsDir </> d)
 
-  if delete_steps then
-      removeDirectoryRecursive stepsDir
-  else
-      return ()
+  when delete_steps $ removeDirectoryRecursive stepsDir
+  return res
 
   where
 

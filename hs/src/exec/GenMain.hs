@@ -239,7 +239,7 @@ mainWithArgs u@Reduce{..} = do
 
   state <- reduceMain True args
   saveDB db_only_passing db_directory (resultsDB_  state)
-  formatResults (delete_steps) state
+  void $ formatResults (delete_steps) state
 
 mainWithArgs Generalise{..} = do
 

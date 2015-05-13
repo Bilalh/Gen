@@ -1,3 +1,4 @@
+{-# LANGUAGE TupleSections #-}
 module Gen.Reduce.Reduce where
 
 import Gen.Reduce.Data
@@ -38,7 +39,7 @@ reduceMain check rr = do
         putStrLn "Spec has no error with the given settings, not reducing"
         return rr
     _ -> do
-      noteFormat "StateStateStart" [pretty rr]
+      -- noteFormat "StateStateStart" [pretty rr]
       (sfin,state) <- (flip runStateT) rr $
           return sp
           >>= doReductions
@@ -60,10 +61,11 @@ reduceMain check rr = do
 doReductions :: Spec -> RR (Timed Spec)
 doReductions start =
     return (Continue start)
-    >>= con "tryRemoveConstraints" tryRemoveConstraints
-    >>= con "removeUnusedDomains"  removeUnusedDomains
-    >>= con "removeConstraints"    removeConstraints
-    >>= con "simplyConstraints"    simplyConstraints
+    -- >>= con "tryRemoveConstraints" tryRemoveConstraints
+    -- >>= con "removeUnusedDomains"  removeUnusedDomains
+    >>= con "simplyDomains"        simplyDomains
+    -- >>= con "removeConstraints"    removeConstraints
+    -- >>= con "simplyConstraints"    simplyConstraints
 
 
   where
@@ -163,6 +165,80 @@ removeConstraints (Spec ds oes obj) = do
 
     -- process ts = error . show . prettyBrackets . vcat $ map (prettyBrackets .  vcat . map pretty) ts
 
+simplyDomains :: Spec -> RR (Timed Spec)
+simplyDomains sp@(Spec ds es obj) = do
+  --FIXME assume all finds
+  csToDo <- doConstraints ( map (second domOfGF) . M.toList $ ds)
+  addLog "Got Constraints" []
+  fin    <- process csToDo
+  addLog "finished processing" []
+
+  --FIXME check
+  if (timedExtract fin) == [] then
+      return $ Continue sp
+  else
+      return $ fmap (const $ Spec (toDoms $ timedExtract fin) es obj) fin
+
+  where
+  toDoms :: [(Text, Domain () Expr)] -> Domains
+  toDoms = M.fromList . map (second Findd)
+
+  process :: [[(Text,Domain () Expr)]] -> RR (Timed [(Text,Domain () Expr)])
+
+  -- cannot simply any futher
+  process xs | any (== []) xs = return . Continue $ []
+
+  process xs | all (singleElem) xs = do
+      addLog "processsingleElem" []
+      let fix = map head xs
+      let f (Just r) = do
+            recordResult r
+            return fix
+          f Nothing = return []
+      timedSpec (Spec (toDoms fix) es obj) f (fmap Continue . f)
+
+  process esR = do
+    addLog "process esR" []
+    fix <- choose esR
+
+    let f Nothing  = return fix
+        f (Just r) = do
+          recordResult r
+          return fix
+
+        g Nothing   = removeNext esR >>= process
+        g (Just r)  = do
+          recordResult r
+          innerToDo <- doConstraints fix
+          inner     <- process innerToDo
+          if (timedExtract inner) == [] then
+              return $ fmap (const fix) inner
+          else
+              return inner
+
+    timedSpec (Spec (toDoms fix) es obj) f g
+
+  -- Fix the next constraint
+  choose :: [[(Text,Domain () Expr)]] -> RR [(Text,Domain () Expr)]
+  choose esR = do
+    addLog "choose esR" []
+    return $ map pickFirst esR
+
+    where
+    pickFirst []    = error "pickfirst empty"
+    pickFirst [x]   = x
+    pickFirst (x:_) = x
+
+  -- Keep the orginal exprs apart from the first
+  doConstraints :: [(Text,Domain () Expr)] -> RR [[(Text,Domain () Expr)]]
+  doConstraints [] = return [[]]
+  doConstraints ((tx,x):xs) = do
+    addLog "doConstraints xs" []
+    rx <- runReduce sp x
+    rs <- mapM (\(t,y) -> do{ys <- runReduce sp y; pure $ (t,y) : map (t,) ys }) xs
+    return $ map (tx,) rx : rs
+
+
 simplyConstraints :: Spec -> RR (Timed Spec)
 simplyConstraints sp@(Spec ds es obj) = do
     csToDo <- doConstraints es
@@ -237,16 +313,14 @@ simplyConstraints sp@(Spec ds es obj) = do
         rs <- mapM (\y -> do { ys <- runReduce sp y; return $ y : ys } ) xs
         return $ rx : rs
 
+removeNext :: [[a]] -> RR [[a]]
+removeNext []                     = rrError "removeNext empty" []
+removeNext xs | all singleElem xs = return xs
+removeNext xs | any null xs       = rrError "removeNext sub empty" []
 
-
-    removeNext :: [[a]] -> RR [[a]]
-    removeNext []                     = rrError "removeNext empty" []
-    removeNext xs | all singleElem xs = return xs
-    removeNext xs | any null xs       = rrError "removeNext sub empty" []
-
-    removeNext ([x]:xs)    = ([x]:)  <$> removeNext xs
-    removeNext ((_:fs):xs) = return $ fs:xs
-    removeNext (x:xs )     = (x:) <$> removeNext xs
+removeNext ([x]:xs)    = ([x]:)  <$> removeNext xs
+removeNext ((_:fs):xs) = return $ fs:xs
+removeNext (x:xs )     = (x:) <$> removeNext xs
 
 
 
