@@ -159,7 +159,7 @@ mainWithArgs u@Essence{..} = do
                , givenSpecs_        = givenSpecs
                , runHashes_         = def
                , genType_           = _gen_type
-               , reduceAsWell_      = Just 60
+               , reduceAsWell_      = reduce_as_well
                }
 
   doMeta out no_csv binaries_directory
@@ -520,6 +520,7 @@ _essenceDebug = do
              , no_csv             = False
              , given_dir          = Nothing
              , _gen_type          = SecondGen
+             , reduce_as_well     = Nothing
              }
     limiter (limit_time ec) (mainWithArgs ec)
 
@@ -544,6 +545,7 @@ _givenDebug = do
              , no_csv             = True
              , given_dir          = Just "/Users/bilalh/Desktop/Results/_notable/_new/2015-05-11_01-33_1431308031/_errors/RefineCompact_/RuleApplication_/1431310206_12"
              , _gen_type          = def
+             , reduce_as_well     = Just 60
              }
     limiter (limit_time ec) (mainWithArgs ec)
 

@@ -28,6 +28,7 @@ data UI
     , limit_time         :: Maybe Int
     , no_csv             :: Bool
     , given_dir          :: Maybe FilePath
+    , reduce_as_well     :: Maybe Int
     }
 
   | Instance
@@ -223,6 +224,10 @@ ui  = modes
                                     &= groupname "Other"
                                     &= explicit
                                     &= help "Instead of generating specs, act like the .spec.json files in the given dir were the generated specs, -t/--total-time can not be used with this option"
+     , reduce_as_well    = Nothing  &= name "reduce-as-well"
+                                    &= groupname "Generation"
+                                    &= explicit
+                                    &= help "Reduce the test case found sequentially"
      , toolchain_ouput    = enum
                             [
                               ToolchainScreen_ &= name "show-toolchain-output"
