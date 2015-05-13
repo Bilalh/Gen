@@ -42,6 +42,8 @@ data EssenceConfig = EssenceConfig
       , notUseful          :: Set ( KindI, StatusI )
       , givenSpecs_        :: Maybe [FilePath]
       , runHashes_         :: IntSet
+
+      , reduceAsWell_      :: Maybe Int
       } deriving (Show)
 
 instance Default EssenceConfig where
@@ -64,4 +66,5 @@ instance Default EssenceConfig where
       , givenSpecs_        = Nothing
       , runHashes_         = def
       , genType_           = def
+      , reduceAsWell_      = Nothing
       }

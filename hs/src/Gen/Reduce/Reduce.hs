@@ -12,8 +12,8 @@ import Gen.Helpers.Log
 
 import qualified Data.Map as M
 
-reduceMain :: RState -> IO RState
-reduceMain rr = do
+reduceMain :: Bool -> RState -> IO RState
+reduceMain check rr = do
   let base = specDir_ rr
       fp   =  base </> "spec.spec.json"
 
@@ -21,19 +21,24 @@ reduceMain rr = do
   -- Remove quantification
   sp <-  quanToComp sp_
 
-  (flip runStateT) rr (return sp >>= noteMsg "Checking if error still occurs"
-                                 >>= runSpec
-                                 >>= \case
-                          (Nothing,_) -> return Nothing
-                          (Just x, _) -> do
-                            liftIO $ removeDirectoryRecursive (resDirectory_ x)
-                            return (Just x)
+  errOccurs <- case check of
+                 False -> return (Just $never, rr)
+                 True -> (flip runStateT) rr (return sp
+                           >>= noteMsg "Checking if error still occurs"
+                           >>= runSpec
+                           >>= \case
+                                  (Nothing,_) -> return Nothing
+                                  (Just x, _) -> do
+                                    liftIO $ removeDirectoryRecursive (resDirectory_ x)
+                                    return (Just x)
 
-                      ) >>= \case
+                       )
+  case errOccurs of
     (Nothing, _) -> do
         putStrLn "Spec has no error with the given settings, not reducing"
         return rr
     _ -> do
+      noteFormat "StateStateStart" [pretty rr]
       (sfin,state) <- (flip runStateT) rr $
           return sp
           >>= doReductions

@@ -87,9 +87,9 @@ instance Pretty RState where
     pretty RState{..} =
         "RState" <+> Pr.braces (
             Pr.sep
-                [ nn "oErrKind_ = "  oErrKind_
-                , nn "oErrStatus_ =" oErrStatus_
-                , nn "oErrChoices_ =" oErrChoices_
+                [ nn "oErrKind_"  oErrKind_
+                , nn "oErrStatus_" oErrStatus_
+                , nn "oErrChoices_" oErrChoices_
 
                 , nn "outputDir_" outputDir_
                 , nn "specDir_" specDir_
@@ -99,11 +99,15 @@ instance Pretty RState where
                 , nn "binariesDirectory_" binariesDirectory_
                 , nn "toolchainOutput_" toolchainOutput_
 
-                , nn "mostReduced_ =" mostReduced_
-                , nn "mostReducedChoices_ =" mostReducedChoices_
-                , nn "otherErrors_ =" (prettyArr otherErrors_)
+                , nn "mostReduced_" mostReduced_
+                , nn "mostReducedChoices_" mostReducedChoices_
+                , nn "otherErrors_" (prettyArr otherErrors_)
 
-                -- , nn "rgen_ =" (show rgen_)
+                -- , nn "resultsDB_"       resultsDB_
+                , nn "resultsDB_dir"    resultsDB_dir
+                , nn "timeLeft_"        timeLeft_
+                , nn "totalIsRealTime_" totalIsRealTime_
+
                 ])
 
 instance Default RState where

@@ -72,6 +72,10 @@ doRefine ec@EC.EssenceConfig{..} = do
     process _ (Just []) _ = return ()
 
     process timeLeft mayGiven hashes = do
+      case mayGiven of
+          Nothing -> putStrLn $  "# " ++  (show (max timeLeft 0) ) ++ " seconds left"
+          Just ys -> putStrLn $  "# " ++  (show (length ys) ) ++ " specs left"
+
       useSize <- (randomRIO (0, size_) :: IO Int)
       (sp,logs) <- generateWrap mayGiven $ genToUse useSize ec
 
@@ -80,6 +84,7 @@ doRefine ec@EC.EssenceConfig{..} = do
           putStrLn $ "Not running spec with hash, already tested " ++ (show $ hash sp)
           process (timeLeft) (nextElem mayGiven) hashes
         False -> do
+          putStrLn $ "> Processing: " ++ (show $ hash sp)
           let hashesNext = (hash sp) `I.insert` hashes
           model :: Model <- toConjure sp
           case typeCheck model  of
@@ -131,13 +136,16 @@ doRefine ec@EC.EssenceConfig{..} = do
 
               (runTime,rdata) <- classifySettingI ec errdir out uname result
 
-              let reduceAsWell = Just 30
-              case reduceAsWell of
+              reducedData <- case reduceAsWell_ of
                 Nothing -> return Nothing
-                Just i  -> do
-                  Just <$> reduceErrors ec rdata
+                Just{}  -> do
+                  putStrLn $ "> Reducing: " ++ (show $ hash sp)
+                  res <- Just <$> reduceErrors ec rdata
+                  putStrLn $ "> Reduced: " ++ (show $ hash sp)
+                  return res
 
-
+              putStrLn $ "> Processed: " ++ (show $ hash sp)
+              putStrLn $ ""
               case totalIsRealTime of
                 False -> process (timeLeft - (floor runTime)) (nextElem mayGiven) hashesNext
                 True  -> process (timeLeft - realTime) (nextElem mayGiven) hashesNext

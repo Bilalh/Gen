@@ -61,13 +61,13 @@ toolchain ToolchainData{..} = do
                ++ argsMay "--choices" choicesPath
 
 
-  liftIO . putStrLn $ "Running: " ++ showCommandForUser script args
+  liftIO . putStrLn $ "Toolchain: " ++ showCommandForUser script args
   when dryRun $ liftIO exitSuccess
 
   code    <- runCommand script args (outputArg toolchainOutput outputDirectory)
   refineF <- readFromJSONMay $ outputDirectory </> "refine_essence.json"
   solveF  <- readFromJSONMay $ outputDirectory </> "solve_eprime.json"
-  liftIO . putStrLn $ "Finished: " ++ showCommandForUser script args
+  liftIO . putStrLn $ "ToolchainFinished:"
 
   return $ case (refineF, solveF) of
              (Just r, Just s)  -> (code, SolveResult (r,s))

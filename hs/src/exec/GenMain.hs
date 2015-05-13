@@ -159,6 +159,7 @@ mainWithArgs u@Essence{..} = do
                , givenSpecs_        = givenSpecs
                , runHashes_         = def
                , genType_           = _gen_type
+               , reduceAsWell_      = Just 60
                }
 
   doMeta out no_csv binaries_directory
@@ -230,12 +231,13 @@ mainWithArgs u@Reduce{..} = do
                 ,resultsDB_           = db
                 ,mostReducedChoices_  = error_choices
                 ,resultsDB_dir        = db_directory
-                ,timeLeft_            =  total_time_may
+                ,timeLeft_            = total_time_may
+                ,totalIsRealTime_     = total_is_real_time
                 }
 
   doMeta out no_csv binaries_directory
 
-  state <- reduceMain args
+  state <- reduceMain True args
   saveDB db_only_passing db_directory (resultsDB_  state)
   formatResults (delete_steps) state
 
@@ -528,7 +530,7 @@ _givenDebug = do
              , _mode              = EC.Refine_
 
              , total_time         = 0
-             , per_spec_time      = 120
+             , per_spec_time      = 30
              , _size              = 4
              , _cores             = Just 1
              , _seed              = Just 44
