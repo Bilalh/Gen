@@ -36,9 +36,13 @@ instance (IntRange c, Pretty c, Eq c) => Inners (AbstractLiteral c) where
       doMatrix nx = AbsLitMatrix ( intRange 1 (length nx)) nx
 
 instance (IntRange c, Pretty c, Eq c) => Inners (Domain () c) where
+
+  innersReduce f x = $never
+
   innersExpand f (DomainInt xs) = map DomainInt (f xs)
   innersExpand _ DomainBool     = []
   innersExpand f (DomainSet () a x)  = map (DomainSet () a) (concat $ f [x])
+
 
 
 class IntRange a where

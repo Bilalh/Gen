@@ -61,11 +61,11 @@ reduceMain check rr = do
 doReductions :: Spec -> RR (Timed Spec)
 doReductions start =
     return (Continue start)
-    -- >>= con "tryRemoveConstraints" tryRemoveConstraints
-    -- >>= con "removeUnusedDomains"  removeUnusedDomains
+    >>= con "tryRemoveConstraints" tryRemoveConstraints
+    >>= con "removeUnusedDomains"  removeUnusedDomains
     >>= con "simplyDomains"        simplyDomains
-    -- >>= con "removeConstraints"    removeConstraints
-    -- >>= con "simplyConstraints"    simplyConstraints
+    >>= con "removeConstraints"    removeConstraints
+    >>= con "simplyConstraints"    simplyConstraints
 
 
   where

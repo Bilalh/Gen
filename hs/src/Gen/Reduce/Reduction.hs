@@ -4,6 +4,7 @@ module Gen.Reduce.Reduction where
 
 import Conjure.Language.AbstractLiteral
 import Conjure.Language.Constant
+import Conjure.Language.Domain
 import Conjure.Language.Expression.Op
 import Data.Generics.Uniplate.Data
 import Data.Generics.Uniplate.Zipper    (Zipper, fromZipper, hole, replaceHole,
@@ -293,11 +294,24 @@ instance (HasGen m,  HasLogger m) => Reduce (Domain () Expr) m where
     let res = concatMap (innersExpand reduceLength1) lss
     let sim =  [ r | r <- res, runIdentity $ simpler1 r li ]
 
-    return sim
+    si   <- single li
+    subs <- subterms li
+    mu   <- mutate li
+    return $ mconcat $
+               [ [ x | (EDom x) <- si]
+               , sim
+               , [ x | (EDom x) <- subs]
+               , [ x | (EDom x) <- mu]
+               ]
 
-  single x   = return [EDom x]
+  single DomainInt{} = do
+      i <- chooseR (-5, 5)
+      return $ [EDom $ DomainInt [RangeSingle (ECon $ ConstantInt i)]]
+
+  single   x = return [EDom x]
   subterms x = return . map (EDom) . innersExpand reduceLength $ x
 
+  mutate x = return []
 
 instance (HasGen m,  HasLogger m) =>  Reduce (Op Expr) m where
 
