@@ -43,6 +43,7 @@ instance (IntRange c, Pretty c, Eq c) => Inners (Domain () c) where
   innersExpand _ DomainBool     = []
   innersExpand f (DomainSet () a x)  = map (DomainSet () a) (concat $ f [x])
 
+  innersExpand f x = $never
 
 
 class IntRange a where
