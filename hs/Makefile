@@ -35,8 +35,12 @@ comma :=,
 update_ops_metadata:
 	runhaskell scripts/add_ops_metadata.hs
 
+# needs neat-interpolation package
+# which need minior fixes on 7.10
+# https://github.com/nikita-volkov/neat-interpolation/issues/3
 keys:
 	cabal exec -- runhaskell scripts/mk_keys.hs
+
 
 autoversion:
 	# Useful to make an archive that does not require git

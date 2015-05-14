@@ -91,7 +91,7 @@ Library
                      , Gen.Reduce.Simpler
                      , Gen.Reduce.UnusedDomains
                      , Gen.UI.UI
-                     
+
 
 
     build-depends    : base
@@ -120,7 +120,6 @@ Library
                      , uniplate
                      , unordered-containers
                      , safe
-                     , neat-interpolation
 
     if impl(ghc < 7.10)
         build-depends: unix==2.7.0.1
