@@ -97,7 +97,7 @@ ghci:
 		-Wall                                      \
 		`find src -name '*.hs' | egrep -v 'exec|test/' | grep -v '\.#' `
 
-ghci_main:
+ghci_file:
 	@cabal exec ghci -- -isrc -isrc/test -idist/build/autogen  \
 		-XNoImplicitPrelude                        \
 		-XOverloadedStrings                        \
@@ -120,4 +120,4 @@ ghci_main:
 		-fwarn-unused-do-bind                      \
 		-fwarn-unused-matches                      \
 		-Wall                                      \
-		src/exec/GenMain.hs
+		${files}
