@@ -128,9 +128,11 @@ run fp = do
   print . pretty $ solution
 
 main = do
-  let fps = ["/Users/bilalh/Desktop/Results/_notable/solver/a.essence"
-            ,"/Users/bilalh/Desktop/Results/_notable/solver/b.essence"
-            ,"/Users/bilalh/Desktop/Results/_notable/solver/c.essence"
-            ,"/Users/bilalh/Desktop/Results/_notable/solver/d.essence"
+  let fps = ["/Users/bilalh/Desktop/Results/_notable/solver/e.essence"
+            -- ,"/Users/bilalh/Desktop/Results/_notable/solver/a.essence"
+            -- ,"/Users/bilalh/Desktop/Results/_notable/solver/b.essence"
+            -- ,"/Users/bilalh/Desktop/Results/_notable/solver/c.essence"
+            -- ,"/Users/bilalh/Desktop/Results/_notable/solver/d.essence"
+            ,"/Users/bilalh/Desktop/Results/_notable/solver/f.essence"
             ]
   mapM_ run fps
