@@ -67,6 +67,7 @@ Library
                      , Gen.Generalise.Generalise
                      , Gen.Generalise.Runner
                      , Gen.Helpers.Debug
+                     , Gen.Helpers.InlineLettings
                      , Gen.Helpers.LineError
                      , Gen.Helpers.Log
                      , Gen.Helpers.OrderedType

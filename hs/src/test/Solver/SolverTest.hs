@@ -8,7 +8,7 @@ import Conjure.UI.IO
 import Conjure.Language.Definition
 import Test.Tasty.HUnit(Assertion,assertFailure,assertBool)
 import System.FilePath(takeDirectory,takeFileName)
-import Conjure.Language.ModelDiff
+import Conjure.Language.CategoryOf
 
 tests ::  IO TestTree
 tests = do

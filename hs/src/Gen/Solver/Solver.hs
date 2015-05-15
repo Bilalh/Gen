@@ -6,8 +6,8 @@ import Conjure.Language.Instantiate
 import Conjure.UI.IO
 import Gen.Imports
 import Gen.Solver.Enumerate
-import Conjure.Process.LettingsForComplexInDoms
 import Conjure.Language.NameResolution (resolveNames)
+import Gen.Helpers.InlineLettings
 
 import qualified Data.Set as S
 
@@ -42,7 +42,7 @@ solverMain SolverArgs{..} = do
 solver :: (MonadFail m, MonadLog m ) =>  Model -> m (Maybe Solution)
 solver modelStart = do
   modelNamed <- ignoreLogs . runNameGen $ resolveNames modelStart
-  model <- inlineLettingDomainsForDecls modelNamed
+  let model = inlineLettings modelNamed
 
   -- Get the domains
   let domsE = [ (n, dom) | (Declaration (FindOrGiven Find n dom)) <- mStatements model ]
@@ -122,11 +122,14 @@ violates xs vals =
 
   where
   violate x =
-    let (Just res) = instantiateExpression (map ( \(a,b) -> (a,Constant b) ) vals) x
-     in case res of
-          (ConstantBool False) -> True
-          (ConstantBool True)  -> False
-          c -> error . show . vcat $ [ "Not a constant" <+> pretty c ]
+    case instantiateExpression (map ( \(a,b) -> (a,Constant b) ) vals) x of
+      Nothing -> lineError $line ["can not instantiateExpression"
+                                 , "expr:" <+> pretty x
+                                 , "vals:" <+> (vcat $ map pretty vals)
+                                 ]
+      (Just (ConstantBool False)) -> True
+      (Just (ConstantBool True)) -> False
+      (Just c) -> lineError $line ["Not a constant" <+> pretty c ]
 
 
 allVarsUsed ::  Set Name -> Expression ->  [Name]

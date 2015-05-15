@@ -1,0 +1,8 @@
+language Essence 1.3
+
+letting a be {4,7,2}
+given gg : set of int
+find x,y,z : int(0..100)
+such that x = |a|
+such that y = min(a)
+such that z = max(a)
