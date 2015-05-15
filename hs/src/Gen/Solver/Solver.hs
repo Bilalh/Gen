@@ -9,7 +9,9 @@ import Gen.Solver.Enumerate
 
 import qualified Data.Set as S
 
-type Solution = Model
+type Solution  = Model
+type DomValues = [(Name, [Constant])]
+type Assigment = (Name, Constant)
 
 data Trie a =
       TSome Name [a] (Trie a)
@@ -21,7 +23,7 @@ solveMain :: (MonadFail m, MonadLog m ) =>  Model -> m (Maybe Solution)
 solveMain model = do
   -- Get the domains
   let domsE = [ (n, dom) | (Declaration (FindOrGiven Find n dom)) <- mStatements model ]
-  doms :: [(Name, [Constant])] <- forM domsE $ \(name,dom) -> do
+  doms :: DomValues <- forM domsE $ \(name,dom) -> do
                     res  <- instantiateDomain [] dom
                     vals <- enumerateDomain res
                     return (name,vals)
@@ -36,6 +38,7 @@ solveMain model = do
   logInfo $ "doms" <+> (vcat $ map (pretty . groom)  doms)
   logInfo $ "trie" <+> (pretty $ groom trie)
 
+  -- Do the search
   let assigments = dfsSolve doms trie
   logInfo $ "assigments" <+> ( pretty $ groom assigments)
 
@@ -45,17 +48,17 @@ solveMain model = do
       return $ Just $ createSolution $ assigned
 
 
-
-dfsSolve :: [(Name,[Constant])] -> Trie Expression -> Maybe [(Name,Constant)]
+-- The search
+dfsSolve :: DomValues-> Trie Expression -> Maybe [Assigment]
 dfsSolve a b = solve a b []
   where
-  solve :: [(Name,[Constant])] -> Trie Expression -> [(Name,Constant)] -> Maybe [(Name,Constant)]
+  solve :: DomValues -> Trie Expression -> [Assigment] -> Maybe [Assigment]
   solve [] _ []  = Nothing   -- No Variables
   solve [] _ env = Just env  -- Assigned all variables successfully
 
 
   -- Variables without any constraints
-  -- Assign the first value in its domain
+  -- Assign the first value in it's domain
   solve ds@(_:_) TNone env = let vs =  map f ds in
           case all isJust vs of
               True  -> Just $ catMaybes vs ++ env
@@ -66,33 +69,33 @@ dfsSolve a b = solve a b []
 
   -- dfs search
   solve ( (dname, dvals) : drest) trie@(TSome _ cs trest) env =
-      case dvals of
-      []     -> Nothing  -- no values left in the domain
+    case dvals of
+    []     -> Nothing  -- no values left in the domain
 
-      (x:xs) -> let newEnv = updateEnv env (dname,x) in
-          case violates cs newEnv of
-              True  -> solve ( (dname, xs) : drest ) trie env
-              False ->
-                  case solve ( drest ) trest newEnv of
-                      Just jenv -> Just jenv
-                      Nothing -> solve ( (dname, xs) : drest ) trie env
+    (x:xs) -> let newEnv = updateEnv env (dname,x) in
+      case violates cs newEnv of
+        True  -> solve ( (dname, xs) : drest ) trie env
+        False ->
+          case solve drest trest newEnv of
+            Just jenv -> Just jenv
+            Nothing -> solve ( (dname, xs) : drest ) trie env
 
 
-  updateEnv :: [(Name,Constant)] -> (Name,Constant) -> [(Name,Constant)]
+  updateEnv :: [Assigment] -> (Name,Constant) -> [Assigment]
   updateEnv env val = val : env
 
 
 -- Returns True if any constraint is not satisfied
-violates  :: [Expression] -> [(Name,Constant)] -> Bool
+violates  :: [Expression] -> [Assigment] -> Bool
 violates xs vals =
   all violate xs
 
   where
   violate x =
     let (Just res) = instantiateExpression (map ( \(a,b) -> (a,Constant b) ) vals) x
-    in  case res of
-        (ConstantBool False)  -> True
-        (ConstantBool True) -> False
+     in case res of
+          (ConstantBool False) -> True
+          (ConstantBool True)  -> False
 
 
 allVarsUsed ::  Set Name -> Expression ->  [Name]
@@ -103,14 +106,12 @@ allVarsUsed varNames expr  =
     ]
 
 
-mkTrie :: [Name] -> [( Set Name, a )] -> Trie a
+mkTrie :: [Name] -> [(Set Name,a)] -> Trie a
 mkTrie [] _ = TNone
 mkTrie (x:xs) cs =
-    let
-        (hasX,noX) = partition (\(set,_) ->  x `S.member`  set && S.size set == 1 ) cs
-    in
-        TSome x (map snd hasX)
-            $ mkTrie xs (map (\(s,v) -> (x `S.delete` s, v) ) noX)
+  let (hasX,noX) = partition (\(set,_) ->  x `S.member`  set && S.size set == 1 ) cs
+  in  TSome x (map snd hasX)
+        $ mkTrie xs (map (\(s,v) -> (x `S.delete` s, v) ) noX)
 
 
 createSolution :: [(Name,Constant)] -> Solution
@@ -118,21 +119,18 @@ createSolution xs = def{mStatements= [ Declaration $ (Letting n) (Constant e)
                                      | (n,e) <-xs ] }
 
 
-run :: IO ()
-run = do
-  let fp = "/Users/bilalh/Desktop/Results/_notable/solver/a.essence"
+run :: FilePath -> IO ()
+run fp = do
   model <- readModelFromFile fp
   solution <- runLoggerIO LogNone $ solveMain model
+  print fp
+  print . pretty $ model
   print . pretty $ solution
 
-
--- Unused
-
-data SolveState = SolveState{
-      assigned    :: [(Name,Expression)]
-    , constraints :: [Expression]
-    , domValues   :: [(Name, [Constant])]
-    } deriving (Show)
-
-instance Pretty SolveState where
-    pretty = pretty . groom
+main = do
+  let fps = ["/Users/bilalh/Desktop/Results/_notable/solver/a.essence"
+            ,"/Users/bilalh/Desktop/Results/_notable/solver/b.essence"
+            ,"/Users/bilalh/Desktop/Results/_notable/solver/c.essence"
+            ,"/Users/bilalh/Desktop/Results/_notable/solver/d.essence"
+            ]
+  mapM_ run fps

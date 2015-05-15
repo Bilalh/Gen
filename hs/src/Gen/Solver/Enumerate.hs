@@ -1,5 +1,6 @@
+-- inlined from now, to save me from recompiling conjure
+-- To merge when finished
 module Gen.Solver.Enumerate where
--- inlined from now
 
 import Conjure.Prelude
 import Conjure.Language.AdHoc
