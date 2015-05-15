@@ -2,8 +2,6 @@
 .cabal-sandbox-profile
 __bugs
 _t*
-a.essence
-a.param
 bin
 outt
 toolchain
