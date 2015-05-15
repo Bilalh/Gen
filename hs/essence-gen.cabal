@@ -90,8 +90,9 @@ Library
                      , Gen.Reduce.Runner
                      , Gen.Reduce.Simpler
                      , Gen.Reduce.UnusedDomains
+                     , Gen.Solver.Enumerate
+                     , Gen.Solver.Solver
                      , Gen.UI.UI
-
 
 
     build-depends    : base
