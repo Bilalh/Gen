@@ -202,6 +202,7 @@ test-suite gen-testing
                      , base
                      , bytestring
                      , containers
+                     , filepath
                      , tasty
                      , tasty-ant-xml
                      , tasty-golden

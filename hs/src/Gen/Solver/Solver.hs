@@ -1,5 +1,5 @@
 {-# LANGUAGE QuasiQuotes, TupleSections #-}
-module Gen.Solver.Solver where
+module Gen.Solver.Solver(solver,solverMain, SolverArgs(..), Solution) where
 
 import Conjure.Language.Definition
 import Conjure.Language.Instantiate
@@ -20,9 +20,27 @@ data Trie a =
     | TNone
     deriving(Show)
 
+data SolverArgs = SolverArgs {
+      essencePath   :: FilePath
+    , solutionPath  :: FilePath
+    , printSolution :: Bool
+    } deriving Show
 
-solveMain :: (MonadFail m, MonadLog m ) =>  Model -> m (Maybe Solution)
-solveMain modelStart = do
+solverMain :: SolverArgs -> IO ()
+solverMain SolverArgs{..} = do
+  model <- readModelFromFile essencePath
+  runLoggerIO LogNone $ solver model >>= \case
+    Nothing -> do
+      liftIO $ putStrLn "No solution found"
+    (Just solution) -> do
+      liftIO $ putStrLn $ "Solution @ " ++ solutionPath
+      liftIO $ when printSolution $ print . pretty $ solution
+      writeModel (Just solutionPath) solution
+
+
+
+solver :: (MonadFail m, MonadLog m ) =>  Model -> m (Maybe Solution)
+solver modelStart = do
   modelNamed <- ignoreLogs . runNameGen $ resolveNames modelStart
   model <- inlineLettingDomainsForDecls modelNamed
 
@@ -131,18 +149,18 @@ createSolution :: [(Name,Constant)] -> Solution
 createSolution xs = def{mStatements= [ Declaration $ (Letting n) (Constant e)
                                      | (n,e) <- sortOn snd xs ] }
 
-run :: FilePath -> IO ()
-run fp = do
+_run :: FilePath -> IO ()
+_run fp = do
   model <- readModelFromFile fp
-  solution <- runLoggerIO LogNone $ solveMain model
+  solution <- runLoggerIO LogNone $ solver model
   print fp
   print . pretty $ model
   print . pretty $ solution
   putStrLn "---"
   putStrLn ""
 
-main :: IO ()
-main = do
+_test :: IO ()
+_test = do
   let fps = ["/Users/bilalh/Desktop/Results/_notable/solver/e.essence"
             ,"/Users/bilalh/Desktop/Results/_notable/solver/a.essence"
             ,"/Users/bilalh/Desktop/Results/_notable/solver/b.essence"
@@ -151,8 +169,9 @@ main = do
             ,"/Users/bilalh/Desktop/Results/_notable/solver/f.essence"
             ,"/Users/bilalh/Desktop/Results/_notable/solver/g.essence"
             ,"/Users/bilalh/Desktop/Results/_notable/solver/h.essence"
+            ,"/Users/bilalh/Desktop/Results/_notable/solver/n.essence"
             ]
-  mapM_ run fps
+  mapM_ _run fps
 
-z :: IO ()
-z = run "/Users/bilalh/Desktop/Results/_notable/solver/h.essence"
+_z :: IO ()
+_z = _run "/Users/bilalh/Desktop/Results/_notable/solver/h.essence"

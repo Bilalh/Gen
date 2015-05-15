@@ -105,6 +105,13 @@ data UI
     , meta_only   :: Bool
     , limit_time  :: Maybe Int
     }
+  | Solver
+    {
+      essence_path   :: FilePath
+    , solution_path  :: Maybe FilePath
+    , print_solution :: Bool
+    , limit_time     :: Maybe Int
+    }
   | Script_Toolchain
     {
       essence_path       :: FilePath
@@ -457,6 +464,26 @@ ui  = modes
      } &= explicit
        &= name "generalise"
        &= help "Generalises a .spec.json file"
+
+
+  , Solver
+     { essence_path   = def     &= typ "essence"
+                                &= argPos 0
+     , solution_path  = Nothing &= typ "solution"
+                                &= name "output-solution"
+                                &= name "o"
+                                &= help "Where to place writes solution, defaults to essence's path with last extension change"
+     , print_solution = False   &= name "print-solution"
+                                &= name "s"
+                                &= explicit
+                                &= help "Print the solution as well"
+     , limit_time     = Nothing &= name "limit-time"
+                                &= explicit
+                                &= help "Time limit in seconds of CPU time of this program"
+     } &= explicit
+       &= name "solve"
+       &= help "Solve a .essence file, and write the first solution to file if there is one"
+
 
 
   , Link

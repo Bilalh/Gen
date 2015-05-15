@@ -11,6 +11,7 @@ import Gen.Classify.AddSpecE      (addSpecJson, specEMain)
 import Gen.Classify.Sorter        (getRecursiveContents, sorterMain')
 import Gen.Classify.UpdateChoices (updateChoices)
 import Gen.Essence.Generate       (generateEssence)
+import Gen.Essence.UIData
 import Gen.Generalise.Generalise  (generaliseMain)
 import Gen.Imports
 import Gen.IO.Term
@@ -20,15 +21,15 @@ import Gen.Reduce.Data            (RState (..), mkrGen)
 import Gen.Reduce.FormatResults   (formatResults)
 import Gen.Reduce.Reduce          (reduceMain)
 import Gen.Reduce.Runner          (giveDb, saveDB)
+import Gen.Solver.Solver          (SolverArgs (..), solverMain)
 import Gen.UI.UI
 import System.Console.CmdArgs     (cmdArgs)
 import System.CPUTime             (getCPUTime)
 import System.Environment         (lookupEnv, withArgs)
 import System.Exit                (exitFailure, exitSuccess, exitWith)
-import System.FilePath            (takeExtensions)
+import System.FilePath            (takeExtensions,replaceExtension)
 import System.Timeout             (timeout)
 import Text.Printf                (printf)
-import Gen.Essence.UIData
 
 import qualified Data.Set                as S
 import qualified Gen.Essence.UIData      as EC
@@ -44,7 +45,7 @@ main = do
     [] -> do
        args <- helpArg
        void $ withArgs [args] (cmdArgs ui)
-    [x] | x `elem` [ "essence", "reduce", "link", "meta", "json", "generalise"
+    [x] | x `elem` [ "essence", "reduce", "link", "meta", "json", "generalise", "solve"
                    , "script-toolchain", "script-recheck", "script-updateChoices"] -> do
        args <- helpArg
        void $ withArgs [x, args] (cmdArgs ui)
@@ -306,6 +307,27 @@ mainWithArgs Generalise{..} = do
   state <- generaliseMain args
   saveDB False db_directory (E.resultsDB_  state)
 
+mainWithArgs Solver{..} = do
+
+  fileErr <- catMaybes <$> sequence
+            [
+              fileExists    "essence path" essence_path
+            ]
+
+  case fileErr of
+    [] -> return ()
+    xs -> mapM putStrLn xs >> exitFailure
+
+  outPath <- case solution_path of
+               Just p  -> return p
+               Nothing -> do
+                 return $ replaceExtension essence_path ".solution"
+
+  solverMain SolverArgs{
+                   essencePath   = essence_path
+                 , printSolution = print_solution
+                 , solutionPath  = outPath
+                 }
 
 mainWithArgs Link{..} = do
   errors <- catMaybes <$> (mapM (dirExists "-d") directories )
@@ -331,6 +353,7 @@ mainWithArgs SpecEE{..} = do
 
   putStrLn "Creating .meta.json files"
   metaMain directories
+
 
 mainWithArgs u@Script_Toolchain{..} = do
 

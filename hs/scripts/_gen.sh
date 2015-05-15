@@ -3,9 +3,9 @@
 _gen()
 {
     local last=${COMP_WORDS[COMP_CWORD-1]}
-    # MODIFY THIS IF  ONLY for a new sub-command
+    # MODIFY THIS ONLY for a new sub-command
     if [ "${last}x" = "genx" ]; then
-        COMPREPLY=( $(compgen -W "essence reduce generalise link json script-toolchain script-recheck script-updateChoices" -- $cur) )
+        COMPREPLY=( $(compgen -W "essence reduce generalise solve link json script-toolchain script-recheck script-updateChoices" -- $cur) )
         return 0
     fi
 
