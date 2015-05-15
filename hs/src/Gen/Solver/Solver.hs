@@ -6,6 +6,8 @@ import Conjure.Language.Instantiate
 import Conjure.UI.IO
 import Gen.Imports
 import Gen.Solver.Enumerate
+import Conjure.Process.LettingsForComplexInDoms
+import Conjure.Language.NameResolution (resolveNames)
 
 import qualified Data.Set as S
 
@@ -20,7 +22,10 @@ data Trie a =
 
 
 solveMain :: (MonadFail m, MonadLog m ) =>  Model -> m (Maybe Solution)
-solveMain model = do
+solveMain modelStart = do
+  modelNamed <- ignoreLogs . runNameGen $ resolveNames modelStart
+  model <- inlineLettingDomainsForDecls modelNamed
+
   -- Get the domains
   let domsE = [ (n, dom) | (Declaration (FindOrGiven Find n dom)) <- mStatements model ]
   doms :: DomValues <- forM domsE $ \(name,dom) -> do
@@ -144,8 +149,9 @@ main = do
             ,"/Users/bilalh/Desktop/Results/_notable/solver/d.essence"
             ,"/Users/bilalh/Desktop/Results/_notable/solver/f.essence"
             ,"/Users/bilalh/Desktop/Results/_notable/solver/g.essence"
+            ,"/Users/bilalh/Desktop/Results/_notable/solver/h.essence"
             ]
   mapM_ run fps
 
 z :: IO ()
-z = run "/Users/bilalh/Desktop/Results/_notable/solver/d.essence"
+z = run "/Users/bilalh/Desktop/Results/_notable/solver/h.essence"
