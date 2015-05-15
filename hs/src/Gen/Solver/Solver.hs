@@ -35,17 +35,24 @@ solveMain model = do
                 ]
   let trie = mkTrie ( map fst domsE) ordered
 
-  logInfo $ "doms" <+> (vcat $ map (pretty . groom)  doms)
-  logInfo $ "trie" <+> (pretty $ groom trie)
+  let noVars = [ x | (s, x) <- ordered, S.null s ]
 
-  -- Do the search
-  let assigments = dfsSolve doms trie
-  logInfo $ "assigments" <+> ( pretty $ groom assigments)
+  logInfo $ "ordered" <+> (pretty $ groom  ordered)
+  logInfo $ "noVars"  <+> (vcat $ map pretty noVars)
+  logInfo $ "doms"    <+> (vcat $ map (pretty . groom)  doms)
+  logInfo $ "trie"    <+> (pretty $ groom trie)
 
-  case assigments of
-    Nothing    -> return Nothing
-    (Just assigned) -> do
-      return $ Just $ createSolution $ assigned
+  case violates noVars [] of
+    True  -> return Nothing
+    False -> do
+      -- Do the search
+      let assigments = dfsSolve doms trie
+      logInfo $ "assigments" <+> ( pretty $ groom assigments)
+
+      case assigments of
+        Nothing    -> return Nothing
+        (Just assigned) -> do
+          return $ Just $ createSolution $ assigned
 
 
 -- The search
@@ -88,7 +95,7 @@ dfsSolve a b = solve a b []
 -- Returns True if any constraint is not satisfied
 violates  :: [Expression] -> [Assigment] -> Bool
 violates xs vals =
-  all violate xs
+  any violate xs
 
   where
   violate x =
@@ -118,7 +125,6 @@ createSolution :: [(Name,Constant)] -> Solution
 createSolution xs = def{mStatements= [ Declaration $ (Letting n) (Constant e)
                                      | (n,e) <-xs ] }
 
-
 run :: FilePath -> IO ()
 run fp = do
   model <- readModelFromFile fp
@@ -126,13 +132,20 @@ run fp = do
   print fp
   print . pretty $ model
   print . pretty $ solution
+  putStrLn "---"
+  putStrLn ""
 
+main :: IO ()
 main = do
   let fps = ["/Users/bilalh/Desktop/Results/_notable/solver/e.essence"
-            -- ,"/Users/bilalh/Desktop/Results/_notable/solver/a.essence"
-            -- ,"/Users/bilalh/Desktop/Results/_notable/solver/b.essence"
-            -- ,"/Users/bilalh/Desktop/Results/_notable/solver/c.essence"
-            -- ,"/Users/bilalh/Desktop/Results/_notable/solver/d.essence"
+            ,"/Users/bilalh/Desktop/Results/_notable/solver/a.essence"
+            ,"/Users/bilalh/Desktop/Results/_notable/solver/b.essence"
+            ,"/Users/bilalh/Desktop/Results/_notable/solver/c.essence"
+            ,"/Users/bilalh/Desktop/Results/_notable/solver/d.essence"
             ,"/Users/bilalh/Desktop/Results/_notable/solver/f.essence"
+            ,"/Users/bilalh/Desktop/Results/_notable/solver/g.essence"
             ]
   mapM_ run fps
+
+z :: IO ()
+z = run "/Users/bilalh/Desktop/Results/_notable/solver/d.essence"
