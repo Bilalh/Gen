@@ -108,6 +108,7 @@ violates xs vals =
      in case res of
           (ConstantBool False) -> True
           (ConstantBool True)  -> False
+          c -> error . show . vcat $ [ "Not a constant" <+> pretty c ]
 
 
 allVarsUsed ::  Set Name -> Expression ->  [Name]
