@@ -128,7 +128,7 @@ mkTrie (x:xs) cs =
 
 createSolution :: [(Name,Constant)] -> Solution
 createSolution xs = def{mStatements= [ Declaration $ (Letting n) (Constant e)
-                                     | (n,e) <-xs ] }
+                                     | (n,e) <- sortOn snd xs ] }
 
 run :: FilePath -> IO ()
 run fp = do
