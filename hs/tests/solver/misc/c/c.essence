@@ -1,0 +1,7 @@
+language Essence 1.3
+
+find var5: set of int(1..4)
+find var6: set of int(4..8)
+
+such that
+  |var5 intersect var6| = 1

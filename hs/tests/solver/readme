@@ -1,0 +1,11 @@
+Format:
+
+A directory with a .essence file and directory called expected with .solution files of possible solutions
+
+tests from conjure-private, can copied with no changes, if there have no params
+
+dir/
+  .essence
+  expected
+    .solution
+    .solution  

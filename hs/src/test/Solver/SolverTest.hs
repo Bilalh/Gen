@@ -23,7 +23,7 @@ doSpec fp = do
   model <- readModelFromFile fp
   let solMay = solveSpec model
   possibleFps  <- liftIO $ allFilesWithSuffix ".solution" (takeDirectory fp)
-  let parts = testGroup fp
+  let parts = testGroup (takeDirectory fp)
         [
           testCase (pretty $ takeFileName $  fp) $
             checkSpec solMay possibleFps
@@ -36,7 +36,12 @@ solveSpec model = do
   solution
 
 checkSpec :: Maybe Solution -> [FilePath] -> Assertion
-checkSpec Nothing  _  = assertFailure $ "Expected a Solution"
+checkSpec Nothing [] = assertBool "No solution expected" True
+checkSpec Nothing [x]  = do
+  s <- readModelFromFile x
+  assertFailure $ "Expected a solution, namely: " ++ (show $ pretty x) ++ "\n"
+                                                  ++ (show $ pretty s)
+checkSpec Nothing  xs = assertFailure $ "Expected a solution, possible: " ++ (show $ length xs)
 checkSpec (Just s) [] = assertFailure $ "Expected no solution but got:\n"
                         ++ (show $ pretty s)
 checkSpec (Just s) xs = do
