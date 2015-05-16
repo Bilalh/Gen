@@ -153,7 +153,7 @@ instance (HasGen m,  HasLogger m) =>  Reduce Constant m where
       return . map (ECon . ConstantAbstract) . innersExpand reduceLength $ x
     subterms _ = return []
 
-    reduce (ConstantAbstract x) =  return []
+    reduce (ConstantAbstract _) =  return []
     reduce _   = return []
 
     mutate (ConstantAbstract xs)  = mutate1 xs
@@ -311,7 +311,7 @@ instance (HasGen m,  HasLogger m) => Reduce (Domain () Expr) m where
   single   x = return [EDom x]
   subterms x = return . map (EDom) . innersExpand reduceLength $ x
 
-  mutate x = return []
+  mutate _ = return []
 
 instance (HasGen m,  HasLogger m) =>  Reduce (Op Expr) m where
 

@@ -4,7 +4,6 @@ import Gen.Imports
 import Data.Time(formatTime,getCurrentTime)
 import Data.Time.Format(defaultTimeLocale)
 import Conjure.UI.IO(readModelFromFile)
-import System.FilePath((<.>))
 import Conjure.Language.NameResolution
 import Conjure.Language.NameGen ( runNameGen )
 

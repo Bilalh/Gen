@@ -167,10 +167,10 @@ boolExprUsingRef var@(Var ref refType) = do
 -- Types that can be reached from a type in n levels of nesting
 exprFromToType :: Var ->Type -> GG Expr
 exprFromToType var@(Var _ from) to | from == to =  return $ EVar var
-
 exprFromToType var@(Var _ (TypeSet _)) TypeInt = return  [essencee| |&v| |]
   where v = EVar var
 
+exprFromToType var to  = lineError $line [nn "var" var, nn "to" to]
 
 
 -- Return a expr of the specifed depth and type
@@ -305,6 +305,8 @@ purgeAny (TypeRelation ts) =  do
 
 purgeAny (TypeFunction a b)   = return TypeFunction <*> (withDepthDec $ purgeAny a)
                              <*> (withDepthDec $ purgeAny b)
+
+purgeAny x = lineError $line [nn "x" x]
 
 exprOfPurgeAny ::Type -> GG Expr
 exprOfPurgeAny ty  = do

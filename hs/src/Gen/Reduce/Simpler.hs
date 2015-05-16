@@ -5,7 +5,6 @@ module Gen.Reduce.Simpler where
 import Conjure.Language.AbstractLiteral
 import Conjure.Language.Constant
 import Conjure.Language.Expression.Op
-import Gen.AST.TH
 import Gen.Imports
 import Gen.Reduce.Inners
 import Gen.Classify.Meta(maximum')
@@ -92,7 +91,7 @@ instance Simpler Type Type where
 
 
 instance Simpler Var Var where
-    simplerImp (Var _ a) (Var _ b) = return EQ
+    simplerImp (Var _ _) (Var _ _) = return EQ
 
 
 instance Simpler Constant Constant where

@@ -25,7 +25,6 @@ instance (IntRange c, Pretty c, Eq c) => Inners (AbstractLiteral c) where
   innersExpand f (AbsLitTuple x)          = map AbsLitTuple (f x)
   innersExpand f (AbsLitSet x)            = map AbsLitSet (f x)
   innersExpand f (AbsLitMSet x)           = map AbsLitMSet (f x)
-  innersExpand f (AbsLitFunction x)       = map AbsLitFunction (f x)
   innersExpand f (AbsLitSequence x)       = map AbsLitSequence (f x)
   innersExpand f (AbsLitRelation x)       = map AbsLitRelation (f x)
   innersExpand f (AbsLitPartition x)      = map AbsLitPartition (f x)
@@ -37,13 +36,13 @@ instance (IntRange c, Pretty c, Eq c) => Inners (AbstractLiteral c) where
 
 instance (IntRange c, Pretty c, Eq c) => Inners (Domain () c) where
 
-  innersReduce f x = $never
+  innersReduce _ _ = $notDone
 
   innersExpand f (DomainInt xs) = map DomainInt (f xs)
   innersExpand _ DomainBool     = []
   innersExpand f (DomainSet () a x)  = map (DomainSet () a) (concat $ f [x])
 
-  innersExpand f x = $never
+  innersExpand _ _ = $notDone
 
 
 class IntRange a where

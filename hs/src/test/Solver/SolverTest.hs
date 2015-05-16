@@ -8,7 +8,7 @@ import Conjure.UI.IO
 import Conjure.Language.Definition
 import Test.Tasty.HUnit(Assertion,assertFailure,assertBool)
 import System.FilePath(takeDirectory,takeFileName)
-import Conjure.Language.CategoryOf
+
 
 tests ::  IO TestTree
 tests = do
@@ -29,6 +29,7 @@ doSpec fp = do
             checkSpec solMay possibleFps
         ]
   return parts
+
 
 solveSpec :: Model -> Maybe Model
 solveSpec model = do
@@ -52,6 +53,7 @@ checkSpec (Just s) xs = do
     where
     compareSpec :: Model -> Bool
     compareSpec c = pretty c == pretty s
+
 
 testSpecs :: IO [FilePath]
 testSpecs = allFilesWithSuffix ".essence" "tests"

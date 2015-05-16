@@ -9,7 +9,7 @@ import Gen.IO.Toolchain         hiding (ToolchainData (..))
 import Gen.Reduce.Data          hiding (RState (..))
 import Gen.Reduce.FormatResults
 import GHC.Real                 (floor)
-import System.FilePath          (replaceDirectory, takeBaseName, (<.>))
+import System.FilePath          (replaceDirectory, takeBaseName)
 import System.Posix             (getFileStatus)
 import System.Posix.Files       (fileSize)
 

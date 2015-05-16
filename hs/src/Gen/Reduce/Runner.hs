@@ -11,7 +11,7 @@ import Gen.IO.Toolchain         hiding (ToolchainData (..))
 import Gen.Reduce.Data
 import Gen.Reduce.FormatResults
 import GHC.Real                 (floor)
-import System.FilePath          (replaceDirectory, takeBaseName, (<.>))
+import System.FilePath          (replaceDirectory, takeBaseName)
 import System.Posix             (getFileStatus)
 import System.Posix.Files       (fileSize)
 
@@ -69,11 +69,11 @@ runSpec spE = do
 
   checkDB spE >>= \case
     Just StoredError{} -> rrError "StoredResult in runSpec" []
-    Just Passing{timeTaken_} -> do
+    Just Passing{} -> do
       liftIO $ print $ ("Stored no rrError(P)"  :: String)
       liftIO $ putStrLn ""
       return (Nothing, 0)
-    Just r@OurError{timeTaken_}  -> do
+    Just r@OurError{}  -> do
       liftIO $ print $ ("Stored has rrError(O)" :: String)
       liftIO $ putStrLn ""
       return $ (Just r, 0)

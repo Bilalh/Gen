@@ -23,7 +23,7 @@ import Paths_essence_gen           (getDataDir)
 import System.Directory            (copyFile)
 import System.Environment          (lookupEnv)
 import System.Exit                 (ExitCode, exitSuccess)
-import System.FilePath             ((<.>), dropFileName)
+import System.FilePath             (dropFileName)
 import System.IO                   (IOMode (..), withFile)
 import System.Process              (StdStream (..), createProcess, proc,
                                     showCommandForUser, std_err, std_out, env,

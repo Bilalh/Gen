@@ -1,7 +1,3 @@
 .cabal-sandbox
 .cabal-sandbox-profile
-__bugs
-_t*
-bin
-outt
-toolchain
+__

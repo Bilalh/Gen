@@ -1,5 +1,4 @@
 {-# LANGUAGE DeriveDataTypeable, QuasiQuotes #-}
-
 module Gen.Classify.AddSpecE(specEMain, addSpecJson, compareSpecs) where
 
 import Conjure.Language.Definition
@@ -11,6 +10,7 @@ import Gen.Classify.Sorter             (getRecursiveContents)
 import Gen.IO.Formats
 import Gen.Imports
 import System.FilePath                 (takeExtension)
+import Gen.Helpers.InlineLettings
 
 import qualified Data.Aeson           as A
 import qualified Data.ByteString.Lazy as L
@@ -69,7 +69,6 @@ addSpecJson printSpecs fp = do
            L.writeFile (replaceExtensions fp ".spec.json" ) (A.encode r)
 
 
-
 removeTrueConstraints :: Model -> Model
 removeTrueConstraints m =
    let flitered = map f (mStatements m)
@@ -82,34 +81,10 @@ removeTrueConstraints m =
      g (Op (MkOpTrue _)) = False
      g _ = True
 
--- FIXME param file
+
 inlineParamAndLettings :: Model -> Maybe Model -> Model
 inlineParamAndLettings spec Nothing = inlineLettings spec
 inlineParamAndLettings _ (Just _) = $notDone
-
-
-inlineLettings :: Model -> Model
-inlineLettings model =
-    let
-        inline p@(Reference nm _) = do
-            x <- gets (lookup nm)
-            return (fromMaybe p x)
-        inline p = return p
-
-        statements :: [Statement]
-        statements = catMaybes
-                        $ flip evalState []
-                        $ forM (mStatements model)
-                        $ \(st :: Statement) ->
-            case st of
-                Declaration (Letting nm x)
-                    -> modify ((nm,x) :) >> return Nothing
-                -- The following doesn't work when the identifier is used in a domain
-                -- Declaration (Letting nm x@Reference{})
-                --     -> modify ((nm,x) :) >> return Nothing
-                st' -> Just <$> transformBiM inline (st' :: Statement)
-    in
-        model { mStatements = statements }
 
 
 compareSpecs :: Spec -> Model -> IO Bool

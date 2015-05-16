@@ -30,7 +30,6 @@ import Gen.Helpers.TypeOf          as X
 import Data.Time
 import Data.Time.Clock.POSIX (getPOSIXTime)
 import System.Directory      (getHomeDirectory)
-import System.FilePath       ((<.>))
 import Test.QuickCheck( generate, sample')
 
 import qualified Control.Exception as C
