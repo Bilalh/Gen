@@ -2,9 +2,11 @@ module Gen.Arbitrary.Type where
 
 import Gen.Arbitrary.Prelude
 
+
 -- return the type of a, knowing b  from  `a in b`
 quanType_in ::Type ->Type
 quanType_in (TypeSet inner) = inner
+quanType_in x = lineError $line [nn "arg" x]
 
 
 atype_only :: [Type] -> GG Type

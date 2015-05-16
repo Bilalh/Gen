@@ -1,10 +1,10 @@
 {-# LANGUAGE QuasiQuotes, TupleSections #-}
-
 module Gen.Arbitrary.TypeConversions(toTypeWithConversions) where
 
 import Gen.Arbitrary.Expr
 import Gen.AST.Ops
 import Gen.Arbitrary.Prelude
+
 
 --Type that does not have any anys
 type PType =Type
@@ -259,14 +259,14 @@ reachableToType d oty@TypeInt = concatMapM process types
 
 reachableToType d oty@(TypeSet ity) =  do
     addLog "reachToTy" [nn "depth" d, nn "ty" oty ]
-    join (ss oty) (concatMapM process (types))
+    joinn (ss oty) (concatMapM process (types))
     where
 
 
     ss (TypeSet (TypeSet _)) = reachableToTypeSetSet d oty
     ss _ = return []
 
-    join a b = do
+    joinn a b = do
         aa <- a
         bb <- b
         return $ aa ++ bb
@@ -575,6 +575,7 @@ reachableToType _ (TypePartition _) = return []
 reachableToType _ (TypeUnnamed _)   = return []
 reachableToType _ (TypeEnum _)      = return []
 
+reachableToType a b = lineError $line [nn "a" a, nn "b" b ]
 
 reachableToTypeSetSet :: Depth ->Type -> GG [ (Type, GG [(ToTypeFn, Depth)] ) ]
 reachableToTypeSetSet d oty@(TypeSet (TypeSet inner) ) = concatMapM process types

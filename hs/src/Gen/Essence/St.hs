@@ -40,6 +40,7 @@ import qualified Data.Map as M
 import qualified Data.Set as S
 import qualified Text.PrettyPrint as Pr
 
+
 -- | Generate a random value of a specified type
 class Data a => Generate a where
   {-# MINIMAL give, possible | give, possiblePure, possibleNoType  #-}
