@@ -2,15 +2,16 @@
 module Gen.Essence.Domain where
 
 import Conjure.Language.Domain
+import Gen.Essence.Ints
 import Gen.Essence.Range
 import Gen.Essence.Rnd
 import Gen.Essence.St
 import Gen.Essence.Type        ()
 import Gen.Imports
+import Gen.Essence.EvalToInt
 
-import qualified Data.Set as S
 
-instance (Generate a, WrapConstant a) => Generate (Domain () a) where
+instance (Generate a, WrapConstant a, EvalToInt a) => Generate (Domain () a) where
   give GNone = give GNone >>= \ty -> give (GType ty)
 
   give (GType TypeBool)     = pure DomainBool
@@ -24,33 +25,30 @@ instance (Generate a, WrapConstant a) => Generate (Domain () a) where
   possibleNoType _ _ = True
 
 
-intDomainOfSize :: forall a . WrapConstant a
-               => Integer -> GenSt (Domain () a)
-intDomainOfSize numElems = do
-  numRanges <- choose3 (1 :: Integer, numElems)
-  ranges <- mkRanges numElems numElems numRanges S.empty
-  -- let idx = DomainInt (sortBy  rangeComp ranges)
-  let idx = DomainInt ranges
-  return idx
-
-
-instance Generate a => Generate (SetAttr a) where
+instance (Generate a, WrapConstant a, EvalToInt a) => Generate (SetAttr a) where
   give GNone         = SetAttr <$> give (GNone)
   give t             = giveUnmatched "Generate (SetAttr a)" t
   possiblePure _ _ _ = True
   possibleNoType _ _ = True
 
 
-instance Generate a => Generate (SizeAttr a)  where
+instance (Generate a, WrapConstant a, EvalToInt a) => Generate (SizeAttr a)  where
   give GNone = do
-    oneof3 [
-       pure SizeAttr_None
-     , SizeAttr_Size    <$> give (GType TypeInt)
-     , SizeAttr_MinSize <$> give (GType TypeInt)
-     , SizeAttr_MaxSize <$> give (GType TypeInt)
-     -- FIXME ensure b >= a?
-     -- , SizeAttr_MinMaxSize <$> give GNone <*> give GNone
-     ]
+    let defs =
+            [ (K_SizeAttr_None, pure SizeAttr_None)
+            , (K_SizeAttr_Size,    SizeAttr_Size    <$> give (GType TypeInt))
+            , (K_SizeAttr_MinSize, SizeAttr_MinSize <$> give (GType TypeInt))
+            , (K_SizeAttr_MaxSize, SizeAttr_MaxSize <$> give (GType TypeInt))
+            , (K_SizeAttr_MinMaxSize, (uncurry SizeAttr_MinMaxSize )  <$> minMax)
+            ]
+
+    parts <- getWeights defs
+    frequency3 parts
+
+    where
+    minMax = do
+      (IntAsc a b) <- give GNone
+      return $ (a,b)
 
   give t = giveUnmatched "Generate (SetAttr a)" t
 

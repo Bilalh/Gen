@@ -1,6 +1,6 @@
 {-# LANGUAGE TupleSections #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-module Gen.Essence.Constant where
+module Gen.Essence.Constant(Generate(..)) where
 
 import Conjure.Language.Definition
 import Gen.Essence.Literal         ()

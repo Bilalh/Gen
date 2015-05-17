@@ -20,6 +20,8 @@ instance Generate Spec where
     i_e <- choose3 exprCount
     -- let (i_d, i_e) = (1 :: Integer, 1 :: Integer)
 
+    logInfo $ "i_d" <+> pretty i_d
+
     doms <- mapM (\_ -> give GNone) [1..i_d]
     let withNames =  zipWith (\d i -> (name i , Findd d)) doms [1 :: Int ..]
     let mappings  = M.fromList withNames

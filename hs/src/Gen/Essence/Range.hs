@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-module Gen.Essence.Range(Generate(..), mkRanges, rangeComp) where
+module Gen.Essence.Range(Generate(..), mkRanges, rangeComp, chooseInt,intLowerBounded) where
 
 import Conjure.Language.Definition
 import Conjure.Language.Domain
@@ -17,11 +17,11 @@ instance (Generate a, WrapConstant a) => Generate (Range a) where
 
     where
       single  = do
-        a <- choose3 (0,5 :: Integer)
+        a <- chooseInt
         return $ RangeSingle (wrapConstant . ConstantInt $ a)
       bounded = do
-        a <- choose3 (0,5 :: Integer)
-        b <- choose3 (a,5)
+        a <- chooseInt
+        b <- intLowerBounded a
         return $ RangeBounded (wrapConstant . ConstantInt $ a)
                               (wrapConstant . ConstantInt $ b)
 
@@ -30,6 +30,12 @@ instance (Generate a, WrapConstant a) => Generate (Range a) where
   possiblePure _ _ _ = True
   possibleNoType _ _ = True
 
+
+chooseInt :: GenSt Integer
+chooseInt = choose3 (0,5 :: Integer)
+
+intLowerBounded :: Integer -> GenSt Integer
+intLowerBounded  a = choose3 (a,5)
 
 
 mkRanges :: forall a . WrapConstant a

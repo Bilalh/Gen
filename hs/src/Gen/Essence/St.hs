@@ -90,7 +90,8 @@ nextVarName prefix = do
 
 
 
-type GenSt a = StateT St Gen a
+-- type GenSt a = StateT St Gen a
+type GenSt a = StateT St (WriterT [(LogLevel, Doc)] Gen) a
 
 data GenerateConstraint = GNone
                         | GType Type          -- The resulting type
@@ -104,32 +105,18 @@ instance Pretty GenerateConstraint where
   pretty t = pretty . show $ t
 
 
--- | To allow a Range Constant or a Range Expr
-class WrapConstant a where
-  wrapConstant :: Constant -> a
-
-instance WrapConstant Expr where
-  wrapConstant = ECon
-
-instance WrapConstant Constant where
-  wrapConstant = id
-
-instance WrapConstant Expression where
-  wrapConstant = Constant
-
-
 newtype LVar = LVar Var
     deriving (Data, Typeable, Show)
 
 data St = St{
       weighting  :: Map Key Int
     , depth      :: Int
+    , varCounter :: Int
     , beConstant :: Bool  -- when true only generate constrant expressions
     , newVars_   :: [Var] -- Domains from e.g. forall
     , doms_      :: Domains
-    , varCounter :: Int
     }
- deriving (Eq,Show, Data, Typeable, Generic)
+ deriving (Eq,Show)
 
 instance Pretty St where
     pretty (St{..}) =
@@ -234,13 +221,19 @@ possibleUnmatched msg t = do
 
 
 runGenerate :: Generate a => GenerateConstraint -> St -> IO a
-runGenerate con st = generate $ evalStateT (give con) st
+-- runGenerate con st = generate $ evalStateT (give con) st
+runGenerate con st = do
+  let s = (flip evalStateT ) st (give con)
+  let w = runWriterT s
+  (res,_) <- generate w
+  return res
 
 -- No Logs at the moment
-runGenerateWithLogs :: Generate a => St -> Gen (a,LogsTree)
-runGenerateWithLogs st = do
-  res <- evalStateT (give GNone) st
-  return (res,LSEmpty)
+runGenerateWithLogs :: Generate a => GenerateConstraint -> St -> Gen (a,[(LogLevel,Doc)])
+runGenerateWithLogs con st = do
+  let s = (flip evalStateT ) st (give con)
+  let w = runWriterT s
+  w
 
 -- | DataType of a proxy
 proxyDataTypeOf :: forall a . Data a => Proxy a -> DataType
@@ -277,3 +270,21 @@ generateTypeFreq _ con n st = do
   ts :: [a] <-  mapM  (\_ ->  runGenerate  con st)  [1..n]
   tys <- mapM ttypeOf ts
   print .  vcat .  map pretty $ freq tys
+
+
+-- | To allow a Range Constant or a Range Expr
+class WrapConstant a where
+  wrapConstant :: Constant -> a
+
+instance WrapConstant Expr where
+  wrapConstant = ECon
+
+instance WrapConstant Constant where
+  wrapConstant = id
+
+instance WrapConstant Expression where
+  wrapConstant = Constant
+
+
+instance MonadLog (WriterT [(LogLevel, Doc)] Gen)  where
+    log lvl msg = tell [(lvl, msg)]

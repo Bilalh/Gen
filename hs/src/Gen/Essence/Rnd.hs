@@ -18,14 +18,14 @@ frequency3 xs0 =  choose3 (1, tot) >>= (`pick` xs0)
   pick _ _  = error "frequency3.pick used with empty list"
 
 choose3 :: Random a => (a,a) -> GenSt a
-choose3 rng = lift $ choose rng
+choose3 rng = lift . lift $ choose rng
 
 oneof3 :: [GenSt a] -> GenSt a
 oneof3 [] = error "oneof3 used with empty list"
 oneof3 gs = choose3 (0,length gs - 1) >>=   (gs `at`)
 
 elements3 :: [a] -> GenSt a
-elements3 as  = lift $ elements as
+elements3 as  = lift . lift $ elements as
 
 vectorOf3 :: Int -> GenSt a -> GenSt [a]
 vectorOf3 k gen = sequence [ gen | _ <- [1..k] ]

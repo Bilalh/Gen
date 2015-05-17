@@ -10,7 +10,6 @@ import Gen.Classify.Meta               (mkMeta)
 import Gen.Essence.Spec                ()
 import Gen.Essence.St
 import Gen.Essence.UIData              (EssenceConfig)
-import Gen.Helpers.Log
 import Gen.Imports
 import Gen.IO.Formats
 import Gen.IO.Toolchain                hiding (DirError (..), ToolchainData (..))
@@ -50,13 +49,13 @@ generateEssence ec@EC.EssenceConfig{..} = do
             True  -> removeDirectoryRecursive fp
 
 
-generateWrap :: Maybe [FilePath] -> Gen (Spec, LogsTree) -> IO (Spec, LogsTree)
+generateWrap :: Maybe [FilePath] -> Gen (Spec, Doc) -> IO (Spec, Doc)
 generateWrap (Just [])  _ =
     $(neverNote "generateWrap No given specs left")
 
 generateWrap (Just (x:_)) _ = do
   spec :: Spec <- readFromJSON x
-  return (spec, def)
+  return (spec, "")
 
 generateWrap _ f = generate f
 
@@ -470,15 +469,21 @@ nextElem Nothing       = Nothing
 nextElem (Just [])     = $(neverNote "nextElem No given specs left")
 nextElem (Just (_:xs)) = Just xs
 
-genToUse :: Depth -> EssenceConfig -> Gen (Spec,LogsTree)
+genToUse :: Depth -> EssenceConfig -> Gen (Spec,Doc)
 genToUse depth EC.EssenceConfig{genType_=EC.SecondGen} = do
-  runGenerateWithLogs def{depth=depth}
-
-
-genToUse depth EC.EssenceConfig{genType_=EC.FirstGen} =
-    FirstGen.spec depth def{gen_useFunc = myUseFunc}
+  f <$> runGenerateWithLogs GNone def{depth=depth}
 
   where
+  allowed = LogInfo
+  f :: (Spec,[(LogLevel,Doc)]) -> (Spec,Doc)
+  f (sp,logs) = (sp, vcat [ msg | (lvl, msg) <- logs , lvl <= allowed ])
+
+genToUse depth EC.EssenceConfig{genType_=EC.FirstGen} =
+  f <$> FirstGen.spec depth def{gen_useFunc = myUseFunc}
+
+  where
+  f (sp,logs) = (sp, pretty logs)
+
   -- For all Gen, does not work completely
   myUseFunc :: FuncsNames -> Bool
   myUseFunc Aapply = False

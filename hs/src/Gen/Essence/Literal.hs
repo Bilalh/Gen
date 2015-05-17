@@ -2,9 +2,9 @@
 module Gen.Essence.Literal where
 
 import Conjure.Language.Definition
-import Gen.Essence.Domain
-import Gen.Essence.St
+import Gen.Essence.Ints
 import Gen.Essence.Rnd
+import Gen.Essence.St
 import Gen.Essence.Type            ()
 import Gen.Helpers.SizeOf
 import Gen.Imports
