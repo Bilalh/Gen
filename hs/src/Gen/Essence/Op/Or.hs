@@ -1,13 +1,14 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Gen.Essence.Op.Or where
 
+import Conjure.Language.AdHoc
 import Conjure.Language.Expression.Op
 import Gen.Essence.St
 import Gen.Essence.Type               ()
 import Gen.Imports
 
 
-instance Generate a => Generate (OpOr a) where
+instance (Generate a, ExpressionLike a) => Generate (OpOr a) where
   give GNone = give (GType TypeBool)
 
   give (GType TypeBool) = do

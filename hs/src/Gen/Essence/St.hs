@@ -45,7 +45,7 @@ import qualified Text.PrettyPrint as Pr
 
 
 -- | Generate a random value of a specified type
-class Data a => Generate a where
+class (Data a, Pretty a) => Generate a where
   {-# MINIMAL give, possible | give, possiblePure, possibleNoType  #-}
 
   -- | Return a random value of type a subject to the constraints
@@ -110,6 +110,9 @@ instance Pretty GenerateConstraint where
 
 newtype LVar = LVar Var
     deriving (Data, Typeable, Show)
+
+instance Pretty LVar where
+    pretty (LVar v) = "LVar" <+> pretty v
 
 data St = St{
       weighting  :: Map Key Int
@@ -231,7 +234,11 @@ runGenerate2 allowed  con st  = do
   let s = (flip evalStateT ) st (give con)
   let w = runWriterT s
   (res,logs) <- generate w
-  putStrLn $ renderSized 120 $  vcat [ msg | (lvl, msg) <- logs , lvl <= allowed ]
+
+  let ls =  [ msg | (lvl, msg) <- logs , lvl <= allowed ]
+  case ls of
+    [] -> return ()
+    xs -> putStrLn $ renderSized 120 $  vcat xs
   return res
 
 runGenerateWithLogs :: Generate a => GenerateConstraint -> St -> Gen (a,[(LogLevel,Doc)])
