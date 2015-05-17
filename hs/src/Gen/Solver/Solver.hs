@@ -26,6 +26,7 @@ data SolverArgs = SolverArgs {
     , printSolution :: Bool
     } deriving Show
 
+
 solverMain :: SolverArgs -> IO ()
 solverMain SolverArgs{..} = do
   model <- readModelFromFile essencePath
@@ -36,7 +37,6 @@ solverMain SolverArgs{..} = do
       liftIO $ putStrLn $ "Solution @ " ++ solutionPath
       liftIO $ when printSolution $ print . pretty $ solution
       writeModel (Just solutionPath) solution
-
 
 
 solver :: (MonadFail m, MonadLog m ) =>  Model -> m (Maybe Solution)
