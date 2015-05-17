@@ -94,6 +94,7 @@ dataNames = [ strs TypeAny
             , strs JectivityAttr_None
             , strs PartialityAttr_Partial
             , [ drop 2 s | s <- strs (error "OP"   :: Op Constant ) ]
+            , [ "Int_" ++ show i  | i :: Integer <- [0..10]  ]
             ]
 
 getNames :: IO [String]

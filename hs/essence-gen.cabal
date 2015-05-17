@@ -55,6 +55,7 @@ Library
                      , Gen.Essence.Op.Geq
                      , Gen.Essence.Op.Internal.Generated
                      , Gen.Essence.Op.Leq
+                     , Gen.Essence.Op.Mod
                      , Gen.Essence.Op.Or
                      , Gen.Essence.Op.Union
                      , Gen.Essence.Op

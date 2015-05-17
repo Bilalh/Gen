@@ -40,8 +40,8 @@ keys:
 	cabal exec -- runhaskell scripts/mk_keys.hs
 
 
+# Useful to make an archive that does not require git
 autoversion:
-	# Useful to make an archive that does not require git
 	bash scripts/make_autoversion.sh
 
 exposed_modules_to_clipboard:

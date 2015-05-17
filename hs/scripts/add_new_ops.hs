@@ -50,6 +50,7 @@ main = do
             [ [ "{-# OPTIONS_GHC -fno-warn-orphans #-}"
               , "module Gen.Essence.Op." ++ m ++ " where"
               , ""
+              , "import Conjure.Language.AdHoc"
               , "import Conjure.Language.Expression.Op"
               , "import Gen.Essence.Rnd"
               , "import Gen.Essence.St"
@@ -61,7 +62,7 @@ main = do
               ]
 
 
-            , [ "instance Generate a => Generate (" ++ opName m ++ " a) where"
+            , [ "instance (Generate a, ExpressionLike a) => Generate (" ++ opName m ++ " a) where"
               , "  give GNone = do"
               , "    -- pick one of the possible return types for this op"
               , "    ty <- $notDone"

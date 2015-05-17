@@ -21,16 +21,19 @@ instance EvalToInt Expr where
 
   ensureGTE0 x = do
     i <- evalToInt x
-    if i >= 0 then
-        return x
-    else do
-        let c = ECon $ ConstantInt (0 - i)
-        return [essencee| &x + &c |]
-
+    if  | i == (-99) -> return [essencee| 0 |]
+        | i >= 0     -> return x
+        | otherwise  -> do
+          let c = ECon $ ConstantInt (0 - i)
+          return [essencee| &x + &c |]
 
 instance EvalToInt Expression where
   evalToInt x = case instantiateExpression [] x of
     Right (ConstantInt v) -> return v
+
+    -- FIXME terrible hack
+    Right (ConstantUndefined _ TypeInt) -> return (-99)
+
     Right v -> docError ["Not an int in EvalToInt Expression"
                         , "exprInt:"  <+> pretty x
                         , "result :"  <+> pretty v
@@ -42,11 +45,11 @@ instance EvalToInt Expression where
                          ]
   ensureGTE0 x = do
     i <- evalToInt x
-    if i >= 0 then
-        return x
-    else do
-        let c = Constant $ ConstantInt (0 - i)
-        return [essence| &x + &c |]
+    if  | i == (-99) -> return 0
+        | i >= 0     -> return x
+        | otherwise  -> do
+          let c = Constant $ ConstantInt (0 - i)
+          return $ x + c
 
 
 instance EvalToInt Constant where

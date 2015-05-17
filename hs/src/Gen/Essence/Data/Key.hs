@@ -57,6 +57,17 @@ data Key = K_Unused
          | K_ETyped
          | K_EVar
          | K_ExpressionMetaVar
+         | K_Int_0
+         | K_Int_1
+         | K_Int_10
+         | K_Int_2
+         | K_Int_3
+         | K_Int_4
+         | K_Int_5
+         | K_Int_6
+         | K_Int_7
+         | K_Int_8
+         | K_Int_9
          | K_JectivityAttr_Bijective
          | K_JectivityAttr_Injective
          | K_JectivityAttr_None
@@ -233,6 +244,17 @@ instance IsString Key where
   fromString "ETyped"                  = K_ETyped
   fromString "EVar"                    = K_EVar
   fromString "ExpressionMetaVar"       = K_ExpressionMetaVar
+  fromString "Int_0"                   = K_Int_0
+  fromString "Int_1"                   = K_Int_1
+  fromString "Int_10"                  = K_Int_10
+  fromString "Int_2"                   = K_Int_2
+  fromString "Int_3"                   = K_Int_3
+  fromString "Int_4"                   = K_Int_4
+  fromString "Int_5"                   = K_Int_5
+  fromString "Int_6"                   = K_Int_6
+  fromString "Int_7"                   = K_Int_7
+  fromString "Int_8"                   = K_Int_8
+  fromString "Int_9"                   = K_Int_9
   fromString "JectivityAttr_Bijective" = K_JectivityAttr_Bijective
   fromString "JectivityAttr_Injective" = K_JectivityAttr_Injective
   fromString "JectivityAttr_None"      = K_JectivityAttr_None

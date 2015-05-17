@@ -6,11 +6,12 @@ import Conjure.Language.Expression.Op
 import Gen.Essence.St
 import Gen.Imports
 
-import Gen.Essence.Op.Eq    ()
-import Gen.Essence.Op.Geq   ()
-import Gen.Essence.Op.Leq   ()
-import Gen.Essence.Op.Or    ()
-import Gen.Essence.Op.Union ()
+import Gen.Essence.Op.Eq()
+import Gen.Essence.Op.Geq()
+import Gen.Essence.Op.Leq()
+import Gen.Essence.Op.Mod()
+import Gen.Essence.Op.Or()
+import Gen.Essence.Op.Union()
 
 
 allOps :: forall m a
@@ -22,6 +23,7 @@ allOps con =
  (possible (Proxy :: Proxy (OpEq a))               , (getId (Proxy :: Proxy (OpEq a))               , MkOpEq              <$> give con ))
   , (possible (Proxy :: Proxy (OpGeq a))              , (getId (Proxy :: Proxy (OpGeq a))              , MkOpGeq             <$> give con ))
   , (possible (Proxy :: Proxy (OpLeq a))              , (getId (Proxy :: Proxy (OpLeq a))              , MkOpLeq             <$> give con ))
+  , (possible (Proxy :: Proxy (OpMod a))              , (getId (Proxy :: Proxy (OpMod a))              , MkOpMod             <$> give con ))
   , (possible (Proxy :: Proxy (OpOr a))               , (getId (Proxy :: Proxy (OpOr a))               , MkOpOr              <$> give con ))
   , (possible (Proxy :: Proxy (OpUnion a))            , (getId (Proxy :: Proxy (OpUnion a))            , MkOpUnion           <$> give con ))
 

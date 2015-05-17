@@ -32,10 +32,16 @@ instance (Generate a, WrapConstant a) => Generate (Range a) where
 
 
 chooseInt :: GenSt Integer
-chooseInt = choose3 (0,5 :: Integer)
+chooseInt = do
+  defs <- return [ (fromString  $ "Int_" ++ show i, return i )  | i <- [0..5] ]
+  choices <- getWeights defs
+  frequency3 choices
 
 intLowerBounded :: Integer -> GenSt Integer
-intLowerBounded  a = choose3 (a,5)
+intLowerBounded  a = do
+  defs <- return [ (fromString  $ "Int_" ++ show i, return i )  | i <- [a..5] ]
+  choices <- getWeights defs
+  frequency3 choices
 
 
 mkRanges :: forall a . WrapConstant a
