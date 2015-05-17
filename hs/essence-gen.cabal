@@ -45,8 +45,10 @@ Library
                      , Gen.Essence.Data.Key
                      , Gen.Essence.Data.Types
                      , Gen.Essence.Domain
+                     , Gen.Essence.EvalToInt
                      , Gen.Essence.Expr
                      , Gen.Essence.Generate
+                     , Gen.Essence.Ints
                      , Gen.Essence.Literal
                      , Gen.Essence.Objective
                      , Gen.Essence.Op.Eq
