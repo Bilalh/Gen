@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveGeneric,
              ParallelListComp #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 module Gen.Essence.St
   ( module X
   , GenSt
@@ -19,12 +20,14 @@ module Gen.Essence.St
   , nextVarName
   , possibleUnmatched
   , runGenerate
+  , runGenerate2
   , runGenerateWithLogs
   , weightingForKey
   , withDepthDec
   , withVars
   , withWeights
   , LVar(..)
+  , logInfo2
   ) where
 
 import Conjure.Language.Definition (Expression (..))
@@ -220,20 +223,22 @@ possibleUnmatched msg t = do
                         , "St"     <+> pretty st]
 
 
-runGenerate :: Generate a => GenerateConstraint -> St -> IO a
--- runGenerate con st = generate $ evalStateT (give con) st
-runGenerate con st = do
+runGenerate :: Generate a => St -> IO a
+runGenerate = runGenerate2 LogNone GNone
+
+runGenerate2 :: Generate a => LogLevel -> GenerateConstraint -> St -> IO a
+runGenerate2 allowed  con st  = do
   let s = (flip evalStateT ) st (give con)
   let w = runWriterT s
-  (res,_) <- generate w
+  (res,logs) <- generate w
+  putStrLn $ renderSized 120 $  vcat [ msg | (lvl, msg) <- logs , lvl <= allowed ]
   return res
 
--- No Logs at the moment
 runGenerateWithLogs :: Generate a => GenerateConstraint -> St -> Gen (a,[(LogLevel,Doc)])
 runGenerateWithLogs con st = do
   let s = (flip evalStateT ) st (give con)
-  let w = runWriterT s
-  w
+  runWriterT s
+
 
 -- | DataType of a proxy
 proxyDataTypeOf :: forall a . Data a => Proxy a -> DataType
@@ -244,6 +249,7 @@ fieldKeys :: Data a => Proxy a -> [Key]
 fieldKeys a = do
   let names = dataTypeConstrs . proxyDataTypeOf $ a
   map (fromString . show) names
+
 
 giveOnly :: forall a . (Data a, Generate a)
          => GenerateConstraint ->  [Key] -> GenSt a
@@ -258,7 +264,7 @@ generateFreq :: forall a . (Generate a, Pretty a, Ord a)
              => Proxy a -> GenerateConstraint -> Int -> St -> IO ()
 generateFreq _ con n st = do
   let freq s = sort . map (\x->(length x,head x)) . group . sort $ s
-  ts :: [a] <-  mapM  (\_ -> runGenerate con st)  [1..n]
+  ts :: [a] <-  mapM  (\_ -> runGenerate2 LogNone con  st)  [1..n]
   print .  vcat .  map pretty $ freq ts
 
 
@@ -267,7 +273,7 @@ generateTypeFreq :: forall a . (Generate a, Pretty a, Ord a, TTypeOf a)
                   => Proxy a -> GenerateConstraint -> Int -> St -> IO  ()
 generateTypeFreq _ con n st = do
   let freq s = sort . map (\x->(length x,head x)) . group . sort $ s
-  ts :: [a] <-  mapM  (\_ ->  runGenerate  con st)  [1..n]
+  ts :: [a] <-  mapM  (\_ ->  runGenerate2 LogNone  con st)  [1..n]
   tys <- mapM ttypeOf ts
   print .  vcat .  map pretty $ freq tys
 
@@ -285,6 +291,9 @@ instance WrapConstant Constant where
 instance WrapConstant Expression where
   wrapConstant = Constant
 
-
 instance MonadLog (WriterT [(LogLevel, Doc)] Gen)  where
     log lvl msg = tell [(lvl, msg)]
+
+
+logInfo2 :: MonadLog m => String -> [Doc] -> m ()
+logInfo2 ln docs = log LogInfo . hang (pretty ln) 4 $ vcat docs
