@@ -11,10 +11,10 @@ import qualified Data.ByteString.Lazy as L
 import qualified Data.Aeson as A
 
 
-timestamp :: IO Int
+timestamp :: MonadIO m => m Int
 timestamp = do
-    epochInt <- (readNote "timestamp" <$> formatTime defaultTimeLocale "%s"
-                                      <$> getCurrentTime) :: IO Int
+    epochInt <- liftIO $ (readNote "timestamp" <$> formatTime defaultTimeLocale "%s"
+                                               <$> getCurrentTime)
     return epochInt
 
 readSpecFromEssence :: (MonadFail m, MonadIO m) => FilePath -> m Spec

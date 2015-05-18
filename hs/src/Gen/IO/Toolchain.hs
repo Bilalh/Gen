@@ -217,8 +217,8 @@ doMeta out no_csv_copy bin_dir = do
                False -> return ()
                True  -> copyFile (bp </> "meta.json") (out </> "meta.json")
 
-copyMetaToSpecDir :: FilePath -> FilePath -> IO ()
-copyMetaToSpecDir base_out spec_out = do
+copyMetaToSpecDir :: MonadIO m => FilePath -> FilePath -> m ()
+copyMetaToSpecDir base_out spec_out = liftIO $ do
   createDirectoryIfMissing True spec_out
 
   doesFileExist (base_out </> "meta.json") >>= \case
