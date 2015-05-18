@@ -292,14 +292,13 @@ instance (HasGen m,  HasLogger m) => Reduce (Domain () Expr) m where
     rLits <- getReducedChildren (EDom) li
     let lss = map (replaceChildren li) (transposeFill rLits)
     let res = concatMap (innersExpand reduceLength1) lss
-    let sim =  [ r | r <- res, runIdentity $ simpler1 r li ]
 
     si   <- single li
     subs <- subterms li
     mu   <- mutate li
-    return $ mconcat $
+    return $ filter (\r -> runIdentity $ simpler1 r li) $ mconcat  $
                [ [ x | (EDom x) <- si]
-               , sim
+               , res
                , [ x | (EDom x) <- subs]
                , [ x | (EDom x) <- mu]
                ]
@@ -312,6 +311,8 @@ instance (HasGen m,  HasLogger m) => Reduce (Domain () Expr) m where
   subterms x = return . map (EDom) . innersExpand reduceLength $ x
 
   mutate _ = return []
+
+
 
 instance (HasGen m,  HasLogger m) =>  Reduce (Op Expr) m where
 
