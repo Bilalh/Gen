@@ -3,10 +3,7 @@
 import Conjure.Language.AbstractLiteral (AbstractLiteral (AbsLitSet))
 import Conjure.Language.Constant        (Constant (ConstantBool))
 import Conjure.Language.Definition      (Expression (Constant))
-import Conjure.Language.Domain          (Domain (DomainBool), JectivityAttr (..),
-                                         OccurAttr (..), PartialityAttr (..),
-                                         PartitionAttr (..), Range (RangeOpen),
-                                         SizeAttr (..))
+import Conjure.Language.Domain
 import Conjure.Language.Type            (Type (TypeAny))
 import Conjure.Prelude                  (padRight,def)
 import Control.Applicative              ((<$>))
@@ -84,15 +81,21 @@ writeOut outFile outText= do
 dataNames :: [[String]]
 dataNames = [ strs TypeAny
             , strs (ConstantBool True)
-            , strs (AbsLitSet []   :: AbstractLiteral Constant)
-            , strs (Constant        $ ConstantBool True)
-            , strs (DomainBool     :: Domain () Constant)
-            , strs (RangeOpen      :: Range Constant)
-            , strs (SizeAttr_None  :: SizeAttr Constant)
-            , strs (OccurAttr_None :: OccurAttr Constant)
-            , strs (def            :: PartitionAttr Constant)
-            , strs JectivityAttr_None
-            , strs PartialityAttr_Partial
+            , strs (AbsLitSet [] :: AbstractLiteral Constant)
+            , strs (Constant      $ ConstantBool True)
+            , strs (DomainBool   :: Domain () Constant)
+            , strs (RangeOpen    :: Range Constant)
+            , strs (def          :: SetAttr Constant)
+            , strs (def          :: SizeAttr Constant)
+            , strs (def          :: MSetAttr Constant)
+            , strs (def          :: OccurAttr Constant)
+            , strs (def          :: FunctionAttr Constant)
+            , strs (def          :: JectivityAttr)
+            , strs (def          :: PartialityAttr)
+            , strs (def          :: SequenceAttr Constant)
+            , strs (def          :: RelationAttr Constant)
+            , strs (def          :: BinaryRelationAttrs)
+            , strs (def          :: PartitionAttr Constant)
             , [ drop 2 s | s <- strs (error "OP"   :: Op Constant ) ]
             , [ "Int_" ++ show i  | i :: Integer <- [0..10]  ]
             ]

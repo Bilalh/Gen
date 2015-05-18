@@ -48,6 +48,7 @@ Library
                      , Gen.Essence.EvalToInt
                      , Gen.Essence.Expr
                      , Gen.Essence.Generate
+                     , Gen.Essence.Id
                      , Gen.Essence.Ints
                      , Gen.Essence.Literal
                      , Gen.Essence.Objective

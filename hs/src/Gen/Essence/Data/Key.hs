@@ -17,6 +17,7 @@ data Key = K_Unused
          | K_AbsLitTuple
          | K_AbsLitVariant
          | K_AbstractLiteral
+         | K_BinaryRelationAttrs
          | K_Comprehension
          | K_Constant
          | K_ConstantAbstract
@@ -57,6 +58,7 @@ data Key = K_Unused
          | K_ETyped
          | K_EVar
          | K_ExpressionMetaVar
+         | K_FunctionAttr
          | K_Int_0
          | K_Int_1
          | K_Int_10
@@ -73,6 +75,7 @@ data Key = K_Unused
          | K_JectivityAttr_None
          | K_JectivityAttr_Surjective
          | K_LVar
+         | K_MSetAttr
          | K_OccurAttr_MaxOccur
          | K_OccurAttr_MinMaxOccur
          | K_OccurAttr_MinOccur
@@ -154,6 +157,9 @@ data Key = K_Unused
          | K_RangeSingle
          | K_RangeUpperBounded
          | K_Reference
+         | K_RelationAttr
+         | K_SequenceAttr
+         | K_SetAttr
          | K_SizeAttr_MaxSize
          | K_SizeAttr_MinMaxSize
          | K_SizeAttr_MinSize
@@ -204,6 +210,7 @@ instance IsString Key where
   fromString "AbsLitTuple"             = K_AbsLitTuple
   fromString "AbsLitVariant"           = K_AbsLitVariant
   fromString "AbstractLiteral"         = K_AbstractLiteral
+  fromString "BinaryRelationAttrs"     = K_BinaryRelationAttrs
   fromString "Comprehension"           = K_Comprehension
   fromString "Constant"                = K_Constant
   fromString "ConstantAbstract"        = K_ConstantAbstract
@@ -244,6 +251,7 @@ instance IsString Key where
   fromString "ETyped"                  = K_ETyped
   fromString "EVar"                    = K_EVar
   fromString "ExpressionMetaVar"       = K_ExpressionMetaVar
+  fromString "FunctionAttr"            = K_FunctionAttr
   fromString "Int_0"                   = K_Int_0
   fromString "Int_1"                   = K_Int_1
   fromString "Int_10"                  = K_Int_10
@@ -260,6 +268,7 @@ instance IsString Key where
   fromString "JectivityAttr_None"      = K_JectivityAttr_None
   fromString "JectivityAttr_Surjective" = K_JectivityAttr_Surjective
   fromString "LVar"                    = K_LVar
+  fromString "MSetAttr"                = K_MSetAttr
   fromString "OccurAttr_MaxOccur"      = K_OccurAttr_MaxOccur
   fromString "OccurAttr_MinMaxOccur"   = K_OccurAttr_MinMaxOccur
   fromString "OccurAttr_MinOccur"      = K_OccurAttr_MinOccur
@@ -341,6 +350,9 @@ instance IsString Key where
   fromString "RangeSingle"             = K_RangeSingle
   fromString "RangeUpperBounded"       = K_RangeUpperBounded
   fromString "Reference"               = K_Reference
+  fromString "RelationAttr"            = K_RelationAttr
+  fromString "SequenceAttr"            = K_SequenceAttr
+  fromString "SetAttr"                 = K_SetAttr
   fromString "SizeAttr_MaxSize"        = K_SizeAttr_MaxSize
   fromString "SizeAttr_MinMaxSize"     = K_SizeAttr_MinMaxSize
   fromString "SizeAttr_MinSize"        = K_SizeAttr_MinSize
