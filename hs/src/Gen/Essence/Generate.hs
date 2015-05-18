@@ -30,21 +30,23 @@ import Data.Map (Map)
 
 data Carry = Carry
     { cWeighting :: Map Key Int
+    , cHashes    :: I.IntSet
     } deriving (Show)
 
 
 instance Default Carry where
-    def = Carry{cWeighting=def}
+    def = Carry{ cWeighting = def
+               , cHashes    = def}
 
 
 generateEssence :: EssenceConfig -> IO ()
 generateEssence ec@EC.EssenceConfig{..} = do
   setRandomSeed seed_
-
+  let carry = (def :: Carry){cHashes=runHashes_}
   case mode_ of
-    EC.TypeCheck_ -> void $ evalStateT (doTypeCheck ec) (def :: Carry)
-    EC.Refine_    -> void $ evalStateT (doRefine ec) (def :: Carry)
-    EC.Solve_     -> void $ evalStateT (doSolve ec) (def :: Carry)
+    EC.TypeCheck_ -> void $ evalStateT (doTypeCheck ec) carry
+    EC.Refine_    -> void $ evalStateT (doRefine ec) carry
+    EC.Solve_     -> void $ evalStateT (doSolve ec) carry
 
 
   case deletePassing_ of
@@ -73,18 +75,18 @@ generateWrap _ f = liftIO $  generate f
 doRefine :: (MonadIO m, MonadState Carry m)
          => EssenceConfig -> m ()
 doRefine ec@EC.EssenceConfig{..} = do
-  process totalTime_ givenSpecs_ runHashes_
+  process totalTime_ givenSpecs_
 
     where
     out    = outputDirectory_ </> "_passing"
     errdir = outputDirectory_ </> "_errors"
 
     process :: (MonadIO m, MonadState Carry m)
-            => Int -> Maybe [FilePath] -> I.IntSet -> m ()
-    process timeLeft Nothing _ | timeLeft <= 0 = return ()
-    process _ (Just []) _ = return ()
+            => Int -> Maybe [FilePath]  -> m ()
+    process timeLeft Nothing  | timeLeft <= 0 = return ()
+    process _ (Just [])  = return ()
 
-    process timeLeft mayGiven hashes = do
+    process timeLeft mayGiven = do
       case mayGiven of
           Nothing -> liftIO $ putStrLn $  "# " ++  (show (max timeLeft 0) ) ++ " seconds left"
           Just ys -> liftIO $ putStrLn $  "# " ++  (show (length ys) ) ++ " specs left"
@@ -93,13 +95,13 @@ doRefine ec@EC.EssenceConfig{..} = do
       gen <-  genToUse useSize ec
       (sp,logs) <- generateWrap mayGiven $ gen
 
-      case (hash sp) `I.member` (hashes) of
+      gets cHashes >>= \h -> case (hash sp) `I.member` h of
         True -> do
           liftIO $ putStrLn $ "Not running spec with hash, already tested " ++ (show $ hash sp)
-          process (timeLeft) (nextElem mayGiven) hashes
+          process (timeLeft) (nextElem mayGiven)
         False -> do
           liftIO $ putStrLn $ "> Processing: " ++ (show $ hash sp)
-          let hashesNext = (hash sp) `I.insert` hashes
+          modify $ \st -> st{cHashes= (hash sp) `I.insert` h}
           let model :: Model = toConjureNote "Generate toConjure" sp
           case typeCheck model  of
 
@@ -112,7 +114,7 @@ doRefine ec@EC.EssenceConfig{..} = do
                         , pretty x
                         , pretty . groom $ model
                         ]
-                  Nothing -> process timeLeft (nextElem mayGiven) hashesNext
+                  Nothing -> process timeLeft (nextElem mayGiven)
 
             Right{} ->  do
               num <- liftIO $ (randomRIO (10,99) :: IO Int)  >>= return . show
@@ -161,36 +163,36 @@ doRefine ec@EC.EssenceConfig{..} = do
               liftIO $ putStrLn $ "> Processed: " ++ (show $ hash sp)
               liftIO $ putStrLn $ ""
               case totalIsRealTime of
-                False -> process (timeLeft - (floor runTime)) (nextElem mayGiven) hashesNext
-                True  -> process (timeLeft - realTime) (nextElem mayGiven) hashesNext
+                False -> process (timeLeft - (floor runTime)) (nextElem mayGiven)
+                True  -> process (timeLeft - realTime) (nextElem mayGiven)
 
 
 doSolve :: (MonadIO m, MonadState Carry m)
         => EssenceConfig -> m ()
 doSolve ec@EC.EssenceConfig{..} = do
 
-  process totalTime_ givenSpecs_ runHashes_
+  process totalTime_ givenSpecs_
 
     where
     out    = outputDirectory_ </> "_passing"
     errdir = outputDirectory_ </> "_errors"
 
     process :: (MonadIO m, MonadState Carry m)
-          => Int -> Maybe [FilePath] -> I.IntSet -> m ()
-    process timeLeft Nothing _ | timeLeft <= 0 = return ()
-    process _ (Just []) _ = return ()
+          => Int -> Maybe [FilePath] -> m ()
+    process timeLeft Nothing  | timeLeft <= 0 = return ()
+    process _ (Just [])  = return ()
 
-    process timeLeft mayGiven hashes = do
+    process timeLeft mayGiven  = do
       useSize <- liftIO $ (randomRIO (0, size_) :: IO Int)
       gen <-  genToUse useSize ec
       (sp,logs) <- generateWrap mayGiven $ gen
 
-      case (hash sp) `I.member` (hashes) of
+      gets cHashes >>= \h -> case (hash sp) `I.member` (h) of
         True -> do
           liftIO $ putStrLn $ "Not running spec with hash, already tested " ++ (show $ hash sp)
-          process (timeLeft) (nextElem mayGiven) hashes
+          process (timeLeft) (nextElem mayGiven)
         False -> do
-          let hashesNext = (hash sp) `I.insert` hashes
+          modify $ \st -> st{cHashes= (hash sp) `I.insert` h}
           let model :: Model = toConjureNote "Generate toConjure" sp
           case typeCheck model  of
             Left x ->
@@ -202,7 +204,7 @@ doSolve ec@EC.EssenceConfig{..} = do
                         , pretty x
                         , pretty . groom $ model
                         ]
-                  Nothing -> process timeLeft (nextElem mayGiven) hashesNext
+                  Nothing -> process timeLeft (nextElem mayGiven)
 
             Right{} -> do
               num <- liftIO (randomRIO (10,99) :: IO Int)  >>= return . show
@@ -242,8 +244,8 @@ doSolve ec@EC.EssenceConfig{..} = do
 
               (runTime,_) <- liftIO $  classifyError uname result
               case totalIsRealTime of
-                False -> process (timeLeft - (floor runTime)) (nextElem mayGiven) hashesNext
-                True  -> process (timeLeft - realTime) (nextElem mayGiven) hashesNext
+                False -> process (timeLeft - (floor runTime)) (nextElem mayGiven)
+                True  -> process (timeLeft - realTime) (nextElem mayGiven)
 
 
     classifyError uname (RefineResult a) = classifySettingI ec errdir out uname a
