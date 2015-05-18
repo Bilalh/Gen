@@ -76,6 +76,10 @@ data Key = K_Unused
          | K_JectivityAttr_Surjective
          | K_LVar
          | K_MSetAttr
+         | K_Maximising
+         | K_Maximisingg
+         | K_Minimising
+         | K_Minimisingg
          | K_OccurAttr_MaxOccur
          | K_OccurAttr_MinMaxOccur
          | K_OccurAttr_MinOccur
@@ -158,6 +162,9 @@ data Key = K_Unused
          | K_RangeUpperBounded
          | K_Reference
          | K_RelationAttr
+         | K_SDoms
+         | K_SExprs
+         | K_SObj
          | K_SequenceAttr
          | K_SetAttr
          | K_SizeAttr_MaxSize
@@ -165,6 +172,7 @@ data Key = K_Unused
          | K_SizeAttr_MinSize
          | K_SizeAttr_None
          | K_SizeAttr_Size
+         | K_Spec
          | K_TypeAny
          | K_TypeBool
          | K_TypeEnum
@@ -269,6 +277,10 @@ instance IsString Key where
   fromString "JectivityAttr_Surjective" = K_JectivityAttr_Surjective
   fromString "LVar"                    = K_LVar
   fromString "MSetAttr"                = K_MSetAttr
+  fromString "Maximising"              = K_Maximising
+  fromString "Maximisingg"             = K_Maximisingg
+  fromString "Minimising"              = K_Minimising
+  fromString "Minimisingg"             = K_Minimisingg
   fromString "OccurAttr_MaxOccur"      = K_OccurAttr_MaxOccur
   fromString "OccurAttr_MinMaxOccur"   = K_OccurAttr_MinMaxOccur
   fromString "OccurAttr_MinOccur"      = K_OccurAttr_MinOccur
@@ -351,6 +363,9 @@ instance IsString Key where
   fromString "RangeUpperBounded"       = K_RangeUpperBounded
   fromString "Reference"               = K_Reference
   fromString "RelationAttr"            = K_RelationAttr
+  fromString "SDoms"                   = K_SDoms
+  fromString "SExprs"                  = K_SExprs
+  fromString "SObj"                    = K_SObj
   fromString "SequenceAttr"            = K_SequenceAttr
   fromString "SetAttr"                 = K_SetAttr
   fromString "SizeAttr_MaxSize"        = K_SizeAttr_MaxSize
@@ -358,6 +373,7 @@ instance IsString Key where
   fromString "SizeAttr_MinSize"        = K_SizeAttr_MinSize
   fromString "SizeAttr_None"           = K_SizeAttr_None
   fromString "SizeAttr_Size"           = K_SizeAttr_Size
+  fromString "Spec"                    = K_Spec
   fromString "TypeAny"                 = K_TypeAny
   fromString "TypeBool"                = K_TypeBool
   fromString "TypeEnum"                = K_TypeEnum

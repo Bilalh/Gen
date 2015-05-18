@@ -7,6 +7,7 @@ import Conjure.Language.Expression.Op
 import Data.Data
 import Gen.Essence.St
 import Gen.Imports
+import qualified Data.Map as M
 
 instance Pretty (Tree Key) where
     pretty = pretty . displayTree
@@ -14,6 +15,21 @@ instance Pretty (Tree Key) where
 class (Data a, Pretty a ) => GetKey a where
   getKey  :: a -> Key
   keyTree :: a -> Tree Key
+
+instance GetKey Spec where
+  getKey x = fromString . show . toConstr $ x
+
+  keyTree d@(Spec doms exprs obj) =
+    Tree (getKey d) $
+             [ Tree K_SDoms (map (keyTree . domOfGF ) $ M.elems doms )
+             , Tree K_SExprs (map keyTree exprs)
+             ] ++ maybeToList (fmap (Tree K_SObj . (: []) . keyTree) obj)
+
+    where
+
+instance GetKey (OObjective, Expr) where
+  getKey (o,_)     = fromString . show . toConstr $ o
+  keyTree d@(_,e) = Tree (getKey d) [keyTree e]
 
 
 instance GetKey Type where

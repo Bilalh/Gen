@@ -9,3 +9,9 @@ EQuan
 ETyped
 EVar
 LVar
+Spec
+SDoms
+SExprs
+SObj
+Maximisingg
+Minimisingg
