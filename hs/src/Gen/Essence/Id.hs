@@ -1,16 +1,20 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 module Gen.Essence.Id where
 
-import Gen.Essence.St
-import Gen.Imports
-import Data.Data
 import Conjure.Language.Definition
 import Conjure.Language.Domain
+import Conjure.Language.Expression.Op
+import Data.Data
+import Gen.Essence.St
+import Gen.Imports
 
+instance Pretty (Tree Key) where
+    pretty = pretty . displayTree
 
 class (Data a, Pretty a ) => GetKey a where
   getKey  :: a -> Key
   keyTree :: a -> Tree Key
+
 
 instance GetKey Type where
   getKey x   = fromString . show . toConstr $ x
@@ -29,6 +33,10 @@ instance GetKey Expr where
   -- keyTree d@(EComp x1 x2 x3)       = Tree (getKey d) []
   keyTree d = docError ["unhandled " <+> pretty d <+> "in buildTree" ]
 
+-- FIXME id of op
+instance (GetKey a, ExpressionLike a) => GetKey (Op a)
+
+
 instance GetKey Constant where
   getKey x = fromString . show . toConstr $ x
 
@@ -44,11 +52,28 @@ instance GetKey Integer where
 
 instance GetKey a => GetKey (AbstractLiteral a) where
   getKey x = fromString . show . toConstr $ x
-  keyTree x@(AbsLitSet xs) = Tree (getKey x) (map keyTree xs)
+
+  keyTree d@(AbsLitTuple x)                = Tree (getKey d) (map keyTree x)
+  keyTree d@(AbsLitRecord x)               = Tree (getKey d) (map (keyTree . snd) x)
+  keyTree d@(AbsLitVariant Nothing _ x3)   = Tree (getKey d) [keyTree x3]
+  keyTree d@(AbsLitVariant (Just x1) _ x3) = Tree (getKey d) (keyTree x3 :
+                                                              map (keyTree . snd) x1)
+  keyTree d@(AbsLitMatrix x1 x2)           = Tree (getKey d) (keyTree x1 :
+                                                              map keyTree x2)
+  keyTree d@(AbsLitSet x)                  = Tree (getKey d) (map keyTree x)
+  keyTree d@(AbsLitMSet x)                 = Tree (getKey d) (map keyTree x)
+  keyTree d@(AbsLitFunction x)             = Tree (getKey d) (concatMap kt x)
+                                             where kt (a,b) = map keyTree [a,b]
+  keyTree d@(AbsLitSequence x)             = Tree (getKey d) (map keyTree x)
+  keyTree d@(AbsLitRelation x)             = Tree (getKey d) (map keyTree (concat x))
+  keyTree d@(AbsLitPartition x)            = Tree (getKey d) (map keyTree (concat x))
+
+
 
 
 instance GetKey a => GetKey (Range a) where
   getKey x = fromString . show . toConstr $ x
+
   keyTree d@RangeOpen             = Tree (getKey d) ([])
   keyTree d@(RangeSingle x)       = Tree (getKey d) ([keyTree x])
   keyTree d@(RangeLowerBounded x) = Tree (getKey d) ([keyTree x])
@@ -77,6 +102,7 @@ instance GetKey a => GetKey (Domain () a) where
 
   keyTree d = docError ["unhandled " <+> pretty d <+> "in buildTree" ]
 
+-- TODO finish
 instance GetKey a => GetKey (FunctionAttr a) where
   getKey x  = fromString . show . toConstr $ x
   keyTree d = Tree (getKey d) ([])
