@@ -81,11 +81,13 @@ mkRanges _ ns rs _  = docError ["mkRanges unmatched", pretty ns, pretty rs]
 
 chooseUnusedSized ::  Integer -> Integer -> Set Integer -> GenSt (Integer, Integer)
 chooseUnusedSized ub size used | S.null used  =  do
-  lower <- choose3 (-ub*3,ub*3 - size)
+  -- lower <- choose3 (-ub*3,ub*3 - size)
+  lower <- choose3 (0,ub*3 - size)
   return (lower, lower + size - 1)
 
 chooseUnusedSized ub size used =  do
-  lower <- chooseUnused' (-ub*3,ub*3 - size) used
+  -- lower <- chooseUnused' (-ub*3,ub*3 - size) used
+  lower <- chooseUnused' (0,ub*3 - size) used
   let upper = lower + (size - 1)
   if  S.fromList [lower..upper] `S.isSubsetOf` used then
       chooseUnusedSized ub size used
@@ -94,7 +96,7 @@ chooseUnusedSized ub size used =  do
 
 
 chooseUnused :: Integer -> Set Integer -> GenSt Integer
-chooseUnused ub = chooseUnused' (-ub*3, ub*3)
+chooseUnused ub = chooseUnused' (0, ub*3)
 
 chooseUnused' :: (Integer,Integer) -> Set Integer -> GenSt Integer
 chooseUnused' (l,u) used | S.null used  = choose3 (l,u)

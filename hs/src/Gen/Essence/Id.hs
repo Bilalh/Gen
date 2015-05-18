@@ -8,13 +8,31 @@ import Data.Data
 import Gen.Essence.St
 import Gen.Imports
 import qualified Data.Map as M
-
-instance Pretty (Tree Key) where
-    pretty = pretty . displayTree
+import Data.Generics.Uniplate.Data (childrenBi)
 
 class (Data a, Pretty a ) => GetKey a where
   getKey  :: a -> Key
   keyTree :: a -> Tree Key
+
+instance Pretty (Tree Key) where
+    pretty = pretty . displayTree
+
+
+-- | 2d drawing of the tree horizontally
+displayTree :: Show a => Tree a -> String
+displayTree  = unlines . draw2
+  where
+  draw2 :: Show a => Tree a -> [String]
+  draw2 (Tree x ts0) = show x : drawSubTrees ts0
+    where
+      drawSubTrees [] = []
+      drawSubTrees [t] =
+          "|" : shift "`- " "   " (draw2 t)
+      drawSubTrees (t:ts) =
+          "|" : shift "+- " "|  " (draw2 t) ++ drawSubTrees ts
+
+      shift fr other = zipWith (++) (fr : repeat other)
+
 
 instance GetKey Spec where
   getKey x = fromString . show . toConstr $ x
@@ -42,15 +60,17 @@ instance GetKey Expr where
   keyTree d@(EVar _)               = Tree (getKey d) []
   keyTree d@(ECon x)               = Tree (getKey d) [keyTree x]
   keyTree d@(ELit x)               = Tree (getKey d) [keyTree x]
-  keyTree d@(EOp x)                = Tree (getKey d) []
+  keyTree d@(EOp x)                = Tree (getKey d) [keyTree x]
   keyTree d@(ETyped x1 x2)         = Tree (getKey d) [keyTree x1, keyTree x2]
   keyTree d@(EDom x)               = Tree (getKey d) [keyTree x]
 
   -- keyTree d@(EComp x1 x2 x3)       = Tree (getKey d) []
   keyTree d = docError ["unhandled " <+> pretty d <+> "in buildTree" ]
 
--- FIXME id of op
-instance (GetKey a, ExpressionLike a) => GetKey (Op a)
+-- TODO Check if correct
+instance (GetKey a, ExpressionLike a) => GetKey (Op a) where
+  getKey x  = fromString . drop 2 .  show . toConstr $ x
+  keyTree d =  Tree (getKey d) (map keyTree $ (childrenBi d :: [a]) )
 
 
 instance GetKey Constant where
@@ -85,8 +105,6 @@ instance GetKey a => GetKey (AbstractLiteral a) where
   keyTree d@(AbsLitPartition x)            = Tree (getKey d) (map keyTree (concat x))
 
 
-
-
 instance GetKey a => GetKey (Range a) where
   getKey x = fromString . show . toConstr $ x
 
@@ -118,6 +136,7 @@ instance GetKey a => GetKey (Domain () a) where
 
   keyTree d = docError ["unhandled " <+> pretty d <+> "in buildTree" ]
 
+
 -- TODO finish
 instance GetKey a => GetKey (FunctionAttr a) where
   getKey x  = fromString . show . toConstr $ x
@@ -142,19 +161,3 @@ instance GetKey a => GetKey (SequenceAttr a) where
 instance GetKey a => GetKey (SetAttr a) where
   getKey x  = fromString . show . toConstr $ x
   keyTree d = Tree (getKey d) ([])
-
-
--- | 2d drawing of the tree horizontally
-displayTree :: Show a => Tree a -> String
-displayTree  = unlines . draw2
-  where
-  draw2 :: Show a => Tree a -> [String]
-  draw2 (Tree x ts0) = show x : drawSubTrees ts0
-    where
-      drawSubTrees [] = []
-      drawSubTrees [t] =
-          "|" : shift "`- " "   " (draw2 t)
-      drawSubTrees (t:ts) =
-          "|" : shift "+- " "|  " (draw2 t) ++ drawSubTrees ts
-
-      shift fr other = zipWith (++) (fr : repeat other)

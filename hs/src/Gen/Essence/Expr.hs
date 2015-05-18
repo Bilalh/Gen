@@ -139,7 +139,7 @@ instance Generate LVar where
   possible _ _ = return False
 
 
-
+-- FIXME Having these Instances is a bad idea
 instance Pretty [Expr] where
     pretty = Pr.brackets  . prettyArr
 
