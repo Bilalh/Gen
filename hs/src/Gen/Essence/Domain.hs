@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fno-warn-orphans #-}
+ {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Gen.Essence.Domain where
 
 import Conjure.Language.Domain
@@ -16,16 +16,18 @@ instance (Generate a, WrapConstant a, EvalToInt a) => Generate (Domain () a) whe
   give GNone = give GNone >>= \ty -> give (GType ty)
 
   give (GType TypeBool)             = pure DomainBool
-  give (GType TypeInt)              = DomainInt      <$> vectorOf3 2 (give GNone)
-  give (GType (TypeTuple t))        = DomainTuple    <$> mapM (give <$> GType) t
-  give (GType (TypeSet ty))         = DomainSet      <$> pure () <*> give GNone      <*> give (GType ty)
-  give (GType (TypeMSet ty))        = DomainMSet     <$> pure () <*> give GNone      <*> give (GType ty)
-  give (GType (TypeMatrix t1 t2))   = DomainMatrix   <$>             give (GType t1) <*> give (GType t2)
-  give (GType (TypeFunction t1 t2)) = DomainFunction <$> pure () <*> give GNone
-                                                                 <*> give (GType t1) <*> give (GType t2)
-  give (GType (TypeRelation t))     = DomainRelation <$> pure () <*> give GNone
-                                                                 <*> mapM (give <$> GType) t
-  -- give (GType (TypePartition t))    = _d
+  give (GType TypeInt)              = DomainInt   <$> vectorOf3 2 (give GNone)
+  give (GType (TypeTuple t))        = DomainTuple <$> mapM (give <$> GType) t
+
+  give (GType (TypeSet ty))         = DomainSet       <$> pure () <*> give GNone      <*> give (GType ty)
+  give (GType (TypeMSet ty))        = DomainMSet      <$> pure () <*> give GNone      <*> give (GType ty)
+  give (GType (TypeMatrix t1 t2))   = DomainMatrix    <$>              give (GType t1) <*> give (GType t2)
+  give (GType (TypeFunction t1 t2)) = DomainFunction  <$> pure () <*> give GNone
+                                                                  <*> give (GType t1) <*> give (GType t2)
+  give (GType (TypeRelation t))     = DomainRelation  <$> pure () <*> give GNone
+                                                                  <*> mapM (give <$> GType) t
+  give (GType (TypePartition t))    = DomainPartition <$> pure () <*> give (GNone)
+                                                                  <*> give (GType t)
 
   -- give (GType (TypeEnum t))         = _d
   -- give (GType (TypeUnnamed t))      = _d
@@ -170,5 +172,16 @@ instance Generate (BinaryRelationAttrs) where
 
 
   give t             = giveUnmatched "Generate (Set BinaryRelationAttrs)" t
+  possiblePure _ _ _ = True
+  possibleNoType _ _ = True
+
+instance (Generate a, WrapConstant a, EvalToInt a) => Generate (PartitionAttr a) where
+  give GNone = do
+      s1 <- give GNone
+      s2 <- give GNone
+      b  <- elements3 [True,False]
+      return def{isRegular=b, partsNum = s1, partsSize=s2 }
+
+  give t             = giveUnmatched "Generate (PartitionAttr a)" t
   possiblePure _ _ _ = True
   possibleNoType _ _ = True

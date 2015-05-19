@@ -18,16 +18,17 @@ instance Generate Type where
                               , (K_TypeInt,  pure TypeInt)
                               ]
         | otherwise -> return
-            [ (K_TypeBool,     pure TypeBool)
-            , (K_TypeInt,      pure TypeInt)
-            , (K_TypeSet,      liftM TypeSet   (withDepthDec (give GNone) ))
-            , (K_TypeMSet,     liftM TypeMSet  (withDepthDec (give GNone) ))
-            , (K_TypeTuple,    liftM TypeTuple (vectorOf3 3 $ withDepthDec (give GNone)) )
-            , (K_TypeRelation, liftM TypeRelation (vectorOf3 3 $ withDepthDec (give GNone)) )
-            , (K_TypeMatrix,   pure TypeMatrix   `ap` pure TypeInt
-                                                 `ap` withDepthDec (give GNone) )
-            , (K_TypeFunction, pure TypeFunction `ap` withDepthDec (give GNone)
-                                                 `ap` withDepthDec (give GNone) )
+            [ (K_TypeBool,      pure TypeBool)
+            , (K_TypeInt,       pure TypeInt)
+            , (K_TypeSet,       liftM TypeSet   (withDepthDec (give GNone) ))
+            , (K_TypeMSet,      liftM TypeMSet  (withDepthDec (give GNone) ))
+            , (K_TypePartition, liftM TypePartition (withDepthDec (give GNone) ))
+            , (K_TypeTuple,     liftM TypeTuple (vectorOf3 3 $ withDepthDec (give GNone)) )
+            , (K_TypeRelation,  liftM TypeRelation (vectorOf3 3 $ withDepthDec (give GNone)) )
+            , (K_TypeMatrix,    pure TypeMatrix   `ap` pure TypeInt
+                                                  `ap` withDepthDec (give GNone) )
+            , (K_TypeFunction,  pure TypeFunction `ap` withDepthDec (give GNone)
+                                                  `ap` withDepthDec (give GNone) )
             ]
 
     let allowed = S.fromList ws
