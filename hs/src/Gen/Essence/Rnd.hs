@@ -17,6 +17,19 @@ frequency3 xs0 =  choose3 (1, tot) >>= (`pick` xs0)
     | otherwise = pick (n-k) xs
   pick _ _  = error "frequency3.pick used with empty list"
 
+
+elemFreq3 :: [(Int, a)] -> GenSt a
+elemFreq3 [] = error "frequency3 used with empty list"
+elemFreq3 xs0 =  choose3 (1, tot) >>= (`pick` (map (\(a,b) -> (a,pure b) ) xs0))
+ where
+  tot = sum (map fst xs0)
+
+  pick n ((k,x):xs)
+    | n <= k    = x
+    | otherwise = pick (n-k) xs
+  pick _ _  = error "frequency3.pick used with empty list"
+
+
 choose3 :: Random a => (a,a) -> GenSt a
 choose3 rng = lift . lift $ choose rng
 
