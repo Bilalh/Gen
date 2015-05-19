@@ -28,6 +28,7 @@ module Gen.Essence.St
   , withWeights
   , LVar(..)
   , logInfo2
+  , ToJSON(..)
   ) where
 
 import Conjure.Language.Definition (Expression (..))
@@ -42,6 +43,10 @@ import Test.QuickCheck             (Gen, generate)
 import qualified Data.Map as M
 import qualified Data.Set as S
 import qualified Text.PrettyPrint as Pr
+
+
+instance ToJSON (Map Key Int) where
+  toJSON m = toJSON $ M.mapKeysMonotonic (tail . tail . show) m
 
 
 -- | Generate a random value of a specified type
@@ -123,6 +128,8 @@ data St = St{
     , doms_      :: Domains
     }
  deriving (Eq,Show)
+
+
 
 instance Pretty St where
     pretty (St{..}) =
