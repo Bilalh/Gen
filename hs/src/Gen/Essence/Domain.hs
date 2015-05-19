@@ -16,18 +16,18 @@ instance (Generate a, WrapConstant a, EvalToInt a) => Generate (Domain () a) whe
   give GNone = give GNone >>= \ty -> give (GType ty)
 
   give (GType TypeBool)             = pure DomainBool
-  give (GType TypeInt)              = DomainInt   <$> vectorOf3 2 (give GNone)
-  give (GType (TypeTuple t))        = DomainTuple <$> mapM (give <$> GType) t
+  give (GType TypeInt)              = DomainInt   <$> vectorOf3 2 (dgive GNone)
+  give (GType (TypeTuple t))        = DomainTuple <$> mapM (dgive <$> GType) t
 
-  give (GType (TypeSet ty))         = DomainSet       <$> pure () <*> give GNone      <*> give (GType ty)
-  give (GType (TypeMSet ty))        = DomainMSet      <$> pure () <*> give GNone      <*> give (GType ty)
-  give (GType (TypeMatrix t1 t2))   = DomainMatrix    <$>              give (GType t1) <*> give (GType t2)
-  give (GType (TypeFunction t1 t2)) = DomainFunction  <$> pure () <*> give GNone
-                                                                  <*> give (GType t1) <*> give (GType t2)
-  give (GType (TypeRelation t))     = DomainRelation  <$> pure () <*> give GNone
-                                                                  <*> mapM (give <$> GType) t
-  give (GType (TypePartition t))    = DomainPartition <$> pure () <*> give (GNone)
-                                                                  <*> give (GType t)
+  give (GType (TypeSet ty))         = DomainSet       <$> pure () <*> dgive GNone      <*> dgive (GType ty)
+  give (GType (TypeMSet ty))        = DomainMSet      <$> pure () <*> dgive GNone      <*> dgive (GType ty)
+  give (GType (TypeMatrix t1 t2))   = DomainMatrix    <$>             dgive (GType t1) <*> dgive (GType t2)
+  give (GType (TypeFunction t1 t2)) = DomainFunction  <$> pure () <*> dgive GNone
+                                                                  <*> dgive (GType t1) <*> dgive (GType t2)
+  give (GType (TypeRelation t))     = DomainRelation  <$> pure () <*> dgive GNone
+                                                                  <*> mapM (dgive <$> GType) t
+  give (GType (TypePartition t))    = DomainPartition <$> pure () <*> dgive (GNone)
+                                                                  <*> dgive (GType t)
 
   -- give (GType (TypeEnum t))         = _d
   -- give (GType (TypeUnnamed t))      = _d
@@ -56,6 +56,7 @@ instance (Generate a, WrapConstant a, EvalToInt a) => Generate (MSetAttr a) wher
 
 instance (Generate a, WrapConstant a, EvalToInt a) => Generate (SizeAttr a)  where
   give GNone = do
+    sanity "Generate (SizeAttr a)"
     let defs =
             [ (K_SizeAttr_None, pure SizeAttr_None)
             , (K_SizeAttr_Size,    SizeAttr_Size    <$> give (GType TypeInt))
