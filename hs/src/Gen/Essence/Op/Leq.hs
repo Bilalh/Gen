@@ -18,6 +18,5 @@ instance Generate a => Generate (OpLeq a) where
 
   give t = giveUnmatched "Generate OpLeq" t
 
-  possiblePure a TypeBool d = possibleNoType a d
-  possiblePure _ _ _        = False
-  possibleNoType _ d        = (1 :: Integer) <= (fromIntegral d)
+  possiblePure _ (Just ty)  _ | ty /= TypeBool = False
+  possiblePure _ _ d = d >= 1

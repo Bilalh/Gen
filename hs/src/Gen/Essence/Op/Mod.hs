@@ -17,7 +17,5 @@ instance (Generate a, ExpressionLike a) => Generate (OpMod a) where
 
   give t = giveUnmatched "Generate OpMod" t
 
-  possiblePure _ TypeInt d =  d >= 2
-  possiblePure _ _ _ = False
-
-  possibleNoType _ d = (2 :: Integer) <= (fromIntegral d)
+  possiblePure _ (Just ty)  _ | ty /= TypeInt = False
+  possiblePure _ _ d = d >= 1

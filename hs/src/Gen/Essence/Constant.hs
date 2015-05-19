@@ -17,8 +17,8 @@ instance Generate Constant where
    (res, _ :: Type) <- give con
    return res
 
-  possiblePure _ ty d = (depthOf ty) <= (fromIntegral d)
-  possibleNoType _ _ = True
+  possiblePure _ (Just ty) d = (depthOf ty) <= (fromIntegral d)
+  possiblePure _ _ _         = True
 
 
 instance Generate (Constant, Type) where
@@ -32,8 +32,8 @@ instance Generate (Constant, Type) where
 
   give t = giveUnmatched "Generate Constant" t
 
-  possiblePure _ ty d = (depthOf ty) <= (fromIntegral d)
-  possibleNoType _ _ = True
+  possiblePure _ (Just ty) d = (depthOf ty) <= (fromIntegral d)
+  possiblePure _ _ _         = True
 
 
 z :: Monad m => t -> a -> m (a, t)

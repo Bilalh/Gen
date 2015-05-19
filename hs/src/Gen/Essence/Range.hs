@@ -28,7 +28,6 @@ instance (Generate a, WrapConstant a) => Generate (Range a) where
   give t = giveUnmatched "Generate (Range a)" t
 
   possiblePure _ _ _ = True
-  possibleNoType _ _ = True
 
 
 chooseInt :: GenSt Integer

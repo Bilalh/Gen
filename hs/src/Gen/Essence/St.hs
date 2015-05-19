@@ -54,7 +54,7 @@ instance ToJSON (Map Key Int) where
 
 -- | Generate a random value of a specified type
 class (Data a, Pretty a) => Generate a where
-  {-# MINIMAL give, possible | give, possiblePure, possibleNoType  #-}
+  {-# MINIMAL give, possible | give, possiblePure  #-}
 
   -- | Return a random value of type a subject to the constraints
   give  :: GenerateConstraint -> GenSt a
@@ -63,21 +63,18 @@ class (Data a, Pretty a) => Generate a where
   possible :: (Applicative m, MonadState St m) => Proxy a -> GenerateConstraint -> m Bool
   possible a (GType ty) = do
     d <- gets depth
-    return $ possiblePure a ty d
+    return $ possiblePure a (Just ty) d
 
   possible a _ = do
     d <- gets depth
-    return $ possibleNoType a d
+    return $ possiblePure a Nothing d
 
   -- | Convenience for a pure implementation, Never call this method ouside the instance
   -- | return True if the return type can be generated within the specified depth
-  possiblePure :: Proxy a -> Type -> Depth -> Bool
+  -- | If no type given assume you can choose it, return True if any of the types
+  -- | would be allowed
+  possiblePure :: Proxy a -> Maybe Type -> Depth -> Bool
   possiblePure = error "no default possiblePure"
-
-  -- | Convenience for a pure implementation, Never call this method ouside the instance
-  -- | If a type is to be choosen for me, is this achievable within the specifed depth?
-  possibleNoType :: Proxy a -> Depth -> Bool
-  possibleNoType _ _ = error "no default possibleNoType"
 
   -- The Keys needed to create this type (Not including the return type)
   -- e.g tuple indexing needs ints

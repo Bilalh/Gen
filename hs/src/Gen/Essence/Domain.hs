@@ -19,11 +19,15 @@ instance (Generate a, WrapConstant a, EvalToInt a) => Generate (Domain () a) whe
   give (GType TypeInt)              = DomainInt   <$> vectorOf3 2 (dgive GNone)
   give (GType (TypeTuple t))        = DomainTuple <$> mapM (dgive <$> GType) t
 
-  give (GType (TypeSet ty))         = DomainSet       <$> pure () <*> dgive GNone      <*> dgive (GType ty)
-  give (GType (TypeMSet ty))        = DomainMSet      <$> pure () <*> dgive GNone      <*> dgive (GType ty)
-  give (GType (TypeMatrix t1 t2))   = DomainMatrix    <$>             dgive (GType t1) <*> dgive (GType t2)
+  give (GType (TypeSet ty))         = DomainSet       <$> pure () <*> dgive GNone
+                                                                  <*> dgive (GType ty)
+  give (GType (TypeMSet ty))        = DomainMSet      <$> pure () <*> dgive GNone
+                                                                  <*> dgive (GType ty)
+  give (GType (TypeMatrix t1 t2))   = DomainMatrix    <$>             dgive (GType t1)
+                                                                  <*> dgive (GType t2)
   give (GType (TypeFunction t1 t2)) = DomainFunction  <$> pure () <*> dgive GNone
-                                                                  <*> dgive (GType t1) <*> dgive (GType t2)
+                                                                  <*> dgive (GType t1)
+                                                                  <*> dgive (GType t2)
   give (GType (TypeRelation t))     = DomainRelation  <$> pure () <*> dgive GNone
                                                                   <*> mapM (dgive <$> GType) t
   give (GType (TypePartition t))    = DomainPartition <$> pure () <*> dgive (GNone)
@@ -37,21 +41,18 @@ instance (Generate a, WrapConstant a, EvalToInt a) => Generate (Domain () a) whe
   give t = giveUnmatched "Generate (Domain () a)" t
 
   possiblePure _ _ _ = True
-  possibleNoType _ _ = True
 
 
 instance (Generate a, WrapConstant a, EvalToInt a) => Generate (SetAttr a) where
   give GNone         = SetAttr <$> give (GNone)
   give t             = giveUnmatched "Generate (SetAttr a)" t
   possiblePure _ _ _ = True
-  possibleNoType _ _ = True
 
 
 instance (Generate a, WrapConstant a, EvalToInt a) => Generate (MSetAttr a) where
   give GNone         = MSetAttr <$> give (GNone) <*> give (GNone)
   give t             = giveUnmatched "Generate (SetAttr a)" t
   possiblePure _ _ _ = True
-  possibleNoType _ _ = True
 
 
 instance (Generate a, WrapConstant a, EvalToInt a) => Generate (SizeAttr a)  where
@@ -76,7 +77,6 @@ instance (Generate a, WrapConstant a, EvalToInt a) => Generate (SizeAttr a)  whe
   give t = giveUnmatched "Generate (SetAttr a)" t
 
   possiblePure _ _ _ = True
-  possibleNoType _ _ = True
 
 instance (Generate a, WrapConstant a, EvalToInt a) => Generate (OccurAttr a) where
   give GNone = do
@@ -98,14 +98,12 @@ instance (Generate a, WrapConstant a, EvalToInt a) => Generate (OccurAttr a) whe
   give t = giveUnmatched "Generate (OccurAttr a)" t
 
   possiblePure _ _ _ = True
-  possibleNoType _ _ = True
 
 instance (Generate a, WrapConstant a, EvalToInt a) => Generate (FunctionAttr a) where
   give GNone         = FunctionAttr <$> give GNone <*> give GNone <*> give GNone
   give t             = giveUnmatched "Generate (FunctionAttr a)" t
 
   possiblePure _ _ _ = True
-  possibleNoType _ _ = True
 
 
 instance Generate PartialityAttr where
@@ -117,7 +115,6 @@ instance Generate PartialityAttr where
   give t = giveUnmatched "Generate (PartialityAttr a)" t
 
   possiblePure _ _ _ = True
-  possibleNoType _ _ = True
 
 
 
@@ -132,7 +129,6 @@ instance Generate JectivityAttr where
   give t = giveUnmatched "Generate (JectivityAttr a)" t
 
   possiblePure _ _ _ = True
-  possibleNoType _ _ = True
 
 
 
@@ -140,7 +136,6 @@ instance (Generate a, WrapConstant a, EvalToInt a) => Generate (RelationAttr a) 
   give GNone         = RelationAttr <$> give (GNone) <*> give (GNone)
   give t             = giveUnmatched "Generate (RelationAttr a)" t
   possiblePure _ _ _ = True
-  possibleNoType _ _ = True
 
 
 instance Generate (BinaryRelationAttrs) where
@@ -174,7 +169,6 @@ instance Generate (BinaryRelationAttrs) where
 
   give t             = giveUnmatched "Generate (Set BinaryRelationAttrs)" t
   possiblePure _ _ _ = True
-  possibleNoType _ _ = True
 
 instance (Generate a, WrapConstant a, EvalToInt a) => Generate (PartitionAttr a) where
   give GNone = do
@@ -185,4 +179,3 @@ instance (Generate a, WrapConstant a, EvalToInt a) => Generate (PartitionAttr a)
 
   give t             = giveUnmatched "Generate (PartitionAttr a)" t
   possiblePure _ _ _ = True
-  possibleNoType _ _ = True

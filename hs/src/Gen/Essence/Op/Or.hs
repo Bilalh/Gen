@@ -17,7 +17,5 @@ instance (Generate a, ExpressionLike a) => Generate (OpOr a) where
 
   give t = giveUnmatched "Generate OpOr" t
 
-  possiblePure _ TypeBool d =  d >= 2
-  possiblePure _ _ _ = False
-
-  possibleNoType _ d = (2 :: Integer) <= (fromIntegral d)
+  possiblePure _ (Just ty) _ | ty /= TypeBool = False
+  possiblePure _ _ d = d >= 2

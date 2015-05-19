@@ -13,6 +13,7 @@ import Gen.Essence.Rnd
 import Gen.Essence.St
 import Gen.Essence.Type               ()
 import Gen.Helpers.TypeOf
+import Gen.Helpers.SizeOf
 import Gen.Imports
 
 import qualified Data.Foldable as F
@@ -59,7 +60,7 @@ instance Generate Expr where
 
     wrapLVar (LVar v) = EVar v
 
-  possible _ _ = return True
+  possiblePure _ _ _ = True
 
 
 instance Generate ListComp where
@@ -67,20 +68,19 @@ instance Generate ListComp where
 
   give (GType (TypeMatrix TypeInt a)) = do
     gen_num <- choose3 (1,2)
-    gen_var <- vectorOf3 gen_num (withDepthDec $ give (GType a))
+    gen_var <- vectorOf3 gen_num (dgive (GType a))
     let (gens, vars) = unzip gen_var
 
     inner <- withVars vars $ give (GType a)
     cs_num <- choose3 (0,2)
-    cs    <- withVars vars $ vectorOf3 cs_num $ give (GType TypeBool)
+    cs    <- withVars vars $ vectorOf3 cs_num $ dgive (GType TypeBool)
 
     return (inner, gens, cs)
 
   give t = giveUnmatched "Generate ListComp" t
 
-  possiblePure _ (TypeMatrix TypeInt _) d  | d > 1 = True
+  possiblePure _ (Just ty@(TypeMatrix TypeInt _)) d = (fromIntegral d) >= depthOf ty
   possiblePure _ _ _ = False
-  possibleNoType _ _ = False
 
 instance Generate (EGen, Var) where
   give GNone       = give (GType TypeInt)

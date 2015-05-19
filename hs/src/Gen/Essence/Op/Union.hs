@@ -19,6 +19,6 @@ instance Generate a => Generate (OpUnion a) where
   give ty@GType{} = pure OpUnion <*> give ty <*> give ty
   give t          = giveUnmatched "Generate OpUnion" t
 
-  possiblePure _ ty _ | not (Types.isUnionLike ty) = False
-  possiblePure _ ty d   = depthOf ty + 1 <= (fromIntegral d)
-  possibleNoType _ d    = (2 :: Integer) <= (fromIntegral d)
+  possiblePure _ (Just ty) _ | not (Types.isUnionLike ty) = False
+  possiblePure _ (Just ty) d = depthOf ty + 1 <= (fromIntegral d)
+  possiblePure _ _ d         = (2 :: Integer) <= (fromIntegral d)

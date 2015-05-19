@@ -15,11 +15,10 @@ instance (Generate a, WrapConstant a) => Generate (AbstractLiteral a) where
    (res, _ :: Type) <- give con
    return res
 
-  possiblePure _ TypeBool _  = False
-  possiblePure _ TypeInt  _  = False
-  possiblePure _ ty d = (depthOf ty) <= (fromIntegral d)
-
-  possibleNoType _ _ = True
+  possiblePure _ (Just TypeBool) _ = False
+  possiblePure _ (Just TypeInt ) _ = False
+  possiblePure _ (Just ty) d       = (depthOf ty) <= (fromIntegral d)
+  possiblePure _ Nothing d         = d >= 1
 
 
 instance (Generate a, WrapConstant a) => Generate (AbstractLiteral a, Type) where
@@ -72,8 +71,7 @@ instance (Generate a, WrapConstant a) => Generate (AbstractLiteral a, Type) wher
 
   give t = giveUnmatched "Generate (AbstractLiteral a)" t
 
-  possiblePure _ TypeBool _  = False
-  possiblePure _ TypeInt  _  = False
-  possiblePure _ ty d = (depthOf ty) <= (fromIntegral d)
-
-  possibleNoType _ _ = True
+  possiblePure _ (Just TypeBool) _ = False
+  possiblePure _ (Just TypeInt ) _ = False
+  possiblePure _ (Just ty) d       = (depthOf ty) <= (fromIntegral d)
+  possiblePure _ Nothing d         = d >= 1
