@@ -33,6 +33,7 @@ module Gen.Essence.St
   , sanity
   , withDepth
   , giveOnlyFunc
+  , RKind(..)
   ) where
 
 import Conjure.Language.Definition (Expression (..))
@@ -72,8 +73,11 @@ class (Data a, Pretty a) => Generate a where
       False -> return False
       True  -> do
         let needed = requires a Nothing
-        is <- mapM weightingForKey needed
-        return $ all (>0) is
+        bs <- forM needed $ \(r) -> do
+              let (f,ks) = rKindOp r
+              is <- mapM weightingForKey (ks)
+              return  $ f (>0) is
+        return $ and bs
 
   -- | Convenience for a pure implementation, Never call this method ouside the instance
   -- | return True if the return type can be generated within the specified depth
@@ -83,11 +87,19 @@ class (Data a, Pretty a) => Generate a where
   possiblePure = error "no default possiblePure"
 
   -- | Convenience for a pure implementation, Never call this method ouside the instance
-  -- | The minimal type Keys needed to create this object, call if possiblePure return True
-  -- | = needs bools  % needs ints, etc
-  requires :: Proxy a ->  Maybe Type -> [Key]
+  -- | They types that are needed
+  -- | e.g. Union
+  -- |   requires _ (Just ty) = [RAll $ keyList ty]
+  -- |   requires _ _         = [RAny Types.unionLike]
+  requires :: Proxy a ->  Maybe Type -> [ RKind ]
   requires = error "no default requires"
 
+data RKind = RAny [Key] | RAll [Key]
+           deriving (Show,Eq)
+
+rKindOp :: RKind -> ( ((Int -> Bool) -> [Int] -> Bool), [Key] )
+rKindOp (RAny xs) = (any, xs)
+rKindOp (RAll xs) = (all, xs)
 
 sanity :: (MonadState St m) => String -> m ()
 sanity msg =  do

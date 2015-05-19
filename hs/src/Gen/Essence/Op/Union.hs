@@ -24,5 +24,5 @@ instance Generate a => Generate (OpUnion a) where
   possiblePure _ (Just ty) d = depthOf ty + 1 <= (fromIntegral d)
   possiblePure _ _ d         = (2 :: Integer) <= (fromIntegral d)
 
-  requires _ (Just ty) = keyList ty
-  requires _ _         = [K_TypeSet]
+  requires _ (Just ty) = [RAll $ keyList ty]
+  requires _ _         = [RAny Types.unionLike]

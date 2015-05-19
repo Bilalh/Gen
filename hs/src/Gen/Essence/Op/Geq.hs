@@ -2,7 +2,6 @@
 module Gen.Essence.Op.Geq where
 
 import Conjure.Language.Expression.Op
-import Gen.Essence.Id
 import Gen.Essence.St
 import Gen.Essence.Type               ()
 import Gen.Imports
@@ -22,5 +21,4 @@ instance Generate a => Generate (OpGeq a) where
   possiblePure _ (Just ty)  _ | ty /= TypeBool = False
   possiblePure _ _ d = d >= 1
 
-  requires _ (Just ty) = keyList ty
-  requires _ _         = [K_TypeSet]
+  requires _ _ = [RAny Types.ordered]

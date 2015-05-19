@@ -20,7 +20,7 @@ instance (Generate a, WrapConstant a) => Generate (AbstractLiteral a) where
   possiblePure _ (Just ty) d       = (depthOf ty) <= (fromIntegral d)
   possiblePure _ Nothing d         = d >= 1
 
-  requires _ (Just ty) = [getKey ty]
+  requires _ (Just ty) = [RAll $ keyList ty]
   requires _ _         = []
 
 instance (Generate a, WrapConstant a) => Generate (AbstractLiteral a, Type) where
@@ -78,5 +78,5 @@ instance (Generate a, WrapConstant a) => Generate (AbstractLiteral a, Type) wher
   possiblePure _ (Just ty) d       = (depthOf ty) <= (fromIntegral d)
   possiblePure _ Nothing d         = d >= 1
 
-  requires _ (Just ty) = [getKey ty]
+  requires _ (Just ty) = [RAll $ keyList ty]
   requires _ _         = []

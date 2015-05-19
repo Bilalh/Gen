@@ -40,4 +40,4 @@ instance Generate Spec where
   give t = giveUnmatched "Generate (Spec)" t
 
   possiblePure _ _ _ = True
-  requires _ _       = [K_TypeSet]
+  requires _ _       = [RAll [K_TypeBool]]

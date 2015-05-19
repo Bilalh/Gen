@@ -28,7 +28,7 @@ instance (Generate a, WrapConstant a) => Generate (Range a) where
   give t = giveUnmatched "Generate (Range a)" t
 
   possiblePure _ _ _ = True
-  requires _ _       = [K_TypeInt]
+  requires _ _       = [RAll [K_TypeInt]]
 
 
 chooseInt :: GenSt Integer

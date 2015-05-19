@@ -20,4 +20,4 @@ instance Generate a => Generate (OpEq a) where
   possiblePure _ (Just ty)  _ | ty /= TypeBool = False
   possiblePure _ _ d = d >= 1
 
-  requires _ _ = [K_TypeBool]
+  requires _ _ = []

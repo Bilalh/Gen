@@ -43,7 +43,7 @@ instance (Generate a, WrapConstant a, EvalToInt a) => Generate (Domain () a) whe
 
   possiblePure _ _ _ = True
 
-  requires _ (Just ty) = keyList ty
+  requires _ (Just ty) = [RAll $ keyList ty]
   requires _ _         = []
 
 
@@ -51,13 +51,13 @@ instance (Generate a, WrapConstant a, EvalToInt a) => Generate (SetAttr a) where
   give GNone         = SetAttr <$> give (GNone)
   give t             = giveUnmatched "Generate (SetAttr a)" t
   possiblePure _ _ _ = True
-  requires _ _        = [K_TypeInt]
+  requires _ _        = [RAll [K_TypeInt]]
 
 instance (Generate a, WrapConstant a, EvalToInt a) => Generate (MSetAttr a) where
   give GNone         = MSetAttr <$> give (GNone) <*> give (GNone)
   give t             = giveUnmatched "Generate (SetAttr a)" t
   possiblePure _ _ _ = True
-  requires _ _        = [K_TypeInt]
+  requires _ _       = [RAll [K_TypeInt]]
 
 instance (Generate a, WrapConstant a, EvalToInt a) => Generate (SizeAttr a)  where
   give GNone = do
@@ -81,7 +81,7 @@ instance (Generate a, WrapConstant a, EvalToInt a) => Generate (SizeAttr a)  whe
   give t = giveUnmatched "Generate (SetAttr a)" t
 
   possiblePure _ _ _ = True
-  requires _ _       = [K_TypeInt]
+  requires _ _       = [RAll [K_TypeInt]]
 
 instance (Generate a, WrapConstant a, EvalToInt a) => Generate (OccurAttr a) where
   give GNone = do
@@ -103,7 +103,7 @@ instance (Generate a, WrapConstant a, EvalToInt a) => Generate (OccurAttr a) whe
   give t = giveUnmatched "Generate (OccurAttr a)" t
 
   possiblePure _ _ _ = True
-  requires _ _       = [K_TypeInt]
+  requires _ _       = [RAll [K_TypeInt]]
 
 instance (Generate a, WrapConstant a, EvalToInt a) => Generate (FunctionAttr a) where
   give GNone         = FunctionAttr <$> give GNone <*> give GNone <*> give GNone
@@ -142,7 +142,7 @@ instance (Generate a, WrapConstant a, EvalToInt a) => Generate (RelationAttr a) 
   give GNone         = RelationAttr <$> give (GNone) <*> give (GNone)
   give t             = giveUnmatched "Generate (RelationAttr a)" t
   possiblePure _ _ _ = True
-  requires _ _       = [K_TypeInt]
+  requires _ _       = [RAll [K_TypeInt]]
 
 instance Generate (BinaryRelationAttrs) where
   give GNone = BinaryRelationAttrs <$> f
@@ -186,4 +186,4 @@ instance (Generate a, WrapConstant a, EvalToInt a) => Generate (PartitionAttr a)
 
   give t             = giveUnmatched "Generate (PartitionAttr a)" t
   possiblePure _ _ _ = True
-  requires _ _       = [K_TypeInt]
+  requires _ _       = [RAll [K_TypeInt]]

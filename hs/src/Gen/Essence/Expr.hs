@@ -82,7 +82,7 @@ instance Generate ListComp where
 
   possiblePure _ (Just ty@(TypeMatrix TypeInt _)) d = (fromIntegral d) >= depthOf ty
   possiblePure _ _ _ = False
-  requires _ _       = [K_TypeInt]
+  requires _ _       = []
 
 
 instance Generate (EGen, Var) where
