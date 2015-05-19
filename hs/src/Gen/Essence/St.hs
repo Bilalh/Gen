@@ -149,7 +149,7 @@ instance Pretty St where
 
 instance Default St where
   def = St{
-          weighting  = def
+          weighting  = M.fromList [(K_BinRelAttrStop, 600) ]
         , depth      = $(neverNote "No depth specified")
         , beConstant = False
         , newVars_   = def

@@ -10,18 +10,21 @@ import Gen.Essence.Type        ()
 import Gen.Imports
 import Gen.Essence.EvalToInt
 
+import qualified Data.Set as S
 
 instance (Generate a, WrapConstant a, EvalToInt a) => Generate (Domain () a) where
   give GNone = give GNone >>= \ty -> give (GType ty)
 
   give (GType TypeBool)             = pure DomainBool
-  give (GType TypeInt)              = DomainInt  <$> vectorOf3 2 (give GNone)
-  give (GType (TypeSet ty))         = DomainSet  <$> pure () <*>  give GNone <*> give (GType ty)
-  give (GType (TypeMSet ty))        = DomainMSet <$> pure () <*>  give GNone <*> give (GType ty)
-  give (GType (TypeTuple t))        = DomainTuple <$> mapM (\y -> give (GType y) ) t
-  give (GType (TypeMatrix t1 t2))   = DomainMatrix <$> give (GType t1) <*> give (GType t2)
-  give (GType (TypeFunction t1 t2)) = DomainFunction <$> pure () <*>  give GNone <*> give (GType t1) <*> give (GType t2)
-  -- give (GType (TypeRelation t))     = _d
+  give (GType TypeInt)              = DomainInt      <$> vectorOf3 2 (give GNone)
+  give (GType (TypeTuple t))        = DomainTuple    <$> mapM (give <$> GType) t
+  give (GType (TypeSet ty))         = DomainSet      <$> pure () <*> give GNone      <*> give (GType ty)
+  give (GType (TypeMSet ty))        = DomainMSet     <$> pure () <*> give GNone      <*> give (GType ty)
+  give (GType (TypeMatrix t1 t2))   = DomainMatrix   <$>             give (GType t1) <*> give (GType t2)
+  give (GType (TypeFunction t1 t2)) = DomainFunction <$> pure () <*> give GNone
+                                                                 <*> give (GType t1) <*> give (GType t2)
+  give (GType (TypeRelation t))     = DomainRelation <$> pure () <*> give GNone
+                                                                 <*> mapM (give <$> GType) t
   -- give (GType (TypePartition t))    = _d
 
   -- give (GType (TypeEnum t))         = _d
@@ -123,7 +126,49 @@ instance Generate JectivityAttr where
     , (K_JectivityAttr_Bijective,   pure JectivityAttr_Bijective)
     ]
 
-  give t = giveUnmatched "Generate (PartialityAttr a)" t
+  give t = giveUnmatched "Generate (JectivityAttr a)" t
 
+  possiblePure _ _ _ = True
+  possibleNoType _ _ = True
+
+
+
+instance (Generate a, WrapConstant a, EvalToInt a) => Generate (RelationAttr a) where
+  give GNone         = RelationAttr <$> give (GNone) <*> give (GNone)
+  give t             = giveUnmatched "Generate (RelationAttr a)" t
+  possiblePure _ _ _ = True
+  possibleNoType _ _ = True
+
+
+instance Generate (BinaryRelationAttrs) where
+  give GNone = BinaryRelationAttrs <$> f
+
+    where
+    f ::  GenSt (Set BinaryRelationAttr)
+    f = (elemFreq3 =<< getWeights defs)  >>= \case
+        Nothing  -> return S.empty
+        (Just (k,v)) -> do
+          vs <- withWeights [(k,0)] f
+          return $  (S.singleton v) `S.union` vs
+
+    kv k v = (k, Just (k,v))
+    defs = [ (K_BinRelAttrStop, Nothing)
+           , kv K_BinRelAttr_Reflexive      BinRelAttr_Reflexive
+           , kv K_BinRelAttr_Irreflexive    BinRelAttr_Irreflexive
+           , kv K_BinRelAttr_Coreflexive    BinRelAttr_Coreflexive
+           , kv K_BinRelAttr_Symmetric      BinRelAttr_Symmetric
+           , kv K_BinRelAttr_AntiSymmetric  BinRelAttr_AntiSymmetric
+           , kv K_BinRelAttr_ASymmetric     BinRelAttr_ASymmetric
+           , kv K_BinRelAttr_Transitive     BinRelAttr_Transitive
+           , kv K_BinRelAttr_Total          BinRelAttr_Total
+           , kv K_BinRelAttr_Connex         BinRelAttr_Connex
+           , kv K_BinRelAttr_Euclidean      BinRelAttr_Euclidean
+           , kv K_BinRelAttr_Serial         BinRelAttr_Serial
+           , kv K_BinRelAttr_Equivalence    BinRelAttr_Equivalence
+           , kv K_BinRelAttr_PartialOrder   BinRelAttr_PartialOrder
+           ]
+
+
+  give t             = giveUnmatched "Generate (Set BinaryRelationAttrs)" t
   possiblePure _ _ _ = True
   possibleNoType _ _ = True
