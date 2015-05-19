@@ -22,7 +22,7 @@ instance Generate Type where
                        , ("TypeInt",  pure TypeInt)
                        , ("TypeSet",   liftM TypeSet   (withDepthDec (give GNone) ))
                        -- , ("TypeMatrix", liftM TypeMatrix (withDepthDec (give GNone) ))
-                       -- , ("TypeMSet",  liftM TypeMSet  (withDepthDec (give GNone) ))
+                       , ("TypeMSet",  liftM TypeMSet  (withDepthDec (give GNone) ))
                        -- , ("TypePartition",   liftM TypePartition   (withDepthDec (give GNone) ))
                        ]
 
@@ -43,7 +43,7 @@ instance Generate Type where
                        , ("TypeInt",  pure TypeInt)
                        , ("TypeSet",   liftM TypeSet   (withDepthDec (give GNone) ))
                        -- , ("TypeMatrix", liftM TypeMatrix (withDepthDec (give GNone) ))
-                       -- , ("TypeMSet",  liftM TypeMSet  (withDepthDec (give GNone) ))
+                       , ("TypeMSet",  liftM TypeMSet  (withDepthDec (give GNone) ))
                        -- , ("TypePartition",   liftM TypePartition   (withDepthDec (give GNone) ))
                        ]
 

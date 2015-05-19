@@ -14,10 +14,10 @@ import Gen.Essence.EvalToInt
 instance (Generate a, WrapConstant a, EvalToInt a) => Generate (Domain () a) where
   give GNone = give GNone >>= \ty -> give (GType ty)
 
-  give (GType TypeBool)     = pure DomainBool
-  give (GType TypeInt)      = DomainInt <$> vectorOf3 2 (give GNone)
-  give (GType (TypeSet ty)) = DomainSet <$> pure () <*>  give GNone <*> give (GType ty)
-
+  give (GType TypeBool)      = pure DomainBool
+  give (GType TypeInt)       = DomainInt  <$> vectorOf3 2 (give GNone)
+  give (GType (TypeSet ty))  = DomainSet  <$> pure () <*>  give GNone <*> give (GType ty)
+  give (GType (TypeMSet ty)) = DomainMSet <$> pure () <*>  give GNone <*> give (GType ty)
 
   give t = giveUnmatched "Generate (Domain () a)" t
 
@@ -32,6 +32,13 @@ instance (Generate a, WrapConstant a, EvalToInt a) => Generate (SetAttr a) where
   possibleNoType _ _ = True
 
 
+instance (Generate a, WrapConstant a, EvalToInt a) => Generate (MSetAttr a) where
+  give GNone         = MSetAttr <$> give (GNone) <*> give (GNone)
+  give t             = giveUnmatched "Generate (SetAttr a)" t
+  possiblePure _ _ _ = True
+  possibleNoType _ _ = True
+
+
 instance (Generate a, WrapConstant a, EvalToInt a) => Generate (SizeAttr a)  where
   give GNone = do
     let defs =
@@ -40,6 +47,28 @@ instance (Generate a, WrapConstant a, EvalToInt a) => Generate (SizeAttr a)  whe
             , (K_SizeAttr_MinSize, SizeAttr_MinSize <$> give (GType TypeInt))
             , (K_SizeAttr_MaxSize, SizeAttr_MaxSize <$> give (GType TypeInt))
             , (K_SizeAttr_MinMaxSize, (uncurry SizeAttr_MinMaxSize )  <$> minMax)
+            ]
+
+    parts <- getWeights defs
+    frequency3 parts
+
+    where
+    minMax = do
+      (IntAsc a b) <- give GNone
+      return $ (a,b)
+
+  give t = giveUnmatched "Generate (SetAttr a)" t
+
+  possiblePure _ _ _ = True
+  possibleNoType _ _ = True
+
+instance (Generate a, WrapConstant a, EvalToInt a) => Generate (OccurAttr a) where
+  give GNone = do
+    let defs =
+            [ (K_OccurAttr_None, pure OccurAttr_None)
+            , (K_OccurAttr_MinOccur, OccurAttr_MinOccur <$> give (GType TypeInt))
+            , (K_OccurAttr_MaxOccur, OccurAttr_MaxOccur <$> give (GType TypeInt))
+            , (K_OccurAttr_MinMaxOccur, (uncurry OccurAttr_MinMaxOccur ) <$> minMax)
             ]
 
     parts <- getWeights defs

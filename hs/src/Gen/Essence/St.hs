@@ -72,9 +72,13 @@ class (Data a, Pretty a) => Generate a where
   possiblePure = error "no default possiblePure"
 
   -- | Convenience for a pure implementation, Never call this method ouside the instance
-  -- | If a type is to be choosen for me, is this achievable with the specifed depth?
+  -- | If a type is to be choosen for me, is this achievable within the specifed depth?
   possibleNoType :: Proxy a -> Depth -> Bool
   possibleNoType _ _ = error "no default possibleNoType"
+
+  -- The Keys needed to create this type (Not including the return type)
+  -- e.g tuple indexing needs ints
+  requires :: Proxy a -> [Key]
 
 
 getId :: Data a => Proxy a -> Key
