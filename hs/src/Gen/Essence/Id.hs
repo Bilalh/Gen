@@ -1,14 +1,17 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
-module Gen.Essence.Id where
+module Gen.Essence.Id(GetKey(..),module X) where
 
 import Conjure.Language.Definition
 import Conjure.Language.Domain
+import Conjure.Language.Domain        as X (Tree)
 import Conjure.Language.Expression.Op
 import Data.Data
+import Data.Generics.Uniplate.Data    (childrenBi)
 import Gen.Essence.St
 import Gen.Imports
+
 import qualified Data.Map as M
-import Data.Generics.Uniplate.Data (childrenBi)
+
 
 class (Data a, Pretty a ) => GetKey a where
   getKey  :: a -> Key
@@ -42,8 +45,6 @@ instance GetKey Spec where
              [ Tree K_SDoms (map (keyTree . domOfGF ) $ M.elems doms )
              , Tree K_SExprs (map keyTree exprs)
              ] ++ maybeToList (fmap (Tree K_SObj . (: []) . keyTree) obj)
-
-    where
 
 instance GetKey (OObjective, Expr) where
   getKey (o,_)     = fromString . show . toConstr $ o
