@@ -14,16 +14,16 @@ instance Generate Type where
   give (GOnlyTopLevel ws) = do
     defs <- gets depth >>= \d ->
      if | d < 0     -> error $ "GenerateType invaild Depth: " ++ show d
-        | d == 0    -> return [ ("TypeBool", pure TypeBool)
-                              , ("TypeInt",  pure TypeInt)
+        | d == 0    -> return [ (K_TypeBool, pure TypeBool)
+                              , (K_TypeInt,  pure TypeInt)
                               ]
         | otherwise -> return [
-                         ("TypeBool", pure TypeBool)
-                       , ("TypeInt",  pure TypeInt)
-                       , ("TypeSet",   liftM TypeSet   (withDepthDec (give GNone) ))
-                       -- , ("TypeMatrix", liftM TypeMatrix (withDepthDec (give GNone) ))
-                       , ("TypeMSet",  liftM TypeMSet  (withDepthDec (give GNone) ))
-                       -- , ("TypePartition",   liftM TypePartition   (withDepthDec (give GNone) ))
+                         (K_TypeBool, pure TypeBool)
+                       , (K_TypeInt,  pure TypeInt)
+                       , (K_TypeSet,   liftM TypeSet   (withDepthDec (give GNone) ))
+                       -- , (K_TypeMatrix, liftM TypeMatrix (withDepthDec (give GNone) ))
+                       , (K_TypeMSet,  liftM TypeMSet  (withDepthDec (give GNone) ))
+                       -- , (K_TypePartition,   liftM TypePartition   (withDepthDec (give GNone) ))
                        ]
 
     let allowed = S.fromList ws
@@ -35,16 +35,16 @@ instance Generate Type where
   give GNone = do
     defs <- gets depth >>= \d ->
      if | d < 0     -> error $ "GenerateType invaild Depth: " ++ show d
-        | d == 0    -> return [ ("TypeBool", pure TypeBool)
-                              , ("TypeInt",  pure TypeInt)
+        | d == 0    -> return [ (K_TypeBool, pure TypeBool)
+                              , (K_TypeInt,  pure TypeInt)
                               ]
         | otherwise -> return [
-                         ("TypeBool", pure TypeBool)
-                       , ("TypeInt",  pure TypeInt)
-                       , ("TypeSet",   liftM TypeSet   (withDepthDec (give GNone) ))
-                       -- , ("TypeMatrix", liftM TypeMatrix (withDepthDec (give GNone) ))
-                       , ("TypeMSet",  liftM TypeMSet  (withDepthDec (give GNone) ))
-                       -- , ("TypePartition",   liftM TypePartition   (withDepthDec (give GNone) ))
+                         (K_TypeBool, pure TypeBool)
+                       , (K_TypeInt,  pure TypeInt)
+                       , (K_TypeSet,   liftM TypeSet   (withDepthDec (give GNone) ))
+                       -- , (K_TypeMatrix, liftM TypeMatrix (withDepthDec (give GNone) ))
+                       , (K_TypeMSet,  liftM TypeMSet  (withDepthDec (give GNone) ))
+                       -- , (K_TypePartition,   liftM TypePartition   (withDepthDec (give GNone) ))
                        ]
 
     parts <- getWeights defs

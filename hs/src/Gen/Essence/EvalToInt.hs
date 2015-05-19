@@ -6,7 +6,6 @@ import Conjure.Language.Definition
 import Gen.Essence.Type        ()
 import Gen.Imports
 import Conjure.Language.Instantiate
-import Conjure.Language.TH
 import Gen.AST.TH
 
 class EvalToInt a where
