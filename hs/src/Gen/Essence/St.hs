@@ -34,6 +34,7 @@ module Gen.Essence.St
   , withDepth
   , giveOnlyFunc
   , RKind(..)
+  , KeyMap
   ) where
 
 import Conjure.Language.Definition (Expression (..))
@@ -49,10 +50,15 @@ import qualified Data.Map as M
 import qualified Data.Set as S
 import qualified Text.PrettyPrint as Pr
 
+type KeyMap = Map Key Int
 
-instance ToJSON (Map Key Int) where
+instance ToJSON KeyMap where
   toJSON m = toJSON $ M.mapKeysMonotonic (tail . tail . show) m
 
+instance FromJSON KeyMap where
+  parseJSON v = do
+     temp <- parseJSON v
+     return $ M.mapKeys fromString $ temp
 
 -- | Generate a random value of a specified type
 class (Data a, Pretty a) => Generate a where
