@@ -17,6 +17,20 @@ data Key = K_Unused
          | K_AbsLitTuple
          | K_AbsLitVariant
          | K_AbstractLiteral
+         | K_BinRelAttrStop
+         | K_BinRelAttr_ASymmetric
+         | K_BinRelAttr_AntiSymmetric
+         | K_BinRelAttr_Connex
+         | K_BinRelAttr_Coreflexive
+         | K_BinRelAttr_Equivalence
+         | K_BinRelAttr_Euclidean
+         | K_BinRelAttr_Irreflexive
+         | K_BinRelAttr_PartialOrder
+         | K_BinRelAttr_Reflexive
+         | K_BinRelAttr_Serial
+         | K_BinRelAttr_Symmetric
+         | K_BinRelAttr_Total
+         | K_BinRelAttr_Transitive
          | K_BinaryRelationAttrs
          | K_Comprehension
          | K_Constant
@@ -218,6 +232,20 @@ instance IsString Key where
   fromString "AbsLitTuple"             = K_AbsLitTuple
   fromString "AbsLitVariant"           = K_AbsLitVariant
   fromString "AbstractLiteral"         = K_AbstractLiteral
+  fromString "BinRelAttrStop"          = K_BinRelAttrStop
+  fromString "BinRelAttr_ASymmetric"   = K_BinRelAttr_ASymmetric
+  fromString "BinRelAttr_AntiSymmetric" = K_BinRelAttr_AntiSymmetric
+  fromString "BinRelAttr_Connex"       = K_BinRelAttr_Connex
+  fromString "BinRelAttr_Coreflexive"  = K_BinRelAttr_Coreflexive
+  fromString "BinRelAttr_Equivalence"  = K_BinRelAttr_Equivalence
+  fromString "BinRelAttr_Euclidean"    = K_BinRelAttr_Euclidean
+  fromString "BinRelAttr_Irreflexive"  = K_BinRelAttr_Irreflexive
+  fromString "BinRelAttr_PartialOrder" = K_BinRelAttr_PartialOrder
+  fromString "BinRelAttr_Reflexive"    = K_BinRelAttr_Reflexive
+  fromString "BinRelAttr_Serial"       = K_BinRelAttr_Serial
+  fromString "BinRelAttr_Symmetric"    = K_BinRelAttr_Symmetric
+  fromString "BinRelAttr_Total"        = K_BinRelAttr_Total
+  fromString "BinRelAttr_Transitive"   = K_BinRelAttr_Transitive
   fromString "BinaryRelationAttrs"     = K_BinaryRelationAttrs
   fromString "Comprehension"           = K_Comprehension
   fromString "Constant"                = K_Constant
