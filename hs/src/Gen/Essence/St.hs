@@ -29,6 +29,8 @@ module Gen.Essence.St
   , LVar(..)
   , logInfo2
   , ToJSON(..)
+  , dgive
+  , sanity
   ) where
 
 import Conjure.Language.Definition (Expression (..))
@@ -80,6 +82,19 @@ class (Data a, Pretty a) => Generate a where
   -- e.g tuple indexing needs ints
   requires :: Proxy a -> [Key]
 
+sanity :: (MonadState St m) => String -> m ()
+sanity msg =  do
+  d <- gets depth
+  st <- get
+  when (d <0 ) $ docError
+           ["Generate Expr Depth <0"
+           , pretty msg
+           , pretty st
+           ]
+
+-- | withDepthDec . give for Convenience
+dgive :: forall a . Generate a  => GenerateConstraint -> GenSt a
+dgive = withDepthDec . give
 
 getId :: Data a => Proxy a -> Key
 getId = fromString . tyconUQname . dataTypeName . proxyDataTypeOf
