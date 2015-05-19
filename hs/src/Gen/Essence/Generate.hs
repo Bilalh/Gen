@@ -4,7 +4,6 @@ import Conjure.Language.Definition
 import Conjure.Language.NameResolution (resolveNames)
 import Conjure.UI.IO                   (writeModel)
 import Conjure.UI.TypeCheck            (typeCheckModel)
-import Data.Map                        (Map)
 import Data.Time.Clock.POSIX           (getPOSIXTime)
 import Gen.Arbitrary.Data
 import Gen.Classify.Meta               (mkMeta)
