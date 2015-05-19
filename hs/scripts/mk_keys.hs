@@ -97,8 +97,10 @@ dataNames = [ strs TypeAny
             , strs (def          :: BinaryRelationAttrs)
             , strs (def          :: PartitionAttr Constant)
             , strs (Maximising   :: Objective)
-            , [ drop 2 s | s <- strs (error "OP"   :: Op Constant ) ]
+            , [ drop 2 s | s <- strs (error "OP" :: Op Constant ) ]
             , [ "Int_" ++ show i  | i :: Integer <- [0..10]  ]
+
+            , strs (BinRelAttr_Reflexive  :: BinaryRelationAttr)
             ]
 
 getNames :: IO [String]
