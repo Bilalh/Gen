@@ -2,6 +2,7 @@
 module Gen.Essence.Op.Union where
 
 import Conjure.Language.Expression.Op
+import Gen.Essence.Id
 import Gen.Essence.St
 import Gen.Essence.Type               ()
 import Gen.Helpers.SizeOf
@@ -22,3 +23,6 @@ instance Generate a => Generate (OpUnion a) where
   possiblePure _ (Just ty) _ | not (Types.isUnionLike ty) = False
   possiblePure _ (Just ty) d = depthOf ty + 1 <= (fromIntegral d)
   possiblePure _ _ d         = (2 :: Integer) <= (fromIntegral d)
+
+  requires _ (Just ty) = keyList ty
+  requires _ _         = [K_TypeSet]

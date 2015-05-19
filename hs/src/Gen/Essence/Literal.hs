@@ -2,13 +2,13 @@
 module Gen.Essence.Literal where
 
 import Conjure.Language.Definition
+import Gen.Essence.Id
 import Gen.Essence.Ints
 import Gen.Essence.Rnd
 import Gen.Essence.St
 import Gen.Essence.Type            ()
 import Gen.Helpers.SizeOf
 import Gen.Imports
-
 
 instance (Generate a, WrapConstant a) => Generate (AbstractLiteral a) where
   give con = do
@@ -20,6 +20,8 @@ instance (Generate a, WrapConstant a) => Generate (AbstractLiteral a) where
   possiblePure _ (Just ty) d       = (depthOf ty) <= (fromIntegral d)
   possiblePure _ Nothing d         = d >= 1
 
+  requires _ (Just ty) = [getKey ty]
+  requires _ _         = []
 
 instance (Generate a, WrapConstant a) => Generate (AbstractLiteral a, Type) where
   give GNone = do
@@ -75,3 +77,6 @@ instance (Generate a, WrapConstant a) => Generate (AbstractLiteral a, Type) wher
   possiblePure _ (Just TypeInt ) _ = False
   possiblePure _ (Just ty) d       = (depthOf ty) <= (fromIntegral d)
   possiblePure _ Nothing d         = d >= 1
+
+  requires _ (Just ty) = [getKey ty]
+  requires _ _         = []

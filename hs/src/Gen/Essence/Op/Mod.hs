@@ -19,3 +19,5 @@ instance (Generate a, ExpressionLike a) => Generate (OpMod a) where
 
   possiblePure _ (Just ty)  _ | ty /= TypeInt = False
   possiblePure _ _ d = d >= 1
+
+  requires _ _ = [K_TypeInt]

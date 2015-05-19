@@ -1,5 +1,5 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
-module Gen.Essence.Id(GetKey(..),module X) where
+module Gen.Essence.Id(GetKey(..),module X,keyList) where
 
 import Conjure.Language.Definition
 import Conjure.Language.Domain
@@ -11,11 +11,14 @@ import Gen.Essence.St
 import Gen.Imports
 
 import qualified Data.Map as M
-
+import qualified Data.Foldable as F
 
 class (Data a, Pretty a ) => GetKey a where
   getKey  :: a -> Key
   keyTree :: a -> Tree Key
+
+keyList ::GetKey a => a ->  [Key]
+keyList = F.toList . keyTree
 
 instance Pretty (Tree Key) where
     pretty = pretty . displayTree

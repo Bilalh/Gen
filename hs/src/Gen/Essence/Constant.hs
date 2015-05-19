@@ -3,6 +3,7 @@
 module Gen.Essence.Constant(Generate(..)) where
 
 import Conjure.Language.Definition
+import Gen.Essence.Id
 import Gen.Essence.Literal         ()
 import Gen.Essence.Rnd
 import Gen.Essence.St
@@ -20,6 +21,8 @@ instance Generate Constant where
   possiblePure _ (Just ty) d = (depthOf ty) <= (fromIntegral d)
   possiblePure _ _ _         = True
 
+  requires _ (Just ty) = [getKey ty]
+  requires _ _         = []
 
 instance Generate (Constant, Type) where
   give GNone = do
@@ -35,6 +38,8 @@ instance Generate (Constant, Type) where
   possiblePure _ (Just ty) d = (depthOf ty) <= (fromIntegral d)
   possiblePure _ _ _         = True
 
+  requires _ (Just ty) = [getKey ty]
+  requires _ _         = []
 
 z :: Monad m => t -> a -> m (a, t)
 z r = return . (, r)

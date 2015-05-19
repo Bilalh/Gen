@@ -19,3 +19,5 @@ instance (Generate a, ExpressionLike a) => Generate (OpOr a) where
 
   possiblePure _ (Just ty) _ | ty /= TypeBool = False
   possiblePure _ _ d = d >= 2
+
+  requires _ _ = [K_TypeBool]

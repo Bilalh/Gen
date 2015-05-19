@@ -9,6 +9,7 @@ import Gen.Essence.St
 import Gen.Essence.Type        ()
 import Gen.Imports
 import Gen.Essence.EvalToInt
+import Gen.Essence.Id
 
 import qualified Data.Set as S
 
@@ -42,18 +43,21 @@ instance (Generate a, WrapConstant a, EvalToInt a) => Generate (Domain () a) whe
 
   possiblePure _ _ _ = True
 
+  requires _ (Just ty) = keyList ty
+  requires _ _         = []
+
 
 instance (Generate a, WrapConstant a, EvalToInt a) => Generate (SetAttr a) where
   give GNone         = SetAttr <$> give (GNone)
   give t             = giveUnmatched "Generate (SetAttr a)" t
   possiblePure _ _ _ = True
-
+  requires _ _        = [K_TypeInt]
 
 instance (Generate a, WrapConstant a, EvalToInt a) => Generate (MSetAttr a) where
   give GNone         = MSetAttr <$> give (GNone) <*> give (GNone)
   give t             = giveUnmatched "Generate (SetAttr a)" t
   possiblePure _ _ _ = True
-
+  requires _ _        = [K_TypeInt]
 
 instance (Generate a, WrapConstant a, EvalToInt a) => Generate (SizeAttr a)  where
   give GNone = do
@@ -77,6 +81,7 @@ instance (Generate a, WrapConstant a, EvalToInt a) => Generate (SizeAttr a)  whe
   give t = giveUnmatched "Generate (SetAttr a)" t
 
   possiblePure _ _ _ = True
+  requires _ _       = [K_TypeInt]
 
 instance (Generate a, WrapConstant a, EvalToInt a) => Generate (OccurAttr a) where
   give GNone = do
@@ -98,13 +103,14 @@ instance (Generate a, WrapConstant a, EvalToInt a) => Generate (OccurAttr a) whe
   give t = giveUnmatched "Generate (OccurAttr a)" t
 
   possiblePure _ _ _ = True
+  requires _ _       = [K_TypeInt]
 
 instance (Generate a, WrapConstant a, EvalToInt a) => Generate (FunctionAttr a) where
   give GNone         = FunctionAttr <$> give GNone <*> give GNone <*> give GNone
   give t             = giveUnmatched "Generate (FunctionAttr a)" t
 
   possiblePure _ _ _ = True
-
+  requires _ _       = []
 
 instance Generate PartialityAttr where
   give GNone = frequency3 =<< getWeights
@@ -115,7 +121,7 @@ instance Generate PartialityAttr where
   give t = giveUnmatched "Generate (PartialityAttr a)" t
 
   possiblePure _ _ _ = True
-
+  requires _ _       = []
 
 
 instance Generate JectivityAttr where
@@ -129,14 +135,14 @@ instance Generate JectivityAttr where
   give t = giveUnmatched "Generate (JectivityAttr a)" t
 
   possiblePure _ _ _ = True
-
+  requires _ _       = []
 
 
 instance (Generate a, WrapConstant a, EvalToInt a) => Generate (RelationAttr a) where
   give GNone         = RelationAttr <$> give (GNone) <*> give (GNone)
   give t             = giveUnmatched "Generate (RelationAttr a)" t
   possiblePure _ _ _ = True
-
+  requires _ _       = [K_TypeInt]
 
 instance Generate (BinaryRelationAttrs) where
   give GNone = BinaryRelationAttrs <$> f
@@ -169,6 +175,7 @@ instance Generate (BinaryRelationAttrs) where
 
   give t             = giveUnmatched "Generate (Set BinaryRelationAttrs)" t
   possiblePure _ _ _ = True
+  requires _ _       = []
 
 instance (Generate a, WrapConstant a, EvalToInt a) => Generate (PartitionAttr a) where
   give GNone = do
@@ -179,3 +186,4 @@ instance (Generate a, WrapConstant a, EvalToInt a) => Generate (PartitionAttr a)
 
   give t             = giveUnmatched "Generate (PartitionAttr a)" t
   possiblePure _ _ _ = True
+  requires _ _       = [K_TypeInt]

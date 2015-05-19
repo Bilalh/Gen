@@ -61,6 +61,7 @@ instance Generate Expr where
     wrapLVar (LVar v) = EVar v
 
   possiblePure _ _ _ = True
+  requires _ _       = []
 
 
 instance Generate ListComp where
@@ -81,6 +82,8 @@ instance Generate ListComp where
 
   possiblePure _ (Just ty@(TypeMatrix TypeInt _)) d = (fromIntegral d) >= depthOf ty
   possiblePure _ _ _ = False
+  requires _ _       = [K_TypeInt]
+
 
 instance Generate (EGen, Var) where
   give GNone       = give (GType TypeInt)
@@ -97,7 +100,7 @@ instance Generate (EGen, Var) where
   give t = giveUnmatched "Generate EGen" t
 
   possible _ _ = return True
-
+  requires _ _ = []
 
 instance Generate Var where
   give (GType ty) = do
@@ -119,7 +122,7 @@ instance Generate Var where
        return $ b == ty
 
   possible _ _ = return False
-
+  requires _ _ = []
 
 instance Generate LVar where
   give (GType ty) = do
@@ -139,7 +142,7 @@ instance Generate LVar where
     f (Var _ vty) False = return $ vty == ty
 
   possible _ _ = return False
-
+  requires _ _ = []
 
 -- FIXME Having these Instances is a bad idea
 instance Pretty [Expr] where

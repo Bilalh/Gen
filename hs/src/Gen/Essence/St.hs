@@ -54,7 +54,7 @@ instance ToJSON (Map Key Int) where
 
 -- | Generate a random value of a specified type
 class (Data a, Pretty a) => Generate a where
-  {-# MINIMAL give, possible | give, possiblePure  #-}
+  {-# MINIMAL give, possible | give, possiblePure, requires  #-}
 
   -- | Return a random value of type a subject to the constraints
   give  :: GenerateConstraint -> GenSt a
@@ -67,7 +67,12 @@ class (Data a, Pretty a) => Generate a where
 
   possible a _ = do
     d <- gets depth
-    return $ possiblePure a Nothing d
+    case possiblePure a Nothing d of
+      False -> return False
+      True  -> do
+        let needed = requires a Nothing
+        is <- mapM weightingForKey needed
+        return $ all (>0) is
 
   -- | Convenience for a pure implementation, Never call this method ouside the instance
   -- | return True if the return type can be generated within the specified depth
@@ -76,9 +81,12 @@ class (Data a, Pretty a) => Generate a where
   possiblePure :: Proxy a -> Maybe Type -> Depth -> Bool
   possiblePure = error "no default possiblePure"
 
-  -- The Keys needed to create this type (Not including the return type)
-  -- e.g tuple indexing needs ints
-  requires :: Proxy a -> [Key]
+  -- | Convenience for a pure implementation, Never call this method ouside the instance
+  -- | The minimal type Keys needed to create this object, call if possiblePure return True
+  -- | = needs bools  % needs ints, etc
+  requires :: Proxy a ->  Maybe Type -> [Key]
+  requires = error "no default requires"
+
 
 sanity :: (MonadState St m) => String -> m ()
 sanity msg =  do
