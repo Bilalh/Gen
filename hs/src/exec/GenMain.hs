@@ -51,6 +51,10 @@ main = do
        args <- helpArg
        void $ withArgs [x, args] (cmdArgs ui)
 
+    ["Essence", "--output-weightings"] -> do
+        mapM_ (putStrLn) kindsList
+        exitSuccess
+
     ["reduce", "--list-kinds"] -> do
         mapM_ (putStrLn) kindsList
         exitSuccess
@@ -550,6 +554,8 @@ _essenceDebug = do
              , given_dir          = Nothing
              , _gen_type          = SecondGen
              , reduce_as_well     = Nothing
+             , _weightings        = Nothing
+             , output_weightings  = False
              }
     limiter (limit_time ec) (mainWithArgs ec)
 
@@ -575,6 +581,8 @@ _givenDebug = do
              , given_dir          = Just "/Users/bilalh/Desktop/Results/_notable/_new/2015-05-11_01-33_1431308031/_errors/RefineCompact_/RuleApplication_/1431310206_12"
              , _gen_type          = def
              , reduce_as_well     = Just 60
+             , _weightings        = Nothing
+             , output_weightings  = False
              }
     limiter (limit_time ec) (mainWithArgs ec)
 

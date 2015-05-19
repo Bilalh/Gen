@@ -30,6 +30,8 @@ data UI
     , given_dir          :: Maybe FilePath
     , reduce_as_well     :: Maybe Int
     , _weightings        :: Maybe FilePath
+    , output_weightings  :: Bool
+
     }
 
   | Instance
@@ -242,6 +244,10 @@ ui  = modes
                                     &= groupname "Generation"
                                     &= explicit
                                     &= help "Weighting json key value pairs e.g. {\"TypeSet\":100}"
+     , output_weightings  = False   &= name "output-weightings"
+                                    &= groupname "Essence"
+                                    &= help "Output the default weighting"
+                                    &= explicit
      , toolchain_ouput    = enum
                             [
                               ToolchainScreen_ &= name "show-toolchain-output"

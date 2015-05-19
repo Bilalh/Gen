@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveGeneric,
              ParallelListComp #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Gen.Essence.St
   ( module X
@@ -34,7 +35,7 @@ module Gen.Essence.St
   , withDepth
   , giveOnlyFunc
   , RKind(..)
-  , KeyMap
+  , KeyMap(..)
   ) where
 
 import Conjure.Language.Definition (Expression (..))
@@ -49,16 +50,6 @@ import Test.QuickCheck             (Gen, generate)
 import qualified Data.Map as M
 import qualified Data.Set as S
 import qualified Text.PrettyPrint as Pr
-
-type KeyMap = Map Key Int
-
-instance ToJSON KeyMap where
-  toJSON m = toJSON $ M.mapKeysMonotonic (tail . tail . show) m
-
-instance FromJSON KeyMap where
-  parseJSON v = do
-     temp <- parseJSON v
-     return $ M.mapKeys fromString $ temp
 
 -- | Generate a random value of a specified type
 class (Data a, Pretty a) => Generate a where
@@ -100,6 +91,23 @@ class (Data a, Pretty a) => Generate a where
   requires :: Proxy a ->  Maybe Type -> [ RKind ]
   requires = error "no default requires"
 
+
+newtype  KeyMap = KeyMap (Map Key Int)
+ deriving (Show, Data, Typeable, Eq)
+
+instance Default KeyMap where
+    def = KeyMap $ M.fromList [(K_BinRelAttrStop, 800) ]
+
+instance Pretty KeyMap where
+    pretty = pretty . groom
+
+instance ToJSON KeyMap where
+  toJSON (KeyMap m) = toJSON $ M.mapKeysMonotonic (tail . tail . show) m
+
+instance FromJSON KeyMap where
+  parseJSON v = KeyMap . M.mapKeys fromString <$> parseJSON v
+
+
 data RKind = RAny [Key] | RAll [Key]
            deriving (Show,Eq)
 
@@ -127,7 +135,7 @@ getId = fromString . tyconUQname . dataTypeName . proxyDataTypeOf
 getWeighting :: (MonadState St m, Data a) => Proxy a -> m Int
 getWeighting a = do
     let key = getId a
-    gets weighting >>= \kv ->
+    gets weighting >>= \(KeyMap kv) ->
         case key `M.lookup` kv  of
           Nothing  -> return 100
           (Just x) -> return x
@@ -163,7 +171,7 @@ instance Pretty LVar where
     pretty (LVar v) = "LVar" <+> pretty v
 
 data St = St{
-      weighting  :: Map Key Int
+      weighting  :: KeyMap
     , depth      :: Int
     , varCounter :: Int
     , newVars_   :: [Var] -- Domains from e.g. forall
@@ -187,7 +195,7 @@ instance Pretty St where
 
 instance Default St where
   def = St{
-          weighting  = M.fromList [(K_BinRelAttrStop, 800) ]
+          weighting  = def
         , depth      = $(neverNote "No depth specified")
         , newVars_   = def
         , doms_      = def
@@ -197,18 +205,18 @@ instance Default St where
 
 weightingForKey :: MonadState St m => Key -> m Int
 weightingForKey key = do
-  gets weighting >>= \kv ->
+  gets weighting >>= \(KeyMap kv) ->
       case key `M.lookup` kv  of
         Nothing  -> return 100
         (Just x) -> return x
 
 withWeights :: [(Key, Int)] ->  GenSt a -> GenSt a
 withWeights vs f = do
-  old <- gets weighting
+  (KeyMap old) <- gets weighting
   let new = (M.fromList vs) `M.union` old
-  modify $ \st -> st{ weighting = new }
+  modify $ \st -> st{ weighting = KeyMap new }
   res <- f
-  modify $ \st -> st{ weighting = old }
+  modify $ \st -> st{ weighting = KeyMap old }
   return res
 
 getWeights :: MonadState St m => [(Key,a)] -> m [(Int, a)]
