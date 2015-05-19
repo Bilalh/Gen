@@ -22,6 +22,7 @@ import qualified Text.PrettyPrint as Pr
 
 instance Generate Expr where
   give g  = do
+    sanity "Generate Expr"
     let defs =
           [ (possible (Proxy :: Proxy Constant),               (K_ECon,  doConstant))
           , (possible (Proxy :: Proxy (AbstractLiteral Expr)), (K_ELit,  doLitetal ))
@@ -30,6 +31,7 @@ instance Generate Expr where
           , (possible (Proxy :: Proxy (Op Expr)),              (K_EOp,   EOp       <$> give g))
           , (possible (Proxy :: Proxy ListComp),               (K_EComp, wrapComp  <$> give g))
           ]
+
 
     parts <- getPossibilities g defs
     frequency3 parts
