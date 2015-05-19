@@ -108,7 +108,6 @@ type GenSt a = StateT St (WriterT [(LogLevel, Doc)] Gen) a
 data GenerateConstraint = GNone
                         | GType Type          -- The resulting type
                         | GOnlyLiteralTypes   -- for literals
-                        | GGTE Integer        -- for min/max size
                         | GOnlyTopLevel [Key] -- Weights to use at the toplevel
  deriving (Eq, Ord, Show, Data, Typeable, Generic)
 

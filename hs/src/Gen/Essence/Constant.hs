@@ -25,9 +25,6 @@ instance Generate (Constant, Type) where
     ty <- give GNone
     give (GType ty)
 
-  -- TODO remove GGTE
-  give (GGTE i  )              = pure ConstantInt  <*> choose3 (i,5)        >>= z TypeInt
-
   give (GType TypeInt)         = pure ConstantInt  <*> choose3 (0,5)        >>= z TypeInt
   give (GType TypeBool)        = pure ConstantBool <*> choose3 (True,False) >>= z TypeBool
   give (GType ty@TypeSet{})    = lit ty
