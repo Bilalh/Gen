@@ -39,4 +39,5 @@ instance Generate Spec where
 
   give t = giveUnmatched "Generate (Spec)" t
 
-  possible _ _ = return True
+  possiblePure _ _ _ = True
+  requires _ _       = [K_TypeSet]

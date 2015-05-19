@@ -32,6 +32,7 @@ module Gen.Essence.St
   , dgive
   , sanity
   , withDepth
+  , giveOnlyFunc
   ) where
 
 import Conjure.Language.Definition (Expression (..))
@@ -296,7 +297,7 @@ fieldKeys a = do
   let names = dataTypeConstrs . proxyDataTypeOf $ a
   map (fromString . show) names
 
-
+-- | Reduce the weighting of all key (of the specific type) NOT mentioned to 0
 giveOnly :: forall a . (Data a, Generate a)
          => GenerateConstraint ->  [Key] -> GenSt a
 giveOnly g keys = do
@@ -304,6 +305,13 @@ giveOnly g keys = do
   let ws = [ (k,0) | k <- fieldKeys (Proxy :: Proxy a), k `S.notMember` allowed ]
   withWeights ws (give g)
 
+-- | Reduce the weighting of all key (of the specific type) NOT mentioned to 0
+giveOnlyFunc :: forall a b . (Data a, Generate a, Data b, Generate b)
+         =>  Proxy b ->  [Key] -> GenSt a -> GenSt a
+giveOnlyFunc proxy keys f = do
+  let allowed = S.fromList keys
+  let ws = [ (k,0) | k <- fieldKeys proxy, k `S.notMember` allowed ]
+  withWeights ws f
 
 -- | Generate n values of type a and print the frequency of them
 generateFreq :: forall a . (Generate a, Pretty a, Ord a)
