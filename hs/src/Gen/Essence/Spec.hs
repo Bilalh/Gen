@@ -14,6 +14,9 @@ import qualified Data.Map as M
 instance Generate Spec where
   give GNone = do
     depth <- gets depth
+    -- TODO add to ui
+    dom_depth <- choose3 (0, min depth 3)
+
     let domsCount = (1, min ((depth+1)*2) 7)
     let exprCount = (0, min ((depth+1)*2) 7)
     i_d <- choose3 domsCount
@@ -24,7 +27,7 @@ instance Generate Spec where
                    , nn "i_e" i_e
                    ]
 
-    doms <- mapM (\_ -> give GNone) [1..i_d]
+    doms <- mapM (\_ -> withDepth dom_depth $ give GNone) [1..i_d]
     let withNames =  zipWith (\d i -> (name i , Findd d)) doms [1 :: Int ..]
     let mappings  = M.fromList withNames
     modify $ \st -> st{doms_=mappings}

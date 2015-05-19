@@ -31,6 +31,7 @@ module Gen.Essence.St
   , ToJSON(..)
   , dgive
   , sanity
+  , withDepth
   ) where
 
 import Conjure.Language.Definition (Expression (..))
@@ -163,7 +164,7 @@ instance Pretty St where
 
 instance Default St where
   def = St{
-          weighting  = M.fromList [(K_BinRelAttrStop, 600) ]
+          weighting  = M.fromList [(K_BinRelAttrStop, 800) ]
         , depth      = $(neverNote "No depth specified")
         , beConstant = False
         , newVars_   = def
@@ -220,6 +221,16 @@ withDepthDec f = do
   res <- f
   modify $ \st -> st{ depth = oldDepth }
   return res
+
+
+withDepth :: Int -> GenSt a -> GenSt a
+withDepth d f = do
+  oldDepth <- gets depth
+  modify $ \st -> st{ depth = d }
+  res <- f
+  modify $ \st -> st{ depth = oldDepth }
+  return res
+
 
 
 withVars :: [Var] ->  GenSt a -> GenSt a
