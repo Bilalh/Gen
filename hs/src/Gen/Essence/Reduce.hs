@@ -3,11 +3,12 @@ module Gen.Essence.Reduce where
 
 import Gen.Essence.UIData       (EssenceConfig (..))
 import Gen.Imports
-import Gen.IO.Toolchain         (KindI, StatusI)
-import Gen.IO.Toolchain         (doMeta)
+import Gen.IO.Formats
+import Gen.IO.Toolchain         (KindI, StatusI, doMeta)
 import Gen.Reduce.Data          (RState (..))
 import Gen.Reduce.FormatResults (formatResults)
 import Gen.Reduce.Reduce        (reduceMain)
+import System.FilePath          (takeBaseName)
 -- import Gen.Reduce.Runner   (giveDb, saveDB)
 
 import qualified Data.HashMap.Strict as H
@@ -18,9 +19,18 @@ data ErrData = ErrData
     , status  :: StatusI
     , choices :: FilePath
     , specDir :: FilePath
-    }
+    } deriving Show
+
+instance Pretty ErrData where
+    pretty = pretty . groom
 
 data ReduceResult = ReduceResult
+    { finalSpec :: Spec
+    } deriving Show
+
+
+instance Pretty ReduceResult where
+    pretty (ReduceResult sp) = "ReduceResult" <+> pretty sp
 
 
 reduceErrors :: EssenceConfig -> [ErrData] -> IO [ReduceResult]
@@ -34,7 +44,7 @@ reduceError EssenceConfig{..} ErrData{..}= do
       no_csv         = False
       db_directory   = Nothing
       total_time_may = reduceAsWell_
-      out            = specDir ++ "_r"
+      out            = specDir ++ "_r-" ++ (replaceExtensions "" $ takeBaseName choices)
 
   let args = def{oErrKind_            = kind
                 ,oErrStatus_          = status
@@ -58,5 +68,10 @@ reduceError EssenceConfig{..} ErrData{..}= do
 
   state <- reduceMain False args
   -- saveDB db_only_passing db_directory (resultsDB_  state)
-  formatResults True state
-  return ReduceResult
+  dir <- formatResults True state >>= \case
+         (Just x) -> return x
+         Nothing  -> return specDir
+
+  sp <- readFromJSON (dir </> "spec.spec.json")
+
+  return $ ReduceResult sp

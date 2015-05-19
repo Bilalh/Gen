@@ -4,9 +4,12 @@ import Conjure.Language.Definition
 import Conjure.Language.NameResolution (resolveNames)
 import Conjure.UI.IO                   (writeModel)
 import Conjure.UI.TypeCheck            (typeCheckModel)
+import Data.Map                        (Map)
 import Data.Time.Clock.POSIX           (getPOSIXTime)
 import Gen.Arbitrary.Data
 import Gen.Classify.Meta               (mkMeta)
+import Gen.Essence.Adjust
+import Gen.Essence.Reduce              (ErrData (..), reduceErrors)
 import Gen.Essence.Spec                ()
 import Gen.Essence.St
 import Gen.Essence.UIData              (EssenceConfig)
@@ -16,7 +19,6 @@ import Gen.IO.Toolchain                hiding (DirError (..), ToolchainData (..)
 import GHC.Real                        (floor)
 import System.Directory                (copyFile, renameDirectory)
 import Test.QuickCheck                 (Gen, generate)
-import Gen.Essence.Reduce(reduceErrors, ErrData(..))
 
 import qualified Data.IntSet             as I
 import qualified Data.Map                as M
@@ -25,18 +27,6 @@ import qualified Gen.Arbitrary.Arbitrary as FirstGen
 import qualified Gen.Essence.UIData      as EC
 import qualified Gen.IO.Toolchain        as Toolchain
 
-import Data.Map (Map)
-
-
-data Carry = Carry
-    { cWeighting :: Map Key Int
-    , cHashes    :: I.IntSet
-    } deriving (Show)
-
-
-instance Default Carry where
-    def = Carry{ cWeighting = def
-               , cHashes    = def}
 
 
 generateEssence :: EssenceConfig -> IO ()
@@ -71,6 +61,7 @@ generateWrap (Just (x:_)) _ = do
   return (spec, "")
 
 generateWrap _ f = liftIO $  generate f
+
 
 doRefine :: (MonadIO m, MonadState Carry m)
          => EssenceConfig -> m ()
@@ -125,6 +116,9 @@ doRefine ec@EC.EssenceConfig{..} = do
               liftIO $ createDirectoryIfMissing True dir
               liftIO $ writeFile (dir </> "spec.logs" ) (renderSized 120 logs)
               liftIO $ writeToJSON (dir </> "spec.spec.json") sp
+              gets cWeighting >>= \c -> liftIO $ writeToJSON (dir </> "weighting.json") c
+
+
 
               let meta = mkMeta sp
               liftIO $ writeToJSON  (dir </> "spec.meta.json" ) (meta)
@@ -152,13 +146,19 @@ doRefine ec@EC.EssenceConfig{..} = do
 
               (runTime,rdata) <- liftIO $ classifySettingI ec errdir out uname result
 
-              reducedData <- case reduceAsWell_ of
-                Nothing -> return Nothing
+              case reduceAsWell_ of
+                Nothing -> return ()
                 Just{}  -> do
                   liftIO $ putStrLn $ "> Reducing: " ++ (show $ hash sp)
-                  res <- liftIO $ Just <$> reduceErrors ec rdata
+                  res <- liftIO $ reduceErrors ec rdata
                   liftIO $ putStrLn $ "> Reduced: " ++ (show $ hash sp)
-                  return res
+                  liftIO $ putStrLn $ "!l rdata: " ++ (show $ length rdata)
+                  liftIO $ putStrLn $ "! rdata: " ++ (show $ vcat $ map pretty rdata)
+                  liftIO $ putStrLn $ "!l errData: " ++ (show $ length res)
+                  liftIO $ putStrLn $ "! errData: " ++ (show $ vcat $ map pretty res)
+                  mapM_ adjust res
+
+
 
               liftIO $ putStrLn $ "> Processed: " ++ (show $ hash sp)
               liftIO $ putStrLn $ ""
@@ -499,7 +499,10 @@ nextElem (Just (_:xs)) = Just xs
 genToUse :: (MonadIO m, MonadState Carry m)
          => Depth -> EssenceConfig -> m (Gen (Spec,Doc))
 genToUse depth EC.EssenceConfig{genType_=EC.SecondGen} = do
-  let g = f <$> runGenerateWithLogs GNone def{depth=depth}
+  ws <- gets cWeighting
+  liftIO $ print $ hang "Weighting" 4 (pretty ws)
+  let g = f <$> runGenerateWithLogs GNone def{ depth=depth
+                                             , weighting=ws}
   return g
 
   where

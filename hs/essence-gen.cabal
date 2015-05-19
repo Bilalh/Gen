@@ -41,6 +41,7 @@ Library
                      , Gen.Classify.Meta
                      , Gen.Classify.Sorter
                      , Gen.Classify.UpdateChoices
+                     , Gen.Essence.Adjust
                      , Gen.Essence.Constant
                      , Gen.Essence.Data.Key
                      , Gen.Essence.Data.Types
