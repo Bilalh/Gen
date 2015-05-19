@@ -28,10 +28,10 @@ import qualified Gen.IO.Toolchain        as Toolchain
 
 
 
-generateEssence :: EssenceConfig -> IO ()
-generateEssence ec@EC.EssenceConfig{..} = do
+generateEssence :: KeyMap -> EssenceConfig -> IO ()
+generateEssence km ec@EC.EssenceConfig{..} = do
   setRandomSeed seed_
-  let carry = (def :: Carry){cHashes=runHashes_}
+  let carry = Carry{cHashes=runHashes_,cWeighting=km}
   case mode_ of
     EC.TypeCheck_ -> void $ evalStateT (doTypeCheck ec) carry
     EC.Refine_    -> void $ evalStateT (doRefine ec) carry

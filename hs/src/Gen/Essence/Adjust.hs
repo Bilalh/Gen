@@ -12,14 +12,10 @@ import qualified Data.Foldable as F
 import qualified Data.Map as M
 
 data Carry = Carry
-    { cWeighting :: Map Key Int
+    { cWeighting :: KeyMap
     , cHashes    :: I.IntSet
     } deriving (Show)
 
-
-instance Default Carry where
-    def = Carry{ cWeighting = def
-               , cHashes    = def}
 
 adjust :: (MonadState Carry m, MonadIO m) => ReduceResult -> m ()
 adjust ReduceResult{..} = do

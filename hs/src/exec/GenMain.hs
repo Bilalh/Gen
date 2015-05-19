@@ -14,6 +14,7 @@ import Gen.Essence.Generate       (generateEssence)
 import Gen.Essence.UIData
 import Gen.Generalise.Generalise  (generaliseMain)
 import Gen.Imports
+import Gen.IO.Formats(readFromJSON)
 import Gen.IO.Term
 import Gen.IO.Toolchain           (KindI (..), StatusI (..), ToolchainOutput (..),
                                    doMeta, kindsList, statusesList)
@@ -121,6 +122,7 @@ mainWithArgs u@Essence{..} = do
             [
               dirExistsMay "--givens"  given_dir
             , dirExistsMay "--bin-dir" binaries_directory
+            , fileExistsMay "--weightings/-w" _weightings
             ]
 
   let errors = catMaybes $
@@ -141,6 +143,10 @@ mainWithArgs u@Essence{..} = do
   cores      <- giveCores u
   givenSpecs <- giveSpec given_dir
 
+  ws <- case _weightings of
+          Nothing -> def
+          Just fp -> do
+            readFromJSON fp
 
   let config = EC.EssenceConfig
                { outputDirectory_ = out
@@ -164,7 +170,7 @@ mainWithArgs u@Essence{..} = do
                }
 
   doMeta out no_csv binaries_directory
-  generateEssence config
+  generateEssence ws config
 
 
 mainWithArgs Instance{..} = do

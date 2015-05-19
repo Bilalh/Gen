@@ -29,6 +29,7 @@ data UI
     , no_csv             :: Bool
     , given_dir          :: Maybe FilePath
     , reduce_as_well     :: Maybe Int
+    , _weightings        :: Maybe FilePath
     }
 
   | Instance
@@ -235,6 +236,12 @@ ui  = modes
                                     &= groupname "Generation"
                                     &= explicit
                                     &= help "Reduce the test case found sequentially"
+     , _weightings       = Nothing  &= typFile
+                                    &= name "w"
+                                    &= name "weightings"
+                                    &= groupname "Generation"
+                                    &= explicit
+                                    &= help "Weighting json key value pairs e.g. {\"TypeSet\":100}"
      , toolchain_ouput    = enum
                             [
                               ToolchainScreen_ &= name "show-toolchain-output"
