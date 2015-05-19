@@ -4,12 +4,13 @@ module Gen.Essence.Type where
 import Gen.Essence.St
 import Gen.Imports
 import Gen.Essence.Rnd
+
 import qualified Data.Set as S
+import qualified Gen.Essence.Data.Types as Types
 
 instance Generate Type where
 
-  give GOnlyLiteralTypes = give $ GOnlyTopLevel
-    [K_TypeSet, K_TypeMSet, K_TypeTuple, K_TypeMatrix, K_TypeFunction]
+  give GOnlyLiteralTypes = give $ GOnlyTopLevel Types.literals
 
   give (GOnlyTopLevel ws) = do
     defs <- gets depth >>= \d ->

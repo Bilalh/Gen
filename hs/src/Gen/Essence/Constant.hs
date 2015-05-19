@@ -10,6 +10,7 @@ import Gen.Essence.Type            ()
 import Gen.Helpers.SizeOf
 import Gen.Imports
 
+import qualified Gen.Essence.Data.Types as Types
 
 instance Generate Constant where
   give con = do
@@ -27,8 +28,7 @@ instance Generate (Constant, Type) where
 
   give (GType TypeInt)         = pure ConstantInt  <*> choose3 (0,5)        >>= z TypeInt
   give (GType TypeBool)        = pure ConstantBool <*> choose3 (True,False) >>= z TypeBool
-  give (GType ty@TypeSet{})    = lit ty
-  give (GType ty@TypeMatrix{}) = lit ty
+  give (GType ty) | Types.isLiteral ty   = lit ty
 
   give t = giveUnmatched "Generate Constant" t
 
