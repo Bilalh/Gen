@@ -91,7 +91,6 @@ class (Data a, Pretty a) => Generate a where
   requires :: Proxy a ->  Maybe Type -> [ RKind ]
   requires = error "no default requires"
 
-
 newtype  KeyMap = KeyMap (Map Key Int)
  deriving (Show, Data, Typeable, Eq)
 

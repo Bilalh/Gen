@@ -10,11 +10,12 @@ import Gen.Classify.AddMeta       (addMeta)
 import Gen.Classify.AddSpecE      (addSpecJson, specEMain)
 import Gen.Classify.Sorter        (getRecursiveContents, sorterMain')
 import Gen.Classify.UpdateChoices (updateChoices)
+import Gen.Essence.St             (KeyMap)
 import Gen.Essence.Generate       (generateEssence)
 import Gen.Essence.UIData
 import Gen.Generalise.Generalise  (generaliseMain)
 import Gen.Imports
-import Gen.IO.Formats(readFromJSON)
+import Gen.IO.Formats             (readFromJSON, writeToJSON)
 import Gen.IO.Term
 import Gen.IO.Toolchain           (KindI (..), StatusI (..), ToolchainOutput (..),
                                    doMeta, kindsList, statusesList)
@@ -28,7 +29,7 @@ import System.Console.CmdArgs     (cmdArgs)
 import System.CPUTime             (getCPUTime)
 import System.Environment         (lookupEnv, withArgs)
 import System.Exit                (exitFailure, exitSuccess, exitWith)
-import System.FilePath            (takeExtensions,replaceExtension)
+import System.FilePath            (replaceExtension, takeExtensions)
 import System.Timeout             (timeout)
 import Text.Printf                (printf)
 
@@ -51,8 +52,9 @@ main = do
        args <- helpArg
        void $ withArgs [x, args] (cmdArgs ui)
 
-    ["Essence", "--output-weightings"] -> do
-        mapM_ (putStrLn) kindsList
+    ["essence", "--output-weightings"] -> do
+        writeToJSON "default_weights.json" (def :: KeyMap)
+        putStrLn "Wrote default_weights.json"
         exitSuccess
 
     ["reduce", "--list-kinds"] -> do
@@ -118,6 +120,12 @@ limiter (Just sec) f  =  do
 
 mainWithArgs :: UI -> IO ()
 mainWithArgs u@Essence{..} = do
+
+  when output_weightings $ do
+     writeToJSON "default_weights.json" (def :: KeyMap)
+     putStrLn "Wrote default_weights.json"
+     exitSuccess
+
   let ls = case given_dir of
              Nothing  -> [ aerr "-t|--total-time" (total_time == 0)]
              Just{} -> []
