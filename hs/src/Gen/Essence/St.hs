@@ -142,7 +142,6 @@ data St = St{
       weighting  :: Map Key Int
     , depth      :: Int
     , varCounter :: Int
-    , beConstant :: Bool  -- when true only generate constrant expressions
     , newVars_   :: [Var] -- Domains from e.g. forall
     , doms_      :: Domains
     }
@@ -154,10 +153,10 @@ instance Pretty St where
     pretty (St{..}) =
         "St" <+> Pr.braces (
             Pr.sep [
-                    nn "depth"       $ pretty depth
-                  , nn "beConstant " $ pretty beConstant
+                    nn "depth"       $ depth
                   , nn "newVars_"    $ prettyTypeArr newVars_
-                  , nn "doms"        $ pretty doms_
+                  , nn "doms"        $ doms_
+                  , nn "varCounter"  $ varCounter
                   , nn "weighting" (pretty . groom $  weighting)
                   ] )
 
@@ -166,7 +165,6 @@ instance Default St where
   def = St{
           weighting  = M.fromList [(K_BinRelAttrStop, 800) ]
         , depth      = $(neverNote "No depth specified")
-        , beConstant = False
         , newVars_   = def
         , doms_      = def
         , varCounter = 1

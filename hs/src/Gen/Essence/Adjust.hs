@@ -5,7 +5,6 @@ import Gen.Essence.Id
 import Gen.Essence.Reduce
 import Gen.Essence.St
 import Gen.Imports
-import Gen.IO.Formats
 import Data.List(foldl')
 
 import qualified Data.IntSet as I
@@ -27,7 +26,7 @@ adjust ReduceResult{..} = do
   let tree :: Tree Key = keyTree finalSpec
   let keys = F.toList tree
   ws <- gets cWeighting
-  let newWeights = foldl doWeighting ws keys
+  let newWeights = foldl' doWeighting ws keys
 
   modify $ \st -> st{cWeighting=newWeights}
   return ()
