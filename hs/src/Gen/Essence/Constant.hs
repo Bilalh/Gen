@@ -26,9 +26,9 @@ instance Generate (Constant, Type) where
     ty <- give GNone
     give (GType ty)
 
-  give (GType TypeInt)         = pure ConstantInt  <*> choose3 (0,5)        >>= z TypeInt
-  give (GType TypeBool)        = pure ConstantBool <*> choose3 (True,False) >>= z TypeBool
-  give (GType ty) | Types.isLiteral ty   = lit ty
+  give (GType TypeInt)  = pure ConstantInt  <*> choose3 (0,5)        >>= z TypeInt
+  give (GType TypeBool) = pure ConstantBool <*> choose3 (True,False) >>= z TypeBool
+  give (GType ty) | Types.isLiteral ty = lit ty
 
   give t = giveUnmatched "Generate Constant" t
 
