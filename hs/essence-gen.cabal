@@ -53,13 +53,17 @@ Library
                      , Gen.Essence.Ints
                      , Gen.Essence.Literal
                      , Gen.Essence.Objective
+                     , Gen.Essence.Op.And
                      , Gen.Essence.Op.Eq
                      , Gen.Essence.Op.Geq
+                     , Gen.Essence.Op.Gt
                      , Gen.Essence.Op.Internal.Generated
                      , Gen.Essence.Op.Leq
+                     , Gen.Essence.Op.Lt
                      , Gen.Essence.Op.Mod
                      , Gen.Essence.Op.Neq
                      , Gen.Essence.Op.Or
+                     , Gen.Essence.Op.Pow
                      , Gen.Essence.Op.Union
                      , Gen.Essence.Op
                      , Gen.Essence.Range

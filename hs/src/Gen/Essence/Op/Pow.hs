@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-module Gen.Essence.Op.Mod where
+module Gen.Essence.Op.Pow where
 
 import Conjure.Language.AdHoc
 import Conjure.Language.Expression.Op
@@ -8,13 +8,13 @@ import Gen.Essence.Type               ()
 import Gen.Imports
 
 
-instance (Generate a, ExpressionLike a) => Generate (OpMod a) where
+instance (Generate a, ExpressionLike a) => Generate (OpPow a) where
   give GNone = give (GType TypeInt)
 
   give ty@GType{} = do
-    OpMod <$> give ty <*> give ty
+    OpPow <$> give ty <*> give ty
 
-  give t = giveUnmatched "Generate OpMod" t
+  give t = giveUnmatched "Generate OpPow" t
 
   possiblePure _ (Just ty)  _ | ty /= TypeInt = False
   possiblePure _ _ d = d >= 1

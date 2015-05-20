@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-module Gen.Essence.Op.Or where
+module Gen.Essence.Op.And where
 
 import Conjure.Language.AdHoc
 import Conjure.Language.Expression.Op
@@ -8,12 +8,12 @@ import Gen.Essence.Type               ()
 import Gen.Imports
 
 
-instance (Generate a, ExpressionLike a) => Generate (OpOr a) where
+instance (Generate a, ExpressionLike a) => Generate (OpAnd a) where
   give GNone = give (GType TypeBool)
 
-  give (GType TypeBool) = OpOr <$> give  (GType $ TypeMatrix TypeInt TypeBool)
+  give (GType TypeBool) = OpAnd <$> give  (GType $ TypeMatrix TypeInt TypeBool)
 
-  give t = giveUnmatched "Generate OpOr" t
+  give t = giveUnmatched "Generate OpAnd" t
 
   possiblePure _ (Just ty) _ | ty /= TypeBool = False
   possiblePure _ _ d = d >= 2
