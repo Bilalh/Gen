@@ -66,7 +66,6 @@ main = do
 
             , [ "instance (Generate a, ExpressionLike a) => Generate (" ++ opName m ++ " a) where"
               , "  give GNone = do"
-              , "    -- pick one of the possible return types for this op"
               , "    ty <- $notDone"
               , "    give (GType ty)"
               , ""
@@ -78,9 +77,7 @@ main = do
               , ""
               , "  give t = giveUnmatched \"Generate " ++ opName m ++ "\" t"
               , ""
-              , "  -- return True if the return type can be generated within the specified depth"
-              , "  -- If no type given assume you can choose it, return True if any of the types"
-              , "  -- would be allowed"
+              , "  -- The op depth should inculded hence d must be >=1"
               , "  -- possiblePure _ (Just ty) d = depthOf ty + 1 <= (fromIntegral d)"
               , "  -- possiblePure _ _ d         = d >=2"
               , ""
