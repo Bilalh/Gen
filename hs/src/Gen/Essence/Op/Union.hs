@@ -12,10 +12,9 @@ import qualified Gen.Essence.Data.Types as Types
 
 
 instance Generate a => Generate (OpUnion a) where
-
   give GNone = do
-      ty <- give (GOnlyTopLevel Types.unionLike)
-      give (GType ty)
+    ty <- give (GOnlyTopLevel Types.unionLike)
+    give (GType ty)
 
   give ty@GType{} = pure OpUnion <*> give ty <*> give ty
   give t          = giveUnmatched "Generate OpUnion" t

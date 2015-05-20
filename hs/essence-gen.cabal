@@ -65,6 +65,10 @@ Library
                      , Gen.Essence.Op.Neq
                      , Gen.Essence.Op.Or
                      , Gen.Essence.Op.Pow
+                     , Gen.Essence.Op.Subset
+                     , Gen.Essence.Op.SubsetEq
+                     , Gen.Essence.Op.Supset
+                     , Gen.Essence.Op.SupsetEq
                      , Gen.Essence.Op.Union
                      , Gen.Essence.Op
                      , Gen.Essence.Range
@@ -105,7 +109,6 @@ Library
                      , Gen.Solver.Enumerate
                      , Gen.Solver.Solver
                      , Gen.UI.UI
-                     
 
 
     build-depends    : base
