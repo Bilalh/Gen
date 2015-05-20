@@ -7,7 +7,9 @@ import Gen.Essence.St
 import Gen.Imports
 
 import Gen.Essence.Op.And()
+import Gen.Essence.Op.Div()
 import Gen.Essence.Op.Eq()
+import Gen.Essence.Op.Factorial()
 import Gen.Essence.Op.Geq()
 import Gen.Essence.Op.Gt()
 import Gen.Essence.Op.Intersect()
@@ -35,7 +37,9 @@ allOps :: forall m a
 allOps con = 
   [
  (possible (Proxy :: Proxy (OpAnd a))              , (K_OpAnd            , MkOpAnd             <$> give con ))
+  , (possible (Proxy :: Proxy (OpDiv a))              , (K_OpDiv            , MkOpDiv             <$> give con ))
   , (possible (Proxy :: Proxy (OpEq a))               , (K_OpEq             , MkOpEq              <$> give con ))
+  , (possible (Proxy :: Proxy (OpFactorial a))        , (K_OpFactorial      , MkOpFactorial       <$> give con ))
   , (possible (Proxy :: Proxy (OpGeq a))              , (K_OpGeq            , MkOpGeq             <$> give con ))
   , (possible (Proxy :: Proxy (OpGt a))               , (K_OpGt             , MkOpGt              <$> give con ))
   , (possible (Proxy :: Proxy (OpIntersect a))        , (K_OpIntersect      , MkOpIntersect       <$> give con ))
