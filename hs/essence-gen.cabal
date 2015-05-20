@@ -58,6 +58,7 @@ Library
                      , Gen.Essence.Op.Internal.Generated
                      , Gen.Essence.Op.Leq
                      , Gen.Essence.Op.Mod
+                     , Gen.Essence.Op.Neq
                      , Gen.Essence.Op.Or
                      , Gen.Essence.Op.Union
                      , Gen.Essence.Op

@@ -22,7 +22,7 @@ instance Generate a => Generate (OpUnion a) where
 
   possiblePure _ (Just ty) _ | not (Types.isUnionLike ty) = False
   possiblePure _ (Just ty) d = depthOf ty + 1 <= (fromIntegral d)
-  possiblePure _ _ d         = (2 :: Integer) <= (fromIntegral d)
+  possiblePure _ _ d         = d >=2
 
   requires _ (Just ty) = [RAll $ keyList ty]
   requires _ _         = [RAny Types.unionLike]

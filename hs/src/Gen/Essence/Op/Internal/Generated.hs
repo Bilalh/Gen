@@ -10,6 +10,7 @@ import Gen.Essence.Op.Eq()
 import Gen.Essence.Op.Geq()
 import Gen.Essence.Op.Leq()
 import Gen.Essence.Op.Mod()
+import Gen.Essence.Op.Neq()
 import Gen.Essence.Op.Or()
 import Gen.Essence.Op.Union()
 
@@ -24,6 +25,7 @@ allOps con =
   , (possible (Proxy :: Proxy (OpGeq a))              , (K_OpGeq            , MkOpGeq             <$> give con ))
   , (possible (Proxy :: Proxy (OpLeq a))              , (K_OpLeq            , MkOpLeq             <$> give con ))
   , (possible (Proxy :: Proxy (OpMod a))              , (K_OpMod            , MkOpMod             <$> give con ))
+  , (possible (Proxy :: Proxy (OpNeq a))              , (K_OpNeq            , MkOpNeq             <$> give con ))
   , (possible (Proxy :: Proxy (OpOr a))               , (K_OpOr             , MkOpOr              <$> give con ))
   , (possible (Proxy :: Proxy (OpUnion a))            , (K_OpUnion          , MkOpUnion           <$> give con ))
 
