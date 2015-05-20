@@ -12,9 +12,7 @@ module Gen.Essence.St
   , fieldKeys
   , generateFreq
   , generateTypeFreq
-  , getId
   , getPossibilities
-  , getWeighting
   , getWeights
   , giveOnly
   , giveUnmatched
@@ -127,18 +125,6 @@ sanity msg =  do
 -- | withDepthDec . give for Convenience
 dgive :: forall a . Generate a  => GenerateConstraint -> GenSt a
 dgive = withDepthDec . give
-
-getId :: Data a => Proxy a -> Key
-getId = fromString . tyconUQname . dataTypeName . proxyDataTypeOf
-
-getWeighting :: (MonadState St m, Data a) => Proxy a -> m Int
-getWeighting a = do
-    let key = getId a
-    gets weighting >>= \(KeyMap kv) ->
-        case key `M.lookup` kv  of
-          Nothing  -> return 100
-          (Just x) -> return x
-
 
 
 nextVarName :: MonadState St m => Text -> m Text

@@ -41,7 +41,7 @@ main = do
               , "  ["
               , intercalate "  ,"
                 [ let mm :: String = printf "(Proxy :: Proxy (Op%s a))" m
-                  in printf " (possible %-40s, (getId %-40s, MkOp%-15s <$> give con ))\n" mm mm m
+                  in printf " (possible %-40s, (K_Op%-15s, MkOp%-15s <$> give con ))\n" mm m m
                 | m <- operators ]
               ,  "  ]"
               ]

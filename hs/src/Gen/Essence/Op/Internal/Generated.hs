@@ -18,13 +18,13 @@ allOps :: forall m a
         . (Generate a, MonadState St m, Applicative m, ExpressionLike a)
        => GenerateConstraint
        -> [((GenerateConstraint -> m Bool ), (Key, GenSt (Op a)))]
-allOps con =
+allOps con = 
   [
- (possible (Proxy :: Proxy (OpEq a))               , (getId (Proxy :: Proxy (OpEq a))               , MkOpEq              <$> give con ))
-  , (possible (Proxy :: Proxy (OpGeq a))              , (getId (Proxy :: Proxy (OpGeq a))              , MkOpGeq             <$> give con ))
-  , (possible (Proxy :: Proxy (OpLeq a))              , (getId (Proxy :: Proxy (OpLeq a))              , MkOpLeq             <$> give con ))
-  , (possible (Proxy :: Proxy (OpMod a))              , (getId (Proxy :: Proxy (OpMod a))              , MkOpMod             <$> give con ))
-  , (possible (Proxy :: Proxy (OpOr a))               , (getId (Proxy :: Proxy (OpOr a))               , MkOpOr              <$> give con ))
-  , (possible (Proxy :: Proxy (OpUnion a))            , (getId (Proxy :: Proxy (OpUnion a))            , MkOpUnion           <$> give con ))
+ (possible (Proxy :: Proxy (OpEq a))               , (K_OpEq             , MkOpEq              <$> give con ))
+  , (possible (Proxy :: Proxy (OpGeq a))              , (K_OpGeq            , MkOpGeq             <$> give con ))
+  , (possible (Proxy :: Proxy (OpLeq a))              , (K_OpLeq            , MkOpLeq             <$> give con ))
+  , (possible (Proxy :: Proxy (OpMod a))              , (K_OpMod            , MkOpMod             <$> give con ))
+  , (possible (Proxy :: Proxy (OpOr a))               , (K_OpOr             , MkOpOr              <$> give con ))
+  , (possible (Proxy :: Proxy (OpUnion a))            , (K_OpUnion          , MkOpUnion           <$> give con ))
 
   ]
