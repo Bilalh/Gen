@@ -29,45 +29,40 @@ instance (Generate a, WrapConstant a) => Generate (AbstractLiteral a, Type) wher
     give (GType ty)
 
   give (GType r@(TypeSet ty)) = do
-    num <- choose3 (0,5)
-    es <- vectorOf3 num (withDepthDec $ give (GType ty))
+    es <- bounded3 (0,3)  (dgive (GType ty))
     return $ (AbsLitSet es, r)
 
   give (GType r@(TypeMSet ty)) = do
-    num <- choose3 (0,5)
-    es <- vectorOf3 num (withDepthDec $ give (GType ty))
+    es <- bounded3 (0,3)  (dgive (GType ty))
     return $ (AbsLitMSet es, r)
 
   give (GType r@(TypeMatrix TypeInt ty)) = do
     numElems <- choose3 (0,5)
-    es <- vectorOf3 numElems (withDepthDec $ give (GType ty))
+    es <- vectorOf3 numElems (dgive (GType ty))
     idx <- intDomainOfSize (fromIntegral numElems)
     return $ (AbsLitMatrix idx es, r)
 
   give (GType r@(TypeFunction t1 t2)) = do
     numElems <- choose3 (0,5)
-    e1 <- vectorOf3 numElems (withDepthDec $ give (GType t1))
-    e2 <- vectorOf3 numElems (withDepthDec $ give (GType t2))
+    e1 <- vectorOf3 numElems (dgive (GType t1))
+    e2 <- vectorOf3 numElems (dgive (GType t2))
     let es = zip e1 e2
     return $ (AbsLitFunction es, r)
 
   give (GType r@(TypeRelation ts)) = do
     es <- forM ts $ \t -> do
-            numElems <- choose3 (0,5)
-            vectorOf3 numElems (withDepthDec $ give (GType t))
+            bounded3 (0,5) (dgive (GType t))
     return $ (AbsLitRelation es, r)
 
   give (GType r@(TypePartition t)) = do
     n  <- choose3 (0,5)
     es <- replicateM n $ do
-            numElems <- choose3 (0,5)
-            vectorOf3 numElems (withDepthDec $ give (GType t))
+            bounded3 (0,5) (dgive (GType t))
 
     return $ (AbsLitPartition es, r)
 
   give (GType r@(TypeTuple ts)) = do
-    es <- forM ts $ \t -> do
-            withDepthDec $ give (GType t)
+    es <- forM ts $ \t -> dgive (GType t)
 
     return $ (AbsLitTuple es, r)
 

@@ -22,8 +22,8 @@ instance Generate Type where
         | otherwise -> return
             [ (K_TypeBool,      pure TypeBool)
             , (K_TypeInt,       pure TypeInt)
-            , (K_TypeSet,       liftM TypeSet       (give GNone))
-            , (K_TypeMSet,      liftM TypeMSet      (give GNone))
+            , (K_TypeSet,       liftM TypeSet       (dgive GNone))
+            , (K_TypeMSet,      liftM TypeMSet      (dgive GNone))
             , (K_TypePartition, liftM TypePartition (dgive GNone))
             , (K_TypeTuple,     liftM TypeTuple     (bounded3 (1,4) $ dgive GNone))
             , (K_TypeRelation,  liftM TypeRelation  (bounded3 (1,4) $ dgive GNone))
@@ -50,8 +50,8 @@ instance Generate Type where
         | otherwise -> return
             [ (K_TypeBool,      pure TypeBool)
             , (K_TypeInt,       pure TypeInt)
-            , (K_TypeSet,       liftM TypeSet       (give GNone))
-            , (K_TypeMSet,      liftM TypeMSet      (give GNone))
+            , (K_TypeSet,       liftM TypeSet       (dgive GNone))
+            , (K_TypeMSet,      liftM TypeMSet      (dgive GNone))
             , (K_TypePartition, liftM TypePartition (dgive GNone))
             , (K_TypeTuple,     liftM TypeTuple     (bounded3 (1,4) $ dgive GNone))
             , (K_TypeRelation,  liftM TypeRelation  (bounded3 (1,4) $ dgive GNone))
