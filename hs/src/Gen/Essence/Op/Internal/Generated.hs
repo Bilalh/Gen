@@ -21,6 +21,7 @@ import Gen.Essence.Op.Subset()
 import Gen.Essence.Op.SubsetEq()
 import Gen.Essence.Op.Supset()
 import Gen.Essence.Op.SupsetEq()
+import Gen.Essence.Op.TwoBars()
 import Gen.Essence.Op.Union()
 
 
@@ -45,6 +46,7 @@ allOps con =
   , (possible (Proxy :: Proxy (OpSubsetEq a))         , (K_OpSubsetEq       , MkOpSubsetEq        <$> give con ))
   , (possible (Proxy :: Proxy (OpSupset a))           , (K_OpSupset         , MkOpSupset          <$> give con ))
   , (possible (Proxy :: Proxy (OpSupsetEq a))         , (K_OpSupsetEq       , MkOpSupsetEq        <$> give con ))
+  , (possible (Proxy :: Proxy (OpTwoBars a))          , (K_OpTwoBars        , MkOpTwoBars         <$> give con ))
   , (possible (Proxy :: Proxy (OpUnion a))            , (K_OpUnion          , MkOpUnion           <$> give con ))
 
   ]

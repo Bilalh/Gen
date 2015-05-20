@@ -69,6 +69,7 @@ Library
                      , Gen.Essence.Op.SubsetEq
                      , Gen.Essence.Op.Supset
                      , Gen.Essence.Op.SupsetEq
+                     , Gen.Essence.Op.TwoBars
                      , Gen.Essence.Op.Union
                      , Gen.Essence.Op
                      , Gen.Essence.Range

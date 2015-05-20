@@ -6,6 +6,7 @@ import Gen.Imports
 ordered = [K_TypeInt, K_TypeBool, K_TypeSet, K_TypeMSet]
 
 unionLike = [K_TypeSet, K_TypeMSet, K_TypeFunction, K_TypeRelation]
+hasLength = [K_TypeSet, K_TypeMSet, K_TypeFunction, K_TypeRelation, K_TypePartition]
 
 literals = [K_TypeSet, K_TypeMSet, K_TypeTuple, K_TypeMatrix, K_TypeFunction, K_TypePartition, K_TypeRelation]
 
