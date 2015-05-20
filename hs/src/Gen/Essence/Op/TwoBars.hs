@@ -13,8 +13,8 @@ instance (Generate a, ExpressionLike a) => Generate (OpTwoBars a) where
   give GNone = give (GType TypeInt)
 
   give (GType TypeInt) = do
-      ty <- give (GOnlyTopLevel Types.hasLength)
-      pure OpTwoBars <*> give (GType ty)
+    ty <- give (GOnlyTopLevel Types.hasLength)
+    pure OpTwoBars <*> give (GType ty)
 
   give t             = giveUnmatched "Generate OpTwoBars" t
 

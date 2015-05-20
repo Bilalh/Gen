@@ -48,7 +48,7 @@ main = do
     let opName m = "Op" ++ m
     let outText m = unlines $ concat
             [ [ "{-# OPTIONS_GHC -fno-warn-orphans #-}"
-              , "module Gen.Essence.Op." ++ m ++ " where"
+              , "module Gen.Essence.Op." ++ m ++ " (Generate(..)) where"
               , ""
               , "import Conjure.Language.AdHoc"
               , "import Conjure.Language.Expression.Op"
