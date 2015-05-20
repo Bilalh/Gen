@@ -29,7 +29,8 @@ instance (Generate a, WrapConstant a, EvalToInt a) => Generate (Domain () a) whe
   give (GType (TypeFunction t1 t2)) = DomainFunction  <$> pure () <*> dgive GNone
                                                                   <*> dgive (GType t1)
                                                                   <*> dgive (GType t2)
-  give (GType (TypeRelation t))     = DomainRelation  <$> pure () <*> dgive GNone
+  give (GType (TypeRelation t))     = DomainRelation  <$> pure ()
+                                      <*> dgive (if length t == 2 then GBinRel else GNone)
                                                                   <*> mapM (dgive <$> GType) t
   give (GType (TypePartition t))    = DomainPartition <$> pure () <*> dgive (GNone)
                                                                   <*> dgive (GType t)
@@ -140,12 +141,14 @@ instance Generate JectivityAttr where
 
 instance (Generate a, WrapConstant a, EvalToInt a) => Generate (RelationAttr a) where
   give GNone         = RelationAttr <$> give (GNone) <*> give (GNone)
+  give GBinRel       = RelationAttr <$> give (GNone) <*> give (GBinRel)
   give t             = giveUnmatched "Generate (RelationAttr a)" t
   possiblePure _ _ _ = True
   requires _ _       = [RAll [K_TypeInt]]
 
 instance Generate (BinaryRelationAttrs) where
-  give GNone = BinaryRelationAttrs <$> f
+  give GNone   = BinaryRelationAttrs <$> pure def
+  give GBinRel = BinaryRelationAttrs <$> f
 
     where
     f ::  GenSt (Set BinaryRelationAttr)

@@ -42,3 +42,9 @@ elements3 as  = lift . lift $ elements as
 
 vectorOf3 :: Int -> GenSt a -> GenSt [a]
 vectorOf3 k gen = sequence [ gen | _ <- [1..k] ]
+
+-- | Generates a random length between the specifed bounds.
+bounded3 :: (Int,Int) -> GenSt a -> GenSt [a]
+bounded3 (l,u) gen = do
+    k <- choose3 ( l, u )
+    vectorOf3 k gen
