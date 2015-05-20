@@ -54,21 +54,32 @@ Library
                      , Gen.Essence.Literal
                      , Gen.Essence.Objective
                      , Gen.Essence.Op.And
+                     , Gen.Essence.Op.Div
                      , Gen.Essence.Op.Eq
+                     , Gen.Essence.Op.Factorial
                      , Gen.Essence.Op.Geq
                      , Gen.Essence.Op.Gt
+                     , Gen.Essence.Op.Iff
+                     , Gen.Essence.Op.Imply
                      , Gen.Essence.Op.Internal.Generated
                      , Gen.Essence.Op.Intersect
                      , Gen.Essence.Op.Leq
                      , Gen.Essence.Op.Lt
                      , Gen.Essence.Op.Mod
+                     , Gen.Essence.Op.Negate
                      , Gen.Essence.Op.Neq
+                     , Gen.Essence.Op.Not
                      , Gen.Essence.Op.Or
                      , Gen.Essence.Op.Pow
+                     , Gen.Essence.Op.Product
                      , Gen.Essence.Op.Subset
                      , Gen.Essence.Op.SubsetEq
+                     , Gen.Essence.Op.Sum
                      , Gen.Essence.Op.Supset
                      , Gen.Essence.Op.SupsetEq
+                     , Gen.Essence.Op.ToInt
+                     , Gen.Essence.Op.ToMSet
+                     , Gen.Essence.Op.ToSet
                      , Gen.Essence.Op.TwoBars
                      , Gen.Essence.Op.Union
                      , Gen.Essence.Op
