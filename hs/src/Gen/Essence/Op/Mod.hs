@@ -11,7 +11,7 @@ import Gen.Imports
 instance (Generate a, ExpressionLike a) => Generate (OpMod a) where
   give GNone = give (GType TypeInt)
 
-  give ty@GType{} = do
+  give ty@(GType TypeInt) = do
     OpMod <$> give ty <*> give ty
 
   give t = giveUnmatched "Generate OpMod" t
