@@ -58,6 +58,7 @@ Library
                      , Gen.Essence.Op.Geq
                      , Gen.Essence.Op.Gt
                      , Gen.Essence.Op.Internal.Generated
+                     , Gen.Essence.Op.Intersect
                      , Gen.Essence.Op.Leq
                      , Gen.Essence.Op.Lt
                      , Gen.Essence.Op.Mod
@@ -104,6 +105,7 @@ Library
                      , Gen.Solver.Enumerate
                      , Gen.Solver.Solver
                      , Gen.UI.UI
+                     
 
 
     build-depends    : base
