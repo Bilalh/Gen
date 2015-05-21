@@ -53,6 +53,7 @@ Library
                      , Gen.Essence.Ints
                      , Gen.Essence.Literal
                      , Gen.Essence.Objective
+                     , Gen.Essence.Op.AllDiff
                      , Gen.Essence.Op.And
                      , Gen.Essence.Op.Div
                      , Gen.Essence.Op.Eq
@@ -122,7 +123,6 @@ Library
                      , Gen.Solver.Enumerate
                      , Gen.Solver.Solver
                      , Gen.UI.UI
-                     
 
 
     build-depends    : base

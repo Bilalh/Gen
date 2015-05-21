@@ -82,7 +82,7 @@ class (Data a, Pretty a) => Generate a where
   possiblePure = error "no default possiblePure"
 
   -- | Convenience for a pure implementation, Never call this method ouside the instance
-  -- | They types that are needed
+  -- | They types that are needed, Run after possiblePure returns True
   -- | e.g. Union
   -- |   requires _ (Just ty) = [RAll $ keyList ty]
   -- |   requires _ _         = [RAny Types.unionLike]

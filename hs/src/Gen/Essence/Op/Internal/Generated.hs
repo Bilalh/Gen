@@ -7,6 +7,7 @@ import Gen.Essence.EvalToInt
 import Gen.Essence.St
 import Gen.Imports
 
+import Gen.Essence.Op.AllDiff()
 import Gen.Essence.Op.And()
 import Gen.Essence.Op.Div()
 import Gen.Essence.Op.Eq()
@@ -44,7 +45,8 @@ allOps :: forall m a
        -> [((GenerateConstraint -> m Bool ), (Key, GenSt (Op a)))]
 allOps con = 
   [
- (possible (Proxy :: Proxy (OpAnd a))              , (K_OpAnd            , MkOpAnd             <$> give con ))
+ (possible (Proxy :: Proxy (OpAllDiff a))          , (K_OpAllDiff        , MkOpAllDiff         <$> give con ))
+  , (possible (Proxy :: Proxy (OpAnd a))              , (K_OpAnd            , MkOpAnd             <$> give con ))
   , (possible (Proxy :: Proxy (OpDiv a))              , (K_OpDiv            , MkOpDiv             <$> give con ))
   , (possible (Proxy :: Proxy (OpEq a))               , (K_OpEq             , MkOpEq              <$> give con ))
   , (possible (Proxy :: Proxy (OpFactorial a))        , (K_OpFactorial      , MkOpFactorial       <$> give con ))
