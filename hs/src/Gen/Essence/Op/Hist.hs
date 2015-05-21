@@ -29,4 +29,4 @@ instance (Generate a, ExpressionLike a) => Generate (OpHist a) where
   possiblePure _ Just{} _ = False
   possiblePure _ _ d      = d>=1
 
-  requires _ _ = [RAny $ [K_TypeMSet, K_TypeMatrix]]
+  requires _ _ = [RAny $ [K_TypeSet, K_TypeMSet, K_TypeMatrix]]
