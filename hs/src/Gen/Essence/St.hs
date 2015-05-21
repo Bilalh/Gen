@@ -96,7 +96,6 @@ newtype  KeyMap = KeyMap (Map Key Int)
 instance Hashable KeyMap where
   hashWithSalt i (KeyMap ws) = hashWithSalt i  . M.toList $ ws
 
-
 instance Default KeyMap where
     def = KeyMap $ M.fromList [(K_BinRelAttrStop, 800) ]
 
