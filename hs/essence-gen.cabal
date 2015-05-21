@@ -65,6 +65,7 @@ Library
                      , Gen.Essence.Op.Intersect
                      , Gen.Essence.Op.Leq
                      , Gen.Essence.Op.Lt
+                     , Gen.Essence.Op.Max
                      , Gen.Essence.Op.Mod
                      , Gen.Essence.Op.Negate
                      , Gen.Essence.Op.Neq
@@ -121,6 +122,7 @@ Library
                      , Gen.Solver.Enumerate
                      , Gen.Solver.Solver
                      , Gen.UI.UI
+                     
 
 
     build-depends    : base

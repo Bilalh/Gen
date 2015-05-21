@@ -3,6 +3,7 @@ module Gen.Essence.Op.Internal.Generated (allOps) where
 
 import Conjure.Language.AdHoc
 import Conjure.Language.Expression.Op
+import Gen.Essence.EvalToInt
 import Gen.Essence.St
 import Gen.Imports
 
@@ -17,6 +18,7 @@ import Gen.Essence.Op.Imply()
 import Gen.Essence.Op.Intersect()
 import Gen.Essence.Op.Leq()
 import Gen.Essence.Op.Lt()
+import Gen.Essence.Op.Max()
 import Gen.Essence.Op.Mod()
 import Gen.Essence.Op.Negate()
 import Gen.Essence.Op.Neq()
@@ -37,7 +39,7 @@ import Gen.Essence.Op.Union()
 
 
 allOps :: forall m a
-        . (Generate a, MonadState St m, Applicative m, ExpressionLike a)
+        . (Generate a, MonadState St m, Applicative m,  ExpressionLike a, EvalToInt a, WrapConstant a)
        => GenerateConstraint
        -> [((GenerateConstraint -> m Bool ), (Key, GenSt (Op a)))]
 allOps con = 
@@ -53,6 +55,7 @@ allOps con =
   , (possible (Proxy :: Proxy (OpIntersect a))        , (K_OpIntersect      , MkOpIntersect       <$> give con ))
   , (possible (Proxy :: Proxy (OpLeq a))              , (K_OpLeq            , MkOpLeq             <$> give con ))
   , (possible (Proxy :: Proxy (OpLt a))               , (K_OpLt             , MkOpLt              <$> give con ))
+  , (possible (Proxy :: Proxy (OpMax a))              , (K_OpMax            , MkOpMax             <$> give con ))
   , (possible (Proxy :: Proxy (OpMod a))              , (K_OpMod            , MkOpMod             <$> give con ))
   , (possible (Proxy :: Proxy (OpNegate a))           , (K_OpNegate         , MkOpNegate          <$> give con ))
   , (possible (Proxy :: Proxy (OpNeq a))              , (K_OpNeq            , MkOpNeq             <$> give con ))
