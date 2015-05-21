@@ -10,6 +10,7 @@ module Gen.Imports
     , prettyArr
     , prettyTypeArr
     , groomPrint
+    , nnError
     ) where
 
 import Conjure.Language.AbstractLiteral as X (AbstractLiteral)
@@ -76,3 +77,11 @@ instance (Pretty a, Pretty b) => Pretty (M.Map a b) where
     pretty vs = case M.toList vs of
                [] -> "[]"
                xs -> vcat $ map pretty xs
+
+
+nnError :: (MonadState st m, Pretty st)  => String -> [Doc] -> m a
+nnError title docs = do
+  st <- get
+  error . show $ ( Pr.text $ padRight 15 ' ' title  )
+    Pr.$+$ (nest 4 $ vcat (docs ))
+    Pr.$+$ (nest 4 $ pretty st)
