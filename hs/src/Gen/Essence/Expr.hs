@@ -72,7 +72,7 @@ instance Generate ListComp where
     gen_var <- vectorOf3 gen_num (dgive (GType a))
     let (gens, vars) = unzip gen_var
 
-    inner <- withVars vars $ give (GType a)
+    inner <- withVars vars $ dgive (GType a)
     cs_num <- choose3 (0,2)
     cs    <- withVars vars $ vectorOf3 cs_num $ dgive (GType TypeBool)
 
@@ -80,7 +80,7 @@ instance Generate ListComp where
 
   give t = giveUnmatched "Generate ListComp" t
 
-  possiblePure _ (Just ty@(TypeMatrix TypeInt _)) d = (fromIntegral d) >= depthOf ty
+  possiblePure _ (Just ty@(TypeMatrix TypeInt _)) d = (fromIntegral d) + 1 >= depthOf ty
   possiblePure _ _ _ = False
   requires _ _       = []
 
