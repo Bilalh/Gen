@@ -7,7 +7,6 @@ import Gen.Essence.Type               ()
 import Gen.Imports
 
 instance Generate a => Generate (OpAllDiff a) where
-
   give GNone = give (GType TypeBool)
 
   give (GType TypeBool) = do
