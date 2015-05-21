@@ -206,8 +206,9 @@ data Key = K_Unused
          | K_Typed
          | K_TypedConstant
          | K_WithLocals
-     deriving (Eq, Ord, Show, Data, Typeable, Generic)
+     deriving (Eq, Ord, Show, Data, Typeable, Generic, Enum)
 
+instance Hashable Key
 
 instance ToJSON Key where
   toJSON = A.String . stringToText . tail . tail . show

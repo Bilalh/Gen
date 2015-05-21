@@ -29,8 +29,9 @@ key_templete keys_data key_isString =
 
     data Key = K_Unused
              | $keys_data
-         deriving (Eq, Ord, Show, Data, Typeable, Generic)
+         deriving (Eq, Ord, Show, Data, Typeable, Generic, Enum)
 
+    instance Hashable Key
 
     instance ToJSON Key where
       toJSON = A.String . stringToText . tail . tail . show
