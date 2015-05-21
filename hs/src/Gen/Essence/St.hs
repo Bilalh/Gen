@@ -1,6 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveGeneric,
-             ParallelListComp #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+             GeneralizedNewtypeDeriving, ParallelListComp #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Gen.Essence.St
   ( module X
@@ -36,17 +35,18 @@ module Gen.Essence.St
   , KeyMap(..)
   ) where
 
+import Conjure.Language.Constant
 import Conjure.Language.Definition (Expression (..))
 import Data.Data                   hiding (Proxy)
 import Data.Map                    (Map)
-import Gen.Essence.Data.Key  as X
+import Gen.Essence.Data.Key        as X
 import Gen.Helpers.Log
 import Gen.Helpers.TypeOf
 import Gen.Imports
 import Test.QuickCheck             (Gen, generate)
 
-import qualified Data.Map as M
-import qualified Data.Set as S
+import qualified Data.Map         as M
+import qualified Data.Set         as S
 import qualified Text.PrettyPrint as Pr
 
 -- | Generate a random value of a specified type
@@ -213,15 +213,15 @@ getWeights vs= do
 
 -- | getWeights but takes function. If the function return False the
 -- | weighting for that item is set to 0 regresses of current weighting
-getPossibilities :: GenerateConstraint
-                 -> [(GenerateConstraint -> GenSt Bool, (Key, v))]
+getPossibilities :: arg
+                 -> [(arg -> GenSt Bool, (Key, v))]
                  -> GenSt [(Int, v)]
 getPossibilities con vs = do
   mapM doPossibilities vs
 
   where
-  doPossibilities ::(GenerateConstraint -> GenSt Bool, (Key, v))
-                  -> GenSt (Int, v)
+  -- doPossibilities ::(arg -> GenSt Bool, (Key, v))
+                  -- -> GenSt (Int, v)
   doPossibilities (f,(k,v)) =
    f con >>= \case
      False -> return (0,v)
@@ -347,15 +347,19 @@ generateTypeFreq _ con n st = do
 -- | To allow a Range Constant or a Range Expr
 class WrapConstant a where
   wrapConstant :: Constant -> a
+  wrapDomain   :: Domain () a -> a
 
 instance WrapConstant Expr where
   wrapConstant = ECon
+  wrapDomain  =  EDom
 
 instance WrapConstant Constant where
   wrapConstant = id
+  wrapDomain   = DomainInConstant
 
 instance WrapConstant Expression where
   wrapConstant = Constant
+  wrapDomain   = Domain
 
 instance MonadLog (WriterT [(LogLevel, Doc)] Gen)  where
     log lvl msg = tell [(lvl, msg)]
