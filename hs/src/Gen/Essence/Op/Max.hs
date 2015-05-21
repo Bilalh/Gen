@@ -26,9 +26,9 @@ instance (Generate a, ExpressionLike a, EvalToInt a, WrapConstant a)
     d <- gets depth
     defs <- getPossibilities d [
         -- (return . (>=1), (K_DomainInt,  wrapDomain <$> dgive ty) )
-        (return . (>=2), (K_TypeSet,    dgive (GType $ TypeSet  TypeInt))  )
-      , (return . (>=2), (K_TypeMSet,   dgive (GType $ TypeMSet TypeInt))  )
-      , (return . (>=2), (K_TypeMatrix, dgive (GType $ TypeMatrix TypeInt TypeInt))  )
+        (return . (>=2), (K_TypeSet,    give (GType $ TypeSet  TypeInt))  )
+      , (return . (>=2), (K_TypeMSet,   give (GType $ TypeMSet TypeInt))  )
+      , (return . (>=2), (K_TypeMatrix, give (GType $ TypeMatrix TypeInt TypeInt))  )
       ]
     when (all ( (<=0) . fst) defs ) $ nnError $line $ map (pretty . fst) defs
     picked <- frequency3 defs
@@ -37,7 +37,7 @@ instance (Generate a, ExpressionLike a, EvalToInt a, WrapConstant a)
   give t = giveUnmatched "Generate OpMax" t
 
   -- possiblePure _ (Just ty) d | ty `elem` [TypeBool, TypeInt] = d >= 1
-  possiblePure _ (Just ty) d | ty `elem` [TypeInt] = d >= 3
+  possiblePure _ (Just ty) d | ty `elem` [TypeInt] = d >= 2
   possiblePure _ (Just _) _ = False
   possiblePure _ Nothing _  = False
 

@@ -13,8 +13,7 @@ import Gen.Imports
 instance (Generate a, ExpressionLike a, EvalToInt a, WrapConstant a)
     => Generate (Op a) where
   give a = do
-      ops <- getPossibilities a (allOps a)
-      withDepthDec $ frequency3 ops
+    withDepthDec $ frequency3 =<< getPossibilities a (allOps a)
 
   possible _ con@(GType ty) = do
     d <- gets depth

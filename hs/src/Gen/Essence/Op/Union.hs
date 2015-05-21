@@ -20,8 +20,8 @@ instance Generate a => Generate (OpUnion a) where
   give t          = giveUnmatched "Generate OpUnion" t
 
   possiblePure _ (Just ty) _ | not (Types.isUnionLike ty) = False
-  possiblePure _ (Just ty) d = depthOf ty + 1 <= (fromIntegral d)
-  possiblePure _ _ d         = d >=2
+  possiblePure _ (Just ty) d = depthOf ty  <= (fromIntegral d)
+  possiblePure _ _ d         = d >=1
 
   requires _ (Just ty) = [RAll $ keyList ty]
   requires _ _         = [RAny Types.unionLike]

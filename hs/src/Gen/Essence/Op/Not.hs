@@ -17,6 +17,6 @@ instance (Generate a, ExpressionLike a) => Generate (OpNot a) where
   give t = giveUnmatched "Generate OpNot" t
 
   possiblePure _ (Just ty)  _ | ty /= TypeBool = False
-  possiblePure _ _ d = d >= 1
+  possiblePure _ _ d = d >= 0
 
   requires _ _ = [RAll [K_TypeBool]]

@@ -19,6 +19,6 @@ instance Generate a => Generate (OpGeq a) where
   give t = giveUnmatched "Generate OpGeq" t
 
   possiblePure _ (Just ty)  _ | ty /= TypeBool = False
-  possiblePure _ _ d = d >= 1
+  possiblePure _ _ d = d >= 0
 
   requires _ _ = [RAny Types.ordered]

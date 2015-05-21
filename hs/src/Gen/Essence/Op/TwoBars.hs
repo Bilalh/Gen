@@ -19,6 +19,6 @@ instance (Generate a, ExpressionLike a) => Generate (OpTwoBars a) where
   give t             = giveUnmatched "Generate OpTwoBars" t
 
   possiblePure _ (Just ty)  _ | ty /= TypeInt = False
-  possiblePure _ _ d                          = d >=2
+  possiblePure _ _ d                          = d >=1
 
   requires _ _       = [RAny Types.hasLength]

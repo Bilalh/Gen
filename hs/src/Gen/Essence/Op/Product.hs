@@ -16,6 +16,6 @@ instance (Generate a, ExpressionLike a) => Generate (OpProduct a) where
   give t = giveUnmatched "Generate OpProduct" t
 
   possiblePure _ (Just ty) _ | ty /= TypeInt = False
-  possiblePure _ _ d = d >= 2
+  possiblePure _ _ d = d >= 1
 
   requires _ _ = [RAll [K_TypeInt]]

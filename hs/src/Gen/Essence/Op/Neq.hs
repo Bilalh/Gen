@@ -18,6 +18,6 @@ instance Generate a => Generate (OpNeq a) where
 
 
   possiblePure _ (Just ty)  _ | ty /= TypeBool = False
-  possiblePure _ _ d = d >= 1
+  possiblePure _ _ d = d >= 0
 
   requires _ _ = []

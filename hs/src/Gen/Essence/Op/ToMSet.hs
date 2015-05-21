@@ -25,8 +25,8 @@ instance (Generate a, ExpressionLike a) => Generate (OpToMSet a) where
 
   give t             = giveUnmatched "Generate OpToMSet" t
 
-  possiblePure _ (Just ty@TypeMSet{}) d = depthOf ty + 1 <= (fromIntegral d)
-  possiblePure _ Nothing d   = d >=2
+  possiblePure _ (Just ty@TypeMSet{}) d = depthOf ty  <= (fromIntegral d)
+  possiblePure _ Nothing d   = d >=1
   possiblePure _ _ _  = False
 
   requires _ _       = [RAny (map fst tys) ]
