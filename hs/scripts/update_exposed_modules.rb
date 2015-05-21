@@ -6,7 +6,7 @@ mods = Dir["src/Gen/**/*.hs"].each do |g|
 end
 
 cabal=File.read "essence-gen.cabal"
-cabal[/ +--MODULES.*--MODULES END/m]= <<-SHELL
+cabal[/ +--MODULES.*--MODULES END\n/m]= <<-SHELL
     --MODULES 
     exposed-modules  : Build_autoversion
                      , Paths_essence_gen
