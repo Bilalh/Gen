@@ -91,7 +91,11 @@ class (Data a, Pretty a) => Generate a where
   requires = error "no default requires"
 
 newtype  KeyMap = KeyMap (Map Key Int)
- deriving (Show, Data, Typeable, Eq)
+ deriving (Show, Data, Typeable, Eq, Generic)
+
+instance Hashable KeyMap where
+  hashWithSalt i (KeyMap ws) = hashWithSalt i  . M.toList $ ws
+
 
 instance Default KeyMap where
     def = KeyMap $ M.fromList [(K_BinRelAttrStop, 800) ]

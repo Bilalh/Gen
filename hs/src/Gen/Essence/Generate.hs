@@ -31,7 +31,7 @@ import qualified Gen.IO.Toolchain        as Toolchain
 generateEssence :: KeyMap -> EssenceConfig -> IO ()
 generateEssence km ec@EC.EssenceConfig{..} = do
   setRandomSeed seed_
-  let carry = Carry{cHashes=runHashes_,cWeighting=km}
+  let carry = Carry{cHashes=runHashes_,cWeighting=km,cWeightingHashPrev=0}
   case mode_ of
     EC.TypeCheck_ -> void $ evalStateT (doTypeCheck ec) carry
     EC.Refine_    -> void $ evalStateT (doRefine ec) carry
@@ -427,9 +427,10 @@ doTypeCheck ec@EC.EssenceConfig{..}= do
 
 
     handleResult sp model (Left d) = do
-      putStrLn . show . pretty $ model
-      putStrLn . show $ d
-      writeFiles sp model d
+      when ( toolchainOutput_  /= ToolchainNull_ ) $ do
+        putStrLn . show . pretty $ model
+        putStrLn . show $ d
+        writeFiles sp model d
 
     handleResult _ _ (Right _) = do
       return ()
@@ -498,8 +499,16 @@ nextElem (Just (_:xs)) = Just xs
 genToUse :: (MonadIO m, MonadState Carry m)
          => Depth -> EssenceConfig -> m (Gen (Spec,Doc))
 genToUse depth EC.EssenceConfig{genType_=EC.SecondGen} = do
+  oldHash <- gets cWeightingHashPrev
   ws <- gets cWeighting
-  liftIO $ print $ hang "Weighting" 4 (pretty ws)
+  let hws = hash ws
+  case hws /= oldHash of
+    False -> return ()
+    True -> do
+      modify $ \st -> st{cWeightingHashPrev=hws}
+      liftIO $ print $ hang "Weightings Changed" 4 (pretty ws)
+
+
   let g = f <$> runGenerateWithLogs GNone def{ depth=depth
                                              , weighting=ws}
   return g

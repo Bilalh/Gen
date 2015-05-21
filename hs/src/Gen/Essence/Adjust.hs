@@ -14,6 +14,7 @@ import qualified Data.Map as M
 data Carry = Carry
     { cWeighting :: KeyMap
     , cHashes    :: I.IntSet
+    , cWeightingHashPrev :: Int
     } deriving (Show)
 
 
