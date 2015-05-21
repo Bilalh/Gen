@@ -90,6 +90,63 @@ class (Data a, Pretty a) => Generate a where
   requires :: Proxy a ->  Maybe Type -> [ RKind ]
   requires = error "no default requires"
 
+
+
+-- type GenSt a = StateT St Gen a
+type GenSt a = StateT St (WriterT [(LogLevel, Doc)] Gen) a
+
+data St = St{
+      weighting  :: KeyMap
+    , depth      :: Int
+    , varCounter :: Int
+    , newVars_   :: [Var] -- Domains from e.g. forall
+    , doms_      :: Domains
+    }
+ deriving (Eq,Show)
+
+
+
+instance Pretty St where
+    pretty (St{..}) =
+        "St" <+> Pr.braces (
+            Pr.sep [
+                    nn "depth"       $ depth
+                  , nn "newVars_"    $ prettyTypeArr newVars_
+                  , nn "doms"        $ doms_
+                  , nn "varCounter"  $ varCounter
+                  , nn "weighting" (pretty . groom $  weighting)
+                  ] )
+
+
+instance Default St where
+  def = St{
+          weighting  = def
+        , depth      = $(neverNote "No depth specified")
+        , newVars_   = def
+        , doms_      = def
+        , varCounter = 1
+        }
+
+
+data GenerateConstraint = GNone
+                        | GType Type          -- The resulting type
+                        | GOnlyLiteralTypes   -- for literals
+                        | GOnlyTopLevel [Key] -- Weights to use at the toplevel
+                        | GBinRel             -- For Relation Atrr
+ deriving (Eq, Ord, Show, Data, Typeable, Generic)
+
+instance Pretty GenerateConstraint where
+  pretty (GType x) = "GType" <+> pretty x
+  pretty t = pretty . show $ t
+
+
+newtype LVar = LVar Var
+    deriving (Data, Typeable, Show)
+
+instance Pretty LVar where
+    pretty (LVar v) = "LVar" <+> pretty v
+
+
 newtype  KeyMap = KeyMap (Map Key Int)
  deriving (Show, Data, Typeable, Eq, Generic)
 
@@ -137,60 +194,6 @@ nextVarName prefix = do
   modify $ \st -> st{varCounter=i+1}
   return $  mconcat [prefix, "_", (stringToText . show $ i)]
 
-
-
--- type GenSt a = StateT St Gen a
-type GenSt a = StateT St (WriterT [(LogLevel, Doc)] Gen) a
-
-data GenerateConstraint = GNone
-                        | GType Type          -- The resulting type
-                        | GOnlyLiteralTypes   -- for literals
-                        | GOnlyTopLevel [Key] -- Weights to use at the toplevel
-                        | GBinRel             -- For Relation Atrr
- deriving (Eq, Ord, Show, Data, Typeable, Generic)
-
-instance Pretty GenerateConstraint where
-  pretty (GType x) = "GType" <+> pretty x
-  pretty t = pretty . show $ t
-
-
-newtype LVar = LVar Var
-    deriving (Data, Typeable, Show)
-
-instance Pretty LVar where
-    pretty (LVar v) = "LVar" <+> pretty v
-
-data St = St{
-      weighting  :: KeyMap
-    , depth      :: Int
-    , varCounter :: Int
-    , newVars_   :: [Var] -- Domains from e.g. forall
-    , doms_      :: Domains
-    }
- deriving (Eq,Show)
-
-
-
-instance Pretty St where
-    pretty (St{..}) =
-        "St" <+> Pr.braces (
-            Pr.sep [
-                    nn "depth"       $ depth
-                  , nn "newVars_"    $ prettyTypeArr newVars_
-                  , nn "doms"        $ doms_
-                  , nn "varCounter"  $ varCounter
-                  , nn "weighting" (pretty . groom $  weighting)
-                  ] )
-
-
-instance Default St where
-  def = St{
-          weighting  = def
-        , depth      = $(neverNote "No depth specified")
-        , newVars_   = def
-        , doms_      = def
-        , varCounter = 1
-        }
 
 
 weightingForKey :: MonadState St m => Key -> m Int
