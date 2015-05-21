@@ -28,4 +28,4 @@ isLiteral TypePartition{} = True
 isLiteral _               = False
 
 
-ordered, unionLike, literals :: [Key]
+ordered, unionLike, literals, hasLength :: [Key]
