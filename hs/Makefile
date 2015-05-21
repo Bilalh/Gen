@@ -44,8 +44,8 @@ keys:
 autoversion:
 	bash scripts/make_autoversion.sh
 
-exposed_modules_to_clipboard:
-	./scripts/make_exposed_modules.sh
+update_exposed_modules:
+	./scripts/update_exposed_modules.rb
 
 
 failures:
