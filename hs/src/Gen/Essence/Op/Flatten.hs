@@ -14,7 +14,7 @@ instance (Generate a, ExpressionLike a) => Generate (OpFlatten a) where
     ty <- withWeights [(K_TypeMatrix, 0)] $ give GNone
     give (GType $ TypeMatrix TypeInt ty)
 
-  give (GType (TypeMatrix TypeInt inn )) | inn /= TypeMatrix{}  = do
+  give (GType (TypeMatrix TypeInt inn )) | notMatrix inn  = do
     d <- gets depth
     n <- choose3 (1,d-1)
 
@@ -23,10 +23,15 @@ instance (Generate a, ExpressionLike a) => Generate (OpFlatten a) where
 
   give t = giveUnmatched "Generate OpFlatten" t
 
-  possiblePure _ (Just (TypeMatrix TypeInt inn )) d | inn /= TypeMatrix{}  = d >= 1
+  possiblePure _ (Just (TypeMatrix TypeInt inn )) d | notMatrix inn  = d >= 1
 
   possiblePure _ (Just _ ) _ = False
   possiblePure _ Nothing d   = d >=1
 
   requires _ (Just ty) = [RAll $ keyList ty]
   requires _ _         = [RAll [K_TypeMatrix] , RAny [K_TypeInt] ]
+
+
+notMatrix :: Type -> Bool
+notMatrix TypeMatrix{} = True
+notMatrix _            = False
