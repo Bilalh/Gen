@@ -61,6 +61,7 @@ Library
                      , Gen.Essence.Op.Eq
                      , Gen.Essence.Op.Factorial
                      , Gen.Essence.Op.Flatten
+                     , Gen.Essence.Op.Freq
                      , Gen.Essence.Op.Geq
                      , Gen.Essence.Op.Gt
                      , Gen.Essence.Op.Hist
