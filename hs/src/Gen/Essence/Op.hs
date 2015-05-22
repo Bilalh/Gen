@@ -7,25 +7,19 @@ import Gen.Essence.EvalToInt
 import Gen.Essence.Op.Internal.Generated as X
 import Gen.Essence.Rnd
 import Gen.Essence.St
-import Gen.Helpers.SizeOf
 import Gen.Imports
 
-instance (Generate a, ExpressionLike a, EvalToInt a, WrapConstant a)
-    => Generate (Op a) where
+instance (Generate a, ExpressionLike a, EvalToInt a, WrapConstant a) =>
+    Generate (Op a) where
   give a = do
     withDepthDec $ frequency3 =<< getPossibilities a (allOps a)
 
-  possible _ con@(GType ty) = do
-    d <- gets depth
-    case depthOf ty + 1 <= fromIntegral d of
-      False -> return False
-      True  -> do
-        bs <- mapM (check) (allOps GNone)
-        return $ or bs
+  possible _ con = do
+    bs <-  withDepthDec $ mapM check (allOps con)
+    return $ or bs
+
     where
     check :: MonadState St m
           => ((GenerateConstraint -> m Bool), (Key, GenSt (Op a)))
           -> m Bool
-    check (f,_) = f con
-
-  possible _ _ = return False
+    check (f,_) =  f con
