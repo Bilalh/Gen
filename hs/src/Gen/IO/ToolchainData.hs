@@ -128,6 +128,7 @@ data KindI =
     | Validate_
     | ValidateOld_
     | KindAny_
+    | TypeCheck_
     deriving (Show,Eq,Enum,Generic,Typeable, Data, Read, Ord)
 
 

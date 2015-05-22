@@ -8,7 +8,7 @@ import Data.Time.Clock.POSIX           (getPOSIXTime)
 import Gen.Arbitrary.Data
 import Gen.Classify.Meta               (mkMeta)
 import Gen.Essence.Adjust
-import Gen.Essence.Reduce              (ErrData (..), reduceErrors)
+import Gen.Essence.Reduce              (ErrData (..), reduceErrors,reduceError)
 import Gen.Essence.Spec                ()
 import Gen.Essence.St
 import Gen.Essence.UIData              (EssenceConfig)
@@ -422,25 +422,41 @@ doTypeCheck ec@EC.EssenceConfig{..}= do
 
 
       let (res :: Either Doc Model) =  typeCheck  model
-      liftIO $ handleResult sp model res
+      handleResult sp model res
       process
 
 
     handleResult sp model (Left d) = do
-      when ( toolchainOutput_  /= ToolchainNull_ ) $ do
+      when ( toolchainOutput_  /= ToolchainNull_ ) $ liftIO $ do
         putStrLn . show . pretty $ model
         putStrLn . show $ d
-        writeFiles sp model d
+
+      num <- liftIO $ (randomRIO (10,99) :: IO Int)  >>= return . show
+      ts <- liftIO $ timestamp >>= return . show
+      let dir = outputDirectory_ </> "_typecheck" </> (ts ++ "_" ++ num)
+
+      liftIO $ writeFiles dir sp model d
+      liftIO $ writeFile (dir </> "model000000.choices.json") "{}"
+
+      case reduceAsWell_ of
+        Nothing -> return ()
+        Just{}  -> do
+          let rdata = ErrData{kind=TypeCheck_
+                             ,specDir=dir
+                             ,status=TypeChecking_
+                             ,choices=dir </> "model000000.choices.json"}
+          liftIO $ putStrLn $ "> Reducing: " ++ (show $ hash sp)
+          res <- liftIO $ reduceError ec rdata
+          liftIO $ putStrLn $ "> Reduced: " ++ (show $ hash sp)
+          adjust res
+
 
     handleResult _ _ (Right _) = do
       return ()
 
 
-    writeFiles ::Spec -> Model -> Doc -> IO ()
-    writeFiles sp model errDoc = do
-      num <- (randomRIO (10,99) :: IO Int)  >>= return . show
-      ts <- timestamp >>= return . show
-      let dir = outputDirectory_ </> "_typecheck" </> (ts ++ "_" ++ num)
+    writeFiles ::FilePath -> Spec -> Model -> Doc -> IO ()
+    writeFiles dir sp model errDoc = do
 
       createDirectoryIfMissing True dir
       writeToJSON (dir </> "spec.spec.json") sp

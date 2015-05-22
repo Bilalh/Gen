@@ -2,18 +2,19 @@
              DeriveTraversable #-}
 module Gen.Reduce.Runner where
 
-import Data.Time.Clock.POSIX    (getPOSIXTime)
-import Gen.Classify.Meta        (mkMeta)
+import Data.Time.Clock.POSIX       (getPOSIXTime)
+import Gen.Classify.Meta           (mkMeta)
 import Gen.Helpers.Log
 import Gen.Imports
 import Gen.IO.Formats
-import Gen.IO.Toolchain         hiding (ToolchainData (..))
+import Gen.IO.Toolchain            hiding (ToolchainData (..))
 import Gen.Reduce.Data
 import Gen.Reduce.FormatResults
-import GHC.Real                 (floor)
-import System.FilePath          (replaceDirectory, takeBaseName)
-import System.Posix             (getFileStatus)
-import System.Posix.Files       (fileSize)
+import GHC.Real                    (floor)
+import System.FilePath             (replaceDirectory, takeBaseName)
+import System.Posix                (getFileStatus)
+import System.Posix.Files          (fileSize)
+import Gen.Reduce.TypeCheck
 
 import qualified Data.HashMap.Strict as H
 import qualified Data.Map            as M
@@ -116,133 +117,138 @@ runSpec spE = do
       rrErrorKind   <- gets oErrKind_
       rrErrorStatus <- gets oErrStatus_
 
-      (_, res)  <- toolchain Toolchain.ToolchainData{
-                    Toolchain.essencePath       = essencePath
-                  , Toolchain.toolchainTime     = perSpec
-                  , Toolchain.essenceParam      = Nothing
-                  , Toolchain.refineType        = refineWay choices  rrErrorKind
-                  , Toolchain.cores             = cores
-                  , Toolchain.seed              = Just seed
-                  , Toolchain.binariesDirectory = bd
-                  , Toolchain.oldConjure        = False
-                  , Toolchain.toolchainOutput   = oo
-                  , Toolchain.choicesPath       = choices
-                  , Toolchain.outputDirectory   = path
-                  , Toolchain.dryRun            = False
-                  }
-      let timeTaken_ = floor $ Toolchain.getRunTime res
+
+      (stillErroed, timeTaken_) <- if rrErrorKind == TypeCheck_ then do
+        typeCheckWithResult path sp
+
+      else do
+        (_, res)  <- toolchain Toolchain.ToolchainData{
+                      Toolchain.essencePath       = essencePath
+                    , Toolchain.toolchainTime     = perSpec
+                    , Toolchain.essenceParam      = Nothing
+                    , Toolchain.refineType        = refineWay choices  rrErrorKind
+                    , Toolchain.cores             = cores
+                    , Toolchain.seed              = Just seed
+                    , Toolchain.binariesDirectory = bd
+                    , Toolchain.oldConjure        = False
+                    , Toolchain.toolchainOutput   = oo
+                    , Toolchain.choicesPath       = choices
+                    , Toolchain.outputDirectory   = path
+                    , Toolchain.dryRun            = False
+                    }
+        let timeTaken_ = floor $ Toolchain.getRunTime res
 
 
-      addLog "runSpec" [pretty spE]
-      addLog "runSpec_results" [nn "org_kind"   rrErrorKind
-                               ,nn "org_status" rrErrorStatus
-                               ,nn "res" (pretty . groom $ res)]
+        addLog "runSpec" [pretty spE]
+        addLog "runSpec_results" [nn "org_kind"   rrErrorKind
+                                 ,nn "org_status" rrErrorStatus
+                                 ,nn "res" (pretty . groom $ res)]
 
-      let
-          sameError :: ToolchainResult -> IO (Bool,RunResult)
-          sameError e@(RefineResult SettingI{data_=RefineMap _}) = do
-            error . show . vcat $ [ "Got back a result with no log following"
-                                  , (pretty . groom) e
-                                  ]
+        let
+            sameError :: ToolchainResult -> IO (Bool,RunResult)
+            sameError e@(RefineResult SettingI{data_=RefineMap _}) = do
+              error . show . vcat $ [ "Got back a result with no log following"
+                                    , (pretty . groom) e
+                                    ]
 
 
-          sameError (RefineResult SettingI{successful_=False
-                      ,data_=RefineMultiOutput{choices_made,cmd_used=CmdI{..}}})
-              | modelRefineError rrErrorKind = do
-              let resErrChoices_ = choices_made
-              case match (rrErrorStatus,rrErrorKind) (status_, kind_) of
-                Just (resErrStatus_,resErrKind_) ->
-                  return (True, OurError{resDirectory_ = path
-                                        ,resErrKind_
-                                        ,resErrStatus_
-                                        ,resErrChoices_
-                                        ,timeTaken_})
+            sameError (RefineResult SettingI{successful_=False
+                        ,data_=RefineMultiOutput{choices_made,cmd_used=CmdI{..}}})
+                | modelRefineError rrErrorKind = do
+                let resErrChoices_ = choices_made
+                case match (rrErrorStatus,rrErrorKind) (status_, kind_) of
+                  Just (resErrStatus_,resErrKind_) ->
+                    return (True, OurError{resDirectory_ = path
+                                          ,resErrKind_
+                                          ,resErrStatus_
+                                          ,resErrChoices_
+                                          ,timeTaken_})
 
-                Nothing ->
-                  return (False, OurError{resDirectory_ = path
-                                         ,resErrKind_   = kind_
-                                         ,resErrStatus_ = status_
-                                         ,resErrChoices_
-                                         ,timeTaken_})
+                  Nothing ->
+                    return (False, OurError{resDirectory_ = path
+                                           ,resErrKind_   = kind_
+                                           ,resErrStatus_ = status_
+                                           ,resErrChoices_
+                                           ,timeTaken_})
 
-              where
-                match :: (StatusI, KindI) -> (StatusI, KindI) -> Maybe (StatusI, KindI)
-                match (StatusAny_,KindAny_) (x,y)   = Just (x, y)
-                match (StatusAny_, ki)      (x,_)   = Just (x,ki)
-                match (si,KindAny_) (s,_) | s /= si = Nothing
-                match (si,KindAny_) (_,y) = Just (si,y)
-                match (si,ki) (x,y) =
-                    if si == x && kindsEqual ki y  then
-                        Just (si,ki)
+                where
+                  match :: (StatusI, KindI) -> (StatusI, KindI) -> Maybe (StatusI, KindI)
+                  match (StatusAny_,KindAny_) (x,y)   = Just (x, y)
+                  match (StatusAny_, ki)      (x,_)   = Just (x,ki)
+                  match (si,KindAny_) (s,_) | s /= si = Nothing
+                  match (si,KindAny_) (_,y) = Just (si,y)
+                  match (si,ki) (x,y) =
+                      if si == x && kindsEqual ki y  then
+                          Just (si,ki)
+                      else
+                          Nothing
+
+
+            sameError (SolveResult (_, SettingI{successful_=False,data_=SolveM ms,outdir_})) = do
+                let
+                    f ResultI{erroed= Just index, results } =
+                        let ix = results `at` index
+                        in Just (status_ ix, kind_ ix)
+                    f _ = Nothing
+
+                    sks = M.toList $  M.mapMaybe f ms
+                resErrChoices_ <- choicesUsed
+                case anyFirst (rrErrorStatus,rrErrorKind) sks of
+                   Just (resErrStatus_,resErrKind_)   ->
+                     return (True, OurError{resDirectory_ = path
+                                           ,resErrKind_
+                                           ,resErrStatus_
+                                           ,resErrChoices_
+                                           ,timeTaken_})
+                   Nothing -> return
+                    (False, OurError{resDirectory_ = path
+                                    ,resErrKind_   = fstKind sks
+                                    ,resErrStatus_ = fstStatus sks
+                                    ,resErrChoices_
+                                    ,timeTaken_})
+
+                where
+                  choicesUsed = do
+                      sizes <- forM (M.keys ms) $ \ep -> do
+                          let choicesPath = outdir_ </> ep <.> ".eprime"
+                          size <- getFileSize choicesPath
+                          return (choicesPath, size)
+
+                      let (minChoice,_)  = minimumBy (comparing snd) sizes
+                      return minChoice
+
+                  anyFirst (StatusAny_,KindAny_) ((_,(x,y)):_) = Just (x,y)
+                  anyFirst (StatusAny_,ki) v@((_,(x,_)):_) =
+                      if any (\(_,(_,k)) -> kindsEqual k ki ) v then
+                          Just (x,ki)
+                      else
+                          Nothing
+
+                  anyFirst (si,KindAny_) v@((_,(_,y)):_) =
+                      if any (\(_,(s,_)) -> s == si ) v then
+                          Just (si,y)
+                      else
+                          Nothing
+
+                  anyFirst skIn@(sIn, kIn) sks =
+                    if any (\(_,(ss,kk))-> ss==sIn && kindsEqual kk kIn) sks then
+                        Just skIn
                     else
                         Nothing
 
 
-          sameError (SolveResult (_, SettingI{successful_=False,data_=SolveM ms,outdir_})) = do
-              let
-                  f ResultI{erroed= Just index, results } =
-                      let ix = results `at` index
-                      in Just (status_ ix, kind_ ix)
-                  f _ = Nothing
 
-                  sks = M.toList $  M.mapMaybe f ms
-              resErrChoices_ <- choicesUsed
-              case anyFirst (rrErrorStatus,rrErrorKind) sks of
-                 Just (resErrStatus_,resErrKind_)   ->
-                   return (True, OurError{resDirectory_ = path
-                                         ,resErrKind_
-                                         ,resErrStatus_
-                                         ,resErrChoices_
-                                         ,timeTaken_})
-                 Nothing -> return
-                  (False, OurError{resDirectory_ = path
-                                  ,resErrKind_   = fstKind sks
-                                  ,resErrStatus_ = fstStatus sks
-                                  ,resErrChoices_
-                                  ,timeTaken_})
+            sameError _ = return (False, Passing{timeTaken_})
 
-              where
-                choicesUsed = do
-                    sizes <- forM (M.keys ms) $ \ep -> do
-                        let choicesPath = outdir_ </> ep <.> ".eprime"
-                        size <- getFileSize choicesPath
-                        return (choicesPath, size)
+            fstStatus []            = error "fstStatus no statuses"
+            fstStatus ((_,(s,_)):_) = s
 
-                    let (minChoice,_)  = minimumBy (comparing snd) sizes
-                    return minChoice
+            fstKind []            = error "fstKind no kinds"
+            fstKind ((_,(_,k)):_) = k
 
-                anyFirst (StatusAny_,KindAny_) ((_,(x,y)):_) = Just (x,y)
-                anyFirst (StatusAny_,ki) v@((_,(x,_)):_) =
-                    if any (\(_,(_,k)) -> kindsEqual k ki ) v then
-                        Just (x,ki)
-                    else
-                        Nothing
+        stillErroed <- liftIO $ sameError res
+        return (stillErroed, timeTaken_)
 
-                anyFirst (si,KindAny_) v@((_,(_,y)):_) =
-                    if any (\(_,(s,_)) -> s == si ) v then
-                        Just (si,y)
-                    else
-                        Nothing
-
-                anyFirst skIn@(sIn, kIn) sks =
-                  if any (\(_,(ss,kk))-> ss==sIn && kindsEqual kk kIn) sks then
-                      Just skIn
-                  else
-                      Nothing
-
-
-
-          sameError _ = return (False, Passing{timeTaken_})
-
-          fstStatus []            = error "fstStatus no statuses"
-          fstStatus ((_,(s,_)):_) = s
-
-          fstKind []            = error "fstKind no kinds"
-          fstKind ((_,(_,k)):_) = k
-
-
-
-      stillErroed  <- liftIO $ sameError res
       storeInDB spE (snd stillErroed)
 
       liftIO $ print $ ("Has rrError?" :: String, fst stillErroed)
@@ -263,6 +269,7 @@ runSpec spE = do
         (False,r)  -> do
           addOtherError r
           return (Nothing, timeTaken_)
+
 
 
 

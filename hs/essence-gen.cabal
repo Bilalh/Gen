@@ -124,6 +124,7 @@ Library
                      , Gen.Reduce.Reduction
                      , Gen.Reduce.Runner
                      , Gen.Reduce.Simpler
+                     , Gen.Reduce.TypeCheck
                      , Gen.Reduce.UnusedDomains
                      , Gen.Solver.Enumerate
                      , Gen.Solver.Solver
