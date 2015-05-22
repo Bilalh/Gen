@@ -41,20 +41,54 @@ instance Generate Expr where
     doConstant = do
       (con, nty :: Type) <- give g
       case con of
-        (ConstantAbstract x) -> case isEmpty x of
-                                  False -> return $ ECon con
-                                  True  -> return $ ETyped nty (ECon con)
+        (ConstantAbstract x) ->
+
+
+          case isEmptyInside x of
+            False -> do
+              logInfo2 $line ["not Empty " <+> pretty x]
+              logInfo2 $line ["not Empty groomed" <+> pretty (groom x)]
+              return $ ECon con
+            True -> do
+              logInfo2 $line  ["is Empty " <+> pretty x]
+              return $ ETyped nty (ECon con)
         _ -> return $ ECon con
 
+
+    isEmptyInside :: AbstractLiteral Constant -> Bool
+    isEmptyInside (AbsLitMatrix _  [])               = True
+    isEmptyInside (AbsLitPartition xs) | all null xs = True
+    isEmptyInside (AbsLitRelation xs) | all null xs  = True
+    isEmptyInside (AbsLitMatrix _  xs) =
+        or . map isEmptyInside . mapMaybe isEmptyConstant $ xs
+    isEmptyInside lit = case F.toList lit of
+                          [] -> True
+                          xs -> or . map isEmptyInside . mapMaybe isEmptyConstant $ xs
+
+
+    isEmptyConstant :: Constant -> Maybe (AbstractLiteral Constant)
+    isEmptyConstant (ConstantAbstract x) = Just x
+    isEmptyConstant _                    = Nothing
+
+
+
     doLitetal = do
-      (lit, nty :: Type) <- give g
+      (lit :: AbstractLiteral Expr, nty :: Type) <- give g
       case isEmpty lit of
-        False -> return $ ELit lit
-        True  -> return $ ETyped nty (ELit lit)
+        False -> do
+          logInfo2 $line ["not Empty " <+> pretty lit]
+          logInfo2 $line ["not Empty groomed" <+> pretty (groom lit)]
+          logDebug2 $line ["debug"]
+          return $ ELit lit
+        True  -> do
+          logInfo2 $line  ["is Empty " <+> pretty lit]
+          return $ ETyped nty (ELit lit)
 
     isEmpty (AbsLitMatrix _ [])  = True
     isEmpty (AbsLitPartition xs) = all (==[]) xs
+    isEmpty (AbsLitRelation xs)  = all (==[]) xs
     isEmpty lit                  = F.toList lit == []
+
 
 
     wrapComp (a,b,c) = EComp a b c

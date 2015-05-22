@@ -539,7 +539,7 @@ genToUse depth EC.EssenceConfig{genType_=EC.SecondGen} = do
   return g
 
   where
-  allowed = LogInfo
+  allowed = LogDebug
   f :: (Spec,[(LogLevel,Doc)]) -> (Spec,Doc)
   f (sp,logs) = (sp, vcat [ msg | (lvl, msg) <- logs , lvl <= allowed ])
 

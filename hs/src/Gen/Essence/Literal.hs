@@ -58,6 +58,11 @@ instance (Generate a, WrapConstant a) => Generate (AbstractLiteral a, Type) wher
     es <- replicateM n $ do
             bounded3 (0,5) (dgive (GType t))
 
+    if all (null) es then
+        logInfo2 $line  ["is Empty " <+> pretty (AbsLitPartition es)]
+    else
+        logInfo2 $line  ["not Empty " <+> pretty (AbsLitPartition es)]
+
     return $ (AbsLitPartition es, r)
 
   give (GType r@(TypeTuple ts)) = do

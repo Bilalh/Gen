@@ -34,6 +34,7 @@ module Gen.Essence.St
   , RKind(..)
   , KeyMap(..)
   , freqError
+  , logDebug2
   ) where
 
 import Conjure.Language.Constant
@@ -374,6 +375,11 @@ instance MonadLog (WriterT [(LogLevel, Doc)] Gen)  where
 
 logInfo2 :: MonadLog m => String -> [Doc] -> m ()
 logInfo2 ln docs = log LogInfo . hang (pretty ln) 4 $ vcat docs
+
+
+logDebug2 :: MonadLog m => String -> [Doc] -> m ()
+logDebug2 ln docs = log LogDebug . hang (pretty ln) 4 $ vcat docs
+
 
 freqError :: (MonadState St m) => String -> [(Int, a)] -> m ()
 freqError l defs = do
