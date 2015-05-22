@@ -50,9 +50,8 @@ instance (Generate a, WrapConstant a) => Generate (AbstractLiteral a, Type) wher
     return $ (AbsLitFunction es, r)
 
   give (GType r@(TypeRelation ts)) = do
-    es <- forM ts $ \t -> do
-            bounded3 (0,5) (dgive (GType t))
-    return $ (AbsLitRelation es, r)
+    ee :: [[a]] <- bounded3 (0,5) $ forM ts $ dgive . GType
+    return $ (AbsLitRelation ee, r)
 
   give (GType r@(TypePartition t)) = do
     n  <- choose3 (0,5)
