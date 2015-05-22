@@ -11,8 +11,8 @@ instance (Generate a, ExpressionLike a) => Generate (OpApart a) where
   give GNone = give (GType TypeBool)
 
   give (GType TypeBool) = do
-      ty <- dgive GNone
-      OpApart <$> give (GType $ TypeSet ty) <*> give (GType $ TypePartition ty)
+    ty <- dgive GNone
+    OpApart <$> give (GType $ TypeSet ty) <*> give (GType $ TypePartition ty)
 
   give t = giveUnmatched "Generate OpApart" t
 
