@@ -97,6 +97,7 @@ ghci:
 		-fwarn-unused-do-bind                      \
 		-fwarn-unused-matches                      \
 		-Wall                                      \
+		-fghci-hist-size=500                       \
 		`find src -name '*.hs' | egrep -v 'exec|test/' | grep -v '\.#' `
 
 ghci_file:
@@ -122,4 +123,5 @@ ghci_file:
 		-fwarn-unused-do-bind                      \
 		-fwarn-unused-matches                      \
 		-Wall                                      \
+		-fghci-hist-size=500                       \
 		${files}
