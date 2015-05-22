@@ -16,11 +16,13 @@ instance Generate a => Generate (OpUnion a) where
     ty <- give (GOnlyTopLevel Types.unionLike)
     give (GType ty)
 
-  give ty@GType{} = pure OpUnion <*> give ty <*> give ty
+  give ty@GType{} = do
+      sanity "Op Union"
+      pure OpUnion <*> give ty <*> give ty
   give t          = giveUnmatched "Generate OpUnion" t
 
   possiblePure _ (Just ty) _ | not (Types.isUnionLike ty) = False
-  possiblePure _ (Just ty) d = depthOf ty  <= (fromIntegral d)
+  possiblePure _ (Just ty) d = (fromIntegral d) >= depthOf ty
   possiblePure _ _ d         = d >=1
 
   requires _ (Just ty) = [RAll $ keyList ty]
