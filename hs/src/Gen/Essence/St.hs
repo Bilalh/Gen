@@ -33,7 +33,6 @@ module Gen.Essence.St
   , giveOnlyFunc
   , RKind(..)
   , KeyMap(..)
-  , freqError
   , logDebug2
   ) where
 
@@ -228,8 +227,6 @@ getPossibilities con vs = do
   mapM doPossibilities vs
 
   where
-  -- doPossibilities ::(arg -> GenSt Bool, (Key, v))
-                  -- -> GenSt (Int, v)
   doPossibilities (f,(k,v)) =
    f con >>= \case
      False -> return (0,v)
@@ -238,7 +235,8 @@ getPossibilities con vs = do
        return (w,v)
 
 
-withDepthDec :: GenSt a -> GenSt a
+withDepthDec :: forall m a. MonadState St m
+             => m a -> m a
 withDepthDec f = do
   oldDepth <- gets depth
   modify $ \st -> st{ depth = oldDepth - 1 }
@@ -247,7 +245,8 @@ withDepthDec f = do
   return res
 
 
-withDepth :: Int -> GenSt a -> GenSt a
+withDepth :: forall m a. MonadState St m
+          => Int -> m a -> m a
 withDepth d f = do
   oldDepth <- gets depth
   modify $ \st -> st{ depth = d }
@@ -379,8 +378,3 @@ logInfo2 ln docs = log LogInfo . hang (pretty ln) 4 $ vcat docs
 
 logDebug2 :: MonadLog m => String -> [Doc] -> m ()
 logDebug2 ln docs = log LogDebug . hang (pretty ln) 4 $ vcat docs
-
-
-freqError :: (MonadState St m) => String -> [(Int, a)] -> m ()
-freqError l defs = do
-    when (all ( (<=0) . fst) defs ) $ nnError l $ map (pretty . fst) defs
