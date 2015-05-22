@@ -86,7 +86,7 @@ instance GetKey Constant where
 
 
 instance GetKey Integer where
-  getKey x  = fromString $ "Int_" ++ show x
+  getKey x  = fromString $ "Int_" ++ show (abs x)
   keyTree x = Tree (getKey x) []
 
 
