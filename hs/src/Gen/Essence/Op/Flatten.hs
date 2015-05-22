@@ -33,5 +33,5 @@ instance (Generate a, ExpressionLike a) => Generate (OpFlatten a) where
 
 
 notMatrix :: Type -> Bool
-notMatrix TypeMatrix{} = True
-notMatrix _            = False
+notMatrix TypeMatrix{} = False
+notMatrix _            = True
