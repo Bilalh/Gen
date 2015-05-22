@@ -409,24 +409,30 @@ typeCheck m = ignoreLogs . runNameGen  $ (resolveNames $ m) >>= typeCheckModel
 doTypeCheck :: (MonadIO m, MonadState Carry m)
             =>  EssenceConfig -> m ()
 doTypeCheck ec@EC.EssenceConfig{..}= do
-  process
+  num <- process 0
+  -- Never gets called
+  -- liftIO $ putStrLn $ case num of
+  --   0 -> "No errors found"
+  --   1 -> "A single Error found"
+  --   n -> show n ++ " Errors found"
 
   where
-    process :: (MonadIO m, MonadState Carry m)
-            => m ()
-    process = do
+    process :: (MonadIO m, MonadState Carry m) => Int -> m Int
+    process i = do
       useSize <- liftIO $ (randomRIO (0, size_) :: IO Int)
       gen <- genToUse useSize ec
-      (sp,_) <- liftIO $  generate $ gen
+      (sp,logs) <- liftIO $  generate $ gen
       let model :: Model = toConjureNote "Generate toConjure" sp
 
 
       let (res :: Either Doc Model) =  typeCheck  model
-      handleResult sp model res
-      process
+      handleResult logs sp model res
+      case res of
+        Right{} -> process i
+        Left{}  -> process (i+1)
 
 
-    handleResult sp model (Left d) = do
+    handleResult logs sp model (Left d) = do
       when ( toolchainOutput_  /= ToolchainNull_ ) $ liftIO $ do
         putStrLn . show . pretty $ model
         putStrLn . show $ d
@@ -437,6 +443,8 @@ doTypeCheck ec@EC.EssenceConfig{..}= do
 
       liftIO $ writeFiles dir sp model d
       liftIO $ writeFile (dir </> "model000000.choices.json") "{}"
+      liftIO $ writeFile (dir </> "spec.logs" ) (renderSized 120 logs)
+
 
       case reduceAsWell_ of
         Nothing -> return ()
@@ -451,7 +459,7 @@ doTypeCheck ec@EC.EssenceConfig{..}= do
           adjust res
 
 
-    handleResult _ _ (Right _) = do
+    handleResult _ _ _ (Right _) = do
       return ()
 
 
