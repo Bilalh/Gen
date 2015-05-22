@@ -52,8 +52,9 @@ instance Generate Expr where
         False -> return $ ELit lit
         True  -> return $ ETyped nty (ELit lit)
 
-    isEmpty (AbsLitMatrix _ []) = True
-    isEmpty lit = F.toList lit == []
+    isEmpty (AbsLitMatrix _ [])  = True
+    isEmpty (AbsLitPartition xs) = all (==[]) xs
+    isEmpty lit                  = F.toList lit == []
 
 
     wrapComp (a,b,c) = EComp a b c
