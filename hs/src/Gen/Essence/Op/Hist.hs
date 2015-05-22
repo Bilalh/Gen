@@ -16,7 +16,6 @@ instance (Generate a, ExpressionLike a) => Generate (OpHist a) where
 
   give (GType (TypeMatrix TypeInt (TypeTuple [inn,TypeInt])) ) = do
       wrap <- elemFreq3 =<< getWeights [ (K_TypeMatrix,TypeMatrix TypeInt)
-                                       , (K_TypeSet,   TypeSet)
                                        , (K_TypeMSet,  TypeMSet)
                                        ]
       OpHist <$> give (GType $ wrap inn)
@@ -29,4 +28,4 @@ instance (Generate a, ExpressionLike a) => Generate (OpHist a) where
   possiblePure _ Just{} _ = False
   possiblePure _ _ d      = d>=1
 
-  requires _ _ = [RAny $ [K_TypeSet, K_TypeMSet, K_TypeMatrix]]
+  requires _ _ = [RAny $ [K_TypeMSet, K_TypeMatrix]]
