@@ -409,7 +409,8 @@ typeCheck m = ignoreLogs . runNameGen  $ (resolveNames $ m) >>= typeCheckModel
 doTypeCheck :: (MonadIO m, MonadState Carry m)
             =>  EssenceConfig -> m ()
 doTypeCheck ec@EC.EssenceConfig{..}= do
-  num <- process 0
+  _ <- process 0
+  return ()
   -- Never gets called
   -- liftIO $ putStrLn $ case num of
   --   0 -> "No errors found"
