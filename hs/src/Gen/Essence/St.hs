@@ -1,5 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveGeneric,
-             GeneralizedNewtypeDeriving, ParallelListComp #-}
+{-# LANGUAGE CPP, DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveGeneric, GeneralizedNewtypeDeriving, ParallelListComp #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Gen.Essence.St
   ( module X
@@ -63,7 +62,9 @@ import qualified Text.PrettyPrint as Pr
 
 instance MonadLog (WriterT [(LogLevel, Doc)] Gen)  where
     log lvl msg =
+#ifdef GEN_TRACE
       when (lvl <= LogInfo) $  trace (" ^" ++ show lvl ++ " " ++ show msg)
+#endif
       tell [(lvl, msg)]
 
 
