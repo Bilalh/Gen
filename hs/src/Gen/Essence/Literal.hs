@@ -17,7 +17,7 @@ instance (Generate a, WrapConstant a) => Generate (AbstractLiteral a) where
 
   possiblePure _ (Just TypeBool) _ = False
   possiblePure _ (Just TypeInt ) _ = False
-  possiblePure _ (Just ty) d       = (depthOf ty) <= (fromIntegral d)
+  possiblePure _ (Just ty) d       = fromIntegral d >= depthOf ty
   possiblePure _ Nothing d         = d >= 1
 
   requires _ (Just ty) = [RAll $ keyList ty]
@@ -59,22 +59,21 @@ instance (Generate a, WrapConstant a) => Generate (AbstractLiteral a, Type) wher
             bounded3 (0,5) (dgive (GType t))
 
     if all (null) es then
-        logInfo2 $line  ["is Empty " <+> pretty (AbsLitPartition es)]
+        logDebug2 $line  ["is Empty " <+> pretty (AbsLitPartition es)]
     else
-        logInfo2 $line  ["not Empty " <+> pretty (AbsLitPartition es)]
+        logDebug2 $line  ["not Empty " <+> pretty (AbsLitPartition es)]
 
     return $ (AbsLitPartition es, r)
 
   give (GType r@(TypeTuple ts)) = do
     es <- forM ts $ \t -> dgive (GType t)
-
     return $ (AbsLitTuple es, r)
 
   give t = giveUnmatched "Generate (AbstractLiteral a)" t
 
   possiblePure _ (Just TypeBool) _ = False
   possiblePure _ (Just TypeInt ) _ = False
-  possiblePure _ (Just ty) d       = (depthOf ty) <= (fromIntegral d)
+  possiblePure _ (Just ty) d       = fromIntegral d >= depthOf ty
   possiblePure _ Nothing d         = d >= 1
 
   requires _ (Just ty) = [RAll $ keyList ty]
