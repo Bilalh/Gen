@@ -30,9 +30,10 @@ instance EvalToInt Expression where
   evalToInt x = case instantiateExpression [] x of
     Right (ConstantInt v) -> return v
 
-    -- FIXME terrible hack
-    Right (ConstantUndefined _ TypeInt) -> return (-99)
-    Right (ConstantUndefined _ TypeAny) -> return (-99)
+    -- FIXME terrible hacks
+    Right (ConstantUndefined _ TypeInt)     -> return (-99)
+    Right (ConstantUndefined _ TypeAny)     -> return (-99)
+    Left msg | "N/A:" `isPrefixOf` (dropWhile (==' ') $ show msg) -> return (-99)
 
 
     Right v -> docError ["Not an int in EvalToInt Expression"
