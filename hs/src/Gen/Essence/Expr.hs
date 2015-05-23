@@ -23,6 +23,7 @@ import qualified Text.PrettyPrint as Pr
 
 instance Generate Expr where
   give g  = do
+    logDepthCon $line g
     sanity "Generate Expr"
     let defs =
           [ (possible (Proxy :: Proxy Constant),               (K_ECon,  doConstant))
@@ -46,11 +47,11 @@ instance Generate Expr where
 
           case isEmptyInside x of
             False -> do
-              logInfo2 $line ["not Empty " <+> pretty x]
-              logInfo2 $line ["not Empty groomed" <+> pretty (groom x)]
+              logDebug2 $line ["not Empty " <+> pretty x]
+              logDebug2 $line ["not Empty groomed" <+> pretty (groom x)]
               return $ ECon con
             True -> do
-              logInfo2 $line  ["is Empty " <+> pretty x]
+              logDebug2 $line  ["is Empty " <+> pretty x]
               return $ ETyped nty (ECon con)
         _ -> return $ ECon con
 
@@ -76,12 +77,12 @@ instance Generate Expr where
       (lit :: AbstractLiteral Expr, nty :: Type) <- give g
       case isEmpty lit of
         False -> do
-          logInfo2 $line ["not Empty " <+> pretty lit]
-          logInfo2 $line ["not Empty groomed" <+> pretty (groom lit)]
+          logDebug2 $line ["not Empty " <+> pretty lit]
+          logDebug2 $line ["not Empty groomed" <+> pretty (groom lit)]
           logDebug2 $line ["debug"]
           return $ ELit lit
         True  -> do
-          logInfo2 $line  ["is Empty " <+> pretty lit]
+          logDebug2 $line  ["is Empty " <+> pretty lit]
           return $ ETyped nty (ELit lit)
 
     isEmpty (AbsLitMatrix _ [])  = True
