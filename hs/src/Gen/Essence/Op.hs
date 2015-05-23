@@ -15,11 +15,19 @@ instance (Generate a, ExpressionLike a, EvalToInt a, WrapConstant a) =>
     withDepthDec $ frequency3 =<< getPossibilities a (allOps a)
 
   possible _ con = do
-    bs <-  withDepthDec $ mapM check (allOps con)
-    return $ or bs
+    d <- gets depth
+    if d <= 0 then
+        return False
+    else do
+      logDepthCon $line con
+      bs <- withDepthDec $ mapM check (allOps con)
+      logInfo2 $line ("ops:" :  [pretty  k | (b,k) <- bs , b ]  )
+      return $ or $ (map fst) bs
 
     where
     check :: MonadState St m
           => ((GenerateConstraint -> m Bool), (Key, GenSt (Op a)))
-          -> m Bool
-    check (f,_) =  f con
+          -> m (Bool, Key)
+    check (f,(k,_)) = do
+      res <- f con
+      return (res,k)
