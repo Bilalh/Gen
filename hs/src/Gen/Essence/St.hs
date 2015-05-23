@@ -34,6 +34,8 @@ module Gen.Essence.St
   , RKind(..)
   , KeyMap(..)
   , logDebug2
+  , logDepthCon
+  , ldc
   ) where
 
 import Conjure.Language.Constant
@@ -50,13 +52,18 @@ import qualified Data.Map         as M
 import qualified Data.Set         as S
 import qualified Text.PrettyPrint as Pr
 
-import System.IO.Unsafe(unsafePerformIO)
-import System.IO(appendFile)
+-- import System.IO.Unsafe(unsafePerformIO)
+-- import System.IO(appendFile)
+-- instance MonadLog (WriterT [(LogLevel, Doc)] Gen)  where
+--     log lvl msg = do
+--       unsafePerformIO $ do
+--          appendFile "_unsafe.log" (show msg)
+--          return $ tell []
+--       tell [(lvl, msg)]
+
 instance MonadLog (WriterT [(LogLevel, Doc)] Gen)  where
-    log lvl msg = do
-      unsafePerformIO $ do
-         appendFile "_unsafe.log" (show msg)
-         return $ tell []
+    log lvl msg =
+      when (lvl <= LogInfo) $  trace (" ^" ++ show lvl ++ " " ++ show msg)
       tell [(lvl, msg)]
 
 
@@ -68,22 +75,22 @@ class (Data a, Pretty a) => Generate a where
   give  :: GenerateConstraint -> GenSt a
 
   -- | Returns True if this op can be used with the specified return type
-  possible :: (Applicative m, MonadState St m) => Proxy a -> GenerateConstraint -> m Bool
-  possible a (GType ty) = do
+  possible :: (Applicative m, MonadState St m, MonadLog m )
+           => Proxy a -> GenerateConstraint -> m Bool
+  possible a con = do
     d <- gets depth
-    return $ possiblePure a (Just ty) d
-
-  possible a _ = do
-    d <- gets depth
-    case possiblePure a Nothing d of
+    case possiblePure a (con2Ty con) d of
       False -> return False
       True  -> do
-        let needed = requires a Nothing
+        let needed = requires a (con2Ty con)
         bs <- forM needed $ \(r) -> do
               let (f,ks) = rKindOp r
               is <- mapM weightingForKey (ks)
               return  $ f (>0) is
         return $ and bs
+
+     where con2Ty (GType x) = Just x
+           con2Ty _         = Nothing
 
   -- | Convenience for a pure implementation, Never call this method ouside the instance
   -- | return True if the return type can be generated within the specified depth
@@ -300,7 +307,8 @@ runGenerate = runGenerate2 LogNone GNone
 
 runGenerate2 :: Generate a => LogLevel -> GenerateConstraint -> St -> IO a
 runGenerate2 allowed  con st  = do
-  let s = (flip evalStateT ) st (give con)
+  let s = (flip evalStateT ) st ( logInfo2 $line ["√Starting"] >> give con
+                                >>= \g -> do {logInfo2 $line ["πEnding"]; return g})
   let w = runWriterT s
   (res,logs) <- generate w
 
@@ -379,8 +387,20 @@ instance WrapConstant Expression where
   wrapDomain   = Domain
 
 logInfo2 :: MonadLog m => String -> [Doc] -> m ()
-logInfo2 ln docs = log LogInfo . hang (pretty ln) 4 $ vcat docs
+logInfo2 ln docs = log LogInfo . hang (pretty ln) 4 $ Pr.vcat docs
 
 
 logDebug2 :: MonadLog m => String -> [Doc] -> m ()
-logDebug2 ln docs = log LogDebug . hang (pretty ln) 4 $ vcat docs
+logDebug2 ln docs = log LogDebug . hang (pretty ln) 4 $ Pr.vcat docs
+
+
+logDepthCon :: forall m b. (MonadState St m, MonadLog m, Pretty b) =>
+               String -> b -> m ()
+logDepthCon l con= gets depth >>= \d -> logInfo2 l [nn "depth" d, nn "con" con]
+
+ldc :: forall m b b1.
+       (MonadState St m, MonadLog m, Pretty b1) =>
+       String -> b1 -> m b -> m b
+ldc l con f= do
+  logDepthCon l con
+  f
