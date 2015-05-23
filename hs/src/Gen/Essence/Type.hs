@@ -38,7 +38,7 @@ instance Generate Type where
     let ws' = [ (k,0) | k <- fieldKeys (Proxy :: Proxy Type), k `S.notMember` allowed ]
 
     parts <- withWeights ws' $ getWeights defs
-    freqError ("GOnlyTopLevel" ++ groom ws') parts
+    freqError ($line ++ groom ws') parts
     frequency3 parts
 
   give GNone = do

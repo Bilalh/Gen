@@ -9,7 +9,7 @@ import Test.QuickCheck             (choose,elements,choose)
 frequency3 :: [(Int, GenSt a)] -> GenSt a
 frequency3 [] = error "frequency3 used with empty list"
 frequency3 xs0 = do
-  freqError "" xs0
+  freqError $line xs0
   choose3 (1, tot) >>= (`pick` xs0)
  where
   tot = sum (map fst xs0)
@@ -54,4 +54,4 @@ bounded3 (l,u) gen = do
 
 freqError :: (MonadState St m) => String -> [(Int, a)] -> m ()
 freqError l defs = do
-    when (all ( (<=0) . fst) defs ) $ nnError l $ map (pretty . fst) defs
+    when (all ( (<=0) . fst) defs ) $ nnError l $ "freqError" : map (pretty . fst) defs
