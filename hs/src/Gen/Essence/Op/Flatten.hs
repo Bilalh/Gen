@@ -15,7 +15,8 @@ instance (Generate a, ExpressionLike a) => Generate (OpFlatten a) where
     d <- gets depth
     n <- choose3 (0,d-1)
 
-    let wrap = foldr (flip (.)) id  $ replicate n (TypeMatrix TypeInt)
+    let wrap = foldr (flip (.)) (TypeMatrix TypeInt)
+             $ replicate n (TypeMatrix TypeInt)
     OpFlatten <$> give (GType $ wrap inn)
 
   give t = giveUnmatched "Generate OpFlatten" t
