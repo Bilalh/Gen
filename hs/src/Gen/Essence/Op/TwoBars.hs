@@ -14,11 +14,12 @@ instance (Generate a, ExpressionLike a) => Generate (OpTwoBars a) where
 
   give (GType TypeInt) = do
     ty <- give (GOnlyTopLevel Types.hasLength)
-    pure OpTwoBars <*> give (GType ty)
+    OpTwoBars <$> give (GType ty)
 
-  give t             = giveUnmatched "Generate OpTwoBars" t
+  give t = giveUnmatched "Generate OpTwoBars" t
 
-  possiblePure _ (Just ty)  _ | ty /= TypeInt = False
-  possiblePure _ _ d                          = d >=1
+  possiblePure _ (Just TypeInt) _ = True
+  possiblePure _ Just{} _         = False
+  possiblePure _ _ d              = d >= 0
 
   requires _ _       = [RAny Types.hasLength]

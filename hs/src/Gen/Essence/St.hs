@@ -178,7 +178,7 @@ sanity msg =  do
   d <- gets depth
   st <- get
   when (d <0 ) $ docError
-           ["Generate Expr Depth <0"
+           ["Generate Depth <0"
            , pretty msg
            , pretty st
            ]

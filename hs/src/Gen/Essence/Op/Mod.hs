@@ -11,12 +11,11 @@ import Gen.Imports
 instance (Generate a, ExpressionLike a) => Generate (OpMod a) where
   give GNone = give (GType TypeInt)
 
-  give ty@(GType TypeInt) = do
-    OpMod <$> give ty <*> give ty
+  give ty@(GType TypeInt) = OpMod <$> give ty <*> give ty
+  give t                  = giveUnmatched "Generate OpMod" t
 
-  give t = giveUnmatched "Generate OpMod" t
-
-  possiblePure _ (Just ty)  _ | ty /= TypeInt = False
-  possiblePure _ _ d = d >= 0
+  possiblePure _ (Just TypeInt ) _ = True
+  possiblePure _ Just{} _          = False
+  possiblePure _ _ d               = d >= 0
 
   requires _ _ = [RAll [K_TypeInt]]

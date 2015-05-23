@@ -17,10 +17,10 @@ instance (Generate a, ExpressionLike a) => Generate (OpDefined a) where
 
   give t = giveUnmatched "Generate OpDefined" t
 
-  possiblePure _ (Just (TypeSet inn))  d =
-      (fromIntegral d) + 1 >= depthOf inn
+  possiblePure _ (Just (TypeSet inn)) d =
+      fromIntegral d >= depthOf inn + 1
 
   possiblePure _ Just{} _ = False
-  possiblePure _ _ d      = d>=1
+  possiblePure _ _ d      = d >= 1
 
   requires _ _ = [RAll $ [K_TypeSet], RAny [K_TypeFunction]]

@@ -23,7 +23,7 @@ instance (Generate a, ExpressionLike a) => Generate (OpHist a) where
   give t = giveUnmatched "Generate OpHist" t
 
   possiblePure _ (Just (TypeMatrix TypeInt (TypeTuple [inn,TypeInt])))  d =
-      (fromIntegral d) +1 >= depthOf inn
+      (fromIntegral d)  >= depthOf inn + 1
 
   possiblePure _ Just{} _ = False
   possiblePure _ _ d      = d>=1

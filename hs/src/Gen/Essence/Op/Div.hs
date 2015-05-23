@@ -16,7 +16,8 @@ instance (Generate a, ExpressionLike a) => Generate (OpDiv a) where
 
   give t = giveUnmatched "Generate OpDiv" t
 
-  possiblePure _ (Just ty)  _ | ty /= TypeInt = False
-  possiblePure _ _ d = d >= 0
+  possiblePure _ (Just TypeInt ) _ = True
+  possiblePure _ Just{} _          = False
+  possiblePure _ _ d               = d >= 0
 
   requires _ _ = [RAll [K_TypeInt]]

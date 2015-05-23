@@ -13,9 +13,8 @@ instance Generate Type where
   give GOnlyLiteralTypes = give $ GOnlyTopLevel Types.literals
 
   give (GOnlyTopLevel ws) = do
-    sanity "Generate GOnlyTopLevel Type"
     defs <- gets depth >>= \d ->
-     if | d < 0     -> error $ "GenerateType invaild Depth: " ++ show d
+     if | d < 0     -> nnError "GenerateType invaild Depth: " ["depth" <+> pretty d]
         | d == 0    -> return [ (K_TypeBool, pure TypeBool)
                               , (K_TypeInt,  pure TypeInt)
                               ]
@@ -38,12 +37,13 @@ instance Generate Type where
     let ws' = [ (k,0) | k <- fieldKeys (Proxy :: Proxy Type), k `S.notMember` allowed ]
 
     parts <- withWeights ws' $ getWeights defs
+    freqError ("xx" ++ groom ws') parts
     frequency3 parts
 
   give GNone = do
     sanity "Generate GOnlyTopLevel Type"
     defs <- gets depth >>= \d ->
-     if | d < 0     -> error $ "GenerateType invaild Depth: " ++ show d
+     if | d < 0     -> nnError "GenerateType invaild Depth: " ["depth" <+> pretty d]
         | d == 0    -> return [ (K_TypeBool, pure TypeBool)
                               , (K_TypeInt,  pure TypeInt)
                               ]

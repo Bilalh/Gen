@@ -3,7 +3,7 @@ module Gen.Essence.Data.Types where
 import Gen.Essence.St
 import Gen.Imports
 
-ordered = [K_TypeInt, K_TypeBool, K_TypeSet, K_TypeMSet]
+ordered = [K_TypeInt, K_TypeBool]
 
 unionLike = [K_TypeSet, K_TypeMSet, K_TypeFunction, K_TypeRelation]
 hasLength = [K_TypeSet, K_TypeMSet, K_TypeFunction, K_TypeRelation, K_TypePartition]

@@ -12,16 +12,13 @@ import qualified Gen.Essence.Data.Types as Types
 
 
 instance Generate a => Generate (OpIntersect a) where
-
-  give GNone = do
-      ty <- give (GOnlyTopLevel Types.unionLike)
-      give (GType ty)
+  give GNone = give . GType =<< give (GOnlyTopLevel Types.unionLike)
 
   give ty@GType{} = pure OpIntersect <*> give ty <*> give ty
   give t          = giveUnmatched "Generate OpIntersect" t
 
   possiblePure _ (Just ty) _ | not (Types.isUnionLike ty) = False
-  possiblePure _ (Just ty) d = depthOf ty <= (fromIntegral d)
+  possiblePure _ (Just ty) d = fromIntegral d >=  depthOf ty
   possiblePure _ _ d         = d >=1
 
   requires _ (Just ty) = [RAll $ keyList ty]

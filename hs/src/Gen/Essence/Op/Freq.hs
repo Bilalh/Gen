@@ -17,8 +17,7 @@ instance (Generate a, ExpressionLike a) => Generate (OpFreq a) where
   give t = giveUnmatched "Generate OpFreq" t
 
   possiblePure _ (Just TypeInt) d = d >=1
-
-  possiblePure _ (Just _ ) _ = False
-  possiblePure _ Nothing d   = d >= 1
+  possiblePure _ (Just _ ) _      = False
+  possiblePure _ Nothing d        = d >= 1
 
   requires _ _ = [RAny [K_TypeInt, K_TypeBool], RAll [K_TypeSet] ]

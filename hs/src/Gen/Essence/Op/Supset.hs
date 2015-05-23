@@ -19,8 +19,9 @@ instance Generate a => Generate (OpSupset a) where
 
   give t = giveUnmatched "Generate OpSupset" t
 
-  possiblePure _ (Just ty)  _ | ty /= TypeBool = False
-  possiblePure _ _ d = d >= 1
+  possiblePure _ (Just TypeBool ) _ = True
+  possiblePure _ Just{} _           = False
+  possiblePure _ _ d                = d >= 0
 
   requires _ (Just ty) = [RAll $ keyList ty]
-  requires _ _ = [RAny Types.unionLike]
+  requires _ _         = [RAny Types.unionLike]

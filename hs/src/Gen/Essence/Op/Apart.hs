@@ -16,7 +16,8 @@ instance (Generate a, ExpressionLike a) => Generate (OpApart a) where
 
   give t = giveUnmatched "Generate OpApart" t
 
-  possiblePure _ (Just ty ) _ | ty /= TypeBool = False
-  possiblePure _ _ d = d>=1
+  possiblePure _ (Just TypeBool ) _ = True
+  possiblePure _ Just{} _           = False
+  possiblePure _ _ d                = d >= 1
 
   requires _ _ = [RAll $ [K_TypeSet, K_TypePartition]]

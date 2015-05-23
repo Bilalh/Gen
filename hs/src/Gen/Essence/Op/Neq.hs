@@ -17,7 +17,8 @@ instance Generate a => Generate (OpNeq a) where
   give t = giveUnmatched "Generate OpNeq" t
 
 
-  possiblePure _ (Just ty)  _ | ty /= TypeBool = False
-  possiblePure _ _ d = d >= 0
+  possiblePure _ (Just TypeBool ) _ = True
+  possiblePure _ Just{} _           = False
+  possiblePure _ _ d                = d >= 0
 
   requires _ _ = []

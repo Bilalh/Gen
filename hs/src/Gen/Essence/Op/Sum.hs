@@ -15,7 +15,8 @@ instance (Generate a, ExpressionLike a) => Generate (OpSum a) where
 
   give t = giveUnmatched "Generate OpSum" t
 
-  possiblePure _ (Just ty) _ | ty /= TypeInt = False
-  possiblePure _ _ d = d >= 1
+  possiblePure _ (Just TypeInt ) _ = True
+  possiblePure _ Just{} _          = False
+  possiblePure _ _ d               = d >= 1
 
   requires _ _ = [RAll [K_TypeInt]]

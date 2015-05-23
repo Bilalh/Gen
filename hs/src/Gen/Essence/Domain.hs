@@ -30,7 +30,7 @@ instance (Generate a, WrapConstant a, EvalToInt a) => Generate (Domain () a) whe
                                                                   <*> dgive (GType t1)
                                                                   <*> dgive (GType t2)
   give (GType (TypeRelation t))     = DomainRelation  <$> pure ()
-                                      <*> dgive (if length t == 2 then GBinRel else GNone)
+                                   <*> dgive (if length t == 2 then GBinRel else GNone)
                                                                   <*> mapM (dgive <$> GType) t
   give (GType (TypePartition t))    = DomainPartition <$> pure () <*> dgive (GNone)
                                                                   <*> dgive (GType t)
@@ -63,6 +63,7 @@ instance (Generate a, WrapConstant a, EvalToInt a) => Generate (MSetAttr a) wher
 instance (Generate a, WrapConstant a, EvalToInt a) => Generate (SizeAttr a)  where
   give GNone = do
     sanity "Generate (SizeAttr a)"
+
     let defs =
             [ (K_SizeAttr_None, pure SizeAttr_None)
             , (K_SizeAttr_Size,    SizeAttr_Size    <$> give (GType TypeInt))

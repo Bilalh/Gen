@@ -66,6 +66,7 @@ Library
                      , Gen.Essence.Op.Gt
                      , Gen.Essence.Op.Hist
                      , Gen.Essence.Op.Iff
+                     , Gen.Essence.Op.Image
                      , Gen.Essence.Op.Imply
                      , Gen.Essence.Op.Internal.Generated
                      , Gen.Essence.Op.Intersect

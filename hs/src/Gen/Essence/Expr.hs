@@ -115,7 +115,7 @@ instance Generate ListComp where
 
   give t = giveUnmatched "Generate ListComp" t
 
-  possiblePure _ (Just ty@(TypeMatrix TypeInt _)) d = (fromIntegral d) + 1 >= depthOf ty
+  possiblePure _ (Just ty@(TypeMatrix TypeInt _)) d = (fromIntegral d) >= depthOf ty + 1
   possiblePure _ _ _ = False
   requires _ _       = []
 
