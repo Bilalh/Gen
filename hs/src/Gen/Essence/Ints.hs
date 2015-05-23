@@ -28,25 +28,26 @@ instance  (EvalToInt a, Generate a, WrapConstant a) => Generate (IntAsc a) where
          b <- intLowerBounded a
          return $ IntAsc (wrapConstant . ConstantInt $ a)
                          (wrapConstant . ConstantInt $ b)
-      else do
-         a0 :: a <- give (GType TypeInt)
-         b0 :: a <- give (GType TypeInt)
-         a  <- ensureGTE0 a0
-         b  <- ensureGTE0 b0
-         ae <- evalToInt a
-         be <- evalToInt b
 
-         logInfo2 $line [ nn "depth" d
-                        , nn "a0" a0
-                        , nn "b0" b0
-                        , nn "a"  a
-                        , nn "b"  b
-                        , nn "ae" ae
-                        , nn "be" be
-                        ]
+      else withWeights [(K_EVar, 0), (K_LVar,0)] $ do
+           a0 :: a <- give (GType TypeInt)
+           b0 :: a <- give (GType TypeInt)
+           a  <- ensureGTE0 a0
+           b  <- ensureGTE0 b0
+           ae <- evalToInt a
+           be <- evalToInt b
 
-         let (ma,mb) = if ae < be then (a,b) else (b,a)
-         return $ IntAsc ma mb
+           logDebug2 $line [ nn "depth" d
+                          , nn "a0" a0
+                          , nn "b0" b0
+                          , nn "a"  a
+                          , nn "b"  b
+                          , nn "ae" ae
+                          , nn "be" be
+                          ]
+
+           let (ma,mb) = if ae < be then (a,b) else (b,a)
+           return $ IntAsc ma mb
 
 
     give t       = giveUnmatched "Generate Var" t
