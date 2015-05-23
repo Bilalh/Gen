@@ -46,7 +46,7 @@ nub2 l = go S.empty l
 -- | for printing a name and a value
 -- | nn "dsd" <some Expr>
 nn :: Pretty b => Doc -> b -> Doc
-nn a b =  a <+> pretty b
+nn a b =  a <+> pretty b <+> ""
 
 
 renderSmall :: Pretty a => a -> String
