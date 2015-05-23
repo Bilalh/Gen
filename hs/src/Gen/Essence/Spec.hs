@@ -23,7 +23,7 @@ instance Generate Spec where
     i_e <- choose3 exprCount
     -- let (i_d, i_e) = (1 :: Integer, 1 :: Integer)
 
-    logInfo2 $line [ nn "i_d" i_d
+    logDebug2 $line [ nn "i_d" i_d
                    , nn "i_e" i_e
                    ]
 
