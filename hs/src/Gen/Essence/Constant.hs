@@ -18,7 +18,7 @@ instance Generate Constant where
    (res, _ :: Type) <- give con
    return res
 
-  possiblePure _ (Just ty) d = (depthOf ty) <= (fromIntegral d)
+  possiblePure _ (Just ty) d = fromIntegral d >= depthOf ty
   possiblePure _ _ _         = True
 
   requires _ (Just ty) = [RAll $ keyList ty]
@@ -35,7 +35,7 @@ instance Generate (Constant, Type) where
 
   give t = giveUnmatched "Generate Constant" t
 
-  possiblePure _ (Just ty) d = (depthOf ty) <= (fromIntegral d)
+  possiblePure _ (Just ty) d = fromIntegral d >= depthOf ty
   possiblePure _ _ _         = True
 
   requires _ (Just ty) = [RAll $ keyList ty]
