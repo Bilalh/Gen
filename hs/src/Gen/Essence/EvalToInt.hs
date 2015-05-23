@@ -32,6 +32,8 @@ instance EvalToInt Expression where
 
     -- FIXME terrible hack
     Right (ConstantUndefined _ TypeInt) -> return (-99)
+    Right (ConstantUndefined _ TypeAny) -> return (-99)
+
 
     Right v -> docError ["Not an int in EvalToInt Expression"
                         , "exprInt:"  <+> pretty x
