@@ -9,6 +9,9 @@ test:
 clean:
 	@bash scripts/clean.sh
 
+# Use `make ghci` to run ghci on .hs files
+# Or  `make ghci files=<files>` to run on specific files
+
 # Limit the ops to be added added with one of the following
 # OPS="Eq Union" make add_ops
 # OPS=Eq,Union make add_ops
@@ -22,6 +25,7 @@ ifeq ($(OPS)x, x)
 	@echo "OPS='' make add_ops"
 else
 	runhaskell scripts/add_new_ops.hs "${CONJURE_LIB}/src/Conjure/Language/Expression/Op/" $(subst ${comma}, ,${OPS}) \
+	&& cabal exec -- runhaskell scripts/mk_keys.hs
 	&& runhaskell scripts/add_ops_metadata.hs
 endif
 
@@ -35,7 +39,6 @@ comma :=,
 update_ops_metadata:
 	runhaskell scripts/add_ops_metadata.hs
 
-# needs neat-interpolation package
 keys:
 	cabal exec -- runhaskell scripts/mk_keys.hs
 
@@ -44,10 +47,16 @@ keys:
 autoversion:
 	bash scripts/make_autoversion.sh
 
+# Update the cabal  exposed modules automatically
 update_exposed_modules:
 	./scripts/update_exposed_modules.rb
 
+# Ouput logs when running
+trace_install:
+	@bash scripts/install.sh --ghc-options="-DGEN_TRACE"
 
+
+# Nicer test output
 failures:
 	@BUILD_TESTS=yes bash scripts/install.sh && \
 	./dist/build/gen-testing/gen-testing  -j 4 --color always  | grep -v OK
@@ -56,9 +65,7 @@ failures_run:
 	@./dist/build/gen-testing/gen-testing  -j 4 --color always | grep -v OK
 
 
-trace_install:
-	@bash scripts/install.sh --ghc-options="-DLOGS_TRACE"
-
+# tags for vim & emacs
 etags:
 	hasktags --etags --ignore-close-implementation `find -L src -name '*.hs' | grep -v \#`
 
@@ -69,11 +76,17 @@ conjure_etags:
 vtags:
 	hasktags --ctags --ignore-close-implementation `find -L src -name '*.hs' | grep -v \#`
 
+conjure_vtags:
+	cd "${CONJURE_LIB}" && \
+	hasktags --ctags --ignore-close-implementation `find -L src -name '*.hs' | grep -v \#`
+
 
 store:
 	# Storing dependency infomation in cabal.config.freeze
 	( mv cabal.config cabal.config.org && cabal freeze && mv cabal.config cabal.config.freeze && mv cabal.config.org cabal.config  )
 
+# load ghci with all .hs files if `files` is not specifed
+# `args` can be used to specify `-DGEN_TRACE` for tracing logs
 ghci:
 	@cabal exec ghci -- -isrc -isrc/test -idist/build/autogen  \
 	-XNoImplicitPrelude                        \
@@ -98,30 +111,19 @@ ghci:
 		-fwarn-unused-matches                      \
 		-Wall                                      \
 		-fghci-hist-size=500                       \
-		`find src -name '*.hs' | egrep -v 'exec|test/' | grep -v '\.#' `
-
-ghci_file:
-	@cabal exec ghci -- -isrc -isrc/test -idist/build/autogen  \
-		-XNoImplicitPrelude                        \
-		-XOverloadedStrings                        \
-		-XScopedTypeVariables                      \
-		-XTemplateHaskell                          \
-		-XQuasiQuotes                              \
-		-XLambdaCase                               \
-		-XRecordWildCards                          \
-		-XNamedFieldPuns                           \
-		-XMultiWayIf                               \
-		-XFlexibleContexts                         \
-		-fwarn-incomplete-patterns                 \
-		-XFlexibleInstances                        \
-		-fwarn-incomplete-uni-patterns             \
-		-fwarn-missing-signatures                  \
-		-fwarn-name-shadowing                      \
-		-fwarn-orphans                             \
-		-fwarn-overlapping-patterns                \
-		-fwarn-tabs                                \
-		-fwarn-unused-do-bind                      \
-		-fwarn-unused-matches                      \
-		-Wall                                      \
-		-fghci-hist-size=500                       \
+		${args}                                    \
 		${files}
+
+# To use a # in a subshell you have to esacpe it twice (for make & for shell)
+# to do this we put it in a varible
+hash  := \#
+files := `find src -name '*.hs' | egrep -v 'exec|test/' | grep -v \${hash}`
+
+ifdef $$files
+files := $$files
+endif
+
+foo:
+	echo $(files)
+	echo $(hash)
+
