@@ -16,15 +16,15 @@ clean:
 # OPS="Eq Union" make add_ops
 # OPS=Eq,Union make add_ops
 add_ops:
-ifeq ($(OPS)x, x)
-	@echo "USAGE: OPS=op1,op2 make add_ops"
-	@echo "USAGE: OPS='op1 op2' make add_ops"
+ifeq ($(ops)x, x)
+	@echo "USAGE: make add_ops ops='op1 op2' "
+	@echo "USAGE: make add_ops ops=op1,op2 "
 	@echo "MISSING: make print_missing_ops"
 	@echo ""
-	@echo "Add all missing ops "
-	@echo "OPS='' make add_ops"
+	@echo "Add all ops from conjure"
+	@echo "ops=ALL make add_ops"
 else
-	runhaskell scripts/add_new_ops.hs "${CONJURE_LIB}/src/Conjure/Language/Expression/Op/" $(subst ${comma}, ,${OPS}) \
+	runhaskell scripts/add_new_ops.hs "${CONJURE_LIB}/src/Conjure/Language/Expression/Op/" $(subst ALL, ,$(subst ${comma}, ,${ops})) \
 	&& cabal exec -- runhaskell scripts/mk_keys.hs
 	&& runhaskell scripts/add_ops_metadata.hs
 endif
@@ -87,6 +87,9 @@ store:
 
 # load ghci with all .hs files if `files` is not specifed
 # `args` can be used to specify `-DGEN_TRACE` for tracing logs
+# Usage:
+# `make ghci` to run ghci on .hs files
+# `make ghci files=<files>` to run on specific files
 ghci:
 	@cabal exec ghci -- -isrc -isrc/test -idist/build/autogen  \
 	-XNoImplicitPrelude                        \
@@ -122,8 +125,4 @@ files := `find src -name '*.hs' | egrep -v 'exec|test/' | grep -v \${hash}`
 ifdef $$files
 files := $$files
 endif
-
-foo:
-	echo $(files)
-	echo $(hash)
 
