@@ -52,6 +52,7 @@ Library
                      , Gen.Essence.Id
                      , Gen.Essence.Ints
                      , Gen.Essence.Literal
+                     , Gen.Essence.Log
                      , Gen.Essence.Objective
                      , Gen.Essence.Op.AllDiff
                      , Gen.Essence.Op.And

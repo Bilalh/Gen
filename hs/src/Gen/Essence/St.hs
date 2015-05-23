@@ -44,29 +44,14 @@ import Data.Map                    (Map)
 import Gen.Essence.Data.Key        as X
 import Gen.Helpers.Log
 import Gen.Helpers.TypeOf
+import Gen.Essence.Log
+import Gen.Essence.Data.Key
 import Gen.Imports
 import Test.QuickCheck             (Gen, generate)
 
 import qualified Data.Map         as M
 import qualified Data.Set         as S
 import qualified Text.PrettyPrint as Pr
-
--- import System.IO.Unsafe(unsafePerformIO)
--- import System.IO(appendFile)
--- instance MonadLog (WriterT [(LogLevel, Doc)] Gen)  where
---     log lvl msg = do
---       unsafePerformIO $ do
---          appendFile "_unsafe.log" (show msg)
---          return $ tell []
---       tell [(lvl, msg)]
-
-instance MonadLog (WriterT [(LogLevel, Doc)] Gen)  where
-    log lvl msg =
-#ifdef GEN_TRACE
-      when (lvl <= LogInfo) $  trace (" ^" ++ show lvl ++ " " ++ show msg)
-#endif
-      tell [(lvl, msg)]
-
 
 -- | Generate a random value of a specified type
 class (Data a, Pretty a) => Generate a where
