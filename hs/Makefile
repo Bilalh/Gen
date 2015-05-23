@@ -17,8 +17,8 @@ clean:
 # OPS=Eq,Union make add_ops
 add_ops:
 ifeq ($(ops)x, x)
-	@echo "USAGE: make add_ops ops='op1 op2' "
-	@echo "USAGE: make add_ops ops=op1,op2 "
+	@echo "USAGE: make add_ops ops='op1 op2'"
+	@echo "USAGE: make add_ops ops=op1,op2"
 	@echo "MISSING: make print_missing_ops"
 	@echo ""
 	@echo "Add all ops from conjure"
