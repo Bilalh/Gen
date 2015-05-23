@@ -50,6 +50,16 @@ import qualified Data.Map         as M
 import qualified Data.Set         as S
 import qualified Text.PrettyPrint as Pr
 
+import System.IO.Unsafe(unsafePerformIO)
+import System.IO(appendFile)
+instance MonadLog (WriterT [(LogLevel, Doc)] Gen)  where
+    log lvl msg = do
+      unsafePerformIO $ do
+         appendFile "_unsafe.log" (show msg)
+         return $ tell []
+      tell [(lvl, msg)]
+
+
 -- | Generate a random value of a specified type
 class (Data a, Pretty a) => Generate a where
   {-# MINIMAL give, possible | give, possiblePure, requires  #-}
@@ -367,10 +377,6 @@ instance WrapConstant Constant where
 instance WrapConstant Expression where
   wrapConstant = Constant
   wrapDomain   = Domain
-
-instance MonadLog (WriterT [(LogLevel, Doc)] Gen)  where
-    log lvl msg = tell [(lvl, msg)]
-
 
 logInfo2 :: MonadLog m => String -> [Doc] -> m ()
 logInfo2 ln docs = log LogInfo . hang (pretty ln) 4 $ vcat docs
