@@ -76,6 +76,7 @@ Library
                      , Gen.Essence.Op.Leq
                      , Gen.Essence.Op.Lt
                      , Gen.Essence.Op.Max
+                     , Gen.Essence.Op.Min
                      , Gen.Essence.Op.Mod
                      , Gen.Essence.Op.Negate
                      , Gen.Essence.Op.Neq
