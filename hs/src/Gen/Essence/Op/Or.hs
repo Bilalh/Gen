@@ -13,7 +13,7 @@ instance (Generate a, ExpressionLike a) => Generate (OpOr a) where
   give (GType TypeBool) = OpOr <$> give  (GType $ TypeMatrix TypeInt TypeBool)
   give t                = giveUnmatched "Generate OpOr" t
 
-  possiblePure _ (Just TypeBool ) _ = True
+  possiblePure _ (Just TypeBool ) d = d >= 1
   possiblePure _ Just{} _           = False
   possiblePure _ _ d                = d >= 1
 
