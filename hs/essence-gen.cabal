@@ -87,6 +87,7 @@ Library
                      , Gen.Essence.Op.Party
                      , Gen.Essence.Op.Pow
                      , Gen.Essence.Op.Product
+                     , Gen.Essence.Op.Range
                      , Gen.Essence.Op.Subset
                      , Gen.Essence.Op.SubsetEq
                      , Gen.Essence.Op.Sum
