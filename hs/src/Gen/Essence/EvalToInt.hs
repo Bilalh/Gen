@@ -36,14 +36,14 @@ instance EvalToInt Expression where
     Left msg | "N/A:" `isPrefixOf` (dropWhile (==' ') $ show msg) -> return (-99)
 
     Right v -> docError ["Not an int in EvalToInt Expression"
-                        , "exprInt:"  <+> pretty x
-                        , "result :"  <+> pretty v
+                        , "exprI :"  <+> pretty x
+                        , "result:"  <+> pretty v
                         ]
     -- FIXME errors in instantiateExpression happen to often
     _  -> return (-99)
     -- Left msg -> docError ["instantiateExpression bug in EvalToInt Expression"
     --                      , "expr:" <+> pretty x
-    --                      , "msg: " <+> pretty msg
+    --                      , "msg : " <+> pretty msg
     --                      , "exprGroomed:" <+> pretty (groom x)
     --                      ]
 
