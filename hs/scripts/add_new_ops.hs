@@ -1,6 +1,7 @@
 {-# LANGUAGE LambdaCase, ScopedTypeVariables #-}
 -- Show the ops that have not been added yet
 import Control.Applicative ((<$>))
+import Control.Monad       (when)
 import Data.List           (isSuffixOf, sort)
 import Prelude
 import System.Directory    (createDirectoryIfMissing, doesFileExist,
@@ -8,6 +9,7 @@ import System.Directory    (createDirectoryIfMissing, doesFileExist,
 import System.Environment  (getArgs)
 import System.FilePath     ((<.>), (</>))
 import Text.Printf
+import System.Exit(exitFailure)
 
 import qualified Data.Set as S
 
@@ -44,6 +46,10 @@ main = do
           case only of
             [] -> S.toList  $ (S.fromList operators_ ) `S.difference` skip
             xs -> S.toList  $ (S.fromList operators_ ) `S.intersection` (S.fromList xs)
+
+    when (null operators) $ do
+      putStrLn $ "No matching ops found for args:" ++ show (only)
+      exitFailure
 
     let opName m = "Op" ++ m
     let outText m = unlines $ concat
