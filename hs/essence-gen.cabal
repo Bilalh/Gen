@@ -82,6 +82,7 @@ Library
                      , Gen.Essence.Op.Neq
                      , Gen.Essence.Op.Not
                      , Gen.Essence.Op.Or
+                     , Gen.Essence.Op.Participants
                      , Gen.Essence.Op.Pow
                      , Gen.Essence.Op.Product
                      , Gen.Essence.Op.Subset
