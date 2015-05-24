@@ -72,6 +72,7 @@ Library
                      , Gen.Essence.Op.Imply
                      , Gen.Essence.Op.Internal.Generated
                      , Gen.Essence.Op.Intersect
+                     , Gen.Essence.Op.Inverse
                      , Gen.Essence.Op.Leq
                      , Gen.Essence.Op.Lt
                      , Gen.Essence.Op.Max

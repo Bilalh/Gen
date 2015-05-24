@@ -66,7 +66,7 @@ main = do
 
             , [ "instance (Generate a, ExpressionLike a) => Generate (" ++ opName m ++ " a) where"
               , "  give (GType ty) = do"
-              , "      _1"
+              , "    _1"
               , ""
               , "  give t = giveUnmatched \"Generate " ++ opName m ++ "\" t"
               , ""
