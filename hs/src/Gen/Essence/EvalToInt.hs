@@ -35,17 +35,18 @@ instance EvalToInt Expression where
     Right (ConstantUndefined _ TypeAny)     -> return (-99)
     Left msg | "N/A:" `isPrefixOf` (dropWhile (==' ') $ show msg) -> return (-99)
 
-
     Right v -> docError ["Not an int in EvalToInt Expression"
                         , "exprInt:"  <+> pretty x
                         , "result :"  <+> pretty v
                         ]
+    -- FIXME errors in instantiateExpression happen to often
+    _  -> return (-99)
+    -- Left msg -> docError ["instantiateExpression bug in EvalToInt Expression"
+    --                      , "expr:" <+> pretty x
+    --                      , "msg: " <+> pretty msg
+    --                      , "exprGroomed:" <+> pretty (groom x)
+    --                      ]
 
-    Left msg -> docError ["instantiateExpression bug in EvalToInt Expression"
-                         , "expr:" <+> pretty x
-                         , "msg: " <+> pretty msg
-                         , "exprGroomed:" <+> pretty (groom x)
-                         ]
   ensureGTE0 x = do
     i <- evalToInt x
     if  | i == (-99) -> return 0
