@@ -12,7 +12,9 @@ import Gen.Imports
 instance (Generate a, ExpressionLike a, EvalToInt a, WrapConstant a) =>
     Generate (Op a) where
   give a = do
-    withDepthDec $ frequency3 =<< getPossibilities a (allOps a)
+    (key,op) <- withDepthDec $ elemFreq3 =<< pickOp a (allOps a)
+    logInfo2 $line [nn "Picked" key]
+    op
 
   possible _ con = do
     d <- gets depth
@@ -31,3 +33,16 @@ instance (Generate a, ExpressionLike a, EvalToInt a, WrapConstant a) =>
     check (f,(k,_)) = do
       res <- f con
       return (res,k)
+
+pickOp :: arg -> [(arg -> GenSt Bool, (Key, v))]
+              -> GenSt [(Int, (Key, v))]
+pickOp con vs = do
+  mapM doPossibilities vs
+
+  where
+  doPossibilities (f,(k,v)) =
+   f con >>= \case
+     False -> return (0,(k,v))
+     True  -> do
+       w <- weightingForKey k
+       return (w,(k, v))
