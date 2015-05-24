@@ -44,6 +44,7 @@ instance EvalToInt Expression where
     Left msg -> docError ["instantiateExpression bug in EvalToInt Expression"
                          , "expr:" <+> pretty x
                          , "msg: " <+> pretty msg
+                         , "exprGroomed:" <+> pretty (groom x)
                          ]
   ensureGTE0 x = do
     i <- evalToInt x
