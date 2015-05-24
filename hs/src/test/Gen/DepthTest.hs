@@ -31,7 +31,12 @@ tests = testGroup "depthOf"
 
    ,testGroup "type_gen"
    [
-     typeDepth "Par"     2 $ (TypeMatrix TypeInt (TypePartition TypeBool))
+     typeDepth "Matrix Par" 2 $ TypeMatrix TypeInt (TypePartition TypeBool)
+   , typeDepth "Matrix 1d"  2 $ TypeMatrix TypeInt (TypeRelation [TypeBool, TypeInt, TypeInt])
+   , typeDepth "Matrix 2d"  3 $ TypeMatrix TypeInt
+                    (TypeMatrix TypeInt (TypeRelation [TypeBool, TypeInt, TypeInt]))
+   , typeDepth "Matrix 3d" 4 $ TypeMatrix TypeInt (TypeMatrix TypeInt
+                    (TypeMatrix TypeInt (TypeRelation [TypeBool, TypeInt, TypeInt])))
    ]
 
   ,testGroup "Constants"
