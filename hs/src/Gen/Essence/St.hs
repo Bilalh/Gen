@@ -35,6 +35,7 @@ module Gen.Essence.St
   , logDebug2
   , logDepthCon
   , ldc
+  , logDebugVerbose2
   ) where
 
 import Conjure.Language.Constant
@@ -44,8 +45,7 @@ import Data.Map                    (Map)
 import Gen.Essence.Data.Key        as X
 import Gen.Helpers.Log
 import Gen.Helpers.TypeOf
-import Gen.Essence.Log
-import Gen.Essence.Data.Key
+import Gen.Essence.Log()
 import Gen.Imports
 import Test.QuickCheck             (Gen, generate)
 
@@ -378,6 +378,9 @@ logInfo2 ln docs = log LogInfo . hang (pretty ln) 4 $ Pr.vcat docs
 
 logDebug2 :: MonadLog m => String -> [Doc] -> m ()
 logDebug2 ln docs = log LogDebug . hang (pretty ln) 4 $ Pr.vcat docs
+
+logDebugVerbose2 :: MonadLog m => String -> [Doc] -> m ()
+logDebugVerbose2 ln docs = log LogDebugVerbose . hang (pretty ln) 4 $ Pr.vcat docs
 
 
 logDepthCon :: forall m b. (MonadState St m, MonadLog m, Pretty b) =>
