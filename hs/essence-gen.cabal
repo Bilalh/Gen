@@ -84,6 +84,7 @@ Library
                      , Gen.Essence.Op.Or
                      , Gen.Essence.Op.Participants
                      , Gen.Essence.Op.Parts
+                     , Gen.Essence.Op.Party
                      , Gen.Essence.Op.Pow
                      , Gen.Essence.Op.Product
                      , Gen.Essence.Op.Subset

@@ -20,6 +20,5 @@ instance (Generate a, ExpressionLike a) => Generate (OpParts a) where
   possiblePure _ Just{} _    = False
   possiblePure _ Nothing _   = False
 
-  -- Commonly  [RAll $ keyList ty]
   requires _ (Just ty@(TypeSet TypeSet{}) ) = [RAll $ keyList ty, RAll [K_TypePartition]]
   requires _ _         = []
