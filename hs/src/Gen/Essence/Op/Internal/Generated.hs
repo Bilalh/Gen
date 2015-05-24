@@ -21,6 +21,7 @@ import Gen.Essence.Op.Gt()
 import Gen.Essence.Op.Hist()
 import Gen.Essence.Op.Iff()
 import Gen.Essence.Op.Image()
+import Gen.Essence.Op.ImageSet()
 import Gen.Essence.Op.Imply()
 import Gen.Essence.Op.Intersect()
 import Gen.Essence.Op.Leq()
@@ -49,10 +50,9 @@ allOps :: forall m a
         . (Generate a, MonadState St m, Applicative m,  ExpressionLike a, EvalToInt a, WrapConstant a, MonadLog m)
        => GenerateConstraint
        -> [((GenerateConstraint -> m Bool ), (Key, GenSt (Op a)))]
-allOps con =
+allOps con = 
   [
- (possible (Proxy :: Proxy (OpProduct a))         , (K_OpProduct       , MkOpProduct        <$> give con ))
-  , (possible (Proxy :: Proxy (OpAllDiff a))          , (K_OpAllDiff        , MkOpAllDiff         <$> give con ))
+ (possible (Proxy :: Proxy (OpAllDiff a))          , (K_OpAllDiff        , MkOpAllDiff         <$> give con ))
   , (possible (Proxy :: Proxy (OpAnd a))              , (K_OpAnd            , MkOpAnd             <$> give con ))
   , (possible (Proxy :: Proxy (OpApart a))            , (K_OpApart          , MkOpApart           <$> give con ))
   , (possible (Proxy :: Proxy (OpDefined a))          , (K_OpDefined        , MkOpDefined         <$> give con ))
@@ -66,6 +66,7 @@ allOps con =
   , (possible (Proxy :: Proxy (OpHist a))             , (K_OpHist           , MkOpHist            <$> give con ))
   , (possible (Proxy :: Proxy (OpIff a))              , (K_OpIff            , MkOpIff             <$> give con ))
   , (possible (Proxy :: Proxy (OpImage a))            , (K_OpImage          , MkOpImage           <$> give con ))
+  , (possible (Proxy :: Proxy (OpImageSet a))         , (K_OpImageSet       , MkOpImageSet        <$> give con ))
   , (possible (Proxy :: Proxy (OpImply a))            , (K_OpImply          , MkOpImply           <$> give con ))
   , (possible (Proxy :: Proxy (OpIntersect a))        , (K_OpIntersect      , MkOpIntersect       <$> give con ))
   , (possible (Proxy :: Proxy (OpLeq a))              , (K_OpLeq            , MkOpLeq             <$> give con ))
