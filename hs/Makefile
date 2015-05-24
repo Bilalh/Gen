@@ -26,7 +26,8 @@ ifeq ($(ops)x, x)
 else
 	runhaskell scripts/add_new_ops.hs "${CONJURE_LIB}/src/Conjure/Language/Expression/Op/" $(subst ALL, ,$(subst ${comma}, ,${ops})) \
 	&& cabal exec -- runhaskell scripts/mk_keys.hs \
-	&& runhaskell scripts/add_ops_metadata.hs
+	&& runhaskell scripts/add_ops_metadata.hs      \
+	&& ./scripts/update_exposed_modules.rb
 endif
 
 # Show the ops that have not been added yet
