@@ -1,5 +1,4 @@
 {-# LANGUAGE DeriveDataTypeable #-}
-{-# LANGUAGE CPP #-}
 
 module Gen.Essence.UIData  where
 
