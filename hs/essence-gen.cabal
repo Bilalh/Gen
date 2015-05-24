@@ -96,6 +96,7 @@ Library
                      , Gen.Essence.Op.SupsetEq
                      , Gen.Essence.Op.ToInt
                      , Gen.Essence.Op.ToMSet
+                     , Gen.Essence.Op.ToRelation
                      , Gen.Essence.Op.ToSet
                      , Gen.Essence.Op.TwoBars
                      , Gen.Essence.Op.Union
