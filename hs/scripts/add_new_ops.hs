@@ -70,7 +70,8 @@ main = do
               , ""
               , "  give t = giveUnmatched \"Generate " ++ opName m ++ "\" t"
               , ""
-              , "  possiblePure _ (Just ty) _ = _2"
+              , "  -- Commonly fromIntegral d >= depthOf ty"
+              , "  possiblePure _ (Just ty) d = _2"
               , "  possiblePure _ Just{} _    = False"
               , "  possiblePure _ Nothing _   = False"
               , ""
@@ -89,7 +90,8 @@ main = do
 writeOut :: String -> FilePath -> String -> IO ()
 writeOut m outFile outText= do
   doesFileExist outFile >>= \case
-    True  -> return ()
+    True  -> do
+      printf "Resuing %-15s %s\n" m outFile
     False -> do
       printf "Adding %-15s %s\n" m outFile
       writeFile outFile outText

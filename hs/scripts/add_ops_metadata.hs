@@ -35,7 +35,7 @@ main = do
             , [ ""
               , ""
               , "allOps :: forall m a"
-              , "        . (Generate a, MonadState St m, Applicative m,  ExpressionLike a, EvalToInt a, WrapConstant a)"
+              , "        . (Generate a, MonadState St m, Applicative m,  ExpressionLike a, EvalToInt a, WrapConstant a, MonadLog m)"
               , "       => GenerateConstraint"
               , "       -> [((GenerateConstraint -> m Bool ), (Key, GenSt (Op a)))]"
               , "allOps con = "
