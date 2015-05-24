@@ -25,7 +25,7 @@ ifeq ($(ops)x, x)
 	@echo "ops=ALL make add_ops"
 else
 	runhaskell scripts/add_new_ops.hs "${CONJURE_LIB}/src/Conjure/Language/Expression/Op/" $(subst ALL, ,$(subst ${comma}, ,${ops})) \
-	&& cabal exec -- runhaskell scripts/mk_keys.hs
+	&& cabal exec -- runhaskell scripts/mk_keys.hs \
 	&& runhaskell scripts/add_ops_metadata.hs
 endif
 
@@ -125,4 +125,3 @@ files := `find src -name '*.hs' | egrep -v 'exec|test/' | grep -v \${hash}`
 ifdef $$files
 files := $$files
 endif
-
