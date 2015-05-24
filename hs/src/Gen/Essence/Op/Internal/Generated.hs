@@ -50,6 +50,7 @@ import Gen.Essence.Op.ToInt()
 import Gen.Essence.Op.ToMSet()
 import Gen.Essence.Op.ToRelation()
 import Gen.Essence.Op.ToSet()
+import Gen.Essence.Op.Together()
 import Gen.Essence.Op.TwoBars()
 import Gen.Essence.Op.Union()
 
@@ -103,6 +104,7 @@ allOps con =
   , (possible (Proxy :: Proxy (OpToMSet a))           , (K_OpToMSet         , MkOpToMSet          <$> give con ))
   , (possible (Proxy :: Proxy (OpToRelation a))       , (K_OpToRelation     , MkOpToRelation      <$> give con ))
   , (possible (Proxy :: Proxy (OpToSet a))            , (K_OpToSet          , MkOpToSet           <$> give con ))
+  , (possible (Proxy :: Proxy (OpTogether a))         , (K_OpTogether       , MkOpTogether        <$> give con ))
   , (possible (Proxy :: Proxy (OpTwoBars a))          , (K_OpTwoBars        , MkOpTwoBars         <$> give con ))
   , (possible (Proxy :: Proxy (OpUnion a))            , (K_OpUnion          , MkOpUnion           <$> give con ))
 

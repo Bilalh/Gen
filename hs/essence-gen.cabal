@@ -94,6 +94,7 @@ Library
                      , Gen.Essence.Op.Sum
                      , Gen.Essence.Op.Supset
                      , Gen.Essence.Op.SupsetEq
+                     , Gen.Essence.Op.Together
                      , Gen.Essence.Op.ToInt
                      , Gen.Essence.Op.ToMSet
                      , Gen.Essence.Op.ToRelation
