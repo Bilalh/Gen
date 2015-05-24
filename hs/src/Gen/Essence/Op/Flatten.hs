@@ -11,13 +11,21 @@ import Gen.Imports
 import Gen.Helpers.SizeOf
 
 instance (Generate a, ExpressionLike a) => Generate (OpFlatten a) where
-  give (GType (TypeMatrix TypeInt inn )) | notMatrix inn  = do
+  give (GType ty@(TypeMatrix TypeInt inn )) | notMatrix inn  = do
     d <- gets depth
-    n <- choose3 (0,d-1)
+    n <- choose3 (0, d - (fromInteger $ depthOf ty)  )
 
-    let wrap = foldr (flip (.)) (TypeMatrix TypeInt)
-             $ replicate n (TypeMatrix TypeInt)
-    OpFlatten <$> give (GType $ wrap inn)
+    let wrap = foldr (flip (.)) id $ replicate n (TypeMatrix TypeInt)
+    logInfo2 $line [ nn "ret" (ty)
+                   , nn "ret depth" (depthOf $ ty)
+                   , nn "depth" d
+                   , nn "n" n
+                   , nn "wrapped" (wrap ty)
+                   , nn "wrapped depth" ( depthOf $ wrap ty)
+                   , nn "wrapped Groom" ( groom $ wrap ty)
+                   ]
+
+    OpFlatten <$> give (GType $ wrap ty)
 
   give t = giveUnmatched "Generate OpFlatten" t
 
