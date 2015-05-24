@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, ConstraintKinds, DeriveDataTypeable, FlexibleInstances,
+{-# LANGUAGE ConstraintKinds, DeriveDataTypeable, FlexibleInstances,
              KindSignatures, RankNTypes #-}
 module Gen.Arbitrary.Data (
       addLog
