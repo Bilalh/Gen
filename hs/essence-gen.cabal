@@ -70,6 +70,7 @@ Library
                      , Gen.Essence.Op.Image
                      , Gen.Essence.Op.ImageSet
                      , Gen.Essence.Op.Imply
+                     , Gen.Essence.Op.In
                      , Gen.Essence.Op.Internal.Generated
                      , Gen.Essence.Op.Intersect
                      , Gen.Essence.Op.Inverse
