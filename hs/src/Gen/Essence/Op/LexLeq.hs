@@ -10,7 +10,7 @@ import Gen.Imports
 
 instance (Generate a, ExpressionLike a) => Generate (OpLexLeq a) where
   give (GType TypeBool) = do
-    ty <- TypeMatrix TypeInt <$> dgive GNone
+    ty <- TypeMatrix TypeInt <$> withDepthDec (giveOnly GNone [K_TypeInt, K_TypeBool])
     OpLexLeq <$> give (GType ty) <*> give (GType ty)
 
   give t = giveUnmatched "Generate OpLexLeq" t
