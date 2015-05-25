@@ -10,7 +10,7 @@ import Gen.Helpers.SizeOf
 import Gen.Imports
 
 instance (Generate a, ExpressionLike a) => Generate (OpRange a) where
-  give (GType ty) = do
+  give (GType (TypeSet ty)) = do
     from <- dgive GNone
     OpRange <$> (give (GType $ TypeFunction from ty))
 
