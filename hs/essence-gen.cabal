@@ -74,6 +74,7 @@ Library
                      , Gen.Essence.Op.Intersect
                      , Gen.Essence.Op.Inverse
                      , Gen.Essence.Op.Leq
+                     , Gen.Essence.Op.LexLeq
                      , Gen.Essence.Op.Lt
                      , Gen.Essence.Op.Max
                      , Gen.Essence.Op.Min
