@@ -111,6 +111,12 @@ tests = testGroup "simpler"
    , ([essencee| [1,2; int(1,3)] |],    [essencee| [1,2,3; int(2,4,6)] |] )
 
    , ([essencee| function(true = false --> 5) |], [essencee| function(true = false --> 5,  3=1+2 --> 9) |] )
+
+   , ([essencee| or([true])       |], [essencee| or([false,true])       |])
+   , ([essencee| or([true])       |], [essencee| or([false,true,false]) |])
+   , ([essencee| or([true,false]) |], [essencee| or([false,true,true])  |])
+
+   , ([essencee| or([true/\false]) |], [essencee| or([true/\false,true/\false])|])
   ]
 
   ]
