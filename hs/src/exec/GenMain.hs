@@ -10,8 +10,8 @@ import Gen.Classify.AddMeta       (addMeta)
 import Gen.Classify.AddSpecE      (addSpecJson, specEMain)
 import Gen.Classify.Sorter        (getRecursiveContents, sorterMain')
 import Gen.Classify.UpdateChoices (updateChoices)
-import Gen.Essence.St             (KeyMap)
 import Gen.Essence.Generate       (generateEssence)
+import Gen.Essence.St             (KeyMap)
 import Gen.Essence.UIData
 import Gen.Generalise.Generalise  (generaliseMain)
 import Gen.Imports
@@ -27,6 +27,7 @@ import Gen.Solver.Solver          (SolverArgs (..), solverMain)
 import Gen.UI.UI
 import System.Console.CmdArgs     (cmdArgs)
 import System.CPUTime             (getCPUTime)
+import System.Directory           (setCurrentDirectory)
 import System.Environment         (lookupEnv, withArgs)
 import System.Exit                (exitFailure, exitSuccess, exitWith)
 import System.FilePath            (replaceExtension, takeExtensions)
@@ -597,28 +598,17 @@ _givenDebug = do
 
 _reduceDebug :: IO ()
 _reduceDebug = do
-    let ec =
-            Reduce{spec_directory      = "/Users/bilalh/Desktop/Results/_notable/reduce_examples/1425940601_40"
-                  , error_kind         = RefineRandom_
-                  , error_status       = StatusAny_
-                  , error_choices      = Nothing
-                  , list_kinds         = False
-                  , list_statuses      = False
-                  , output_directory   = Just "/Users/bilalh/Desktop/Results/_notable/reduce_examples/1425940601_40/out"
-                  , per_spec_time      = 60
-                  , _cores             = Just 1
-                  , _seed              = Nothing
-                  , toolchain_ouput    = ToolchainNull_
-                  , binaries_directory = Nothing
-                  , limit_time         = Nothing
-                  , no_csv             = False
-                  , delete_passing     = False
-                  , db_directory       = Nothing
-                  , delete_steps       = False
-                  , db_only_passing    = False
-                  , from_essence       = False
-                  , db_passing_in      = Nothing
-                  , total_is_real_time = False
-                  , total_time_may     = Nothing
-                  }
-    limiter (limit_time ec) (mainWithArgs ec)
+  createDirectoryIfMissing True "__/reduceDebug"
+  setCurrentDirectory "__/reduceDebug"
+  let ec =
+       Reduce{per_spec_time = 30, spec_directory = "/Users/bilalh/Desktop/Results/_notable/_new/with_crash/res/base/2015-05-26_02-08_1432602516/_errors/RefineCompact_/RuleApplication_/1432602517_54_r-.model000000.choices/1432602529_2039",
+              error_kind = RefineCompact_, error_status = RuleApplication_,
+              error_choices = Just "/Users/bilalh/Desktop/Results/_notable/_new/with_crash/res/base/2015-05-26_02-08_1432602516/_errors/RefineCompact_/RuleApplication_/1432602517_54_r-.model000000.choices/1432602529_2039/follow.choices.json", list_kinds = False,
+              list_statuses = False, total_time_may = Nothing,
+              total_is_real_time = False, output_directory = Nothing,
+              _cores = Just 1, _seed = Nothing, delete_passing = True,
+              delete_steps = True, toolchain_ouput = ToolchainNull_,
+              binaries_directory = Nothing, limit_time = Nothing, no_csv = False,
+              db_directory = Just "db", db_passing_in = Nothing,
+              db_only_passing = False, from_essence = False}
+  limiter (limit_time ec) (mainWithArgs ec)
