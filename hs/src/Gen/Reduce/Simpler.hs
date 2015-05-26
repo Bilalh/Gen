@@ -79,15 +79,18 @@ instance Simpler Expr Expr where
 
 
 instance Simpler Type Type where
-    simplerImp TypeBool TypeBool = return EQ
-    simplerImp TypeBool _     = return LT
-    simplerImp TypeInt  TypeInt  = return EQ
-    simplerImp TypeInt  _     = return LT
+  simplerImp TypeInt   TypeInt  = return EQ
+  simplerImp TypeBool  TypeBool = return EQ
 
-    simplerImp TypeAny TypeAny   = return EQ
-    simplerImp TypeAny _      = return LT
+  simplerImp TypeBool _        = return LT
+  simplerImp _        TypeBool = return GT
+  simplerImp TypeInt  _        = return LT
+  simplerImp _        TypeInt  = return GT
 
-    simplerImp a b = return $ compare (depthOf a) (depthOf b)
+  simplerImp TypeAny _        = return LT
+  simplerImp _        TypeAny = return GT
+
+  simplerImp a b = return $ compare (depthOf a) (depthOf b)
 
 
 instance Simpler Var Var where
