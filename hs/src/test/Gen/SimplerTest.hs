@@ -10,32 +10,6 @@ import Test.Tasty.QuickCheck    as QC
 import Gen.Helpers.SizeOf
 import Gen.Arbitrary.Data(SS(..))
 
-st :: (Simpler a b) => Ordering -> a -> b -> TestTree
-st ord a b = testCase ( pretty a <+> "|" <+> pretty b) $
-  (runIdentity $ simpler a b) @?= ord
-
-eq_same :: (Simpler a a) => a -> TestTree
-eq_same a = st EQ a a
-
-eq :: (Simpler a b) => a -> b -> TestTree
-eq = st EQ
-
-testGroup_lt_gt :: forall a b. (Simpler b a, Simpler a b)
-                => String -> [(a, b)] -> TestTree
-testGroup_lt_gt name ls =
-  testGroup name
-   [
-     testGroup (name ++  "LT") (map ( uncurry (st LT)) ls)
-    ,testGroup (name ++  "GT") (map (uncurry (flip (st GT)))  ls)
-   ]
-
-
-
-_use_qc :: [Maybe a] -> [Maybe a]
--- _use_qc = return []
-_use_qc xs = xs
-
-
 tests :: TestTree
 tests = testGroup "simpler"
   [
@@ -126,6 +100,36 @@ tests = testGroup "simpler"
   ]
 
   ]
+
+
+
+st :: (Simpler a b) => Ordering -> a -> b -> TestTree
+st ord a b = testCase ( pretty a <+> "|" <+> pretty b) $
+  (runIdentity $ simpler a b) @?= ord
+
+eq_same :: (Simpler a a) => a -> TestTree
+eq_same a = st EQ a a
+
+eq :: (Simpler a b) => a -> b -> TestTree
+eq = st EQ
+
+testGroup_lt_gt :: forall a b. (Simpler b a, Simpler a b)
+                => String -> [(a, b)] -> TestTree
+testGroup_lt_gt name ls =
+  testGroup name
+   [
+     testGroup (name ++  "LT") (map ( uncurry (st LT)) ls)
+    ,testGroup (name ++  "GT") (map (uncurry (flip (st GT)))  ls)
+   ]
+
+ordSym :: Ordering -> Doc
+ordSym LT = "<"
+ordSym EQ = "="
+ordSym GT = ">"
+
+_use_qc :: [Maybe a] -> [Maybe a]
+-- _use_qc = return []
+_use_qc xs = xs
 
 
 

@@ -5,8 +5,9 @@ import Test.Tasty
 import Test.Tasty.Runners.AntXML
 
 import qualified Gen.DepthTest
-import qualified Gen.SimplerTest
+import qualified Gen.OlderTests
 import qualified Gen.ReduceTest
+import qualified Gen.SimplerTest
 import qualified Solver.SolverTest
 
 main :: IO ()
@@ -21,4 +22,5 @@ main = do
             [ Gen.DepthTest.tests
             , Gen.SimplerTest.tests
             , Gen.ReduceTest.tests
+            , Gen.OlderTests.tests
             ] ++ ts
