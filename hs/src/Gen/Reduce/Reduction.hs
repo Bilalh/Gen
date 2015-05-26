@@ -425,7 +425,17 @@ singleLit (TypeMatrix _ TypeAny) = rrError "singleLit TypeMatrix TypeAny" []
 singleLit (TypeSet TypeAny)      = return [ELit $ AbsLitSet []]
 singleLit (TypeMSet TypeAny)     = return [ELit $ AbsLitMSet []]
 
-singleLit (TypeMatrix _ x) = do
+singleLit (TypeMatrix TypeInt x) = do
+  s <- singleLit x
+  let si = AbsLitMatrix  (dintRange 1 (genericLength s)) s
+  let res = case s of -- Return the other combination
+             []    -> error "singleLit empty matrix"
+             [e]   -> [si,  AbsLitMatrix (dintRange 1 2) ([e,e])]
+             (e:_) -> [AbsLitMatrix (dintRange 1 1) [e], si]
+
+  return (map ELit res)
+
+singleLit (TypeList x) = do
   s <- singleLit x
   let si = AbsLitMatrix  (dintRange 1 (genericLength s)) s
   let res = case s of -- Return the other combination
@@ -502,7 +512,7 @@ singleLit l@(TypePartition x) = do
 
 
 singleLit TypeAny = rrError "singleLit of TypeAny" []
-singleLit ty   = rrError "singleLit" [nn "ty" ty ]
+singleLit ty   = rrError "singleLit~Error" [nn "ty" ty, nn "groomed" (groom ty) ]
 
 singleLitExpr :: (HasGen m, HasLogger m) =>Type -> m [Expr]
 singleLitExpr ty = do
