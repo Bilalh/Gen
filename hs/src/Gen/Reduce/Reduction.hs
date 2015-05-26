@@ -166,7 +166,7 @@ instance (HasGen m,  HasLogger m) =>  Reduce Constant m where
     mutate _ = return []
 
 
-instance (HasGen m,  HasLogger m) =>  Reduce (Literal) m where
+instance (HasGen m,  HasLogger m) =>  Reduce (AbstractLiteral Expr) m where
     single t   = ttypeOf t >>= singleLitExpr
 
     subterms x = return . map ELit .  innersExpand reduceLength $ x
@@ -586,7 +586,7 @@ m2t _ x     = error . show . vcat $ ["m2t not two elements", pretty . show $ x ]
 
 -- For ghci
 
-__run :: forall t a (t1 :: * -> *).
+__run  :: forall t a (t1 :: * -> *).
          (Pretty a, Foldable t1, Pretty t) =>
          Bool -> (t -> StateT EState Identity (t1 a)) -> t -> IO (t1 a)
 __run b f ee  = do
