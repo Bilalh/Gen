@@ -27,7 +27,7 @@ import Gen.Solver.Solver          (SolverArgs (..), solverMain)
 import Gen.UI.UI
 import System.Console.CmdArgs     (cmdArgs)
 import System.CPUTime             (getCPUTime)
-import System.Directory           (setCurrentDirectory)
+import System.Directory           (setCurrentDirectory,getCurrentDirectory)
 import System.Environment         (lookupEnv, withArgs)
 import System.Exit                (exitFailure, exitSuccess, exitWith)
 import System.FilePath            (replaceExtension, takeExtensions)
@@ -598,8 +598,13 @@ _givenDebug = do
 
 _reduceDebug :: IO ()
 _reduceDebug = do
-  createDirectoryIfMissing True "__/reduceDebug"
-  setCurrentDirectory "__/reduceDebug"
+  cur <- getCurrentDirectory
+  if "__/reduceDebug" `isInfixOf` cur then
+      return ()
+  else do
+    createDirectoryIfMissing True "__/reduceDebug"
+    setCurrentDirectory "__/reduceDebug"
+
   let ec =
        Reduce{per_spec_time = 30, spec_directory = "/Users/bilalh/Desktop/Results/_notable/_new/with_crash/res/base/2015-05-26_02-08_1432602516/_errors/RefineCompact_/RuleApplication_/1432602517_54_r-.model000000.choices/1432602529_2039",
               error_kind = RefineCompact_, error_status = RuleApplication_,
