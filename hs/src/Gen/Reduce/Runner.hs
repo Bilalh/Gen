@@ -307,7 +307,7 @@ addOtherError r = do
 -- What about timeouts?
 giveDb :: Int -> Maybe FilePath -> Maybe FilePath -> IO ResultsDB
 giveDb _perSpec dir passing = do
-    h_dir  <- getData dir
+    h_dir  <- getData $ (</> "db.json") <$> dir
     h_passing <- getData passing
 
     return $ H.union h_dir (flip H.filter h_passing $
@@ -330,7 +330,14 @@ checkDB newE= do
   let newHash = hash newE
   gets resultsDB_ >>=  \m ->
       case newHash `H.lookup` m of
-        Nothing              -> return Nothing
+        Nothing              -> do
+                -- liftIO $ putStrLn . show . vcat $
+                --            [ "No result found for hash" <+>  pretty newHash
+                --            , nn "spec" newE
+                --            , "db" <+> prettyArr (H.toList $ m)
+                --            -- , nn "gromed" (groom newE)
+                --            ]
+                return Nothing
         Just r@Passing{}     -> return (Just r)
         Just r@OurError{}    -> return (Just r)
         Just StoredError{..} -> do
@@ -341,7 +348,7 @@ checkDB newE= do
 
           db_dir <- gets resultsDB_dir >>= \case
                     Just df -> return df
-                    Nothing -> $(neverNote "Using an StoredError with knowing the filepath")
+                    Nothing -> $(neverNote "Using an StoredError without knowing the filepath")
 
           liftIO $ doesDirectoryExist outDir >>= \case
             True  -> return $ Just err
@@ -355,6 +362,10 @@ storeInDB sp r = do
   let newHash = hash sp
   gets resultsDB_ >>=  \m -> do
       let newDB = H.insert newHash r m
+      -- liftIO $ putStrLn . show . vcat $ ["Storing " <+> pretty newHash
+      --                                   ,"for" <+> pretty sp
+      --                                   , "db" <+> prettyArr (H.toList $ newDB)
+      --                                   ]
       modify $ \st -> st{resultsDB_ = newDB}
 
 
