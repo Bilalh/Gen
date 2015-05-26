@@ -37,6 +37,10 @@ instance  HasLogger Identity  where
     getLog   = return LSEmpty
     putLog _ = return ()
 
+instance  HasLogger IO where
+    getLog   = return LSEmpty
+    putLog x = putStrLn . show . pretty $ x
+
 nullLogs :: forall (m :: * -> *) a. Monad m => StateT () m a -> m a
 nullLogs f = evalStateT f ()
 
