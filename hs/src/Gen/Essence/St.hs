@@ -36,6 +36,7 @@ module Gen.Essence.St
   , logDepthCon
   , ldc
   , logDebugVerbose2
+  , runGenerateNullLogs
   ) where
 
 import Conjure.Language.Constant
@@ -309,6 +310,10 @@ runGenerateWithLogs con st = do
   let s = (flip evalStateT ) st (give con)
   runWriterT s
 
+runGenerateNullLogs :: Generate a => GenerateConstraint -> St -> Gen a
+runGenerateNullLogs con st = do
+  let s = (flip evalStateT ) st (give con)
+  fst <$> runWriterT s
 
 -- | DataType of a proxy
 proxyDataTypeOf :: forall a . Data a => Proxy a -> DataType
