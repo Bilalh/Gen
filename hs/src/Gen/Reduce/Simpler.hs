@@ -11,6 +11,7 @@ import Gen.Classify.Meta(maximum')
 import Gen.Helpers.Log
 import Gen.Helpers.SizeOf
 import Gen.Helpers.TypeOf
+import qualified Data.Foldable as F
 
 -- True if a1 is simpler then a2
 class (Pretty a, Eq a, Show a, Pretty b, Eq b, Show b
@@ -124,6 +125,8 @@ instance Simpler (Domainn Expr) (Domainn Expr) where
 
 
 instance Simpler (Op Expr) (Op Expr) where
+    simplerImp a b | [ELit la@AbsLitMatrix{}] <- F.toList a
+                   , [ELit lb@AbsLitMatrix{}] <- F.toList b = simpler la lb
     simplerImp a b = return $ compare (depthOf a) (depthOf b)
 
 

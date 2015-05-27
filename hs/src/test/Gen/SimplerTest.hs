@@ -87,6 +87,8 @@ tests = testGroup "simpler"
    , ([essencee| or([true,false]) |], [essencee| or([false,true,true])  |])
 
    , ([essencee| or([true/\false]) |], [essencee| or([true/\false,true/\false])|])
+
+   , ([essencee| or([true/\false,true/\false])|], [essencee| or([true/\false,true/\false,true/\false])|] )
   ]
 
   ,testGroup "QC"

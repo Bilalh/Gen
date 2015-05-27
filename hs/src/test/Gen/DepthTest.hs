@@ -81,8 +81,9 @@ tests = testGroup "depthOf"
     , te 2 [essencee| or([true]) |]
     , te 1 [essencee| or([false,true]) |]
     , te 2 [essencee| or([false,true,false])|]
-    , te 1 [essencee| or([true/\false]) |]
+    , te 3 [essencee| or([true/\false]) |]
     , te 2 [essencee| or([true/\false,true/\false]) |]
+    , te 3 [essencee| or([true/\false,true/\false,true/\false]) |]
    ]
 
   ,testGroup "Breaking"
