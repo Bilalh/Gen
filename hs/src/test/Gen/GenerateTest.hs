@@ -32,8 +32,8 @@ data Limited a =  Limited a
 instance (Pretty a, Show a) => Pretty (Limited a) where pretty = pretty . show
 instance (Pretty a, Show a) => Show (Limited a)   where
  show (Limited a) = renderSized 100 $ hang "Limited" 4 $ vcat
-          [ nn "Groomed :" (groom a)
-          , nn "Pretty  :"  (a)
+          -- [ nn "Groomed :" (groom a)
+          [ nn "Pretty  :"  (a)
           ]
 
 instance (Generate a, Simpler a a) => Arbitrary (Limited a) where

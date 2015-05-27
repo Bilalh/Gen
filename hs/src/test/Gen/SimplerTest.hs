@@ -12,7 +12,6 @@ import Gen.Reduce.Simpler
 import Gen.Reduce.Data
 import Gen.Reduce.Reduction as R
 import Gen.TestPrelude
-import Test.Tasty.QuickCheck    as QC
 import Text.Printf
 
 tests :: TestTree
@@ -140,8 +139,8 @@ data Limited a =  Limited a
 instance (Pretty a, Show a) => Pretty (Limited a) where pretty = pretty . show
 instance (Pretty a, Show a) => Show (Limited a)   where
  show (Limited a) = renderSized 100 $ hang "Limited" 4 $ vcat
-          [ nn "Groomed :" (groom a)
-          , nn "Pretty  :"  (a)
+          -- [ nn "Groomed :" (groom a)
+          [ nn "Pretty  :"  (a)
           ]
 
 instance (Generate a, Reduce a (StateT EState Identity), Simpler a a)
@@ -161,14 +160,14 @@ qc_tests :: forall p
 qc_tests title _ =
   testGroup title $
    catMaybes $ [
-     Just $ QC.testProperty "Is equal to self" $
+     Just $ testProperty "Is equal to self" $
        \(Limited (a :: p)) ->  (runIdentity $ simpler a a) == EQ
-   , Just $ QC.testProperty "simpler is consistent" $
+   , Just $ testProperty "simpler is consistent" $
        \(Limited (a :: p)) (Limited (b :: p)) -> do
          let simpler_ab = runIdentity $ simpler a b
          let simpler_ba = runIdentity $ simpler b a
          simpler_ab    == negOrder simpler_ba
-   , Just $ QC.testProperty "simpler is consistent with depthof" $
+   , Just $ testProperty "simpler is consistent with depthof" $
        \(Limited (a :: p)) (Limited (b :: p)) -> do
          if runIdentity $ simpler1 a b then
              counterexample (printf "depthOf a(%d) <= depthOf b(%d)" (depthOf a) (depthOf b))
