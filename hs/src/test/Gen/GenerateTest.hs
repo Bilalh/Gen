@@ -9,7 +9,6 @@ import Gen.Helpers.SizeOf
 import Gen.Imports
 import Gen.Reduce.Simpler
 import Gen.TestPrelude
-import Test.Tasty.QuickCheck    as QC
 import Gen.Helpers.TypeOf
 
 tests :: TestTree
@@ -17,11 +16,11 @@ tests = testGroup "GenerateOnly"
   [
    testGroup "QC"
    [
-     qc_tests "Type" (Proxy :: Proxy Type)
-   , qc_tests "Constant" (Proxy :: Proxy Constant)
-   , qc_tests "AbstractLiteral Constant" (Proxy :: Proxy (AbstractLiteral Constant))
-   , qc_tests "AbstractLiteral Expr" (Proxy :: Proxy (AbstractLiteral Expr))
-   , qc_tests "Expr" (Proxy :: Proxy (Expr))
+     qc_tests True "Type" (Proxy :: Proxy Type)
+   , qc_tests False "Constant" (Proxy :: Proxy Constant)
+   , qc_tests False "AbstractLiteral Constant" (Proxy :: Proxy (AbstractLiteral Constant))
+   , qc_tests True "AbstractLiteral Expr" (Proxy :: Proxy (AbstractLiteral Expr))
+   , qc_tests True "Expr" (Proxy :: Proxy (Expr))
    ]
 
   ]
@@ -45,14 +44,18 @@ instance (Generate a, Simpler a a) => Arbitrary (Limited a) where
 
 qc_tests :: forall p
           . (Generate p, Simpler p p, DepthOf p, TTypeOf p)
-         => String -> Proxy p  -> TestTree
-qc_tests title _ =
+         => Bool -> String -> Proxy p  -> TestTree
+qc_tests b title _ =
   testGroup title $
    catMaybes $ [
-     Just $ QC.testProperty "Is equal to self" $
+     Just $ testProperty "Can Generate" $
        \(Limited (a :: p)) ->  a == a
-   , Just $ QC.testProperty "TypeOf" $
+   , j $ testProperty "TypeOf" $
        \(Limited (a :: p)) -> do
          let ty = runIdentity $ ttypeOf a
          ty == ty
    ]
+   where j f = if b then
+                   Just f
+               else
+                   Nothing

@@ -7,7 +7,6 @@ import Gen.Helpers.SizeOf
 import Gen.Imports
 import Gen.Reduce.Simpler
 import Gen.TestPrelude
-import Test.Tasty.QuickCheck    as QC
 import Conjure.Language.Definition
 import Conjure.Language.NameResolution (resolveNames)
 import Conjure.UI.TypeCheck            (typeCheckModel)
@@ -43,7 +42,7 @@ qc_tests :: String  -> TestTree
 qc_tests title  =
   testGroup title $
    catMaybes $ [
-     Just $ QC.testProperty "Conjure's TypeChecking" $
+     Just $ testProperty "Conjure's TypeChecking" $
        \(Limited (sp :: Spec)) ->  do
           case toConjure sp of
             Left err               -> counterexample (show err) False
