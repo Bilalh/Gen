@@ -78,6 +78,11 @@ tests = testGroup "depthOf"
     , te 3 [essencee| toInt(true) in mset(-5, 4)  |]
     , te 4 [essencee| toInt(toInt(true) in mset(-5, 4))  |]
     , te 5 [essencee| toInt(toInt(true) in mset(-5, 4)) = 9 |]
+    , te 2 [essencee| or([true]) |]
+    , te 1 [essencee| or([false,true]) |]
+    , te 2 [essencee| or([false,true,false])|]
+    , te 1 [essencee| or([true/\false]) |]
+    , te 2 [essencee| or([true/\false,true/\false]) |]
    ]
 
   ,testGroup "Breaking"

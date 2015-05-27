@@ -68,7 +68,7 @@ tests = testGroup "simpler"
    , ([essencee| {true}|],                             [essencee| preImage(function(true --> false), false) |])
   ]
 
-  ,testGroup_lt_gt "literals"
+  ,testGroup_lt_gt "Literals"
    [
      ([essencee| {false} |],  [essencee| {false,true} |] )
    , ([essencee| {} |],       [essencee| {false,true} |] )
