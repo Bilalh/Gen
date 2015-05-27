@@ -26,8 +26,7 @@ class (Pretty a, Eq a, Show a, Pretty b, Eq b, Show b
     res <- simplerImp a b
     addLog "simpler" [nn "a" a, nn "b" b
                      , nn "res" (show res)
-                     -- , nn "ga" (groom a), nn "gb" (groom b)
-                     -- , nn "ga" (groom na), nn "gb" (groom nb)
+                     , nn "ga" (groom a), nn "gb" (groom b)
                      ]
     return $ res
 
