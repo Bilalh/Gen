@@ -5,6 +5,7 @@ import Test.Tasty
 import Test.Tasty.Runners.AntXML
 
 import qualified Gen.DepthTest
+import qualified Gen.GenerateTest
 import qualified Gen.OlderTests
 import qualified Gen.ReduceTest
 import qualified Gen.SimplerTest
@@ -23,4 +24,5 @@ main = do
             , Gen.SimplerTest.tests
             , Gen.ReduceTest.tests
             , Gen.OlderTests.tests
+            , Gen.GenerateTest.tests
             ] ++ ts
