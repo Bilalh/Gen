@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, QuasiQuotes #-}
+{-# LANGUAGE FlexibleInstances, QuasiQuotes, UndecidableInstances #-}
 module Gen.ReduceTest ( tests ) where
 
 import Gen.AST.TH
@@ -9,6 +9,8 @@ import Gen.Reduce.Reduction as R
 import Gen.Reduce.Simpler
 import Gen.Helpers.SizeOf
 import Gen.Helpers.TypeOf
+import Gen.Essence.St
+import Gen.Essence.Expr()
 
 _use_qc :: [Maybe a] -> [Maybe a]
 -- use_qc = return []
@@ -45,7 +47,7 @@ tests = testGroup "reduce"
        , [essencee| toInt(toInt(true) in mset(-5, 4)) = 9 |]
        ]
     ]
-
+  , qc_tests "QC"
   ]
 
 __runner :: forall a t. (t -> StateT EState Identity a) -> t -> a
@@ -117,3 +119,48 @@ simpler_leq a b = let res = (runIdentity $ simpler a b)
                   in  (res == EQ || res == LT)
 
 -- Add tests for mutate for functions
+
+
+data Limited a =  Limited a
+    deriving (Eq)
+
+
+instance (Pretty a, Show a) => Pretty (Limited a) where pretty = pretty . show
+instance (Pretty a, Show a) => Show (Limited a)   where
+ show (Limited a) = renderSized 100 $ hang "Limited" 4 $ vcat
+          -- [ nn "Groomed :" (groom a)
+          [ nn "Pretty  :"  (a)
+          ]
+
+instance (Generate a, Reduce a (StateT EState Identity), Simpler a a)
+    => Arbitrary (Limited a) where
+  arbitrary = sized $ \s -> do
+    i <- choose (1,  (max 0 (min s 3)) )
+    Limited <$> runGenerateNullLogs GNone def{depth=i}
+
+  shrink (Limited a ) = do
+    let rs = __runner reduce a
+    let allowed = filter (\x -> runIdentity $ simpler1 x a  ) rs
+    map Limited allowed
+
+qc_tests :: String  -> TestTree
+qc_tests title  =
+  testGroup title $
+   catMaybes $ [
+     Just $ testProperty "depth_leq" $
+       \(Limited (a :: Expr)) -> ( all (\b -> depthOf b <= depthOf a )  $ __runner reduce a )
+   , Just $ testProperty "reduce_simp_leq" $
+       \(Limited (a :: Expr)) ->  ( all (\b -> simpler_leq b a )  $ __runner reduce a )
+   , Just $ testProperty "subterms_simp_leq" $
+       \(Limited (a :: Expr)) ->  ( all (\b -> simpler_leq b a )  $ __runner R.subterms a )
+   , Just $ testProperty "type_leq" $
+       \(Limited (a :: Expr)) ->
+           ( all (\b -> simpler_leq (runIdentity . ttypeOf $ b) (runIdentity . ttypeOf $ a) )
+                     $ __runner reduce a )
+   , Just $ testProperty "single_depth" $
+       \(Limited (a :: Expr)) ->
+           let reduced = __runner single a
+               res = map (\rr -> (all (\l -> depthOf l == depthOf rr  )
+                                 $ __runner reduce rr)) $ reduced
+           in and res
+   ]
