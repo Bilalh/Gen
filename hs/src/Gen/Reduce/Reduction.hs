@@ -39,6 +39,11 @@ class (HasGen m,  HasLogger m) => Reduce a m where
 
     mutate  _ = return []
 
+    reduceSimpler :: Simpler a a =>  a -> m [a]
+    reduceSimpler a = do
+        rr <- reduce a
+        return $ filter (\x -> runIdentity $ simpler1 x a) rr
+
 instance (HasGen m,  HasLogger m) =>  Reduce Type m where
     reduce _   = return []
     single _   = $(neverNote "Reduce Type m ~ single called ")
@@ -486,8 +491,9 @@ singleLit l@(TypeRelation x) = do
   ty <- ttypeOf l
   let empty = ETyped ty  (ELit $ AbsLitRelation [])
 
-  lits <- mapM (singleLit) x
-  let rel       = ELit $ AbsLitRelation $  lits
+  litsm  <- mapM (singleLit) x
+  lits   <- mapM oneofR litsm
+  let rel= ELit $ AbsLitRelation $  [lits]
 
   return [rel, empty]
 
@@ -537,8 +543,11 @@ replaceOpChildren op news = fst . flip runState news $ f1 <$> T.mapM fff ch1
 reduceList :: forall (m :: * -> *)
            .  (HasGen m, HasLogger m)
            => [Expr] -> m [[Expr]]
+reduceList [] = return []
 reduceList as = do
-  let (Just (lzip :: Zipper [Expr] Expr )) = zipperBi as
+  let lzip = case zipperBi as of
+           Nothing -> docError [pretty $line, pretty $ groom as   ]
+           Just lz -> lz
   vs <- forM (allSiblings lzip) $ \ x -> do
     let cur = hole x
     rs <- reduce cur
@@ -642,19 +651,37 @@ _replaceOpChildren_ex = replaceOpChildren
 -- instance Pretty [Literal] where
 --     pretty = prettyBrackets  . pretty . vcat . map pretty
 
-
-type EListZipper = Zipper [Int] Int
-
-_ll :: forall (m :: * -> *). Monad m => [Int] -> m [[Int]]
-_ll as = do
-  let (Just (lzip :: EListZipper)) = zipperBi as
-  vs <- forM (allSiblings lzip) $ \ x -> do
-    let cur = hole x
-    let ls = map (flip replaceHole x) [cur *10, cur * 100]
-    return $ map fromZipper ls
-
-  return . concat $ vs
-
-    where
-      allSiblings :: EListZipper -> [EListZipper]
-      allSiblings z = z : maybe [] allSiblings (Zipper.right z)
+dd =  ConstantAbstract (AbsLitSet
+                 [ConstantAbstract
+                    (AbsLitTuple
+                       [ConstantAbstract
+                          (AbsLitPartition
+                             [[ConstantBool False, ConstantBool True],
+                              [ConstantBool False, ConstantBool True], [],
+                              [ConstantBool True, ConstantBool False, ConstantBool False,
+                               ConstantBool False],
+                              [ConstantBool False, ConstantBool True, ConstantBool False]]),
+                        ConstantBool False, ConstantAbstract (AbsLitSet []),
+                        ConstantAbstract (AbsLitPartition [])]),
+                  ConstantAbstract
+                    (AbsLitTuple
+                       [ConstantAbstract
+                          (AbsLitPartition
+                             [[ConstantBool True, ConstantBool True, ConstantBool False,
+                               ConstantBool True],
+                              [ConstantBool False, ConstantBool True, ConstantBool False,
+                               ConstantBool False, ConstantBool False]]),
+                        ConstantBool False,
+                        ConstantAbstract
+                          (AbsLitSet [ConstantInt 2, ConstantInt 2, ConstantInt 2]),
+                        ConstantAbstract
+                          (AbsLitPartition
+                             [[ConstantInt 5],
+                              [ConstantInt 4, ConstantInt 1, ConstantInt 0, ConstantInt 1,
+                               ConstantInt 1]])]),
+                  ConstantAbstract
+                    (AbsLitTuple
+                       [ConstantAbstract (AbsLitPartition []), ConstantBool False,
+                        ConstantAbstract
+                          (AbsLitSet [ConstantInt 1, ConstantInt 3, ConstantInt 4]),
+                        ConstantAbstract (AbsLitPartition [[]])])])

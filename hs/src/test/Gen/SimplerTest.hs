@@ -152,9 +152,8 @@ instance (Generate a, Reduce a (StateT EState Identity), Simpler a a)
     Limited <$> runGenerateNullLogs GNone def{depth=i}
 
   shrink (Limited a ) = do
-    let rs = __runner reduce a
-    let allowed = filter (\x -> runIdentity $ simpler1 x a  ) rs
-    map Limited allowed
+    let rs = __runner reduceSimpler a
+    map Limited rs
 
 qc_tests :: forall p
           . (Generate p, Simpler p p, DepthOf p, Reduce p (StateT EState Identity))

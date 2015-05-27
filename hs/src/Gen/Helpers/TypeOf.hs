@@ -47,7 +47,6 @@ instance TTypeOf Expr  where
   ttypeOf (EVar v)            = ttypeOf v
   ttypeOf (ETyped t _)        = return t
   ttypeOf (EOp op)            = ttypeOf op
-  -- TODO could also be a set
   ttypeOf (EComp inner _ _)   = (TypeMatrix TypeInt) <$> ttypeOf inner
 
   ttypeOf x = error . show . vcat $ ["ttypeOf failed for "
@@ -93,6 +92,7 @@ toTType f = case typeOf f of
 
 instance TypeOf Expr  where
   typeOf (EVar (Var _ ty )) = return ty
+  typeOf (ETyped ty _)      = return ty
   typeOf t = do
       ty ::Type <- ttypeOf t
       return ty

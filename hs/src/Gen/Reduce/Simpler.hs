@@ -11,6 +11,8 @@ import Gen.Classify.Meta(maximum')
 import Gen.Helpers.Log
 import Gen.Helpers.SizeOf
 import Gen.Helpers.TypeOf
+import Conjure.Language.TypeOf
+
 import qualified Data.Foldable as F
 
 -- True if a1 is simpler then a2
@@ -38,7 +40,7 @@ instance Simpler Expr Expr where
     simplerImp (EDom a)               (EDom b)      = simplerImp a b
     simplerImp (ECon a)               (ECon b)      = simplerImp a b
     simplerImp (ELit a)               (ELit b)      = simplerImp a b
-    simplerImp (ETyped _ a)           (ETyped _ b)  = simplerImp a b
+    simplerImp (ETyped a _)           (ETyped b _)  = simplerImp a b
     simplerImp (EOp a)                (EOp b)       = simplerImp a b
     simplerImp (EMetaVar _)           (EMetaVar _)  = return EQ
 
@@ -54,8 +56,8 @@ instance Simpler Expr Expr where
     simplerImp (ELit a) (ECon b)  = simplerImp a b
     simplerImp (ECon a) (ELit b)  = simplerImp a b
 
-    simplerImp (ETyped _ a) b  = simplerImp a b
-    simplerImp a (ETyped _ b)  = simplerImp a b
+    simplerImp (ETyped a _) b  = simplerImp a (runIdentity $ ttypeOf b)
+    simplerImp a (ETyped b _)  = simplerImp (runIdentity $ ttypeOf a) b
 
     simplerImp (EVar a) b  = simplerImp a b
     simplerImp a (EVar b)  = simplerImp a b
@@ -161,7 +163,7 @@ instance Simpler Expr (Op Expr) where
     simplerImp EEmptyGuard _  = return LT
 
     simplerImp (EOp a) b        = simplerImp a b
-    simplerImp (ETyped _ a) b   = simplerImp a b
+    simplerImp (ETyped a _) b   = simplerImp a (runIdentity $ ttypeOf b)
     simplerImp (ELit a) b       = simplerImp a b
 
     -- simplerImp (EDom a) b       = _h
@@ -171,7 +173,7 @@ instance Simpler Expr (Op Expr) where
 
 
 instance Simpler Literal Expr where simplerImp = negSimplerImp
-instance (Simpler c Expr, Simpler Expr c, IntRange c, DepthOf c)
+instance (Simpler c Expr, Simpler Expr c, IntRange c, DepthOf c, TTypeOf c, TypeOf c)
     => Simpler Expr (AbstractLiteral c) where
 
     simplerImp (EVar _) _     = return LT
@@ -180,7 +182,7 @@ instance (Simpler c Expr, Simpler Expr c, IntRange c, DepthOf c)
     simplerImp EEmptyGuard _  = return LT
 
     simplerImp (ELit a) b       = simplerImp a b
-    simplerImp (ETyped _ a) b   = simplerImp a b
+    simplerImp (ETyped a _) b   = simplerImp a (runIdentity $ ttypeOf b)
 
     simplerImp (EOp a) b        = simplerImp a b
     -- simplerImp (EDom a) b       = simplerImp a b

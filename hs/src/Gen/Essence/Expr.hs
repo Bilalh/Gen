@@ -58,18 +58,18 @@ instance Generate Expr where
 
     isEmptyInside :: AbstractLiteral Constant -> Bool
     isEmptyInside (AbsLitMatrix _  [])               = True
-    isEmptyInside (AbsLitPartition xs) | all null xs = True
-    isEmptyInside (AbsLitRelation xs) | all null xs  = True
+    isEmptyInside (AbsLitPartition xs) | any null xs = True
+    isEmptyInside (AbsLitRelation xs)  | any null xs = True
     isEmptyInside (AbsLitMatrix _  xs) =
-        or . map isEmptyInside . mapMaybe isEmptyConstant $ xs
+        or . map isEmptyInside . mapMaybe isAbst $ xs
     isEmptyInside lit = case F.toList lit of
                           [] -> True
-                          xs -> or . map isEmptyInside . mapMaybe isEmptyConstant $ xs
+                          xs -> or . map isEmptyInside . mapMaybe isAbst $ xs
 
 
-    isEmptyConstant :: Constant -> Maybe (AbstractLiteral Constant)
-    isEmptyConstant (ConstantAbstract x) = Just x
-    isEmptyConstant _                    = Nothing
+    isAbst :: Constant -> Maybe (AbstractLiteral Constant)
+    isAbst (ConstantAbstract x) = Just x
+    isAbst _                    = Nothing
 
 
 

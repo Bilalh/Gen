@@ -138,10 +138,6 @@ instance (Generate a, Reduce a (StateT EState Identity), Simpler a a)
     i <- choose (1,  (max 0 (min s 3)) )
     Limited <$> runGenerateNullLogs GNone def{depth=i}
 
-  shrink (Limited a ) = do
-    let rs = __runner reduce a
-    let allowed = filter (\x -> runIdentity $ simpler1 x a  ) rs
-    map Limited allowed
 
 qc_tests :: String  -> TestTree
 qc_tests title  =

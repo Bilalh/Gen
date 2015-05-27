@@ -12,8 +12,7 @@ import Gen.Imports
 
 instance (Generate a, ExpressionLike a) => Generate (OpParty a) where
   give (GType (TypeSet inn) ) = do
-    par <- dgive GNone
-    OpParty <$> give (GType inn) <*> give (GType (TypePartition par))
+    OpParty <$> give (GType inn) <*> give (GType (TypePartition inn))
 
   give t = giveUnmatched "Generate OpParty" t
 
