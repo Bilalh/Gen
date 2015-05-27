@@ -39,6 +39,10 @@ class (HasGen m,  HasLogger m) => Reduce a m where
 
     mutate  _ = return []
 
+instance (HasGen m,  HasLogger m) =>  Reduce Type m where
+    reduce _   = return []
+    single _   = $(neverNote "Reduce Type m ~ single called ")
+    subterms _ = return []
 
 instance (HasGen m,  HasLogger m) =>  Reduce Expr m where
 
