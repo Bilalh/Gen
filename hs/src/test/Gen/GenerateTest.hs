@@ -10,6 +10,7 @@ import Gen.Imports
 import Gen.Reduce.Simpler
 import Gen.TestPrelude
 import Test.Tasty.QuickCheck    as QC
+import Gen.Helpers.TypeOf
 
 tests :: TestTree
 tests = testGroup "GenerateOnly"
@@ -43,11 +44,15 @@ instance (Generate a, Simpler a a) => Arbitrary (Limited a) where
 
 
 qc_tests :: forall p
-          . (Generate p, Simpler p p, DepthOf p)
+          . (Generate p, Simpler p p, DepthOf p, TTypeOf p)
          => String -> Proxy p  -> TestTree
 qc_tests title _ =
   testGroup title $
    catMaybes $ [
      Just $ QC.testProperty "Is equal to self" $
        \(Limited (a :: p)) ->  a == a
+   , Just $ QC.testProperty "TypeOf" $
+       \(Limited (a :: p)) -> do
+         let ty = runIdentity $ ttypeOf a
+         ty == ty
    ]
