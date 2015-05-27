@@ -1,14 +1,19 @@
-{-# LANGUAGE FlexibleInstances, QuasiQuotes #-}
+{-# LANGUAGE FlexibleInstances, QuasiQuotes, UndecidableInstances #-}
 module Gen.SimplerTest ( tests ) where
 
-import Gen.Arbitrary.Generators
 import Gen.AST.TH
-import Gen.Imports
-import Gen.TestPrelude
-import Gen.Reduce.Simpler
-import Test.Tasty.QuickCheck    as QC
+import Gen.Essence.St
+import Gen.Essence.Type ()
+import Gen.Essence.Constant ()
+import Gen.Essence.Expr ()
 import Gen.Helpers.SizeOf
-import Gen.Arbitrary.Data(SS(..))
+import Gen.Imports
+import Gen.Reduce.Simpler
+import Gen.Reduce.Data
+import Gen.Reduce.Reduction as R
+import Gen.TestPrelude
+import Test.Tasty.QuickCheck    as QC
+import Text.Printf
 
 tests :: TestTree
 tests = testGroup "simpler"
@@ -24,20 +29,6 @@ tests = testGroup "simpler"
    , eq_same (TypeSet (TypeFunction TypeInt TypeBool))
    , eq_same (TypeTuple [TypeRelation [TypeInt,TypeBool],TypeTuple [TypeTuple [TypeBool],TypeTuple [TypeBool,TypeInt],TypeTuple [TypeInt,TypeInt],TypeInt],TypeTuple [TypeFunction TypeBool TypeInt]])
    , eq_same (TypeRelation [TypeInt,TypeBool])
-   ]
-
-  ,testGroup "type_QC" $
-   catMaybes $ _use_qc [
-     Just $ QC.testProperty "type is equal to self" $
-       \(AType a) ->  (runIdentity $ simpler a a) == EQ
-   , no $ QC.testProperty "atype and depthOf argee" $
-       \(BType ty gen_depth) ->  depthOf ty == fromIntegral gen_depth
-   , Just $ QC.testProperty "simpler is consistent" $
-       \(SType a) (SType b) -> do
-         let simpler_ab = runIdentity $ simpler a b
-         let simpler_ba = runIdentity $ simpler b a
-         simpler_ab    == negOrder simpler_ba
-
    ]
 
   ,testGroup "Expr_gen eq"
@@ -99,6 +90,13 @@ tests = testGroup "simpler"
    , ([essencee| or([true/\false]) |], [essencee| or([true/\false,true/\false])|])
   ]
 
+  ,testGroup "QC"
+  [
+    qc_tests "Type" (Proxy :: Proxy Type)
+  , qc_tests "AbstractLiteral Expr" (Proxy :: Proxy (AbstractLiteral Expr))
+  , qc_tests "Expr" (Proxy :: Proxy (Expr))
+  ]
+
   ]
 
 
@@ -122,37 +120,68 @@ testGroup_lt_gt name ls =
     ,testGroup (name ++  "GT") (map (uncurry (flip (st GT)))  ls)
    ]
 
-ordSym :: Ordering -> Doc
-ordSym LT = "<"
-ordSym EQ = "="
-ordSym GT = ">"
 
 _use_qc :: [Maybe a] -> [Maybe a]
 -- _use_qc = return []
 _use_qc xs = xs
 
 
-
-
-newtype AType =  AType Type
-    deriving (Show,Eq)
-
-instance Arbitrary AType where
-    arbitrary = flip evalStateT def{depth_=3} $ fmap AType atype
-
 data BType =  BType Type Int
     deriving (Show,Eq)
 
 instance Arbitrary BType where
-    arbitrary = sized $ \s -> do
-      i <- choose (1,  (max 0 (min s 3)) )
-      res <- flip evalStateT def{depth_=i} atype
-      return $ BType res i
-
-data SType =  SType Type
-    deriving (Show,Eq)
-
-instance Arbitrary SType where
   arbitrary = sized $ \s -> do
     i <- choose (1,  (max 0 (min s 3)) )
-    SType <$> flip evalStateT def{depth_=i} atype
+    BType <$>  runGenerateNullLogs GNone def{depth=i} <*> pure i
+
+data Limited a =  Limited a
+    deriving (Eq)
+
+instance (Pretty a, Show a) => Pretty (Limited a) where pretty = pretty . show
+instance (Pretty a, Show a) => Show (Limited a)   where
+ show (Limited a) = renderSized 100 $ hang "Limited" 4 $ vcat
+          [ nn "Groomed :" (groom a)
+          , nn "Pretty  :"  (a)
+          ]
+
+instance (Generate a, Reduce a (StateT EState Identity), Simpler a a)
+    => Arbitrary (Limited a) where
+  arbitrary = sized $ \s -> do
+    i <- choose (1,  (max 0 (min s 3)) )
+    Limited <$> runGenerateNullLogs GNone def{depth=i}
+
+  shrink (Limited a ) = do
+    let rs = __runner reduce a
+    let allowed = filter (\x -> runIdentity $ simpler1 x a  ) rs
+    map Limited allowed
+
+qc_tests :: forall p
+          . (Generate p, Simpler p p, DepthOf p, Reduce p (StateT EState Identity))
+         => String -> Proxy p  -> TestTree
+qc_tests title _ =
+  testGroup title $
+   catMaybes $ [
+     Just $ QC.testProperty "Is equal to self" $
+       \(Limited (a :: p)) ->  (runIdentity $ simpler a a) == EQ
+   , Just $ QC.testProperty "simpler is consistent" $
+       \(Limited (a :: p)) (Limited (b :: p)) -> do
+         let simpler_ab = runIdentity $ simpler a b
+         let simpler_ba = runIdentity $ simpler b a
+         simpler_ab    == negOrder simpler_ba
+   , Just $ QC.testProperty "simpler is consistent with depthof" $
+       \(Limited (a :: p)) (Limited (b :: p)) -> do
+         if runIdentity $ simpler1 a b then
+             counterexample (printf "depthOf a(%d) <= depthOf b(%d)" (depthOf a) (depthOf b))
+                $ depthOf a <= depthOf b
+         else
+             counterexample (printf "depthOf a(%d) >= depthOf b(%d)" (depthOf a) (depthOf b))
+                $ depthOf a >= depthOf b
+   ]
+
+__runner :: forall a t. (t -> StateT EState Identity a) -> t -> a
+__runner f ee = do
+  let spe   :: Spec   = $never
+      seed            = 32
+      state :: EState = newEStateWithSeed seed spe
+      res             = runIdentity $ flip evalStateT state $ f ee
+  res
