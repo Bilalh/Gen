@@ -38,6 +38,8 @@ instance EvalToInt Expression where
     Right v -> docError ["Not an int in EvalToInt Expression"
                         , "exprI :"  <+> pretty x
                         , "result:"  <+> pretty v
+                        , "resultGroomed:"  <+> (pretty . groom) v
+                        , "exprGroomed:"    <+> (pretty . groom) x
                         ]
     -- FIXME errors in instantiateExpression happen to often
     _  -> return (-99)

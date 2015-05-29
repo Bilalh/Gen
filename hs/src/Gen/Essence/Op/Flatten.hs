@@ -25,7 +25,7 @@ instance (Generate a, ExpressionLike a) => Generate (OpFlatten a) where
                    , nn "wrapped Groom" ( groom $ wrap ty)
                    ]
 
-    OpFlatten <$> give (GType $ wrap ty)
+    OpFlatten <$> pure Nothing <*> give (GType $ wrap ty)
 
   give t = giveUnmatched "Generate OpFlatten" t
 
