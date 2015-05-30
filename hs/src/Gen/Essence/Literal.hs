@@ -10,6 +10,8 @@ import Gen.Essence.Type            ()
 import Gen.Helpers.SizeOf
 import Gen.Imports
 
+import qualified Gen.Essence.Data.Types as Types
+
 instance (Generate a, WrapConstant a) => Generate (AbstractLiteral a) where
   give con = do
    (res, _ :: Type) <- give con
@@ -25,7 +27,7 @@ instance (Generate a, WrapConstant a) => Generate (AbstractLiteral a) where
 
 instance (Generate a, WrapConstant a) => Generate (AbstractLiteral a, Type) where
   give GNone = do
-    ty <- give GOnlyLiteralTypes
+    ty <- give $ GOnlyTopLevel Types.literals
     give (GType ty)
 
   give (GType r@(TypeSet ty)) = do

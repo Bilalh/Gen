@@ -9,9 +9,6 @@ import qualified Data.Set as S
 import qualified Gen.Essence.Data.Types as Types
 
 instance Generate Type where
-
-  give GOnlyLiteralTypes = give $ GOnlyTopLevel Types.literals
-
   give (GOnlyTopLevel ws) = do
     logDepthCon $line (GOnlyTopLevel ws)
     defs <- gets depth >>= \d ->

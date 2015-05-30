@@ -44,8 +44,9 @@ instance (Generate a, WrapConstant a, EvalToInt a) => Generate (Domain () a) whe
 
   possiblePure _ _ _ = True
 
-  requires _ (Just ty) = [RAll $ keyList ty]
-  requires _ _         = []
+  requires _ (Just TypeBool) = [RAll $ [K_TypeBool]]
+  requires _ (Just ty)       = [RAll $ keyList ty, RAll [K_TypeInt]]
+  requires _ _               = []
 
 
 instance (Generate a, WrapConstant a, EvalToInt a) => Generate (SetAttr a) where

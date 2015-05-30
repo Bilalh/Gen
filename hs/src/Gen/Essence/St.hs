@@ -134,7 +134,6 @@ instance Default St where
 
 data GenerateConstraint = GNone
                         | GType Type          -- The resulting type
-                        | GOnlyLiteralTypes   -- for literals
                         | GOnlyTopLevel [Key] -- Weights to use at the toplevel
                         | GBinRel             -- For Relation Atrr
  deriving (Eq, Ord, Show, Data, Typeable, Generic)
