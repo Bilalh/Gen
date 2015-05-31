@@ -685,3 +685,9 @@ dd =  ConstantAbstract (AbsLitSet
                         ConstantAbstract
                           (AbsLitSet [ConstantInt 1, ConstantInt 3, ConstantInt 4]),
                         ConstantAbstract (AbsLitPartition [[]])])])
+
+isLitEmpty :: AbstractLiteral a -> Bool
+isLitEmpty (AbsLitMatrix _ [])  = True
+isLitEmpty (AbsLitPartition xs) = all null xs
+isLitEmpty (AbsLitRelation xs)  = all null xs
+isLitEmpty lit                  = null $ F.toList lit

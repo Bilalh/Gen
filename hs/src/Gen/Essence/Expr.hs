@@ -86,9 +86,9 @@ instance Generate Expr where
           return $ ETyped nty (ELit lit)
 
     isEmpty (AbsLitMatrix _ [])  = True
-    isEmpty (AbsLitPartition xs) = all (==[]) xs
-    isEmpty (AbsLitRelation xs)  = all (==[]) xs
-    isEmpty lit                  = F.toList lit == []
+    isEmpty (AbsLitPartition xs) = all null xs
+    isEmpty (AbsLitRelation xs)  = all null xs
+    isEmpty lit                  = null $ F.toList lit
 
 
 
