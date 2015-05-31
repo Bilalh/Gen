@@ -168,7 +168,6 @@ instance (HasGen m,  HasLogger m) =>  Reduce Constant m where
     mutate (ConstantAbstract xs)  = mutate1 xs
       where
         w =ECon . ConstantAbstract
-        mutate1 (AbsLitRelation xx)  = mutate_2d (w . AbsLitRelation) xx
         mutate1 (AbsLitPartition xx) = mutate_2d (w . AbsLitPartition) xx
         mutate1 (AbsLitFunction _)   = return [] -- lots of effort
         mutate1 _ = return []
@@ -192,7 +191,6 @@ instance (HasGen m,  HasLogger m) =>  Reduce (AbstractLiteral Expr) m where
       return sim
 
 
-    mutate (AbsLitRelation xs)  = mutate_2d (ELit . AbsLitRelation) xs
     mutate (AbsLitPartition xs) = mutate_2d (ELit . AbsLitPartition) xs
     mutate (AbsLitFunction xs)  = do
       reductions <- mapM reduceTuple ixs
@@ -231,7 +229,7 @@ instance (HasGen m,  HasLogger m) =>  Reduce (AbstractLiteral Expr) m where
         expand ys (ReducedFixed xx, i)  =
             [ [ if i == yi then x else y | (y,yi) <- ys ] | x <- xx ]
 
-        expand _ _ = $(neverNote "expend invaild argument")
+        expand _ _ = $(neverNote "expand invaild argument")
 
     mutate _ = return []
 
@@ -694,3 +692,7 @@ isLitEmpty (AbsLitMatrix _ [])  = True
 isLitEmpty (AbsLitPartition xs) = all null xs
 isLitEmpty (AbsLitRelation xs)  = all null xs
 isLitEmpty lit                  = null $ F.toList lit
+
+cdd = [[ECon (ConstantBool True), ECon (ConstantInt 4)],
+       [ECon (ConstantBool True), ECon (ConstantInt 2)],
+       [ECon (ConstantBool False), ECon (ConstantInt 2)]]
