@@ -56,44 +56,36 @@ instance (Generate a, WrapConstant a, EvalToInt a) => Generate (SetAttr a) where
   requires _ _        = [RAll [K_TypeInt]]
 
 instance (Generate a, WrapConstant a, EvalToInt a) => Generate (MSetAttr a) where
-  give GNone         = MSetAttr <$> give (GNone) <*> give (GNone)
+  give GNone = do
+    (a,b) <- elements3 [ (GNone,GNonEmpty), (GNonEmpty,GNone)  ]
+    MSetAttr <$> give a <*> give b
+
   give t             = giveUnmatched "Generate (SetAttr a)" t
   possiblePure _ _ _ = True
   requires _ _       = [RAll [K_TypeInt]]
 
+
 instance (Generate a, WrapConstant a, EvalToInt a) => Generate (SizeAttr a)  where
-  give GNone = do
-    sanity "Generate (SizeAttr a)"
-
-    let defs =
-            [ (K_SizeAttr_None, pure SizeAttr_None)
-            , (K_SizeAttr_Size,    SizeAttr_Size    <$> give (GType TypeInt))
-            , (K_SizeAttr_MinSize, SizeAttr_MinSize <$> give (GType TypeInt))
-            , (K_SizeAttr_MaxSize, SizeAttr_MaxSize <$> give (GType TypeInt))
-            , (K_SizeAttr_MinMaxSize, (uncurry SizeAttr_MinMaxSize )  <$> minMax)
-            ]
-
-    parts <- getWeights defs
-    frequency3 parts
-
-    where
-    minMax = do
-      (IntAsc a b) <- give GNone
-      return $ (a,b)
+  give GNone     = doSizeAttr True
+  give GNonEmpty = doSizeAttr False
 
   give t = giveUnmatched "Generate (SetAttr a)" t
 
   possiblePure _ _ _ = True
   requires _ _       = [RAll [K_TypeInt]]
 
-instance (Generate a, WrapConstant a, EvalToInt a) => Generate (OccurAttr a) where
-  give GNone = do
-    let defs =
-            [ (K_OccurAttr_None, pure OccurAttr_None)
-            , (K_OccurAttr_MinOccur, OccurAttr_MinOccur <$> give (GType TypeInt))
-            , (K_OccurAttr_MaxOccur, OccurAttr_MaxOccur <$> give (GType TypeInt))
-            , (K_OccurAttr_MinMaxOccur, (uncurry OccurAttr_MinMaxOccur ) <$> minMax)
-            ]
+doSizeAttr :: forall a . (Generate a, WrapConstant a, EvalToInt a)
+           => Bool -> GenSt (SizeAttr a)
+doSizeAttr allowNone = do
+    sanity "Generate (SizeAttr a)"
+
+    let defs = if allowNone then [(K_SizeAttr_None, pure SizeAttr_None)]
+               else [] ++
+               [ (K_SizeAttr_Size,    SizeAttr_Size    <$> give (GType TypeInt))
+               , (K_SizeAttr_MinSize, SizeAttr_MinSize <$> give (GType TypeInt))
+               , (K_SizeAttr_MaxSize, SizeAttr_MaxSize <$> give (GType TypeInt))
+               , (K_SizeAttr_MinMaxSize, (uncurry SizeAttr_MinMaxSize )  <$> minMax)
+               ]
 
     parts <- getWeights defs
     frequency3 parts
@@ -103,10 +95,37 @@ instance (Generate a, WrapConstant a, EvalToInt a) => Generate (OccurAttr a) whe
       (IntAsc a b) <- give GNone
       return $ (a,b)
 
+
+instance (Generate a, WrapConstant a, EvalToInt a) => Generate (OccurAttr a) where
+  give GNone     = doOccurAttr True
+  give GNonEmpty = doOccurAttr False
+
   give t = giveUnmatched "Generate (OccurAttr a)" t
 
   possiblePure _ _ _ = True
   requires _ _       = [RAll [K_TypeInt]]
+
+
+doOccurAttr :: forall a . (Generate a, WrapConstant a, EvalToInt a)
+           => Bool -> GenSt (OccurAttr a)
+doOccurAttr allowNone = do
+  let defs = if allowNone then [(K_OccurAttr_None, pure OccurAttr_None)]
+             else [] ++
+             [ (K_OccurAttr_MinOccur, OccurAttr_MinOccur <$> give (GType TypeInt))
+             , (K_OccurAttr_MaxOccur, OccurAttr_MaxOccur <$> give (GType TypeInt))
+             , (K_OccurAttr_MinMaxOccur, (uncurry OccurAttr_MinMaxOccur ) <$> minMax)
+             ]
+
+  parts <- getWeights defs
+  frequency3 parts
+
+  where
+  minMax = do
+    (IntAsc a b) <- give GNone
+    return $ (a,b)
+
+
+
 
 instance (Generate a, WrapConstant a, EvalToInt a) => Generate (FunctionAttr a) where
   give GNone         = FunctionAttr <$> give GNone <*> give GNone <*> give GNone
