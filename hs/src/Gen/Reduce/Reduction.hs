@@ -180,6 +180,9 @@ instance (HasGen m,  HasLogger m) =>  Reduce (AbstractLiteral Expr) m where
 
     subterms x = return . map ELit .  innersExpand reduceLength $ x
 
+    -- Don't try to reduce empty literals
+    reduce li | isLitEmpty li = return []
+
     reduce li = do
       rLits <- getReducedChildren (ELit) li
       let lss = map (replaceChildren li) (transposeFill rLits)
