@@ -3,14 +3,16 @@
 module Gen.Essence.EvalToInt where
 
 import Conjure.Language.Definition
-import Gen.Essence.Type        ()
-import Gen.Imports
 import Conjure.Language.Instantiate
 import Gen.AST.TH
+import Gen.Essence.St
+import Gen.Essence.Rnd
+import Gen.Essence.Type             ()
+import Gen.Imports
 
 class EvalToInt a where
-  evalToInt  :: MonadFail m => a -> m Integer
-  ensureGTE0 :: MonadFail m => a -> m a
+  evalToInt  :: a -> GenSt Integer
+  ensureGTE0 :: a -> GenSt a
 
 
 instance EvalToInt Expr where
@@ -20,7 +22,10 @@ instance EvalToInt Expr where
 
   ensureGTE0 x = do
     i <- evalToInt x
-    if  | i == (-99) -> return [essencee| 0 |]
+    if  | i == (-99) -> do
+          j <- choose3 (0,5)
+          return . ECon . ConstantInt $ max 0 j
+
         | i >= 0     -> return x
         | otherwise  -> do
           let c = ECon $ ConstantInt (0 - i)
@@ -41,7 +46,7 @@ instance EvalToInt Expression where
                         , "resultGroomed:"  <+> (pretty . groom) v
                         , "exprGroomed:"    <+> (pretty . groom) x
                         ]
-    -- FIXME errors in instantiateExpression happen to often
+    -- FIXME errors in instantiateExpression happen too often
     _  -> return (-99)
     -- Left msg -> docError ["instantiateExpression bug in EvalToInt Expression"
     --                      , "expr:" <+> pretty x
@@ -51,7 +56,10 @@ instance EvalToInt Expression where
 
   ensureGTE0 x = do
     i <- evalToInt x
-    if  | i == (-99) -> return 0
+    if  | i == (-99) -> do
+          j <- choose3 (0,5)
+          return . Constant . ConstantInt $ max 0 j
+
         | i >= 0     -> return x
         | otherwise  -> do
           let c = Constant $ ConstantInt (0 - i)
