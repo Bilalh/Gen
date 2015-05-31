@@ -27,7 +27,8 @@ instance DepthOf Expr where
     depthOf (ECon c)      = depthOf c
     depthOf (EOp e)       = depthOf e
     depthOf (EDom e)      = depthOf e
-    depthOf (ETyped _ e2) = depthOf e2
+    -- FIXME assuming typed expresion are only for empty stuff
+    depthOf (ETyped ty _) = depthOf ty
 
     depthOf (EVar _ )     = 0
     depthOf EEmptyGuard   = 0

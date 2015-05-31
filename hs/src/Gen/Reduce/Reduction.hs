@@ -692,7 +692,3 @@ isLitEmpty (AbsLitMatrix _ [])  = True
 isLitEmpty (AbsLitPartition xs) = all null xs
 isLitEmpty (AbsLitRelation xs)  = all null xs
 isLitEmpty lit                  = null $ F.toList lit
-
-cdd = [[ECon (ConstantBool True), ECon (ConstantInt 4)],
-       [ECon (ConstantBool True), ECon (ConstantInt 2)],
-       [ECon (ConstantBool False), ECon (ConstantInt 2)]]

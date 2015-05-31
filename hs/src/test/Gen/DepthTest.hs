@@ -90,6 +90,11 @@ tests = testGroup "depthOf"
    [
      te 3 [essencee| 10 = 7 \/ -2 = 0 |]
    , te 3 [essencee| true \/ 7 % 10 = 3 |]
+   , te 2 [essencee|  (relation() : `relation of (matrix indexed by [int] of bool)`)  |]
+   , te 2 [essencee| relation( tuple([true, true; int(1..2)] )) |]
+   , te 2 [essencee|  ({} : `set of (matrix indexed by [int] of bool)`)  |]
+   , te 2 [essencee| { [true, true; int(1..2)] } |]
+   , te 2 [essencee| |mset(1)| |]
    ]
 
   ]
