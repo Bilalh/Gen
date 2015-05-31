@@ -91,4 +91,4 @@ _genLogged()
 }
 
 complete -o bashdefault -F _gen gen
-complete -o bashdefault -F _genLogged genLogged.sh
+# complete -o bashdefault -F _genLogged genLogged.sh
