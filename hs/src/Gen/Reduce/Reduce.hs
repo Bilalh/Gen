@@ -22,7 +22,6 @@ reduceMain check rr = do
   -- Remove quantification
   sp <-  quanToComp sp_
   -- groomPrint sp
-  let check = False
   errOccurs <- case check of
                  False -> return (Just $never, rr)
                  True -> (flip runStateT) rr (return sp
@@ -62,10 +61,10 @@ reduceMain check rr = do
 doReductions :: Spec -> RR (Timed Spec)
 doReductions start =
     return (Continue start)
-    -- >>= con "tryRemoveConstraints" tryRemoveConstraints
-    -- >>= con "removeUnusedDomains"  removeUnusedDomains
-    -- >>= con "simplyDomains"        simplyDomains
-    -- >>= con "removeConstraints"    removeConstraints
+    >>= con "tryRemoveConstraints" tryRemoveConstraints
+    >>= con "removeUnusedDomains"  removeUnusedDomains
+    >>= con "simplyDomains"        simplyDomains
+    >>= con "removeConstraints"    removeConstraints
     >>= con "simplyConstraints"    simplyConstraints
 
 
