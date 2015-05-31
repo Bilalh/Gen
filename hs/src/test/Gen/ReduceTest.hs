@@ -18,7 +18,7 @@ _use_qc xs = xs
 
 
 tests :: TestTree
-tests = testGroup "reduce"
+tests = testGroup "ReductionTests"
 
   [ testGroup "Expr Gen"
     [
@@ -35,6 +35,20 @@ tests = testGroup "reduce"
        [
          [essencee| true /\ false |]
        , [essencee| true /\ false /\ true|]
+       ]
+    ]
+
+  , testGroup "No reductions should happen"
+    [
+     testGroup "Literals" $ map r_no_reductions e_no_reductions
+    ]
+
+  , testGroup "Reductions should not contain self"
+    [
+     testGroup "Expr" $ map r_reduce_should_not_contain_self
+       [
+         [essencee| mset(true, true) supsetEq mset(false, true) |]
+       , [essencee| (-5, false, false) |]
        ]
     ]
 
@@ -73,6 +87,25 @@ gen_exprs =
     , [essencee| preImage(function(true --> true), false) |]
     , [essencee| toInt(toInt(true) in mset(-5, 4)) = 9 |]
     ]
+
+
+e_no_reductions :: [Expr]
+e_no_reductions =
+    [ [essencee| true |]
+    , [essencee| (relation() : `relation of (bool)`) |]
+    , [essencee| {} |]
+    ]
+
+r_no_reductions :: Expr -> TestTree
+r_no_reductions a = testCase (pretty a) $
+  let res = __runner reduce a
+  in assertBool ("Found reductions expected None\n" ++ show (prettyArr res) )  (null res)
+
+
+r_reduce_should_not_contain_self :: Expr -> TestTree
+r_reduce_should_not_contain_self a = testCase (pretty a) $
+  let res = __runner reduce a
+  in assertBool ("Reductions contained self\n" ++ show (prettyArr res) )  (all (/=a) res)
 
 
 
@@ -143,7 +176,10 @@ qc_tests :: String  -> TestTree
 qc_tests title  =
   testGroup title $
    catMaybes $ [
-     Just $ testProperty "depth_leq" $
+     no $ testProperty "reduce_should_not_contain_self" $
+       \(Limited (a :: Expr)) -> ( all (\b -> hash b  /= hash a )  $ __runner reduce a )
+
+   , Just $ testProperty "depth_leq" $
        \(Limited (a :: Expr)) -> ( all (\b -> depthOf b <= depthOf a )  $ __runner reduce a )
    , Just $ testProperty "reduce_simp_leq" $
        \(Limited (a :: Expr)) ->  ( all (\b -> simpler_leq b a )  $ __runner reduce a )

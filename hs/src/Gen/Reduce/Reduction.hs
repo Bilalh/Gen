@@ -24,7 +24,7 @@ import qualified Data.Foldable                 as F
 import qualified Data.Generics.Uniplate.Zipper as Zipper
 import qualified Data.Traversable              as T
 
-class (HasGen m,  HasLogger m) => Reduce a m where
+class (HasGen m,  HasLogger m,  Simpler a a) => Reduce a m where
     reduce   :: a -> m [a]    -- list of smaller exprs
     single   :: a -> m [Expr] -- smallest literal e.g  [true, false] for  a /\ b
 
@@ -39,10 +39,16 @@ class (HasGen m,  HasLogger m) => Reduce a m where
 
     mutate  _ = return []
 
-    reduceSimpler :: Simpler a a =>  a -> m [a]
+    reduceSimpler :: a -> m [a]
     reduceSimpler a = do
         rr <- reduce a
         return $ filter (\x -> runIdentity $ simpler1 x a) rr
+
+    reduceChecks :: a -> [a] -> m [a]
+    reduceChecks a rs = do
+      return $ filter (\x -> runIdentity $ simpler1 x a) rs
+
+
 
 instance (HasGen m,  HasLogger m) =>  Reduce Type m where
     reduce _   = return []
@@ -55,41 +61,47 @@ instance (HasGen m,  HasLogger m) =>  Reduce Expr m where
     reduce EMetaVar{}        = return []
     reduce (EVar (Var _ ty)) = singleLitExpr ty
 
+    reduce (ETyped _ (ECon (ConstantBool _))) = return []
+    reduce (ETyped _ (ECon (ConstantInt _)))  = return []
+    reduce (ETyped _ (ECon (ConstantAbstract x))) | isLitEmpty x = return []
+    reduce (ETyped _ (ELit x)) | isLitEmpty x= return []
     reduce (ETyped ty _) = do
       singleLitExpr ty
 
 
-    reduce (EDom e) = do
+    reduce x@(EDom e) = do
       a1 <- single e
       a2 <- reduce e
       a3 <- subterms e
-      return $ a1 ++ a3 ++ (map EDom a2)
+      reduceChecks x $ a1 ++ a3 ++ (map EDom a2)
 
-    reduce (ECon e) = do
+    reduce (ECon ConstantBool{}) = return []
+    reduce (ECon ConstantInt{})  = return []
+    reduce x@(ECon e) = do
       a1 <- single e
       a2 <- reduce e
       a3 <- subterms e
-      return $ a1 ++ a3 ++ (map ECon a2)
+      reduceChecks x $ a1 ++ a3 ++ (map ECon a2)
 
-    reduce (ELit e) = do
+    reduce (ELit e) | isLitEmpty e = return []
+    reduce x@(ELit e) = do
       a1 <- single e
       a3 <- subterms e
       a2 <- reduce e
       a4 <- mutate e
-      return $ a1 ++ a3 ++ (map ELit a2) ++ a4
+      reduceChecks x $ a1 ++ a3 ++ (map ELit a2) ++ a4
 
-    reduce (EOp e) = do
+    reduce x@(EOp e) = do
       a1 <- single e
       a2 <- reduce e
       a3 <- subterms e
-      return $ a1 ++ a3 ++ (map EOp a2)
+      reduceChecks x $ a1 ++ a3 ++ (map EOp a2)
 
 
     reduce e@EQuan{} = do
         a1 <- single e
-        -- a2 <- reduce _f
         a3 <- subterms e
-        return $ a1 ++ a3
+        reduceChecks e $ a1 ++ a3
 
     reduce e@(EComp inner gens cons) = do
       sin     <- single e
@@ -102,7 +114,7 @@ instance (HasGen m,  HasLogger m) =>  Reduce Expr m where
       addLog "subs" (map pretty subs)
       -- addLog "r_cons" (map pretty r_cons)
       addLog "r_inner" (map pretty r_inner)
-      return $ sin ++ subs ++ res
+      reduceChecks e  $ sin ++ subs ++ res
 
 
 
@@ -162,8 +174,9 @@ instance (HasGen m,  HasLogger m) =>  Reduce Constant m where
       return . map (ECon . ConstantAbstract) . innersExpand reduceLength $ x
     subterms _ = return []
 
+    -- FIXME finish
     reduce (ConstantAbstract _) =  return []
-    reduce _   = return []
+    reduce _                    =  return []
 
     mutate (ConstantAbstract xs)  = mutate1 xs
       where
@@ -186,9 +199,8 @@ instance (HasGen m,  HasLogger m) =>  Reduce (AbstractLiteral Expr) m where
       rLits <- getReducedChildren (ELit) li
       let lss = map (replaceChildren li) (transposeFill rLits)
       let res = concatMap (innersExpand reduceLength1) lss
-      let sim =  [ r | r <- res, runIdentity $ simpler1 r li ]
 
-      return sim
+      reduceChecks li $ res
 
 
     mutate (AbsLitPartition xs) = mutate_2d (ELit . AbsLitPartition) xs
@@ -306,7 +318,7 @@ instance (HasGen m,  HasLogger m) => Reduce (Domain () Expr) m where
     si   <- single li
     subs <- subterms li
     mu   <- mutate li
-    return $ filter (\r -> runIdentity $ simpler1 r li) $ mconcat  $
+    reduceChecks li $ mconcat  $
                [ [ x | (EDom x) <- si]
                , res
                , [ x | (EDom x) <- subs]
@@ -314,7 +326,7 @@ instance (HasGen m,  HasLogger m) => Reduce (Domain () Expr) m where
                ]
 
   single DomainInt{} = do
-      i <- chooseR (-5, 5)
+      i <- chooseR (0, 5)
       return $ [EDom $ DomainInt [RangeSingle (ECon $ ConstantInt i)]]
 
   single   x = return [EDom x]
@@ -344,14 +356,14 @@ instance (HasGen m,  HasLogger m) =>  Reduce (Op Expr) m where
       subterms_op e subs
 
 
-    reduce [opp| &a + &b |]  = reduce_op2 ( m2t $ \(c,d) ->  [opp| &c + &d |])  [a,b]
-    reduce [opp| &a * &b |]  = reduce_op2 (m2t  $ \(c,d) ->  [opp| &c * &d |])  [a,b]
-    reduce [opp| &a /\ &b |] = reduce_op2 (m2t  $ \(c,d) ->  [opp| &c /\ &d |]) [a,b]
-    reduce [opp| &a \/ &b |] = reduce_op2 (m2t  $ \(c,d) ->  [opp| &c \/ &d |]) [a,b]
+    reduce e@[opp| &a + &b |]  = reduce_op2 ( m2t $ \(c,d) ->  [opp| &c + &d |])  [a,b] >>= reduceChecks e
+    reduce e@[opp| &a * &b |]  = reduce_op2 (m2t  $ \(c,d) ->  [opp| &c * &d |])  [a,b] >>= reduceChecks e
+    reduce e@[opp| &a /\ &b |] = reduce_op2 (m2t  $ \(c,d) ->  [opp| &c /\ &d |]) [a,b] >>= reduceChecks e
+    reduce e@[opp| &a \/ &b |] = reduce_op2 (m2t  $ \(c,d) ->  [opp| &c \/ &d |]) [a,b] >>= reduceChecks e
 
     reduce e = do
       let subs = F.toList e
-      reduce_op e subs
+      reduce_op e subs >>= reduceChecks e
 
 
 subterms_op :: forall (m :: * -> *) a t.
@@ -425,7 +437,7 @@ heads_tails (_:es) = [e | (e,i) <- zip es [0..], (i >= length es - 2) || (i < 2)
 -- | return the simplest literals, two at most
 singleLit :: (HasGen m, HasLogger m) =>Type -> m [Expr]
 singleLit TypeInt = do
-  pure ConstantInt<*> chooseR (-5, 5) >>= return . (\a ->  [ECon a ] )
+  pure ConstantInt<*> chooseR (0, 5) >>= return . (\a ->  [ECon a ] )
 
 singleLit TypeBool = oneofR [ConstantBool True, ConstantBool False]
               >>= return . (\a ->  [ECon a ] )
@@ -651,41 +663,6 @@ _replaceOpChildren_ex = replaceOpChildren
 
 -- instance Pretty [Literal] where
 --     pretty = prettyBrackets  . pretty . vcat . map pretty
-
-dd =  ConstantAbstract (AbsLitSet
-                 [ConstantAbstract
-                    (AbsLitTuple
-                       [ConstantAbstract
-                          (AbsLitPartition
-                             [[ConstantBool False, ConstantBool True],
-                              [ConstantBool False, ConstantBool True], [],
-                              [ConstantBool True, ConstantBool False, ConstantBool False,
-                               ConstantBool False],
-                              [ConstantBool False, ConstantBool True, ConstantBool False]]),
-                        ConstantBool False, ConstantAbstract (AbsLitSet []),
-                        ConstantAbstract (AbsLitPartition [])]),
-                  ConstantAbstract
-                    (AbsLitTuple
-                       [ConstantAbstract
-                          (AbsLitPartition
-                             [[ConstantBool True, ConstantBool True, ConstantBool False,
-                               ConstantBool True],
-                              [ConstantBool False, ConstantBool True, ConstantBool False,
-                               ConstantBool False, ConstantBool False]]),
-                        ConstantBool False,
-                        ConstantAbstract
-                          (AbsLitSet [ConstantInt 2, ConstantInt 2, ConstantInt 2]),
-                        ConstantAbstract
-                          (AbsLitPartition
-                             [[ConstantInt 5],
-                              [ConstantInt 4, ConstantInt 1, ConstantInt 0, ConstantInt 1,
-                               ConstantInt 1]])]),
-                  ConstantAbstract
-                    (AbsLitTuple
-                       [ConstantAbstract (AbsLitPartition []), ConstantBool False,
-                        ConstantAbstract
-                          (AbsLitSet [ConstantInt 1, ConstantInt 3, ConstantInt 4]),
-                        ConstantAbstract (AbsLitPartition [[]])])])
 
 isLitEmpty :: AbstractLiteral a -> Bool
 isLitEmpty (AbsLitMatrix _ [])  = True
