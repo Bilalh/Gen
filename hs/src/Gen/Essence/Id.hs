@@ -70,6 +70,9 @@ instance GetKey Expr where
 
   keyTree d@(EComp x1 x2 x3)       = Tree (getKey d) (keyTree x1 :map keyTree x2 ++  map keyTree x3)
 
+  keyTree d@EEmptyGuard            = Tree (getKey d) []
+  keyTree d = docError ["unhandled " <+> pretty d <+> "in buildTree" ]
+
 
 instance GetKey EGen  where
   getKey _     = K_EGen
