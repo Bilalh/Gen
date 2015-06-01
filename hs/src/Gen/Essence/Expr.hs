@@ -21,7 +21,10 @@ import qualified Data.Map      as M
 import qualified Text.PrettyPrint as Pr
 
 
+-- | Should specify The type at the top level
+-- | i.e.  give (GType TypeBool) or
 instance Generate Expr where
+  give GNone = giveUnmatched "Generate Expr" GNone
   give g  = do
     logDepthCon $line g
     sanity "Generate Expr"
