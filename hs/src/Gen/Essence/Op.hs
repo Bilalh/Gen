@@ -12,9 +12,15 @@ import Gen.Imports
 instance (Generate a, ExpressionLike a, EvalToInt a, WrapConstant a) =>
     Generate (Op a) where
   give a = do
-    (key,op) <- withDepthDec $ elemFreq3 =<< pickOp a (allOps a)
+    (key,op) <- withDepthDec $ do
+                 gets depth >>= \d -> logInfo2 $line [nn "depth" d, "Picking Op"]
+                 elemFreq3 =<< pickOp a (allOps a)
     logInfo2 $line [nn "Picked" key]
-    op
+    res <- withDepthDec $ do
+             sanity "Generate Op"
+             gets depth >>= \d -> logInfo2 $line [nn "depth" d, nn "key" key]
+             op
+    return res
 
   possible _ con = do
     d <- gets depth
