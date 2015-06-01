@@ -73,8 +73,8 @@ instance Simpler Expr Expr where
            o  -> return o
 
 
-    simplerImp EComp{} _ = return GT
-    simplerImp _ EComp{} = return LT
+    simplerImp a@EComp{} b = return $ compare (depthOf a) (depthOf b)
+    simplerImp a b@EComp{} = return $ compare (depthOf a) (depthOf b)
     simplerImp a b = simplerImpError "Expr" a b
 
 

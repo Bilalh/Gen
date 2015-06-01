@@ -188,10 +188,10 @@ qc_tests title _ =
    , Just $ testProperty "simpler is consistent with depthof" $
        \(Limited _ _ (a :: p)) (Limited _ _(b :: p)) -> do
          if runIdentity $ simpler1 a b then
-             counterexample (printf "depthOf a(%d) <= depthOf b(%d)" (depthOf a) (depthOf b))
+             counterexample (printf "simpler1 a b => depthOf a(%d) <= depthOf b(%d)" (depthOf a) (depthOf b))
                 $ depthOf a <= depthOf b
          else
-             counterexample (printf "depthOf a(%d) >= depthOf b(%d)" (depthOf a) (depthOf b))
+             counterexample (printf "! simpler1 a b => depthOf a(%d) >= depthOf b(%d)" (depthOf a) (depthOf b))
                 $ depthOf a >= depthOf b
    ]
 
