@@ -20,7 +20,7 @@ main = do
           ]
 
     defaultMainWithIngredients (antXMLRunner : defaultIngredients)
-        $ testGroup "gen" $
+        $ testGroup "TopLevel" $
             [ Gen.DepthTest.tests
             , Gen.SimplerTest.tests
             , Gen.ReduceTest.tests
