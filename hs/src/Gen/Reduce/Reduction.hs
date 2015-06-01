@@ -377,6 +377,7 @@ subterms_op :: forall (m :: * -> *) a t.
 subterms_op e subs =  do
   resType <- ttypeOf e
   tys <- mapM ttypeOf subs
+  -- These should be the same, but only the last two give the different (wrong) answer
   let allowed  = map fst . filter (\(_,ty) -> typesUnify [resType,ty] ) $ zip subs tys
   -- let allowed  = [ x | (x,ty)<-zip subs tys, typesUnify [resType, ty] ]
   -- let allowed  = map fst [ (x,ty) | x<-subs | ty <- tys, typesUnify [resType, ty]  ]

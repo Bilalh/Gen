@@ -1,4 +1,3 @@
-{-# LANGUAGE ParallelListComp #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Gen.Essence.Expr where
 

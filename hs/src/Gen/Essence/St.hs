@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveGeneric, GeneralizedNewtypeDeriving, ParallelListComp #-}
+{-# LANGUAGE CPP, DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveGeneric, GeneralizedNewtypeDeriving #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Gen.Essence.St
   ( module X
@@ -220,8 +220,7 @@ withWeights vs f = do
 getWeights :: MonadState St m => [(Key,a)] -> m [(Int, a)]
 getWeights vs= do
   weights <- mapM (\(x,_) -> weightingForKey x  ) vs
-  return [ (w,p) | (_,p) <- vs
-                 | w <- weights  ]
+  return [ (w,p) | ((_,p),w) <- zip vs weights ]
 
 -- | getWeights but takes function. If the function return False the
 -- | weighting for that item is set to 0 regresses of current weighting
