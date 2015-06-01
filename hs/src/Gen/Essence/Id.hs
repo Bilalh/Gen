@@ -68,8 +68,19 @@ instance GetKey Expr where
   keyTree d@(ETyped x1 x2)         = Tree (getKey d) [keyTree x1, keyTree x2]
   keyTree d@(EDom x)               = Tree (getKey d) [keyTree x]
 
-  -- keyTree d@(EComp x1 x2 x3)       = Tree (getKey d) []
-  keyTree d = docError ["unhandled " <+> pretty d <+> "in buildTree" ]
+  keyTree d@(EComp x1 x2 x3)       = Tree (getKey d) (keyTree x1 :map keyTree x2 ++  map keyTree x3)
+
+
+instance GetKey EGen  where
+  getKey _     = K_EGen
+  keyTree e@(GenDom p dom) = Tree (getKey e) [keyTree p, keyTree dom]
+  keyTree e@(GenIn p dom)  = Tree (getKey e) [keyTree p, keyTree dom]
+
+instance GetKey AbstractPattern  where
+  getKey x           = fromString . show . toConstr $ x
+  keyTree e@Single{} = Tree (getKey e) []
+  keyTree e          = Tree (getKey e) (map keyTree (childrenBi e :: [AbstractPattern]) )
+
 
 -- TODO Check if correct
 instance (GetKey a, ExpressionLike a) => GetKey (Op a) where

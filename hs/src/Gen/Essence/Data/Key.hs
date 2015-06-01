@@ -16,7 +16,11 @@ data Key = K_Unused
          | K_AbsLitSet
          | K_AbsLitTuple
          | K_AbsLitVariant
+         | K_AbsPatMatrix
+         | K_AbsPatSet
+         | K_AbsPatTuple
          | K_AbstractLiteral
+         | K_AbstractPatternMetaVar
          | K_BinRelAttrStop
          | K_BinRelAttr_ASymmetric
          | K_BinRelAttr_AntiSymmetric
@@ -65,6 +69,7 @@ data Key = K_Unused
          | K_ECon
          | K_EDom
          | K_EEmptyGuard
+         | K_EGen
          | K_ELit
          | K_EMetaVar
          | K_EOp
@@ -182,6 +187,7 @@ data Key = K_Unused
          | K_SObj
          | K_SequenceAttr
          | K_SetAttr
+         | K_Single
          | K_SizeAttr_MaxSize
          | K_SizeAttr_MinMaxSize
          | K_SizeAttr_MinSize
@@ -233,7 +239,11 @@ instance IsString Key where
   fromString "AbsLitSet"               = K_AbsLitSet
   fromString "AbsLitTuple"             = K_AbsLitTuple
   fromString "AbsLitVariant"           = K_AbsLitVariant
+  fromString "AbsPatMatrix"            = K_AbsPatMatrix
+  fromString "AbsPatSet"               = K_AbsPatSet
+  fromString "AbsPatTuple"             = K_AbsPatTuple
   fromString "AbstractLiteral"         = K_AbstractLiteral
+  fromString "AbstractPatternMetaVar"  = K_AbstractPatternMetaVar
   fromString "BinRelAttrStop"          = K_BinRelAttrStop
   fromString "BinRelAttr_ASymmetric"   = K_BinRelAttr_ASymmetric
   fromString "BinRelAttr_AntiSymmetric" = K_BinRelAttr_AntiSymmetric
@@ -282,6 +292,7 @@ instance IsString Key where
   fromString "ECon"                    = K_ECon
   fromString "EDom"                    = K_EDom
   fromString "EEmptyGuard"             = K_EEmptyGuard
+  fromString "EGen"                    = K_EGen
   fromString "ELit"                    = K_ELit
   fromString "EMetaVar"                = K_EMetaVar
   fromString "EOp"                     = K_EOp
@@ -399,6 +410,7 @@ instance IsString Key where
   fromString "SObj"                    = K_SObj
   fromString "SequenceAttr"            = K_SequenceAttr
   fromString "SetAttr"                 = K_SetAttr
+  fromString "Single"                  = K_Single
   fromString "SizeAttr_MaxSize"        = K_SizeAttr_MaxSize
   fromString "SizeAttr_MinMaxSize"     = K_SizeAttr_MinMaxSize
   fromString "SizeAttr_MinSize"        = K_SizeAttr_MinSize
