@@ -1,4 +1,4 @@
-{-# LANGUAGE KindSignatures, MultiParamTypeClasses, ParallelListComp, PatternGuards,
+{-# LANGUAGE KindSignatures, MultiParamTypeClasses, PatternGuards,
              QuasiQuotes, RankNTypes, TupleSections #-}
 module Gen.Reduce.Reduction where
 
@@ -196,11 +196,15 @@ instance (HasGen m,  HasLogger m) =>  Reduce (AbstractLiteral Expr) m where
     -- Don't try to reduce empty literals
     reduce li | isLitEmpty li = return []
 
+    reduce li@AbsLitTuple{} = do
+      rLits <- getReducedChildren (ELit) li
+      let lss = map (replaceChildren li) (transposeFill rLits)
+      reduceChecks li $ lss
+
     reduce li = do
       rLits <- getReducedChildren (ELit) li
       let lss = map (replaceChildren li) (transposeFill rLits)
       let res = concatMap (innersExpand reduceLength1) lss
-
       reduceChecks li $ res
 
 
@@ -208,8 +212,8 @@ instance (HasGen m,  HasLogger m) =>  Reduce (AbstractLiteral Expr) m where
     mutate (AbsLitFunction xs)  = do
       reductions <- mapM reduceTuple ixs
       let fixedOthers = [ if xi == ei then e else Fixed x
-                        | (x,xi)  <- ixs
-                        | (e, ei) <- reductions ]
+                        | ( (x,xi), (e, ei))  <- zip ixs reductions
+                        ]
       let fixed = map fixReduced fixedOthers
       let fixed_i = zip fixed [0..]
       let expanded =  map (expand ixs)  fixed_i
@@ -373,8 +377,10 @@ subterms_op :: forall (m :: * -> *) a t.
 subterms_op e subs =  do
   resType <- ttypeOf e
   tys <- mapM ttypeOf subs
-  -- FIXME typesUnify or typesEqual?
-  let allowed  = [ x | x<-subs | ty <- tys, typesUnify [resType, ty]  ]
+  let allowed  = map fst . filter (\(_,ty) -> typesUnify [resType,ty] ) $ zip subs tys
+  -- let allowed  = [ x | (x,ty)<-zip subs tys, typesUnify [resType, ty] ]
+  -- let allowed  = map fst [ (x,ty) | x<-subs | ty <- tys, typesUnify [resType, ty]  ]
+  -- let allowed  = [ x | x<-subs | ty <- tys, typesUnify [resType, ty]  ]
   return allowed
 
 
