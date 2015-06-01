@@ -27,6 +27,7 @@ instance (Generate a, WrapConstant a) => Generate (AbstractLiteral a) where
 
 instance (Generate a, WrapConstant a) => Generate (AbstractLiteral a, Type) where
   give GNone = do
+    sanityn 1 "Generate AbstractLiteral "
     ty <- give $ GOnlyTopLevel Types.literals
     give (GType ty)
 

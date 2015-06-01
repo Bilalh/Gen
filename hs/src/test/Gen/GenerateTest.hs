@@ -38,7 +38,7 @@ instance (Pretty a, Show a) => Show (Limited a)   where
 
 instance (Generate a, Simpler a a, NeedsType a ) => Arbitrary (Limited a) where
   arbitrary = sized $ \s -> do
-    i <- choose (1,  (max 0 (min s 3)) )
+    i <- choose (1,  (max 1 (min s 3)) )
     con <- giveConstraint (Proxy :: Proxy a) i
     Limited <$> runGenerateNullLogs con def{depth=i}
 

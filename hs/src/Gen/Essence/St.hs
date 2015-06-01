@@ -38,6 +38,7 @@ module Gen.Essence.St
   , runGenerateNullLogs
   , logHigher2
   , runGenerate
+  , sanityn
   ) where
 
 import Conjure.Language.Constant
@@ -187,6 +188,17 @@ sanity msg =  do
            , pretty msg
            , pretty st
            ]
+
+sanityn :: (MonadState St m) => Int -> String -> m ()
+sanityn n msg =  do
+  d <- gets depth
+  st <- get
+  when (d <n ) $ docError
+           ["Generate Depth <" <+> pretty n
+           , pretty msg
+           , pretty st
+           ]
+
 
 -- | withDepthDec . give for Convenience
 dgive :: forall a . Generate a  => GenerateConstraint -> GenSt a
