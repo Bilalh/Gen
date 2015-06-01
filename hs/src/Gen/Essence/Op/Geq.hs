@@ -14,7 +14,7 @@ instance Generate a => Generate (OpGeq a) where
 
   give (GType TypeBool) = do
     ty <- GType <$> giveOnly GNone Types.ordered
-    pure OpGeq <*>  (give ty) <*> give ty
+    pure OpGeq <*>  give ty <*> give ty
 
   give t = giveUnmatched "Generate OpGeq" t
 

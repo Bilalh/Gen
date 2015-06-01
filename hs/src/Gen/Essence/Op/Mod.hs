@@ -9,8 +9,7 @@ import Gen.Imports
 
 
 instance (Generate a, ExpressionLike a) => Generate (OpMod a) where
-  give GNone = give (GType TypeInt)
-
+  give GNone              = give (GType TypeInt)
   give ty@(GType TypeInt) = OpMod <$> give ty <*> give ty
   give t                  = giveUnmatched "Generate OpMod" t
 

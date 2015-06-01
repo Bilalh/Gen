@@ -18,7 +18,7 @@ instance (Generate a, ExpressionLike a) => Generate (OpTwoBars a) where
 
   give t = giveUnmatched "Generate OpTwoBars" t
 
-  possiblePure _ (Just TypeInt) _ = True
+  possiblePure _ (Just TypeInt) d = d >= 1
   possiblePure _ Just{} _         = False
   possiblePure _ _ d              = d >= 1
 

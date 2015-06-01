@@ -11,21 +11,21 @@ import Gen.Imports
 
 
 instance (Generate a, ExpressionLike a) => Generate (OpMinus a) where
-  give ty@GType{} = pure OpMinus <*> give ty <*> give ty
-  give t          = giveUnmatched "Generate OpMinus" t
+  give ty@(GType inn) | allow inn = pure OpMinus <*> give ty <*> give ty
+  give t                          = giveUnmatched "Generate OpMinus" t
 
   possiblePure _ (Just ty) d = allow ty && fromIntegral d >= depthOf ty
-    where
-      allow TypeInt{}       = True
-      allow TypeSet{}       = True
-      allow TypeMSet{}      = True
-      allow TypeFunction{}  = True
-      allow TypeRelation{}  = True
-      allow TypePartition{} = True
-      allow _               = False
-
-
   possiblePure _ Nothing _   = False
 
   requires _ (Just ty) = [RAll $ keyList ty]
   requires _ _         = []
+
+
+allow :: Type -> Bool
+allow TypeInt{}       = True
+allow TypeSet{}       = True
+allow TypeMSet{}      = True
+allow TypeFunction{}  = True
+allow TypeRelation{}  = True
+allow TypePartition{} = True
+allow _               = False
