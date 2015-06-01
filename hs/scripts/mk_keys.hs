@@ -2,7 +2,7 @@
 
 import Conjure.Language.AbstractLiteral (AbstractLiteral (AbsLitSet))
 import Conjure.Language.Constant        (Constant (ConstantBool))
-import Conjure.Language.Definition      (Expression (Constant), Objective(Maximising))
+import Conjure.Language.Definition      (Expression (Constant), Objective(Maximising),AbstractPattern(Single))
 import Conjure.Language.Domain
 import Conjure.Language.Type            (Type (TypeAny))
 import Conjure.Prelude                  (padRight,def)
@@ -97,6 +97,7 @@ dataNames = [ strs TypeAny
             , strs (def          :: RelationAttr Constant)
             , strs (def          :: BinaryRelationAttrs)
             , strs (def          :: PartitionAttr Constant)
+            , strs (Single ""    :: AbstractPattern)
             , strs (Maximising   :: Objective)
             , [ drop 2 s | s <- strs (error "OP" :: Op Constant ) ]
             , [ "Int_" ++ show i  | i :: Integer <- [0..10]  ]
