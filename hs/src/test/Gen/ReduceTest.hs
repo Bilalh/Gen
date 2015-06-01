@@ -11,11 +11,10 @@ import Gen.Helpers.SizeOf
 import Gen.Helpers.TypeOf
 import Gen.Essence.St
 import Gen.Essence.Expr()
-
-_use_qc :: [Maybe a] -> [Maybe a]
--- use_qc = return []
-_use_qc xs = xs
-
+import Gen.Essence.Type()
+import Conjure.Language.TH
+import Gen.Essence.Id
+import Conjure.Language.Expression.Op
 
 tests :: TestTree
 tests = testGroup "ReductionTests"
@@ -64,13 +63,6 @@ tests = testGroup "ReductionTests"
   , qc_tests "QC"
   ]
 
-__runner :: forall a t. (t -> StateT EState Identity a) -> t -> a
-__runner f ee = do
-  let spe   :: Spec   = $never
-      seed            = 32
-      state :: EState = newEStateWithSeed seed spe
-      res             = runIdentity $ flip evalStateT state $ f ee
-  res
 
 gen_exprs :: [Expr]
 gen_exprs =
@@ -154,45 +146,97 @@ simpler_leq a b = let res = (runIdentity $ simpler a b)
 -- Add tests for mutate for functions
 
 
-data Limited a =  Limited a
+data Limited a = Limited Type Doc a
     deriving (Eq)
 
 
-instance (Pretty a, Show a) => Pretty (Limited a) where pretty = pretty . show
-instance (Pretty a, Show a) => Show (Limited a)   where
- show (Limited a) = renderSized 100 $ hang "Limited" 4 $ vcat
+instance (Pretty a, Show a, DepthOf a, GetKey a) => Pretty (Limited a) where pretty = pretty . show
+instance (Pretty a, Show a, DepthOf a, GetKey a) => Show (Limited a)   where
+ show (Limited ty logs a) = renderSized 100 $ hang "Limited" 4 $ vcat
           -- [ nn "Groomed :" (groom a)
-          [ nn "Pretty  :"  (a)
+          [ nn "GenTy   :"  (ty)
+          , nn "GenDepth:"  (depthOf ty)
+          , nn "Pretty  :"  (a)
+          , nn "Depth   :"  (depthOf a)
+          , nn "Keys    :"  (groom $ sort $  nub2 $ keyList a)
+          , hang "logs" 4 logs
           ]
 
-instance (Generate a, Reduce a (StateT EState Identity), Simpler a a)
+instance (Generate a, Reduce a (StateT EState Identity), Simpler a a, DepthOf a, GetKey a)
     => Arbitrary (Limited a) where
   arbitrary = sized $ \s -> do
+    let allowed =  LogFollow
+
     i <- choose (1,  (max 0 (min s 3)) )
-    Limited <$> runGenerateNullLogs GNone def{depth=i}
+    ty :: Type <- runGenerateNullLogs GNone def{depth=i}
+    (aa,logs) <- runGenerateWithLogs (GType ty) def{depth=i}
+
+    Limited <$> pure ty
+            <*> pure (vcat [ msg | (lvl, msg) <- logs , lvl <= allowed ])
+            <*> pure aa
 
 
 qc_tests :: String  -> TestTree
 qc_tests title  =
   testGroup title $
-   catMaybes $ [
-     no $ testProperty "reduce_should_not_contain_self" $
-       \(Limited (a :: Expr)) -> ( all (\b -> hash b  /= hash a )  $ __runner reduce a )
+   catMaybes $ use_qc  $ [
+     no $  testProperty "reduce_should_not_contain_self" $
+       \(Limited _ _ (a :: Expr)) -> ( all (\b -> hash b  /= hash a )  $  limitedRun reduce a )
 
    , Just $ testProperty "depth_leq" $
-       \(Limited (a :: Expr)) -> ( all (\b -> depthOf b <= depthOf a )  $ __runner reduce a )
+       \(Limited _ _ (a :: Expr)) -> ( all (\b -> depthOf b <= depthOf a )  $ limitedRun reduce a )
    , Just $ testProperty "reduce_simp_leq" $
-       \(Limited (a :: Expr)) ->  ( all (\b -> simpler_leq b a )  $ __runner reduce a )
+       \(Limited _ _ (a :: Expr)) ->  ( all (\b -> simpler_leq b a )  $ limitedRun reduce a )
    , Just $ testProperty "subterms_simp_leq" $
-       \(Limited (a :: Expr)) ->  ( all (\b -> simpler_leq b a )  $ __runner R.subterms a )
+       \(Limited _ _ (a :: Expr)) ->  ( all (\b -> simpler_leq b a )  $ limitedRun R.subterms a )
    , Just $ testProperty "type_leq" $
-       \(Limited (a :: Expr)) ->
+       \(Limited _ _ (a :: Expr)) ->
            ( all (\b -> simpler_leq (runIdentity . ttypeOf $ b) (runIdentity . ttypeOf $ a) )
-                     $ __runner reduce a )
+                     $ limitedRun reduce a )
    , Just $ testProperty "single_depth" $
-       \(Limited (a :: Expr)) ->
-           let reduced = __runner single a
+       \(Limited _ _ (a :: Expr)) ->
+           let reduced = limitedRun single a
                res = map (\rr -> (all (\l -> depthOf l == depthOf rr  )
-                                 $ __runner reduce rr)) $ reduced
+                                 $ limitedRun reduce rr)) $ reduced
            in and res
    ]
+
+
+prop (Limited _ _ (a :: Expr)) = ( all (\b -> depthOf b <= depthOf a )  $ limitedRun reduce a )
+
+use_qc :: [Maybe a] -> [Maybe a]
+-- use_qc = return []
+use_qc xs = xs
+
+-- To make sure the test finish quickly
+limitedRun :: forall a t. (t -> StateT EState Identity [a]) -> t -> [a]
+limitedRun f a = take 100 $ __runner f a
+
+
+__runner :: forall a t. (t -> StateT EState Identity a) -> t -> a
+__runner f ee = do
+  let spe   :: Spec   = $never
+      seed            = 32
+      state :: EState = newEStateWithSeed seed spe
+      res             = runIdentity $ flip evalStateT state $ f ee
+  res
+
+aaa = [essencee|
+  (function(5 --> 3),
+               relation((0, mset(4, 5), function(2 --> true, 3 --> false)),
+                        (5, (mset() : `mset of int`), function(3 --> true, 3 --> false)),
+                        (2, (mset() : `mset of int`),
+                         function(3 --> true, 0 --> false, 5 --> false, 1 --> true))),
+               (mset() : `mset of (int, bool)`))
+               |]
+
+opFunc = do
+  (res :: Op Expr ,logs) <- runGenerate LogInfo (GType TypeBool) def{depth=1}
+  if depthOf res > 1 then do
+     putStrLn . show . pretty $ res
+     print (depthOf res)
+     putStrLn $ renderSized 120 $ logs
+     putStrLn . show . pretty $ res
+     return res
+   else
+     return res
