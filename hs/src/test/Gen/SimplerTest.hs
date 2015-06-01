@@ -66,7 +66,8 @@ tests = testGroup "simpler"
    , ([essencee| toInt(true) in mset(-5, 4)        |], [essencee| toInt(toInt(true) in mset(-5, 4))  |])
    , ([essencee| toInt(toInt(true) in mset(-5, 4)) |], [essencee| toInt(toInt(true) in mset(-5, 4)) = 9 |])
    , ([essencee| {true}|],                             [essencee| preImage(function(true --> false), false) |])
-  ]
+   , ([essencee|  ({} : `set of int`)   |],   [essencee|   ({} : `set of int`) != {5}  |])
+   ]
 
   ,testGroup_lt_gt "Literals"
    [
@@ -122,10 +123,6 @@ testGroup_lt_gt name ls =
    ]
 
 
-_use_qc :: [Maybe a] -> [Maybe a]
--- _use_qc = return []
-_use_qc xs = xs
-
 
 data BType =  BType Type Int
     deriving (Show,Eq)
@@ -160,7 +157,7 @@ qc_tests :: forall p
          => String -> Proxy p  -> TestTree
 qc_tests title _ =
   testGroup title $
-   catMaybes $ [
+   catMaybes $ use_qc $ [
      Just $ testProperty "Is equal to self" $
        \(Limited (a :: p)) ->  (runIdentity $ simpler a a) == EQ
    , Just $ testProperty "simpler is consistent" $
@@ -185,3 +182,8 @@ __runner f ee = do
       state :: EState = newEStateWithSeed seed spe
       res             = runIdentity $ flip evalStateT state $ f ee
   res
+
+
+use_qc :: [Maybe a] -> [Maybe a]
+use_qc = return []
+-- use_qc xs = xs
