@@ -34,7 +34,6 @@ doWeighting m k =
       True  ->  M.adjust decreaseWeighting k m
       False ->  M.insert k 95 m
 
--- | decreaseWeighting by 5%, min 1
--- | Note scale is [0,100+]
+-- | decrease the weighting by 5%, min 1,  n.b. scale is [0,100+]
 decreaseWeighting :: Int -> Int
-decreaseWeighting a = max 0 (truncate $ fromIntegral a * (0.95 :: Double))
+decreaseWeighting a = max 1 (truncate $ fromIntegral a * (0.95 :: Double))
