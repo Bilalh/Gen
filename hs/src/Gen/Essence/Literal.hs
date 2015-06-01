@@ -31,34 +31,35 @@ instance (Generate a, WrapConstant a) => Generate (AbstractLiteral a, Type) wher
     give (GType ty)
 
   give (GType r@(TypeSet ty)) = do
-    es <- bounded3 (0,3)  (dgive (GType ty))
+    es <- boundedChecked (Proxy :: Proxy a) (0,3)  (dgive (GType ty))
     return $ (AbsLitSet es, r)
 
   give (GType r@(TypeMSet ty)) = do
-    es <- bounded3 (0,3)  (dgive (GType ty))
+    es <- boundedChecked (Proxy :: Proxy a) (0,3)  (dgive (GType ty))
     return $ (AbsLitMSet es, r)
 
   give (GType r@(TypeMatrix TypeInt ty)) = do
-    numElems <- choose3 (0,5)
-    es <- vectorOf3 numElems (dgive (GType ty))
+    numElems <- chooseChecked (Proxy :: Proxy a) (0,5)
+    es <-  vectorOf3 numElems (dgive (GType ty))
     idx <- intDomainOfSize (fromIntegral numElems)
     return $ (AbsLitMatrix idx es, r)
 
   give (GType r@(TypeFunction t1 t2)) = do
-    numElems <- choose3 (0,5)
+    numElems <- chooseChecked (Proxy :: Proxy a) (0,5)
     e1 <- vectorOf3 numElems (dgive (GType t1))
     e2 <- vectorOf3 numElems (dgive (GType t2))
     let es = zip e1 e2
     return $ (AbsLitFunction es, r)
 
   give (GType r@(TypeRelation ts)) = do
-    ee :: [[a]] <- bounded3 (0,5) $ forM ts $ dgive . GType
+    numElems <- chooseChecked (Proxy :: Proxy a) (0,5)
+    ee :: [[a]] <- vectorOf3 numElems $ forM ts $ dgive . GType
     return $ (AbsLitRelation ee, r)
 
   give (GType r@(TypePartition t)) = do
-    n  <- choose3 (0,5)
+    n <- chooseChecked (Proxy :: Proxy a) (0,5)
     es <- replicateM n $ do
-            bounded3 (0,5) (dgive (GType t))
+            boundedChecked (Proxy :: Proxy a) (0,5) (dgive (GType t))
 
     if all (null) es then
         logDebug2 $line  ["is Empty " <+> pretty (AbsLitPartition es)]
@@ -80,3 +81,12 @@ instance (Generate a, WrapConstant a) => Generate (AbstractLiteral a, Type) wher
 
   requires _ (Just ty) = [RAll $ keyList ty]
   requires _ _         = []
+
+boundedChecked :: (WrapConstant a) => Proxy a -> (Int, Int) -> GenSt a -> GenSt [a]
+boundedChecked proxy tu as = do
+  n <- chooseChecked proxy tu
+  vectorOf3 n as
+
+chooseChecked :: (WrapConstant a) => Proxy a -> (Int, Int) -> GenSt Int
+chooseChecked proxy tu  | allowEmpty proxy = choose3 tu
+chooseChecked _  (a,b)  =  choose3 (max 1 a, b)
