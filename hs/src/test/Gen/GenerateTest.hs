@@ -49,7 +49,7 @@ qc_tests :: forall p
 qc_tests b title _ =
   testGroup title $
    catMaybes $ [
-     Just $ testProperty "Can Generate" $
+     Just $ testProperty "Can Generate the" $
        \(Limited (a :: p)) ->  a == a
    , j $ testProperty "TypeOf" $
        \(Limited (a :: p)) -> do

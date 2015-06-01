@@ -5,6 +5,7 @@ import Gen.AST.TH
 import Gen.Imports
 import Gen.TestPrelude
 import Gen.Helpers.SizeOf
+import Conjure.Language.Definition
 
 typeDepth :: DepthOf a
           => Doc -> Integer -> a -> TestTree
@@ -95,6 +96,10 @@ tests = testGroup "depthOf"
    , te 2 [essencee|  ({} : `set of (matrix indexed by [int] of bool)`)  |]
    , te 2 [essencee| { [true, true; int(1..2)] } |]
    , te 2 [essencee| |mset(1)| |]
+   , te 2 $ do
+       let a = Single "l1"
+       let b = EVar (Var "l1" TypeInt)
+       [essencee|[ &b | &a : int(1..5, 0)] |]
    ]
 
   ]
