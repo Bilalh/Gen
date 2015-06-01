@@ -170,13 +170,18 @@ instance (HasGen m,  HasLogger m) =>  Reduce Expr m where
 instance (HasGen m,  HasLogger m) =>  Reduce Constant m where
     single t = ttypeOf t >>= singleLitExpr
 
+    subterms (ConstantAbstract AbsLitTuple{}) = return []
     subterms (ConstantAbstract x) = do
       return . map (ECon . ConstantAbstract) . innersExpand reduceLength $ x
     subterms _ = return []
 
-    -- FIXME finish
-    reduce (ConstantAbstract _) =  return []
-    reduce _                    =  return []
+    -- Don't try to reduce empty literals
+    reduce (ConstantAbstract li) | isLitEmpty li = return []
+
+    -- FIXME finish?
+    reduce (ConstantAbstract AbsLitTuple{}) =  return []
+    reduce (ConstantAbstract _)             =  return []
+    reduce _                                =  return []
 
     mutate (ConstantAbstract xs)  = mutate1 xs
       where
@@ -190,7 +195,7 @@ instance (HasGen m,  HasLogger m) =>  Reduce Constant m where
 instance (HasGen m,  HasLogger m) =>  Reduce (AbstractLiteral Expr) m where
     single t   = ttypeOf t >>= singleLitExpr
 
-    subterms (AbsLitTuple x) = return []
+    subterms AbsLitTuple{} = return []
     subterms x = return . map ELit .  innersExpand reduceLength $ x
 
     -- Don't try to reduce empty literals

@@ -16,10 +16,10 @@ tests = testGroup "GenerateOnly"
   [
    testGroup "QC"
    [
-     -- qc_tests True "Type" (Proxy :: Proxy Type)  -- Too much hassle to not not give a type
-     qc_tests False "Constant" (Proxy :: Proxy Constant)
-   , qc_tests False "AbstractLiteral Constant" (Proxy :: Proxy (AbstractLiteral Constant))
-   , qc_tests True "AbstractLiteral Expr" (Proxy :: Proxy (AbstractLiteral Expr))
+     qc_tests True "Type" (Proxy :: Proxy Type)
+   , qc_tests True "Constant" (Proxy :: Proxy Constant)
+   , qc_tests True  "AbstractLiteral Constant" (Proxy :: Proxy (AbstractLiteral Constant))
+   , qc_tests False "AbstractLiteral Expr" (Proxy :: Proxy (AbstractLiteral Expr))
    , qc_tests True "Expr" (Proxy :: Proxy (Expr))
    ]
 

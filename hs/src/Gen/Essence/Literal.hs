@@ -59,7 +59,7 @@ instance (Generate a, WrapConstant a) => Generate (AbstractLiteral a, Type) wher
   give (GType r@(TypePartition t)) = do
     n <- chooseChecked (Proxy :: Proxy a) (0,5)
     es <- replicateM n $ do
-            boundedChecked (Proxy :: Proxy a) (0,5) (dgive (GType t))
+            boundedChecked (Proxy :: Proxy a) (1,5) (dgive (GType t))
 
     if all (null) es then
         logDebug2 $line  ["is Empty " <+> pretty (AbsLitPartition es)]

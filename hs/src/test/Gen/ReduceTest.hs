@@ -236,3 +236,11 @@ _opFunc = do
      return res
    else
      return res
+
+aa = [essencee|  [(5, true), (0, true), (5, false); int(4..6)] |]
+
+pp = [essencee| partition({}, {3, 5, 5, 4}, {4, 4}, {5},
+                                {4, 4, 3, 4, 5}) |]
+
+ppl = [litt| partition({}, {3, 5, 5, 4}, {4, 4}, {5},
+                                {4, 4, 3, 4, 5}) |]

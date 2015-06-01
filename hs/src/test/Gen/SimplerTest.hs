@@ -96,7 +96,7 @@ tests = testGroup "simpler"
   ,testGroup "QC"
   [
     qc_tests "Type" (Proxy :: Proxy Type)
-  , qc_tests "AbstractLiteral Expr" (Proxy :: Proxy (AbstractLiteral Expr))
+  , qc_tests "Constant" (Proxy :: Proxy (Constant))
   , qc_tests "Expr" (Proxy :: Proxy (Expr))
   ]
 
