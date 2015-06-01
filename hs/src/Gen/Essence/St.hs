@@ -138,7 +138,7 @@ data GenerateConstraint = GNone
                         | GType Type          -- The resulting type
                         | GOnlyTopLevel [Key] -- Weights to use at the toplevel
                         | GBinRel             -- For Relation Atrr
-                        | GNonEmpty           -- For Mset domain
+                        | GMsetAtrr           -- For Mset domain
  deriving (Eq, Ord, Show, Data, Typeable, Generic)
 
 instance Pretty GenerateConstraint where

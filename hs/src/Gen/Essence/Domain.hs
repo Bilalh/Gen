@@ -57,7 +57,7 @@ instance (Generate a, WrapConstant a, EvalToInt a) => Generate (SetAttr a) where
 
 instance (Generate a, WrapConstant a, EvalToInt a) => Generate (MSetAttr a) where
   give GNone = do
-    (a,b) <- elements3 [ (GNone,GNonEmpty), (GNonEmpty,GNone)  ]
+    (a,b) <- elements3 [ (GNone,GMsetAtrr), (GMsetAtrr,GNone)  ]
     MSetAttr <$> give a <*> give b
 
   give t             = giveUnmatched "Generate (SetAttr a)" t
@@ -67,7 +67,7 @@ instance (Generate a, WrapConstant a, EvalToInt a) => Generate (MSetAttr a) wher
 
 instance (Generate a, WrapConstant a, EvalToInt a) => Generate (SizeAttr a)  where
   give GNone     = doSizeAttr True
-  give GNonEmpty = doSizeAttr False
+  give GMsetAtrr = doSizeAttr False
 
   give t = giveUnmatched "Generate (SetAttr a)" t
 
@@ -103,7 +103,7 @@ doSizeAttr allowNone = do
 
 instance (Generate a, WrapConstant a, EvalToInt a) => Generate (OccurAttr a) where
   give GNone     = doOccurAttr True
-  give GNonEmpty = doOccurAttr False
+  give GMsetAtrr = doOccurAttr False
 
   give t = giveUnmatched "Generate (OccurAttr a)" t
 
