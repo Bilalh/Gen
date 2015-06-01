@@ -190,6 +190,7 @@ instance (HasGen m,  HasLogger m) =>  Reduce Constant m where
 instance (HasGen m,  HasLogger m) =>  Reduce (AbstractLiteral Expr) m where
     single t   = ttypeOf t >>= singleLitExpr
 
+    subterms (AbsLitTuple x) = return []
     subterms x = return . map ELit .  innersExpand reduceLength $ x
 
     -- Don't try to reduce empty literals
