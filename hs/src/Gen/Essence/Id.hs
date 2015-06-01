@@ -86,6 +86,7 @@ instance GetKey Constant where
 
 
 instance GetKey Integer where
+  getKey x | x < 0 || x > 10  = K_Int_Other
   getKey x  = fromString $ "Int_" ++ show (abs x)
   keyTree x = Tree (getKey x) []
 
