@@ -22,8 +22,8 @@ main = do
     defaultMainWithIngredients (antXMLRunner : defaultIngredients)
         $ testGroup "TopLevel" $
             [ Gen.DepthTest.tests
-            , Gen.SimplerTest.tests
             , Gen.ReduceTest.tests
+            , Gen.SimplerTest.tests
             , Gen.OlderTests.tests
             , Gen.GenerateTest.tests
             , Gen.GenerateTypeCheckTest.tests

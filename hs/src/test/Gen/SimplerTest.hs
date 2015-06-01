@@ -13,6 +13,7 @@ import Gen.Reduce.Data
 import Gen.Reduce.Reduction as R
 import Gen.TestPrelude
 import Text.Printf
+import Gen.Essence.Id
 
 tests :: TestTree
 tests = testGroup "simpler"
@@ -132,41 +133,55 @@ instance Arbitrary BType where
     i <- choose (1,  (max 0 (min s 3)) )
     BType <$>  runGenerateNullLogs GNone def{depth=i} <*> pure i
 
-data Limited a =  Limited a
+
+data Limited a = Limited Type Doc a
     deriving (Eq)
 
-instance (Pretty a, Show a) => Pretty (Limited a) where pretty = pretty . show
-instance (Pretty a, Show a) => Show (Limited a)   where
- show (Limited a) = renderSized 100 $ hang "Limited" 4 $ vcat
+
+instance (Pretty a, Show a, DepthOf a, GetKey a) => Pretty (Limited a) where pretty = pretty . show
+instance (Pretty a, Show a, DepthOf a, GetKey a) => Show (Limited a)   where
+ show (Limited ty logs a) = renderSized 100 $ hang "Limited" 4 $ vcat
           -- [ nn "Groomed :" (groom a)
-          [ nn "Pretty  :"  (a)
+          [ nn "GenTy   :"  (ty)
+          , nn "GenDepth:"  (depthOf ty)
+          , nn "Pretty  :"  (a)
+          , nn "Depth   :"  (depthOf a)
+          , nn "Keys    :"  (groom $ sort $  nub2 $ keyList a)
+          , hang "logs" 4 logs
           ]
 
-instance (Generate a, Reduce a (StateT EState Identity), Simpler a a)
+instance (Generate a, Reduce a (StateT EState Identity), Simpler a a, DepthOf a, GetKey a)
     => Arbitrary (Limited a) where
   arbitrary = sized $ \s -> do
-    i <- choose (1,  (max 0 (min s 3)) )
-    Limited <$> runGenerateNullLogs GNone def{depth=i}
+    let allowed =  LogFollow
 
-  shrink (Limited a ) = do
+    i <- choose (1,  (max 0 (min s 3)) )
+    ty :: Type <- runGenerateNullLogs GNone def{depth=i}
+    (aa,logs) <- runGenerateWithLogs (GType ty) def{depth=i}
+
+    Limited <$> pure ty
+            <*> pure (vcat [ msg | (lvl, msg) <- logs , lvl <= allowed ])
+            <*> pure aa
+
+  shrink (Limited ty logs a ) = do
     let rs = __runner reduceSimpler a
-    map Limited rs
+    map (Limited ty logs) rs
 
 qc_tests :: forall p
-          . (Generate p, Simpler p p, DepthOf p, Reduce p (StateT EState Identity))
+          . (Generate p, Simpler p p, DepthOf p, Reduce p (StateT EState Identity), GetKey p)
          => String -> Proxy p  -> TestTree
 qc_tests title _ =
   testGroup title $
    catMaybes $ use_qc $ [
      Just $ testProperty "Is equal to self" $
-       \(Limited (a :: p)) ->  (runIdentity $ simpler a a) == EQ
+       \(Limited _ _ (a :: p)) ->  (runIdentity $ simpler a a) == EQ
    , Just $ testProperty "simpler is consistent" $
-       \(Limited (a :: p)) (Limited (b :: p)) -> do
+       \(Limited _ _ (a :: p)) (Limited _ _ (b :: p)) -> do
          let simpler_ab = runIdentity $ simpler a b
          let simpler_ba = runIdentity $ simpler b a
          simpler_ab    == negOrder simpler_ba
    , Just $ testProperty "simpler is consistent with depthof" $
-       \(Limited (a :: p)) (Limited (b :: p)) -> do
+       \(Limited _ _ (a :: p)) (Limited _ _(b :: p)) -> do
          if runIdentity $ simpler1 a b then
              counterexample (printf "depthOf a(%d) <= depthOf b(%d)" (depthOf a) (depthOf b))
                 $ depthOf a <= depthOf b
@@ -185,5 +200,4 @@ __runner f ee = do
 
 
 use_qc :: [Maybe a] -> [Maybe a]
-use_qc = return []
--- use_qc xs = xs
+use_qc xs = xs

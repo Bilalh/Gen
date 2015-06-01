@@ -143,7 +143,6 @@ simpler_leq :: forall a b. Simpler a b => a -> b -> Bool
 simpler_leq a b = let res = (runIdentity $ simpler a b)
                   in  (res == EQ || res == LT)
 
--- Add tests for mutate for functions
 
 
 data Limited a = Limited Type Doc a
