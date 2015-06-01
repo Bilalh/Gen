@@ -29,7 +29,7 @@ class (Pretty a, Eq a, Show a, Pretty b, Eq b, Show b
     res <- simplerImp a b
     addLog "simpler" [nn "a" a, nn "b" b
                      , nn "res" (show res)
-                     , nn "ga" (groom a), nn "gb" (groom b)
+                     -- , nn "ga" (groom a), nn "gb" (groom b)
                      ]
     return $ res
 
@@ -40,11 +40,10 @@ instance Simpler Expr Expr where
     simplerImp (EDom a)               (EDom b)      = simplerImp a b
     simplerImp (ECon a)               (ECon b)      = simplerImp a b
     simplerImp (ELit a)               (ELit b)      = simplerImp a b
-    simplerImp (ETyped a _)           (ETyped b _)  = simplerImp a b
+    simplerImp a@ETyped{}           b@ETyped{}      = return $ compare (depthOf a) (depthOf b)
     simplerImp (EOp a)                (EOp b)       = simplerImp a b
     simplerImp (EMetaVar _)           (EMetaVar _)  = return EQ
-
-    simplerImp EEmptyGuard            EEmptyGuard            = return EQ
+    simplerImp EEmptyGuard            EEmptyGuard   = return EQ
 
 
     simplerImp (ECon a) (EOp b)  = simplerImp a b
@@ -56,8 +55,8 @@ instance Simpler Expr Expr where
     simplerImp (ELit a) (ECon b)  = simplerImp a b
     simplerImp (ECon a) (ELit b)  = simplerImp a b
 
-    simplerImp (ETyped a _) b  = simplerImp a (runIdentity $ ttypeOf b)
-    simplerImp a (ETyped b _)  = simplerImp (runIdentity $ ttypeOf a) b
+    simplerImp a@ETyped{} b  = return $ compare (depthOf a) (depthOf b)
+    simplerImp a b@ETyped{}  = return $ compare (depthOf a) (depthOf b)
 
     simplerImp (EVar a) b  = simplerImp a b
     simplerImp a (EVar b)  = simplerImp a b
@@ -143,53 +142,49 @@ instance (Simpler Constant c, IntRange c, DepthOf c )
 
 instance Simpler (Op Expr) Constant where simplerImp = negSimplerImp
 instance Simpler Constant (Op Expr) where
-    simplerImp _ _  = return LT
+  simplerImp a b = return $ compare (depthOf a) (depthOf b)
 
 instance Simpler Expr Constant where simplerImp = negSimplerImp
 instance Simpler Constant Expr where
-    simplerImp _ _  = return LT
+  simplerImp a b = return $ compare (depthOf a) (depthOf b)
 
 instance Simpler Expr (Var) where simplerImp = negSimplerImp
 instance Simpler (Var) Expr where
-        simplerImp _ _  = return LT
+  simplerImp _ _  = return LT
 
 
 instance Simpler (Op Expr) Expr where simplerImp = negSimplerImp
 instance Simpler Expr (Op Expr) where
 
     simplerImp (EVar _) _     = return LT
-    simplerImp (ECon _) _     = return LT
     simplerImp (EMetaVar _) _ = return LT
     simplerImp EEmptyGuard _  = return LT
 
-    simplerImp (EOp a) b        = simplerImp a b
-    simplerImp (ETyped a _) b   = simplerImp a (runIdentity $ ttypeOf b)
-    simplerImp (ELit a) b       = simplerImp a b
-
-    -- simplerImp (EDom a) b       = _h
-    simplerImp EComp{} _ = return GT
+    simplerImp (EOp a) b      = simplerImp a b
+    simplerImp (ECon a) b     = simplerImp a b
+    simplerImp (ELit a) b     = simplerImp a b
+    simplerImp (ETyped a _) b = return $ compare (depthOf a) (depthOf b)
+    simplerImp a@EComp{} b    = return $ compare (depthOf a) (depthOf b)
 
     simplerImp a b = simplerImpError "Expr Op" a b
 
 
 instance Simpler Literal Expr where simplerImp = negSimplerImp
-instance (Simpler c Expr, Simpler Expr c, IntRange c, DepthOf c, TTypeOf c, TypeOf c)
+instance (Simpler c Expr, Simpler Expr c, Simpler Constant c, IntRange c, DepthOf c, TTypeOf c, TypeOf c)
     => Simpler Expr (AbstractLiteral c) where
 
     simplerImp (EVar _) _     = return LT
-    simplerImp (ECon _) _     = return LT
     simplerImp (EMetaVar _) _ = return LT
     simplerImp EEmptyGuard _  = return LT
 
-    simplerImp (ELit a) b       = simplerImp a b
-    simplerImp (ETyped a _) b   = simplerImp a (runIdentity $ ttypeOf b)
-
-    simplerImp (EOp a) b        = simplerImp a b
-    -- simplerImp (EDom a) b       = simplerImp a b
-
-    simplerImp EComp{} _  = return GT
+    simplerImp (EOp a) b      = simplerImp a b
+    simplerImp (ECon a) b     = simplerImp a b
+    simplerImp (ELit a) b     = simplerImp a b
+    simplerImp (ETyped a _) b = return $ compare (depthOf a) (depthOf b)
+    simplerImp a@EComp{} b    = return $ compare (depthOf a) (depthOf b)
 
     simplerImp a b = simplerImpError "Expr Literal" a b
+
 
 instance (Simpler c Expr, Simpler Expr c, IntRange c, DepthOf c)
        => Simpler (Op Expr) (AbstractLiteral c) where simplerImp = negSimplerImp
