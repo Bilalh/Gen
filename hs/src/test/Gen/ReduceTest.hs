@@ -15,6 +15,8 @@ import Gen.Essence.Type()
 import Conjure.Language.TH
 import Gen.Essence.Id
 import Conjure.Language.Expression.Op
+import Conjure.Language.Definition
+import Conjure.Language.Domain
 
 tests :: TestTree
 tests = testGroup "ReductionTests"
@@ -152,8 +154,8 @@ data Limited a = Limited GenerateConstraint Doc a
 instance (Pretty a, Show a, DepthOf a, GetKey a) => Pretty (Limited a) where pretty = pretty . show
 instance (Pretty a, Show a, DepthOf a, GetKey a) => Show (Limited a)   where
  show (Limited ty logs a) = renderSized 100 $ hang "Limited" 4 $ vcat
-          -- [ nn "Groomed :" (groom a)
-          [ nn "GenTy   :"  (ty)
+          [ nn "Groomed :" (groom a)
+          , nn "GenTy   :"  (ty)
           , nn "GenDepth:"  (f ty)
           , nn "Pretty  :"  (a)
           , nn "Depth   :"  (depthOf a)
@@ -186,7 +188,10 @@ qc_tests title  =
      no $  testProperty "reduce_should_not_contain_self" $
        \(Limited _ _ (a :: Expr)) -> ( all (\b -> hash b  /= hash a )  $  limitedRun reduce a )
 
-   , Just $ testProperty "depth_leq" $
+   -- Comp  like [l_1 | l_1 : mset (size 1 ** 0) of bool, true, true]
+   -- simply to [mset(true) | l_1 : mset (size 1 ** 0) of bool]
+   -- which has higher depth.
+   , no $ testProperty "depth_leq" $
        \(Limited _ _ (a :: Expr)) -> ( all (\b -> depthOf b <= depthOf a )  $ limitedRun reduce a )
    , Just $ testProperty "reduce_simp_leq" $
        \(Limited _ _ (a :: Expr)) ->  ( all (\b -> simpler_leq b a )  $ limitedRun reduce a )
@@ -237,10 +242,13 @@ _opFunc = do
    else
      return res
 
-aa = [essencee|  [(5, true), (0, true), (5, false); int(4..6)] |]
-
-pp = [essencee| partition({}, {3, 5, 5, 4}, {4, 4}, {5},
-                                {4, 4, 3, 4, 5}) |]
-
-ppl = [litt| partition({}, {3, 5, 5, 4}, {4, 4}, {5},
-                                {4, 4, 3, 4, 5}) |]
+aaa= EComp (EVar (Var "l_1" (TypeMSet TypeBool)))
+          [GenDom (Single (Name "l_1"))
+             (DomainMSet ()
+                (MSetAttr
+                   (SizeAttr_Size
+                      (EOp
+                         (MkOpPow (OpPow (ECon (ConstantInt 1)) (ECon (ConstantInt 0))))))
+                   OccurAttr_None)
+                DomainBool)]
+          [ECon (ConstantBool True), ECon (ConstantBool True)]
