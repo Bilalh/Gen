@@ -79,13 +79,18 @@ doSizeAttr :: forall a . (Generate a, WrapConstant a, EvalToInt a)
 doSizeAttr allowNone = do
     sanity "Generate (SizeAttr a)"
 
-    let defs = if allowNone then [(K_SizeAttr_None, pure SizeAttr_None)]
-               else [] ++
-               [ (K_SizeAttr_Size,    SizeAttr_Size    <$> give (GType TypeInt))
-               , (K_SizeAttr_MinSize, SizeAttr_MinSize <$> give (GType TypeInt))
-               , (K_SizeAttr_MaxSize, SizeAttr_MaxSize <$> give (GType TypeInt))
-               , (K_SizeAttr_MinMaxSize, (uncurry SizeAttr_MinMaxSize )  <$> minMax)
-               ]
+    let defs = if allowNone then
+                   [ (K_SizeAttr_None,    pure SizeAttr_None)
+                   , (K_SizeAttr_Size,    SizeAttr_Size    <$> give (GType TypeInt))
+                   , (K_SizeAttr_MinSize, SizeAttr_MinSize <$> give (GType TypeInt))
+                   , (K_SizeAttr_MaxSize, SizeAttr_MaxSize <$> give (GType TypeInt))
+                   , (K_SizeAttr_MinMaxSize, (uncurry SizeAttr_MinMaxSize )  <$> minMax)
+                   ]
+               else
+                   [ (K_SizeAttr_Size,    SizeAttr_Size    <$> give (GType TypeInt))
+                   , (K_SizeAttr_MaxSize, SizeAttr_MaxSize <$> give (GType TypeInt))
+                   , (K_SizeAttr_MinMaxSize, (uncurry SizeAttr_MinMaxSize )  <$> minMax)
+                   ]
 
     parts <- getWeights defs
     frequency3 parts
@@ -109,12 +114,17 @@ instance (Generate a, WrapConstant a, EvalToInt a) => Generate (OccurAttr a) whe
 doOccurAttr :: forall a . (Generate a, WrapConstant a, EvalToInt a)
            => Bool -> GenSt (OccurAttr a)
 doOccurAttr allowNone = do
-  let defs = if allowNone then [(K_OccurAttr_None, pure OccurAttr_None)]
-             else [] ++
-             [ (K_OccurAttr_MinOccur, OccurAttr_MinOccur <$> give (GType TypeInt))
-             , (K_OccurAttr_MaxOccur, OccurAttr_MaxOccur <$> give (GType TypeInt))
-             , (K_OccurAttr_MinMaxOccur, (uncurry OccurAttr_MinMaxOccur ) <$> minMax)
-             ]
+  let defs = if allowNone then
+                 [ (K_OccurAttr_None,     pure OccurAttr_None)
+                 , (K_OccurAttr_MinOccur, OccurAttr_MinOccur <$> give (GType TypeInt))
+                 , (K_OccurAttr_MaxOccur, OccurAttr_MaxOccur <$> give (GType TypeInt))
+                 , (K_OccurAttr_MinMaxOccur, (uncurry OccurAttr_MinMaxOccur ) <$> minMax)
+                 ]
+               else
+                 [ (K_OccurAttr_MaxOccur, OccurAttr_MaxOccur <$> give (GType TypeInt))
+                 , (K_OccurAttr_MinMaxOccur, (uncurry OccurAttr_MinMaxOccur ) <$> minMax)
+                 ]
+
 
   parts <- getWeights defs
   frequency3 parts
