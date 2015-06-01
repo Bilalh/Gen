@@ -293,7 +293,7 @@ possibleUnmatched msg t = do
 runGenerate2 :: Generate a => LogLevel -> GenerateConstraint -> St -> IO a
 runGenerate2 allowed  con st  = do
   (res, logs) <- runGenerate allowed  con st
-  putStrLn $ renderSized 120 $ logs
+  when (not $ Pr.isEmpty logs) $ putStrLn $ renderSized 120 $ logs
   return res
 
 
@@ -365,22 +365,27 @@ generateTypeFreq _ con n st = do
 
 
 -- | To allow a Range Constant or a Range Expr
+-- | Really should be reanmed
 class WrapConstant a where
   wrapConstant :: Constant -> a
   wrapDomain   :: Domain () a -> a
+  allowEmpty   :: Proxy a -> Bool
 
 instance WrapConstant Expr where
   wrapConstant = ECon
   wrapDomain  =  EDom
+  allowEmpty _ = True
 
 instance WrapConstant Constant where
   wrapConstant = id
   wrapDomain   = DomainInConstant
+  allowEmpty _ = False
+
 
 instance WrapConstant Expression where
   wrapConstant = Constant
   wrapDomain   = Domain
-
+  allowEmpty _ = True
 
 
 logHigher2 :: MonadLog m => String -> [Doc] -> m ()
