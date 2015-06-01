@@ -16,7 +16,6 @@ module Gen.Essence.St
   , giveUnmatched
   , nextVarName
   , possibleUnmatched
-  , runGenerate
   , runGenerate2
   , runGenerateWithLogs
   , weightingForKey
@@ -37,6 +36,8 @@ module Gen.Essence.St
   , ldc
   , logDebugVerbose2
   , runGenerateNullLogs
+  , logHigher2
+  , runGenerate
   ) where
 
 import Conjure.Language.Constant
@@ -289,21 +290,25 @@ possibleUnmatched msg t = do
                         , "St"     <+> pretty st]
 
 
-runGenerate :: Generate a => St -> IO a
-runGenerate = runGenerate2 LogNone GNone
 
 runGenerate2 :: Generate a => LogLevel -> GenerateConstraint -> St -> IO a
 runGenerate2 allowed  con st  = do
-  let s = (flip evalStateT ) st ( logInfo2 $line ["√Starting"] >> give con
-                                >>= \g -> do {logInfo2 $line ["πEnding"]; return g})
+  (res, logs) <- runGenerate allowed  con st
+  putStrLn $ renderSized 120 $ logs
+  return res
+
+
+runGenerate :: Generate a => LogLevel -> GenerateConstraint -> St -> IO (a, Doc)
+runGenerate allowed  con st  = do
+  let s = (flip evalStateT ) st ( logInfo2 $line ["√Starting"]
+                                  >> logDepthCon $line con
+                                  >> give con
+                                  >>= \g -> do {logInfo2 $line ["πEnding"]; return g})
   let w = runWriterT s
   (res,logs) <- generate w
 
   let ls =  [ msg | (lvl, msg) <- logs , lvl <= allowed ]
-  case ls of
-    [] -> return ()
-    xs -> putStrLn $ renderSized 120 $  vcat xs
-  return res
+  return (res, vcat ls)
 
 runGenerateWithLogs :: Generate a => GenerateConstraint -> St -> Gen (a,[(LogLevel,Doc)])
 runGenerateWithLogs con st = do
@@ -376,6 +381,12 @@ instance WrapConstant Constant where
 instance WrapConstant Expression where
   wrapConstant = Constant
   wrapDomain   = Domain
+
+
+
+logHigher2 :: MonadLog m => String -> [Doc] -> m ()
+logHigher2 ln docs = log LogFollow . hang (pretty ln) 4 $ Pr.vcat docs
+
 
 logInfo2 :: MonadLog m => String -> [Doc] -> m ()
 logInfo2 ln docs = log LogInfo . hang (pretty ln) 4 $ Pr.vcat docs
