@@ -84,6 +84,7 @@ data Key = K_Unused
          | K_Int_7
          | K_Int_8
          | K_Int_9
+         | K_Int_Other
          | K_JectivityAttr_Bijective
          | K_JectivityAttr_Injective
          | K_JectivityAttr_None
@@ -300,6 +301,7 @@ instance IsString Key where
   fromString "Int_7"                   = K_Int_7
   fromString "Int_8"                   = K_Int_8
   fromString "Int_9"                   = K_Int_9
+  fromString "Int_Other"               = K_Int_Other
   fromString "JectivityAttr_Bijective" = K_JectivityAttr_Bijective
   fromString "JectivityAttr_Injective" = K_JectivityAttr_Injective
   fromString "JectivityAttr_None"      = K_JectivityAttr_None
