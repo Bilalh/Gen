@@ -36,17 +36,15 @@ instance (Pretty a, Show a) => Show (Limited a)   where
           [ nn "Pretty  :"  (a)
           ]
 
-instance (Generate a, Simpler a a) => Arbitrary (Limited a) where
+instance (Generate a, Simpler a a, NeedsType a ) => Arbitrary (Limited a) where
   arbitrary = sized $ \s -> do
     i <- choose (1,  (max 0 (min s 3)) )
-    ty :: Type <- runGenerateNullLogs GNone def{depth=i}
-    Limited <$> runGenerateNullLogs (GType ty) def{depth=i}
-
-
+    con <- giveConstraint (Proxy :: Proxy a) i
+    Limited <$> runGenerateNullLogs con def{depth=i}
 
 
 qc_tests :: forall p
-          . (Generate p, Simpler p p, DepthOf p, TTypeOf p)
+          . (Generate p, Simpler p p, DepthOf p, TTypeOf p, NeedsType p)
          => Bool -> String -> Proxy p  -> TestTree
 qc_tests b title _ =
   testGroup title $

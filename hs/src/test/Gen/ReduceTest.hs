@@ -145,7 +145,7 @@ simpler_leq a b = let res = (runIdentity $ simpler a b)
 
 
 
-data Limited a = Limited Type Doc a
+data Limited a = Limited GenerateConstraint Doc a
     deriving (Eq)
 
 
@@ -154,23 +154,27 @@ instance (Pretty a, Show a, DepthOf a, GetKey a) => Show (Limited a)   where
  show (Limited ty logs a) = renderSized 100 $ hang "Limited" 4 $ vcat
           -- [ nn "Groomed :" (groom a)
           [ nn "GenTy   :"  (ty)
-          , nn "GenDepth:"  (depthOf ty)
+          , nn "GenDepth:"  (f ty)
           , nn "Pretty  :"  (a)
           , nn "Depth   :"  (depthOf a)
           , nn "Keys    :"  (groom $ sort $  nub2 $ keyList a)
           , hang "logs" 4 logs
           ]
 
-instance (Generate a, Reduce a (StateT EState Identity), Simpler a a, DepthOf a, GetKey a)
+     where f (GType t) = pretty $ depthOf t
+           f _         = "Nothing"
+
+
+instance (Generate a, Reduce a (StateT EState Identity), Simpler a a, DepthOf a, GetKey a, NeedsType a)
     => Arbitrary (Limited a) where
   arbitrary = sized $ \s -> do
     let allowed =  LogFollow
 
     i <- choose (1,  (max 0 (min s 3)) )
-    ty :: Type <- runGenerateNullLogs GNone def{depth=i}
-    (aa,logs) <- runGenerateWithLogs (GType ty) def{depth=i}
+    con <- giveConstraint (Proxy :: Proxy a) i
+    (aa,logs) <- runGenerateWithLogs con def{depth=i}
 
-    Limited <$> pure ty
+    Limited <$> pure con
             <*> pure (vcat [ msg | (lvl, msg) <- logs , lvl <= allowed ])
             <*> pure aa
 
@@ -211,7 +215,7 @@ use_qc xs = xs
 limitedRun :: forall a t. (t -> StateT EState Identity [a]) -> t -> [a]
 limitedRun f a = take 100 $ __runner f a
 
-
+-- TODO change name
 __runner :: forall a t. (t -> StateT EState Identity a) -> t -> a
 __runner f ee = do
   let spe   :: Spec   = $never
@@ -220,16 +224,9 @@ __runner f ee = do
       res             = runIdentity $ flip evalStateT state $ f ee
   res
 
-aaa = [essencee|
-  (function(5 --> 3),
-               relation((0, mset(4, 5), function(2 --> true, 3 --> false)),
-                        (5, (mset() : `mset of int`), function(3 --> true, 3 --> false)),
-                        (2, (mset() : `mset of int`),
-                         function(3 --> true, 0 --> false, 5 --> false, 1 --> true))),
-               (mset() : `mset of (int, bool)`))
-               |]
 
-opFunc = do
+_opFunc :: IO (Op Expr)
+_opFunc = do
   (res :: Op Expr ,logs) <- runGenerate LogInfo (GType TypeBool) def{depth=1}
   if depthOf res > 1 then do
      putStrLn . show . pretty $ res

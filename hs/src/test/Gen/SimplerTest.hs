@@ -134,7 +134,7 @@ instance Arbitrary BType where
     BType <$>  runGenerateNullLogs GNone def{depth=i} <*> pure i
 
 
-data Limited a = Limited Type Doc a
+data Limited a = Limited GenerateConstraint Doc a
     deriving (Eq)
 
 
@@ -143,23 +143,26 @@ instance (Pretty a, Show a, DepthOf a, GetKey a) => Show (Limited a)   where
  show (Limited ty logs a) = renderSized 100 $ hang "Limited" 4 $ vcat
           -- [ nn "Groomed :" (groom a)
           [ nn "GenTy   :"  (ty)
-          , nn "GenDepth:"  (depthOf ty)
+          , nn "GenDepth:"  (f ty)
           , nn "Pretty  :"  (a)
           , nn "Depth   :"  (depthOf a)
           , nn "Keys    :"  (groom $ sort $  nub2 $ keyList a)
           , hang "logs" 4 logs
           ]
 
-instance (Generate a, Reduce a (StateT EState Identity), Simpler a a, DepthOf a, GetKey a)
+     where f (GType t) = pretty $ depthOf t
+           f _         = "Nothing"
+
+instance (Generate a, Reduce a (StateT EState Identity), Simpler a a, DepthOf a, GetKey a, NeedsType a)
     => Arbitrary (Limited a) where
   arbitrary = sized $ \s -> do
     let allowed =  LogFollow
 
     i <- choose (1,  (max 0 (min s 3)) )
-    ty :: Type <- runGenerateNullLogs GNone def{depth=i}
-    (aa,logs) <- runGenerateWithLogs (GType ty) def{depth=i}
+    con <- giveConstraint (Proxy :: Proxy a) i
+    (aa,logs) <- runGenerateWithLogs con def{depth=i}
 
-    Limited <$> pure ty
+    Limited <$> pure con
             <*> pure (vcat [ msg | (lvl, msg) <- logs , lvl <= allowed ])
             <*> pure aa
 
@@ -167,8 +170,10 @@ instance (Generate a, Reduce a (StateT EState Identity), Simpler a a, DepthOf a,
     let rs = __runner reduceSimpler a
     map (Limited ty logs) rs
 
+
+
 qc_tests :: forall p
-          . (Generate p, Simpler p p, DepthOf p, Reduce p (StateT EState Identity), GetKey p)
+          . (Generate p, Simpler p p, DepthOf p, Reduce p (StateT EState Identity), GetKey p, NeedsType p)
          => String -> Proxy p  -> TestTree
 qc_tests title _ =
   testGroup title $
