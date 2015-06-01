@@ -3,9 +3,7 @@ module Gen.GenerateTypeCheckTest ( tests ) where
 
 import Gen.Essence.St
 import Gen.Essence.Spec ()
-import Gen.Helpers.SizeOf
 import Gen.Imports
-import Gen.Reduce.Simpler
 import Gen.TestPrelude
 import Conjure.Language.Definition
 import Conjure.Language.NameResolution (resolveNames)

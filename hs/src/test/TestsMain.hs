@@ -21,10 +21,13 @@ main = do
 
     defaultMainWithIngredients (antXMLRunner : defaultIngredients)
         $ testGroup "TopLevel" $
-            [ Gen.DepthTest.tests
-            , Gen.ReduceTest.tests
-            , Gen.SimplerTest.tests
-            , Gen.OlderTests.tests
-            , Gen.GenerateTest.tests
-            , Gen.GenerateTypeCheckTest.tests
-            ] ++ ts
+            items ++ ts
+
+items :: [TestTree]
+items = [ Gen.DepthTest.tests
+        , Gen.ReduceTest.tests
+        , Gen.SimplerTest.tests
+        , Gen.OlderTests.tests
+        , Gen.GenerateTest.tests
+        , Gen.GenerateTypeCheckTest.tests
+        ]
