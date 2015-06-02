@@ -2,7 +2,7 @@ module Gen.Essence.Generate(generateEssence) where
 
 import Conjure.Language.Definition
 import Conjure.Language.NameResolution (resolveNames)
-import Conjure.UI.IO                   (writeModel)
+import Conjure.UI.IO                   (writeModel,EssenceFileMode(..))
 import Conjure.UI.TypeCheck            (typeCheckModel)
 import Data.Time.Clock.POSIX           (getPOSIXTime)
 import Gen.Arbitrary.Data
@@ -469,7 +469,7 @@ doTypeCheck ec@EC.EssenceConfig{..}= do
 
       createDirectoryIfMissing True dir
       writeToJSON (dir </> "spec.spec.json") sp
-      writeModel (Just (dir </> "spec.essence") ) model
+      writeModel PlainEssence (Just (dir </> "spec.essence") ) model
 
       writeFile (dir </> "spec.error") $ show . vcat $
                     [ errDoc

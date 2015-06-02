@@ -36,7 +36,7 @@ solverMain SolverArgs{..} = do
     (Just solution) -> do
       liftIO $ putStrLn $ "Solution @ " ++ solutionPath
       liftIO $ when printSolution $ print . pretty $ solution
-      writeModel (Just solutionPath) solution
+      writeModel PlainEssence (Just solutionPath) solution
 
 
 solver :: (MonadFail m, MonadLog m ) =>  Model -> m (Maybe Solution)

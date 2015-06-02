@@ -14,7 +14,7 @@ module Gen.IO.Toolchain (
   )where
 
 import Conjure.Language.Definition (Model)
-import Conjure.UI.IO               (writeModel)
+import Conjure.UI.IO               (writeModel,EssenceFileMode(..))
 import Data.Data
 import Gen.IO.Formats
 import Gen.IO.ToolchainData        as X
@@ -42,7 +42,7 @@ writeModelDef dir spec = do
     liftIO $ createDirectoryIfMissing True  dir
 
     let name = (dir </> "spec" <.> ".essence")
-    writeModel (Just name) spec
+    writeModel PlainEssence (Just name) spec
     return (dir </> "spec.essence")
 
 toolchain :: MonadIO m => ToolchainData -> m (ExitCode, ToolchainResult)
