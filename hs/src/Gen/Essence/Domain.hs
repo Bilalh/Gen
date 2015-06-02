@@ -29,11 +29,21 @@ instance (Generate a, WrapConstant a, EvalToInt a) => Generate (Domain () a) whe
   give (GType (TypeFunction t1 t2)) = DomainFunction  <$> pure () <*> dgive GNone
                                                                   <*> dgive (GType t1)
                                                                   <*> dgive (GType t2)
-  give (GType (TypeRelation t))     = DomainRelation  <$> pure ()
-                                   <*> dgive (if length t == 2 then GBinRel else GNone)
-                                                                  <*> mapM (dgive <$> GType) t
   give (GType (TypePartition t))    = DomainPartition <$> pure () <*> dgive (GNone)
                                                                   <*> dgive (GType t)
+
+
+  give (GType (TypeRelation t@[a,b])) | a ==b = do
+   elements3 [True, False] >>= \case
+     False -> DomainRelation <$> pure () <*> dgive GNone <*> mapM (dgive <$> GType) t
+     True -> do
+       dom <- dgive (GType a)
+       DomainRelation <$> pure () <*> dgive GBinRel <*> pure [dom,dom]
+
+
+  give (GType (TypeRelation t)) = DomainRelation <$>  pure ()
+                                                 <*>  dgive GNone
+                                                 <*>  mapM (dgive <$> GType) t
 
   -- give (GType (TypeEnum t))         = _d
   -- give (GType (TypeUnnamed t))      = _d

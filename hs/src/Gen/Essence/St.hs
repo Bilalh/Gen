@@ -160,7 +160,7 @@ instance Hashable KeyMap where
   hashWithSalt i (KeyMap ws) = hashWithSalt i  . M.toList $ ws
 
 instance Default KeyMap where
-    def = KeyMap $ M.fromList [(K_BinRelAttrStop, 800) ]
+    def = KeyMap $ M.fromList [(K_BinRelAttrStop, 1000) ]
 
 instance Pretty KeyMap where
     pretty = pretty . groom
