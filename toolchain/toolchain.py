@@ -148,8 +148,11 @@ if __name__ == "__main__":
         with (fp).open() as f:
             solve_times = { k:vs['total_cpu_time']  for (k,vs) in  json.load(f)['data_'].items()   }
             if arg not in solve_times:
-                logger.error('%s not in %s', arg, fp)
-                sys.exit(10)
+                if arg == 'follow':
+                   return max(solve_times.values())
+                else:
+                    logger.error('%s not in %s', arg, fp)
+                    sys.exit(10)
             return solve_times[arg]
 
 
