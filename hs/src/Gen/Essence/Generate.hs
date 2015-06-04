@@ -241,7 +241,20 @@ doSolve ec@EC.EssenceConfig{..} = do
               endTime <- liftIO $  round `fmap` getPOSIXTime
               let realTime = endTime - startTime
 
-              (runTime,_) <- liftIO $  classifyError uname result
+              (runTime,rdata) <- liftIO $  classifyError uname result
+
+              case reduceAsWell_ of
+                Nothing -> return ()
+                Just{}  -> do
+                  liftIO $ putStrLn $ "> Reducing: " ++ (show $ hash sp)
+                  res <- liftIO $ reduceErrors ec rdata
+                  liftIO $ putStrLn $ "> Reduced: " ++ (show $ hash sp)
+                  liftIO $ putStrLn $ "!l rdata: " ++ (show $ length rdata)
+                  liftIO $ putStrLn $ "! rdata: " ++ (show $ vcat $ map pretty rdata)
+                  liftIO $ putStrLn $ "!l errData: " ++ (show $ length res)
+                  liftIO $ putStrLn $ "! errData: " ++ (show $ vcat $ map pretty res)
+                  mapM_ adjust res
+
               case totalIsRealTime of
                 False -> process (timeLeft - (floor runTime)) (nextElem mayGiven)
                 True  -> process (timeLeft - realTime) (nextElem mayGiven)
@@ -300,19 +313,24 @@ doSolve ec@EC.EssenceConfig{..} = do
                                   ]
                     removeDirectoryRecursive mvDir
 
-                return mvDir
+                let err = ErrData { kind    = kind
+                                  , status  = last_status
+                                  , choices = mvDir </> k <.> ".choices.json"
+                                  , specDir = mvDir
+                                  }
+                return $ Just err
 
 
-            f _ _ = return ""
+            f _ _ = return Nothing
 
-        void $ M.traverseWithKey f ms
+        err <-  M.traverseWithKey f ms
 
         case EC.deletePassing_ ec of
           False -> return ()
           True  -> do
             removeDirectoryRecursive (inErrDir)
 
-        return (time_taken_, [])
+        return (time_taken_, [ v | (_,Just v) <- M.toList err])
 
     classifyError uname (SolveResult (_, SettingI{time_taken_ })) = do
       case deletePassing_ of
