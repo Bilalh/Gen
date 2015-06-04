@@ -22,7 +22,7 @@ addMeta :: FilePath -> IO ()
 addMeta fp = do
   spec :: Spec <- readFromJSON fp
   putStrLn ("    processing: " ++ fp)
-  let meta = mkMeta spec
+  meta <- mkMeta spec
   writeToJSON (replaceExtensions fp ".meta.json" ) (meta)
 
 

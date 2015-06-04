@@ -91,7 +91,7 @@ runSpec spE = do
       liftIO $ createDirectoryIfMissing True  path
       liftIO $ writeToJSON (path </> "spec.spec.json" )  spE
 
-      let meta = mkMeta spE
+      meta <- mkMeta spE
       -- liftIO $  writeFile    (path </> "spec.meta" ) (show meta)
       liftIO $  writeToJSON  (path </> "spec.meta.json" ) (meta)
 

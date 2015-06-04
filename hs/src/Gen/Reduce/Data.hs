@@ -179,9 +179,6 @@ data EState = EState
 
 type ES a = StateT EState Identity a
 
-instance WithDoms (StateT EState Identity) where
-  getSpecEWithDoms = gets spec_
-
 instance HasGen (StateT EState Identity) where
   getGen   = gets sgen_
   putGen g = modify $ \st -> st{sgen_=g }
@@ -195,8 +192,6 @@ newEStateWithSeed :: Int -> Spec -> EState
 newEStateWithSeed seed sp = do
   EState{spec_=sp,sgen_=mkrGen seed,elogs_=LSEmpty}
 
-instance WithDoms (StateT Spec Identity) where
-  getSpecEWithDoms = get
 
 
 instance HasGen (StateT TFGen Identity) where
@@ -246,5 +241,3 @@ instance (HasGen (StateT EState (IdentityT (StateT RState IO)))) where
   getGen   = gets sgen_
   putGen g = modify $ \st -> st{sgen_=g }
 
-instance (WithDoms (StateT EState (IdentityT (StateT RState IO)))) where
-  getSpecEWithDoms = gets spec_

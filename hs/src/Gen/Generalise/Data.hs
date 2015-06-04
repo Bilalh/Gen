@@ -97,6 +97,3 @@ instance (HasLogger (StateT EState (IdentityT (StateT GState IO)))) where
 instance (HasGen (StateT EState (IdentityT (StateT GState IO)))) where
   getGen   = gets sgen_
   putGen g = modify $ \st -> st{sgen_=g }
-
-instance (WithDoms (StateT EState (IdentityT (StateT GState IO)))) where
-  getSpecEWithDoms = gets spec_

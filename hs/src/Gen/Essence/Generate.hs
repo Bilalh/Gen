@@ -62,7 +62,7 @@ generateWrap (Just (x:_)) _ = do
 generateWrap _ f = liftIO $  generate f
 
 
-doRefine :: (MonadIO m, MonadState Carry m)
+doRefine :: (MonadIO m, MonadState Carry m, Applicative m)
          => EssenceConfig -> m ()
 doRefine ec@EC.EssenceConfig{..} = do
   process totalTime_ givenSpecs_
@@ -71,7 +71,7 @@ doRefine ec@EC.EssenceConfig{..} = do
     out    = outputDirectory_ </> "_passing"
     errdir = outputDirectory_ </> "_errors"
 
-    process :: (MonadIO m, MonadState Carry m)
+    process :: (MonadIO m, MonadState Carry m, Applicative m)
             => Int -> Maybe [FilePath]  -> m ()
     process timeLeft Nothing  | timeLeft <= 0 = return ()
     process _ (Just [])  = return ()
@@ -119,7 +119,7 @@ doRefine ec@EC.EssenceConfig{..} = do
 
 
 
-              let meta = mkMeta sp
+              meta <- mkMeta sp
               liftIO $ writeToJSON  (dir </> "spec.meta.json" ) (meta)
               Toolchain.copyMetaToSpecDir outputDirectory_ dir
 
@@ -166,7 +166,7 @@ doRefine ec@EC.EssenceConfig{..} = do
                 True  -> process (timeLeft - realTime) (nextElem mayGiven)
 
 
-doSolve :: (MonadIO m, MonadState Carry m)
+doSolve :: (MonadIO m, MonadState Carry m, Applicative m)
         => EssenceConfig -> m ()
 doSolve ec@EC.EssenceConfig{..} = do
 
@@ -176,7 +176,7 @@ doSolve ec@EC.EssenceConfig{..} = do
     out    = outputDirectory_ </> "_passing"
     errdir = outputDirectory_ </> "_errors"
 
-    process :: (MonadIO m, MonadState Carry m)
+    process :: (MonadIO m, MonadState Carry m, Applicative m)
           => Int -> Maybe [FilePath] -> m ()
     process timeLeft Nothing  | timeLeft <= 0 = return ()
     process _ (Just [])  = return ()
@@ -216,7 +216,7 @@ doSolve ec@EC.EssenceConfig{..} = do
 
               liftIO $ writeToJSON (dir </> "spec.spec.json") sp
 
-              let meta = mkMeta sp
+              meta <- mkMeta sp
               liftIO $  writeToJSON  (dir </> "spec.meta.json" ) (meta)
               Toolchain.copyMetaToSpecDir outputDirectory_ dir
 

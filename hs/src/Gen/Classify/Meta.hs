@@ -46,26 +46,24 @@ instance ToJSON SpecMeta
 instance Hashable Feature
 instance Hashable SpecMeta
 
-mkMeta :: (WithDoms m) => m SpecMeta
-mkMeta = do
-  (Spec ds cs obj) <- getSpecEWithDoms
-
+mkMeta :: (Monad m, Applicative m) => Spec ->  m SpecMeta
+mkMeta sp@(Spec ds cs obj) = do
   let doms              = map (domOfGF . snd) .  M.toList $ ds
       constraint_depth_ = maximum' 0 (depthOf obj : map depthOf cs)
       dom_depth_        = maximum' 0 $ (map depthOf) doms
       constraint_count_ = length cs
       dom_count_        = M.size ds
 
-  dom_types_        <- domTypes
-  features_         <- findFeatures
+  dom_types_        <- domTypes sp
+  features_         <- findFeatures sp
   dom_most_complex_ <- maximumByM complex1 dom_types_
 
 
-  let sp = SpecMeta{..}
-  return sp
+  let meta = SpecMeta{..}
+  return meta
 
 
-complex1 :: (WithDoms m) =>Type ->Type -> m Ordering
+complex1 ::(Monad m, Applicative m) =>Type ->Type -> m Ordering
 complex1 t1 t2 = do
   let a = depthOf t1
       b = depthOf t2
@@ -75,13 +73,6 @@ complex1 t1 t2 = do
      | a >  b -> return GT
 
 
--- complex :: (WithDoms m) =>Type ->Type -> m Ordering
--- complex t1 t2 = do
---   a <- nullLogs $ simpler t1 t1
---   b <- nullLogs $ simpler t2 t1
---   return $ case (a,b) of
---              (EQ,EQ) -> EQ
---              (EQ,LT) ->
 
 
 maximumByM :: (Monad m) => (a -> a -> m Ordering) -> [a] -> m a
@@ -96,9 +87,8 @@ maximum' :: Ord a => a -> [a] -> a
 maximum' a [] = a
 maximum' _ xs = maximum xs
 
-findFeatures :: (WithDoms m) => m [Feature]
-findFeatures = do
-    (Spec _ cs obj)  <- getSpecEWithDoms
+findFeatures ::(Monad m, Applicative m) => Spec -> m [Feature]
+findFeatures (Spec _ cs obj) = do
     cs' <- mapM standardise cs
     let objs = case obj of
                  Nothing               -> []

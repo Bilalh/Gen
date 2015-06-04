@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, TypeOperators #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Gen.Helpers.TypeOf(WithDoms(..),TTypeOf(..), typeOfDom) where
+module Gen.Helpers.TypeOf(TTypeOf(..), typeOfDom) where
 
 import Conjure.Language.AdHoc         ((:<)(..) )
 import Conjure.Language.Constant
@@ -62,23 +62,6 @@ typeOfDom d = case typeOf d of
                           ["typeOfDom failed for", x, (pretty . groom) d, pretty d]
                 Right x -> x
 
-
-class (Monad a, Applicative a) => WithDoms a where
-  domainOfVar :: Text -> a (Maybe (Domainn Expr))
-  getSpecEWithDoms :: a Spec
-
-  domainOfVar t = do
-    (Spec ds _ _) <- getSpecEWithDoms
-    let d =  fmap domOfGF $ t `M.lookup` ds
-    return d
-
-
-
-instance WithDoms ((->) Spec) where
-    getSpecEWithDoms e = e
-
-instance WithDoms m => WithDoms (StateT () m)  where
-    getSpecEWithDoms = getSpecEWithDoms
 
 -- Conjure TypeOf stuff
 
