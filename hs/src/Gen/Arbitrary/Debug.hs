@@ -1,6 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -fno-warn-unused-binds #-}
-module Gen.Helpers.Debug
+module Gen.Arbitrary.Debug
     ( tracer
     , tracet
     , tracef

@@ -1,4 +1,4 @@
-module Gen.Helpers.OrderedType where
+module Gen.Arbitrary.OrderedType where
 
 import Gen.Imports
 
