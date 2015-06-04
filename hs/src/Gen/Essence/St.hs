@@ -234,7 +234,7 @@ getWeights vs= do
   weights <- mapM (\(x,_) -> weightingForKey x  ) vs
   return [ (w,p) | ((_,p),w) <- zip vs weights ]
 
--- | getWeights but takes function. If the function return False the
+-- | getPossibilities but takes function. If the function return False the
 -- | weighting for that item is set to 0 regresses of current weighting
 getPossibilities :: arg
                  -> [(arg -> GenSt Bool, (Key, v))]
@@ -302,19 +302,18 @@ possibleUnmatched msg t = do
 
 
 
-runGenerate2 :: Generate a => LogLevel -> GenerateConstraint -> St -> IO a
-runGenerate2 allowed  con st  = do
-  (res, logs) <- runGenerate allowed  con st
+runGenerate2 :: Generate a => LogLevel -> GenSt a -> St -> IO a
+runGenerate2 allowed  f st  = do
+  (res, logs) <- runGenerate allowed  f st
   when (not $ Pr.isEmpty logs) $ putStrLn $ renderSized 120 $ logs
   return res
 
 
-runGenerate :: Generate a => LogLevel -> GenerateConstraint -> St -> IO (a, Doc)
-runGenerate allowed  con st  = do
-  let s = (flip evalStateT ) st ( logInfo2 $line ["√Starting"]
-                                  >> logDepthCon $line con
-                                  >> give con
-                                  >>= \g -> do {logInfo2 $line ["πEnding"]; return g})
+runGenerate :: Generate a => LogLevel -> GenSt a -> St -> IO (a, Doc)
+runGenerate allowed  f st  = do
+  let s = (flip evalStateT ) st ( logInfo ("√Starting with depth" <+> pretty (depth st) )
+                                  >> f
+                                  >>= \g -> do {logInfo "πEnding"; return g})
   let w = runWriterT s
   (res,logs) <- generate w
 
@@ -362,7 +361,7 @@ generateFreq :: forall a . (Generate a, Pretty a, Ord a)
              => Proxy a -> GenerateConstraint -> Int -> St -> IO ()
 generateFreq _ con n st = do
   let freq s = sort . map (\x->(length x,head x)) . group . sort $ s
-  ts :: [a] <-  mapM  (\_ -> runGenerate2 LogNone con  st)  [1..n]
+  ts :: [a] <-  mapM  (\_ -> runGenerate2 LogNone (give con)  st)  [1..n]
   print .  vcat .  map pretty $ freq ts
 
 
@@ -371,13 +370,12 @@ generateTypeFreq :: forall a . (Generate a, Pretty a, Ord a, TTypeOf a)
                   => Proxy a -> GenerateConstraint -> Int -> St -> IO  ()
 generateTypeFreq _ con n st = do
   let freq s = sort . map (\x->(length x,head x)) . group . sort $ s
-  ts :: [a] <-  mapM  (\_ ->  runGenerate2 LogNone  con st)  [1..n]
+  ts :: [a] <-  mapM  (\_ ->  runGenerate2 LogNone  ((give con)) st)  [1..n]
   tys <- mapM ttypeOf ts
   print .  vcat .  map pretty $ freq tys
 
 
--- | To allow a Range Constant or a Range Expr
--- | Really should be reanmed
+-- Really should be reanmed
 class WrapConstant a where
   wrapConstant :: Constant -> a
   wrapDomain   :: Domain () a -> a
