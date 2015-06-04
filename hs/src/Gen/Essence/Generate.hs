@@ -2,13 +2,13 @@ module Gen.Essence.Generate(generateEssence) where
 
 import Conjure.Language.Definition
 import Conjure.Language.NameResolution (resolveNames)
-import Conjure.UI.IO                   (writeModel,EssenceFileMode(..))
+import Conjure.UI.IO                   (EssenceFileMode (..), writeModel)
 import Conjure.UI.TypeCheck            (typeCheckModel)
 import Data.Time.Clock.POSIX           (getPOSIXTime)
 import Gen.Arbitrary.Data
 import Gen.Classify.Meta               (mkMeta)
 import Gen.Essence.Adjust
-import Gen.Essence.Reduce              (ErrData (..), reduceErrors,reduceError)
+import Gen.Essence.Reduce              (ErrData (..), reduceError, reduceErrors)
 import Gen.Essence.Spec                ()
 import Gen.Essence.St
 import Gen.Essence.UIData              (EssenceConfig)
