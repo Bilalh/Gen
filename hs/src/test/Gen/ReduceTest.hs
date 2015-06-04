@@ -228,27 +228,3 @@ __runner f ee = do
       state :: EState = newEStateWithSeed seed spe
       res             = runIdentity $ flip evalStateT state $ f ee
   res
-
-
-_opFunc :: IO (Op Expr)
-_opFunc = do
-  (res :: Op Expr ,logs) <- runGenerate LogInfo (GType TypeBool) def{depth=1}
-  if depthOf res > 1 then do
-     putStrLn . show . pretty $ res
-     print (depthOf res)
-     putStrLn $ renderSized 120 $ logs
-     putStrLn . show . pretty $ res
-     return res
-   else
-     return res
-
-aaa= EComp (EVar (Var "l_1" (TypeMSet TypeBool)))
-          [GenDom (Single (Name "l_1"))
-             (DomainMSet ()
-                (MSetAttr
-                   (SizeAttr_Size
-                      (EOp
-                         (MkOpPow (OpPow (ECon (ConstantInt 1)) (ECon (ConstantInt 0))))))
-                   OccurAttr_None)
-                DomainBool)]
-          [ECon (ConstantBool True), ECon (ConstantBool True)]
