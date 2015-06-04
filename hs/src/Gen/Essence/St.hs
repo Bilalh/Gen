@@ -39,6 +39,7 @@ module Gen.Essence.St
   , logHigher2
   , runGenerate
   , sanityn
+  , noVars
   ) where
 
 import Conjure.Language.Constant
@@ -279,6 +280,9 @@ withVars nvars f = do
   res <- f
   modify $ \st -> st{ newVars_ = old }
   return res
+
+noVars :: GenSt a -> GenSt a
+noVars = withWeights [(K_EVar, 0), (K_LVar, 0)]
 
 
 -- | Error message for give
