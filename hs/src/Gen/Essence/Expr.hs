@@ -111,8 +111,11 @@ instance Generate ListComp where
     let (gens, vars) = unzip gen_var
 
     inner <- withVars vars $ dgive (GType a)
-    cs_num <- choose3 (0,2)
-    cs    <- withVars vars $ vectorOf3 cs_num $ dgive (GType TypeBool)
+    cs_num <-choose3 (0,2)
+    cs    <- withWeights [(K_EVar, 0)]
+           . withVars vars
+           . vectorOf3 cs_num
+           $ dgive (GType TypeBool)
 
     return (inner, gens, cs)
 
