@@ -5,7 +5,6 @@ import Conjure.Language.NameResolution (resolveNames)
 import Conjure.UI.IO                   (EssenceFileMode (..), writeModel)
 import Conjure.UI.TypeCheck            (typeCheckModel)
 import Data.Time.Clock.POSIX           (getPOSIXTime)
-import Gen.Arbitrary.Data
 import Gen.Classify.Meta               (mkMeta)
 import Gen.Essence.Adjust
 import Gen.Essence.Reduce              (ErrData (..), reduceError, reduceErrors)
@@ -23,6 +22,7 @@ import qualified Data.IntSet             as I
 import qualified Data.Map                as M
 import qualified Data.Set                as S
 import qualified Gen.Arbitrary.Arbitrary as FirstGen
+import qualified Gen.Arbitrary.Data      as FirstGen
 import qualified Gen.Essence.UIData      as EC
 import qualified Gen.IO.Toolchain        as Toolchain
 
@@ -562,15 +562,14 @@ genToUse depth EC.EssenceConfig{genType_=EC.SecondGen} = do
   f (sp,logs) = (sp, vcat [ msg | (lvl, msg) <- logs , lvl <= allowed ])
 
 genToUse depth EC.EssenceConfig{genType_=EC.FirstGen} = do
- let g = f <$> FirstGen.spec depth def{gen_useFunc = myUseFunc}
+ let g = f <$> FirstGen.spec depth def{FirstGen.gen_useFunc = myUseFunc}
  return g
 
   where
   f (sp,logs) = (sp, pretty logs)
 
-  -- For all Gen, does not work completely
-  myUseFunc :: FuncsNames -> Bool
-  myUseFunc Aapply = False
-  myUseFunc Ahist = False
-  myUseFunc Ainverse = False
-  myUseFunc _ = True
+  myUseFunc :: FirstGen.FuncsNames -> Bool
+  myUseFunc FirstGen.Aapply   = False
+  myUseFunc FirstGen.Ahist    = False
+  myUseFunc FirstGen.Ainverse = False
+  myUseFunc _                 = True
