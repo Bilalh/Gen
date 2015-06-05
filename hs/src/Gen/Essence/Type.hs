@@ -6,7 +6,6 @@ import Gen.Imports
 import Gen.Essence.Rnd
 
 import qualified Data.Set as S
-import qualified Gen.Essence.Data.Types as Types
 
 instance Generate Type where
   give (GOnlyTopLevel ws) = do

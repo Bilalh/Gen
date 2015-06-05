@@ -1,14 +1,12 @@
-{-# LANGUAGE DeriveDataTypeable, DeriveGeneric, FlexibleInstances,
-             MultiParamTypeClasses #-}
+{-# LANGUAGE DeriveDataTypeable, DeriveGeneric, MultiParamTypeClasses #-}
 module Gen.Classify.Meta where
 
 import Conjure.Language.AbstractLiteral
 import Conjure.Language.Expression.Op
 import Gen.Classify.DomTypes
-import Gen.Imports
-import Gen.Helpers.TypeOf
 import Gen.Helpers.SizeOf
 import Gen.Helpers.Standardise
+import Gen.Imports
 
 import qualified Data.Foldable as F
 import qualified Data.Map      as M

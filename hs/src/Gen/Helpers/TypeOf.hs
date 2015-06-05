@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, TypeOperators #-}
+{-# LANGUAGE MultiParamTypeClasses, TypeOperators #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Gen.Helpers.TypeOf(TTypeOf(..), typeOfDom) where
@@ -9,8 +9,6 @@ import Conjure.Language.Domain
 import Conjure.Language.Expression.Op
 import Conjure.Language.TypeOf
 import Gen.Imports
-
-import qualified Data.Map as M
 
 
 class TTypeOf a where

@@ -5,7 +5,6 @@ module Gen.Reduce.Data where
 
 import Conjure.Language.Constant
 import Data.HashMap.Strict       (HashMap)
-import Gen.Helpers.TypeOf
 import Gen.Imports
 import Gen.IO.Toolchain          (KindI, StatusI,ToolchainOutput(..))
 import System.Random
@@ -240,4 +239,3 @@ instance (HasLogger (StateT EState (IdentityT (StateT RState IO)))) where
 instance (HasGen (StateT EState (IdentityT (StateT RState IO)))) where
   getGen   = gets sgen_
   putGen g = modify $ \st -> st{sgen_=g }
-
