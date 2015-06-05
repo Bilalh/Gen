@@ -277,16 +277,6 @@ checkDB newE= do
               return $ Just err
 
 
-storeInDB :: Spec -> RunResult  -> EE ()
-storeInDB sp r = do
-  let newHash = hash sp
-  gets resultsDB_ >>=  \m -> do
-      let newDB = H.insert newHash r m
-      modify $ \st -> st{resultsDB_ = newDB}
-
-
-
-
 getFileSize :: FilePath -> IO Integer
 getFileSize path = getFileStatus
                    path >>= \s -> return $ fromIntegral $ fileSize s

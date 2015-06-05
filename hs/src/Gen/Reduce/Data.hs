@@ -47,6 +47,7 @@ data RState = RState
     } deriving (Show)
 
 
+
 instance Pretty RState where
     pretty RState{..} =
         "RState" <+> Pr.braces (
@@ -95,12 +96,6 @@ instance Default RState where
                  ,timeLeft_           = Nothing
                  ,totalIsRealTime_    = False
                  }
-
-
-infixl 1 *|
-(*|) :: a -> Bool -> Maybe a
-a  *| c | c = Just a
-_  *| _     = Nothing
 
 
 mkrGen :: Int -> TFGen
@@ -201,3 +196,8 @@ instance (HasLogger (StateT EState (IdentityT (StateT RState IO)))) where
 instance (HasGen (StateT EState (IdentityT (StateT RState IO)))) where
   getGen   = gets sgen_
   putGen g = modify $ \st -> st{sgen_=g }
+
+
+instance Monad m => MonadDB (StateT RState m) where
+    getsDb    = gets resultsDB_
+    putsDb db = modify $ \st -> st{resultsDB_=db}

@@ -50,14 +50,27 @@ instance FromJSON (HashMap Int RunResult) where
     parseJSON  val = H.fromList <$> parseJSON val
 
 
+-- | Cache the Spec
+storeInDB :: (MonadDB m, MonadIO m) => Spec -> RunResult  -> m ()
+storeInDB sp r = do
+  let newHash = hash sp
+  getsDb >>=  \m -> do
+      let newDB = H.insert newHash r m
+      -- liftIO $ putStrLn . show . vcat $ ["Storing " <+> pretty newHash
+      --                                   ,"for" <+> pretty sp
+      --                                   , "db" <+> prettyArr (H.toList $ newDB)
+      --                                   ]
+      putsDb newDB
+
+
+
 saveDB :: (MonadDB m, MonadIO m) => Bool -> Maybe FilePath -> m ()
 saveDB b may= do
   db <-getsDb
   saveDB_ b may db
 
 
-
--- | Cache the results if given a filepath
+-- | Save the DB if given a filepath
 saveDB_ :: MonadIO m => Bool -> Maybe FilePath -> ResultsDB -> m ()
 saveDB_ _ Nothing  _    = return ()
 saveDB_ onlyPassing (Just dir) db = do

@@ -96,3 +96,8 @@ instance (HasLogger (StateT EState (IdentityT (StateT GState IO)))) where
 instance (HasGen (StateT EState (IdentityT (StateT GState IO)))) where
   getGen   = gets sgen_
   putGen g = modify $ \st -> st{sgen_=g }
+
+
+instance Monad m => MonadDB (StateT GState m) where
+    getsDb    = gets resultsDB_
+    putsDb db = modify $ \st -> st{resultsDB_=db}

@@ -16,7 +16,7 @@ import Gen.Essence.UIData
 import Gen.Generalise.Generalise  (generaliseMain)
 import Gen.Imports
 import Gen.IO.Formats             (readFromJSON, writeToJSON)
-import Gen.IO.RunResult           (saveDB,saveDB_)
+import Gen.IO.RunResult           (saveDB_)
 import Gen.IO.Term
 import Gen.IO.Toolchain           (KindI (..), StatusI (..), ToolchainOutput (..),
                                    doMeta, kindsList, statusesList)
