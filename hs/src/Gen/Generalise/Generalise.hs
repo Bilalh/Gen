@@ -3,10 +3,10 @@ module Gen.Generalise.Generalise where
 import Gen.Generalise.Data
 import Gen.Generalise.Runner
 import Gen.Reduce.Reduction
-import Gen.Reduce.Data  hiding (RState(..))
 import Gen.Imports
 import Gen.IO.Formats
 import Gen.Helpers.Log
+import Gen.IO.RunResult
 
 
 import Data.Generics.Uniplate.Zipper ( Zipper, zipperBi, fromZipper, hole, replaceHole )

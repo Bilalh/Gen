@@ -1,11 +1,11 @@
 module Gen.Reduce.TypeCheck where
 
 import Conjure.Language.Definition
-import Gen.Imports
 import Conjure.Language.NameResolution (resolveNames)
 import Conjure.UI.TypeCheck            (typeCheckModel)
 import Data.Time.Clock.POSIX           (getPOSIXTime)
-import Gen.Reduce.Data
+import Gen.Imports
+import Gen.IO.RunResult
 import Gen.IO.ToolchainData
 
 

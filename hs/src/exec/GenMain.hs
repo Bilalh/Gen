@@ -16,18 +16,19 @@ import Gen.Essence.UIData
 import Gen.Generalise.Generalise  (generaliseMain)
 import Gen.Imports
 import Gen.IO.Formats             (readFromJSON, writeToJSON)
+import Gen.IO.RunResult           (saveDB,saveDB_)
 import Gen.IO.Term
 import Gen.IO.Toolchain           (KindI (..), StatusI (..), ToolchainOutput (..),
                                    doMeta, kindsList, statusesList)
 import Gen.Reduce.Data            (RState (..), mkrGen)
 import Gen.Reduce.FormatResults   (formatResults)
 import Gen.Reduce.Reduce          (reduceMain)
-import Gen.Reduce.Runner          (giveDb, saveDB)
+import Gen.Reduce.Runner          (giveDb)
 import Gen.Solver.Solver          (SolverArgs (..), solverMain)
 import Gen.UI.UI
 import System.Console.CmdArgs     (cmdArgs)
 import System.CPUTime             (getCPUTime)
-import System.Directory           (setCurrentDirectory,getCurrentDirectory)
+import System.Directory           (getCurrentDirectory, setCurrentDirectory)
 import System.Environment         (lookupEnv, withArgs)
 import System.Exit                (exitFailure, exitSuccess, exitWith)
 import System.FilePath            (replaceExtension, takeExtensions)
@@ -258,7 +259,7 @@ mainWithArgs u@Reduce{..} = do
   doMeta out no_csv binaries_directory
 
   state <- reduceMain True args
-  saveDB db_only_passing db_directory (resultsDB_  state)
+  saveDB_ db_only_passing db_directory (resultsDB_  state)
   void $ formatResults (delete_steps) state
 
 mainWithArgs Generalise{..} = do
@@ -324,7 +325,7 @@ mainWithArgs Generalise{..} = do
   doMeta out no_csv binaries_directory
 
   state <- generaliseMain args
-  saveDB False db_directory (E.resultsDB_  state)
+  saveDB_ False db_directory (E.resultsDB_  state)
 
 mainWithArgs Solver{..} = do
 

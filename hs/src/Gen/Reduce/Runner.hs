@@ -2,19 +2,19 @@
              DeriveTraversable #-}
 module Gen.Reduce.Runner where
 
-import Data.Time.Clock.POSIX       (getPOSIXTime)
-import Gen.Classify.Meta           (mkMeta)
+import Data.Time.Clock.POSIX    (getPOSIXTime)
+import Gen.Classify.Meta        (mkMeta)
 import Gen.Helpers.Log
 import Gen.Imports
 import Gen.IO.Formats
-import Gen.IO.Toolchain            hiding (ToolchainData (..))
+import Gen.IO.RunResult
+import Gen.IO.Toolchain         hiding (ToolchainData (..))
 import Gen.Reduce.Data
-import Gen.Reduce.FormatResults
-import GHC.Real                    (floor)
-import System.FilePath             (replaceDirectory, takeBaseName)
-import System.Posix                (getFileStatus)
-import System.Posix.Files          (fileSize)
 import Gen.Reduce.TypeCheck
+import GHC.Real                 (floor)
+import System.FilePath          (replaceDirectory, takeBaseName)
+import System.Posix             (getFileStatus)
+import System.Posix.Files       (fileSize)
 
 import qualified Data.HashMap.Strict as H
 import qualified Data.Map            as M
@@ -368,31 +368,6 @@ storeInDB sp r = do
       --                                   ]
       modify $ \st -> st{resultsDB_ = newDB}
 
-
--- | Cache the results if given a filepath
-saveDB :: Bool -> Maybe FilePath -> ResultsDB -> IO ()
-saveDB _ Nothing  _    = return ()
-saveDB onlyPassing (Just dir) db = do
-  createDirectoryIfMissing True dir
-  let dbUse = H.filter (removeErrors onlyPassing) db
-
-  ndb <- H.traverseWithKey f dbUse
-  writeToJSON (dir </> "db.json") ndb
-
-  where
-    removeErrors False _        = True
-    removeErrors True Passing{} = True
-    removeErrors _  _           = False
-
-    f _ OurError{..} = do
-      liftIO $ putStrLn ""
-      let newDir = takeBaseName resDirectory_
-      copyDirectory resDirectory_ (dir </>
-                                       newDir)
-      let newChoices = replaceDirectory resErrChoices_ newDir
-      return $ StoredError{resDirectory_= newDir, resErrChoices_=newChoices, ..}
-
-    f _ x = return x
 
 getFileSize :: FilePath -> IO Integer
 getFileSize path = getFileStatus

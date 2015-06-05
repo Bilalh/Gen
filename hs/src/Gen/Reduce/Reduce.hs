@@ -1,15 +1,16 @@
 {-# LANGUAGE TupleSections #-}
 module Gen.Reduce.Reduce where
 
-import Gen.Reduce.Data
-import Gen.Reduce.Runner
-import Gen.IO.Formats
-import Gen.Reduce.Reduction
-import Gen.Reduce.UnusedDomains
-import Gen.Imports
 import Conjure.Language.Domain
-import Gen.Reduce.QuanToComp(quanToComp)
 import Gen.Helpers.Log
+import Gen.Imports
+import Gen.IO.Formats
+import Gen.IO.RunResult
+import Gen.Reduce.Data
+import Gen.Reduce.QuanToComp    (quanToComp)
+import Gen.Reduce.Reduction
+import Gen.Reduce.Runner
+import Gen.Reduce.UnusedDomains
 
 import qualified Data.Map as M
 

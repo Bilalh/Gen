@@ -1,15 +1,14 @@
-{-# LANGUAGE DeriveDataTypeable, DeriveGeneric, FlexibleContexts, FlexibleInstances,
-             KindSignatures #-}
+{-# LANGUAGE DeriveDataTypeable, DeriveGeneric, KindSignatures #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Gen.Reduce.Data where
 
 import Conjure.Language.Constant
-import Data.HashMap.Strict       (HashMap)
+import Gen.Helpers.Log
 import Gen.Imports
-import Gen.IO.Toolchain          (KindI, StatusI,ToolchainOutput(..))
+import Gen.IO.RunResult
+import Gen.IO.Toolchain          (KindI, StatusI, ToolchainOutput (..))
 import System.Random
 import System.Random.TF
-import Gen.Helpers.Log
 
 import qualified Data.HashMap.Strict as H
 import qualified Text.PrettyPrint    as Pr
@@ -19,7 +18,6 @@ etrue  = ECon (ConstantBool True)
 efalse = ECon (ConstantBool False)
 
 type RR a = StateT RState IO a
-type Hash = Int
 
 data RState = RState
     { oErrKind_         :: KindI
@@ -47,39 +45,6 @@ data RState = RState
     , timeLeft_           :: Maybe Int
     , totalIsRealTime_    :: Bool
     } deriving (Show)
-
-
-data RunResult =
-    OurError{
-      resDirectory_  :: FilePath
-    , resErrKind_    :: KindI
-    , resErrStatus_  :: StatusI
-    , resErrChoices_ :: FilePath
-    , timeTaken_     :: Int
-    }
-    | StoredError{
-      resDirectory_  :: FilePath
-    , resErrKind_    :: KindI
-    , resErrStatus_  :: StatusI
-    , resErrChoices_ :: FilePath
-    , timeTaken_     :: Int
-    }
-    | Passing {
-      timeTaken_     :: Int
-    } deriving (Eq, Ord, Show, Read, Data, Typeable, Generic)
-
-
-type ResultsDB = HashMap Int RunResult
-
-instance FromJSON RunResult
-instance ToJSON   RunResult
-
-instance ToJSON (HashMap Int RunResult) where
-    toJSON  = toJSON . H.toList
-
-instance FromJSON (HashMap Int RunResult) where
-    parseJSON  val = H.fromList <$> parseJSON val
-
 
 
 instance Pretty RState where
@@ -130,9 +95,6 @@ instance Default RState where
                  ,timeLeft_           = Nothing
                  ,totalIsRealTime_    = False
                  }
-
-instance Pretty RunResult where
-    pretty = pretty . groom
 
 
 infixl 1 *|

@@ -5,6 +5,7 @@ import Gen.Helpers.Log
 import Gen.Imports
 import Gen.IO.Toolchain (KindI, StatusI, ToolchainOutput (..))
 import Gen.Reduce.Data  hiding (RState (..))
+import Gen.IO.RunResult
 import System.Random.TF
 
 import qualified Data.HashMap.Strict as H

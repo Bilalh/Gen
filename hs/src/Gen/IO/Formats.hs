@@ -1,14 +1,15 @@
 module Gen.IO.Formats where
 
-import Gen.Imports
-import Data.Time(formatTime,getCurrentTime)
-import Data.Time.Format(defaultTimeLocale)
-import Conjure.UI.IO(readModelFromFile)
+import Conjure.Language.NameGen        (runNameGen)
 import Conjure.Language.NameResolution
-import Conjure.Language.NameGen ( runNameGen )
+import Conjure.UI.IO                   (readModelFromFile)
+import Data.Time                       (formatTime, getCurrentTime)
+import Data.Time.Format                (defaultTimeLocale)
+import Gen.Imports
+import System.Directory                (copyFile)
 
+import qualified Data.Aeson           as A
 import qualified Data.ByteString.Lazy as L
-import qualified Data.Aeson as A
 
 
 timestamp :: MonadIO m => m Int
@@ -44,3 +45,13 @@ writeToJSON fp r = do
 
 replaceExtensions :: FilePath -> FilePath -> FilePath
 replaceExtensions x y = dropExtensions x <.> y
+
+
+copyDirectory :: FilePath -> FilePath -> IO ()
+copyDirectory from to = do
+  createDirectoryIfMissing True to
+  fps <- (getDirectoryContents from)
+  forM_ (filter (`notElem` [".", ".."])  fps) $ \f -> do
+    doesDirectoryExist f >>= \case
+      True  -> return ()
+      False -> copyFile (from </> f) (to </> f)

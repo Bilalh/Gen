@@ -1,8 +1,10 @@
 module Gen.Reduce.FormatResults(formatResults, copyDirectory) where
 
 import Gen.Imports
+import Gen.IO.Formats   (copyDirectory)
+import Gen.IO.RunResult
 import Gen.Reduce.Data
-import System.Directory (copyFile, renameDirectory)
+import System.Directory (renameDirectory)
 import System.FilePath  (takeFileName)
 
 formatResults :: Bool -> RState -> IO (Maybe FilePath)
@@ -60,13 +62,3 @@ formatResults delete_steps RState{..} = do
       let newDir = othersDir </> (show (resErrKind_ r)) </> (show (resErrStatus_ r))
       createDirectoryIfMissing True newDir
       renameDirectory (resDirectory_ r) (newDir </> (takeFileName (resDirectory_ r)) )
-
-
-copyDirectory :: FilePath -> FilePath -> IO ()
-copyDirectory from to = do
-  createDirectoryIfMissing True to
-  fps <- (getDirectoryContents from)
-  forM_ (filter (`notElem` [".", ".."])  fps) $ \f -> do
-    doesDirectoryExist f >>= \case
-      True  -> return ()
-      False -> copyFile (from </> f) (to </> f)

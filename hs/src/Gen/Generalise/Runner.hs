@@ -1,17 +1,17 @@
 module Gen.Generalise.Runner where
 
-import Gen.Classify.Meta        (mkMeta)
+import Gen.Classify.Meta   (mkMeta)
 import Gen.Generalise.Data
 import Gen.Helpers.Log
 import Gen.Imports
 import Gen.IO.Formats
-import Gen.IO.Toolchain         hiding (ToolchainData (..))
-import Gen.Reduce.Data          hiding (RState (..))
-import Gen.Reduce.FormatResults
-import GHC.Real                 (floor)
-import System.FilePath          (replaceDirectory, takeBaseName)
-import System.Posix             (getFileStatus)
-import System.Posix.Files       (fileSize)
+import Gen.IO.RunResult
+import Gen.IO.Toolchain    hiding (ToolchainData (..))
+import Gen.Reduce.Data     hiding (RState (..))
+import GHC.Real            (floor)
+import System.FilePath     (replaceDirectory, takeBaseName)
+import System.Posix        (getFileStatus)
+import System.Posix.Files  (fileSize)
 
 import qualified Data.HashMap.Strict as H
 import qualified Data.Map            as M
