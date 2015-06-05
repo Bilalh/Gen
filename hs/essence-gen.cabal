@@ -19,12 +19,14 @@ Library
                      , Gen.Arbitrary.Arbitrary
                      , Gen.Arbitrary.Common
                      , Gen.Arbitrary.Data
+                     , Gen.Arbitrary.Debug
                      , Gen.Arbitrary.Domain
                      , Gen.Arbitrary.Expr
                      , Gen.Arbitrary.FromNested
                      , Gen.Arbitrary.Generators
                      , Gen.Arbitrary.Literal
                      , Gen.Arbitrary.Op
+                     , Gen.Arbitrary.OrderedType
                      , Gen.Arbitrary.Prelude
                      , Gen.Arbitrary.QuickCheck2
                      , Gen.Arbitrary.Type
@@ -118,17 +120,16 @@ Library
                      , Gen.Generalise.Data
                      , Gen.Generalise.Generalise
                      , Gen.Generalise.Runner
-                     , Gen.Arbitrary.Debug
                      , Gen.Helpers.InlineLettings
                      , Gen.Helpers.LineError
                      , Gen.Helpers.Log
-                     , Gen.Arbitrary.OrderedType
                      , Gen.Helpers.Placeholders
                      , Gen.Helpers.SizeOf
                      , Gen.Helpers.Standardise
                      , Gen.Helpers.TypeOf
                      , Gen.Imports
                      , Gen.IO.Formats
+                     , Gen.IO.RunResult
                      , Gen.IO.Term
                      , Gen.IO.TermSize
                      , Gen.IO.Toolchain
