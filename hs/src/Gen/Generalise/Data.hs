@@ -74,7 +74,7 @@ instance Default GState where
                  ,binariesDirectory_  = Nothing
                  ,toolchainOutput_    = def
                  ,deletePassing_      = False
-                 ,resultsDB_          = H.empty
+                 ,resultsDB_          = def
                  ,choicesToUse_       = error "set mostReducedChoices_=oErrChoices_"
                  ,resultsDB_dir       = Nothing
                  }

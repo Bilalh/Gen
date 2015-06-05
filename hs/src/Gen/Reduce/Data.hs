@@ -90,7 +90,7 @@ instance Default RState where
                  ,binariesDirectory_  = Nothing
                  ,toolchainOutput_    = def
                  ,deletePassing_      = False
-                 ,resultsDB_          = H.empty
+                 ,resultsDB_          = def
                  ,mostReducedChoices_ = error "set mostReducedChoices_=oErrChoices_"
                  ,resultsDB_dir       = Nothing
                  ,timeLeft_           = Nothing

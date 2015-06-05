@@ -38,7 +38,7 @@ reduceErrors ec = mapM (reduceError ec)
 
 reduceError :: EssenceConfig -> ErrData -> IO ReduceResult
 reduceError EssenceConfig{..} ErrData{..}= do
-  db <- return H.empty
+  db <- def
 
   let per_spec_time  = round (fromIntegral perSpecTime_ * 1.5 :: Double) :: Int
       no_csv         = False

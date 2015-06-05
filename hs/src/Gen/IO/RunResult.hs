@@ -28,8 +28,11 @@ data RunResult =
       timeTaken_     :: Int
     } deriving (Eq, Ord, Show, Read, Data, Typeable, Generic)
 
+newtype ResultsDB = ResultsDB (HashMap Int RunResult)
+  deriving Show
 
-type ResultsDB = HashMap Int RunResult
+instance Default ResultsDB where
+    def = ResultsDB (H.empty)
 
 -- | Results of running a spec for caching
 class Monad m => MonadDB m where
@@ -40,6 +43,11 @@ class Monad m => MonadDB m where
     -- | The directory where specs are ran
     getOutputDirectory :: m FilePath
 
+    -- | True if the errors should be sorted a kind/status/id
+    -- | Mainly for generate
+    sortByKindStatus :: m Bool
+    sortByKindStatus = return False
+
 instance Pretty RunResult where
     pretty = pretty . groom
 
@@ -47,24 +55,24 @@ instance Pretty RunResult where
 instance FromJSON RunResult
 instance ToJSON   RunResult
 
-instance ToJSON (HashMap Int RunResult) where
-    toJSON  = toJSON . H.toList
+instance ToJSON ResultsDB where
+    toJSON (ResultsDB m) = toJSON . H.toList $ m
 
-instance FromJSON (HashMap Int RunResult) where
-    parseJSON  val = H.fromList <$> parseJSON val
+instance FromJSON ResultsDB where
+    parseJSON  val = (ResultsDB . H.fromList) <$> parseJSON val
 
 
 -- | Cache the Spec
 storeInDB :: (MonadDB m, MonadIO m) => Spec -> RunResult  -> m ()
 storeInDB sp r = do
   let newHash = hash sp
-  getsDb >>=  \m -> do
+  getsDb >>=  \(ResultsDB m) -> do
       let newDB = H.insert newHash r m
       -- liftIO $ putStrLn . show . vcat $ ["Storing " <+> pretty newHash
       --                                   ,"for" <+> pretty sp
       --                                   , "db" <+> prettyArr (H.toList $ newDB)
       --                                   ]
-      putsDb newDB
+      putsDb (ResultsDB newDB)
 
 
 
@@ -72,7 +80,7 @@ storeInDB sp r = do
 checkDB :: (MonadDB m, MonadIO m) =>  Spec -> m (Maybe RunResult)
 checkDB newE= do
   let newHash = hash newE
-  getsDb >>=  \m ->
+  getsDb >>=  \(ResultsDB m) ->
       case newHash `H.lookup` m of
         Nothing              -> do
                 -- liftIO $ putStrLn . show . vcat $
@@ -86,9 +94,14 @@ checkDB newE= do
         Just r@OurError{}    -> return (Just r)
         Just StoredError{..} -> do
           out <- getOutputDirectory
-          let outDir = (out </> takeBaseName resDirectory_ )
+          outDir <- sortByKindStatus >>= \case
+            False -> return $ (out </> takeBaseName resDirectory_ )
+            True -> return  $ (out </> show resErrKind_
+                                   </> show resErrStatus_
+                                   </> takeBaseName resDirectory_ )
+
           let newChoices = replaceDirectory resErrChoices_ outDir
-          let err = OurError{resDirectory_=outDir, resErrChoices_=newChoices, .. }
+          let err = OurError{resDirectory_= outDir, resErrChoices_=newChoices, .. }
 
           db_dir <-getDbDirectory >>= \case
                     Just df -> return df
@@ -112,12 +125,12 @@ saveDB onlyPassing = do
 -- | Save the DB if given a filepath
 saveDB_ :: MonadIO m => Bool -> Maybe FilePath -> ResultsDB -> m ()
 saveDB_ _ Nothing  _    = return ()
-saveDB_ onlyPassing (Just dir) db = do
+saveDB_ onlyPassing (Just dir) (ResultsDB db) = do
   liftIO $ createDirectoryIfMissing True dir
   let dbUse = H.filter (removeErrors onlyPassing) db
 
   ndb <- liftIO $ H.traverseWithKey f dbUse
-  liftIO $ writeToJSON (dir </> "db.json") ndb
+  liftIO $ writeToJSON (dir </> "db.json") (ResultsDB ndb)
 
   where
     removeErrors False _        = True
@@ -127,8 +140,7 @@ saveDB_ onlyPassing (Just dir) db = do
     f _ OurError{..} = do
       liftIO $ putStrLn ""
       let newDir = takeBaseName resDirectory_
-      copyDirectory resDirectory_ (dir </>
-                                       newDir)
+      copyDirectory resDirectory_ (dir </> newDir)
       let newChoices = replaceDirectory resErrChoices_ newDir
       return $ StoredError{resDirectory_= newDir, resErrChoices_=newChoices, ..}
 

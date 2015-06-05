@@ -31,7 +31,13 @@ import qualified Gen.IO.Toolchain        as Toolchain
 generateEssence :: KeyMap -> EssenceConfig -> IO ()
 generateEssence km ec@EC.EssenceConfig{..} = do
   setRandomSeed seed_
-  let carry = Carry{cHashes=runHashes_,cWeighting=km,cWeightingHashPrev=0}
+  let carry = Carry{ cHashes            = runHashes_
+                   , cWeighting         = km
+                   , cWeightingHashPrev = 0
+                   , cDB                = def
+                   , cSpecDir           = outputDirectory_ </> "_errors"
+                   , cDBDir             = outputDirectory_ </> "cache"
+                   }
   case mode_ of
     EC.TypeCheck_ -> void $ evalStateT (doTypeCheck ec) carry
     EC.Refine_    -> void $ evalStateT (doRefine ec) carry
