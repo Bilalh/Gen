@@ -8,8 +8,8 @@ import Gen.Reduce.Data  hiding (RState (..))
 import Gen.IO.RunResult
 import System.Random.TF
 
-import qualified Data.HashMap.Strict as H
 import qualified Text.PrettyPrint    as Pr
+
 
 type EE a = StateT GState IO a
 

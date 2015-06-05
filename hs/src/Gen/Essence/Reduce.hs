@@ -9,10 +9,8 @@ import Gen.Reduce.Data          (RState (..))
 import Gen.Reduce.FormatResults (formatResults)
 import Gen.Reduce.Reduce        (reduceMain)
 import System.FilePath          (takeBaseName)
--- import Gen.Reduce.Runner   (giveDb, saveDB)
 
-import qualified Data.HashMap.Strict as H
-import qualified Gen.Reduce.Data     as R
+import qualified Gen.Reduce.Data as R
 
 data ErrData = ErrData
     { kind    :: KindI

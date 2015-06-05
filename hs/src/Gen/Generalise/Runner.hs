@@ -18,7 +18,10 @@ runSpec :: Spec -> EE (Maybe RunResult)
 runSpec spE = do
   liftIO $ logSpec spE
 
-  checkDB spE >>= \case
+  rrErrorKind   <- gets oErrKind_
+  rrErrorStatus <- gets oErrStatus_
+
+  checkDB rrErrorKind rrErrorStatus spE >>= \case
     Just StoredError{} -> rrError "StoredResult in runSpec" []
     Just Passing{} -> do
       liftIO $ print $ ("Stored no rrError(P)"  :: String)
@@ -63,9 +66,6 @@ runSpec spE = do
           refineWay (Just _) RefineRandom_  = Refine_Only
           refineWay (Just _) _              = Refine_Solve
           refineWay _        _              = Refine_Solve_All
-
-      rrErrorKind   <- gets oErrKind_
-      rrErrorStatus <- gets oErrStatus_
 
       (_, res)  <- toolchain Toolchain.ToolchainData{
                     Toolchain.essencePath       = essencePath

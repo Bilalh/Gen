@@ -77,8 +77,12 @@ storeInDB sp r = do
 
 
 -- | Check if the spec's hash is contained, return the result if it is
-checkDB :: (MonadDB m, MonadIO m) =>  Spec -> m (Maybe RunResult)
-checkDB newE= do
+checkDB :: (MonadDB m, MonadIO m)
+        => KindI
+        -> StatusI
+        -> Spec
+        -> m (Maybe RunResult)
+checkDB kind status newE= do
   let newHash = hash newE
   getsDb >>=  \(ResultsDB m) ->
       case newHash `H.lookup` m of
@@ -90,8 +94,15 @@ checkDB newE= do
                 --            -- , nn "gromed" (groom newE)
                 --            ]
                 return Nothing
-        Just r@Passing{}     -> return (Just r)
-        Just r@OurError{}    -> return (Just r)
+        Just r@OurError{} | not (sameError r) -> do
+          docError [pretty $line, "OurError is not the same"
+                   , nn "kind" kind
+                   , nn "status" status
+                   , nn "result" r]
+
+        Just r@Passing{}   -> return (Just r)
+        Just r@OurError{}  -> return (Just r)
+        Just r@StoredError{} | not (sameError r) -> return Nothing
         Just StoredError{..} -> do
           out <- getOutputDirectory
           outDir <- sortByKindStatus >>= \case
@@ -112,6 +123,12 @@ checkDB newE= do
             False -> do
               liftIO $ copyDirectory (db_dir </> resDirectory_)  outDir
               return $ Just err
+
+
+  where
+    sameError :: RunResult -> Bool
+    sameError Passing{} = True
+    sameError r = resErrKind_ r == kind && resErrStatus_ r == status
 
 
 -- | Save the DB if given a filepath
