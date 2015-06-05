@@ -12,11 +12,7 @@ import Gen.Helpers.TypeOf
 import Gen.Essence.St
 import Gen.Essence.Expr()
 import Gen.Essence.Type()
-import Conjure.Language.TH
 import Gen.Essence.Id
-import Conjure.Language.Expression.Op
-import Conjure.Language.Definition
-import Conjure.Language.Domain
 
 tests :: TestTree
 tests = testGroup "ReductionTests"
@@ -92,49 +88,49 @@ e_no_reductions =
 
 r_no_reductions :: Expr -> TestTree
 r_no_reductions a = testCase (pretty a) $
-  let res = __runner reduce a
+  let res = runner reduce a
   in assertBool ("Found reductions expected None\n" ++ show (prettyArr res) )  (null res)
 
 
 r_reduce_should_not_contain_self :: Expr -> TestTree
 r_reduce_should_not_contain_self a = testCase (pretty a) $
-  let res = __runner reduce a
+  let res = runner reduce a
   in assertBool ("Reductions contained self\n" ++ show (prettyArr res) )  (all (/=a) res)
 
 
 
 r_depth_lt :: Expr -> TestTree
 r_depth_lt a = testCase (pretty a) $
-          ( all (\b -> depthOf b < depthOf a ) $ __runner reduce a ) @?= (True)
+          ( all (\b -> depthOf b < depthOf a ) $ runner reduce a ) @?= (True)
 
 r_depth_some_lt :: Expr -> TestTree
 r_depth_some_lt a = testCase (pretty a) $
           ( all (\b -> depthOf b <= depthOf a ) &&& any (\b -> depthOf b < depthOf a )
-                    $ __runner reduce a ) @?= (True,True)
+                    $ runner reduce a ) @?= (True,True)
 
 r_depth_leq :: Expr -> TestTree
 r_depth_leq a = testCase (pretty a) $
-          ( all (\b -> depthOf b <= depthOf a )  $ __runner reduce a ) @?= True
+          ( all (\b -> depthOf b <= depthOf a )  $ runner reduce a ) @?= True
 
 
 r_reduce_simp_leq :: Expr -> TestTree
 r_reduce_simp_leq a = testCase (pretty a) $
-          ( all (\b -> simpler_leq b a )  $ __runner reduce a ) @?= True
+          ( all (\b -> simpler_leq b a )  $ runner reduce a ) @?= True
 
 r_subterms_simp_leq :: Expr -> TestTree
 r_subterms_simp_leq a = testCase (pretty a) $
-          ( all (\b -> simpler_leq b a )  $ __runner R.subterms a ) @?= True
+          ( all (\b -> simpler_leq b a )  $ runner R.subterms a ) @?= True
 
 r_type_leq :: Expr -> TestTree
 r_type_leq a = testCase (pretty a) $
           ( all (\b -> simpler_leq (runIdentity . ttypeOf $ b) (runIdentity . ttypeOf $ a) )
-                    $ __runner reduce a ) @?= True
+                    $ runner reduce a ) @?= True
 
 
 r_single_depth :: Expr -> TestTree
 r_single_depth a =
-    let reduced = __runner single a
-        res  = map (\rr -> (all (\l -> depthOf l == depthOf rr  )  $ __runner reduce rr  )  )
+    let reduced = runner single a
+        res  = map (\rr -> (all (\l -> depthOf l == depthOf rr  )  $ runner reduce rr  )  )
                $ reduced
 
     in testCase (pretty a) $ (and res)  @?= True
@@ -210,21 +206,24 @@ qc_tests title  =
    ]
 
 
-prop (Limited _ _ (a :: Expr)) = ( all (\b -> depthOf b <= depthOf a )  $ limitedRun reduce a )
+
+-- To make sure the test finish quickly
+limitedRun :: forall a t. (t -> StateT EState Identity [a]) -> t -> [a]
+limitedRun f a = take 100 $ runner f a
 
 use_qc :: [Maybe a] -> [Maybe a]
 -- use_qc = return []
 use_qc xs = xs
 
--- To make sure the test finish quickly
-limitedRun :: forall a t. (t -> StateT EState Identity [a]) -> t -> [a]
-limitedRun f a = take 100 $ __runner f a
 
--- TODO change name
-__runner :: forall a t. (t -> StateT EState Identity a) -> t -> a
-__runner f ee = do
+runner :: forall a t. (t -> StateT EState Identity a) -> t -> a
+runner f ee = do
   let spe   :: Spec   = $never
       seed            = 32
       state :: EState = newEStateWithSeed seed spe
       res             = runIdentity $ flip evalStateT state $ f ee
   res
+
+
+_prop :: Limited Expr -> Bool
+_prop (Limited _ _ (a :: Expr)) = ( all (\b -> depthOf b <= depthOf a )  $ limitedRun reduce a )

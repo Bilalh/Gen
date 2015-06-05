@@ -167,7 +167,7 @@ instance (Generate a, Reduce a (StateT EState Identity), Simpler a a, DepthOf a,
             <*> pure aa
 
   shrink (Limited ty logs a ) = do
-    let rs = __runner reduceSimpler a
+    let rs = runner reduceSimpler a
     map (Limited ty logs) rs
 
 
@@ -195,8 +195,8 @@ qc_tests title _ =
                 $ depthOf a >= depthOf b
    ]
 
-__runner :: forall a t. (t -> StateT EState Identity a) -> t -> a
-__runner f ee = do
+runner :: forall a t. (t -> StateT EState Identity a) -> t -> a
+runner f ee = do
   let spe   :: Spec   = $never
       seed            = 32
       state :: EState = newEStateWithSeed seed spe
