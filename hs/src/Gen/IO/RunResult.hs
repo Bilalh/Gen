@@ -33,8 +33,12 @@ type ResultsDB = HashMap Int RunResult
 
 -- | Results of running a spec for caching
 class Monad m => MonadDB m where
-    getsDb   :: m ResultsDB
-    putsDb   :: ResultsDB -> m ()
+    getsDb             :: m ResultsDB
+    putsDb             :: ResultsDB -> m ()
+    -- | The directory to save the database in
+    getDbDirectory     :: m (Maybe FilePath)
+    -- | The directory where specs are ran
+    getOutputDirectory :: m FilePath
 
 instance Pretty RunResult where
     pretty = pretty . groom
@@ -64,10 +68,45 @@ storeInDB sp r = do
 
 
 
-saveDB :: (MonadDB m, MonadIO m) => Bool -> Maybe FilePath -> m ()
-saveDB b may= do
-  db <-getsDb
-  saveDB_ b may db
+-- | Check if the spec's hash is contained, return the result if it is
+checkDB :: (MonadDB m, MonadIO m) =>  Spec -> m (Maybe RunResult)
+checkDB newE= do
+  let newHash = hash newE
+  getsDb >>=  \m ->
+      case newHash `H.lookup` m of
+        Nothing              -> do
+                -- liftIO $ putStrLn . show . vcat $
+                --            [ "No result found for hash" <+>  pretty newHash
+                --            , nn "spec" newE
+                --            , "db" <+> prettyArr (H.toList $ m)
+                --            -- , nn "gromed" (groom newE)
+                --            ]
+                return Nothing
+        Just r@Passing{}     -> return (Just r)
+        Just r@OurError{}    -> return (Just r)
+        Just StoredError{..} -> do
+          out <- getOutputDirectory
+          let outDir = (out </> takeBaseName resDirectory_ )
+          let newChoices = replaceDirectory resErrChoices_ outDir
+          let err = OurError{resDirectory_=outDir, resErrChoices_=newChoices, .. }
+
+          db_dir <-getDbDirectory >>= \case
+                    Just df -> return df
+                    Nothing -> $(neverNote "Using an StoredError without knowing the filepath")
+
+          liftIO $ doesDirectoryExist outDir >>= \case
+            True  -> return $ Just err
+            False -> do
+              liftIO $ copyDirectory (db_dir </> resDirectory_)  outDir
+              return $ Just err
+
+
+-- | Save the DB if given a filepath
+saveDB :: (MonadDB m, MonadIO m) => Bool -> m ()
+saveDB onlyPassing = do
+  db  <- getsDb
+  out <-  getDbDirectory
+  saveDB_ onlyPassing out db
 
 
 -- | Save the DB if given a filepath

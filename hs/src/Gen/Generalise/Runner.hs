@@ -9,11 +9,9 @@ import Gen.IO.RunResult
 import Gen.IO.Toolchain    hiding (ToolchainData (..))
 import Gen.Reduce.Data     hiding (RState (..))
 import GHC.Real            (floor)
-import System.FilePath     (replaceDirectory, takeBaseName)
 
-import qualified Data.HashMap.Strict as H
-import qualified Data.Map            as M
-import qualified Gen.IO.Toolchain    as Toolchain
+import qualified Data.Map         as M
+import qualified Gen.IO.Toolchain as Toolchain
 
 
 runSpec :: Spec -> EE (Maybe RunResult)
@@ -248,28 +246,3 @@ addOtherError :: RunResult -> EE ()
 addOtherError r = do
   return ()
   modify $ \st -> st{otherErrors_ =r : otherErrors_ st }
-
--- | Check if the spec's hash is contained, return the result if it is
-checkDB :: Spec -> EE (Maybe RunResult)
-checkDB newE= do
-  let newHash = hash newE
-  gets resultsDB_ >>=  \m ->
-      case newHash `H.lookup` m of
-        Nothing              -> return Nothing
-        Just r@Passing{}     -> return (Just r)
-        Just r@OurError{}    -> return (Just r)
-        Just StoredError{..} -> do
-          out <- gets outputDir_
-          let outDir = (out </> takeBaseName resDirectory_ )
-          let newChoices = replaceDirectory resErrChoices_ outDir
-          let err = OurError{resDirectory_=outDir, resErrChoices_=newChoices, .. }
-
-          db_dir <- gets resultsDB_dir >>= \case
-                    Just df -> return df
-                    Nothing -> $(neverNote "Using an StoredError with knowing the filepath")
-
-          liftIO $ doesDirectoryExist outDir >>= \case
-            True  -> return $ Just err
-            False -> do
-              liftIO $ copyDirectory (db_dir </> resDirectory_)  outDir
-              return $ Just err

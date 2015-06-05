@@ -198,6 +198,8 @@ instance (HasGen (StateT EState (IdentityT (StateT RState IO)))) where
   putGen g = modify $ \st -> st{sgen_=g }
 
 
-instance Monad m => MonadDB (StateT RState m) where
-    getsDb    = gets resultsDB_
-    putsDb db = modify $ \st -> st{resultsDB_=db}
+instance Monad m => MonadDB (StateT RState  m) where
+    getsDb             = gets resultsDB_
+    putsDb db          = modify $ \st -> st{resultsDB_=db}
+    getDbDirectory     = gets resultsDB_dir
+    getOutputDirectory = gets outputDir_

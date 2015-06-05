@@ -99,5 +99,7 @@ instance (HasGen (StateT EState (IdentityT (StateT GState IO)))) where
 
 
 instance Monad m => MonadDB (StateT GState m) where
-    getsDb    = gets resultsDB_
-    putsDb db = modify $ \st -> st{resultsDB_=db}
+    getsDb             = gets resultsDB_
+    putsDb db          = modify $ \st -> st{resultsDB_=db}
+    getDbDirectory     = gets resultsDB_dir
+    getOutputDirectory = gets outputDir_

@@ -2,19 +2,16 @@
              DeriveTraversable #-}
 module Gen.Reduce.Runner where
 
-import Data.Time.Clock.POSIX    (getPOSIXTime)
-import Gen.Classify.Meta        (mkMeta)
+import Data.Time.Clock.POSIX (getPOSIXTime)
+import Gen.Classify.Meta     (mkMeta)
 import Gen.Helpers.Log
 import Gen.Imports
 import Gen.IO.Formats
 import Gen.IO.RunResult
-import Gen.IO.Toolchain         hiding (ToolchainData (..))
+import Gen.IO.Toolchain      hiding (ToolchainData (..))
 import Gen.Reduce.Data
 import Gen.Reduce.TypeCheck
-import GHC.Real                 (floor)
-import System.FilePath          (replaceDirectory, takeBaseName)
-import System.Posix             (getFileStatus)
-import System.Posix.Files       (fileSize)
+import GHC.Real              (floor)
 
 import qualified Data.HashMap.Strict as H
 import qualified Data.Map            as M
@@ -322,36 +319,3 @@ giveDb _perSpec dir passing = do
         readFromJSONMay fp >>= \case
                   Nothing  -> return $ H.empty
                   (Just x) -> return x
-
-
--- | Check if the spec's hash is contained, return the result if it is
-checkDB :: Spec -> RR (Maybe RunResult)
-checkDB newE= do
-  let newHash = hash newE
-  gets resultsDB_ >>=  \m ->
-      case newHash `H.lookup` m of
-        Nothing              -> do
-                -- liftIO $ putStrLn . show . vcat $
-                --            [ "No result found for hash" <+>  pretty newHash
-                --            , nn "spec" newE
-                --            , "db" <+> prettyArr (H.toList $ m)
-                --            -- , nn "gromed" (groom newE)
-                --            ]
-                return Nothing
-        Just r@Passing{}     -> return (Just r)
-        Just r@OurError{}    -> return (Just r)
-        Just StoredError{..} -> do
-          out <- gets outputDir_
-          let outDir = (out </> takeBaseName resDirectory_ )
-          let newChoices = replaceDirectory resErrChoices_ outDir
-          let err = OurError{resDirectory_=outDir, resErrChoices_=newChoices, .. }
-
-          db_dir <- gets resultsDB_dir >>= \case
-                    Just df -> return df
-                    Nothing -> $(neverNote "Using an StoredError without knowing the filepath")
-
-          liftIO $ doesDirectoryExist outDir >>= \case
-            True  -> return $ Just err
-            False -> do
-              liftIO $ copyDirectory (db_dir </> resDirectory_)  outDir
-              return $ Just err
