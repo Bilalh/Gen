@@ -113,8 +113,9 @@ data StatusI =
     | RuleApplication_
     | TypeError_
     | StatusAny_
-    deriving (Show,Eq,Enum,Generic,Typeable, Data, Read, Ord)
+    deriving (Show, Eq, Enum, Generic, Typeable, Data, Read, Ord)
 
+instance Hashable StatusI
 instance Pretty StatusI where
     pretty = pretty . show
 
@@ -129,9 +130,10 @@ data KindI =
     | ValidateOld_
     | KindAny_
     | TypeCheck_
-    deriving (Show,Eq,Enum,Generic,Typeable, Data, Read, Ord)
+    deriving (Show, Eq, Enum, Generic, Typeable, Data, Read, Ord)
 
 
+instance Hashable KindI
 instance Pretty KindI where
     pretty = pretty . show
 

@@ -13,9 +13,8 @@ import Gen.Reduce.Data
 import Gen.Reduce.TypeCheck
 import GHC.Real              (floor)
 
-import qualified Data.HashMap.Strict as H
-import qualified Data.Map            as M
-import qualified Gen.IO.Toolchain    as Toolchain
+import qualified Data.Map         as M
+import qualified Gen.IO.Toolchain as Toolchain
 
 
 data Timed a = NoTimeLeft a
@@ -299,24 +298,3 @@ addOtherError :: RunResult -> RR ()
 addOtherError r = do
   return ()
   modify $ \st -> st{otherErrors_ =r : otherErrors_ st }
-
-
--- What about timeouts?
-giveDb :: Int -> Maybe FilePath -> Maybe FilePath -> IO ResultsDB
-giveDb _perSpec dir passing = do
-    (ResultsDB h_dir)  <- getData $ (</> "db.json") <$> dir
-    (ResultsDB h_passing) <- getData passing
-
-    return $ ResultsDB $ H.union h_dir (flip H.filter h_passing $
-                             (\x -> case x of
-                                  Passing{} -> True
-                                  _         -> False
-                             ))
-
-  where
-    getData :: Maybe FilePath -> IO ResultsDB
-    getData Nothing   = return $ ResultsDB  H.empty
-    getData (Just fp) =
-        readFromJSONMay fp >>= \case
-                  Nothing  -> return $ def
-                  (Just x) -> return x

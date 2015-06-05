@@ -10,7 +10,6 @@ import Gen.IO.Toolchain          (KindI, StatusI, ToolchainOutput (..))
 import System.Random
 import System.Random.TF
 
-import qualified Data.HashMap.Strict as H
 import qualified Text.PrettyPrint    as Pr
 
 etrue, efalse :: Expr

@@ -16,14 +16,13 @@ import Gen.Essence.UIData
 import Gen.Generalise.Generalise  (generaliseMain)
 import Gen.Imports
 import Gen.IO.Formats             (readFromJSON, writeToJSON)
-import Gen.IO.RunResult           (saveDB_)
+import Gen.IO.RunResult           (writeDB_, giveDb)
 import Gen.IO.Term
 import Gen.IO.Toolchain           (KindI (..), StatusI (..), ToolchainOutput (..),
                                    doMeta, kindsList, statusesList)
 import Gen.Reduce.Data            (RState (..), mkrGen)
 import Gen.Reduce.FormatResults   (formatResults)
 import Gen.Reduce.Reduce          (reduceMain)
-import Gen.Reduce.Runner          (giveDb)
 import Gen.Solver.Solver          (SolverArgs (..), solverMain)
 import Gen.UI.UI
 import System.Console.CmdArgs     (cmdArgs)
@@ -234,7 +233,7 @@ mainWithArgs u@Reduce{..} = do
           >>  addMeta (spec_directory </> "spec.spec.json")
 
   seed_ <- giveSeed _seed
-  db    <- giveDb per_spec_time db_directory db_passing_in
+  db    <- giveDb db_directory db_passing_in
   out   <- giveOutputDirectory output_directory
   cores <- giveCores u
 
@@ -259,7 +258,7 @@ mainWithArgs u@Reduce{..} = do
   doMeta out no_csv binaries_directory
 
   state <- reduceMain True args
-  saveDB_ db_only_passing db_directory (resultsDB_  state)
+  writeDB_ db_only_passing db_directory (resultsDB_  state)
   void $ formatResults (delete_steps) state
 
 mainWithArgs Generalise{..} = do
@@ -301,7 +300,7 @@ mainWithArgs Generalise{..} = do
           >>  addMeta (spec_directory </> "spec.spec.json")
 
   seed_ <- giveSeed _seed
-  db    <- giveDb per_spec_time db_directory Nothing
+  db    <- giveDb db_directory Nothing
   out   <- giveOutputDirectory output_directory
   cores <- giveCores ui
 
@@ -325,7 +324,7 @@ mainWithArgs Generalise{..} = do
   doMeta out no_csv binaries_directory
 
   state <- generaliseMain args
-  saveDB_ False db_directory (E.resultsDB_  state)
+  writeDB_ False db_directory (E.resultsDB_  state)
 
 mainWithArgs Solver{..} = do
 
