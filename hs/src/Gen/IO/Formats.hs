@@ -7,6 +7,8 @@ import Data.Time                       (formatTime, getCurrentTime)
 import Data.Time.Format                (defaultTimeLocale)
 import Gen.Imports
 import System.Directory                (copyFile)
+import System.Posix                    (getFileStatus)
+import System.Posix.Files              (fileSize)
 
 import qualified Data.Aeson           as A
 import qualified Data.ByteString.Lazy as L
@@ -55,3 +57,8 @@ copyDirectory from to = do
     doesDirectoryExist f >>= \case
       True  -> return ()
       False -> copyFile (from </> f) (to </> f)
+
+
+getFileSize :: FilePath -> IO Integer
+getFileSize path = getFileStatus
+                   path >>= \s -> return $ fromIntegral $ fileSize s

@@ -355,8 +355,3 @@ checkDB newE= do
             False -> do
               liftIO $ copyDirectory (db_dir </> resDirectory_)  outDir
               return $ Just err
-
-
-getFileSize :: FilePath -> IO Integer
-getFileSize path = getFileStatus
-                   path >>= \s -> return $ fromIntegral $ fileSize s

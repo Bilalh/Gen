@@ -10,8 +10,6 @@ import Gen.IO.Toolchain    hiding (ToolchainData (..))
 import Gen.Reduce.Data     hiding (RState (..))
 import GHC.Real            (floor)
 import System.FilePath     (replaceDirectory, takeBaseName)
-import System.Posix        (getFileStatus)
-import System.Posix.Files  (fileSize)
 
 import qualified Data.HashMap.Strict as H
 import qualified Data.Map            as M
@@ -275,8 +273,3 @@ checkDB newE= do
             False -> do
               liftIO $ copyDirectory (db_dir </> resDirectory_)  outDir
               return $ Just err
-
-
-getFileSize :: FilePath -> IO Integer
-getFileSize path = getFileStatus
-                   path >>= \s -> return $ fromIntegral $ fileSize s
