@@ -144,8 +144,8 @@ instance (HasGen m,  HasLogger m) =>  Reduce Expr m where
             , EQuan Sum t2 to EEmptyGuard t4]
 
     single (EQuan t1 t2 to t3 t4) = do
-          return [EQuan t1 t2 to EEmptyGuard etrue
-                 , EQuan t1 t2 to t3 etrue
+          return [EQuan t1 t2 to EEmptyGuard (ECon $ ConstantBool True)
+                 , EQuan t1 t2 to t3 (ECon $ ConstantBool True)
                  , EQuan t1 t2 to EEmptyGuard t4]
 
 

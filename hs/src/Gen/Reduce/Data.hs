@@ -2,7 +2,6 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Gen.Reduce.Data where
 
-import Conjure.Language.Constant
 import Gen.Helpers.Log
 import Gen.Imports
 import Gen.IO.RunResult
@@ -11,10 +10,6 @@ import System.Random
 import System.Random.TF
 
 import qualified Text.PrettyPrint    as Pr
-
-etrue, efalse :: Expr
-etrue  = ECon (ConstantBool True)
-efalse = ECon (ConstantBool False)
 
 type RR a = StateT RState IO a
 
