@@ -14,6 +14,7 @@ import Gen.Essence.St
 import Gen.Essence.UIData              (EssenceConfig)
 import Gen.Imports
 import Gen.IO.Formats
+import Gen.IO.RunResult
 import Gen.IO.Toolchain                hiding (DirError (..), ToolchainData (..))
 import GHC.Real                        (floor)
 import System.Directory                (copyFile, renameDirectory)
@@ -69,7 +70,7 @@ generateWrap (Just (x:_)) _ = do
 generateWrap _ f = liftIO $  generate f
 
 
-doRefine :: (MonadIO m, MonadState Carry m, Applicative m)
+doRefine :: (Applicative m, MonadIO m, MonadState Carry m, MonadDB m)
          => EssenceConfig -> m ()
 doRefine ec@EC.EssenceConfig{..} = do
   process totalTime_ givenSpecs_
@@ -78,7 +79,7 @@ doRefine ec@EC.EssenceConfig{..} = do
     out    = outputDirectory_ </> "_passing"
     errdir = outputDirectory_ </> "_errors"
 
-    process :: (MonadIO m, MonadState Carry m, Applicative m)
+    process :: (Applicative m, MonadIO m, MonadState Carry m, MonadDB m)
             => Int -> Maybe [FilePath]  -> m ()
     process timeLeft Nothing  | timeLeft <= 0 = return ()
     process _ (Just [])  = return ()
@@ -173,7 +174,7 @@ doRefine ec@EC.EssenceConfig{..} = do
                 True  -> process (timeLeft - realTime) (nextElem mayGiven)
 
 
-doSolve :: (MonadIO m, MonadState Carry m, Applicative m)
+doSolve :: (Applicative m, MonadIO m, MonadState Carry m, MonadDB m)
         => EssenceConfig -> m ()
 doSolve ec@EC.EssenceConfig{..} = do
 
@@ -183,7 +184,7 @@ doSolve ec@EC.EssenceConfig{..} = do
     out    = outputDirectory_ </> "_passing"
     errdir = outputDirectory_ </> "_errors"
 
-    process :: (MonadIO m, MonadState Carry m, Applicative m)
+    process :: (Applicative m, MonadIO m, MonadState Carry m, MonadDB m)
           => Int -> Maybe [FilePath] -> m ()
     process timeLeft Nothing  | timeLeft <= 0 = return ()
     process _ (Just [])  = return ()
@@ -431,8 +432,8 @@ classifySettingI ec _ out uname SettingI{time_taken_}  = do
 typeCheck :: MonadFail m => Model -> m Model
 typeCheck m = ignoreLogs . runNameGen  $ (resolveNames $ m) >>= typeCheckModel
 
-doTypeCheck :: (MonadIO m, MonadState Carry m)
-            =>  EssenceConfig -> m ()
+doTypeCheck :: (MonadIO m, MonadState Carry m, MonadDB m)
+            => EssenceConfig -> m ()
 doTypeCheck ec@EC.EssenceConfig{..}= do
   _ <- process 0
   return ()
@@ -443,7 +444,8 @@ doTypeCheck ec@EC.EssenceConfig{..}= do
   --   n -> show n ++ " Errors found"
 
   where
-    process :: (MonadIO m, MonadState Carry m) => Int -> m Int
+    process :: (MonadIO m, MonadState Carry m, MonadDB m)
+            => Int -> m Int
     process i = do
       useSize <- liftIO $ (randomRIO (0, size_) :: IO Int)
       gen <- genToUse useSize ec

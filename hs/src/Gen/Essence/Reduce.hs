@@ -33,18 +33,18 @@ instance Pretty ReduceResult where
     pretty (ReduceResult sp) = "ReduceResult" <+> pretty sp
 
 
-reduceErrors :: (MonadState Carry m, MonadIO m)
+reduceErrors :: (MonadState Carry m, MonadIO m, MonadDB m)
              => EssenceConfig -> [ErrData] -> m [ReduceResult]
 reduceErrors ec = mapM (reduceError ec)
 
-reduceError :: (MonadState Carry m, MonadIO m)
+reduceError :: (MonadState Carry m, MonadIO m, MonadDB m)
             => EssenceConfig -> ErrData -> m ReduceResult
 reduceError EssenceConfig{..} ErrData{..}= do
-  let db :: ResultsDB = def
+  db     <- getsDb
+  db_dir <- getDbDirectory
 
   let per_spec_time  = round (fromIntegral perSpecTime_ * 1.5 :: Double) :: Int
       no_csv         = False
-      db_directory   = Nothing
       total_time_may = reduceAsWell_
       out            = specDir ++ "_r-" ++ (replaceExtensions "" $ takeBaseName choices)
 
@@ -61,7 +61,7 @@ reduceError EssenceConfig{..} ErrData{..}= do
                 ,R.deletePassing_     = deletePassing_
                 ,resultsDB_           = db
                 ,mostReducedChoices_  = Just choices
-                ,resultsDB_dir        = db_directory
+                ,resultsDB_dir        = db_dir
                 ,timeLeft_            = total_time_may
                 ,totalIsRealTime_     = totalIsRealTime
                 }
@@ -69,7 +69,7 @@ reduceError EssenceConfig{..} ErrData{..}= do
   liftIO $ doMeta out no_csv binariesDirectory_
 
   state <- liftIO $ reduceMain False args
-  writeDB_ False db_directory (resultsDB_  state)
+  writeDB_ False db_dir (resultsDB_  state)
   dir <- liftIO $ formatResults True state >>= \case
          (Just x) -> return x
          Nothing  -> return specDir
