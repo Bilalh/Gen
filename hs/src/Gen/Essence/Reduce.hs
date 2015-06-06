@@ -1,9 +1,11 @@
 {-# LANGUAGE RecordWildCards #-}
 module Gen.Essence.Reduce where
 
+import Gen.Essence.Carry
 import Gen.Essence.UIData       (EssenceConfig (..))
 import Gen.Imports
 import Gen.IO.Formats
+import Gen.IO.RunResult
 import Gen.IO.Toolchain         (KindI, StatusI, doMeta)
 import Gen.Reduce.Data          (RState (..))
 import Gen.Reduce.FormatResults (formatResults)
@@ -31,12 +33,14 @@ instance Pretty ReduceResult where
     pretty (ReduceResult sp) = "ReduceResult" <+> pretty sp
 
 
-reduceErrors :: EssenceConfig -> [ErrData] -> IO [ReduceResult]
+reduceErrors :: (MonadState Carry m, MonadIO m)
+             => EssenceConfig -> [ErrData] -> m [ReduceResult]
 reduceErrors ec = mapM (reduceError ec)
 
-reduceError :: EssenceConfig -> ErrData -> IO ReduceResult
+reduceError :: (MonadState Carry m, MonadIO m)
+            => EssenceConfig -> ErrData -> m ReduceResult
 reduceError EssenceConfig{..} ErrData{..}= do
-  db <- def
+  let db :: ResultsDB = def
 
   let per_spec_time  = round (fromIntegral perSpecTime_ * 1.5 :: Double) :: Int
       no_csv         = False
@@ -62,14 +66,14 @@ reduceError EssenceConfig{..} ErrData{..}= do
                 ,totalIsRealTime_     = totalIsRealTime
                 }
 
-  doMeta out no_csv binariesDirectory_
+  liftIO $ doMeta out no_csv binariesDirectory_
 
-  state <- reduceMain False args
-  -- saveDB db_only_passing db_directory (resultsDB_  state)
-  dir <- formatResults True state >>= \case
+  state <- liftIO $ reduceMain False args
+  writeDB_ False db_directory (resultsDB_  state)
+  dir <- liftIO $ formatResults True state >>= \case
          (Just x) -> return x
          Nothing  -> return specDir
 
-  sp <- readFromJSON (dir </> "spec.spec.json")
+  sp <- liftIO $ readFromJSON (dir </> "spec.spec.json")
 
   return $ ReduceResult sp

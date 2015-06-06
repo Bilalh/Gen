@@ -7,6 +7,7 @@ import Conjure.UI.TypeCheck            (typeCheckModel)
 import Data.Time.Clock.POSIX           (getPOSIXTime)
 import Gen.Classify.Meta               (mkMeta)
 import Gen.Essence.Adjust
+import Gen.Essence.Carry
 import Gen.Essence.Reduce              (ErrData (..), reduceError, reduceErrors)
 import Gen.Essence.Spec                ()
 import Gen.Essence.St
@@ -155,7 +156,7 @@ doRefine ec@EC.EssenceConfig{..} = do
                 Nothing -> return ()
                 Just{}  -> do
                   liftIO $ putStrLn $ "> Reducing: " ++ (show $ hash sp)
-                  res <- liftIO $ reduceErrors ec rdata
+                  res <- reduceErrors ec rdata
                   liftIO $ putStrLn $ "> Reduced: " ++ (show $ hash sp)
                   liftIO $ putStrLn $ "!l rdata: " ++ (show $ length rdata)
                   liftIO $ putStrLn $ "! rdata: " ++ (show $ vcat $ map pretty rdata)
@@ -253,7 +254,7 @@ doSolve ec@EC.EssenceConfig{..} = do
                 Nothing -> return ()
                 Just{}  -> do
                   liftIO $ putStrLn $ "> Reducing: " ++ (show $ hash sp)
-                  res <- liftIO $ reduceErrors ec rdata
+                  res <- reduceErrors ec rdata
                   liftIO $ putStrLn $ "> Reduced: " ++ (show $ hash sp)
                   liftIO $ putStrLn $ "!l rdata: " ++ (show $ length rdata)
                   liftIO $ putStrLn $ "! rdata: " ++ (show $ vcat $ map pretty rdata)
@@ -479,7 +480,7 @@ doTypeCheck ec@EC.EssenceConfig{..}= do
                              ,status=TypeChecking_
                              ,choices=dir </> "model000000.choices.json"}
           liftIO $ putStrLn $ "> Reducing: " ++ (show $ hash sp)
-          res <- liftIO $ reduceError ec rdata
+          res <- reduceError ec rdata
           liftIO $ putStrLn $ "> Reduced: " ++ (show $ hash sp)
           adjust res
 

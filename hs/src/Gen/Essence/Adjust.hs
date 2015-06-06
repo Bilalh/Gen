@@ -1,32 +1,15 @@
 module Gen.Essence.Adjust where
 
+import Data.List          (foldl')
 import Data.Map           (Map)
+import Gen.Essence.Carry
 import Gen.Essence.Id
 import Gen.Essence.Reduce
 import Gen.Essence.St
 import Gen.Imports
-import Data.List(foldl')
-import Gen.IO.RunResult
 
-import qualified Data.IntSet as I
 import qualified Data.Foldable as F
-import qualified Data.Map as M
-
-data Carry = Carry
-    { cWeighting         :: KeyMap
-    , cHashes            :: I.IntSet
-    , cWeightingHashPrev :: Int
-    , cDB                :: ResultsDB
-    , cSpecDir           :: FilePath
-    , cDBDir             :: FilePath
-    } deriving (Show)
-
-instance Monad m => MonadDB (StateT Carry m) where
-    getsDb             = gets cDB
-    putsDb db          = modify $ \st -> st{cDB=db}
-    getDbDirectory     = gets cDBDir >>= return . Just
-    getOutputDirectory = gets cSpecDir
-    sortByKindStatus   = return True
+import qualified Data.Map      as M
 
 
 adjust :: (MonadState Carry m, MonadIO m) => ReduceResult -> m ()
