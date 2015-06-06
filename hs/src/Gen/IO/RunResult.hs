@@ -82,8 +82,6 @@ instance (FromJSON a, FromJSON b, Hashable a, Eq a)
 
 
 
-
-
 -- | Cache the Spec
 storeInDB :: (MonadDB m, MonadIO m) => Spec -> RunResult  -> m ()
 storeInDB sp r = do
@@ -94,13 +92,22 @@ storeInDB sp r = do
 
     (err, ResultsDB{resultsErrors=Mapped m}) -> do
       let (k,s) = (resErrKind_ err, resErrStatus_ err)
-      -- TODO choose which one to keep
       return $ db{resultsErrors = Mapped $ H.insertWith comp (newHash,k,s) err m}
 
   putsDb ndb
 
   where
     comp e1 e2 = if timeTaken_ e1 > timeTaken_ e2 then e1 else e2
+
+inDB :: (MonadDB m) => Spec -> m Bool
+inDB sp = do
+  let newHash = hash sp
+  getsDb >>= \ResultsDB{resultsPassing = Mapped m1, resultsErrors = Mapped m2 } -> do
+   case newHash `H.lookup` m1 of
+     Just{}  -> return True
+     Nothing -> return $ any (\(h,_,_) -> h == newHash ) $  H.keys m2
+
+
 
 -- | Check if the spec's hash is contained, return the result if it is
 checkDB :: (MonadDB m, MonadIO m)
@@ -171,7 +178,7 @@ writeDB_ onlyPassing (Just dir)
 
     f _ x = return x
 
-
+-- | Return a db instance based on the give filepaths
 giveDb ::  Maybe FilePath -> Maybe FilePath -> IO ResultsDB
 giveDb dir passing = do
   r@ResultsDB{resultsPassing=Mapped m2}  <- getData $  (</> "db.json") <$> dir
