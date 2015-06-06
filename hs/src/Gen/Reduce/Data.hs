@@ -28,9 +28,9 @@ data RState = RState
     , binariesDirectory_ :: Maybe FilePath
     , toolchainOutput_   :: ToolchainOutput
 
-    , mostReduced_        :: Maybe RunResult
+    , mostReduced_        :: Maybe ErrData
     , mostReducedChoices_ :: Maybe FilePath
-    , otherErrors_        :: [RunResult]
+    , otherErrors_        :: [ErrData]
     , rlogs_              :: LogsTree
     , deletePassing_      :: Bool
 

@@ -14,16 +14,6 @@ import System.FilePath          (takeBaseName)
 
 import qualified Gen.Reduce.Data as R
 
-data ErrData = ErrData
-    { kind    :: KindI
-    , status  :: StatusI
-    , choices :: FilePath
-    , specDir :: FilePath
-    } deriving Show
-
-instance Pretty ErrData where
-    pretty = pretty . groom
-
 data ReduceResult = ReduceResult
     { finalSpec :: Spec
     } deriving Show

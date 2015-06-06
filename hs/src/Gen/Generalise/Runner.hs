@@ -81,7 +81,7 @@ runSpec spE = do
                   , Toolchain.outputDirectory   = path
                   , Toolchain.dryRun            = False
                   }
-      let timeTaken_ = floor $ Toolchain.getRunTime res
+      let timeTaken = floor $ Toolchain.getRunTime res
 
 
       addLog "runSpec" [pretty spE]
@@ -100,22 +100,21 @@ runSpec spE = do
           sameError (RefineResult SettingI{successful_=False
                       ,data_=RefineMultiOutput{choices_made,cmd_used=CmdI{..}}})
               | modelRefineError rrErrorKind = do
-              let resErrChoices_ = choices_made
+              let choices = choices_made
               case match (rrErrorStatus,rrErrorKind) (status_, kind_) of
-                Just (resErrStatus_,resErrKind_) ->
-                  return (True, OurError{resDirectory_ = path
-                                        ,resErrKind_
-                                        ,resErrStatus_
-                                        ,resErrChoices_
-                                        ,timeTaken_})
+                Just (status, kind) ->
+                  return (True, OurError $ ErrData{ specDir = path
+                                                  , kind
+                                                  , status
+                                                  , choices
+                                                  , timeTaken})
 
                 Nothing ->
-                  return (False, OurError{resDirectory_ = path
-                                         ,resErrKind_   = kind_
-                                         ,resErrStatus_ = status_
-                                         ,resErrChoices_
-                                         ,timeTaken_})
-
+                  return (False, OurError $ ErrData{ specDir = path
+                                                   , kind   = kind_
+                                                   , status = status_
+                                                   , choices
+                                                   , timeTaken})
               where
                 match :: (StatusI, KindI) -> (StatusI, KindI) -> Maybe (StatusI, KindI)
                 match (StatusAny_,KindAny_) (x,y)   = Just (x, y)
@@ -137,20 +136,20 @@ runSpec spE = do
                   f _ = Nothing
 
                   sks = M.toList $  M.mapMaybe f ms
-              resErrChoices_ <- choicesUsed
+              choices <- choicesUsed
               case anyFirst (rrErrorStatus,rrErrorKind) sks of
-                 Just (resErrStatus_,resErrKind_)   ->
-                   return (True, OurError{resDirectory_ = path
-                                         ,resErrKind_
-                                         ,resErrStatus_
-                                         ,resErrChoices_
-                                         ,timeTaken_})
+                 Just (status,kind)   ->
+                   return (True, OurError $ ErrData { specDir = path
+                                                    , kind
+                                                    , status
+                                                    , choices
+                                                    , timeTaken})
                  Nothing -> return
-                  (False, OurError{resDirectory_ = path
-                                  ,resErrKind_   = fstKind sks
-                                  ,resErrStatus_ = fstStatus sks
-                                  ,resErrChoices_
-                                  ,timeTaken_})
+                  (False, OurError $ ErrData {specDir = path
+                                             ,kind    = fstKind sks
+                                             ,status  = fstStatus sks
+                                             ,choices
+                                             ,timeTaken})
 
               where
                 choicesUsed = do
@@ -183,7 +182,7 @@ runSpec spE = do
 
 
 
-          sameError _ = return (False, Passing{timeTaken_})
+          sameError _ = return (False, Passing timeTaken)
 
           fstStatus []            = error "fstStatus no statuses"
           fstStatus ((_,(s,_)):_) = s

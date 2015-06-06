@@ -30,11 +30,11 @@ typeCheckWithResult dir model = do
                     , pretty model
                     ]
       liftIO $ writeFile (dir </> "model000000.choices.json") "{}"
-      let ret = OurError{
-                    resDirectory_  = dir
-                  , resErrKind_    = TypeCheck_
-                  , resErrStatus_  = TypeChecking_
-                  , timeTaken_     = realTime
-                  , resErrChoices_ = dir </> "model000000.choices.json"
+      let ret = OurError $ ErrData{
+                    specDir  = dir
+                  , kind    = TypeCheck_
+                  , status  = TypeChecking_
+                  , timeTaken     = realTime
+                  , choices = dir </> "model000000.choices.json"
                   }
       return ((True,ret),realTime)

@@ -76,7 +76,7 @@ generaliseConstraintsWithSingle sp = do
   return sp
 
 
-recordResult :: RunResult -> EE ()
+recordResult :: ErrData -> EE ()
 recordResult r= do
-  modify $ \st -> st{choicesToUse_ =Just (resErrChoices_ r) }
+  modify $ \st -> st{choicesToUse_ =Just (choices r) }
   return ()

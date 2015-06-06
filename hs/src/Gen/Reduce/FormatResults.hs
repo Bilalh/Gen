@@ -14,11 +14,11 @@ formatResults delete_steps RState{..} = do
     Just r -> do
       putStrLn . show . vcat $
                    [ "Renaming "
-                   , pretty (resDirectory_ r)
+                   , pretty (specDir r)
                    , " --> "
                    , pretty finalDir
                    ]
-      renameDirectory  (resDirectory_ r) finalDir
+      renameDirectory  (specDir r) finalDir
       return $ Just finalDir
 
     Nothing -> do
@@ -57,8 +57,8 @@ formatResults delete_steps RState{..} = do
     othersDir = outputDir_ </> "others"
     stepsDir  = outputDir_ </> "zsteps"
 
-    classify :: RunResult -> IO ()
+    classify :: ErrData -> IO ()
     classify r = do
-      let newDir = othersDir </> (show (resErrKind_ r)) </> (show (resErrStatus_ r))
+      let newDir = othersDir </> (show (kind r)) </> (show (status r))
       createDirectoryIfMissing True newDir
-      renameDirectory (resDirectory_ r) (newDir </> (takeFileName (resDirectory_ r)) )
+      renameDirectory (specDir r) (newDir </> (takeFileName (specDir r)) )

@@ -1,3 +1,4 @@
+{-# LANGUAGE ViewPatterns #-}
 module Gen.Essence.Generate(generateEssence) where
 
 import Conjure.Language.Definition
@@ -8,7 +9,7 @@ import Data.Time.Clock.POSIX           (getPOSIXTime)
 import Gen.Classify.Meta               (mkMeta)
 import Gen.Essence.Adjust
 import Gen.Essence.Carry
-import Gen.Essence.Reduce              (ErrData (..), reduceError, reduceErrors)
+import Gen.Essence.Reduce              (reduceError, reduceErrors)
 import Gen.Essence.Spec                ()
 import Gen.Essence.St
 import Gen.Essence.UIData              (EssenceConfig)
@@ -270,7 +271,7 @@ doSolve ec@EC.EssenceConfig{..} = do
 
     classifyError uname (RefineResult a) = classifySettingI ec errdir out uname a
 
-    classifyError uname (SolveResult (_,
+    classifyError uname (SolveResult (re,
           ee@SettingI{successful_=False,data_=SolveM ms,time_taken_})) = do
 
         let inErrDir = errdir </> "zPerSpec" </> uname
@@ -290,7 +291,7 @@ doSolve ec@EC.EssenceConfig{..} = do
                   . M.fromListWith (\a b -> a ++ b)
                   . map (\(a,b) -> (b, [a]))
                   . M.toList
-                  $  M.mapMaybe id rr
+                  $ M.mapMaybe id rr
 
 
         let
@@ -302,31 +303,34 @@ doSolve ec@EC.EssenceConfig{..} = do
                                          , nn "ee" (show inDir)]
 
             f k ResultI{last_status, last_kind=Just kind, erroed= Just _ } = do
-                let mvDirBase = errdir </> (show kind) </> (show last_status)
-                let mvDir     = mvDirBase </> uname
-                createDirectoryIfMissing True mvDir
-                writeToJSON (mvDir </> "dir_error.json") Toolchain.DirError{dirStatus =last_status, dirKind = kind}
+              let mvDirBase = errdir </> (show kind) </> (show last_status)
+              let mvDir     = mvDirBase </> uname
+              createDirectoryIfMissing True mvDir
+              writeToJSON (mvDir </> "dir_error.json") Toolchain.DirError{ dirStatus = last_status
+                                                                         , dirKind   = kind}
 
-                fps <- getDirectoryContents inErrDir
-                let needed =  filter (allow k) fps
+              fps <- getDirectoryContents inErrDir
+              let needed =  filter (allow k) fps
 
-                void $ copyFiles (unMaybe $ mvDirBase `M.lookup` inDir) inErrDir mvDir needed
+              void $ copyFiles (unMaybe $ mvDirBase `M.lookup` inDir) inErrDir mvDir needed
 
-                case (kind,last_status) `S.member` (EC.notUseful ec)  of
-                  False -> return ()
-                  True  -> do
-                    putStrLn . show . vcat $ [
-                                    "Deleting " <+> (pretty . groom $ (kind,last_status) )
-                                  ,  "mvDir"   <+> pretty mvDir
-                                  ]
-                    removeDirectoryRecursive mvDir
+              case (kind,last_status) `S.member` (EC.notUseful ec)  of
+                False -> return ()
+                True  -> do
+                  putStrLn . show . vcat $ [
+                                  "Deleting " <+> (pretty . groom $ (kind,last_status) )
+                                ,  "mvDir"   <+> pretty mvDir
+                                ]
+                  removeDirectoryRecursive mvDir
 
-                let err = ErrData { kind    = kind
-                                  , status  = last_status
-                                  , choices = mvDir </> k <.> ".choices.json"
-                                  , specDir = mvDir
-                                  }
-                return $ Just err
+
+              let err = ErrData { kind      = kind
+                                , status    = last_status
+                                , choices   = mvDir </> k <.> ".choices.json"
+                                , specDir   = mvDir
+                                , timeTaken = floor (refineTime k re) + floor time_taken_
+                                }
+              return $ Just err
 
 
             f _ _ = return Nothing
@@ -346,6 +350,11 @@ doSolve ec@EC.EssenceConfig{..} = do
         True  -> removeDirectoryRecursive (out </> uname)
       return (time_taken_, [])
 
+
+refineTime :: String -> SettingI RefineM -> Double
+refineTime k (SettingI{data_=RefineMap (M.lookup k -> Just v )}) = cpu_time v
+refineTime k x = docError [pretty  $line, "Key not found when generating"
+                          , nn "k" k, nn "x" (groom x)]
 
 
 classifySettingI :: EssenceConfig
@@ -381,34 +390,35 @@ classifySettingI ec errdir out uname
                                      , nn "ee" (show rr)
                                      , nn "ee" (show inDir)]
 
-        f k CmdI{status_, kind_ } = do
-            let mvDirBase = errdir </> (show kind_) </> (show status_)
-            let mvDir = mvDirBase </> uname
+        f k CmdI{status_, kind_, cpu_time } = do
+          let mvDirBase = errdir </> (show kind_) </> (show status_)
+          let mvDir = mvDirBase </> uname
 
-            createDirectoryIfMissing True mvDir
-            writeToJSON (mvDir </> "dir_error.json")
-                        Toolchain.DirError{dirStatus =status_, dirKind = kind_ }
+          createDirectoryIfMissing True mvDir
+          writeToJSON (mvDir </> "dir_error.json")
+                      Toolchain.DirError{dirStatus =status_, dirKind = kind_ }
 
-            fps <- getDirectoryContents inErrDir
-            let needed =  filter (allow k) fps
+          fps <- getDirectoryContents inErrDir
+          let needed =  filter (allow k) fps
 
-            void $ copyFiles (unMaybe $ mvDirBase `M.lookup` inDir) inErrDir mvDir needed
+          void $ copyFiles (unMaybe $ mvDirBase `M.lookup` inDir) inErrDir mvDir needed
 
-            case (kind_,status_) `S.member` (EC.notUseful ec)  of
-              False -> return ()
-              True  -> do
-                putStrLn . show . vcat $ [
-                                "Deleting " <+> (pretty . groom $ (kind_,status_) )
-                              ,  "mvDir"   <+> pretty mvDir
-                              ]
-                removeDirectoryRecursive mvDir
+          case (kind_,status_) `S.member` (EC.notUseful ec)  of
+            False -> return ()
+            True  -> do
+              putStrLn . show . vcat $ [
+                              "Deleting " <+> (pretty . groom $ (kind_,status_) )
+                            ,  "mvDir"   <+> pretty mvDir
+                            ]
+              removeDirectoryRecursive mvDir
 
-            let err = ErrData { kind = kind_
-                              , status = status_
-                              , choices = mvDir </> k <.> ".choices.json"
-                              , specDir = mvDir
-                              }
-            return err
+          let err = ErrData { kind = kind_
+                            , status = status_
+                            , choices = mvDir </> k <.> ".choices.json"
+                            , specDir = mvDir
+                            , timeTaken = floor cpu_time
+                            }
+          return err
 
     err <- M.traverseWithKey f ms
 
@@ -480,7 +490,9 @@ doTypeCheck ec@EC.EssenceConfig{..}= do
           let rdata = ErrData{kind=TypeCheck_
                              ,specDir=dir
                              ,status=TypeChecking_
-                             ,choices=dir </> "model000000.choices.json"}
+                             ,choices=dir </> "model000000.choices.json"
+                             ,timeTaken = 1 -- FIXME put actual time
+                             }
           liftIO $ putStrLn $ "> Reducing: " ++ (show $ hash sp)
           res <- reduceError ec rdata
           liftIO $ putStrLn $ "> Reduced: " ++ (show $ hash sp)

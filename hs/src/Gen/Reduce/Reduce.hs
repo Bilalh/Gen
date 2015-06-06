@@ -1,4 +1,4 @@
-{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE TupleSections, ViewPatterns #-}
 module Gen.Reduce.Reduce where
 
 import Conjure.Language.Domain
@@ -24,22 +24,22 @@ reduceMain check rr = do
   sp <-  quanToComp sp_
   -- groomPrint sp
   errOccurs <- case check of
-                 False -> return (Just $never, rr)
+                 False -> return (True, rr)
                  True -> (flip runStateT) rr (return sp
                            >>= noteMsg "Checking if error still occurs"
                            >>= runSpec
                            >>= \case
-                                  (Nothing,_) -> return Nothing
-                                  (Just x, _) -> do
-                                    liftIO $ removeDirectoryRecursive (resDirectory_ x)
-                                    return (Just x)
+                                  (Just (viewResultError -> Just (ErrData{..}) ), _) -> do
+                                    liftIO $ removeDirectoryRecursive (specDir)
+                                    return True
 
+                                  _ -> return False
                        )
   case errOccurs of
-    (Nothing, _) -> do
+    (False, _) -> do
         putStrLn "Spec has no error with the given settings, not reducing"
         return rr
-    _ -> do
+    (True, _) -> do
       -- noteFormat "StateStateStart" [pretty rr]
       (sfin,state) <- (flip runStateT) rr $
           return sp
@@ -90,11 +90,11 @@ tryRemoveConstraints sp@(Spec ds _ obj) = do
 
 
   where
-    f (Just r) = do
+    f (viewResultErrorM -> Just r) = do
       recordResult r
       return $ Spec ds [] obj
 
-    f Nothing = return sp
+    f _ = return sp
 
 removeUnusedDomains :: Spec -> RR (Timed Spec)
 removeUnusedDomains sp@(Spec ods es obj) = do
@@ -119,15 +119,17 @@ removeUnusedDomains sp@(Spec ods es obj) = do
         where
           y = ensureADomain x
 
-          f Nothing  = return $ Just y
-          f (Just r) = do
+          f (viewResultErrorM -> Just r) = do
             recordResult r
             return $ Just y
 
-          g Nothing = process xs
-          g (Just r) = do
+          f _  =  return $ Just y
+
+          g (viewResultErrorM -> Just r) = do
             recordResult r
             return . Continue . Just $ y
+
+          g Nothing = process xs
 
 
 
@@ -154,15 +156,18 @@ removeConstraints (Spec ds oes obj) = do
     process []     = return $ Continue $ Nothing
     process (x:xs) = timedSpec (Spec ds x obj) f g
         where
-          f Nothing  = return $ Just x
-          f (Just r) = do
+
+          f (viewResultErrorM -> Just r) = do
             recordResult r
             return $ Just x
 
-          g Nothing = process xs
-          g (Just r) = do
+          f Nothing  = return $ Just x
+
+          g (viewResultErrorM -> Just r) = do
             recordResult r
             return . Continue . Just $ x
+
+          g _ = process xs
 
     -- process ts = error . show . prettyBrackets . vcat $ map (prettyBrackets .  vcat . map pretty) ts
 
@@ -192,23 +197,24 @@ simplyDomains sp@(Spec ds es obj) = do
   process xs | all (singleElem) xs = do
       addLog "processsingleElem" []
       let fix = map head xs
-      let f (Just r) = do
+      let f (viewResultErrorM -> Just r) = do
             recordResult r
             return fix
-          f Nothing = return []
+          f _ = return []
       timedSpec (Spec (toDoms fix) es obj) f (fmap Continue . f)
 
   process esR = do
     addLog "process esR" []
     fix <- choose esR
 
-    let f Nothing  = return fix
-        f (Just r) = do
+    let
+        f (viewResultErrorM -> Just r) = do
           recordResult r
           return fix
 
-        g Nothing   = removeNext esR >>= process
-        g (Just r)  = do
+        f _  = return fix
+
+        g (viewResultErrorM -> Just r) = do
           recordResult r
           innerToDo <- doConstraints fix
           inner     <- process innerToDo
@@ -216,6 +222,8 @@ simplyDomains sp@(Spec ds es obj) = do
               return $ fmap (const fix) inner
           else
               return inner
+
+        g _   = removeNext esR >>= process
 
     timedSpec (Spec (toDoms fix) es obj) f g
 
@@ -247,12 +255,11 @@ simplyConstraints sp@(Spec ds es obj) = do
     fin    <- process csToDo
     addLog "finished processing" []
 
-    --FIXME check
     if (timedExtract fin) == [] then
-        let f (Just r) = do
+        let f (viewResultErrorM -> Just r) = do
               recordResult r
               return (Spec ds [] obj)
-            f Nothing = return $ Spec ds es obj
+            f _ = return $ Spec ds es obj
         in
         timedSpec (Spec ds [] obj)  f (fmap Continue . f)
     else
@@ -267,23 +274,24 @@ simplyConstraints sp@(Spec ds es obj) = do
     process xs | all (singleElem) xs = do
         addLog "processsingleElem" []
         let fix = map head xs
-        let f (Just r) = do
+        let f (viewResultErrorM -> Just r) = do
               recordResult r
               return fix
-            f Nothing = return []
+            f _ = return []
         timedSpec (Spec ds fix obj) f (fmap Continue . f)
 
     process esR = do
         addLog "process esR" []
         fix <- choose esR
 
-        let f Nothing  = return fix
-            f (Just r) = do
+        let
+            f (viewResultErrorM -> Just r) = do
               recordResult r
               return fix
 
-            g Nothing   = removeNext esR >>= process
-            g (Just r)  = do
+            f _  = return fix
+
+            g (viewResultErrorM -> Just r) = do
               recordResult r
               innerToDo <- doConstraints fix
               inner     <- process innerToDo
@@ -291,6 +299,8 @@ simplyConstraints sp@(Spec ds es obj) = do
                   return $ fmap (const fix) inner
               else
                   return inner
+
+            g _  = removeNext esR >>= process
 
         timedSpec (Spec ds fix obj) f g
 
@@ -335,7 +345,8 @@ singleElem [_] = True
 singleElem _   = False
 
 
-recordResult :: RunResult -> RR ()
-recordResult r= do
-  modify $ \st -> st{mostReduced_=Just r, mostReducedChoices_=Just (resErrChoices_ r) }
+recordResult :: ErrData -> RR ()
+recordResult err = do
+  modify $ \st -> st{ mostReduced_=Just err
+                    , mostReducedChoices_=Just (choices err) }
   return ()

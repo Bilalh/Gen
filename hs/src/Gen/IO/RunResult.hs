@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, DeriveGeneric #-}
+{-# LANGUAGE DeriveDataTypeable, DeriveGeneric, ViewPatterns #-}
 module Gen.IO.RunResult where
 
 import Data.HashMap.Strict (HashMap)
@@ -23,28 +23,28 @@ class Monad m => MonadDB m where
     sortByKindStatus :: m Bool
     sortByKindStatus = return False
 
-
-data RunResult =
-      OurError{
-      resDirectory_  :: FilePath
-    , resErrKind_    :: KindI
-    , resErrStatus_  :: StatusI
-    , resErrChoices_ :: FilePath
-    , timeTaken_     :: Int
-    }
-    | StoredError{
-      resDirectory_  :: FilePath
-    , resErrKind_    :: KindI
-    , resErrStatus_  :: StatusI
-    , resErrChoices_ :: FilePath
-    , timeTaken_     :: Int
-    }
-    | Passing {
-      timeTaken_     :: Int
+data ErrData = ErrData
+    { kind      :: KindI
+    , status    :: StatusI
+    , choices   :: FilePath
+    , specDir   :: Directory
+    , timeTaken :: Time
     } deriving (Eq, Show, Data, Typeable, Generic)
 
-type Hash = Int
-type Time = Int
+instance FromJSON ErrData
+instance ToJSON   ErrData
+
+instance Pretty ErrData where
+    pretty = pretty . groom
+
+
+data RunResult =
+      OurError    ErrData
+    | StoredError ErrData
+    | Passing Time
+    deriving (Eq, Show, Data, Typeable, Generic)
+
+
 data ResultsDB = ResultsDB{
       resultsPassing :: Mapped Hash Time
     , resultsErrors  :: Mapped (Hash, KindI, StatusI) RunResult
@@ -62,6 +62,7 @@ instance Default ResultsDB where
 
 instance FromJSON ResultsDB
 instance ToJSON ResultsDB
+
 
 instance Pretty RunResult where
     pretty = pretty . groom
@@ -81,23 +82,41 @@ instance (FromJSON a, FromJSON b, Hashable a, Eq a)
     parseJSON  val = (Mapped . H.fromList) <$> parseJSON val
 
 
+viewResultError :: MonadFail m => RunResult -> m ErrData
+viewResultError (OurError x)    = return x
+viewResultError (StoredError x) = return x
+viewResultError Passing{}       = fail "viewError, Passing is not an Error"
+
+viewResultErrorM :: MonadFail m => Maybe RunResult -> m ErrData
+viewResultErrorM (Just (OurError x))    = return x
+viewResultErrorM (Just (StoredError x)) = return x
+viewResultErrorM _                      = fail "viewErrorM, not an Error"
+
+viewResultTime :: RunResult -> Time
+viewResultTime (OurError x)    = timeTaken x
+viewResultTime (StoredError x) = timeTaken x
+viewResultTime (Passing t)     = t
+
+
 
 -- | Cache the Spec
 storeInDB :: (MonadDB m, MonadIO m) => Spec -> RunResult  -> m ()
 storeInDB sp r = do
   let newHash = hash sp
   ndb <- getsDb >>= \db -> case (r,db) of
-    (Passing{timeTaken_=t}, ResultsDB{resultsPassing=Mapped m} ) ->
+    (Passing t, ResultsDB{resultsPassing=Mapped m} ) ->
       return $ db{resultsPassing = Mapped $ H.insertWith max newHash t m}
 
-    (err, ResultsDB{resultsErrors=Mapped m}) -> do
-      let (k,s) = (resErrKind_ err, resErrStatus_ err)
-      return $ db{resultsErrors = Mapped $ H.insertWith comp (newHash,k,s) err m}
+    (e@(OurError ErrData{..}), ResultsDB{resultsErrors=Mapped m}) -> return $
+      db{resultsErrors = Mapped $ H.insertWith comp (newHash,kind,status) e m}
+
+    (e@(StoredError ErrData{..}), ResultsDB{resultsErrors=Mapped m}) -> return $
+      db{resultsErrors = Mapped $ H.insertWith comp (newHash,kind,status) e m}
 
   putsDb ndb
 
   where
-    comp e1 e2 = if timeTaken_ e1 > timeTaken_ e2 then e1 else e2
+    comp e1@(viewResultTime -> t1) e2@(viewResultTime -> t2) = if t1 > t2 then e1 else e2
 
 inDB :: (MonadDB m) => Spec -> m Bool
 inDB sp = do
@@ -125,16 +144,16 @@ checkDB kind status newE= do
           Nothing -> return Nothing
           Just Passing{} -> $(neverNote "Error Db contains passing")
           Just r@OurError{}  -> return (Just r)
-          Just StoredError{..} -> do
+          Just (StoredError e@ErrData{specDir,choices}) -> do
             out <- getOutputDirectory
             outDir <- sortByKindStatus >>= \case
-              False -> return $ (out </> takeBaseName resDirectory_ )
-              True -> return  $ (out </> show resErrKind_
-                                     </> show resErrStatus_
-                                     </> takeBaseName resDirectory_ )
+              False -> return $ (out </> takeBaseName specDir )
+              True -> return  $ (out </> show kind
+                                     </> show status
+                                     </> takeBaseName specDir )
 
-            let newChoices = replaceDirectory resErrChoices_ outDir
-            let err = OurError{resDirectory_= outDir, resErrChoices_=newChoices, .. }
+            let newChoices = replaceDirectory choices outDir
+            let err = OurError $ e{specDir= outDir, choices=newChoices}
 
             db_dir <- getDbDirectory >>= \case
               Just df -> return df
@@ -143,7 +162,7 @@ checkDB kind status newE= do
             liftIO $ doesDirectoryExist outDir >>= \case
               True  -> return $ Just err
               False -> do
-                liftIO $ copyDirectory (db_dir </> resDirectory_)  outDir
+                liftIO $ copyDirectory (db_dir </> specDir)  outDir
                 return $ Just err
 
 
@@ -169,12 +188,12 @@ writeDB_ onlyPassing (Just dir)
            (ResultsDB{resultsPassing=Mapped m1,resultsErrors=Mapped nm2})
 
   where
-    f _ OurError{..} = do
+    f _ (OurError (ErrData{..})) = do
       liftIO $ putStrLn ""
-      let newDir = takeBaseName resDirectory_
-      copyDirectory resDirectory_ (dir </> newDir)
-      let newChoices = replaceDirectory resErrChoices_ newDir
-      return $ StoredError{resDirectory_= newDir, resErrChoices_=newChoices, ..}
+      let newDir = takeBaseName specDir
+      copyDirectory specDir (dir </> newDir)
+      let newChoices = replaceDirectory choices newDir
+      return .StoredError $ ErrData{specDir= newDir, choices=newChoices, ..}
 
     f _ x = return x
 

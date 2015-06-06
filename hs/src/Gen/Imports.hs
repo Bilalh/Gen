@@ -1,6 +1,5 @@
 module Gen.Imports
     ( module X
-    , Depth
     , docError
     , nn
     , noteFormat
@@ -11,6 +10,10 @@ module Gen.Imports
     , prettyTypeArr
     , groomPrint
     , nnError
+    , Depth
+    , Hash
+    , Time
+    , Directory
     ) where
 
 import Conjure.Language.AbstractLiteral as X (AbstractLiteral)
@@ -34,7 +37,10 @@ import qualified Data.Map.Strict as M
 import qualified Data.Set         as S
 import qualified Text.PrettyPrint as Pr
 
-type Depth = Int
+type Depth     = Int
+type Hash      = Int
+type Time      = Int
+type Directory = FilePath
 
 -- | nub is O(N^2) this is O(NlogN)
 nub2 :: (Ord a, Hashable a) => [a] -> [a]

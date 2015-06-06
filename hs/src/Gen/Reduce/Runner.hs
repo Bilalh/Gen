@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveGeneric,
-             DeriveTraversable #-}
+             DeriveTraversable, ViewPatterns #-}
 module Gen.Reduce.Runner where
 
 import Data.Time.Clock.POSIX (getPOSIXTime)
@@ -105,7 +105,6 @@ runSpec spE = do
       choices     <- gets mostReducedChoices_
 
       let refineWay :: Maybe FilePath -> KindI -> RefineType
-          --FIXME hadle Compact
           refineWay Nothing  RefineCompact_ = Refine_All
           refineWay Nothing  RefineRandom_  = Refine_All
           refineWay (Just _) RefineCompact_ = Refine_Only
@@ -114,9 +113,8 @@ runSpec spE = do
           refineWay _        _              = Refine_Solve_All
 
 
-      (stillErroed, timeTaken_) <- if rrErrorKind == TypeCheck_ then do
+      (stillErroed, timeTaken) <- if rrErrorKind == TypeCheck_ then do
         typeCheckWithResult path sp
-
       else do
         (_, res)  <- toolchain Toolchain.ToolchainData{
                       Toolchain.essencePath       = essencePath
@@ -132,7 +130,7 @@ runSpec spE = do
                     , Toolchain.outputDirectory   = path
                     , Toolchain.dryRun            = False
                     }
-        let timeTaken_ = floor $ Toolchain.getRunTime res
+        let timeTaken = floor $ Toolchain.getRunTime res
 
 
         addLog "runSpec" [pretty spE]
@@ -151,21 +149,21 @@ runSpec spE = do
             sameError (RefineResult SettingI{successful_=False
                         ,data_=RefineMultiOutput{choices_made,cmd_used=CmdI{..}}})
                 | modelRefineError rrErrorKind = do
-                let resErrChoices_ = choices_made
+                let choices = choices_made
                 case match (rrErrorStatus,rrErrorKind) (status_, kind_) of
-                  Just (resErrStatus_,resErrKind_) ->
-                    return (True, OurError{resDirectory_ = path
-                                          ,resErrKind_
-                                          ,resErrStatus_
-                                          ,resErrChoices_
-                                          ,timeTaken_})
+                  Just (status, kind) ->
+                    return (True, OurError $ ErrData{ specDir = path
+                                                    , kind
+                                                    , status
+                                                    , choices
+                                                    , timeTaken})
 
                   Nothing ->
-                    return (False, OurError{resDirectory_ = path
-                                           ,resErrKind_   = kind_
-                                           ,resErrStatus_ = status_
-                                           ,resErrChoices_
-                                           ,timeTaken_})
+                    return (False, OurError $ ErrData{ specDir = path
+                                                     , kind   = kind_
+                                                     , status = status_
+                                                     , choices
+                                                     , timeTaken})
 
                 where
                   match :: (StatusI, KindI) -> (StatusI, KindI) -> Maybe (StatusI, KindI)
@@ -188,20 +186,20 @@ runSpec spE = do
                     f _ = Nothing
 
                     sks = M.toList $  M.mapMaybe f ms
-                resErrChoices_ <- choicesUsed
+                choices <- choicesUsed
                 case anyFirst (rrErrorStatus,rrErrorKind) sks of
-                   Just (resErrStatus_,resErrKind_)   ->
-                     return (True, OurError{resDirectory_ = path
-                                           ,resErrKind_
-                                           ,resErrStatus_
-                                           ,resErrChoices_
-                                           ,timeTaken_})
+                   Just (status,kind)   ->
+                     return (True, OurError $ ErrData { specDir = path
+                                                      , kind
+                                                      , status
+                                                      , choices
+                                                      , timeTaken})
                    Nothing -> return
-                    (False, OurError{resDirectory_ = path
-                                    ,resErrKind_   = fstKind sks
-                                    ,resErrStatus_ = fstStatus sks
-                                    ,resErrChoices_
-                                    ,timeTaken_})
+                    (False, OurError $ ErrData {specDir = path
+                                               ,kind    = fstKind sks
+                                               ,status  = fstStatus sks
+                                               ,choices
+                                               ,timeTaken})
 
                 where
                   choicesUsed = do
@@ -234,7 +232,7 @@ runSpec spE = do
 
 
 
-            sameError _ = return (False, Passing{timeTaken_})
+            sameError _ = return (False, Passing timeTaken)
 
             fstStatus []            = error "fstStatus no statuses"
             fstStatus ((_,(s,_)):_) = s
@@ -243,7 +241,7 @@ runSpec spE = do
             fstKind ((_,(_,k)):_) = k
 
         stillErroed <- liftIO $ sameError res
-        return (stillErroed, timeTaken_)
+        return (stillErroed, timeTaken)
 
       storeInDB spE (snd stillErroed)
 
@@ -254,18 +252,17 @@ runSpec spE = do
 
       case stillErroed of
         (True, Passing{})  -> rrError "Same error but no result" []
-        (True, r)   -> return ( Just r, timeTaken_)
+        (True, r)   -> return ( Just r, timeTaken)
 
         (False, Passing{}) -> do
            gets deletePassing_ >>= \case
-                False -> return (Nothing, timeTaken_)
+                False -> return (Nothing, timeTaken)
                 True  -> do
                     liftIO $ removeDirectoryRecursive path
-                    return (Nothing, timeTaken_)
+                    return (Nothing, timeTaken)
         (False,r)  -> do
           addOtherError r
-          return (Nothing, timeTaken_)
-
+          return (Nothing, timeTaken)
 
 
 
@@ -295,6 +292,8 @@ kindsEqual RefineRandom_  RefineCompact_ = True
 kindsEqual a b = a == b
 
 addOtherError :: RunResult -> RR ()
-addOtherError r = do
+addOtherError (viewResultError -> Just r ) = do
   return ()
   modify $ \st -> st{otherErrors_ =r : otherErrors_ st }
+
+addOtherError _ = $(neverNote "addOtherError trying added passing")
