@@ -1,5 +1,5 @@
 {-# LANGUAGE QuasiQuotes #-}
-{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+{-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-unused-binds -fno-warn-unused-matches #-}
 
 module Gen.AST.Ops where
 import Gen.AST.TH
@@ -59,7 +59,6 @@ opApart        x y z = [essencee| apart(&x, &y, &z) |]
 opParty        x y   = [essencee| party(&x, &y) |]
 opParticipants x     = [essencee| participants(&x ) |]
 
--- opInverse x y = [essencee| inverse(&x, &y ) |]
 opBar x = [essencee|  |&x| |]
 
 opApply x y = [essencee| &x(&y) |]
