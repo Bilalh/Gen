@@ -11,6 +11,7 @@ import Conjure.Language.TypeOf
 import Conjure.Prelude
 import Gen.AST.Data
 import Gen.Helpers.LineError
+import Text.PrettyPrint as Pr
 
 instance Translate Constant Constant where
     fromConjure = return . id
@@ -132,7 +133,9 @@ instance Pretty Expr where
   pretty = pretty . (toConjureNote "Pretty Expr" :: Expr -> Expression)
 
 instance Pretty QType where
-    pretty = error "Pretty Qtype"
+    pretty ForAll = "forAll"
+    pretty Exists = "exists"
+    pretty Sum    = "sim"
 
 instance Pretty EGen where
     pretty =  pretty . (toConjureNote "Pretty EGen" :: EGen -> Generator)
@@ -179,3 +182,22 @@ dintRange a b = DomainInt [RangeBounded (ECon . ConstantInt $ fromIntegral a)
 cintRange :: Int -> Int -> Domainn Constant
 cintRange a b = DomainInt [RangeBounded ( ConstantInt $ fromIntegral a)
                                         ( ConstantInt $ fromIntegral b)]
+
+
+
+instance PrettyWithQuan Expr where
+    prettyWithQuan (EQuan qtype (Var name _) over_in guar body) =
+      let
+        header =  pretty qtype
+              <+> pretty name
+              <+> ( case over_in of
+                        (EDom dom) -> Pr.colon <+> pretty dom
+                        x          -> "in" <+> prettyWithQuan x
+                  )
+        hangGuard x = case guar of
+                        EEmptyGuard -> x
+                        _ -> x
+        hangBody x = x <++> ("." <+> prettyWithQuan body)
+      in hangBody $ hangGuard header
+
+    prettyWithQuan x = pretty x
