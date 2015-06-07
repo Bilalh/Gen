@@ -6,7 +6,7 @@ import Gen.Essence.UIData       (EssenceConfig (..))
 import Gen.Imports
 import Gen.IO.Formats
 import Gen.IO.RunResult
-import Gen.IO.Toolchain         (KindI, StatusI, doMeta)
+import Gen.IO.Toolchain         (doMeta)
 import Gen.Reduce.Data          (RState (..))
 import Gen.Reduce.FormatResults (formatResults)
 import Gen.Reduce.Reduce        (reduceMain)

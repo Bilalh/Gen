@@ -6,7 +6,7 @@ import Gen.TestPrelude
 import Gen.Solver.Solver
 import Conjure.UI.IO
 import Conjure.Language.Definition
-import Test.Tasty.HUnit(Assertion,assertFailure,assertBool)
+import Test.Tasty.HUnit(Assertion,assertFailure)
 import System.FilePath(takeDirectory,takeFileName)
 
 

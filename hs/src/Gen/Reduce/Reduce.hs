@@ -129,7 +129,7 @@ removeUnusedDomains sp@(Spec ods es obj) = do
             recordResult r
             return . Continue . Just $ y
 
-          g Nothing = process xs
+          g _ = process xs
 
 
 
@@ -161,7 +161,7 @@ removeConstraints (Spec ds oes obj) = do
             recordResult r
             return $ Just x
 
-          f Nothing  = return $ Just x
+          f _  = return $ Just x
 
           g (viewResultErrorM -> Just r) = do
             recordResult r

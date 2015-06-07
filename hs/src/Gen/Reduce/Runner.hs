@@ -149,20 +149,19 @@ runSpec spE = do
             sameError (RefineResult SettingI{successful_=False
                         ,data_=RefineMultiOutput{choices_made,cmd_used=CmdI{..}}})
                 | modelRefineError rrErrorKind = do
-                let choices = choices_made
                 case match (rrErrorStatus,rrErrorKind) (status_, kind_) of
                   Just (status, kind) ->
                     return (True, OurError $ ErrData{ specDir = path
                                                     , kind
                                                     , status
-                                                    , choices
+                                                    , choices=choices_made
                                                     , timeTaken})
 
                   Nothing ->
                     return (False, OurError $ ErrData{ specDir = path
-                                                     , kind   = kind_
-                                                     , status = status_
-                                                     , choices
+                                                     , kind    = kind_
+                                                     , status  = status_
+                                                     , choices = choices_made
                                                      , timeTaken})
 
                 where
@@ -186,19 +185,19 @@ runSpec spE = do
                     f _ = Nothing
 
                     sks = M.toList $  M.mapMaybe f ms
-                choices <- choicesUsed
+                c <- choicesUsed
                 case anyFirst (rrErrorStatus,rrErrorKind) sks of
                    Just (status,kind)   ->
                      return (True, OurError $ ErrData { specDir = path
                                                       , kind
                                                       , status
-                                                      , choices
+                                                      , choices=c
                                                       , timeTaken})
                    Nothing -> return
                     (False, OurError $ ErrData {specDir = path
                                                ,kind    = fstKind sks
                                                ,status  = fstStatus sks
-                                               ,choices
+                                               ,choices = c
                                                ,timeTaken})
 
                 where
