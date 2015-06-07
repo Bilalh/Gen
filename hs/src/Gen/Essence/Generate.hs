@@ -21,7 +21,6 @@ import GHC.Real                        (floor)
 import System.Directory                (copyFile, renameDirectory)
 import Test.QuickCheck                 (Gen, generate)
 
-import qualified Data.IntSet             as I
 import qualified Data.Map                as M
 import qualified Data.Set                as S
 import qualified Gen.Arbitrary.Arbitrary as FirstGen
@@ -34,8 +33,7 @@ import qualified Gen.IO.Toolchain        as Toolchain
 generateEssence :: KeyMap -> EssenceConfig -> IO ()
 generateEssence km ec@EC.EssenceConfig{..} = do
   setRandomSeed seed_
-  let carry = Carry{ cHashes            = runHashes_
-                   , cWeighting         = km
+  let carry = Carry{ cWeighting         = km
                    , cWeightingHashPrev = 0
                    , cDB                = def
                    , cSpecDir           = outputDirectory_ </> "_errors"
@@ -94,13 +92,12 @@ doRefine ec@EC.EssenceConfig{..} = do
       gen <-  genToUse useSize ec
       (sp,logs) <- generateWrap mayGiven $ gen
 
-      gets cHashes >>= \h -> case (hash sp) `I.member` h of
+      inDB sp >>= \case
         True -> do
           liftIO $ putStrLn $ "Not running spec with hash, already tested " ++ (show $ hash sp)
           process (timeLeft) (nextElem mayGiven)
         False -> do
           liftIO $ putStrLn $ "> Processing: " ++ (show $ hash sp)
-          modify $ \st -> st{cHashes= (hash sp) `I.insert` h}
           let model :: Model = toConjureNote "Generate toConjure" sp
           case typeCheck model  of
 
@@ -153,6 +150,8 @@ doRefine ec@EC.EssenceConfig{..} = do
               let realTime = endTime - startTime
 
               (runTime,rdata) <- liftIO $ classifySettingI ec errdir out uname result
+              mapM_ (\x -> storeInDB sp (OurError x)) rdata
+              writeDB False
 
               case reduceAsWell_ of
                 Nothing -> return ()
@@ -164,8 +163,8 @@ doRefine ec@EC.EssenceConfig{..} = do
                   liftIO $ putStrLn $ "! rdata: " ++ (show $ vcat $ map pretty rdata)
                   liftIO $ putStrLn $ "!l errData: " ++ (show $ length res)
                   liftIO $ putStrLn $ "! errData: " ++ (show $ vcat $ map pretty res)
+                  writeDB False
                   mapM_ adjust res
-
 
 
               liftIO $ putStrLn $ "> Processed: " ++ (show $ hash sp)
@@ -195,12 +194,11 @@ doSolve ec@EC.EssenceConfig{..} = do
       gen <-  genToUse useSize ec
       (sp,logs) <- generateWrap mayGiven $ gen
 
-      gets cHashes >>= \h -> case (hash sp) `I.member` (h) of
+      inDB sp >>= \case
         True -> do
           liftIO $ putStrLn $ "Not running spec with hash, already tested " ++ (show $ hash sp)
           process (timeLeft) (nextElem mayGiven)
         False -> do
-          modify $ \st -> st{cHashes= (hash sp) `I.insert` h}
           let model :: Model = toConjureNote "Generate toConjure" sp
           case typeCheck model  of
             Left x ->
@@ -251,6 +249,8 @@ doSolve ec@EC.EssenceConfig{..} = do
               let realTime = endTime - startTime
 
               (runTime,rdata) <- liftIO $  classifyError uname result
+              mapM_ (\x -> storeInDB sp (OurError x)) rdata
+              writeDB False
 
               case reduceAsWell_ of
                 Nothing -> return ()
@@ -262,6 +262,7 @@ doSolve ec@EC.EssenceConfig{..} = do
                   liftIO $ putStrLn $ "! rdata: " ++ (show $ vcat $ map pretty rdata)
                   liftIO $ putStrLn $ "!l errData: " ++ (show $ length res)
                   liftIO $ putStrLn $ "! errData: " ++ (show $ vcat $ map pretty res)
+                  writeDB False
                   mapM_ adjust res
 
               case totalIsRealTime of

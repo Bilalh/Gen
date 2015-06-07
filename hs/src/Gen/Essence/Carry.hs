@@ -8,7 +8,6 @@ import qualified Data.IntSet as I
 
 data Carry = Carry
     { cWeighting         :: KeyMap
-    , cHashes            :: I.IntSet
     , cWeightingHashPrev :: Int
     , cDB                :: ResultsDB
     , cSpecDir           :: FilePath

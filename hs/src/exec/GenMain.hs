@@ -177,7 +177,6 @@ mainWithArgs u@Essence{..} = do
                , toolchainOutput_   = toolchain_ouput
                , notUseful          = S.fromList [(Savilerow_, NumberToLarge_)]
                , givenSpecs_        = givenSpecs
-               , runHashes_         = def
                , genType_           = _gen_type
                , reduceAsWell_      = reduce_as_well
                }

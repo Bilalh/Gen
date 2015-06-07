@@ -4,7 +4,6 @@ module Gen.Essence.UIData  where
 
 import Gen.Imports
 import Gen.IO.Toolchain(KindI,StatusI,ToolchainOutput)
-import Data.IntSet
 
 data EssenceMode =
           TypeCheck_
@@ -40,7 +39,6 @@ data EssenceConfig = EssenceConfig
       , toolchainOutput_   :: ToolchainOutput
       , notUseful          :: Set ( KindI, StatusI )
       , givenSpecs_        :: Maybe [FilePath]
-      , runHashes_         :: IntSet
 
       , reduceAsWell_      :: Maybe Int
       } deriving (Show)
@@ -63,7 +61,6 @@ instance Default EssenceConfig where
       , toolchainOutput_   = def
       , notUseful          = def
       , givenSpecs_        = Nothing
-      , runHashes_         = def
       , genType_           = def
       , reduceAsWell_      = Nothing
       }
