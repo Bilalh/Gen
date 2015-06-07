@@ -239,8 +239,7 @@ Executable gen
        -fwarn-overlapping-patterns
        -fwarn-tabs
        -fwarn-unused-do-bind
-       -- -fwarn-unused-matches
-       -fno-warn-unused-matches
+       -- -fno-warn-unused-matches
        -Wall
        ---Werror
        -rtsopts
