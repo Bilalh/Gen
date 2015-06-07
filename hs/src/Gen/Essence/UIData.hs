@@ -22,25 +22,25 @@ instance Default GenType where
     def = FirstGen
 
 data EssenceConfig = EssenceConfig
-      { outputDirectory_ :: FilePath
+      { outputDirectory_ :: Directory
       , mode_            :: EssenceMode
       , genType_         :: GenType
 
       , totalTime_       :: Int
       , perSpecTime_     :: Int
-      , size_            :: Int  -- should not be greater then 5
+      , size_            :: Int  -- generally less then 5
       , cores_           :: Int
       , seed_            :: Int
 
       , totalIsRealTime    :: Bool
       , deletePassing_     :: Bool
-      , binariesDirectory_ :: Maybe FilePath
+      , binariesDirectory_ :: Maybe Directory
       , oldConjure_        :: Bool
       , toolchainOutput_   :: ToolchainOutput
       , notUseful          :: Set ( KindI, StatusI )
       , givenSpecs_        :: Maybe [FilePath]
-
-      , reduceAsWell_      :: Maybe Int
+      , dbDirectory_       :: Maybe Directory
+      , reduceAsWell_      :: Maybe Time
       } deriving (Show)
 
 instance Default EssenceConfig where
@@ -63,4 +63,5 @@ instance Default EssenceConfig where
       , givenSpecs_        = Nothing
       , genType_           = def
       , reduceAsWell_      = Nothing
+      , dbDirectory_       = Nothing
       }

@@ -134,6 +134,7 @@ mainWithArgs u@Essence{..} = do
   fileErr <- sequence
             [
               dirExistsMay "--givens"  given_dir
+            , dirExistsMay "--db_dir"  db_directory
             , dirExistsMay "--bin-dir" binaries_directory
             , fileExistsMay "--weightings/-w" _weightings
             ]
@@ -179,6 +180,7 @@ mainWithArgs u@Essence{..} = do
                , givenSpecs_        = givenSpecs
                , genType_           = _gen_type
                , reduceAsWell_      = reduce_as_well
+               , dbDirectory_       = db_directory
                }
 
   doMeta out no_csv binaries_directory
@@ -462,7 +464,7 @@ mainWithArgs Script_UpdateChoices{..} = do
 
 
 aerr :: String -> Bool -> Maybe String
-aerr n b | b = Just $ "Required: " ++ n
+aerr n b | b = Just $ "Error: " ++ n
 aerr _ _     = Nothing
 
 dirExistsMay :: String -> Maybe FilePath -> IO (Maybe String)
@@ -564,6 +566,7 @@ _essenceDebug = do
              , reduce_as_well     = Nothing
              , _weightings        = Nothing
              , output_weightings  = False
+             , db_directory       = Nothing
              }
     limiter (limit_time ec) (mainWithArgs ec)
 
@@ -591,6 +594,7 @@ _givenDebug = do
              , reduce_as_well     = Just 60
              , _weightings        = Nothing
              , output_weightings  = False
+             , db_directory       = Nothing
              }
     limiter (limit_time ec) (mainWithArgs ec)
 

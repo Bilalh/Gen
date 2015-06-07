@@ -33,11 +33,17 @@ import qualified Gen.IO.Toolchain        as Toolchain
 generateEssence :: KeyMap -> EssenceConfig -> IO ()
 generateEssence km ec@EC.EssenceConfig{..} = do
   setRandomSeed seed_
+  (db,db_dir) <- case dbDirectory_ of
+    Nothing -> return (def, outputDirectory_ </> "cache")
+    (Just x) -> do
+      db <- giveDb dbDirectory_ Nothing
+      return (db, x)
+
   let carry = Carry{ cWeighting         = km
                    , cWeightingHashPrev = 0
-                   , cDB                = def
+                   , cDB                = db
                    , cSpecDir           = outputDirectory_ </> "_errors"
-                   , cDBDir             = outputDirectory_ </> "cache"
+                   , cDBDir             = db_dir
                    }
   case mode_ of
     EC.TypeCheck_ -> void $ evalStateT (doTypeCheck ec) carry
@@ -94,10 +100,11 @@ doRefine ec@EC.EssenceConfig{..} = do
 
       inDB sp >>= \case
         True -> do
-          liftIO $ putStrLn $ "Not running spec with hash, already tested " ++ (show $ hash sp)
+          liftIO $ putStrLn $ "Not running spec with hash, already generated/cached" ++ (show $ hash sp)
           process (timeLeft) (nextElem mayGiven)
         False -> do
           liftIO $ putStrLn $ "> Processing: " ++ (show $ hash sp)
+
           let model :: Model = toConjureNote "Generate toConjure" sp
           case typeCheck model  of
 

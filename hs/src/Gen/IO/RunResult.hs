@@ -198,7 +198,7 @@ writeDB_ onlyPassing (Just dir)
     f _ x = return x
 
 -- | Return a db instance based on the give filepaths
-giveDb ::  Maybe FilePath -> Maybe FilePath -> IO ResultsDB
+giveDb ::  Maybe Directory -> Maybe FilePath -> IO ResultsDB
 giveDb dir passing = do
   r@ResultsDB{resultsPassing=Mapped m2}  <- getData $  (</> "db.json") <$> dir
   ResultsDB{resultsPassing=Mapped extra} <- getData passing

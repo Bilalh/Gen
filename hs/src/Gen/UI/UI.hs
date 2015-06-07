@@ -31,6 +31,7 @@ data UI
     , reduce_as_well     :: Maybe Int
     , _weightings        :: Maybe FilePath
     , output_weightings  :: Bool
+    , db_directory       :: Maybe FilePath
 
     }
 
@@ -248,6 +249,11 @@ ui  = modes
                                     &= groupname "Essence"
                                     &= help "Output the default weighting"
                                     &= explicit
+     , db_directory      = Nothing  &= name "db-dir"
+                                    &= groupname "Other"
+                                    &= typDir
+                                    &= explicit
+                                    &= help "Cache the result of running a spec. Useful for development"
      , toolchain_ouput    = enum
                             [
                               ToolchainScreen_ &= name "show-toolchain-output"
