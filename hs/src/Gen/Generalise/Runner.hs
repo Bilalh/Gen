@@ -14,7 +14,7 @@ import qualified Data.Map         as M
 import qualified Gen.IO.Toolchain as Toolchain
 
 
-runSpec :: Spec -> EE (Maybe RunResult)
+runSpec :: Spec -> EE (Maybe ErrData)
 runSpec spE = do
   liftIO $ logSpec spE
 
@@ -27,7 +27,7 @@ runSpec spE = do
       liftIO $ print $ ("Stored no rrError(P)"  :: String)
       liftIO $ putStrLn ""
       return Nothing
-    Just r@OurError{}  -> do
+    Just (OurError r)  -> do
       liftIO $ print $ ("Stored has rrError(O)" :: String)
       liftIO $ putStrLn ""
       return $ Just r
@@ -201,20 +201,21 @@ runSpec spE = do
 
       case stillErroed of
         (True, Passing{})  -> rrError "Same error but no result" []
-        (True, r)   -> return $ Just $ r
+        (True, OurError r)  -> return (Just r)
 
         (False, Passing{}) -> do
            gets deletePassing_ >>= \case
-                False -> return Nothing
+                False -> return (Nothing)
                 True  -> do
-                     liftIO $ removeDirectoryRecursive path
-                     return Nothing
-        (False, r)  -> do
+                    liftIO $ removeDirectoryRecursive path
+                    return (Nothing)
+        (False,r@OurError{})  -> do
           addOtherError r
-          return Nothing
+          return (Nothing)
 
-
-
+        tu -> docError [ pretty $line
+                       , "Invaild stillErroed"
+                       , pretty tu]
 
 
 modelRefineError :: KindI -> Bool

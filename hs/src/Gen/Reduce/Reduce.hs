@@ -29,7 +29,7 @@ reduceMain check rr = do
                            >>= noteMsg "Checking if error still occurs"
                            >>= runSpec
                            >>= \case
-                                  (Just (viewResultError -> Just (ErrData{..}) ), _) -> do
+                                  (Just ErrData{..}, _) -> do
                                     liftIO $ removeDirectoryRecursive (specDir)
                                     return True
 
@@ -90,7 +90,7 @@ tryRemoveConstraints sp@(Spec ds _ obj) = do
 
 
   where
-    f (viewResultErrorM -> Just r) = do
+    f (Just r) = do
       recordResult r
       return $ Spec ds [] obj
 
@@ -119,13 +119,13 @@ removeUnusedDomains sp@(Spec ods es obj) = do
         where
           y = ensureADomain x
 
-          f (viewResultErrorM -> Just r) = do
+          f (Just r) = do
             recordResult r
             return $ Just y
 
           f _  =  return $ Just y
 
-          g (viewResultErrorM -> Just r) = do
+          g (Just r) = do
             recordResult r
             return . Continue . Just $ y
 
@@ -157,13 +157,13 @@ removeConstraints (Spec ds oes obj) = do
     process (x:xs) = timedSpec (Spec ds x obj) f g
         where
 
-          f (viewResultErrorM -> Just r) = do
+          f (Just r) = do
             recordResult r
             return $ Just x
 
           f _  = return $ Just x
 
-          g (viewResultErrorM -> Just r) = do
+          g (Just r) = do
             recordResult r
             return . Continue . Just $ x
 
@@ -197,7 +197,7 @@ simplyDomains sp@(Spec ds es obj) = do
   process xs | all (singleElem) xs = do
       addLog "processsingleElem" []
       let fix = map head xs
-      let f (viewResultErrorM -> Just r) = do
+      let f (Just r) = do
             recordResult r
             return fix
           f _ = return []
@@ -208,13 +208,13 @@ simplyDomains sp@(Spec ds es obj) = do
     fix <- choose esR
 
     let
-        f (viewResultErrorM -> Just r) = do
+        f (Just r) = do
           recordResult r
           return fix
 
         f _  = return fix
 
-        g (viewResultErrorM -> Just r) = do
+        g (Just r) = do
           recordResult r
           innerToDo <- doConstraints fix
           inner     <- process innerToDo
@@ -256,7 +256,7 @@ simplyConstraints sp@(Spec ds es obj) = do
     addLog "finished processing" []
 
     if (timedExtract fin) == [] then
-        let f (viewResultErrorM -> Just r) = do
+        let f (Just r) = do
               recordResult r
               return (Spec ds [] obj)
             f _ = return $ Spec ds es obj
@@ -274,7 +274,7 @@ simplyConstraints sp@(Spec ds es obj) = do
     process xs | all (singleElem) xs = do
         addLog "processsingleElem" []
         let fix = map head xs
-        let f (viewResultErrorM -> Just r) = do
+        let f (Just r) = do
               recordResult r
               return fix
             f _ = return []
@@ -285,13 +285,13 @@ simplyConstraints sp@(Spec ds es obj) = do
         fix <- choose esR
 
         let
-            f (viewResultErrorM -> Just r) = do
+            f (Just r) = do
               recordResult r
               return fix
 
             f _  = return fix
 
-            g (viewResultErrorM -> Just r) = do
+            g (Just r) = do
               recordResult r
               innerToDo <- doConstraints fix
               inner     <- process innerToDo

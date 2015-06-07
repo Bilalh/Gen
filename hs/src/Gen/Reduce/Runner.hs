@@ -31,8 +31,8 @@ timedExtract (NoTimeLeft a) = a
 
 
 timedSpec :: Spec
-          -> (Maybe RunResult -> RR a)          -- No time left
-          -> (Maybe RunResult -> RR (Timed a))  -- Time left
+          -> (Maybe ErrData -> RR a)          -- No time left
+          -> (Maybe ErrData -> RR (Timed a))  -- Time left
           -> RR (Timed a)
 timedSpec sp f g= do
     startTime <- liftIO $ round `fmap` getPOSIXTime
@@ -60,7 +60,7 @@ timedSpec sp f g= do
 
 
 -- Just means rrError still happens
-runSpec :: Spec -> RR (Maybe RunResult, Int)
+runSpec :: Spec -> RR (Maybe ErrData, Int)
 runSpec spE = do
   liftIO $ logSpec spE
 
@@ -73,7 +73,7 @@ runSpec spE = do
       liftIO $ print $ ("Stored no rrError(P)"  :: String)
       liftIO $ putStrLn ""
       return (Nothing, 0)
-    Just r@OurError{}  -> do
+    Just (OurError r)  -> do
       liftIO $ print $ ("Stored has rrError(O)" :: String)
       liftIO $ putStrLn ""
       return $ (Just r, 0)
@@ -251,7 +251,7 @@ runSpec spE = do
 
       case stillErroed of
         (True, Passing{})  -> rrError "Same error but no result" []
-        (True, r)   -> return ( Just r, timeTaken)
+        (True, OurError r)  -> return ( Just r, timeTaken)
 
         (False, Passing{}) -> do
            gets deletePassing_ >>= \case
@@ -259,10 +259,13 @@ runSpec spE = do
                 True  -> do
                     liftIO $ removeDirectoryRecursive path
                     return (Nothing, timeTaken)
-        (False,r)  -> do
+        (False,(OurError r))  -> do
           addOtherError r
           return (Nothing, timeTaken)
 
+        tu -> docError [ pretty $line
+                       , "Invaild stillErroed"
+                       , pretty tu]
 
 
 
@@ -290,9 +293,7 @@ kindsEqual RefineRandom_  RefineCompact_ = True
 
 kindsEqual a b = a == b
 
-addOtherError :: RunResult -> RR ()
-addOtherError (viewResultError -> Just r ) = do
+addOtherError :: ErrData -> RR ()
+addOtherError r = do
   return ()
   modify $ \st -> st{otherErrors_ =r : otherErrors_ st }
-
-addOtherError _ = $(neverNote "addOtherError trying added passing")
