@@ -474,7 +474,7 @@ dirExistsMay s (Just x) = dirExists s x
 dirExists :: String -> FilePath -> IO (Maybe String)
 dirExists s x = do
   b <- doesDirectoryExist x
-  return $ aerr (s ++ " ~ Directory does not exist " ++ x ) (not b)
+  return $ aerr (s ++ " ~ Directory does not exist: " ++ x ) (not b)
 
 fileExistsMay :: String -> Maybe FilePath -> IO (Maybe String)
 fileExistsMay _ Nothing  = return Nothing
@@ -483,7 +483,7 @@ fileExistsMay s (Just x) = fileExists s x
 fileExists ::String -> FilePath -> IO (Maybe String)
 fileExists s x = do
   b <- doesFileExist x
-  return $ aerr (s ++ " ~ File does not exist " ++ x ) (not b)
+  return $ aerr (s ++ " ~ File does not exist: " ++ x ) (not b)
 
 
 
