@@ -14,7 +14,7 @@ import qualified Data.Map      as M
 
 adjust :: (MonadState Carry m, MonadIO m) => ReduceResult -> m ()
 adjust ReduceResult{..} = do
-  let tree :: Tree Key = keyTree finalSpec
+  let tree = keyTree finalSpec
   let keys = F.toList tree
   (KeyMap ws) <- gets cWeighting
   let newWeights = foldl' doWeighting ws keys
