@@ -5,7 +5,6 @@ import Conjure.Language.AbstractLiteral
 import Conjure.Language.Expression.Op
 import Gen.Classify.DomTypes
 import Gen.Helpers.SizeOf
-import Gen.Helpers.Standardise
 import Gen.Imports
 
 import qualified Data.Foldable as F
@@ -87,12 +86,11 @@ maximum' _ xs = maximum xs
 
 findFeatures ::(Monad m, Applicative m) => Spec -> m [Feature]
 findFeatures (Spec _ cs obj) = do
-    cs' <- mapM standardise cs
     let objs = case obj of
                  Nothing               -> []
                  (Just (_, a)) -> getFeatures a
 
-    let fs = concatMap getFeatures cs'
+    let fs = concatMap getFeatures cs
              ++
                objs
              ++

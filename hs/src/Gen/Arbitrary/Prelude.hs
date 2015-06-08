@@ -24,7 +24,6 @@ import Gen.Arbitrary.OrderedType     as X
 import Gen.Arbitrary.QuickCheck2     as X
 import Gen.Helpers.SizeOf          as X
 import Gen.Imports as X
-import Gen.Helpers.Standardise     as X
 import Gen.Helpers.TypeOf          as X
 
 import Data.Time

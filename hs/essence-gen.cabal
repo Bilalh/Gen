@@ -126,7 +126,6 @@ Library
                      , Gen.Helpers.Log
                      , Gen.Helpers.Placeholders
                      , Gen.Helpers.SizeOf
-                     , Gen.Helpers.Standardise
                      , Gen.Helpers.TypeOf
                      , Gen.Imports
                      , Gen.IO.Formats

@@ -13,7 +13,6 @@ import Data.List                        (splitAt)
 import Gen.AST.TH
 import Gen.Helpers.Log
 import Gen.Helpers.SizeOf
-import Gen.Helpers.Standardise
 import Gen.Helpers.TypeOf
 import Gen.Imports
 import Gen.Reduce.Data
@@ -587,15 +586,14 @@ reduceList as = do
       allSiblings z = z : maybe [] allSiblings (Zipper.right z)
 
 
-runReduce :: (HasGen m, Standardise a, HasLogger m, Reduce a (StateT EState (IdentityT m)) )
+runReduce :: (HasGen m, HasLogger m, Reduce a (StateT EState (IdentityT m)) )
           => Spec -> a -> m [a]
 runReduce spe x = do
   addLog "runReduce" []
   state <- (newEState spe)
   olg <- getLog
   (res,resState) <- runIdentityT $ flip runStateT state{elogs_=olg} $ do
-                    nx <- standardise x
-                    reduce nx
+                    reduce x
 
   putLog (elogs_ resState)
   addLog "endReduce" []
@@ -603,15 +601,14 @@ runReduce spe x = do
 
 
 runSingle :: forall (m :: * -> *) a.
-    (Reduce a (StateT EState (IdentityT m)), HasGen m, Standardise a, HasLogger m)
+    (Reduce a (StateT EState (IdentityT m)), HasGen m, HasLogger m)
  => Spec -> a -> m [Expr]
 runSingle spe x = do
   addLog "runSingle" []
   state <- (newEState spe)
   olg <- getLog
   (res,resState) <- runIdentityT $ flip runStateT state{elogs_=olg} $ do
-                    nx <- standardise x
-                    single nx
+                    single x
 
   putLog (elogs_ resState)
   addLog "endSingle" []
