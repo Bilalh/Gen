@@ -141,3 +141,24 @@ toModel (Spec doms exprs obj) = do
 domOfGF :: GF -> (Domainn Expr)
 domOfGF (Givenn x) = x
 domOfGF (Findd x)  = x
+
+
+instance PrettyWithQuan Spec where
+  prettyWithQuan (Spec doms exprs obj) = vcat $
+      [ pretty (def :: LanguageVersion)
+      , prettyDomains  doms
+      , "such that" <++> vcat (punctuate "," $  map prettyWithQuan exprs)
+      , ""
+      ]  ++ maybeToList (fmap prettyObjective obj)
+
+    where
+      prettyObjective :: (OObjective,Expr) -> Doc
+      prettyObjective (o,expr) = (f o)  <+> prettyWithQuan expr
+        where
+          f Maximisingg = "maximising"
+          f Minimisingg = "minimising"
+
+      prettyDomains x = vcat $ map f $ M.toList x
+        where
+          f (name,Givenn dom) =  "given" <+> pretty name <+> ":" <+> pretty dom
+          f (name,Findd dom)  =  "find"  <+> pretty name <+> ":" <+> pretty dom

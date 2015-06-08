@@ -32,7 +32,7 @@ type Domainn x = Domain () x
 type Literal = AbstractLiteral Expr
 
 
---TODO PrettyWithQuan
+-- | Outputs quantifiers e.g. exists instead of converting them to list comparisons
 class Pretty a => PrettyWithQuan a where
     prettyWithQuan :: Pretty a => a -> Doc
 
