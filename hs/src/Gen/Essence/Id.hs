@@ -67,6 +67,7 @@ displayKTree  = unlines . draw2
 
       shift fr other = zipWith (++) (fr : repeat other)
 
+
 instance GetKey Spec where
   getKey x = fromString . show . toConstr $ x
 
@@ -75,6 +76,7 @@ instance GetKey Spec where
              [ KTree K_SDoms (map (keyTree . domOfGF ) $ M.elems doms )
              , KTree K_SExprs (map keyTree exprs)
              ] ++ maybeToList (fmap (KTree K_SObj . (: []) . keyTree) obj)
+
 
 instance GetKey (OObjective, Expr) where
   getKey (o,_)     = fromString . show . toConstr $ o

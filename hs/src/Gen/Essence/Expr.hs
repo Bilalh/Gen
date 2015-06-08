@@ -37,7 +37,7 @@ instance Generate Expr where
           ]
 
 
-    parts <- getPossibilities g defs
+    parts <- getPossibilitiesKeyed g defs
     frequency3 parts
 
     where

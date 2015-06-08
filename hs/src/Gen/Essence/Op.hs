@@ -19,8 +19,7 @@ instance (Generate a, ExpressionLike a, EvalToInt a, GenInfo a) =>
     res <- withDepthDec $ do
              sanity "Generate Op"
              gets depth >>= \d -> logInfo2 $line [nn "depth" d, nn "key" key]
-             -- withKey key op
-             op
+             withKey key op
     return res
 
   possible _ con = do
@@ -30,7 +29,7 @@ instance (Generate a, ExpressionLike a, EvalToInt a, GenInfo a) =>
     else do
       logDepthCon $line con
       bs <- withDepthDec $ mapM check (allOps con)
-      logInfo2 $line ("ops:" :  [pretty  k | (b,k) <- bs , b ]  )
+      logWarn2 $line ("ops:" :  [pretty  k | (b,k) <- bs , b ]  )
       return $ or $ (map fst) bs
 
     where
@@ -48,8 +47,8 @@ pickOp con vs = do
 
   where
   doPossibilities (f,(k,v)) =
-   f con >>= \case
+   (withKey k $ f con) >>= \case
      False -> return (0,(k,v))
      True  -> do
-       w <- weightingForKey k
+       w <- withKey k $ weightingForKey k
        return (w,(k, v))

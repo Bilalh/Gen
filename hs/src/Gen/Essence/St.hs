@@ -42,6 +42,8 @@ module Gen.Essence.St
   , sanityn
   , noVars
   , withKey
+  , getPossibilitiesKeyed
+  , logWarn2
   ) where
 
 import Conjure.Language.Constant
@@ -415,6 +417,10 @@ logInfo2 :: MonadLog m => String -> [Doc] -> m ()
 logInfo2 ln docs = log LogInfo . hang (pretty ln) 4 $ Pr.vcat docs
 
 
+logWarn2 :: MonadLog m => String -> [Doc] -> m ()
+logWarn2 ln docs = log LogWarn . hang (pretty ln) 4 $ Pr.vcat docs
+
+
 logDebug2 :: MonadLog m => String -> [Doc] -> m ()
 logDebug2 ln docs = log LogDebug . hang (pretty ln) 4 $ Pr.vcat docs
 
@@ -446,3 +452,18 @@ withKey k f = do
   res <- f
   modify $ \st -> st{ keyPath_ = old}
   return res
+
+
+getPossibilitiesKeyed :: arg
+                 -> [(arg -> GenSt Bool, (Key, GenSt v))]
+                 -> GenSt [(Int, GenSt v)]
+getPossibilitiesKeyed con vs = do
+  mapM doPossibilities vs
+
+  where
+  doPossibilities (f,(k,v)) =
+   (withKey k $ f con) >>= \case
+     False -> return (0,v)
+     True  -> do
+       w <- withKey k $ weightingForKey k
+       return (w,withKey k v)
