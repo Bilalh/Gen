@@ -78,6 +78,7 @@ data Key = K_Unused
          | K_EVar
          | K_ExpressionMetaVar
          | K_FunctionAttr
+         | K_IntAsc
          | K_Int_0
          | K_Int_1
          | K_Int_10
@@ -302,6 +303,7 @@ instance IsString Key where
   fromString "EVar"                    = K_EVar
   fromString "ExpressionMetaVar"       = K_ExpressionMetaVar
   fromString "FunctionAttr"            = K_FunctionAttr
+  fromString "IntAsc"                  = K_IntAsc
   fromString "Int_0"                   = K_Int_0
   fromString "Int_1"                   = K_Int_1
   fromString "Int_10"                  = K_Int_10
