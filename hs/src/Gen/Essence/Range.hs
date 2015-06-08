@@ -10,7 +10,7 @@ import Gen.Imports
 import qualified Data.Set as S
 
 
-instance (Generate a, WrapConstant a) => Generate (Range a) where
+instance (Generate a, GenInfo a) => Generate (Range a) where
   give GNone = do
       parts <- getWeights [("RangeSingle", single),("RangeBounded", bounded) ]
       frequency3 parts
@@ -44,7 +44,7 @@ intLowerBounded  a = do
   frequency3 choices
 
 
-mkRanges :: forall a . WrapConstant a
+mkRanges :: forall a . GenInfo a
          => Integer ->  Integer -> Integer -> Set Integer
          -> GenSt [Range a]
 mkRanges _ 0 0 _ = return []

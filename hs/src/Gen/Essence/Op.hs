@@ -9,7 +9,7 @@ import Gen.Essence.Rnd
 import Gen.Essence.St
 import Gen.Imports
 
-instance (Generate a, ExpressionLike a, EvalToInt a, WrapConstant a) =>
+instance (Generate a, ExpressionLike a, EvalToInt a, GenInfo a) =>
     Generate (Op a) where
   give a = do
     (key,op) <- withDepthDec $ do

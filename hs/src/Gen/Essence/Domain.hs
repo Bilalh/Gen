@@ -13,7 +13,7 @@ import Gen.Essence.Id
 
 import qualified Data.Set as S
 
-instance (Generate a, WrapConstant a, EvalToInt a) => Generate (Domain () a) where
+instance (Generate a, GenInfo a, EvalToInt a) => Generate (Domain () a) where
   give GNone = give GNone >>= \ty -> give (GType ty)
 
   give (GType TypeBool)             = pure DomainBool
@@ -59,13 +59,13 @@ instance (Generate a, WrapConstant a, EvalToInt a) => Generate (Domain () a) whe
   requires _ _               = []
 
 
-instance (Generate a, WrapConstant a, EvalToInt a) => Generate (SetAttr a) where
+instance (Generate a, GenInfo a, EvalToInt a) => Generate (SetAttr a) where
   give GNone         = SetAttr <$> give (GNone)
   give t             = giveUnmatched "Generate (SetAttr a)" t
   possiblePure _ _ _ = True
   requires _ _        = [RAll [K_TypeInt]]
 
-instance (Generate a, WrapConstant a, EvalToInt a) => Generate (MSetAttr a) where
+instance (Generate a, GenInfo a, EvalToInt a) => Generate (MSetAttr a) where
   give GNone = do
     (a,b) <- elements3 [ (GNone,GMsetAtrr), (GMsetAtrr,GNone)  ]
     MSetAttr <$> give a <*> give b
@@ -75,7 +75,7 @@ instance (Generate a, WrapConstant a, EvalToInt a) => Generate (MSetAttr a) wher
   requires _ _       = [RAll [K_TypeInt]]
 
 
-instance (Generate a, WrapConstant a, EvalToInt a) => Generate (SizeAttr a)  where
+instance (Generate a, GenInfo a, EvalToInt a) => Generate (SizeAttr a)  where
   give GNone     = doSizeAttr True
   give GMsetAtrr = doSizeAttr False
 
@@ -84,7 +84,7 @@ instance (Generate a, WrapConstant a, EvalToInt a) => Generate (SizeAttr a)  whe
   possiblePure _ _ _ = True
   requires _ _       = [RAll [K_TypeInt]]
 
-doSizeAttr :: forall a . (Generate a, WrapConstant a, EvalToInt a)
+doSizeAttr :: forall a . (Generate a, GenInfo a, EvalToInt a)
            => Bool -> GenSt (SizeAttr a)
 doSizeAttr allowNone = do
     sanity "Generate (SizeAttr a)"
@@ -111,7 +111,7 @@ doSizeAttr allowNone = do
       return $ (a,b)
 
 
-instance (Generate a, WrapConstant a, EvalToInt a) => Generate (OccurAttr a) where
+instance (Generate a, GenInfo a, EvalToInt a) => Generate (OccurAttr a) where
   give GNone     = doOccurAttr True
   give GMsetAtrr = doOccurAttr False
 
@@ -121,7 +121,7 @@ instance (Generate a, WrapConstant a, EvalToInt a) => Generate (OccurAttr a) whe
   requires _ _       = [RAll [K_TypeInt]]
 
 
-doOccurAttr :: forall a . (Generate a, WrapConstant a, EvalToInt a)
+doOccurAttr :: forall a . (Generate a, GenInfo a, EvalToInt a)
            => Bool -> GenSt (OccurAttr a)
 doOccurAttr allowNone = do
   let defs = if allowNone then
@@ -147,7 +147,7 @@ doOccurAttr allowNone = do
 
 
 
-instance (Generate a, WrapConstant a, EvalToInt a) => Generate (FunctionAttr a) where
+instance (Generate a, GenInfo a, EvalToInt a) => Generate (FunctionAttr a) where
   give GNone         = FunctionAttr <$> give GNone <*> give GNone <*> give GNone
   give t             = giveUnmatched "Generate (FunctionAttr a)" t
 
@@ -180,7 +180,7 @@ instance Generate JectivityAttr where
   requires _ _       = []
 
 
-instance (Generate a, WrapConstant a, EvalToInt a) => Generate (RelationAttr a) where
+instance (Generate a, GenInfo a, EvalToInt a) => Generate (RelationAttr a) where
   give GNone         = RelationAttr <$> give (GNone) <*> give (GNone)
   give GBinRel       = RelationAttr <$> give (GNone) <*> give (GBinRel)
   give t             = giveUnmatched "Generate (RelationAttr a)" t
@@ -221,7 +221,7 @@ instance Generate (BinaryRelationAttrs) where
   possiblePure _ _ _ = True
   requires _ _       = []
 
-instance (Generate a, WrapConstant a, EvalToInt a) => Generate (PartitionAttr a) where
+instance (Generate a, GenInfo a, EvalToInt a) => Generate (PartitionAttr a) where
   give GNone = do
       s1 <- give GNone
       s2 <- give GNone

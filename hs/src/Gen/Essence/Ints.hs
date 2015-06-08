@@ -20,7 +20,7 @@ data IntAsc a = IntAsc a a
 instance Pretty a => Pretty (IntAsc a) where
     pretty (IntAsc a b) = "IntAsc" <+> pretty a <+> pretty b
 
-instance  (EvalToInt a, Generate a, WrapConstant a) => Generate (IntAsc a) where
+instance  (EvalToInt a, Generate a, GenInfo a) => Generate (IntAsc a) where
     give GNone = do
       d <-  gets depth
       if d < 2 then do
@@ -54,7 +54,7 @@ instance  (EvalToInt a, Generate a, WrapConstant a) => Generate (IntAsc a) where
     possible _ _ = return True
 
 
-intDomainOfSize :: forall a . WrapConstant a
+intDomainOfSize :: forall a . GenInfo a
                => Integer -> GenSt (Domain () a)
 intDomainOfSize numElems = do
   numRanges <- choose3 (1 :: Integer, numElems)

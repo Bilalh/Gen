@@ -11,7 +11,7 @@ import Gen.Essence.Domain ()
 import Gen.Essence.EvalToInt
 
 
-instance (Generate a, ExpressionLike a, EvalToInt a, WrapConstant a)
+instance (Generate a, ExpressionLike a, EvalToInt a, GenInfo a)
          => Generate (OpMin a) where
   give (GType TypeInt) = do
     d <- gets depth

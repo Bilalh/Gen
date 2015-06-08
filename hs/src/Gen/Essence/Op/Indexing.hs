@@ -12,7 +12,7 @@ import Gen.Helpers.SizeOf
 import Gen.Imports
 
 
-instance (Generate a, ExpressionLike a, WrapConstant a) => Generate (OpIndexing a) where
+instance (Generate a, ExpressionLike a, GenInfo a) => Generate (OpIndexing a) where
   give (GType inn) = do
      k <- elemFreq3 =<< getWeights
           [ (K_TypeMatrix, K_TypeMatrix)

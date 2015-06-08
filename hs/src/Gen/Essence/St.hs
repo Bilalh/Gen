@@ -6,7 +6,7 @@ module Gen.Essence.St
   , Generate(..)
   , GenerateConstraint(..)
   , St(..)
-  , WrapConstant(..)
+  , GenInfo(..)
   , fieldKeys
   , generateFreq
   , generateTypeFreq
@@ -111,8 +111,6 @@ data St = St{
     }
  deriving (Eq,Show)
 
-
-
 instance Pretty St where
     pretty (St{..}) =
         "St" <+> Pr.braces (
@@ -123,7 +121,6 @@ instance Pretty St where
                   , nn "varCounter"  $ varCounter
                   , nn "weighting" (pretty . groom $  weighting)
                   ] )
-
 
 instance Default St where
   def = St{
@@ -145,6 +142,7 @@ data GenerateConstraint = GNone
 instance Pretty GenerateConstraint where
   pretty (GType x) = "GType" <+> pretty x
   pretty t = pretty . show $ t
+
 
 -- | Local variables
 newtype LVar = LVar Var
@@ -204,14 +202,6 @@ sanityn n msg =  do
 -- | withDepthDec . give for Convenience
 dgive :: forall a . Generate a  => GenerateConstraint -> GenSt a
 dgive = withDepthDec . give
-
-
-nextVarName :: MonadState St m => Text -> m Text
-nextVarName prefix = do
-  i <- gets varCounter
-  modify $ \st -> st{varCounter=i+1}
-  return $  mconcat [prefix, "_", (stringToText . show $ i)]
-
 
 
 weightingForKey :: MonadState St m => Key -> m Int
@@ -284,6 +274,14 @@ withVars nvars f = do
 noVars :: GenSt a -> GenSt a
 noVars = withWeights [(K_EVar, 0), (K_LVar, 0)]
 
+nextVarName :: MonadState St m => Text -> m Text
+nextVarName prefix = do
+  i <- gets varCounter
+  modify $ \st -> st{varCounter=i+1}
+  return $  mconcat [prefix, "_", (stringToText . show $ i)]
+
+
+
 
 -- | Error message for give
 giveUnmatched :: forall c a. Pretty a => Doc -> a -> GenSt c
@@ -334,6 +332,7 @@ runGenerateNullLogs con st = do
   let s = (flip evalStateT ) st (give con)
   fst <$> runWriterT s
 
+
 -- | DataType of a proxy
 proxyDataTypeOf :: forall a . Data a => Proxy a -> DataType
 proxyDataTypeOf _ = dataTypeOf (error "proxyDataTypeOf" :: a)
@@ -379,28 +378,28 @@ generateTypeFreq _ con n st = do
   print .  vcat .  map pretty $ freq tys
 
 
--- Really should be reanmed
-class WrapConstant a where
+class GenInfo a where
   wrapConstant :: Constant -> a
   wrapDomain   :: Domain () a -> a
   allowEmpty   :: Proxy a -> Bool
 
-instance WrapConstant Expr where
+instance GenInfo Expr where
   wrapConstant = ECon
   wrapDomain  =  EDom
   allowEmpty _ = True
 
-instance WrapConstant Constant where
+instance GenInfo Constant where
   wrapConstant = id
   wrapDomain   = DomainInConstant
   allowEmpty _ = False
 
 
-instance WrapConstant Expression where
+instance GenInfo Expression where
   wrapConstant = Constant
   wrapDomain   = Domain
   allowEmpty _ = True
 
+-- Logging
 
 logHigher2 :: MonadLog m => String -> [Doc] -> m ()
 logHigher2 ln docs = log LogFollow . hang (pretty ln) 4 $ Pr.vcat docs

@@ -12,7 +12,7 @@ import Gen.Imports
 
 import qualified Gen.Essence.Data.Types as Types
 
-instance (Generate a, WrapConstant a) => Generate (AbstractLiteral a) where
+instance (Generate a, GenInfo a) => Generate (AbstractLiteral a) where
   give con = do
    (res, _ :: Type) <- give con
    return res
@@ -25,7 +25,7 @@ instance (Generate a, WrapConstant a) => Generate (AbstractLiteral a) where
   requires _ (Just ty) = [RAll $ keyList ty]
   requires _ _         = []
 
-instance (Generate a, WrapConstant a) => Generate (AbstractLiteral a, Type) where
+instance (Generate a, GenInfo a) => Generate (AbstractLiteral a, Type) where
   give GNone = do
     sanityn 1 "Generate AbstractLiteral "
     ty <- give $ GOnlyTopLevel Types.literals
@@ -83,11 +83,11 @@ instance (Generate a, WrapConstant a) => Generate (AbstractLiteral a, Type) wher
   requires _ (Just ty) = [RAll $ keyList ty]
   requires _ _         = []
 
-boundedChecked :: (WrapConstant a) => Proxy a -> (Int, Int) -> GenSt a -> GenSt [a]
+boundedChecked :: (GenInfo a) => Proxy a -> (Int, Int) -> GenSt a -> GenSt [a]
 boundedChecked proxy tu as = do
   n <- chooseChecked proxy tu
   vectorOf3 n as
 
-chooseChecked :: (WrapConstant a) => Proxy a -> (Int, Int) -> GenSt Int
+chooseChecked :: (GenInfo a) => Proxy a -> (Int, Int) -> GenSt Int
 chooseChecked proxy tu  | allowEmpty proxy = choose3 tu
 chooseChecked _  (a,b)  =  choose3 (max 1 a, b)
