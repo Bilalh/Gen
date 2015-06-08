@@ -19,6 +19,7 @@ import Gen.Imports
 
 import qualified Data.Foldable as F
 import qualified Data.Map      as M
+import qualified Data.Set      as S
 
 data KTree a = KTree a  [KTree a]
              | KWeight a Int
@@ -105,13 +106,13 @@ instance GetKey EGen  where
   keyTree e@(GenDom p dom) = KTree (getKey e) [keyTree p, keyTree dom]
   keyTree e@(GenIn p dom)  = KTree (getKey e) [keyTree p, keyTree dom]
 
+
 instance GetKey AbstractPattern  where
   getKey x           = fromString . show . toConstr $ x
   keyTree e@Single{} = KTree (getKey e) []
   keyTree e          = KTree (getKey e) (map keyTree (childrenBi e :: [AbstractPattern]) )
 
 
--- TODO Check if correct
 instance (GetKey a, ExpressionLike a) => GetKey (Op a) where
   getKey x  = fromString . drop 2 .  show . toConstr $ x
   keyTree d =  KTree (getKey d) (map keyTree $ (childrenBi d :: [a]) )
@@ -182,14 +183,13 @@ instance GetKey a => GetKey (Domain () a) where
   keyTree d = docError ["unhandled " <+> pretty d <+> "in buildKTree" ]
 
 
--- TODO finish
 instance GetKey a => GetKey (FunctionAttr a) where
   getKey x  = fromString . show . toConstr $ x
-  keyTree d = KTree (getKey d) ([])
+  keyTree d@(FunctionAttr d1 d2 d3) = KTree (getKey d) ([keyTree d1, keyTree d2, keyTree d3])
 
 instance GetKey a => GetKey (MSetAttr a) where
   getKey x  = fromString . show . toConstr $ x
-  keyTree d = KTree (getKey d) ([])
+  keyTree d@(MSetAttr d1 d2) = KTree (getKey d) ([keyTree d1, keyTree d2])
 
 instance GetKey a => GetKey (PartitionAttr a) where
   getKey x  = fromString . show . toConstr $ x
@@ -197,12 +197,37 @@ instance GetKey a => GetKey (PartitionAttr a) where
 
 instance GetKey a => GetKey (RelationAttr a) where
   getKey x  = fromString . show . toConstr $ x
-  keyTree d = KTree (getKey d) ([])
+  keyTree d@(RelationAttr d1 d2) = KTree (getKey d) ([keyTree d1, keyTree d2])
 
 instance GetKey a => GetKey (SequenceAttr a) where
   getKey x  = fromString . show . toConstr $ x
-  keyTree d = KTree (getKey d) ([])
+  keyTree d@(SequenceAttr d1 d2) = KTree (getKey d) ([keyTree d1, keyTree d2])
 
 instance GetKey a => GetKey (SetAttr a) where
   getKey x  = fromString . show . toConstr $ x
-  keyTree d = KTree (getKey d) ([])
+  keyTree d@(SetAttr d1) = KTree (getKey d) ([keyTree d1])
+
+
+instance GetKey a => GetKey (SizeAttr a) where
+  getKey x  = fromString . show . toConstr $ x
+  keyTree d = KTree (getKey d) (map keyTree $ (childrenBi d :: [a]) )
+
+instance GetKey a => GetKey (OccurAttr a) where
+  getKey x  = fromString . show . toConstr $ x
+  keyTree d = KTree (getKey d) (map keyTree $ (childrenBi d :: [a]) )
+
+instance GetKey PartialityAttr where
+  getKey x  = fromString . show . toConstr $ x
+  keyTree d = KTree (getKey d) []
+
+instance GetKey JectivityAttr where
+  getKey x  = fromString . show . toConstr $ x
+  keyTree d = KTree (getKey d) []
+
+instance GetKey BinaryRelationAttrs where
+  getKey x  = fromString . show . toConstr $ x
+  keyTree d@(BinaryRelationAttrs d1) = KTree (getKey d) (map keyTree $ S.toList d1)
+
+instance GetKey BinaryRelationAttr where
+  getKey x  = fromString . show . toConstr $ x
+  keyTree d = KTree (getKey d) []
