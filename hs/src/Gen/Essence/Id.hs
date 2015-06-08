@@ -94,7 +94,7 @@ instance GetKey Expr where
   keyTree d@(ECon x)               = KTree (getKey d) [keyTree x]
   keyTree d@(ELit x)               = KTree (getKey d) [keyTree x]
   keyTree d@(EOp x)                = KTree (getKey d) [keyTree x]
-  keyTree d@(ETyped x1 x2)         = KTree (getKey d) [keyTree x1, keyTree x2]
+  keyTree d@(ETyped _ x2)          = KTree (getKey d) [keyTree x2]
   keyTree d@(EDom x)               = KTree (getKey d) [keyTree x]
 
   keyTree d@(EComp x1 x2 x3)       = KTree (getKey d) (keyTree x1 :map keyTree x2 ++  map keyTree x3)
