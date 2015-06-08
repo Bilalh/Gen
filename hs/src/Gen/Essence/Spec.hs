@@ -13,6 +13,8 @@ import qualified Data.Map as M
 
 instance Generate Spec where
   give GNone = do
+    modify $ \st -> st{keyPath_=[K_Spec]}
+
     depth <- gets depth
     -- TODO add to ui
     dom_depth <- choose3 (0, min depth 3)
@@ -27,12 +29,12 @@ instance Generate Spec where
                    , nn "i_e" i_e
                    ]
 
-    doms <- mapM (\_ -> withDepth dom_depth $ give GNone) [1..i_d]
+    doms <- withKey K_SDoms $  mapM (\_ -> withDepth dom_depth $ give GNone) [1..i_d]
     let withNames =  zipWith (\d i -> (name i , Findd d)) doms [1 :: Int ..]
     let mappings  = M.fromList withNames
     modify $ \st -> st{doms_=mappings}
 
-    exprs <- mapM (const . give $ GType TypeBool ) [0..i_e]
+    exprs <- withKey K_SExprs $ mapM ( \_ ->  give $ GType TypeBool ) [0..i_e]
     Spec mappings exprs <$> (give GNone)
 
     where name i =  stringToText $  "var" ++  (show  i)
