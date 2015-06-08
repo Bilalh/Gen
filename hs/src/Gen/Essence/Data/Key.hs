@@ -175,6 +175,7 @@ data Key = K_Unused
          | K_PartialityAttr_Partial
          | K_PartialityAttr_Total
          | K_PartitionAttr
+         | K_PickObjective
          | K_RangeBounded
          | K_RangeLowerBounded
          | K_RangeOpen
@@ -398,6 +399,7 @@ instance IsString Key where
   fromString "PartialityAttr_Partial"  = K_PartialityAttr_Partial
   fromString "PartialityAttr_Total"    = K_PartialityAttr_Total
   fromString "PartitionAttr"           = K_PartitionAttr
+  fromString "PickObjective"           = K_PickObjective
   fromString "RangeBounded"            = K_RangeBounded
   fromString "RangeLowerBounded"       = K_RangeLowerBounded
   fromString "RangeOpen"               = K_RangeOpen

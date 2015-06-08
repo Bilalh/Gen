@@ -13,8 +13,14 @@ instance Generate (Maybe (OObjective, Expr)) where
   give GNone = possible (Proxy :: Proxy (OObjective, Expr)) GNone >>= \case
     False -> return Nothing
     True  -> do
-      frequency3 [ (70, pure Nothing)
-                 , (30, Just <$> give GNone)
+      val <- weightingForKey K_PickObjective
+      let (k_obj,k_none) = if val <= 0 then
+                               (0, 100)
+                           else
+                               (val, max 0 (100 - val)  )
+
+      frequency3 [ (k_none, pure Nothing)
+                 , (k_obj, Just <$> give GNone)
                  ]
 
   give t = giveUnmatched "Generate (Maybe (OObjective, Expr))" t
@@ -25,7 +31,7 @@ instance Generate (OObjective, Expr) where
   give GNone = do
     ds <- gets doms_
     let pairs = [  (name, runIdentity $ ttypeOf d )
-                | (name,Findd d)  <- M.toList ds
+                |  (name,Findd d)  <- M.toList ds
                 ]
         tys = [ (name,ty) | (name,ty) <- pairs,  allow ty]
 
