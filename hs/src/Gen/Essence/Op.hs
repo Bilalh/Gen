@@ -20,6 +20,7 @@ instance (Generate a, ExpressionLike a, EvalToInt a, GenInfo a) =>
              sanity "Generate Op"
              gets depth >>= \d -> logInfo2 $line [nn "depth" d, nn "key" key]
              -- withKey key op
+             op
     return res
 
   possible _ con = do
