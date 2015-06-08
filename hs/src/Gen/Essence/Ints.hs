@@ -10,12 +10,19 @@ import Gen.Essence.St
 import Gen.Essence.Type        ()
 import Gen.Imports
 import Gen.Essence.EvalToInt
+import Gen.Essence.Id
 
 import qualified Data.Set as S
 
 
 data IntAsc a = IntAsc a a
  deriving (Eq, Ord, Show, Data, Typeable, Generic)
+
+
+instance GetKey a => GetKey (IntAsc a) where
+  getKey _   = K_IntAsc
+  keyTree d  = KTree (getKey d) (map keyTree $ children d)
+
 
 instance Pretty a => Pretty (IntAsc a) where
     pretty (IntAsc a b) = "IntAsc" <+> pretty a <+> pretty b
