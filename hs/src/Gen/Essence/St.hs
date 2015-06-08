@@ -146,7 +146,7 @@ instance Pretty GenerateConstraint where
   pretty (GType x) = "GType" <+> pretty x
   pretty t = pretty . show $ t
 
-
+-- | Local variables
 newtype LVar = LVar Var
     deriving (Data, Typeable, Show)
 
