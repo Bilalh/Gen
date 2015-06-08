@@ -41,6 +41,7 @@ module Gen.Essence.St
   , runGenerate
   , sanityn
   , noVars
+  , withKey
   ) where
 
 import Conjure.Language.Constant
@@ -423,7 +424,12 @@ logDebugVerbose2 ln docs = log LogDebugVerbose . hang (pretty ln) 4 $ Pr.vcat do
 
 logDepthCon :: forall m b. (MonadState St m, MonadLog m, Pretty b) =>
                String -> b -> m ()
-logDepthCon l con= gets depth >>= \d -> logInfo2 l [nn "depth" d, nn "con" con]
+logDepthCon l con= gets depth >>= \d ->
+    gets keyPath_ >>= \path ->
+      logInfo2 l [ nn "depth" d
+                 , nn "con" con
+                 , nn "keyPath" (groom path) ]
+
 
 ldc :: forall m b b1.
        (MonadState St m, MonadLog m, Pretty b1) =>
@@ -432,4 +438,11 @@ ldc l con f= do
   logDepthCon l con
   f
 
--- Keys
+
+withKey :: Key -> GenSt a -> GenSt a
+withKey k f = do
+  old <- gets keyPath_
+  modify $ \st -> st{ keyPath_= k : old  }
+  res <- f
+  modify $ \st -> st{ keyPath_ = old}
+  return res
