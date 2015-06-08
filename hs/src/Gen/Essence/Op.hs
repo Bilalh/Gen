@@ -19,7 +19,7 @@ instance (Generate a, ExpressionLike a, EvalToInt a, GenInfo a) =>
     res <- withDepthDec $ do
              sanity "Generate Op"
              gets depth >>= \d -> logInfo2 $line [nn "depth" d, nn "key" key]
-             op
+             -- withKey key op
     return res
 
   possible _ con = do
