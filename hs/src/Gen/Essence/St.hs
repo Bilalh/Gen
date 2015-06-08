@@ -1,4 +1,5 @@
-{-# LANGUAGE CPP, DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveGeneric, GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE CPP, DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveGeneric,
+             DeriveTraversable, GeneralizedNewtypeDeriving #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Gen.Essence.St
   ( module X
@@ -47,9 +48,10 @@ import Conjure.Language.Definition (Expression (..))
 import Data.Data                   hiding (Proxy)
 import Data.Map                    (Map)
 import Gen.Essence.Data.Key        as X
+import Gen.Essence.Id              as X (GetKey (..))
+import Gen.Essence.Log             ()
 import Gen.Helpers.Log
 import Gen.Helpers.TypeOf
-import Gen.Essence.Log()
 import Gen.Imports
 import Test.QuickCheck             (Gen, generate)
 
@@ -108,6 +110,7 @@ data St = St{
     , varCounter :: Int
     , newVars_   :: [Var] -- Domains from e.g. forall
     , doms_      :: Domains
+    , keyPath_   :: [Key]
     }
  deriving (Eq,Show)
 
@@ -119,6 +122,7 @@ instance Pretty St where
                   , nn "newVars_"    $ prettyTypeArr newVars_
                   , nn "doms"        $ doms_
                   , nn "varCounter"  $ varCounter
+                  , nn "keyPath_"    $ prettyArr keyPath_
                   , nn "weighting" (pretty . groom $  weighting)
                   ] )
 
@@ -129,6 +133,7 @@ instance Default St where
         , newVars_   = def
         , doms_      = def
         , varCounter = 1
+        , keyPath_   = def
         }
 
 
@@ -377,7 +382,7 @@ generateTypeFreq _ con n st = do
   tys <- mapM ttypeOf ts
   print .  vcat .  map pretty $ freq tys
 
-
+-- | Extra infomation that is required by Generate
 class GenInfo a where
   wrapConstant :: Constant -> a
   wrapDomain   :: Domain () a -> a
@@ -426,3 +431,5 @@ ldc :: forall m b b1.
 ldc l con f= do
   logDepthCon l con
   f
+
+-- Keys

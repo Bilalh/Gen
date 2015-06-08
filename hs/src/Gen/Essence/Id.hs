@@ -1,5 +1,7 @@
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE DeriveGeneric, DeriveDataTypeable, DeriveFunctor, DeriveTraversable, DeriveFoldable #-}
+{-# LANGUAGE DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveGeneric,
+             DeriveTraversable, MultiParamTypeClasses #-}
+
+-- N.B. Imported by Gen.Essence.St
 module Gen.Essence.Id( keyList
                      , KTree(..)
                      , GetKey(..)
@@ -12,11 +14,11 @@ import Conjure.Language.Domain
 import Conjure.Language.Expression.Op
 import Data.Data
 import Data.Generics.Uniplate.Data    (childrenBi)
-import Gen.Essence.St
+import Gen.Essence.Data.Key
 import Gen.Imports
 
-import qualified Data.Map as M
 import qualified Data.Foldable as F
+import qualified Data.Map      as M
 
 data KTree a = KTree a  [KTree a]
              | KWeight a Int
