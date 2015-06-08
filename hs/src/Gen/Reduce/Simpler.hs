@@ -169,7 +169,7 @@ instance Simpler Expr (Op Expr) where
     simplerImp a b = simplerImpError "Expr Op" a b
 
 
-instance Simpler Literal Expr where simplerImp = negSimplerImp
+instance Simpler (AbstractLiteral Expr) Expr where simplerImp = negSimplerImp
 instance (Simpler c Expr, Simpler Expr c, Simpler Constant c, IntRange c, DepthOf c, TTypeOf c, TypeOf c)
     => Simpler Expr (AbstractLiteral c) where
 

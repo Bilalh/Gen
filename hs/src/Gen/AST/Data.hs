@@ -29,7 +29,6 @@ class (Pretty ast, Pretty conjure, Show ast) => Translate ast conjure where
                     Left  d -> error . renderNormal . vcat $ ["fromConjureNote", msg, d ]
 
 type Domainn x = Domain () x
-type Literal = AbstractLiteral Expr
 
 
 -- | Outputs quantifiers e.g. exists instead of converting them to list comparisons
@@ -40,7 +39,7 @@ type ListComp =  (Expr, [EGen], [Expr])
 data Expr =
     EVar Var
   | ECon Constant
-  | ELit Literal
+  | ELit (AbstractLiteral Expr)
   | EOp (Op Expr)
   | ETyped Type Expr
   | EDom (Domainn Expr)

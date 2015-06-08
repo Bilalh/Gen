@@ -17,7 +17,7 @@ instance Translate Constant Constant where
     fromConjure = return . id
     toConjure   = return . id
 
-instance Translate Literal (AbstractLiteral Expression) where
+instance Translate  (AbstractLiteral Expr) (AbstractLiteral Expression) where
     fromConjure x = mapM fromConjure x
     toConjure x   = mapM toConjure x
 

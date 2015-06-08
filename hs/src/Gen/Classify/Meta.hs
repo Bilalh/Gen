@@ -126,7 +126,7 @@ instance HasFeature Expr where
 instance HasFeature (Op Expr) where
   getFeatures x = F.foldl (\y e -> y ++ getFeatures e ) [] x
 
-instance HasFeature Literal where
+instance HasFeature (AbstractLiteral Expr) where
     getFeatures (AbsLitTuple l)     = concatMap getFeatures l
     getFeatures (AbsLitMatrix _ l1) = concatMap getFeatures l1
     getFeatures (AbsLitSet l)       = concatMap getFeatures l

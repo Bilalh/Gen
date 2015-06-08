@@ -43,7 +43,7 @@ instance Standardise QType where
 instance Standardise Constant where
     standardise = return
 
-instance Standardise Literal where
+instance Standardise (AbstractLiteral Expr) where
     standardise x = return x
 
 instance Standardise (Domainn Expr) where
