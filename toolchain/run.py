@@ -260,11 +260,15 @@ def run_solve(extra_env, op, commands, limit, eprime):
         mstimeout=itimeout * 1000
 
         if cmd_kind == K.savilerow:
-            out = subprocess.check_output(["savilerow"], universal_newlines=True)
+            try:
+                out = subprocess.check_output(["savilerow"], universal_newlines=True)
+            except subprocess.CalledProcessError as e:
+                out = e.output
             if '-run-minion' in out:
-                cmd_template.replace('-run-solver', '-run-minion')
+                # cmd_template = cmd_template.replace('-run-solver', '-run-minion')
+                cmd_template = cmd_template.replace('-run-solver', '')
             if '-minion-options' in out:
-                cmd_template.replace('-solver-options', '-minion-options')
+                cmd_template = cmd_template.replace('-solver-options', '-minion-options')
 
         c=shlex.split(cmd_template.format(**locals()))
         vals = dict(essence=essence,
@@ -349,7 +353,7 @@ def classify_error(*, kind, output, returncode):
             return Status.varDuplicated
         if 'Exception in thread' in output:
             return Status.javaException
-        if 'ERROR: Savile Row timed out' in output:
+        if 'Savile Row timed out' in output:
             return Status.timeout
 
     if kind in kind_conjure:
@@ -442,9 +446,11 @@ def run_process(timeout, kind, cmd, *, extra_env, vals):
 
     # Might be simpler to run SR and minion our self
     if code == 0 and kind == K.savilerow:
-        if "Savile Row timed out" in output:
+        # Old SR returns zero sometimes on error
+        mayErr = classify_error(kind=kind,output=output,returncode=0)
+        if mayErr != Status.errorUnknown:
             finished = False
-            status=Status.timeout
+            status=mayErr
         else:
             with vals['eprime_info'].open() as f:
                 (sr_real, m_timeout, m_total)  = [ float(l.split(":")[1])
