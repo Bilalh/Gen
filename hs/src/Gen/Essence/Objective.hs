@@ -5,12 +5,16 @@ import Gen.Imports
 import Gen.Essence.St
 import Gen.Essence.Rnd
 import Gen.Helpers.TypeOf
+import Data.Generics.Uniplate.Data
 
 import qualified Data.Foldable as F
 import qualified Data.Map as M
+import qualified Data.Set as S
+import qualified Data.Traversable              as R
 
-instance Generate (Maybe (OObjective, Expr)) where
-  give GNone = possible (Proxy :: Proxy (OObjective, Expr)) GNone >>= \case
+instance (Generate a, WrapVar a, TTypeOf a)
+      => Generate (Maybe (OObjective, a)) where
+  give GNone = possible (Proxy :: Proxy (OObjective, a)) GNone >>= \case
     False -> return Nothing
     True  -> do
       val <- weightingForKey K_PickObjective
@@ -25,19 +29,37 @@ instance Generate (Maybe (OObjective, Expr)) where
 
   give t = giveUnmatched "Generate (Maybe (OObjective, Expr))" t
 
-  possible _ con = possible (Proxy :: Proxy (OObjective, Expr)) con
+  possible _ con = possible (Proxy :: Proxy (OObjective, a)) con
 
-instance Generate (OObjective, Expr) where
+instance (Generate a, WrapVar a, TTypeOf a)
+      => Generate (OObjective, a) where
   give GNone = do
-    ds <- gets doms_
-    let pairs = [  (name, runIdentity $ ttypeOf d )
-                |  (name,Findd d)  <- M.toList ds
-                ]
-        tys = [ (name,ty) | (name,ty) <- pairs,  allow ty]
 
-    (name,ty) <- elements3 tys
+    ds <- gets doms_
     kind <- elements3 [Maximisingg, Minimisingg]
-    return $ (kind, (EVar $ Var name ty ))
+    e :: a <- give (GType TypeInt)
+
+    -- Checks if a decision variable is referenced
+    if (S.fromList $  namesUsed e) `S.isSubsetOf` M.keysSet ds then
+        return $ (kind, e)
+    else do
+      -- Try to replace a sub-expression with a decision variable reference
+      let pairs = [  (name, runIdentity $ ttypeOf d )
+            |  (name,Findd d)  <- M.toList ds
+            ]
+          tys = [ (name,ty) | (name,ty) <- pairs,  allow ty]
+
+      (name,ty) <- elements3 tys
+      let var = wrapVar $ Var name ty
+
+      let (e_new,replaced) = replaceExpr e var
+
+      -- Check if were able to replace an sub-expression
+      -- If not we give up and just return a decision varible of type Int
+      if replaced then
+        return $ (kind, e_new)
+      else
+        return $ (kind, var)
 
 
   give t = giveUnmatched "Generate (OObjective, Expr)" t
@@ -54,6 +76,25 @@ instance Generate (OObjective, Expr) where
 
 
   possible _ con = possibleUnmatched "possible ((OObjective, Expr)" con
+
+-- | Replace the first sub-expression of A
+-- if that sub-expression has type Int with v
+-- returns (A changed, if replaced )
+replaceExpr :: (TTypeOf a, Data a) => a -> a -> (a,Bool)
+replaceExpr op new = flip runState False $ f1 <$> R.mapM fff ch1
+   where
+     (ch1, f1) = biplate op
+     fff (c :: a) = do
+       (done::Bool) <- get
+       if not done then do
+           if (runIdentity $ ttypeOf c) == TypeInt then do
+             put False
+             return new
+           else
+             return c
+       else
+         return c
+
 
 allow :: Type -> Bool
 allow TypeInt = True
