@@ -259,6 +259,13 @@ def run_solve(extra_env, op, commands, limit, eprime):
         itimeout=int(math.ceil(limit))
         mstimeout=itimeout * 1000
 
+        if cmd_kind == K.savilerow:
+            out = subprocess.check_output(["savilerow"], universal_newlines=True)
+            if '-run-minion' in out:
+                cmd_template.replace('-run-solver', '-run-minion')
+            if '-minion-options' in out:
+                cmd_template.replace('-solver-options', '-minion-options')
+
         c=shlex.split(cmd_template.format(**locals()))
         vals = dict(essence=essence,
                             essence_param=essence_param,
