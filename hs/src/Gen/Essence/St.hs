@@ -44,6 +44,7 @@ module Gen.Essence.St
   , withKey
   , getPossibilitiesKeyed
   , logWarn2
+  , WrapVar(..)
   ) where
 
 import Conjure.Language.Constant
@@ -61,6 +62,8 @@ import Test.QuickCheck             (Gen, generate)
 import qualified Data.Map         as M
 import qualified Data.Set         as S
 import qualified Text.PrettyPrint as Pr
+
+import Conjure.Language.Name
 
 -- | Generate a random value of a specified type
 class (Data a, Pretty a) => Generate a where
@@ -167,7 +170,11 @@ instance Hashable KeyMap where
   hashWithSalt i (KeyMap ws) = hashWithSalt i  . M.toList $ ws
 
 instance Default KeyMap where
-    def = KeyMap $ M.fromList [(K_BinRelAttrStop, 1000) ]
+    def = KeyMap $ M.fromList
+          [ -- High means that less binary attrs add to relations
+            (K_BinRelAttrStop, 1000)
+          , (K_PickObjective, 70) -- 70% change of having an objective
+          ]
 
 instance Pretty KeyMap where
     pretty = pretty . groom
@@ -407,8 +414,20 @@ instance GenInfo Expression where
   wrapDomain   = Domain
   allowEmpty _ = True
 
--- Logging
+class WrapVar a where
+  wrapVar :: Var -> a
+  namesUsed :: a -> [Text]
 
+instance WrapVar Expr where
+  wrapVar     = EVar
+  namesUsed x = [ t | EVar (Var t _) <- universe x]
+
+instance WrapVar Expression where
+  wrapVar (Var x1 _) = Reference (Name x1) Nothing
+  -- TODO could be better
+  namesUsed x = [ stringToText . show . pretty $ t | Reference t _ <- universe x]
+
+-- Logging
 logHigher2 :: MonadLog m => String -> [Doc] -> m ()
 logHigher2 ln docs = log LogFollow . hang (pretty ln) 4 $ Pr.vcat docs
 
