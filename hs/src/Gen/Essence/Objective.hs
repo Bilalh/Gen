@@ -34,14 +34,17 @@ instance (Generate a, WrapVar a, TTypeOf a)
 instance (Generate a, WrapVar a, TTypeOf a)
       => Generate (OObjective, a) where
   give GNone = do
-
+    logDepthCon $line GNone
     ds <- gets doms_
     kind <- elements3 [Maximisingg, Minimisingg]
     e :: a <- give (GType TypeInt)
 
     -- Checks if a decision variable is referenced
-    if (S.fromList $  namesUsed e) `S.isSubsetOf` M.keysSet ds then
-        return $ (kind, e)
+    let names = S.fromList $  namesUsed e
+    if (not $ S.null names) && names `S.isSubsetOf` M.keysSet ds then do
+      logInfo2 $line [ "Using e"  <+> (pretty e)
+                     , "names" <+> (pretty $ groom $ namesUsed e)  ]
+      return $ (kind, e)
     else do
       -- Try to replace a sub-expression with a decision variable reference
       let pairs = [  (name, runIdentity $ ttypeOf d )
@@ -53,6 +56,9 @@ instance (Generate a, WrapVar a, TTypeOf a)
       let var = wrapVar $ Var name ty
 
       let (e_new,replaced) = replaceExpr e var
+      logInfo2 $line ["e"     <+> (pretty e)
+                     ,"e_new" <+> (pretty e_new)
+                     ]
 
       -- Check if were able to replace an sub-expression
       -- If not we give up and just return a decision varible of type Int
@@ -88,7 +94,7 @@ replaceExpr op new = flip runState False $ f1 <$> R.mapM fff ch1
        (done::Bool) <- get
        if not done then do
            if (runIdentity $ ttypeOf c) == TypeInt then do
-             put False
+             put True
              return new
            else
              return c
