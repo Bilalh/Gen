@@ -266,7 +266,7 @@ def run_solve(extra_env, op, commands, limit, eprime):
                 out = e.output
             if '-run-minion' in out:
                 # cmd_template = cmd_template.replace('-run-solver', '-run-minion')
-                cmd_template = cmd_template.replace('-run-solver', '')
+                cmd_template = cmd_template.replace('-run-solver', '-run-minion minion')
             if '-minion-options' in out:
                 cmd_template = cmd_template.replace('-solver-options', '-minion-options')
 
