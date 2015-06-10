@@ -8,7 +8,7 @@ import System.Directory (renameDirectory)
 import System.FilePath  (takeFileName)
 
 formatResults :: Bool -> RState -> IO (Maybe FilePath)
-formatResults delete_steps RState{..} = do
+formatResults delete_steps RState{rconfig=RConfig{..},..} = do
 
   res <- case mostReduced_ of
     Just r -> do

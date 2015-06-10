@@ -7,7 +7,7 @@ import Gen.Imports
 import Gen.IO.Formats
 import Gen.IO.RunResult
 import Gen.IO.Toolchain         (doMeta)
-import Gen.Reduce.Data          (RState (..))
+import Gen.Reduce.Data          (RState (..),RConfig(..))
 import Gen.Reduce.FormatResults (formatResults)
 import Gen.Reduce.Reduce        (reduceMain)
 import System.FilePath          (takeBaseName)
@@ -38,23 +38,26 @@ reduceError EssenceConfig{..} ErrData{..}= do
       total_time_may = reduceAsWell_
       out            = specDir ++ "_r-" ++ (replaceExtensions "" $ takeBaseName choices)
 
-  let args = def{oErrKind_            = kind
-                ,oErrStatus_          = status
-                ,oErrChoices_         = Just choices
-                ,outputDir_           = out
-                ,specDir_             = specDir
-                ,R.cores_             = 1
-                ,rgen_                = R.mkrGen (seed_)
-                ,specTime_            = per_spec_time
-                ,R.binariesDirectory_ = binariesDirectory_
-                ,R.toolchainOutput_   = toolchainOutput_
-                ,R.deletePassing_     = deletePassing_
-                ,resultsDB_           = db
-                ,mostReducedChoices_  = Just choices
-                ,resultsDB_dir        = db_dir
-                ,timeLeft_            = total_time_may
-                ,totalIsRealTime_     = totalIsRealTime
-                }
+  let args = def{ rconfig=
+               RConfig
+               {oErrKind_            = kind
+               ,oErrStatus_          = status
+               ,oErrChoices_         = Just choices
+               ,outputDir_           = out
+               ,specDir_             = specDir
+               ,R.cores_             = 1
+               ,specTime_            = per_spec_time
+               ,R.binariesDirectory_ = binariesDirectory_
+               ,R.toolchainOutput_   = toolchainOutput_
+               ,R.deletePassing_     = deletePassing_
+               ,totalIsRealTime_     = totalIsRealTime
+               ,resultsDB_dir        = db_dir
+               }
+             ,rgen_                = R.mkrGen (seed_)
+             ,resultsDB_           = db
+             ,mostReducedChoices_  = Just choices
+             ,timeLeft_            = total_time_may
+             }
 
   liftIO $ doMeta out no_csv binariesDirectory_
 

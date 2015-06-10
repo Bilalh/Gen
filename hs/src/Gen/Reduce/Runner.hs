@@ -40,7 +40,7 @@ timedSpec sp f g= do
     endTime <- liftIO $ round `fmap` getPOSIXTime
     let realTimeUsed = endTime - startTime
 
-    timeUsed <- gets totalIsRealTime_ >>= \case
+    timeUsed <- gets rconfig >>= return . totalIsRealTime_ >>= \case
                 True  -> return realTimeUsed
                 False -> return cpuTimeUsed
 
@@ -55,19 +55,20 @@ timedSpec sp f g= do
           return $ NoTimeLeft inner
         process _ _ = g res
 
-    get >>= \RState{timeLeft_,specTime_} -> process timeLeft_ specTime_
+    get >>= \RState{timeLeft_,rconfig=RConfig{specTime_}} -> process timeLeft_ specTime_
 
 
 
--- Just means rrError still happens
-runSpec :: Spec -> RR (Maybe ErrData, Int)
+-- Just means a similar error  still occured
+runSpec :: (MonadDB m, MonadIO m, Applicative m, Functor m, HasLogger m, HasGen m, MonadR m)
+        => Spec
+        -> m (Maybe ErrData, Int)
 runSpec spE = do
   liftIO $ logSpec spE
 
-  rrErrorKind   <- gets oErrKind_
-  rrErrorStatus <- gets oErrStatus_
+  RConfig{..} <- getRconfig
 
-  checkDB rrErrorKind rrErrorStatus spE >>= \case
+  checkDB oErrKind_ oErrStatus_ spE >>= \case
     Just StoredError{} -> rrError "StoredResult in runSpec" []
     Just Passing{} -> do
       liftIO $ print $ ("Stored no rrError(P)"  :: String)
@@ -80,13 +81,12 @@ runSpec spE = do
 
     Nothing -> do
       sp <- liftIO $ toModel spE
-      outdir <- gets outputDir_
 
       ts <- liftIO $ timestamp >>= return . show
       -- My laptop is too fast
       ts_num <- chooseR (1000 :: Int, 9999) >>= return . show
 
-      let path = outdir </> (ts ++ "_" ++ ts_num)
+      let path = outputDir_ </> (ts ++ "_" ++ ts_num)
       liftIO $ createDirectoryIfMissing True  path
       liftIO $ writeToJSON (path </> "spec.spec.json" )  spE
 
@@ -94,15 +94,11 @@ runSpec spE = do
       -- liftIO $  writeFile    (path </> "spec.meta" ) (show meta)
       liftIO $  writeToJSON  (path </> "spec.meta.json" ) (meta)
 
-      liftIO $ Toolchain.copyMetaToSpecDir outdir path
+      liftIO $ Toolchain.copyMetaToSpecDir outputDir_ path
 
       seed        <- chooseR (0, 2^(24 :: Int))
-      perSpec     <- gets specTime_
       essencePath <- writeModelDef path sp
-      cores       <- gets Gen.Reduce.Data.cores_
-      bd          <- gets binariesDirectory_
-      oo          <- gets toolchainOutput_
-      choices     <- gets mostReducedChoices_
+      choices     <- getChoicesToUse
 
       let refineWay :: Maybe FilePath -> KindI -> RefineType
           refineWay Nothing  RefineCompact_ = Refine_All
@@ -113,19 +109,19 @@ runSpec spE = do
           refineWay _        _              = Refine_Solve_All
 
 
-      (stillErroed, timeTaken) <- if rrErrorKind == TypeCheck_ then do
+      (stillErroed, timeTaken) <- if oErrKind_ == TypeCheck_ then do
         typeCheckWithResult path sp
       else do
         (_, res)  <- toolchain Toolchain.ToolchainData{
                       Toolchain.essencePath       = essencePath
-                    , Toolchain.toolchainTime     = perSpec
+                    , Toolchain.toolchainTime     = specTime_
                     , Toolchain.essenceParam      = Nothing
-                    , Toolchain.refineType        = refineWay choices  rrErrorKind
-                    , Toolchain.cores             = cores
+                    , Toolchain.refineType        = refineWay choices  oErrKind_
+                    , Toolchain.cores             = cores_
                     , Toolchain.seed              = Just seed
-                    , Toolchain.binariesDirectory = bd
+                    , Toolchain.binariesDirectory = binariesDirectory_
                     , Toolchain.oldConjure        = False
-                    , Toolchain.toolchainOutput   = oo
+                    , Toolchain.toolchainOutput   = toolchainOutput_
                     , Toolchain.choicesPath       = choices
                     , Toolchain.outputDirectory   = path
                     , Toolchain.dryRun            = False
@@ -134,8 +130,8 @@ runSpec spE = do
 
 
         addLog "runSpec" [pretty spE]
-        addLog "runSpec_results" [nn "org_kind"   rrErrorKind
-                                 ,nn "org_status" rrErrorStatus
+        addLog "runSpec_results" [nn "org_kind"   oErrKind_
+                                 ,nn "org_status" oErrStatus_
                                  ,nn "res" (pretty . groom $ res)]
 
         let
@@ -148,8 +144,8 @@ runSpec spE = do
 
             sameError (RefineResult SettingI{successful_=False
                         ,data_=RefineMultiOutput{choices_made,cmd_used=CmdI{..}}})
-                | modelRefineError rrErrorKind = do
-                case match (rrErrorStatus,rrErrorKind) (status_, kind_) of
+                | modelRefineError oErrKind_ = do
+                case match (oErrStatus_,oErrKind_) (status_, kind_) of
                   Just (status, kind) ->
                     return (True, OurError $ ErrData{ specDir = path
                                                     , kind
@@ -186,7 +182,7 @@ runSpec spE = do
 
                     sks = M.toList $  M.mapMaybe f ms
                 c <- choicesUsed
-                case anyFirst (rrErrorStatus,rrErrorKind) sks of
+                case anyFirst (oErrStatus_,oErrKind_) sks of
                    Just (status,kind)   ->
                      return (True, OurError $ ErrData { specDir = path
                                                       , kind
@@ -254,13 +250,13 @@ runSpec spE = do
         (True, OurError r)  -> return ( Just r, timeTaken)
 
         (False, Passing{}) -> do
-           gets deletePassing_ >>= \case
+           case deletePassing_ of
                 False -> return (Nothing, timeTaken)
                 True  -> do
                     liftIO $ removeDirectoryRecursive path
                     return (Nothing, timeTaken)
         (False,(OurError r))  -> do
-          addOtherError r
+          processOtherError r
           return (Nothing, timeTaken)
 
         tu -> docError [ pretty $line
@@ -292,8 +288,3 @@ kindsEqual RefineRandom_  RefineCompact_ = True
 
 
 kindsEqual a b = a == b
-
-addOtherError :: ErrData -> RR ()
-addOtherError r = do
-  return ()
-  modify $ \st -> st{otherErrors_ =r : otherErrors_ st }

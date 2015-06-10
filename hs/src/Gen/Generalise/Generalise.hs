@@ -2,19 +2,22 @@ module Gen.Generalise.Generalise where
 
 import Gen.Generalise.Data
 import Gen.Generalise.Runner
-import Gen.Reduce.Reduction
+import Gen.Helpers.Log
 import Gen.Imports
 import Gen.IO.Formats
-import Gen.Helpers.Log
 import Gen.IO.RunResult
+import Gen.Reduce.Data       (RConfig (..))
+import Gen.Reduce.Reduction
 
+import Data.Generics.Uniplate.Zipper (Zipper, fromZipper, hole, replaceHole,
+                                      zipperBi)
 
-import Data.Generics.Uniplate.Zipper ( Zipper, zipperBi, fromZipper, hole, replaceHole )
 import qualified Data.Generics.Uniplate.Zipper as Zipper
+
 
 generaliseMain :: GState -> IO GState
 generaliseMain ee = do
-  let base = specDir_ ee
+  let base = (specDir_ . rconfig) ee
       fp   =  base </> "spec.spec.json"
 
   sp :: Spec <- readFromJSON fp
@@ -69,7 +72,7 @@ generaliseConstraintsWithSingle sp = do
     forM_ singles $ \s -> do
       let whole = fromZipper (replaceHole s x)
       -- liftIO $ print . pretty $ whole
-      runSpec whole
+      runSpec2 whole
 
     return ()
 

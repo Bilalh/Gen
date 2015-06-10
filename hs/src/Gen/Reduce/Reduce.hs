@@ -16,7 +16,7 @@ import qualified Data.Map as M
 
 reduceMain :: Bool -> RState -> IO RState
 reduceMain check rr = do
-  let base = specDir_ rr
+  let base = (specDir_ . rconfig) rr
       fp   =  base </> "spec.spec.json"
 
   sp_ <- readFromJSON fp

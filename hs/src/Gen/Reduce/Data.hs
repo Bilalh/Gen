@@ -13,82 +13,76 @@ import qualified Text.PrettyPrint    as Pr
 
 type RR a = StateT RState IO a
 
-data RState = RState
+data RConfig = RConfig
     { oErrKind_         :: KindI
     , oErrStatus_       :: StatusI
     , oErrChoices_      :: Maybe FilePath
     , outputDir_        :: FilePath
     , specDir_          :: FilePath
-
     , cores_            :: Int
-    , rgen_             :: TFGen
     , specTime_         :: Int
 
     -- def Initialised
     , binariesDirectory_ :: Maybe FilePath
     , toolchainOutput_   :: ToolchainOutput
 
+    , deletePassing_      :: Bool
+    , resultsDB_dir       :: Maybe FilePath
+
+    , totalIsRealTime_    :: Bool
+    } deriving Show
+
+data RState = RState
+    { rconfig             :: RConfig
+    , rgen_               :: TFGen
     , mostReduced_        :: Maybe ErrData
     , mostReducedChoices_ :: Maybe FilePath
     , otherErrors_        :: [ErrData]
     , rlogs_              :: LogsTree
-    , deletePassing_      :: Bool
-
-    , resultsDB_          :: ResultsDB
-    , resultsDB_dir       :: Maybe FilePath
     , timeLeft_           :: Maybe Int
-    , totalIsRealTime_    :: Bool
+    , resultsDB_          :: ResultsDB
     } deriving (Show)
 
 
+instance Pretty RConfig where
+    pretty = pretty . groom
 
 instance Pretty RState where
     pretty RState{..} =
         "RState" <+> Pr.braces (
             Pr.sep
-                [ nn "oErrKind_"  oErrKind_
-                , nn "oErrStatus_" oErrStatus_
-                , nn "oErrChoices_" oErrChoices_
-
-                , nn "outputDir_" outputDir_
-                , nn "specDir_" specDir_
-
-                , nn "cores_" cores_
-                , nn "specTime_" specTime_
-                , nn "binariesDirectory_" binariesDirectory_
-                , nn "toolchainOutput_" toolchainOutput_
-
+                [ nn "rconfig"  rconfig
                 , nn "mostReduced_" mostReduced_
                 , nn "mostReducedChoices_" mostReducedChoices_
-                , nn "otherErrors_" (prettyArr otherErrors_)
-
-                -- , nn "resultsDB_"       resultsDB_
-                , nn "resultsDB_dir"    resultsDB_dir
                 , nn "timeLeft_"        timeLeft_
-                , nn "totalIsRealTime_" totalIsRealTime_
-
+                , nn "otherErrors_" (prettyArr otherErrors_)
+                , nn "rgen_ =" (show rgen_)
                 ])
+instance Default RConfig where
+    def = RConfig
+          {oErrKind_           = error "need oErrKind_"
+          ,oErrStatus_         = error "need oErrStatus_"
+          ,oErrChoices_        = error "need oErrChoices_"
+          ,cores_              = error "need cores"
+          ,outputDir_          = error "need outputDir_"
+          ,specDir_            = error "need specDir_"
+          ,specTime_           = error "need specTime_"
+          ,binariesDirectory_  = Nothing
+          ,toolchainOutput_    = def
+          ,deletePassing_      = False
+          ,resultsDB_dir       = Nothing
+          ,totalIsRealTime_    = False
+          }
 
 instance Default RState where
-    def =  RState{oErrKind_           = error "need oErrKind_"
-                 ,oErrStatus_         = error "need oErrStatus_"
-                 ,oErrChoices_        = error "need oErrChoices_"
-                 ,cores_              = error "need cores"
-                 ,outputDir_          = error "need outputDir_"
+    def =  RState{rconfig             = def
+                 ,resultsDB_          = def
                  ,rgen_               = error "need rgen_"
-                 ,specDir_            = error "need specDir_"
-                 ,specTime_           = error "need specTime_"
                  ,mostReduced_        = Nothing
                  ,otherErrors_        = []
                  ,rlogs_              = LSEmpty
-                 ,binariesDirectory_  = Nothing
-                 ,toolchainOutput_    = def
-                 ,deletePassing_      = False
-                 ,resultsDB_          = def
                  ,mostReducedChoices_ = error "set mostReducedChoices_=oErrChoices_"
-                 ,resultsDB_dir       = Nothing
                  ,timeLeft_           = Nothing
-                 ,totalIsRealTime_    = False
                  }
 
 
@@ -184,8 +178,8 @@ instance HasLogger (StateT EState Identity)  where
 
 
 instance (HasLogger (StateT EState (IdentityT (StateT RState IO)))) where
-    getLog = gets elogs_
-    putLog lg = modify $ \st -> st{ elogs_=lg}
+  getLog = gets elogs_
+  putLog lg = modify $ \st -> st{ elogs_=lg}
 
 instance (HasGen (StateT EState (IdentityT (StateT RState IO)))) where
   getGen   = gets sgen_
@@ -193,7 +187,18 @@ instance (HasGen (StateT EState (IdentityT (StateT RState IO)))) where
 
 
 instance Monad m => MonadDB (StateT RState  m) where
-    getsDb             = gets resultsDB_
-    putsDb db          = modify $ \st -> st{resultsDB_=db}
-    getDbDirectory     = gets resultsDB_dir
-    getOutputDirectory = gets outputDir_
+  getsDb             = gets  resultsDB_
+  putsDb db          = modify $ \st -> st{resultsDB_=db}
+  getDbDirectory     = gets rconfig >>= return . resultsDB_dir
+  getOutputDirectory = gets rconfig >>= return . outputDir_
+
+
+class Monad m => MonadR m where
+  getRconfig        :: m RConfig
+  processOtherError :: ErrData -> m ()
+  getChoicesToUse   :: m (Maybe FilePath)
+
+instance Monad m => MonadR (StateT RState m) where
+  getRconfig          = gets rconfig
+  processOtherError r = modify $ \st -> st{otherErrors_ =r : otherErrors_ st }
+  getChoicesToUse     = gets mostReducedChoices_

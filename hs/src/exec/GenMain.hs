@@ -238,22 +238,25 @@ mainWithArgs u@Reduce{..} = do
   out   <- giveOutputDirectory output_directory
   cores <- giveCores u
 
-  let args = def{oErrKind_            = error_kind
-                ,oErrStatus_          = error_status
-                ,oErrChoices_         = error_choices
-                ,outputDir_           = out
-                ,specDir_             = spec_directory
-                ,R.cores_             = cores
+  let args = def{rconfig=
+                 R.RConfig
+                 { oErrKind_            = error_kind
+                 ,oErrStatus_          = error_status
+                 ,oErrChoices_         = error_choices
+                 ,outputDir_           = out
+                 ,specDir_             = spec_directory
+                 ,specTime_            = per_spec_time
+                 ,resultsDB_dir        = db_directory
+                 ,totalIsRealTime_     = total_is_real_time
+                 ,R.cores_             = cores
+                 ,R.binariesDirectory_ = binaries_directory
+                 ,R.toolchainOutput_   = toolchain_ouput
+                 ,R.deletePassing_     = delete_passing
+                 }
                 ,rgen_                = mkrGen (seed_)
-                ,specTime_            = per_spec_time
-                ,R.binariesDirectory_ = binaries_directory
-                ,R.toolchainOutput_   = toolchain_ouput
-                ,R.deletePassing_     = delete_passing
                 ,resultsDB_           = db
                 ,mostReducedChoices_  = error_choices
-                ,resultsDB_dir        = db_directory
                 ,timeLeft_            = total_time_may
-                ,totalIsRealTime_     = total_is_real_time
                 }
 
   doMeta out no_csv binaries_directory
@@ -306,20 +309,24 @@ mainWithArgs Generalise{..} = do
   cores <- giveCores ui
 
   let args :: E.GState =
-             def{E.oErrKind_           = error_kind
-                ,E.oErrStatus_         = error_status
-                ,E.oErrChoices_        = error_choices
-                ,E.outputDir_          = out
-                ,E.specDir_            = spec_directory
-                ,E.cores_              = cores
-                ,E.rgen_               = mkrGen (seed_)
-                ,E.specTime_           = per_spec_time
-                ,E.binariesDirectory_  = binaries_directory
-                ,E.toolchainOutput_    = toolchain_ouput
-                ,E.deletePassing_      = delete_passing
+             def{E.rconfig=
+                 R.RConfig
+                 { oErrKind_            = error_kind
+                 ,oErrStatus_          = error_status
+                 ,oErrChoices_         = error_choices
+                 ,outputDir_           = out
+                 ,specDir_             = spec_directory
+                 ,specTime_            = per_spec_time
+                 ,resultsDB_dir        = db_directory
+                 ,totalIsRealTime_     = False
+                 ,R.cores_             = cores
+                 ,R.binariesDirectory_ = binaries_directory
+                 ,R.toolchainOutput_   = toolchain_ouput
+                 ,R.deletePassing_     = delete_passing
+                 }
                 ,E.resultsDB_          = db
                 ,E.choicesToUse_       = error_choices
-                ,E.resultsDB_dir       = db_directory
+                ,E.rgen_               = mkrGen (seed_)
                 }
 
   doMeta out no_csv binaries_directory
