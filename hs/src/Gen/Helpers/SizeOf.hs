@@ -4,7 +4,6 @@ module Gen.Helpers.SizeOf where
 import Conjure.Language.Constant
 import Conjure.Language.Expression.Op
 import Gen.AST.TH
-import Gen.Helpers.TypeOf             (typeOfDom)
 import Gen.Imports
 
 import qualified Data.Foldable as F
@@ -35,7 +34,11 @@ instance DepthOf Expr where
 
     depthOf (EQuan _ _ e2 e3 e4) = 1 + maximum ([depthOf e2, depthOf e3, depthOf e4])
 
-    depthOf (EComp inner _ cons) = 2 + (maximum $ depthOf inner : map depthOf cons)
+    depthOf (EComp inner gens cons) = 1 + (maximum $ depthOf inner : map depthOf cons ++ map depthOf gens)
+
+instance DepthOf EGen where
+    depthOf (GenDom _ x2) = depthOf x2
+    depthOf (GenIn _ x2)  = depthOf x2
 
 instance DepthOf x => DepthOf (AbstractLiteral x) where
     depthOf x = empty_p1 (maximum . map depthOf_p1) . F.toList $ x
@@ -58,7 +61,8 @@ instance DepthOf Constant where
 
 
 instance DepthOf (Domain () Expr) where
-    depthOf =  depthOf .  typeOfDom
+    -- depthOf =  depthOf .  typeOfDom
+    depthOf =  nonEmpty (maximum . map depthOf_p1) . children
 
 instance DepthOf a => DepthOf (Maybe a) where
     depthOf Nothing  = 0
