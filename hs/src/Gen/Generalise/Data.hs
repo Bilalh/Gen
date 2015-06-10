@@ -31,7 +31,7 @@ data GState = GState
     , choicesToUse_      :: Maybe FilePath
     , rlogs_             :: LogsTree
     , deletePassing_     :: Bool
-    , otherErrors_        :: [RunResult]
+    , otherErrors_       :: [ErrData]
 
     , resultsDB_         :: ResultsDB
     , resultsDB_dir      :: Maybe FilePath

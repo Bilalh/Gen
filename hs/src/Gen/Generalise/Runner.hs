@@ -209,7 +209,7 @@ runSpec spE = do
                 True  -> do
                     liftIO $ removeDirectoryRecursive path
                     return (Nothing)
-        (False,r@OurError{})  -> do
+        (False,OurError r)  -> do
           addOtherError r
           return (Nothing)
 
@@ -241,7 +241,7 @@ kindsEqual RefineRandom_  RefineCompact_ = True
 
 kindsEqual a b = a == b
 
-addOtherError :: RunResult -> EE ()
+addOtherError :: ErrData -> EE ()
 addOtherError r = do
   return ()
   modify $ \st -> st{otherErrors_ =r : otherErrors_ st }
