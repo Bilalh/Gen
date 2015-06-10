@@ -103,8 +103,6 @@ instance Generate Expr where
 
 
 instance Generate ListComp where
-  give GNone = give (GType $ TypeMatrix TypeInt TypeBool)
-
   give (GType (TypeMatrix TypeInt a)) = do
     gen_num <- choose3 (1,2)
     gen_var <- vectorOf3 gen_num (dgive (GType a))
