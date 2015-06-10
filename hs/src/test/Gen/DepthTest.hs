@@ -7,58 +7,74 @@ import Gen.TestPrelude
 import Gen.Helpers.SizeOf
 import Conjure.Language.Definition
 
-typeDepth :: DepthOf a
+depthTest :: DepthOf a
           => Doc -> Integer -> a -> TestTree
-typeDepth name expected ty = testCase (name <+> braces (pretty expected)) $
+depthTest name expected ty = testCase (name <+> braces (pretty expected)) $
                                depthOf ty @?= expected
 
+
+de :: Integer -> Domain () Expr -> TestTree
+de i e= depthTest (pretty e) i e
+
 te :: (DepthOf a, Pretty a) => Integer -> a -> TestTree
-te i e= typeDepth (pretty e) i e
+te i e= depthTest (pretty e) i e
 
 tests ::  TestTree
 tests = testGroup "depthOf"
   [
    testGroup "type"
    [
-     typeDepth "Boolean" 0 $ TypeBool
-   , typeDepth "Int"     0 $ TypeInt
-   , typeDepth "Set"     1 $ (TypeSet TypeBool)
-   , typeDepth "MSet"    1 $ (TypeMSet TypeBool)
-   , typeDepth "Matrix"  1 $ (TypeMatrix TypeInt TypeBool)
-   , typeDepth "Func"    2 $ TypeFunction TypeInt (TypeSet TypeBool)
-   , typeDepth "Par"     2 $ TypePartition (TypeMSet TypeBool)
-   , typeDepth "Rel"     3 $ TypeRelation [TypeSet TypeInt, TypeMatrix TypeInt (TypeSet TypeBool), TypeInt]
+     depthTest "Boolean" 0 $ TypeBool
+   , depthTest "Int"     0 $ TypeInt
+   , depthTest "Set"     1 $ (TypeSet TypeBool)
+   , depthTest "MSet"    1 $ (TypeMSet TypeBool)
+   , depthTest "Matrix"  1 $ (TypeMatrix TypeInt TypeBool)
+   , depthTest "Func"    2 $ TypeFunction TypeInt (TypeSet TypeBool)
+   , depthTest "Par"     2 $ TypePartition (TypeMSet TypeBool)
+   , depthTest "Rel"     3 $ TypeRelation [TypeSet TypeInt, TypeMatrix TypeInt (TypeSet TypeBool), TypeInt]
+   ]
+
+   ,testGroup "Domain"
+   [
+    de 0 $ [domainn| bool |]
+   ,de 0 $ [domainn| int(0) |]
+   ,de 1 $ [domainn| set of bool |]
+   ,de 1 $ [domainn| mset of bool |]
+   ,de 1 $ [domainn| matrix indexed by [int(1..3)] of bool |]
+   ,de 2 $ [domainn| function int --> set of bool |]
+   ,de 2 $ [domainn| partition from set of bool |]
+   ,de 2 $ [domainn| function (total, injective) int(1..4*|{4,2}| ) --> bool |]
    ]
 
    ,testGroup "type_gen"
    [
-     typeDepth "Matrix Par" 2 $ TypeMatrix TypeInt (TypePartition TypeBool)
-   , typeDepth "Matrix 1d"  2 $ TypeMatrix TypeInt (TypeRelation [TypeBool, TypeInt, TypeInt])
-   , typeDepth "Matrix 2d"  3
+     depthTest "Matrix Par" 2 $ TypeMatrix TypeInt (TypePartition TypeBool)
+   , depthTest "Matrix 1d"  2 $ TypeMatrix TypeInt (TypeRelation [TypeBool, TypeInt, TypeInt])
+   , depthTest "Matrix 2d"  3
                    $ TypeMatrix TypeInt
                     (TypeMatrix TypeInt (TypeRelation [TypeBool, TypeInt, TypeInt]))
-   , typeDepth "Matrix 3d" 4 $ TypeMatrix TypeInt (TypeMatrix TypeInt
+   , depthTest "Matrix 3d" 4 $ TypeMatrix TypeInt (TypeMatrix TypeInt
                     (TypeMatrix TypeInt (TypeRelation [TypeBool, TypeInt, TypeInt])))
    ]
 
   ,testGroup "Constants"
    [
-     typeDepth "Boolean" 0 $ [essencee| true |]
-   , typeDepth "Int"     0 $ [essencee| 1 |]
+     depthTest "Boolean" 0 $ [essencee| true |]
+   , depthTest "Int"     0 $ [essencee| 1 |]
    ]
 
   ,testGroup "Literals"
    [
-     typeDepth "Set"           1 $ [essencee| {1,2,4} |]
-   , typeDepth "Set Empty"     1 $ [essencee| {} |]
-   , typeDepth "MSet Empty"    1 $ [essencee| mset() |]
-   , typeDepth "MSet"          1 $ [essencee| mset(1,2) |]
-   , typeDepth "Matrix"        1 $ [essencee| [1] |]
-   , typeDepth "Matrix Empty"  1 $ [essencee| [] |]
-   , typeDepth "Func"          1 $ [essencee| function( 1 --> 3 ) |]
-   , typeDepth "Func Empty"    1 $ [essencee| function(  ) |]
-   , typeDepth "Par"           1 $ [essencee| partition( {3} ) |]
-   , typeDepth "Rel"           1 $ [essencee| relation( tuple(3), tuple(2,3,4,4)  ) |]
+     depthTest "Set"           1 $ [essencee| {1,2,4} |]
+   , depthTest "Set Empty"     1 $ [essencee| {} |]
+   , depthTest "MSet Empty"    1 $ [essencee| mset() |]
+   , depthTest "MSet"          1 $ [essencee| mset(1,2) |]
+   , depthTest "Matrix"        1 $ [essencee| [1] |]
+   , depthTest "Matrix Empty"  1 $ [essencee| [] |]
+   , depthTest "Func"          1 $ [essencee| function( 1 --> 3 ) |]
+   , depthTest "Func Empty"    1 $ [essencee| function(  ) |]
+   , depthTest "Par"           1 $ [essencee| partition( {3} ) |]
+   , depthTest "Rel"           1 $ [essencee| relation( tuple(3), tuple(2,3,4,4)  ) |]
    ]
 
   ,testGroup "Expr_gen"
@@ -96,10 +112,18 @@ tests = testGroup "depthOf"
    , te 2 [essencee|  ({} : `set of (matrix indexed by [int] of bool)`)  |]
    , te 2 [essencee| { [true, true; int(1..2)] } |]
    , te 2 [essencee| |mset(1)| |]
-   , te 2 $ do
+   , te 1 $ do
        let a = Single "l1"
        let b = EVar (Var "l1" TypeInt)
        [essencee|[ &b | &a : int(1..5, 0)] |]
+   , te 2 $ do
+       let a = Single "l1"
+       let b = EVar (Var "l1" TypeInt)
+       [essencee|[ &b < 3 | &a : int(1..5, 0)] |]
+   , te 2 $ do
+       let a = Single "l1"
+       let b = EVar (Var "l1" $ TypeSet TypeInt)
+       [essencee|[ &b | &a : set of int(1..5, 0)] |]
    ]
 
   ]

@@ -37,5 +37,6 @@ class NeedsType a where
 
 instance NeedsType (Expr)
 instance NeedsType (Constant)
+instance NeedsType (Domain () a)
 instance NeedsType (AbstractLiteral a) where needsType _ = False
 instance NeedsType Type                where needsType _ = False
