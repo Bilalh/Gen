@@ -491,6 +491,7 @@ ui  = modes
      , solution_path  = Nothing &= typ "solution"
                                 &= name "output-solution"
                                 &= name "o"
+                                &= explicit
                                 &= help "Where to place writes solution, defaults to essence's path with last extension change"
      , print_solution = False   &= name "print-solution"
                                 &= name "s"
