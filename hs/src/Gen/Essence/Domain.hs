@@ -54,8 +54,10 @@ instance (Generate a, GenInfo a, EvalToInt a) => Generate (Domain () a) where
 
   possiblePure _ _ _ = True
 
-  requires _ (Just TypeBool) = [RAll $ [K_TypeBool]]
-  requires _ (Just ty)       = [RAll $ keyList ty, RAll [K_TypeInt]]
+  requires _ (Just (ty@TypeList{}))     = [RAll $ keyList ty, RAll [K_TypeInt]]
+  requires _ (Just (ty@TypeMatrix{}))   = [RAll $ keyList ty, RAll [K_TypeInt]]
+  requires _ (Just (ty@TypeSequence{})) = [RAll $ keyList ty, RAll [K_TypeInt]]
+  requires _ (Just ty)                  = [RAll $ keyList ty]
   requires _ _               = []
 
 
