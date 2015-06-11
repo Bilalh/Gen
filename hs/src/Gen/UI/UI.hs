@@ -19,7 +19,7 @@ data UI
     , _size              :: Int  -- should not be greater then 5
     , _cores             :: Maybe Int
     , _seed              :: Maybe Int
-    , delete_passing     :: Bool
+    , keep_passing       :: Bool
     , total_is_real_time :: Bool
 
     , toolchain_ouput    :: ToolchainOutput
@@ -60,7 +60,7 @@ data UI
     , _cores             :: Maybe Int
     , _seed              :: Maybe Int
 
-    , delete_passing     :: Bool
+    , keep_passing       :: Bool
     , delete_steps       :: Bool
     , toolchain_ouput    :: ToolchainOutput
     , binaries_directory :: Maybe FilePath
@@ -87,7 +87,7 @@ data UI
     , _cores             :: Maybe Int
     , _seed              :: Maybe Int
 
-    , delete_passing     :: Bool
+    , keep_passing       :: Bool
     , toolchain_ouput    :: ToolchainOutput
     , binaries_directory :: Maybe FilePath
     , limit_time         :: Maybe Int
@@ -205,11 +205,10 @@ ui  = modes
                                     &= groupname "Other"
                                     &= explicit
                                     &= help "Random Seed to use"
-     , delete_passing     = False   &= name "delete-passing"
-                                    &= name "D"
+     , keep_passing       = False   &= name "keep-passing"
                                     &= groupname "Other"
                                     &= explicit
-                                    &= help "Delete non failing test cases as soon as they have been generated"
+                                    &= help "Keep non-failing test"
      , total_is_real_time = False   &= name "total-is-real-time"
                                     &= name "@"
                                     &= groupname "Other"
@@ -358,11 +357,10 @@ ui  = modes
                                      &= groupname "Other"
                                      &= explicit
                                      &= help "Don't save version of the tools used, The script if used requires bash"
-     , delete_passing     = False    &= name "delete-passing"
-                                     &= name "D"
+     , keep_passing       = False    &= name "keep-passing"
                                      &= groupname "Other"
                                      &= explicit
-                                     &= help "Delete non failing test cases as soon as they have been generated"
+                                     &= help "Keep non-failing test"
      , delete_steps       = False    &= name "delete-steps"
                                      &= groupname "Other"
                                      &= explicit
@@ -454,11 +452,10 @@ ui  = modes
                                      &= groupname "Other"
                                      &= explicit
                                      &= help "Don't save version of the tools used, The script if used requires bash"
-     , delete_passing     = False    &= name "delete-passing"
-                                     &= name "D"
+     , keep_passing     = False      &= name "keep-passing"
                                      &= groupname "Other"
                                      &= explicit
-                                     &= help "Delete non failing test cases as soon as they have been generated"
+                                     &= help "Keep non-failing test"
      , from_essence       = False    &= name "from-essence"
                                      &= groupname "Other"
                                      &= explicit

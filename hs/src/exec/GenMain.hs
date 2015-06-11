@@ -163,7 +163,7 @@ mainWithArgs u@Essence{..} = do
                , seed_            = seed_
 
                , totalIsRealTime    = total_is_real_time
-               , deletePassing_     = delete_passing
+               , deletePassing_     = not keep_passing
                , binariesDirectory_ = binaries_directory
                , oldConjure_        = old_conjure
                , toolchainOutput_   = toolchain_ouput
@@ -242,7 +242,7 @@ mainWithArgs u@Reduce{..} = do
                  ,R.cores_             = cores
                  ,R.binariesDirectory_ = binaries_directory
                  ,R.toolchainOutput_   = toolchain_ouput
-                 ,R.deletePassing_     = delete_passing
+                 ,R.deletePassing_     = not keep_passing
                  }
                 ,rgen_                = mkrGen (seed_)
                 ,resultsDB_           = db
@@ -313,7 +313,7 @@ mainWithArgs Generalise{..} = do
                  ,R.cores_             = cores
                  ,R.binariesDirectory_ = binaries_directory
                  ,R.toolchainOutput_   = toolchain_ouput
-                 ,R.deletePassing_     = delete_passing
+                 ,R.deletePassing_     = not keep_passing
                  }
                 ,E.resultsDB_          = db
                 ,E.choicesToUse_       = error_choices
@@ -576,7 +576,7 @@ _essenceDebug = do
              , _cores             = Just 1
              , _seed              = Just 44
 
-             , delete_passing     = False
+             , keep_passing       = True
              , binaries_directory = Nothing
              , old_conjure        = False
              , limit_time         = Nothing
@@ -603,7 +603,7 @@ _givenDebug = do
              , _cores             = Just 1
              , _seed              = Just 44
 
-             , delete_passing     = True
+             , keep_passing       = False
              , binaries_directory = Nothing
              , old_conjure        = False
              , limit_time         = Nothing
@@ -634,7 +634,7 @@ _reduceDebug = do
               error_choices = Just "/Users/bilalh/Desktop/Results/_notable/_new/with_crash/res/base/2015-05-26_02-08_1432602516/_errors/RefineCompact_/RuleApplication_/1432602517_54_r-.model000000.choices/1432602529_2039/follow.choices.json", list_kinds = False,
               list_statuses = False, total_time_may = Nothing,
               total_is_real_time = False, output_directory = Nothing,
-              _cores = Just 1, _seed = Nothing, delete_passing = True,
+              _cores = Just 1, _seed = Nothing, keep_passing = False,
               delete_steps = True, toolchain_ouput = ToolchainNull_,
               binaries_directory = Nothing, limit_time = Nothing, no_csv = False,
               db_directory = Just "db", db_passing_in = Nothing,
