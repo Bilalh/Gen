@@ -60,7 +60,7 @@ main = do
       key_isString = concat
                             [ let a = padRight 25 ' ' ("\"" ++ n ++ "\"")
                               in [string| fromString $a = K_$n |]
-                            | n <- names ]
+                            | n <- "Unused" : names ]
   let res = key_templete keys_data key_isString
   writeOut "src/Gen/Essence/Data/key.hs" res
 
@@ -101,7 +101,6 @@ dataNames = [ strs TypeAny
             , strs (Maximising   :: Objective)
             , [ drop 2 s | s <- strs (error "OP" :: Op Constant ) ]
             , [ "Int_" ++ show i  | i :: Integer <- [0..10]  ]
-
             , strs (BinRelAttr_Reflexive  :: BinaryRelationAttr)
             ]
 

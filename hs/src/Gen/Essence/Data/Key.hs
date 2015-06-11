@@ -231,6 +231,7 @@ instance Pretty Key where
   pretty = pretty . show
 
 instance IsString Key where
+  fromString "Unused"                  = K_Unused
   fromString "AbsLitFunction"          = K_AbsLitFunction
   fromString "AbsLitMSet"              = K_AbsLitMSet
   fromString "AbsLitMatrix"            = K_AbsLitMatrix
