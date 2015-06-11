@@ -62,13 +62,14 @@ instance (HasGen (StateT EState (IdentityT (StateT GState IO)))) where
 
 
 instance Monad m => MonadDB (StateT GState m) where
-    getsDb             = gets resultsDB_
-    putsDb db          = modify $ \st -> st{resultsDB_=db}
-    getDbDirectory     = gets rconfig >>= return . resultsDB_dir
-    getOutputDirectory = gets rconfig >>= return . outputDir_
+  getsDb             = gets resultsDB_
+  putsDb db          = modify $ \st -> st{resultsDB_=db}
+  getDbDirectory     = gets rconfig >>= return . resultsDB_dir
+  getOutputDirectory = gets rconfig >>= return . outputDir_
 
 
-instance Monad m => MonadR (StateT GState m) where
+instance(Monad m, MonadIO m) => MonadR (StateT GState m) where
   getRconfig          = gets rconfig
   processOtherError r = modify $ \st -> st{otherErrors_ =r : otherErrors_ st }
   getChoicesToUse     = gets choicesToUse_
+  processPassing    _ = return ()

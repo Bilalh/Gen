@@ -195,10 +195,12 @@ instance Monad m => MonadDB (StateT RState  m) where
 
 class Monad m => MonadR m where
   getRconfig        :: m RConfig
-  processOtherError :: ErrData -> m ()
   getChoicesToUse   :: m (Maybe FilePath)
+  processOtherError :: ErrData -> m ()
+  processPassing    :: Spec -> m ()
 
 instance Monad m => MonadR (StateT RState m) where
   getRconfig          = gets rconfig
-  processOtherError r = modify $ \st -> st{otherErrors_ =r : otherErrors_ st }
   getChoicesToUse     = gets mostReducedChoices_
+  processOtherError r = modify $ \st -> st{otherErrors_ =r : otherErrors_ st }
+  processPassing    _ = return ()

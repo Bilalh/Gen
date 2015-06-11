@@ -73,6 +73,7 @@ runSpec spE = do
     Just Passing{} -> do
       liftIO $ print $ ("Stored no rrError(P)"  :: String)
       liftIO $ putStrLn ""
+      processPassing spE
       return (Nothing, 0)
     Just (OurError r)  -> do
       liftIO $ print $ ("Stored has rrError(O)" :: String)
