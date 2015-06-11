@@ -16,7 +16,7 @@ data UI
     , _mode              :: EssenceMode
     , _gen_type          :: GenType
     ,  output_directory  :: Maybe FilePath
-    , _size              :: Int  -- should not be greater then 5
+    , _size              :: Int  -- should not need to be greater then 5
     , _cores             :: Maybe Int
     , _seed              :: Maybe Int
     , keep_passing       :: Bool
@@ -260,7 +260,6 @@ ui  = modes
                                                &= groupname "Output"
                                                &= help "Show toolchain output (default)"
                             , ToolchainFile_   &= name "redirect-toolchain-output"
-                                               &= name "F"
                                                &= explicit
                                                &= groupname "Output"
                                                &= help "Redirect toolchain output to file"
@@ -376,7 +375,6 @@ ui  = modes
                                                &= groupname "Output"
                                                &= help "Show toolchain output (default)"
                             , ToolchainFile_   &= name "redirect-toolchain-output"
-                                               &= name "F"
                                                &= explicit
                                                &= groupname "Output"
                                                &= help "Redirect toolchain output to file"
@@ -467,7 +465,6 @@ ui  = modes
                                                &= groupname "Output"
                                                &= help "Show toolchain output (default)"
                             , ToolchainFile_   &= name "redirect-toolchain-output"
-                                               &= name "F"
                                                &= explicit
                                                &= groupname "Output"
                                                &= help "Redirect toolchain output to file"
@@ -529,7 +526,7 @@ ui  = modes
                            &= explicit
                            &= help "Time limit in seconds of CPU time of this program"
      , print_specs = False &= name "print-specs"
-                           &= name "v"
+                           &= name "s"
                            &= explicit
                            &= help "Print the the spec before and after conversion"
      , meta_only   = False &= name "meta-only"
@@ -650,7 +647,6 @@ ui  = modes
                                                &= groupname "Output"
                                                &= help "Show toolchain output (default)"
                             , ToolchainFile_   &= name "redirect-toolchain-output"
-                                               &= name "F"
                                                &= explicit
                                                &= groupname "Output"
                                                &= help "Redirect toolchain output to file"
@@ -701,7 +697,6 @@ ui  = modes
                                                &= groupname "Output"
                                                &= help "Show toolchain output (default)"
                             , ToolchainFile_   &= name "redirect-toolchain-output"
-                                               &= name "F"
                                                &= explicit
                                                &= groupname "Output"
                                                &= help "Redirect toolchain output to file"
