@@ -11,12 +11,11 @@ import Gen.Classify.AddSpecE      (addSpecJson, specEMain)
 import Gen.Classify.Sorter        (getRecursiveContents, sorterMain')
 import Gen.Classify.UpdateChoices (updateChoices)
 import Gen.Essence.Generate       (generateEssence)
-import Gen.Essence.St             (KeyMap)
 import Gen.Essence.UIData
 import Gen.Generalise.Generalise  (generaliseMain)
 import Gen.Imports
-import Gen.IO.Formats             (readFromJSON, writeToJSON)
-import Gen.IO.RunResult           (writeDB_, giveDb)
+import Gen.IO.Formats             (readFromJSON)
+import Gen.IO.RunResult           (giveDb, writeDB_)
 import Gen.IO.Term
 import Gen.IO.Toolchain           (KindI (..), StatusI (..), ToolchainOutput (..),
                                    doMeta, kindsList, statusesList)
@@ -36,10 +35,12 @@ import Text.Printf                (printf)
 
 import qualified Data.Set                as S
 import qualified Gen.Essence.UIData      as EC
+import qualified Gen.Essence.Weightings  as Weights
 import qualified Gen.Generalise.Data     as E
 import qualified Gen.IO.Toolchain        as Toolchain
 import qualified Gen.IO.ToolchainRecheck as Recheck
 import qualified Gen.Reduce.Data         as R
+
 
 
 main :: IO ()
@@ -48,15 +49,10 @@ main = do
     [] -> do
        args <- helpArg
        void $ withArgs [args] (cmdArgs ui)
-    [x] | x `elem` [ "essence", "reduce", "link", "meta", "json", "generalise", "solve"
+    [x] | x `elem` [ "essence", "reduce", "link", "meta", "json", "generalise", "solve", "weights"
                    , "script-toolchain", "script-recheck", "script-updateChoices"] -> do
        args <- helpArg
        void $ withArgs [x, args] (cmdArgs ui)
-
-    ["essence", "--output-weightings"] -> do
-        writeToJSON "default_weights.json" (def :: KeyMap)
-        putStrLn "Wrote default_weights.json"
-        exitSuccess
 
     ["reduce", "--list-kinds"] -> do
         mapM_ (putStrLn) kindsList
@@ -121,11 +117,6 @@ limiter (Just sec) f  =  do
 
 mainWithArgs :: UI -> IO ()
 mainWithArgs u@Essence{..} = do
-
-  when output_weightings $ do
-     writeToJSON "default_weights.json" (def :: KeyMap)
-     putStrLn "Wrote default_weights.json"
-     exitSuccess
 
   let ls = case given_dir of
              Nothing  -> [ aerr "-t|--total-time" (total_time == 0)]
@@ -365,6 +356,30 @@ mainWithArgs Link{..} = do
 
   sorterMain' directories
 
+mainWithArgs Weights{..} = do
+
+  let errors = catMaybes
+        [
+          aerr "--by-type must >=1" (fromMaybe False . fmap (<=0) $ by_type )
+        ]
+
+  case errors of
+    [] -> return ()
+    xs -> mapM putStrLn xs >> exitFailure
+
+  let out = fromMaybe "weights" output_directory
+
+  let save = Weights.save out
+
+  case by_type of
+    Nothing -> return ()
+    Just i  -> do
+      save $ (Weights.byType i)
+
+  when default_weights $ save Weights.defaults
+  when all_weights     $ save Weights.every
+
+
 mainWithArgs SpecEE{..} = do
   errors <- catMaybes <$> (mapM (dirExists "-d") directories )
 
@@ -572,7 +587,6 @@ _essenceDebug = do
              , _gen_type          = SecondGen
              , reduce_as_well     = Nothing
              , _weightings        = Nothing
-             , output_weightings  = False
              , db_directory       = Nothing
              }
     limiter (limit_time ec) (mainWithArgs ec)
@@ -600,7 +614,6 @@ _givenDebug = do
              , _gen_type          = def
              , reduce_as_well     = Just 60
              , _weightings        = Nothing
-             , output_weightings  = False
              , db_directory       = Nothing
              }
     limiter (limit_time ec) (mainWithArgs ec)

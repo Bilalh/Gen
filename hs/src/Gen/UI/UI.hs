@@ -30,7 +30,6 @@ data UI
     , given_dir          :: Maybe FilePath
     , reduce_as_well     :: Maybe Int
     , _weightings        :: Maybe FilePath
-    , output_weightings  :: Bool
     , db_directory       :: Maybe FilePath
 
     }
@@ -72,10 +71,7 @@ data UI
     , db_passing_in      :: Maybe FilePath
     , db_only_passing    :: Bool
     , from_essence       :: Bool
-
-
     }
-
   | Generalise
     {
       per_spec_time      :: Int
@@ -115,6 +111,14 @@ data UI
     , solution_path  :: Maybe FilePath
     , print_solution :: Bool
     , limit_time     :: Maybe Int
+    }
+  | Weights
+    { default_weights  :: Bool
+    , all_weights      :: Bool
+    , by_type          :: Maybe Int
+    , output_directory :: Maybe FilePath
+
+    , limit_time  :: Maybe Int
     }
   | Script_Toolchain
     {
@@ -245,10 +249,6 @@ ui  = modes
                                     &= groupname "Generation"
                                     &= explicit
                                     &= help "Weighting json key value pairs e.g. {\"TypeSet\":100}"
-     , output_weightings  = False   &= name "output-weightings"
-                                    &= groupname "Essence"
-                                    &= help "Output the default weighting"
-                                    &= explicit
      , db_directory      = Nothing  &= name "db-dir"
                                     &= groupname "Other"
                                     &= typDir
@@ -542,6 +542,38 @@ ui  = modes
      } &= explicit
        &= name "json"
        &= help "Create .spec.json and .meta.json files for each .essence file recursively"
+
+
+  , Weights
+     {
+       default_weights  = False &= name "default-weights"
+                                &= groupname "Weights"
+                                &= help "Output the default weighting"
+                                &= explicit
+     , all_weights      = False &= name "all-weights"
+                                &= groupname "Weights"
+                                &= help "Output the all weighting"
+                                &= explicit
+     , by_type            = def &= name "by-type"
+                                &= groupname "Weights"
+                                &= typ "Int"
+                                &= help "Output weighting files with n types"
+                                &= explicit
+     , output_directory  = def  &= typDir
+                                &= name "output-directory"
+                                &= name "o"
+                                &= groupname "Other"
+                                &= explicit
+                                &= help "Output directory default is weights"
+     , limit_time  = def        &= name "limit-time"
+                                &= explicit
+                                &= help "Time limit in seconds of CPU time of this program"
+     } &= explicit
+       &= name "weights"
+       &= help "Create weighting file for use with gen essence --weightings"
+
+
+
 
   , Script_Toolchain
      { essence_path       = def     &= typ "essence"

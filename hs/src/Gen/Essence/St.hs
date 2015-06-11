@@ -45,6 +45,7 @@ module Gen.Essence.St
   , getPossibilitiesKeyed
   , logWarn2
   , WrapVar(..)
+  , allKeys
   ) where
 
 import Conjure.Language.Constant
@@ -357,6 +358,11 @@ fieldKeys :: Data a => Proxy a -> [Key]
 fieldKeys a = do
   let names = dataTypeConstrs . proxyDataTypeOf $ a
   map (fromString . show) names
+
+allKeys :: [Key]
+allKeys = do
+  let names = dataTypeConstrs . proxyDataTypeOf $ (Proxy :: Proxy Key)
+  map (fromString . drop 2 . show) names
 
 -- | Reduce the weighting of all key (of the specific type) NOT mentioned to 0
 giveOnly :: forall a . (Data a, Generate a)

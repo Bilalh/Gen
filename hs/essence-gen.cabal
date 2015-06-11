@@ -118,6 +118,7 @@ Library
                      , Gen.Essence.St
                      , Gen.Essence.Type
                      , Gen.Essence.UIData
+                     , Gen.Essence.Weightings
                      , Gen.Generalise.Data
                      , Gen.Generalise.Generalise
                      , Gen.Generalise.Runner
