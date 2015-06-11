@@ -20,7 +20,7 @@ data UI
     , _cores             :: Maybe Int
     , _seed              :: Maybe Int
     , keep_passing       :: Bool
-    , total_is_real_time :: Bool
+    , total_is_cpu_time  :: Bool
 
     , toolchain_ouput    :: ToolchainOutput
     , binaries_directory :: Maybe FilePath
@@ -54,7 +54,7 @@ data UI
     , list_statuses      :: Bool
 
     , total_time_may     :: Maybe Int
-    , total_is_real_time :: Bool
+    , total_is_cpu_time  :: Bool
 
     , output_directory   :: Maybe FilePath
     , _cores             :: Maybe Int
@@ -209,11 +209,10 @@ ui  = modes
                                     &= groupname "Other"
                                     &= explicit
                                     &= help "Keep non-failing test"
-     , total_is_real_time = False   &= name "total-is-real-time"
-                                    &= name "@"
+     , total_is_cpu_time = False    &= name "total-is-cpu-time"
                                     &= groupname "Other"
                                     &= explicit
-                                    &= help "The total time is real time, not cpu time "
+                                    &= help "The total time is cpu time, not real time "
 
      , binaries_directory = Nothing &= name "bin-dir"
                                     &= groupname "Other"
@@ -303,11 +302,10 @@ ui  = modes
                                      &= groupname "Timing"
                                      &= explicit
                                      &= help "Total time for running specs, if specifed, Otherwise specs are reduced until a fixed point is reached"
-     , total_is_real_time = False    &= name "total-is-real-time"
-                                     &= name "@"
+     , total_is_cpu_time = False     &= name "total-is-cpu-time"
                                      &= groupname "Timing"
                                      &= explicit
-                                     &= help "The total time is real time, not cpu time "
+                                     &= help "The total time is cpu time, not real time "
      , output_directory = def        &= typDir
                                      &= name "output-directory"
                                      &= name "o"

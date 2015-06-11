@@ -162,7 +162,7 @@ mainWithArgs u@Essence{..} = do
                , cores_           = cores
                , seed_            = seed_
 
-               , totalIsRealTime    = total_is_real_time
+               , totalIsRealTime    = not total_is_cpu_time
                , deletePassing_     = not keep_passing
                , binariesDirectory_ = binaries_directory
                , oldConjure_        = old_conjure
@@ -210,8 +210,8 @@ mainWithArgs u@Reduce{..} = do
         [ aerr "spec-directory" (null spec_directory)
         , aerr "-p|--per-spec-time >0" (per_spec_time == 0)
         , aerr "-t|--total-time > 0 if specified" (total_time_may == Just 0)
-        , aerr "-@/--total-is-real-time requires -t/--total-time to be specified"
-                   (total_is_real_time && total_time_may == Nothing)
+        , aerr "-@/--total-is-cpu-time requires -t/--total-time to be specified"
+                   (total_is_cpu_time && total_time_may == Nothing)
         ] ++ fileErr
 
   case errors of
@@ -238,7 +238,7 @@ mainWithArgs u@Reduce{..} = do
                  ,specDir_             = spec_directory
                  ,specTime_            = per_spec_time
                  ,resultsDB_dir        = db_directory
-                 ,totalIsRealTime_     = total_is_real_time
+                 ,totalIsRealTime_     = not total_is_cpu_time
                  ,R.cores_             = cores
                  ,R.binariesDirectory_ = binaries_directory
                  ,R.toolchainOutput_   = toolchain_ouput
@@ -309,7 +309,7 @@ mainWithArgs Generalise{..} = do
                  ,specDir_             = spec_directory
                  ,specTime_            = per_spec_time
                  ,resultsDB_dir        = db_directory
-                 ,totalIsRealTime_     = False
+                 ,totalIsRealTime_     = True
                  ,R.cores_             = cores
                  ,R.binariesDirectory_ = binaries_directory
                  ,R.toolchainOutput_   = toolchain_ouput
@@ -580,7 +580,7 @@ _essenceDebug = do
              , binaries_directory = Nothing
              , old_conjure        = False
              , limit_time         = Nothing
-             , total_is_real_time = True
+             , total_is_cpu_time  = False
              , toolchain_ouput    = ToolchainNull_
              , no_csv             = False
              , given_dir          = Nothing
@@ -607,7 +607,7 @@ _givenDebug = do
              , binaries_directory = Nothing
              , old_conjure        = False
              , limit_time         = Nothing
-             , total_is_real_time = True
+             , total_is_cpu_time  = False
              , toolchain_ouput    = ToolchainNull_
              , no_csv             = True
              , given_dir          = Just "/Users/bilalh/Desktop/Results/_notable/_new/2015-05-11_01-33_1431308031/_errors/RefineCompact_/RuleApplication_/1431310206_12"
@@ -633,7 +633,7 @@ _reduceDebug = do
               error_kind = RefineCompact_, error_status = RuleApplication_,
               error_choices = Just "/Users/bilalh/Desktop/Results/_notable/_new/with_crash/res/base/2015-05-26_02-08_1432602516/_errors/RefineCompact_/RuleApplication_/1432602517_54_r-.model000000.choices/1432602529_2039/follow.choices.json", list_kinds = False,
               list_statuses = False, total_time_may = Nothing,
-              total_is_real_time = False, output_directory = Nothing,
+              total_is_cpu_time = False, output_directory = Nothing,
               _cores = Just 1, _seed = Nothing, keep_passing = False,
               delete_steps = True, toolchain_ouput = ToolchainNull_,
               binaries_directory = Nothing, limit_time = Nothing, no_csv = False,
