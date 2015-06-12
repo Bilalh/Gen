@@ -20,6 +20,8 @@ instance (IntRange c, Pretty c, Eq c) => Inners (AbstractLiteral c) where
   innersReduce f (AbsLitPartition x)      = (f x)
   innersReduce f (AbsLitMatrix _ x )      = (f x)
 
+  innersReduce f x  = f [x]
+
 
   innersExpand f (AbsLitFunction xs)      = map AbsLitFunction (f xs)
   innersExpand f (AbsLitTuple x)          = map AbsLitTuple (f x)
@@ -34,17 +36,32 @@ instance (IntRange c, Pretty c, Eq c) => Inners (AbstractLiteral c) where
       --TODO could remove/add to made the old range fit
       doMatrix nx = AbsLitMatrix ( intRange 1 (length nx)) nx
 
+  innersExpand f x  = [x]
+
 instance (IntRange c, Pretty c, Eq c) => Inners (Domain () c) where
 
-  innersReduce _ _ = $notDone
+  innersReduce f d = f [d]
 
-  innersExpand f (DomainInt xs) = map DomainInt (f xs)
-  innersExpand _ DomainBool     = []
-  innersExpand f (DomainSet () a x)  = map (DomainSet () a) (concat $ f [x])
+  innersExpand _ DomainBool        = []
+  innersExpand _ DomainAny{}       = []
+  innersExpand _ DomainEnum{}      = []
+  innersExpand _ DomainUnnamed{}   = []
+  innersExpand _ DomainOp{}        = []
+  innersExpand _ DomainReference{} = []
+  innersExpand _ DomainMetaVar{}   = []
+  innersExpand _ DomainIntEmpty    = []
 
-  -- innersExpand _ _ = $notDone
+  innersExpand f (DomainInt xs)             = map DomainInt (f xs)
+  innersExpand f (DomainTuple x)            = map (DomainTuple ) (f x)
+  innersExpand f (DomainMatrix x1 x2)       = map (DomainMatrix x1) (concat $ f [x2])
+  innersExpand f (DomainSet x1 x2 x3)       = map (DomainSet x1 x2) (concat $ f [x3])
+  innersExpand f (DomainMSet x1 x2 x3)      = map (DomainMSet x1 x2) (concat $ f [x3])
+  innersExpand f (DomainSequence x1 x2 x3)  = map (DomainSequence x1 x2) (concat $ f [x3])
+  innersExpand f (DomainRelation x1 x2 x3)  = map (DomainRelation x1 x2) (concat $ f [x3])
+  innersExpand f (DomainPartition x1 x2 x3) = map (DomainPartition x1 x2) (concat $ f [x3])
+
+  -- innersExpand f (DomainFunction x1 x2 x3 x4) =
   innersExpand _ _ = []
-
 
 class IntRange a where
     intRange :: Int -> Int -> Domain () a
