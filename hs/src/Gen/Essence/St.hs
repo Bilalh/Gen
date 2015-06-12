@@ -1,6 +1,5 @@
 {-# LANGUAGE CPP, DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveGeneric,
              DeriveTraversable, GeneralizedNewtypeDeriving #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
 module Gen.Essence.St
   ( module X
   , GenSt

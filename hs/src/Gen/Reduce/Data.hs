@@ -1,5 +1,4 @@
 {-# LANGUAGE DeriveDataTypeable, DeriveGeneric, KindSignatures #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
 module Gen.Reduce.Data where
 
 import Gen.Helpers.Log
