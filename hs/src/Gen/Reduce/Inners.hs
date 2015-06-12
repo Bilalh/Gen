@@ -36,7 +36,7 @@ instance (IntRange c, Pretty c, Eq c) => Inners (AbstractLiteral c) where
       --TODO could remove/add to made the old range fit
       doMatrix nx = AbsLitMatrix ( intRange 1 (length nx)) nx
 
-  innersExpand f x  = [x]
+  innersExpand _ x  = [x]
 
 instance (IntRange c, Pretty c, Eq c) => Inners (Domain () c) where
 
