@@ -1,13 +1,14 @@
 {-# LANGUAGE QuasiQuotes #-}
 module Solver.SolverTest ( tests ) where
 
-import Gen.Imports
-import Gen.TestPrelude
-import Gen.Solver.Solver
-import Conjure.UI.IO
 import Conjure.Language.Definition
-import Test.Tasty.HUnit(Assertion,assertFailure)
-import System.FilePath(takeDirectory,takeFileName)
+import Conjure.UI.IO
+import Conjure.UserError           (MonadUserError)
+import Gen.Imports
+import Gen.Solver.Solver
+import Gen.TestPrelude
+import System.FilePath             (takeDirectory, takeFileName)
+import Test.Tasty.HUnit            (Assertion, assertFailure)
 
 
 tests ::  IO TestTree
@@ -18,7 +19,8 @@ tests = do
   return groups
 
 
-doSpec :: (MonadFail m, MonadIO m) => FilePath -> m TestTree
+doSpec :: (MonadFail m, MonadIO m, MonadUserError m)
+       => FilePath -> m TestTree
 doSpec fp = do
   model <- readModelFromFile fp
   let solMay = solveSpec model
@@ -33,8 +35,9 @@ doSpec fp = do
 
 solveSpec :: Model -> Maybe Model
 solveSpec model = do
-  let (solution,_) = runIdentity $  runLogger LogNone $ solver model
-  solution
+  case runLogger LogNone $ solver model of
+    (Right (solution, _)) -> solution
+    _                     -> Nothing
 
 checkSpec :: Maybe Solution -> [FilePath] -> Assertion
 checkSpec Nothing [] = assertBool "No solution expected" True

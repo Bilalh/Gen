@@ -1,13 +1,14 @@
 {-# LANGUAGE FlexibleInstances, QuasiQuotes, UndecidableInstances #-}
 module Gen.GenerateTypeCheckTest ( tests ) where
 
-import Gen.Essence.St
-import Gen.Essence.Spec ()
-import Gen.Imports
-import Gen.TestPrelude
 import Conjure.Language.Definition
 import Conjure.Language.NameResolution (resolveNames)
 import Conjure.UI.TypeCheck            (typeCheckModel)
+import Conjure.UserError               (MonadUserError)
+import Gen.Essence.Spec                ()
+import Gen.Essence.St
+import Gen.Imports
+import Gen.TestPrelude
 
 tests :: TestTree
 tests = testGroup "GenerateTypeCheck"
@@ -50,5 +51,5 @@ qc_tests title  =
                  Right{}  -> counterexample ("Passing") True
    ]
 
-typeCheck :: MonadFail m => Model -> m Model
+typeCheck :: (MonadFail m, MonadUserError m) => Model -> m Model
 typeCheck m = ignoreLogs . runNameGen  $ (resolveNames $ m) >>= typeCheckModel

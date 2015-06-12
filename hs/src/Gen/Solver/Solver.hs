@@ -3,11 +3,12 @@ module Gen.Solver.Solver(solver,solverMain, SolverArgs(..), Solution) where
 
 import Conjure.Language.Definition
 import Conjure.Language.Instantiate
+import Conjure.Language.NameResolution (resolveNames)
 import Conjure.UI.IO
+import Conjure.UserError               (MonadUserError)
+import Gen.Helpers.InlineLettings
 import Gen.Imports
 import Gen.Solver.Enumerate
-import Conjure.Language.NameResolution (resolveNames)
-import Gen.Helpers.InlineLettings
 
 import qualified Data.Set as S
 
@@ -39,7 +40,8 @@ solverMain SolverArgs{..} = do
       writeModel PlainEssence (Just solutionPath) solution
 
 
-solver :: (MonadFail m, MonadLog m ) =>  Model -> m (Maybe Solution)
+solver :: (MonadFail m, MonadLog m, MonadUserError m)
+       =>  Model -> m (Maybe Solution)
 solver modelStart = do
   modelNamed <- ignoreLogs . runNameGen $ resolveNames modelStart
   let model = inlineLettings modelNamed

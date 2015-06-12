@@ -3,6 +3,7 @@ module Gen.IO.Formats where
 import Conjure.Language.NameGen        (runNameGen)
 import Conjure.Language.NameResolution
 import Conjure.UI.IO                   (readModelFromFile)
+import Conjure.UserError               (MonadUserError)
 import Data.Time                       (formatTime, getCurrentTime)
 import Data.Time.Format                (defaultTimeLocale)
 import Gen.Imports
@@ -20,7 +21,8 @@ timestamp = do
                                                <$> getCurrentTime)
     return epochInt
 
-readSpecFromEssence :: (MonadFail m, MonadIO m) => FilePath -> m Spec
+readSpecFromEssence :: (MonadFail m, MonadUserError m, MonadIO m)
+                    => FilePath -> m Spec
 readSpecFromEssence fp = do
   model <- readModelFromFile fp
   start <- ignoreLogs . runNameGen $ resolveNames model

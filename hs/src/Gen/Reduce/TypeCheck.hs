@@ -3,13 +3,14 @@ module Gen.Reduce.TypeCheck where
 import Conjure.Language.Definition
 import Conjure.Language.NameResolution (resolveNames)
 import Conjure.UI.TypeCheck            (typeCheckModel)
+import Conjure.UserError               (MonadUserError)
 import Data.Time.Clock.POSIX           (getPOSIXTime)
 import Gen.Imports
 import Gen.IO.RunResult
 import Gen.IO.ToolchainData
 
 
-typeCheck :: MonadFail m => Model -> m Model
+typeCheck ::  (MonadFail m, MonadUserError m) => Model -> m Model
 typeCheck m = ignoreLogs . runNameGen  $ (resolveNames $ m) >>= typeCheckModel
 
 

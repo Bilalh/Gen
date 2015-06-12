@@ -5,6 +5,7 @@ import Conjure.Language.Definition
 import Conjure.Language.NameResolution (resolveNames)
 import Conjure.UI.IO                   (EssenceFileMode (..), writeModel)
 import Conjure.UI.TypeCheck            (typeCheckModel)
+import Conjure.UserError               (MonadUserError)
 import Data.Time.Clock.POSIX           (getPOSIXTime)
 import Gen.Classify.Meta               (mkMeta)
 import Gen.Essence.Adjust
@@ -446,7 +447,7 @@ classifySettingI ec _ out uname SettingI{time_taken_}  = do
   return (time_taken_, [])
 
 
-typeCheck :: MonadFail m => Model -> m Model
+typeCheck :: (MonadFail m, MonadUserError m) => Model -> m Model
 typeCheck m = ignoreLogs . runNameGen  $ (resolveNames $ m) >>= typeCheckModel
 
 doTypeCheck :: (MonadIO m, MonadState Carry m, MonadDB m)
