@@ -1,5 +1,5 @@
 {-# LANGUAGE ViewPatterns #-}
-module Gen.Essence.Generate(generateEssence,q_exists,q_forall) where
+module Gen.Essence.Generate(generateEssence) where
 
 import Conjure.Language.Definition
 import Conjure.Language.NameResolution (resolveNames)
@@ -27,8 +27,6 @@ import qualified Gen.Arbitrary.Arbitrary as FirstGen
 import qualified Gen.Arbitrary.Data      as FirstGen
 import qualified Gen.Essence.UIData      as EC
 import qualified Gen.IO.Toolchain        as Toolchain
-import Conjure.Language.Expression.Op
-import Conjure.Language.Domain
 
 
 generateEssence :: KeyMap -> EssenceConfig -> IO ()
@@ -603,55 +601,3 @@ genToUse depth EC.EssenceConfig{genType_=EC.FirstGen} = do
   myUseFunc FirstGen.Ahist    = False
   myUseFunc FirstGen.Ainverse = False
   myUseFunc _                 = True
-
-
-q_exists =
-  EQuan Exists (Var "q_8" TypeInt)
-       (EDom
-          (DomainInt
-             [RangeSingle (ECon (ConstantInt (-4))),
-              RangeSingle (ECon (ConstantInt 4))]))
-       EEmptyGuard
-       (EOp
-          (MkOpNeq
-             (OpNeq
-                (ELit
-                   (AbsLitMSet
-                      [ELit
-                         (AbsLitPartition
-                            [[ECon (ConstantInt 4), ECon (ConstantInt (-2))]])]))
-                (ELit
-                   (AbsLitMSet
-                      [ELit
-                         (AbsLitPartition
-                            [[ECon (ConstantInt (-3)), ECon (ConstantInt (-10))]])])))))
-
-q_forall =
-  EQuan ForAll (Var "q_10" TypeInt)
-     (EDom
-        (DomainInt
-           [RangeSingle (ECon (ConstantInt (-4))),
-            RangeSingle (ECon (ConstantInt 4))]))
-     EEmptyGuard
-     (EOp
-        (MkOpNeq
-           (OpNeq
-              (ELit
-                 (AbsLitSet
-                    [ELit
-                       (AbsLitFunction
-                          [(ECon (ConstantInt 2), ECon (ConstantInt (-2))),
-                           (ECon (ConstantInt 6), ECon (ConstantInt 8))])]))
-              (ELit
-                 (AbsLitSet
-                    [ELit
-                       (AbsLitFunction
-                          [(ECon (ConstantInt 3), ECon (ConstantInt (-10)))]),
-                     ELit
-                       (AbsLitFunction
-                          [(ECon (ConstantInt (-4)), ECon (ConstantInt (-6)))]),
-                     ELit
-                       (AbsLitFunction [(ECon (ConstantInt (-7)), ECon (ConstantInt 5))]),
-                     ELit
-                       (AbsLitFunction
-                          [(ECon (ConstantInt (-4)), ECon (ConstantInt (-7)))])])))))
