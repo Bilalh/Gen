@@ -47,7 +47,7 @@ instance (IntRange c, Pretty c, Eq c) => Inners (Domain () c) where
 
 
 class IntRange a where
-    intRange :: Int -> Int -> Domainn a
+    intRange :: Int -> Int -> Domain () a
 
 instance IntRange Expr where
     intRange i j = dintRange i j

@@ -121,7 +121,7 @@ instance (DepthOf c, IntRange c, DepthOf d, IntRange d, Simpler c d)
      x  -> return x
 
 
-instance Simpler (Domainn Expr) (Domainn Expr) where
+instance Simpler (Domain () Expr) (Domain () Expr) where
     simplerImp a b = return $ compare (depthOf a) (depthOf b)
 
 

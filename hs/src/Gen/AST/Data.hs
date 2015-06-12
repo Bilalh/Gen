@@ -28,8 +28,6 @@ class (Pretty ast, Pretty conjure, Show ast) => Translate ast conjure where
                     Right x -> x
                     Left  d -> error . renderNormal . vcat $ ["fromConjureNote", msg, d ]
 
-type Domainn x = Domain () x
-
 
 -- | Outputs quantifiers e.g. exists instead of converting them to list comparisons
 class Pretty a => PrettyWithQuan a where
@@ -42,7 +40,7 @@ data Expr =
   | ELit (AbstractLiteral Expr)
   | EOp (Op Expr)
   | ETyped Type Expr
-  | EDom (Domainn Expr)
+  | EDom (Domain () Expr)
 
   | EMetaVar String -- For TH
   | EEmptyGuard
@@ -66,7 +64,7 @@ instance FromJSON  (Expr) where parseJSON = genericParseJSON jsonOptions
 
 
 data EGen =
-    GenDom AbstractPattern (Domainn Expr)
+    GenDom AbstractPattern (Domain () Expr)
   | GenIn  AbstractPattern Expr
   deriving (Eq, Ord, Show, Data, Typeable, Generic)
 

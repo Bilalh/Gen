@@ -25,7 +25,7 @@ instance Translate (Op Expr) (Op Expression) where
     fromConjure x =  mapM fromConjure x
     toConjure x   =  fixRelationProj <$> mapM toConjure x
 
-instance Translate (Domainn Expr) (Domain () Expression) where
+instance Translate (Domain () Expr) (Domain () Expression) where
     fromConjure x = mapM fromConjure x
     toConjure x   = mapM toConjure x
 
@@ -175,11 +175,11 @@ instance ReferenceContainer Expr where
 
 -- functions
 
-dintRange :: Int -> Int -> Domainn Expr
+dintRange :: Int -> Int -> Domain () Expr
 dintRange a b = DomainInt [RangeBounded (ECon . ConstantInt $ fromIntegral a)
                                         (ECon . ConstantInt $ fromIntegral b)]
 
-cintRange :: Int -> Int -> Domainn Constant
+cintRange :: Int -> Int -> Domain () Constant
 cintRange a b = DomainInt [RangeBounded ( ConstantInt $ fromIntegral a)
                                         ( ConstantInt $ fromIntegral b)]
 

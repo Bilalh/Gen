@@ -140,5 +140,5 @@ instance HasFeature (AbstractLiteral Expr) where
 
 
 
-instance HasFeature (Domainn Expr) where
+instance HasFeature (Domain () Expr) where
   getFeatures _ = []

@@ -25,8 +25,8 @@ instance Hashable  Spec
 instance ToJSON    Spec where toJSON = genericToJSON jsonOptions
 instance FromJSON  Spec where parseJSON = genericParseJSON jsonOptions
 
-data GF = Givenn (Domainn Expr)
-        | Findd  (Domainn Expr)
+data GF = Givenn (Domain () Expr)
+        | Findd  (Domain () Expr)
     deriving(Show, Generic, Typeable, Eq, Data, Ord)
 
 instance Serialize GF
@@ -138,7 +138,7 @@ toModel (Spec doms exprs obj) = do
 
       toDom (x,t,cdom) = Declaration $ FindOrGiven x t cdom
 
-domOfGF :: GF -> (Domainn Expr)
+domOfGF :: GF -> (Domain () Expr)
 domOfGF (Givenn x) = x
 domOfGF (Findd x)  = x
 

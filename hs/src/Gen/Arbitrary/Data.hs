@@ -12,6 +12,7 @@ module Gen.Arbitrary.Data (
     , FuncsNames(..)
     , HasLogger(..)
     , prettyArr
+    , Domainn
     ) where
 
 import Gen.Helpers.Log
@@ -22,6 +23,7 @@ import qualified Text.PrettyPrint as Pr
 
 
 type GG a =  StateT SpecState Gen a
+type Domainn x = Domain () x
 
 
 data SS = SS

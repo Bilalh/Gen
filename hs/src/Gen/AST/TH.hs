@@ -63,12 +63,12 @@ domainn = QuasiQuoter
     { quoteExp = \ str -> do
         l <- locationTH
         e <- runIO $ parseIO (setPosition l *> parseDomain) str
-        let f :: Domainn Expr = fromConjureNote "in domainn quoteExp TH" e
+        let f :: Domain () Expr = fromConjureNote "in domainn quoteExp TH" e
         dataToExpQ (const Nothing `extQ` expEg `extQ` expDg  `extQ` expAPg ) f
     , quotePat  = \ str -> do
         l <- locationTH
         e <- runIO $ parseIO (setPosition l *> parseDomain) str
-        let f :: Domainn Expr = fromConjureNote "in domainn quotePat TH" e
+        let f :: Domain () Expr = fromConjureNote "in domainn quotePat TH" e
         dataToPatQ (const Nothing `extQ` patEg `extQ` patDg `extQ` patAPg) f
     , quoteType = error "quoteType"
     , quoteDec  = error "quoteDec"
