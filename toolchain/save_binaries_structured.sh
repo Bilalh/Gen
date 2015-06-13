@@ -260,7 +260,16 @@ DIR="\${DIR}/../../../hash/${version}/${host_type}"
 "\${DIR}/savilerow" "\$@"
 EOF
 
+cat << EOF > savilerow2.sh
+#!/bin/bash
+DIR="\$( cd "\$( dirname "\$0" )" && pwd )"
+DIR="\${DIR}/../../../hash/${version}/${host_type}"
+exec "\${DIR}/savilerow2.sh" "\$@"
+EOF
+
+
 chmod +x "./savilerow"
+chmod +x "./savilerow2.sh"
 popd
 
 pushd "${tbase}"
@@ -273,7 +282,16 @@ DIR="\${DIR}/../../../versions/${name}/hash/${version}/${host_type}/"
 "\${DIR}/savilerow" "\$@"
 EOF
 
+cat << EOF > savilerow2.sh
+#!/bin/bash
+DIR="\$( cd "\$( dirname "\$0" )" && pwd )"
+DIR="\${DIR}/../../../versions/${name}/hash/${version}/${host_type}/"
+exec "\${DIR}/savilerow2.sh" "\$@"
+EOF
+
+
 chmod +x "./savilerow"
+chmod +x "./savilerow2.sh"
 popd
 
 store_latest "${name}" "${host_type}" "${version_date}" "${newDstDir}"
