@@ -182,7 +182,7 @@ ui  = modes
                                     &= typ "type"
                                     &= groupname "Generation"
                                     &= explicit
-                                    &= help "The generator to use, one of FirstGen (default) or SecondGen"
+                                    &= help "The generator to use, one of FirstGen or SecondGen (default)"
      , total_time         = def     &= name "total-time"
                                     &= name "t"
                                     &= groupname "Required"
@@ -555,7 +555,6 @@ ui  = modes
                                 &= explicit
      , by_type            = def &= name "by-type"
                                 &= groupname "Weights"
-                                &= typ "Int"
                                 &= help "Output weighting files with n types"
                                 &= explicit
      , output_directory  = def  &= typDir
