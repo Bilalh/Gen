@@ -37,20 +37,6 @@ function host_selector() {
 		ferry*)          return 1;;
 		babbage*)        return 2;;
 		lovelace*)       return 3;;
-		'b.home')        return 5;;
-		instancegen1*)   return 4;;
-		*)
-			echo export "HOST_TYPE=<some_name>"
-			exit 33
-	esac
-}
-
-function host_selector() {
-	case "$1" in
-		eno*)            return 0;;
-		ferry*)          return 1;;
-		babbage*)        return 2;;
-		lovelace*)       return 3;;
 		instancegen1*)   return 4;;
 		gen-a*)          return 5;;
 		'b.home')        return 6;;
