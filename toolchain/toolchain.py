@@ -97,6 +97,8 @@ if __name__ == "__main__":
     else:
         extra_env = dict(PATH= str(here_dir) + ":" + os.environ['PATH'])
 
+    logger.warn("new PATH=%s", extra_env['PATH'])
+
     def setup_logging(outdir):
         p = outdir / "_toolchain.logs"
 
