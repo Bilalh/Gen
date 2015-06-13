@@ -42,7 +42,9 @@ myPreBuild _ _ = do
       doesFileExist "Build_autoversion.hs" >>= \case
            True  -> renameFile "Build_autoversion.hs" "dist/build/autogen/Build_autoversion.hs"
            False -> do
-             error "Error: Not inside a git repo and ./Build_autoversion.hs not found"
+             error $  "Error: Not inside a git repo and ./Build_autoversion.hs not found\n"
+			       ++ "Use ./scripts/make_autoversion.sh to create ./Build_autoversion.hs"
+				   ++ "when inside a git repo, so successive builds do not require git"
       
     ExitSuccess -> do
       makeVersionInfo
