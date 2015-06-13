@@ -263,7 +263,7 @@ def run_solve(extra_env, op, commands, limit, eprime):
                 out = subprocess.check_output(["savilerow"], universal_newlines=True)
             except subprocess.CalledProcessError as e:
                 out = e.output
-            if '-run-minion' in out:
+            if '-run-minion   ' in out:
                 # cmd_template = cmd_template.replace('-run-solver', '-run-minion')
                 cmd_template = cmd_template.replace('-run-solver', '-run-minion minion')
             if '-minion-options <string>' in out:
