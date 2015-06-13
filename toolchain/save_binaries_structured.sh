@@ -226,6 +226,22 @@ mkdir -p "${newDstDir}"
 cp "${binPath}" "${newDstDir}/${name}"
 cp "$(dirname "${binPath}")/savilerow.jar" "${newDstDir}/${name}.jar"
 
+cat << EOF >  "${newDstDir}/savilerow2.sh"
+#!/bin/bash
+set -x
+SR_DIR="\$( cd "\$( dirname "\$0" )" && pwd )"
+
+java -ea -XX:ParallelGCThreads=1 \\
+	-Xmx"\${JAVA_MEM:-16G}"       \\
+	-jar "\$SR_DIR/savilerow.jar" \\
+	"\$@"                         \\
+	\${SR_ARGS}
+
+set +x
+EOF
+
+chmod +x "${newDstDir}/savilerow2.sh"
+
 
 pushd "${newDstDir}"
 ln -fs "../../../../../${tbase_}" date
