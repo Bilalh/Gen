@@ -144,10 +144,11 @@ instance Default St where
 
 
 data GenerateConstraint = GNone
-                        | GType Type          -- The resulting type
-                        | GOnlyTopLevel [Key] -- Weights to use at the toplevel
-                        | GBinRel             -- For Relation Atrr
-                        | GMsetAtrr           -- For Mset domain
+       | GType Type          -- The resulting type
+       | GOnlyTopLevel [Key] -- Weights to use at the toplevel
+       | GBinRel             -- For Relation Atrr
+       | GMsetAtrr           -- For Mset domain
+       | GDomainDepth Int    -- For Spec, to specific a different depth for domains
  deriving (Eq, Ord, Show, Data, Typeable, Generic)
 
 instance Pretty GenerateConstraint where

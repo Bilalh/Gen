@@ -28,7 +28,8 @@ data EssenceConfig = EssenceConfig
 
       , totalTime_       :: Int
       , perSpecTime_     :: Int
-      , size_            :: Int  -- generally less then 5
+      , domainDepth_     :: Int
+      , expressionDepth_ :: Int
       , cores_           :: Int
       , seed_            :: Int
 
@@ -45,15 +46,15 @@ data EssenceConfig = EssenceConfig
 
 instance Default EssenceConfig where
     def = EssenceConfig
-      { outputDirectory_ = error "EssenceConfig outputDirectory not set"
-      , mode_            = Solve_
+      { outputDirectory_   = error "EssenceConfig outputDirectory not set"
+      , totalTime_         = error "EssenceConfig totalTime not set"
+      , perSpecTime_       = error "EssenceConfig perSpecTime not set"
+      , cores_             = error "EssenceConfig cores_ not set"
+      , seed_              = error "EssenceConfig seed_ not set"
+      , domainDepth_       = error "EssenceConfig domainDepth_ not set"
+      , expressionDepth_   = error "EssenceConfig expressionDepth_ not set"
 
-      , totalTime_   = error "EssenceConfig totalTime not set"
-      , perSpecTime_ = error "EssenceConfig perSpecTime not set"
-      , size_        = 4
-      , cores_       = error "EssenceConfig cores_ not set"
-      , seed_        = error "EssenceConfig seed_ not set"
-
+      , mode_ = Solve_
       , totalIsRealTime    = True
       , deletePassing_     = False
       , binariesDirectory_ = Nothing

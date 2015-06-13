@@ -12,14 +12,13 @@ import qualified Data.Map as M
 
 
 instance Generate Spec where
-  give GNone = do
+  -- give GNone = gets depth >>= \d -> give (GDomainDepth d)
+  give (GDomainDepth dom_depth) = do
     modify $ \st -> st{keyPath_=[K_Spec]}
 
     depth <- gets depth
-    -- TODO add to ui
-    dom_depth <- choose3 (0, min depth 3)
 
-    let domsCount = (1, min ((depth+1)*2) 7)
+    let domsCount = (1, min ((dom_depth+1)*2) 7)
     let exprCount = (0, min ((depth+1)*2) 7)
     i_d <- choose3 domsCount
     i_e <- choose3 exprCount

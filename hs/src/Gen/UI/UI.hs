@@ -16,7 +16,8 @@ data UI
     , _mode              :: EssenceMode
     , _gen_type          :: GenType
     ,  output_directory  :: Maybe FilePath
-    , _size              :: Int  -- should not need to be greater then 5
+    , domain_depth       :: Int
+    , expression_depth   :: Int
     , _cores             :: Maybe Int
     , _seed              :: Maybe Int
     , keep_passing       :: Bool
@@ -192,9 +193,15 @@ ui  = modes
                                     &= groupname "Required"
                                     &= explicit
                                     &= help "Time per Spec"
-     , _size              = 4       &= name "size"
+     , domain_depth       = 3       &= name "domain-depth"
+                                    &= name "d"
                                     &= groupname "Generation"
-                                    &= help "Max depth of an expression, 5 should be more then enough"
+                                    &= help "Max depth of an Domain (default 3) "
+                                    &= explicit
+     , expression_depth   = 4       &= name "expression-depth"
+                                    &= name "e"
+                                    &= groupname "Generation"
+                                    &= help "Max depth of an Expression (default 4)"
                                     &= explicit
      , _cores             = Nothing &= name "cores"
                                     &= name "c"

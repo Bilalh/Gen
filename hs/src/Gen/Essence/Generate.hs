@@ -94,8 +94,9 @@ doRefine ec@EC.EssenceConfig{..} = do
           Nothing -> liftIO $ putStrLn $  "# " ++  (show (max timeLeft 0) ) ++ " seconds left"
           Just ys -> liftIO $ putStrLn $  "# " ++  (show (length ys) ) ++ " specs left"
 
-      useSize <- liftIO $ ( randomRIO (0, size_) :: IO Int)
-      gen <-  genToUse useSize ec
+      dom_size  <- liftIO $ (randomRIO (0, domainDepth_)     :: IO Int)
+      expr_size <- liftIO $ (randomRIO (0, expressionDepth_) :: IO Int)
+      gen <-  genToUse ec dom_size expr_size
       (sp,logs) <- generateWrap mayGiven $ gen
 
       inDB sp >>= \case
@@ -197,8 +198,9 @@ doSolve ec@EC.EssenceConfig{..} = do
     process _ (Just [])  = return ()
 
     process timeLeft mayGiven  = do
-      useSize <- liftIO $ (randomRIO (0, size_) :: IO Int)
-      gen <-  genToUse useSize ec
+      dom_size  <- liftIO $ (randomRIO (0, domainDepth_)     :: IO Int)
+      expr_size <- liftIO $ (randomRIO (0, expressionDepth_) :: IO Int)
+      gen <-  genToUse ec dom_size expr_size
       (sp,logs) <- generateWrap mayGiven $ gen
 
       inDB sp >>= \case
@@ -465,8 +467,9 @@ doTypeCheck ec@EC.EssenceConfig{..}= do
     process :: (MonadIO m, MonadState Carry m, MonadDB m)
             => Int -> m Int
     process i = do
-      useSize <- liftIO $ (randomRIO (0, size_) :: IO Int)
-      gen <- genToUse useSize ec
+      dom_size  <- liftIO $ (randomRIO (0, domainDepth_)     :: IO Int)
+      expr_size <- liftIO $ (randomRIO (0, expressionDepth_) :: IO Int)
+      gen <-  genToUse ec dom_size expr_size
       (sp,logs) <- liftIO $  generate $ gen
       let model :: Model = toConjureNote "Generate toConjure" sp
 
@@ -569,8 +572,9 @@ nextElem (Just [])     = $(neverNote "nextElem No given specs left")
 nextElem (Just (_:xs)) = Just xs
 
 genToUse :: (MonadIO m, MonadState Carry m)
-         => Depth -> EssenceConfig -> m (Gen (Spec,Doc))
-genToUse depth EC.EssenceConfig{genType_=EC.SecondGen} = do
+         => EssenceConfig -> Depth -> Depth
+         -> m (Gen (Spec,Doc))
+genToUse EC.EssenceConfig{genType_=EC.SecondGen} dom_depth expr_depth = do
   oldHash <- gets cWeightingHashPrev
   ws <- gets cWeighting
   let hws = hash ws
@@ -581,8 +585,8 @@ genToUse depth EC.EssenceConfig{genType_=EC.SecondGen} = do
       liftIO $ print $ hang "Weightings Changed" 4 (pretty ws)
 
 
-  let g = f <$> runGenerateWithLogs GNone def{ depth=depth
-                                             , weighting=ws}
+  let g = f <$> runGenerateWithLogs (GDomainDepth dom_depth)
+                def{ depth=expr_depth, weighting=ws}
   return g
 
   where
@@ -590,7 +594,7 @@ genToUse depth EC.EssenceConfig{genType_=EC.SecondGen} = do
   f :: (Spec,[(LogLevel,Doc)]) -> (Spec,Doc)
   f (sp,logs) = (sp, vcat [ msg | (lvl, msg) <- logs , lvl <= allowed ])
 
-genToUse depth EC.EssenceConfig{genType_=EC.FirstGen} = do
+genToUse EC.EssenceConfig{genType_=EC.FirstGen} _ depth = do
  let g = f <$> FirstGen.spec depth def{FirstGen.gen_useFunc = myUseFunc}
  return g
 

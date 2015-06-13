@@ -131,11 +131,11 @@ mainWithArgs u@Essence{..} = do
             ]
 
   let errors = catMaybes $
-        [ aerr "-p|--per-spec-time" (per_spec_time == 0)
-        , aerr "--size > 0" (_size <= 0)
+        [ aerr "-p|--per-spec-time"     (per_spec_time == 0)
+        , aerr "--domain-depth > 0"     (domain_depth <= 0)
+        , aerr "--expression-depth > 0" (expression_depth <= 0)
         , aerr "--given and -t/--total-time can not be used together" (isJust given_dir && total_time /= 0)
         ]  ++ fileErr ++ ls
-
 
 
   case errors of
@@ -158,9 +158,11 @@ mainWithArgs u@Essence{..} = do
                , mode_            = _mode
                , totalTime_       = total_time
                , perSpecTime_     = per_spec_time
-               , size_            = _size
                , cores_           = cores
                , seed_            = seed_
+
+               , domainDepth_     = domain_depth
+               , expressionDepth_ = expression_depth
 
                , totalIsRealTime    = not total_is_cpu_time
                , deletePassing_     = not keep_passing
@@ -572,7 +574,8 @@ _essenceDebug = do
 
              , total_time         = 60
              , per_spec_time      = 10
-             , _size              = 4
+             , domain_depth       = 3
+             , expression_depth   = 4
              , _cores             = Just 1
              , _seed              = Just 44
 
@@ -599,7 +602,8 @@ _givenDebug = do
 
              , total_time         = 0
              , per_spec_time      = 30
-             , _size              = 4
+             , domain_depth       = 3
+             , expression_depth   = 4
              , _cores             = Just 1
              , _seed              = Just 44
 
