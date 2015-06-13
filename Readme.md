@@ -21,7 +21,7 @@ Usage from:
 	gen
   
   
-Bash completion  (e.g. add to .bash_profile or .bashrc)
+Bash completion  (e.g. add to .bash_profile or .bashrc as appropriate)
 
 	  source hs/scripts/_gen.sh
 	  
