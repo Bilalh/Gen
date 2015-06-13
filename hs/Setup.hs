@@ -2,15 +2,16 @@
 import Prelude
 import Distribution.Simple
 import Distribution.PackageDescription (emptyHookedBuildInfo, PackageDescription(..), HookedBuildInfo )
-import System.Directory (createDirectoryIfMissing)
 import System.Process (readProcess, readProcessWithExitCode)
-import System.Directory ( copyFile, renameFile, doesFileExist,renameDirectory, copyFile, doesDirectoryExist, getDirectoryContents )
-import System.FilePath ( (</>) )
+import System.Directory
+import System.FilePath 
 import System.Exit(ExitCode(..))
 
 import Distribution.Simple.LocalBuildInfo ( LocalBuildInfo(..), absoluteInstallDirs, bindir)
 import Distribution.Simple.InstallDirs( datadir)
 import Distribution.Simple.Setup ( fromFlag, copyDest, CopyDest(..),BuildFlags )
+import Distribution.Simple.Utils
+import Distribution.Verbosity
 
 import Control.Monad(forM_)
 
@@ -76,13 +77,12 @@ makeVersionInfo = do
                          "dist/build/autogen/Build_autoversion.hs"
 
 
-
-
 copyDirectory :: FilePath -> FilePath -> IO ()
-copyDirectory from to = do
-  createDirectoryIfMissing True to
-  fps <- (getDirectoryContents from)
-  forM_ (filter (`notElem` [".", "..", "__pycache__"])  fps) $ \f -> do
-    doesDirectoryExist f >>= \case
-      True  -> return ()
-      False -> copyFile (from </> f) (to </> f)
+copyDirectory srcDir destDir = do
+  info normal ("copy directory '" ++ srcDir ++ "' to '" ++ destDir ++ "'.")
+  srcFiles <- getDirectoryContentsRecursive srcDir
+  let files = [ (srcDir, f) | f <- srcFiles
+                            , takeBaseName f `notElem` ["tmtags", "tmtagsHistory"]
+                            , (takeBaseName. takeDirectory ) f `notElem` ["__pycache__"] ]
+  installMaybeExecutableFiles normal destDir files
+	  
