@@ -1,22 +1,22 @@
+# -*- coding: utf-8 -*-
+import hashlib
 import logging
 import math
 import os
-import subprocess
 import shlex
-import hashlib
-
-
-from datetime import datetime
-from pprint import pprint, pformat
+import subprocess
+import random
 
 from collections import namedtuple
+from datetime import datetime
 from enum import Enum, unique
 from functools import partial
 from multiprocessing import Pool
+from pprint import pprint, pformat
 from textwrap import indent
 
-from command import K
-import random
+from .command import K
+
 
 logger = logging.getLogger(__name__)
 
@@ -267,7 +267,7 @@ def run_solve(extra_env, op, commands, limit, eprime):
             if '-run-minion' in out:
                 # cmd_template = cmd_template.replace('-run-solver', '-run-minion')
                 cmd_template = cmd_template.replace('-run-solver', '-run-minion minion')
-            if '-minion-options' in out:
+            if '-minion-options <string>' in out:
                 cmd_template = cmd_template.replace('-solver-options', '-minion-options')
 
         c=shlex.split(cmd_template.format(**locals()))

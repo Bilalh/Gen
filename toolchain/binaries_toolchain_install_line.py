@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import logging
 import argparse
-import sys
+import logging
 import sqlite3
+import sys
 
 logger = logging.getLogger(__name__)
 parser = argparse.ArgumentParser()

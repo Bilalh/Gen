@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-
 import logging
-logger = logging.getLogger(__name__)
+import sys
 
 from enum import Enum, unique
 
-import sys
+logger = logging.getLogger(__name__)
+
 
 @unique
 class K(Enum):

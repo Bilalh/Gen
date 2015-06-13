@@ -3,34 +3,31 @@
 """
 Runs the whole toolchain (compact + rnd models >> SR + Minion)
 """
+import hashlib
 import json
 import logging
 import os
-import sys
-
-
-from functools import partial
-from multiprocessing import Pool
-from enum import Enum
-from shutil import which
-from pprint import pformat
-
-import args
-import run
-
-import command
-
-from run import Status
-import time
 import random
+import sys
+import time
 
 from collections import defaultdict
-from command import K
-
+from enum import Enum
+from functools import partial
+from multiprocessing import Pool
 from pathlib import Path
+from pprint import pformat
+from shutil import which
+
+from toolchain import args
+from toolchain import command
+from toolchain import run
+from toolchain.command import K
+from toolchain.run import Status
+
+
 logger = logging.getLogger(__name__)
 
-import hashlib
 
 def sha1_file(filepath):
     with filepath.open('rb') as f:

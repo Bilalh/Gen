@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 #-*- coding: utf-8 -*-
-import logging
 import argparse
 import json
+import logging
 
-# from pprint import pprint
 from pathlib import Path
 
 logger = logging.getLogger(__name__)

@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import argparse
 import json
+import logging
 import os
 import socket
 import sys
 
-import logging
-import argparse
 from pathlib import Path
+
 logger = logging.getLogger(__name__)
 parser = argparse.ArgumentParser()
 parser.add_argument("meta", help='meta.json file')

@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 # Reduce a spec create by `gen`
 
-# -*- coding: utf-8 -*-
+import argparse
 import json
-import sys
+import logging
 import shlex
 import subprocess
-# from toolchain_recheck import data_convert_back
-
-import logging
-import argparse
+import sys
 from pathlib import Path
+
 logger = logging.getLogger(__name__)
 
 parser = argparse.ArgumentParser()
@@ -61,7 +60,7 @@ def process(status, kind,refinement, name, vals,refine_times,cmd_str,is_last):
                 if (essence_dir / new_name).exists():
                     choices = essence_dir / new_name
 
-            out_dir = Path(args.output) / choices.stem
+            oxut_dir = Path(args.output) / choices.stem
 
             cmd_str += " --choices {}".format(choices)
 

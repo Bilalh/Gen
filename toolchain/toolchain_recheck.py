@@ -3,29 +3,27 @@
 """
 Runs the whole toolchain (compact + rnd models >> SR + Minion)
 """
+import argparse
 import json
 import logging
 import math
 import os
+import shlex
 import sys
-
-
-from functools import partial
-from pathlib import Path
-from pprint import pprint, pformat
-from multiprocessing import Pool
-
-import run
-import toolchain
-from command import K, ConjureOld, ConjureNew
-
-from run import Status
 import time
 
-import argparse
 from distutils import file_util
+from functools import partial
+from multiprocessing import Pool
+from pathlib import Path
+from pprint import pprint, pformat
 from textwrap import indent
-import shlex
+
+from toolchain import run
+from toolchain.command import K, ConjureOld, ConjureNew
+from toolchain.run import Status
+import toolchain
+
 
 logger = logging.getLogger(__name__)
 

@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import logging
 import argparse
+import csv
+import logging
 import shutil
+import sqlite3
 import sys
 
-from pprint import pprint
-from pathlib import Path
-
-import csv
-import sqlite3
 from collections import namedtuple
+from pathlib import Path
+from pprint import pprint
 
 logger = logging.getLogger(__name__)
 parser = argparse.ArgumentParser()
