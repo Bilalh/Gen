@@ -244,7 +244,6 @@ def run_solve(extra_env, op, commands, limit, eprime):
     last_status=Status.success
     last_kind  = None
 
-
     for i, (cmd_kind, cmd_template) in enumerate(cmds):
 
         # always perform solution translation and vaildation

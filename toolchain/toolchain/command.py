@@ -7,6 +7,7 @@ from enum import Enum, unique
 logger = logging.getLogger(__name__)
 
 
+
 @unique
 class K(Enum):
     refineCompact = 0,
@@ -92,7 +93,7 @@ class ConjureOld(Commands):
                 """,
 
                 savilerow="""
-                savilerow  -mode Normal
+                savilerow2.sh  -mode Normal
                     -in-eprime                   {eprime}
                     -in-param                    {eprime_param}
                     -out-minion                  {minion}
@@ -172,7 +173,7 @@ class ConjureNew(Commands):
                 """,
 
                 savilerow="""
-                savilerow  -mode Normal
+                savilerow2.sh  -mode Normal
                     -in-eprime                   '{eprime}'
                     -in-param                    '{eprime_param}'
                     -out-minion                  '{minion}'

@@ -89,10 +89,13 @@ if __name__ == "__main__":
 
     op = args.do_args()
 
+    here_dir=Path(__file__).parent
+
+
     if op.bin_dir:
-        extra_env = dict(PATH= op.bin_dir + ":" + os.environ['PATH'])
+        extra_env = dict(PATH= str(here_dir) + ":" +  op.bin_dir + ":" + os.environ['PATH'])
     else:
-        extra_env = {}
+        extra_env = dict(PATH= str(here_dir) + ":" + os.environ['PATH'])
 
     def setup_logging(outdir):
         p = outdir / "_toolchain.logs"
