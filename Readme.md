@@ -65,8 +65,3 @@ Run the toolchain on a spec for 4 seconds with 4 cores (compact + 3 randoms):
 
 	gen script-toolchain spec.essence -t40 -c4
 	
-Rerun the same process again (using the .json files from gen [script-toolchain/essence]) on 1 core:
-
-	gen script-recheck <out_date> -o recheck -c1
-	
-	
