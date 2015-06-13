@@ -44,7 +44,7 @@ Add `-w <JSON-FILE>` to specific the weights in below format, anything not speci
 	,"TypeInt":53
     }
 
-Use `gen weights` to output example weighting files.
+Use `gen weights` to output example weightings files.
 
 
 Run for 15 minutes with 60 seconds for the toolchain 4 cores:
