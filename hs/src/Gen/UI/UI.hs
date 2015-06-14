@@ -553,7 +553,7 @@ ui  = modes
                                 &= groupname "Weights"
                                 &= help "Output the all weighting"
                                 &= explicit
-     , by_type            = def &= name "by-type"
+     , by_type          = def   &= name "by-type"
                                 &= groupname "Weights"
                                 &= help "Output weighting files with n types"
                                 &= explicit
