@@ -19,7 +19,7 @@ data GenType = FirstGen
   deriving (Show, Data, Typeable, Eq)
 
 instance Default GenType where
-    def = FirstGen
+    def = SecondGen
 
 data EssenceConfig = EssenceConfig
       { outputDirectory_ :: Directory
