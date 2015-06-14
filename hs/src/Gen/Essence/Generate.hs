@@ -39,7 +39,7 @@ generateEssence km ec@EC.EssenceConfig{..} = do
       db <- giveDb dbDirectory_ Nothing
       return (db, x)
 
-  let carry = Carry{ cWeighting         = km
+  let carry = Carry{ cWeighting         = withDefKeys km
                    , cWeightingHashPrev = 0
                    , cDB                = db
                    , cSpecDir           = outputDirectory_ </> "_errors"

@@ -45,6 +45,7 @@ module Gen.Essence.St
   , logWarn2
   , WrapVar(..)
   , allKeys
+  , withDefKeys
   ) where
 
 import Conjure.Language.Constant
@@ -492,3 +493,9 @@ getPossibilitiesKeyed con vs = do
      True  -> do
        w <- withKey k $ weightingForKey k
        return (w,withKey k v)
+
+
+withDefKeys :: KeyMap -> KeyMap
+withDefKeys (KeyMap ms) =
+    let (KeyMap defs) = def
+    in KeyMap $ ms `M.union` defs
