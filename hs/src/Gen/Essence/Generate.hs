@@ -75,116 +75,14 @@ generateWrap (Just (x:_)) _ = do
 generateWrap _ f = liftIO $  generate f
 
 
-doRefine :: (Applicative m, MonadIO m, MonadState Carry m, MonadDB m)
-         => EssenceConfig -> m ()
-doRefine ec@EC.EssenceConfig{..} = do
-  process totalTime_ givenSpecs_
+doRefine, doSolve :: (Applicative m, MonadIO m, MonadState Carry m, MonadDB m)
+                  => EssenceConfig -> m ()
+doRefine ec = doCommon ec Refine_Only
+doSolve ec  = doCommon ec Refine_Solve
 
-    where
-    out    = outputDirectory_ </> "_passing"
-    errdir = outputDirectory_ </> "_errors"
-
-    process :: (Applicative m, MonadIO m, MonadState Carry m, MonadDB m)
-            => Int -> Maybe [FilePath]  -> m ()
-    process timeLeft Nothing  | timeLeft <= 0 = return ()
-    process _ (Just [])  = return ()
-
-    process timeLeft mayGiven = do
-      case mayGiven of
-          Nothing -> liftIO $ putStrLn $  "# " ++  (show (max timeLeft 0) ) ++ " seconds left"
-          Just ys -> liftIO $ putStrLn $  "# " ++  (show (length ys) ) ++ " specs left"
-
-      dom_size  <- liftIO $ (randomRIO (0, domainDepth_)     :: IO Int)
-      expr_size <- liftIO $ (randomRIO (0, expressionDepth_) :: IO Int)
-      gen <-  genToUse ec dom_size expr_size
-      (sp,logs) <- generateWrap mayGiven $ gen
-
-      inDB sp >>= \case
-        True -> do
-          liftIO $ putStrLn $ "Not running spec with hash, already generated/cached" ++ (show $ hash sp)
-          process (timeLeft) (nextElem mayGiven)
-        False -> do
-          liftIO $ putStrLn $ "> Processing: " ++ (show $ hash sp)
-
-          let model :: Model = toConjureNote "Generate toConjure" sp
-          case typeCheck model  of
-
-            Left x ->
-                case givenSpecs_ of
-                  Just{} ->
-                    error . show . vcat $
-                        [ "Spec failed type checking"
-                        , pretty model
-                        , pretty x
-                        , pretty . groom $ model
-                        ]
-                  Nothing -> process timeLeft (nextElem mayGiven)
-
-            Right{} ->  do
-              num <- liftIO $ (randomRIO (10,99) :: IO Int)  >>= return . show
-              ts <- timestamp >>= return . show
-              let uname  =  (ts ++ "_" ++ num )
-
-              let dir = outputDirectory_ </> "_passing" </> uname
-              liftIO $ createDirectoryIfMissing True dir
-              liftIO $ writeFile (dir </> "spec.logs" ) (renderSized 120 logs)
-              liftIO $ writeToJSON (dir </> "spec.spec.json") sp
-              gets cWeighting >>= \c -> liftIO $ writeToJSON (dir </> "weighting.json") c
-
-
-
-              meta <- mkMeta sp
-              liftIO $ writeToJSON  (dir </> "spec.meta.json" ) (meta)
-              Toolchain.copyMetaToSpecDir outputDirectory_ dir
-
-              runSeed <- liftIO $ (randomRIO (1,2147483647) :: IO Int)
-              essencePath <- writeModelDef dir model
-              startTime <- liftIO $ round `fmap` getPOSIXTime
-              (_, RefineResult result) <- toolchain Toolchain.ToolchainData{
-                          Toolchain.essencePath       = essencePath
-                        , Toolchain.outputDirectory   = dir
-                        , Toolchain.toolchainTime     = perSpecTime_
-                        , Toolchain.essenceParam      = Nothing
-                        , Toolchain.refineType        = Refine_Only
-                        , Toolchain.cores             = cores_
-                        , Toolchain.seed              = Just runSeed
-                        , Toolchain.binariesDirectory = binariesDirectory_
-                        , Toolchain.oldConjure        = oldConjure_
-                        , Toolchain.toolchainOutput   = toolchainOutput_
-                        , Toolchain.choicesPath       = Nothing
-                        , Toolchain.dryRun            = False
-                        }
-              endTime <- liftIO $ round `fmap` getPOSIXTime
-              let realTime = endTime - startTime
-
-              (runTime,rdata) <- liftIO $ classifySettingI ec errdir out uname result
-              mapM_ (\x -> storeInDB sp (OurError x)) rdata
-              writeDB False
-
-              case reduceAsWell_ of
-                Nothing -> return ()
-                Just{}  -> do
-                  liftIO $ putStrLn $ "> Reducing: " ++ (show $ hash sp)
-                  res <- reduceErrors ec rdata
-                  liftIO $ putStrLn $ "> Reduced: " ++ (show $ hash sp)
-                  liftIO $ putStrLn $ "!l rdata: " ++ (show $ length rdata)
-                  liftIO $ putStrLn $ "! rdata: " ++ (show $ vcat $ map pretty rdata)
-                  liftIO $ putStrLn $ "!l errData: " ++ (show $ length res)
-                  liftIO $ putStrLn $ "! errData: " ++ (show $ vcat $ map pretty res)
-                  writeDB False
-                  mapM_ adjust res
-
-
-              liftIO $ putStrLn $ "> Processed: " ++ (show $ hash sp)
-              liftIO $ putStrLn $ ""
-              case totalIsRealTime of
-                False -> process (timeLeft - (floor runTime)) (nextElem mayGiven)
-                True  -> process (timeLeft - realTime) (nextElem mayGiven)
-
-
-doSolve :: (Applicative m, MonadIO m, MonadState Carry m, MonadDB m)
-        => EssenceConfig -> m ()
-doSolve ec@EC.EssenceConfig{..} = do
+doCommon :: (Applicative m, MonadIO m, MonadState Carry m, MonadDB m)
+         => EssenceConfig -> RefineType -> m ()
+doCommon ec@EC.EssenceConfig{..} refineType = do
 
   process totalTime_ givenSpecs_
 
@@ -208,6 +106,8 @@ doSolve ec@EC.EssenceConfig{..} = do
           liftIO $ putStrLn $ "Not running spec with hash, already tested " ++ (show $ hash sp)
           process (timeLeft) (nextElem mayGiven)
         False -> do
+          liftIO $ putStrLn $ "> Processing: " ++ (show $ hash sp)
+
           let model :: Model = toConjureNote "Generate toConjure" sp
           case typeCheck model  of
             Left x ->
@@ -228,14 +128,14 @@ doSolve ec@EC.EssenceConfig{..} = do
 
               let dir = outputDirectory_ </> "_passing" </> uname
               liftIO $ createDirectoryIfMissing True dir
-              liftIO $ writeFile (dir </> "spec.logs" ) (renderSized 120 logs)
 
+              liftIO $ writeFile (dir </> "spec.logs" ) (renderSized 120 logs)
               liftIO $ writeToJSON (dir </> "spec.spec.json") sp
 
               meta <- mkMeta sp
               liftIO $  writeToJSON  (dir </> "spec.meta.json" ) (meta)
               Toolchain.copyMetaToSpecDir outputDirectory_ dir
-
+              gets cWeighting >>= \c -> liftIO $ writeToJSON (dir </> "weighting.json") c
 
               runSeed <- liftIO $  (randomRIO (1,2147483647) :: IO Int)
               essencePath <- writeModelDef dir model
@@ -245,7 +145,7 @@ doSolve ec@EC.EssenceConfig{..} = do
                         , Toolchain.outputDirectory   = dir
                         , Toolchain.toolchainTime     = perSpecTime_
                         , Toolchain.essenceParam      = Nothing
-                        , Toolchain.refineType        = Refine_Solve
+                        , Toolchain.refineType        = refineType
                         , Toolchain.cores             = cores_
                         , Toolchain.seed              = Just runSeed
                         , Toolchain.binariesDirectory = binariesDirectory_
@@ -274,6 +174,8 @@ doSolve ec@EC.EssenceConfig{..} = do
                   writeDB False
                   mapM_ adjust res
 
+              liftIO $ putStrLn $ "> Processed: " ++ (show $ hash sp)
+              liftIO $ putStrLn $ ""
               case totalIsRealTime of
                 False -> process (timeLeft - (floor runTime)) (nextElem mayGiven)
                 True  -> process (timeLeft - realTime) (nextElem mayGiven)
