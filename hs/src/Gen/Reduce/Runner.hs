@@ -93,7 +93,7 @@ runSpec spE = do
 
       meta <- mkMeta spE
       -- liftIO $  writeFile    (path </> "spec.meta" ) (show meta)
-      liftIO $  writeToJSON  (path </> "spec.meta.json" ) (meta)
+      liftIO $ writeToJSON  (path </> "spec.meta.json" ) (meta)
 
       liftIO $ Toolchain.copyMetaToSpecDir outputDir_ path
 
@@ -240,6 +240,13 @@ runSpec spE = do
         return (stillErroed, timeTaken)
 
       storeInDB spE (snd stillErroed)
+
+      case (snd stillErroed) of
+        (OurError ed) -> do
+          liftIO $ writeToJSON (path </> "dir_error.json") 
+            Toolchain.DirError{ dirStatus = status ed , dirKind  = kind ed}
+
+        _ -> return ()
 
       liftIO $ print $ ("Has rrError?" :: String, fst stillErroed)
       -- liftIO $ putStrLn $ groom stillErroed
