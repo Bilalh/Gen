@@ -31,8 +31,9 @@ byType size = do
               ]
   let subs  = [ (names xs, matrixHandle xs) | xs <- subs_ ]
 
-  let KeyMap defMap = def
-  let all_tys_map = M.fromList ( [ (ty, 0)  | ty <- all_tys ] )  `M.union`  defMap
+  -- let KeyMap defMap = def
+  -- let all_tys_map = M.fromList ( [ (ty, 0)  | ty <- all_tys ] )  `M.union`  defMap
+  let all_tys_map = M.fromList ( [ (ty, 0)  | ty <- all_tys ] )
 
   let maps = [  (name, KeyMap $ M.fromList (map (\x -> (x,100)) xs)  `M.union`  all_tys_map )
              | (name,xs) <- subs  ]
