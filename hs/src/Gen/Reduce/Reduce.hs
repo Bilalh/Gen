@@ -63,6 +63,7 @@ doReductions :: Spec -> RR (Timed Spec)
 doReductions start =
     return (Continue start)
     >>= con "tryRemoveConstraints" tryRemoveConstraints
+    >>= con "removeObjective"      removeObjective
     >>= con "removeUnusedDomains"  removeUnusedDomains
     >>= con "simplyDomains"        simplyDomains
     >>= con "removeConstraints"    removeConstraints
@@ -93,6 +94,18 @@ tryRemoveConstraints sp@(Spec ds _ obj) = do
     f (Just r) = do
       recordResult r
       return $ Spec ds [] obj
+
+    f _ = return sp
+
+removeObjective :: Spec -> RR (Timed Spec)
+removeObjective sp@(Spec _ _ Nothing)  = return . Continue $ sp
+removeObjective sp@(Spec ds es Just{}) =
+  timedSpec (Spec ds es Nothing ) f (fmap Continue . f)
+
+  where
+    f (Just r) = do
+      recordResult r
+      return $ Spec ds es Nothing
 
     f _ = return sp
 
@@ -170,6 +183,8 @@ removeConstraints (Spec ds oes obj) = do
           g _ = process xs
 
     -- process ts = error . show . prettyBrackets . vcat $ map (prettyBrackets .  vcat . map pretty) ts
+
+
 
 simplyDomains :: Spec -> RR (Timed Spec)
 simplyDomains sp@(Spec ds es obj) = do
