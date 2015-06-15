@@ -90,7 +90,7 @@ data LogNamed = LogNamed String [Doc]
     deriving (Show, GHC.Generics.Generic)
 
 instance Pretty LogNamed where
-    pretty (LogNamed nm docs) = (P.text $ padRight 15 ' '  ('['  :nm ++ "]" ) ) <+>
+    pretty (LogNamed nm docs) = (P.text $ padRight 20 ' '  ('['  :nm ++ "]" ) ) <+>
         (nest 4 $ vcat docs)
 
 instance Pretty LogsTree where
