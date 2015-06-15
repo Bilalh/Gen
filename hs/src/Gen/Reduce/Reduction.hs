@@ -107,12 +107,23 @@ instance (HasGen m,  HasLogger m) =>  Reduce Expr m where
       subs    <- subterms e
       r_cons  <- reduceList cons
       r_inner <- reduce inner
-      let res = concat [ [EComp i gens cs | cs <- r_cons ] | i <- r_inner  ]
+      let res = concat [  if null r_cons then [EComp i gens []]
+                          else [EComp i gens cs | cs <- r_cons ]
+                       |  i <- r_inner  ]
 
-      addLog "sin" (map pretty sin)
-      addLog "subs" (map pretty subs)
-      -- addLog "r_cons" (map pretty r_cons)
+      addLog  $line [ ]
+      addLog "reduce EComp" [pretty e]
+      addLog "single" (map pretty sin)
+      addLog "subterms" (map pretty subs)
+      addLog "r_cons" (map prettyArr r_cons)
       addLog "r_inner" (map pretty r_inner)
+      addLog "res" (map pretty res)
+      addLog "lengths" [ nn "res"  (length res)
+                       , nn "r_cons"  (length r_cons)
+                       , nn "r_inner"  (length r_inner)
+                       , nn "single"  (length sin)
+                       , nn "subterms"  (length subs)
+                       ]
       reduceChecks e  $ sin ++ subs ++ res
 
 
