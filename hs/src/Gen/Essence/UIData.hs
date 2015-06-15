@@ -42,6 +42,7 @@ data EssenceConfig = EssenceConfig
       , givenSpecs_        :: Maybe [FilePath]
       , dbDirectory_       :: Maybe Directory
       , reduceAsWell_      :: Maybe Time
+      , logLevel           :: LogLevel
       } deriving (Show)
 
 instance Default EssenceConfig where
@@ -65,4 +66,5 @@ instance Default EssenceConfig where
       , genType_           = def
       , reduceAsWell_      = Nothing
       , dbDirectory_       = Nothing
+      , logLevel           = LogDebug
       }
