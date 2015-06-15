@@ -32,7 +32,7 @@ data UI
     , reduce_as_well     :: Maybe Int
     , _weightings        :: Maybe FilePath
     , db_directory       :: Maybe FilePath
-
+    , log_level          :: LogLevel
     }
 
   | Instance
@@ -259,6 +259,10 @@ ui  = modes
                                     &= typDir
                                     &= explicit
                                     &= help "Cache the result of running a spec. Useful for development"
+     , log_level         = LogDebug &= name "log-level"
+                                    &= groupname "Other"
+                                    &= explicit
+                                    &= help "Logging level, default LogDebug"
      , toolchain_ouput    = enum
                             [
                               ToolchainScreen_ &= name "show-toolchain-output"

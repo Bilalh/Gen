@@ -174,6 +174,7 @@ mainWithArgs u@Essence{..} = do
                , genType_           = _gen_type
                , reduceAsWell_      = reduce_as_well
                , dbDirectory_       = db_directory
+               , logLevel           = log_level
                }
 
   doMeta out no_csv binaries_directory
@@ -591,6 +592,7 @@ _essenceDebug = do
              , reduce_as_well     = Nothing
              , _weightings        = Nothing
              , db_directory       = Nothing
+             , log_level          = LogDebug
              }
     limiter (limit_time ec) (mainWithArgs ec)
 
@@ -619,6 +621,7 @@ _givenDebug = do
              , reduce_as_well     = Just 60
              , _weightings        = Nothing
              , db_directory       = Nothing
+             , log_level          = LogDebug
              }
     limiter (limit_time ec) (mainWithArgs ec)
 

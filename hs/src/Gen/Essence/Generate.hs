@@ -478,7 +478,7 @@ nextElem (Just (_:xs)) = Just xs
 genToUse :: (MonadIO m, MonadState Carry m)
          => EssenceConfig -> Depth -> Depth
          -> m (Gen (Spec,Doc))
-genToUse EC.EssenceConfig{genType_=EC.SecondGen} dom_depth expr_depth = do
+genToUse EC.EssenceConfig{genType_=EC.SecondGen,logLevel} dom_depth expr_depth = do
   oldHash <- gets cWeightingHashPrev
   ws <- gets cWeighting
   let hws = hash ws
@@ -494,9 +494,8 @@ genToUse EC.EssenceConfig{genType_=EC.SecondGen} dom_depth expr_depth = do
   return g
 
   where
-  allowed = LogDebug
   f :: (Spec,[(LogLevel,Doc)]) -> (Spec,Doc)
-  f (sp,logs) = (sp, vcat [ msg | (lvl, msg) <- logs , lvl <= allowed ])
+  f (sp,logs) = (sp, vcat [ msg | (lvl, msg) <- logs , lvl <= logLevel ])
 
 genToUse EC.EssenceConfig{genType_=EC.FirstGen} _ depth = do
  let g = f <$> FirstGen.spec depth def{FirstGen.gen_useFunc = myUseFunc}
