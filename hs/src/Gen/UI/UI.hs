@@ -72,6 +72,7 @@ data UI
     , db_passing_in      :: Maybe FilePath
     , db_only_passing    :: Bool
     , from_essence       :: Bool
+    , no_check           :: Bool
     }
   | Generalise
     {
@@ -377,6 +378,10 @@ ui  = modes
                                      &= groupname "Other"
                                      &= explicit
                                      &= help "Convert spec.essence to json (spec.spec.json), automatically for convenience"
+     , no_check           = False    &= name "no-check"
+                                     &= groupname "Other"
+                                     &= explicit
+                                     &= help "Don't check if the error still occurs by running the give specification"
      , toolchain_ouput    = enum
                             [
                               ToolchainScreen_ &= name "show-toolchain-output"

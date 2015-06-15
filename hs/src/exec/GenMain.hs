@@ -255,7 +255,7 @@ mainWithArgs u@Reduce{..} = do
 
   doMeta out no_csv binaries_directory
 
-  state <- reduceMain True args
+  state <- reduceMain (not no_check) args
   writeDB_ db_only_passing db_directory (resultsDB_  state)
   void $ formatResults (delete_steps) state
 
@@ -645,5 +645,5 @@ _reduceDebug = do
               delete_steps = True, toolchain_ouput = ToolchainNull_,
               binaries_directory = Nothing, limit_time = Nothing, no_csv = False,
               db_directory = Just "db", db_passing_in = Nothing,
-              db_only_passing = False, from_essence = False}
+              db_only_passing = False, from_essence = False,no_check=True}
   limiter (limit_time ec) (mainWithArgs ec)
