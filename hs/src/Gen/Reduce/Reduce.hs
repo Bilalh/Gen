@@ -49,7 +49,23 @@ reduceMain check rr = do
 
       noteFormat "StateState" [pretty state]
       noteFormat "Start" [pretty sp]
-      noteFormat "Final" [pretty sfin]
+
+      end <- case sfin of
+               (Continue x)   -> return $  Just x
+               NoTimeLeft{} -> do
+                  case mostReduced_ state of
+                    Nothing -> return Nothing
+                    Just (ErrData{..})  ->
+                        readFromJSON (specDir </> "spec.spec.json")
+
+      let end2 = case end of
+                   Nothing -> Nothing
+                   Just x  -> if hash x == hash sp  then
+                                  Nothing
+                              else
+                                  Just x
+
+      noteFormat "Final" [pretty end2]
 
       return (state)
 
