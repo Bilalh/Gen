@@ -140,7 +140,23 @@ instance Simpler (Op Expr) (Op Expr) where
                    , [ELit lb@AbsLitMatrix{}] <- F.toList b = simpler la lb
     simplerImp a b | [la@EComp{} ] <- F.toList a
                    , [lb@EComp{} ] <- F.toList b = simpler la lb
-    simplerImp a b = return $ compare (depthOf a) (depthOf b)
+    simplerImp a b = case compare (depthOf a) (depthOf b) of
+                       EQ -> do
+                         let x1 = F.toList a
+                         let x2 = F.toList b
+                         case compare (length x1) (length x2) of
+                           EQ -> do
+                             os <-zipWithM simpler x1 x2
+                             let la = length (filter (== LT) os)
+                             let lb = length (filter (== GT) os)
+                             if la > lb then
+                                 return LT
+                             else if lb > la then
+                                 return GT
+                             else
+                                 return EQ
+                           o  -> return o
+                       o  -> return o
 
 
 

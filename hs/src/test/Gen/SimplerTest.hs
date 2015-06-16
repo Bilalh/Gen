@@ -103,6 +103,8 @@ tests = testGroup "simpler"
      [
          eq_same [essencee| [&q1_Exp[&q10] = &q8 | &q10s : int(1..6)]  |]
        , eq_same [essencee| or([&q1_Exp[&q10] = &q8 | &q10s : int(1..6), &q10 <= &q1_ExpM]) |]
+       , eq_same [essencee| true -> or([&q1_Exp[&q10] = &q8 | &q10s : int(1..6)])  |]
+       , eq_same [essencee| true -> or([&q1_Exp[&q10] = &q8 | &q10s : int(1..6), &q10 <= &q1_ExpM]) |]
        ]
 
   ,testGroup_lt_gt "Comp" $ do
@@ -118,7 +120,12 @@ tests = testGroup "simpler"
 
          ( [essencee| or([&q1_Exp[&q10] = &q8 | &q10s : int(1..6)])  |],
            [essencee| or([&q1_Exp[&q10] = &q8 | &q10s : int(1..6), &q10 <= &q1_ExpM]) |]
+         ),
+
+         ( [essencee| true -> or([&q1_Exp[&q10] = &q8 | &q10s : int(1..6)])  |],
+           [essencee| true -> or([&q1_Exp[&q10] = &q8 | &q10s : int(1..6), &q10 <= &q1_ExpM]) |]
          )
+
       ]
 
 
