@@ -22,6 +22,7 @@ import Gen.Reduce.Simpler
 import qualified Data.Foldable                 as F
 import qualified Data.Generics.Uniplate.Zipper as Zipper
 import qualified Data.Traversable              as T
+import qualified  Text.PrettyPrint as Pr
 
 class (HasGen m,  HasLogger m,  Simpler a a) => Reduce a m where
     reduce   :: a -> m [a]    -- list of smaller exprs
@@ -108,7 +109,7 @@ instance (HasGen m,  HasLogger m) =>  Reduce Expr m where
       r_cons  <- reduceList cons
       r_inner <- reduce inner
       let res = concat [  if null r_cons then [EComp i gens []]
-                          else [EComp i gens cs | cs <- r_cons ]
+                          else [EComp i gens cs | cs <- [] : r_cons ]
                        |  i <- r_inner  ]
 
       addLog  $line [ ]
@@ -117,15 +118,14 @@ instance (HasGen m,  HasLogger m) =>  Reduce Expr m where
       addLog "subterms" (map pretty subs)
       addLog "r_cons" (map prettyArr r_cons)
       addLog "r_inner" (map pretty r_inner)
-      addLog "res" (map pretty res)
-      addLog "lengths" [ nn "res"  (length res)
+      addLog "r_res" (map pretty res)
+      addLog "r_lengths" [ nn "res"  (length res)
                        , nn "r_cons"  (length r_cons)
                        , nn "r_inner"  (length r_inner)
                        , nn "single"  (length sin)
                        , nn "subterms"  (length subs)
                        ]
       reduceChecks e  $ sin ++ subs ++ res
-
 
 
     single EEmptyGuard  = return []
@@ -376,6 +376,7 @@ instance (HasGen m,  HasLogger m) =>  Reduce (Op Expr) m where
       subterms_op e subs
 
 
+    -- Why are these 4 lines needed?
     reduce e@[opp| &a + &b |]  = reduce_op2 ( m2t $ \(c,d) ->  [opp| &c + &d |])  [a,b] >>= reduceChecks e
     reduce e@[opp| &a * &b |]  = reduce_op2 (m2t  $ \(c,d) ->  [opp| &c * &d |])  [a,b] >>= reduceChecks e
     reduce e@[opp| &a /\ &b |] = reduce_op2 (m2t  $ \(c,d) ->  [opp| &c /\ &d |]) [a,b] >>= reduceChecks e
@@ -383,7 +384,17 @@ instance (HasGen m,  HasLogger m) =>  Reduce (Op Expr) m where
 
     reduce e = do
       let subs = F.toList e
-      reduce_op e subs >>= reduceChecks e
+      res <- reduce_op e subs
+      chs <- reduceChecks e res
+      addLog $line [  ]
+      addLog "op" [ pretty  e]
+      addLog "op_subs" (map pretty subs)
+      addLog "op_res"  (map pretty res)
+      addLog "op_chs"  (map pretty chs)
+      addLog "lengths" [ nn "res" (length res)
+                       , nn "subs" (length subs)
+                       , nn "chs"  (length chs)]
+      return chs
 
 
 subterms_op :: forall (m :: * -> *) a t.
@@ -410,12 +421,20 @@ reduce_op2 :: forall (m :: * -> *). (HasGen m,  HasLogger m)
 reduce_op2 f subs = do
   rs <- mapM reduceAdd subs
 
+  addLog "reduce_op2 subs" (map pretty subs)
+  mapM_ (\xx -> addLog "rs#" (map pretty xx)  )  rs
+
   case all (== []) rs of
     True   -> return []
     False -> do
       xrs <- zipWithM giveVals subs rs
-      return [ f vs | vs <- sequence xrs
-             , or $ zipWith (\z1 z2 -> runIdentity $ simpler1 z1 z2) vs subs ]
+
+      let res = [ f vs | vs <- sequence xrs
+                , or $ zipWith (\z1 z2 -> runIdentity $ simpler1 z1 z2) vs subs
+                ]
+      addLog "reduce_op2 xrs" (map prettyArr xrs)
+      addLog "reduce_op2 res" (map pretty res)
+      return res
 
   where
   giveVals :: (HasGen m, HasLogger m)

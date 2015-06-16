@@ -35,6 +35,12 @@ class (Pretty a, Eq a, Show a, Pretty b, Eq b, Show b
 
   simpler1 a b= simpler a b >>= (return . (== LT))
 
+compareDepthThenAll a b = return $
+  case compare (depthOf a) (depthOf b) of
+    EQ -> compare (length $ universe a) (length $  universe b)
+    o -> o
+
+
 instance Simpler Expr Expr where
     simplerImp (EVar a)               (EVar b)      = simplerImp a b
     simplerImp (EDom a)               (EDom b)      = simplerImp a b
@@ -129,6 +135,7 @@ instance Simpler (Op Expr) (Op Expr) where
     simplerImp a b | [ELit la@AbsLitMatrix{}] <- F.toList a
                    , [ELit lb@AbsLitMatrix{}] <- F.toList b = simpler la lb
     simplerImp a b = return $ compare (depthOf a) (depthOf b)
+
 
 
 -- Mixed
