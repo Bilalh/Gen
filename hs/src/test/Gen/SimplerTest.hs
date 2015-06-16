@@ -14,6 +14,7 @@ import Gen.Reduce.Reduction as R
 import Gen.TestPrelude
 import Text.Printf
 import Gen.Essence.Id
+import Conjure.Language.Definition
 
 tests :: TestTree
 tests = testGroup "simpler"
@@ -92,6 +93,24 @@ tests = testGroup "simpler"
 
    , ([essencee| or([true/\false,true/\false])|], [essencee| or([true/\false,true/\false,true/\false])|] )
   ]
+
+  ,testGroup_lt_gt "Comp" $ do
+     let q1_Exp = EVar $ Var "q1_Expr" (TypeMatrix TypeInt TypeInt)
+     let q1_ExpM = EVar $ Var "q1_ExprM" (TypeInt)
+     let q10    = EVar $ Var "q10" (TypeInt)
+     let q10s   = Single "q10"
+     let q8     = EVar $ Var "q8" (TypeInt)
+     [
+         ( [essencee| or([&q1_Exp[&q10] = &q8 | &q10s : int(1..6)])  |],
+           [essencee| or([&q1_Exp[&q10] = &q8 | &q10s : int(1..6), &q10 <= &q1_ExpM]) |]
+         )
+      ]
+
+
+   -- , te 1 $ do
+   --     let a = Single "l1"
+   --     let b = EVar (Var "l1" TypeInt)
+   --     [essencee|[ &b | &a : int(1..5, 0)] |]
 
   ,testGroup "QC"
   [
