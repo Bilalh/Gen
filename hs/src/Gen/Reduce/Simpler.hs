@@ -67,17 +67,21 @@ instance Simpler Expr Expr where
     simplerImp (EVar a) b  = simplerImp a b
     simplerImp a (EVar b)  = simplerImp a b
 
-    simplerImp (EComp i1 _ cs1)  (EComp i2 _ cs2) = do
-         let c1Depth = maximum' 0 $ map depthOf cs1
-         let c2Depth = maximum' 0 $ map depthOf cs2
+    simplerImp x1@(EComp i1 g1 cs1)  x2@(EComp i2 g2 cs2) = do
+      case compare (depthOf x1) (depthOf x2) of
+        EQ -> do
+          let c1Depth = maximum' 0 $ map depthOf cs1
+          let c2Depth = maximum' 0 $ map depthOf cs2
 
-         case compare c1Depth c2Depth of
-           EQ -> case compare (length cs1) (length cs2) of
-               EQ -> return $ compare (depthOf i1) (depthOf i2)
+          case compare (length cs1) (length cs2) of
+            EQ -> case compare (length g1) (length g2) of
+               EQ -> case compare (depthOf i1) (depthOf i2) of
+                 EQ -> return $ compare c1Depth c2Depth
 
+                 o  -> return o
                o  -> return o
-           o  -> return o
-
+            o  -> return o
+        o  -> return o
 
     simplerImp a@EComp{} b = return $ compare (depthOf a) (depthOf b)
     simplerImp a b@EComp{} = return $ compare (depthOf a) (depthOf b)

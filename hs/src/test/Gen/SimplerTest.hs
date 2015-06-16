@@ -94,6 +94,17 @@ tests = testGroup "simpler"
    , ([essencee| or([true/\false,true/\false])|], [essencee| or([true/\false,true/\false,true/\false])|] )
   ]
 
+  ,testGroup "Expr_gen Same" $ do
+     let q1_Exp = EVar $ Var "q1_Expr" (TypeMatrix TypeInt TypeInt)
+     let q1_ExpM = EVar $ Var "q1_ExprM" (TypeInt)
+     let q10    = EVar $ Var "q10" (TypeInt)
+     let q10s   = Single "q10"
+     let q8     = EVar $ Var "q8" (TypeInt)
+     [
+         eq_same [essencee| [&q1_Exp[&q10] = &q8 | &q10s : int(1..6)]  |]
+       , eq_same [essencee| or([&q1_Exp[&q10] = &q8 | &q10s : int(1..6), &q10 <= &q1_ExpM]) |]
+       ]
+
   ,testGroup_lt_gt "Comp" $ do
      let q1_Exp = EVar $ Var "q1_Expr" (TypeMatrix TypeInt TypeInt)
      let q1_ExpM = EVar $ Var "q1_ExprM" (TypeInt)
@@ -101,6 +112,10 @@ tests = testGroup "simpler"
      let q10s   = Single "q10"
      let q8     = EVar $ Var "q8" (TypeInt)
      [
+         ( [essencee| [&q1_Exp[&q10] = &q8 | &q10s : int(1..6)]  |],
+           [essencee| [&q1_Exp[&q10] = &q8 | &q10s : int(1..6), &q10 <= &q1_ExpM] |]
+         ),
+
          ( [essencee| or([&q1_Exp[&q10] = &q8 | &q10s : int(1..6)])  |],
            [essencee| or([&q1_Exp[&q10] = &q8 | &q10s : int(1..6), &q10 <= &q1_ExpM]) |]
          )
