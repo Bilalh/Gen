@@ -89,16 +89,6 @@ if __name__ == "__main__":
 
     op = args.do_args()
 
-    here_dir=Path(__file__).parent
-
-
-    if op.bin_dir:
-        extra_env = dict(PATH= str(here_dir) + ":" +  op.bin_dir + ":" + os.environ['PATH'])
-    else:
-        extra_env = dict(PATH= str(here_dir) + ":" + os.environ['PATH'])
-
-    logger.warn("new PATH=%s", extra_env['PATH'])
-
     def setup_logging(outdir):
         p = outdir / "_toolchain.logs"
 
@@ -118,8 +108,27 @@ if __name__ == "__main__":
         logging.getLogger().addHandler(fileHandler)
 
     setup_logging(op.outdir)
+
     logger.warn("args %s", op)
     logger.info("@@sha1_spec.essence:%s", sha1_file(op.essence))
+
+    here_dir=Path(__file__).parent
+
+
+    if op.bin_dir:
+        extra_env = dict(PATH= str(here_dir) + ":" +  op.bin_dir + ":" + os.environ['PATH'])
+    else:
+        extra_env = dict(PATH= str(here_dir) + ":" + os.environ['PATH'])
+
+    if 'LD_LIBRARY_PATH' in os.environ:
+        logging.warn("LD_LIBRARY_PATH=%s", os.environ['LD_LIBRARY_PATH'])
+    else:
+        logging.warn("LD_LIBRARY_PATH unset")
+
+
+    logger.warn("new PATH=%s", extra_env['PATH'])
+
+
 
     random.seed(op.seed)
 
