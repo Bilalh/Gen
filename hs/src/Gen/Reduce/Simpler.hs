@@ -138,6 +138,8 @@ instance Simpler (Domain () Expr) (Domain () Expr) where
 instance Simpler (Op Expr) (Op Expr) where
     simplerImp a b | [ELit la@AbsLitMatrix{}] <- F.toList a
                    , [ELit lb@AbsLitMatrix{}] <- F.toList b = simpler la lb
+    simplerImp a b | [la@EComp{} ] <- F.toList a
+                   , [lb@EComp{} ] <- F.toList b = simpler la lb
     simplerImp a b = return $ compare (depthOf a) (depthOf b)
 
 
