@@ -424,9 +424,10 @@ def run_process(timeout, kind, cmd, *, extra_env, vals):
             my_env = os.environ
             my_env.update(extra_env)
         else:
-            extra_env=None
+            my_env=None
+
         output = subprocess.check_output(cmd,
-                stderr=subprocess.STDOUT, universal_newlines=True, env=extra_env)
+                stderr=subprocess.STDOUT, universal_newlines=True, env=my_env)
     except subprocess.CalledProcessError as e:
         output = e.output
         code = e.returncode
@@ -486,7 +487,7 @@ def run_conjure_with_choices(timeout, kind, cmd, *, extra_env, vals):
         my_env = os.environ
         my_env.update(extra_env)
     else:
-        extra_env=None
+        my_env=None
 
     lines = []
     saved_first_choice=False
@@ -494,7 +495,7 @@ def run_conjure_with_choices(timeout, kind, cmd, *, extra_env, vals):
     with vals['choices_json'].open('w') as choices:
         choices.write("[")
         with subprocess.Popen(cmd, stdout=subprocess.PIPE, universal_newlines=True,
-                        env=extra_env, stderr=subprocess.STDOUT, bufsize=1 ) as proc:
+                        env=my_env, stderr=subprocess.STDOUT, bufsize=1 ) as proc:
             for line in iter( proc.stdout.readline, ''):
                 if line.startswith("LF:") and line.endswith(" END:\n"):
                     if saved_first_choice:
