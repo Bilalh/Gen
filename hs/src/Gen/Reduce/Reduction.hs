@@ -338,7 +338,8 @@ instance (HasGen m,  HasLogger m) => Reduce (Domain () Expr) m where
     si   <- single li
     subs <- subterms li
     mu   <- mutate li
-    reduceChecks li $ mconcat  $
+    -- reduceChecks li $ mconcat  $
+    return $ mconcat  $
                [ [ x | (EDom x) <- si]
                , res
                , [ x | (EDom x) <- subs]
@@ -352,8 +353,14 @@ instance (HasGen m,  HasLogger m) => Reduce (Domain () Expr) m where
   single   x = return [EDom x]
   subterms x = return . map (EDom) . innersExpand reduceLength $ x
 
-  mutate _ = return []
+  mutate (DomainFunction r _ a b)   = return [EDom $ DomainFunction r def a b ]
+  mutate (DomainSet r _ x3)         = return [EDom $ DomainSet r def x3 ]
+  mutate (DomainSequence r _ x3)    = return [EDom $ DomainSequence r def x3 ]
+  mutate (DomainRelation r _ x3)    = return [EDom $ DomainRelation r def x3 ]
+  mutate (DomainPartition r _ x3)   = return [EDom $ DomainPartition r def x3 ]
 
+  -- mutate (DomainMSet r x2 x3)        = _f
+  mutate _ = return []
 
 
 instance (HasGen m,  HasLogger m) =>  Reduce (Op Expr) m where
@@ -429,11 +436,20 @@ reduce_op2 f subs = do
     False -> do
       xrs <- zipWithM giveVals subs rs
 
-      let res = [ f vs | vs <- sequence xrs
-                , or $ zipWith (\z1 z2 -> runIdentity $ simpler1 z1 z2) vs subs
+      let res_ = [ f vs | vs <- sequence xrs
+                -- , or $ zipWith (\z1 z2 -> runIdentity $ simpler1 z1 z2) vs subs
                 ]
-      addLog "reduce_op2 xrs" (map prettyArr xrs)
+      let res   = filter (\x -> runIdentity $ simpler1 x (f subs)  ) res_
+      addLog "reduce_op2 rs" (map prettyArr rs)
+      mapM_ (\xx -> addLog "reduce_op2 xrs" (map pretty xx)  )  xrs
+
       addLog "reduce_op2 res" (map pretty res)
+      addLog "reduce_op2 lengths"
+             [ nn "res_" (length res_)
+             , nn "res"  (length res)
+             , nn "rs"   (length rs)
+             , nn "xrs"   (length xrs)
+             ]
       return res
 
   where
