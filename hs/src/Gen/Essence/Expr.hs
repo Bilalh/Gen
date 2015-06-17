@@ -36,7 +36,6 @@ instance Generate Expr where
           , (possible (Proxy :: Proxy ListComp),               (K_EComp, wrapComp  <$> give g))
           ]
 
-
     parts <- getPossibilitiesKeyed g defs
     frequency3 parts
 
