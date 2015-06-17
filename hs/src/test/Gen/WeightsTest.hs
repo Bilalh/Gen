@@ -16,9 +16,7 @@ tests :: TestTree
 tests = testGroup "GenerateOnly"
   [
    testGroup "QC"
-   [
-     qc_tests True  "Type" (Proxy :: Proxy Type)
-   , qc_tests True  "Constant" (Proxy :: Proxy Constant)
+   [ qc_tests True  "Constant" (Proxy :: Proxy Constant)
    , qc_tests True  "Expr" (Proxy :: Proxy (Expr))
    , qc_tests True  "Domain Expr" (Proxy :: Proxy (Domain () Expr))
    ]

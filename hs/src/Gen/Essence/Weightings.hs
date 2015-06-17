@@ -29,13 +29,12 @@ byType size = do
   let subs_ = [  K_TypeBool : ts | ts <- subsequences to_test
               ,       length ts == (size -1)
               ]
-  let subs  = [ (names xs, matrixHandle xs) | xs <- subs_ ]
+  let subs  = [ (names xs, typeFixes xs) | xs <- subs_ ]
 
-  -- let KeyMap defMap = def
-  -- let all_tys_map = M.fromList ( [ (ty, 0)  | ty <- all_tys ] )  `M.union`  defMap
   let all_tys_map = M.fromList ( [ (ty, 0)  | ty <- all_tys ] )
 
-  let maps = [  (name, KeyMap $ M.fromList (map (\x -> (x,100)) xs)  `M.union`  all_tys_map )
+  let maps = [ (name, KeyMap $ M.fromList (map (\x -> (x,100)) xs)
+                               `M.union`  all_tys_map )
              | (name,xs) <- subs  ]
 
   maps
@@ -44,10 +43,10 @@ byType size = do
 
   names = intercalate "-" . map (drop 6 .  show)
 
-  matrixHandle xs | K_TypeMatrix `elem` xs =
+  typeFixes xs | K_TypeMatrix `elem` xs || K_TypeMSet `elem` xs  =
     if K_TypeInt `notElem` xs then
         K_TypeInt : xs
     else
         xs
 
-  matrixHandle xs = xs
+  typeFixes xs = xs

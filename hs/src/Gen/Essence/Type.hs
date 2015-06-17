@@ -38,7 +38,7 @@ instance Generate Type where
     frequency3 parts
 
   give GNone = do
-    logDepthCon $line GNone
+    logStats $line GNone
     defs <- gets depth >>= \d ->
      if | d < 0     -> nnError "GenerateType invaild Depth: " ["depth" <+> pretty d]
         | d == 0    -> return [ (K_TypeBool, pure TypeBool)
@@ -62,7 +62,9 @@ instance Generate Type where
 
 
     parts <- getWeights defs
-    frequency3 parts
+    picked <- frequency3 parts
+    logInfo2 $line [nn "ret" picked]
+    return picked
 
 
   give t = giveUnmatched "Generate (Type)" t

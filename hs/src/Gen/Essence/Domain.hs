@@ -10,136 +10,173 @@ import Gen.Essence.Type        ()
 import Gen.Imports
 import Gen.Essence.EvalToInt
 import Gen.Essence.Id
+import Gen.Helpers.SizeOf
 
 import qualified Data.Set as S
 
+addTypeKey :: forall a a1. GetKey a1
+           => a1 -> GenSt a -> GenSt a
+addTypeKey ty = withKey (getKey ty)
+
 instance (Generate a, GenInfo a, EvalToInt a) => Generate (Domain () a) where
-  give GNone = give GNone >>= \ty -> give (GType ty)
+  give GNone = do
+    k_int <- weightingForKey K_TypeInt
+    ty <- if k_int <= 0 then
+      withWeights [(K_TypeMSet,0), (K_TypeMatrix,0)] $ give GNone
+    else
+      give GNone
+    logDepthCon $line (GType ty)
+    give (GType ty)
 
-  give (GType TypeBool)             = pure DomainBool
-  give (GType TypeInt)              = DomainInt   <$> vectorOf3 2 (dgive GNone)
-  give (GType (TypeTuple t))        = DomainTuple <$> mapM (dgive <$> GType) t
+  give (GType top) = addTypeKey top $ give1 (GType top)
+    where
+    give1 (GType TypeBool)             = pure DomainBool
+    give1 (GType TypeInt)              = DomainInt   <$> vectorOf3 2 (dgive GNone)
+    give1 (GType (TypeTuple t))        = DomainTuple <$> mapM (dgive <$> GType) t
 
-  give (GType (TypeSet ty))         = DomainSet       <$> pure () <*> dgive GNone
-                                                                  <*> dgive (GType ty)
-  give (GType (TypeMSet ty))        = DomainMSet      <$> pure () <*> dgive GNone
-                                                                  <*> dgive (GType ty)
-  give (GType (TypeMatrix t1 t2))   = DomainMatrix    <$>             dgive (GType t1)
-                                                                  <*> dgive (GType t2)
-  give (GType (TypeFunction t1 t2)) = DomainFunction  <$> pure () <*> dgive GNone
-                                                                  <*> dgive (GType t1)
-                                                                  <*> dgive (GType t2)
-  give (GType (TypePartition t))    = DomainPartition <$> pure () <*> dgive (GNone)
-                                                                  <*> dgive (GType t)
-
-
-  give (GType (TypeRelation t@[a,b])) | a ==b = do
-   elements3 [True, False] >>= \case
-     False -> DomainRelation <$> pure () <*> dgive GNone <*> mapM (dgive <$> GType) t
-     True -> do
-       dom <- dgive (GType a)
-       DomainRelation <$> pure () <*> dgive GBinRel <*> pure [dom,dom]
+    give1 (GType (TypeSet ty))         = DomainSet       <$> pure () <*> dgive GNone
+                                                                     <*> dgive (GType ty)
+    give1 (GType (TypeMSet ty))        = DomainMSet      <$> pure () <*> dgive GNone
+                                                                     <*> dgive (GType ty)
+    give1 (GType (TypeMatrix t1 t2))   = DomainMatrix    <$>             dgive (GType t1)
+                                                                     <*> dgive (GType t2)
+    give1 (GType (TypeFunction t1 t2)) = DomainFunction  <$> pure () <*> dgive GNone
+                                                                     <*> dgive (GType t1)
+                                                                     <*> dgive (GType t2)
+    give1 (GType (TypePartition t))    = DomainPartition <$> pure () <*> dgive (GNone)
+                                                                     <*> dgive (GType t)
 
 
-  give (GType (TypeRelation t)) = DomainRelation <$>  pure ()
-                                                 <*>  dgive GNone
-                                                 <*>  mapM (dgive <$> GType) t
+    give1 (GType (TypeRelation t@[a,b])) | a ==b = do
+     elements3 [True, False] >>= \case
+       False -> DomainRelation <$> pure () <*> dgive GNone <*> mapM (dgive <$> GType) t
+       True -> do
+         dom <- dgive (GType a)
+         DomainRelation <$> pure () <*> dgive GBinRel <*> pure [dom,dom]
 
-  -- give (GType (TypeEnum t))         = _d
-  -- give (GType (TypeUnnamed t))      = _d
-  -- give (GType (TypeRecord t))       = _d
-  -- give (GType (TypeVariant t))      = _d
-  -- give (GType (TypeSequence t))     = _d
-  give t = giveUnmatched "Generate (Domain () a)" t
 
-  possiblePure _ _ _ = True
+    give1 (GType (TypeRelation t)) = DomainRelation <$>  pure ()
+                                                   <*>  dgive GNone
+                                                   <*>  mapM (dgive <$> GType) t
 
-  requires _ (Just (ty@TypeList{}))     = [RAll $ keyList ty, RAll [K_TypeInt]]
-  requires _ (Just (ty@TypeMatrix{}))   = [RAll $ keyList ty, RAll [K_TypeInt]]
-  requires _ (Just (ty@TypeSequence{})) = [RAll $ keyList ty, RAll [K_TypeInt]]
-  requires _ (Just ty)                  = [RAll $ keyList ty]
-  requires _ _               = []
+    -- give1 (GType (TypeEnum t))         = _d
+    -- give1 (GType (TypeUnnamed t))      = _d
+    -- give1 (GType (TypeRecord t))       = _d
+    -- give1 (GType (TypeVariant t))      = _d
+    -- give1 (GType (TypeSequence t))     = _d
+    give1 t = giveUnmatched "Generate (Domain () a)" t
+
+  give top = giveUnmatched "Generate (Domain () a)" top
+
+  possiblePure _ (Just TypeBool) _ = True
+  possiblePure _ (Just ty)  d      = fromIntegral d >=  depthOf ty
+  possiblePure _ Nothing _         = True
+
+  requires _ (Just (TypeBool)) = [RAll $ [K_TypeBool]]
+  requires _ (Just ty)         = [RAll $ keyList ty, RAll [K_TypeInt]]
+  requires _ _                 = []
 
 
 instance (Generate a, GenInfo a, EvalToInt a) => Generate (SetAttr a) where
-  give GNone         = SetAttr <$> give (GNone)
+  give GNone         = withKey K_SetAttr $  SetAttr <$> give (GNone)
   give t             = giveUnmatched "Generate (SetAttr a)" t
   possiblePure _ _ _ = True
-  requires _ _        = [RAll [K_TypeInt]]
+  requires _ _        = []
 
 instance (Generate a, GenInfo a, EvalToInt a) => Generate (MSetAttr a) where
   give GNone = do
+    logDepthCon $line GNone
     (a,b) <- elements3 [ (GNone,GMsetAtrr), (GMsetAtrr,GNone)  ]
-    MSetAttr <$> give a <*> give b
+    withKey K_MSetAttr $  MSetAttr <$> give a <*> give b
 
   give t             = giveUnmatched "Generate (SetAttr a)" t
   possiblePure _ _ _ = True
-  requires _ _       = [RAll [K_TypeInt]]
+  requires _ _       = []
 
 
 instance (Generate a, GenInfo a, EvalToInt a) => Generate (SizeAttr a)  where
-  give GNone     = doSizeAttr True
-  give GMsetAtrr = doSizeAttr False
+  give GNone     = withKey K_SizeAttr $ doSizeAttr True
+  give GMsetAtrr = withKey K_SizeAttr $ doSizeAttr False
 
   give t = giveUnmatched "Generate (SetAttr a)" t
 
   possiblePure _ _ _ = True
   requires _ _       = [RAll [K_TypeInt]]
 
-doSizeAttr :: forall a . (Generate a, GenInfo a, EvalToInt a)
-           => Bool -> GenSt (SizeAttr a)
-doSizeAttr allowNone = do
-    sanity "Generate (SizeAttr a)"
-
-    let defs = if allowNone then
-                   [ (K_SizeAttr_None,    pure SizeAttr_None)
-                   , (K_SizeAttr_Size,    SizeAttr_Size    <$> give (GType TypeInt))
-                   , (K_SizeAttr_MinSize, SizeAttr_MinSize <$> give (GType TypeInt))
-                   , (K_SizeAttr_MaxSize, SizeAttr_MaxSize <$> give (GType TypeInt))
-                   , (K_SizeAttr_MinMaxSize, (uncurry SizeAttr_MinMaxSize )  <$> minMax)
-                   ]
-               else
-                   [ (K_SizeAttr_Size,    SizeAttr_Size    <$> give (GType TypeInt))
-                   , (K_SizeAttr_MaxSize, SizeAttr_MaxSize <$> give (GType TypeInt))
-                   , (K_SizeAttr_MinMaxSize, (uncurry SizeAttr_MinMaxSize )  <$> minMax)
-                   ]
-
-    parts <- getWeights defs
-    frequency3 parts
-
-    where
-    minMax = do
-      (IntAsc a b) <- give GNone
-      return $ (a,b)
-
 
 instance (Generate a, GenInfo a, EvalToInt a) => Generate (OccurAttr a) where
-  give GNone     = doOccurAttr True
-  give GMsetAtrr = doOccurAttr False
+  give GNone     = withKey K_OccurAttr $ doOccurAttr True
+  give GMsetAtrr = withKey K_OccurAttr $ doOccurAttr False
 
   give t = giveUnmatched "Generate (OccurAttr a)" t
 
   possiblePure _ _ _ = True
-  requires _ _       = [RAll [K_TypeInt]]
+  requires _ _       = []
 
+
+doSizeAttr :: forall a . (Generate a, GenInfo a, EvalToInt a)
+           => Bool -> GenSt (SizeAttr a)
+doSizeAttr allowNone = do
+  sanity "Generate (SizeAttr a)"
+  logInfo2 $line ["doSizeAttr", nn "allowNone" allowNone]
+
+  k_int <- weightingForKey K_TypeInt
+  let need _ = pure $ k_int > 0
+      none _ = pure True
+
+  let defs =
+       if allowNone then
+        [ ( none, (K_SizeAttr_None,    pure SizeAttr_None))
+        , ( need, (K_SizeAttr_Size,    SizeAttr_Size <$> give (GType TypeInt)))
+        , ( need, (K_SizeAttr_MinSize, SizeAttr_MinSize <$> give (GType TypeInt)))
+        , ( need, (K_SizeAttr_MaxSize, SizeAttr_MaxSize <$> give (GType TypeInt)))
+        , ( need, (K_SizeAttr_MinMaxSize,  (uncurry SizeAttr_MinMaxSize ) <$> minMax ))
+        ]
+        else
+        [ ( none, (K_SizeAttr_None,    pure SizeAttr_None))
+        , ( need, (K_SizeAttr_Size,    SizeAttr_Size <$> give (GType TypeInt)))
+        , ( need, (K_SizeAttr_MinSize, SizeAttr_MinSize <$> give (GType TypeInt)))
+        , ( need, (K_SizeAttr_MaxSize, SizeAttr_MaxSize <$> give (GType TypeInt)))
+        , ( need, (K_SizeAttr_MinMaxSize,  (uncurry SizeAttr_MinMaxSize ) <$> minMax ))
+        ]
+
+  parts <- getPossibilitiesKeyed GNone defs
+
+
+  res <- frequency3 parts
+  logInfo2 $line ["doSizeAttr"]
+  return res
+
+  where
+  minMax = do
+    (IntAsc a b) <- give GNone
+    return $ (a,b)
 
 doOccurAttr :: forall a . (Generate a, GenInfo a, EvalToInt a)
            => Bool -> GenSt (OccurAttr a)
 doOccurAttr allowNone = do
-  let defs = if allowNone then
-                 [ (K_OccurAttr_None,     pure OccurAttr_None)
-                 , (K_OccurAttr_MinOccur, OccurAttr_MinOccur <$> give (GType TypeInt))
-                 , (K_OccurAttr_MaxOccur, OccurAttr_MaxOccur <$> give (GType TypeInt))
-                 , (K_OccurAttr_MinMaxOccur, (uncurry OccurAttr_MinMaxOccur ) <$> minMax)
-                 ]
-               else
-                 [ (K_OccurAttr_MaxOccur, OccurAttr_MaxOccur <$> give (GType TypeInt))
-                 , (K_OccurAttr_MinMaxOccur, (uncurry OccurAttr_MinMaxOccur ) <$> minMax)
-                 ]
+  logInfo2 $line ["doOccurAttr", nn "allowNone" allowNone]
 
+  k_int <- weightingForKey K_TypeInt
+  let need _ = pure $ k_int > 0
+      none _ = pure True
 
-  parts <- getWeights defs
-  frequency3 parts
+  let defs =
+       if allowNone then
+        [ ( none, (K_OccurAttr_None,     pure OccurAttr_None))
+        , ( need, (K_OccurAttr_MinOccur, OccurAttr_MinOccur <$> give (GType TypeInt)))
+        , ( need, (K_OccurAttr_MaxOccur, OccurAttr_MaxOccur <$> give (GType TypeInt)))
+        , ( need, (K_OccurAttr_MinMaxOccur,  (uncurry OccurAttr_MinMaxOccur ) <$> minMax ))
+        ]
+        else
+        [ ( need, (K_OccurAttr_MaxOccur, OccurAttr_MaxOccur <$> give (GType TypeInt)))
+        , ( need, (K_OccurAttr_MinMaxOccur,  (uncurry OccurAttr_MinMaxOccur ) <$> minMax ))
+        ]
+
+  parts <- getPossibilitiesKeyed GNone defs
+  res <- frequency3 parts
+  logInfo2 $line ["doOccurAttr"]
+  return res
 
   where
   minMax = do
@@ -187,7 +224,7 @@ instance (Generate a, GenInfo a, EvalToInt a) => Generate (RelationAttr a) where
   give GBinRel       = RelationAttr <$> give (GNone) <*> give (GBinRel)
   give t             = giveUnmatched "Generate (RelationAttr a)" t
   possiblePure _ _ _ = True
-  requires _ _       = [RAll [K_TypeInt]]
+  requires _ _       = []
 
 instance Generate (BinaryRelationAttrs) where
   give GNone   = BinaryRelationAttrs <$> pure def
@@ -232,4 +269,4 @@ instance (Generate a, GenInfo a, EvalToInt a) => Generate (PartitionAttr a) wher
 
   give t             = giveUnmatched "Generate (PartitionAttr a)" t
   possiblePure _ _ _ = True
-  requires _ _       = [RAll [K_TypeInt]]
+  requires _ _       = []
