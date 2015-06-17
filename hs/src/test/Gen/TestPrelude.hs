@@ -9,7 +9,7 @@ import Text.PrettyPrint as X (braces)
 
 import qualified Test.Tasty.HUnit as H
 import qualified Test.Tasty.QuickCheck    as QC
-import Test.Tasty.QuickCheck as X(Arbitrary(..),sized,choose,counterexample)
+import Test.Tasty.QuickCheck as X(Arbitrary(..),sized,choose,counterexample,elements)
 
 testCase :: Doc -> H.Assertion -> TestTree
 testCase x =  H.testCase (renderSized 1000 $ ">" <+> x)
