@@ -33,7 +33,6 @@ module Gen.Essence.St
   , KeyMap(..)
   , logDebug2
   , logDepthCon
-  , ldc
   , logDebugVerbose2
   , runGenerateNullLogs
   , logHigher2
@@ -46,6 +45,7 @@ module Gen.Essence.St
   , WrapVar(..)
   , allKeys
   , withDefKeys
+  , logStats
   ) where
 
 import Conjure.Language.Constant
@@ -341,12 +341,12 @@ runGenerate allowed  f st  = do
 
 runGenerateWithLogs :: Generate a => GenerateConstraint -> St -> Gen (a,[(LogLevel,Doc)])
 runGenerateWithLogs con st = do
-  let s = (flip evalStateT ) st (give con)
+  let s = (flip evalStateT ) st (logInfo ("√Starting with State" <+> pretty st) >> give con)
   runWriterT s
 
 runGenerateNullLogs :: Generate a => GenerateConstraint -> St -> Gen a
 runGenerateNullLogs con st = do
-  let s = (flip evalStateT ) st (give con)
+  let s = (flip evalStateT ) st (logInfo ("√Starting with State" <+> pretty st) >> give con)
   fst <$> runWriterT s
 
 
@@ -462,13 +462,16 @@ logDepthCon l con= gets depth >>= \d ->
                  , nn "con" con
                  , nn "keyPath" (groom path) ]
 
-
-ldc :: forall m b b1.
-       (MonadState St m, MonadLog m, Pretty b1) =>
-       String -> b1 -> m b -> m b
-ldc l con f= do
-  logDepthCon l con
-  f
+logStats :: forall m b. (MonadState St m, MonadLog m, Pretty b) =>
+               String -> b -> m ()
+logStats l con =
+  gets depth      >>= \d    ->
+  gets keyPath_   >>= \path ->
+  gets weighting  >>= \ws   ->
+    logInfo2 l [ nn "depth" d
+               , nn "con" con
+               , nn "keyPath" (groom path)
+               , nn "weights" ws]
 
 
 withKey :: Key -> GenSt a -> GenSt a
