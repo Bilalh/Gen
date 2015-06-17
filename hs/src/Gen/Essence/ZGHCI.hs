@@ -40,7 +40,7 @@ w_boolrel = [(K_TypeAny, 0), (K_TypeBool, 100), (K_TypeEnum, 0),
                   (K_TypeVariant, 0)]
 
 d_boolrel = (pretty :: Domain () Expr -> Doc  ) <$>
-   runGenerate2 LogNone ( withKey K_SDoms $ give con  ) def{depth=2, weighting=KeyMap $ M.fromList w_boolrel}
+   runGenerate2 LogNone ( withKey K_Domain $ give con  ) def{depth=2, weighting=KeyMap $ M.fromList w_boolrel}
   where con = GType (TypeRelation [TypeRelation [TypeBool, TypeBool, TypeBool], TypeBool])
 
 w_bool_func_set = [(K_TypeAny, 0), (K_TypeBool, 100), (K_TypeEnum, 0),
@@ -51,5 +51,5 @@ w_bool_func_set = [(K_TypeAny, 0), (K_TypeBool, 100), (K_TypeEnum, 0),
                   (K_TypeVariant, 0)]
 
 d_bool_func_set = (pretty :: Domain () Expr -> Doc  ) <$>
-   runGenerate2 LogNone (  withKey K_SDoms $ give con  ) def{depth=2, weighting=KeyMap $ M.fromList w_bool_func_set}
+   runGenerate2 LogNone (  withKey K_Domain $ give con  ) def{depth=2, weighting=KeyMap $ M.fromList w_bool_func_set}
   where con = GType (TypeSet (TypeSet TypeBool))
