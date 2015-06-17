@@ -7,7 +7,7 @@
 -- A file which is only loaded when doing `make ghci`
 -- Useful for saving trying imports and storing temp defs
 
-module Gen.Essence.ZGHCI(module X
+module Gen.ZGHCI(module X
   , d_boolrel, d_bool_func_set
   ) where
 
@@ -29,6 +29,7 @@ import Gen.Essence.Type               as X ()
 import Gen.Helpers.SizeOf             as X
 import Gen.Helpers.TypeOf             as X
 import Gen.Imports                    as X
+import Gen.IO.Formats                 as X
 
 import qualified Data.Map as M
 
