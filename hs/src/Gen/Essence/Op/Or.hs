@@ -17,4 +17,4 @@ instance (Generate a, ExpressionLike a) => Generate (OpOr a) where
   possiblePure _ Just{} _           = False
   possiblePure _ _ d                = d >= 1
 
-  requires _ _ = [RAll [K_TypeBool]]
+  requires _ _ = [RAll [K_TypeBool, K_TypeMatrix ]]
