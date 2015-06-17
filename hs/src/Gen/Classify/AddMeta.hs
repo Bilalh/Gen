@@ -11,25 +11,31 @@ import System.FilePath (takeExtensions)
 import qualified Control.Exception as Exc
 
 
-metaMain :: [FilePath] -> IO ()
-metaMain = \case
+metaMain :: Bool ->  [FilePath] -> IO ()
+metaMain verbose = \case
    []     ->  putStrLn "gen meta {-d <dir>}+"
-   [x]    ->  addMetas x
-   (x:xs) ->  addMetas x >> metaMain xs
+   [x]    ->  addMetas verbose x
+   (x:xs) ->  addMetas verbose x >> metaMain verbose xs
 
-addMetas :: FilePath -> IO ()
-addMetas = mapM_ (\fp -> catch fp $ addMeta fp)  <=< ffind
+addMetas :: Bool -> FilePath -> IO ()
+addMetas verbose = ffind >=>
+  mapM_ (\fp -> do
+           when verbose $  putStrLn ("    processing: " ++ fp)
+           catch fp $ addMeta fp
+        )
 
-catch :: FilePath -> IO () -> IO ()
-catch fp f = Exc.catch f (handler fp)
+  where
+  catch :: FilePath -> IO () -> IO ()
+  catch fp f = Exc.catch f (handler fp)
 
-handler ::  FilePath -> Exc.SomeException -> IO ()
-handler f _ = putStrLn $ "  FAILED(.meta.json): " ++ f
+  handler ::  FilePath -> Exc.SomeException -> IO ()
+  handler f e = do
+    putStrLn $ "  FAILED(.meta.json): " ++ f
+    when verbose (print e)
 
 addMeta :: FilePath -> IO ()
 addMeta fp = do
   spec :: Spec <- readFromJSON fp
-  putStrLn ("    processing: " ++ fp)
   meta <- mkMeta spec
   writeToJSON (replaceExtensions fp ".meta.json" ) (meta)
 

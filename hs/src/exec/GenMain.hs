@@ -394,10 +394,10 @@ mainWithArgs SpecEE{..} = do
       return ()
   else do
     putStrLn "Creating .spec.json files"
-    specEMain print_specs directories
+    specEMain verboseOpt print_specs directories
 
   putStrLn "Creating .meta.json files"
-  metaMain directories
+  metaMain verboseOpt directories
 
 
 mainWithArgs u@Script_Toolchain{..} = do

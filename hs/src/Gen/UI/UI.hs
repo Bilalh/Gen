@@ -106,6 +106,7 @@ data UI
     , print_specs :: Bool
     , meta_only   :: Bool
     , limit_time  :: Maybe Int
+    , verboseOpt  :: Bool
     }
   | Solver
     {
@@ -546,6 +547,11 @@ ui  = modes
      , meta_only   = False &= name "meta-only"
                            &= explicit
                            &= help "Only create the .meta.json file from previously created .spec.json"
+     , verboseOpt  = False &= name "verbose"
+                           &= explicit
+                           &= help "Show more infomation, and info on error if any"
+
+
 
      } &= explicit
        &= name "json"

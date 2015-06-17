@@ -17,21 +17,28 @@ import qualified Data.Aeson           as A
 import qualified Data.ByteString.Lazy as L
 
 
-specEMain :: Bool ->  [FilePath] -> IO ()
-specEMain printSpecs = \case
+specEMain :: Bool -> Bool ->  [FilePath] -> IO ()
+specEMain verbose printSpecs = \case
    []     ->  putStrLn "gen json {-d <dir>}+"
-   [x]    ->  addSpecJsons printSpecs x
-   (x:xs) ->  addSpecJsons printSpecs x >> specEMain printSpecs xs
+   [x]    ->  addSpecJsons verbose printSpecs x
+   (x:xs) ->  addSpecJsons verbose printSpecs x >> specEMain verbose printSpecs xs
 
 
-addSpecJsons :: Bool -> FilePath -> IO ()
-addSpecJsons printSpecs = mapM_ (\fp -> catch fp $ addSpecJson printSpecs fp)  <=< ffind
+addSpecJsons :: Bool -> Bool -> FilePath -> IO ()
+addSpecJsons verbose printSpecs = ffind >=>
+  mapM_ (\fp -> do
+           when verbose $   putStrLn ("    processing: " ++ fp)
+           catch fp $ addSpecJson printSpecs fp
+        )
 
-catch :: FilePath -> IO () -> IO ()
-catch fp f = Exc.catch (f) (handler fp)
+  where
+  catch :: FilePath -> IO () -> IO ()
+  catch fp f = Exc.catch f (handler fp)
 
-handler :: FilePath -> Exc.ErrorCall -> IO ()
-handler f _ = putStrLn $ "  FAILED(.spec.json): " ++ f
+  handler :: FilePath -> Exc.ErrorCall -> IO ()
+  handler f e= do
+    putStrLn $ "  FAILED(.spec.json): " ++ f
+    when verbose (print e)
 
 addSpecJson :: Bool -> FilePath -> IO ()
 addSpecJson printSpecs fp = do
@@ -50,8 +57,6 @@ addSpecJson printSpecs fp = do
     Right{} -> do
       let inlined = inlineParamAndLettings start Nothing
       let specE  = fromModel inlined
-
-      putStrLn ("    processing: " ++ fp)
 
       case specE of
         Left r -> error . show . vcat $ ["Error for " <+> (pretty fp)
