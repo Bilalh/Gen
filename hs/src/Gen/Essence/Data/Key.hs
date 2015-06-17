@@ -20,6 +20,7 @@ data Key = K_Unused
          | K_AbsPatSet
          | K_AbsPatTuple
          | K_AbstractLiteral
+         | K_AbstractPattern
          | K_AbstractPatternMetaVar
          | K_BinRelAttrStop
          | K_BinRelAttr_ASymmetric
@@ -35,6 +36,7 @@ data Key = K_Unused
          | K_BinRelAttr_Symmetric
          | K_BinRelAttr_Total
          | K_BinRelAttr_Transitive
+         | K_BinaryRelationAttr
          | K_BinaryRelationAttrs
          | K_Comprehension
          | K_Constant
@@ -76,6 +78,7 @@ data Key = K_Unused
          | K_EQuan
          | K_ETyped
          | K_EVar
+         | K_Expression
          | K_ExpressionMetaVar
          | K_FunctionAttr
          | K_IntAsc
@@ -91,6 +94,7 @@ data Key = K_Unused
          | K_Int_8
          | K_Int_9
          | K_Int_Other
+         | K_JectivityAttr
          | K_JectivityAttr_Bijective
          | K_JectivityAttr_Injective
          | K_JectivityAttr_None
@@ -101,6 +105,8 @@ data Key = K_Unused
          | K_Maximisingg
          | K_Minimising
          | K_Minimisingg
+         | K_Objective
+         | K_OccurAttr
          | K_OccurAttr_MaxOccur
          | K_OccurAttr_MinMaxOccur
          | K_OccurAttr_MinOccur
@@ -173,10 +179,12 @@ data Key = K_Unused
          | K_OpTrue
          | K_OpTwoBars
          | K_OpUnion
+         | K_PartialityAttr
          | K_PartialityAttr_Partial
          | K_PartialityAttr_Total
          | K_PartitionAttr
          | K_PickObjective
+         | K_Range
          | K_RangeBounded
          | K_RangeLowerBounded
          | K_RangeOpen
@@ -190,12 +198,14 @@ data Key = K_Unused
          | K_SequenceAttr
          | K_SetAttr
          | K_Single
+         | K_SizeAttr
          | K_SizeAttr_MaxSize
          | K_SizeAttr_MinMaxSize
          | K_SizeAttr_MinSize
          | K_SizeAttr_None
          | K_SizeAttr_Size
          | K_Spec
+         | K_Type
          | K_TypeAny
          | K_TypeBool
          | K_TypeEnum
@@ -246,6 +256,7 @@ instance IsString Key where
   fromString "AbsPatSet"               = K_AbsPatSet
   fromString "AbsPatTuple"             = K_AbsPatTuple
   fromString "AbstractLiteral"         = K_AbstractLiteral
+  fromString "AbstractPattern"         = K_AbstractPattern
   fromString "AbstractPatternMetaVar"  = K_AbstractPatternMetaVar
   fromString "BinRelAttrStop"          = K_BinRelAttrStop
   fromString "BinRelAttr_ASymmetric"   = K_BinRelAttr_ASymmetric
@@ -261,6 +272,7 @@ instance IsString Key where
   fromString "BinRelAttr_Symmetric"    = K_BinRelAttr_Symmetric
   fromString "BinRelAttr_Total"        = K_BinRelAttr_Total
   fromString "BinRelAttr_Transitive"   = K_BinRelAttr_Transitive
+  fromString "BinaryRelationAttr"      = K_BinaryRelationAttr
   fromString "BinaryRelationAttrs"     = K_BinaryRelationAttrs
   fromString "Comprehension"           = K_Comprehension
   fromString "Constant"                = K_Constant
@@ -302,6 +314,7 @@ instance IsString Key where
   fromString "EQuan"                   = K_EQuan
   fromString "ETyped"                  = K_ETyped
   fromString "EVar"                    = K_EVar
+  fromString "Expression"              = K_Expression
   fromString "ExpressionMetaVar"       = K_ExpressionMetaVar
   fromString "FunctionAttr"            = K_FunctionAttr
   fromString "IntAsc"                  = K_IntAsc
@@ -317,6 +330,7 @@ instance IsString Key where
   fromString "Int_8"                   = K_Int_8
   fromString "Int_9"                   = K_Int_9
   fromString "Int_Other"               = K_Int_Other
+  fromString "JectivityAttr"           = K_JectivityAttr
   fromString "JectivityAttr_Bijective" = K_JectivityAttr_Bijective
   fromString "JectivityAttr_Injective" = K_JectivityAttr_Injective
   fromString "JectivityAttr_None"      = K_JectivityAttr_None
@@ -327,6 +341,8 @@ instance IsString Key where
   fromString "Maximisingg"             = K_Maximisingg
   fromString "Minimising"              = K_Minimising
   fromString "Minimisingg"             = K_Minimisingg
+  fromString "Objective"               = K_Objective
+  fromString "OccurAttr"               = K_OccurAttr
   fromString "OccurAttr_MaxOccur"      = K_OccurAttr_MaxOccur
   fromString "OccurAttr_MinMaxOccur"   = K_OccurAttr_MinMaxOccur
   fromString "OccurAttr_MinOccur"      = K_OccurAttr_MinOccur
@@ -399,10 +415,12 @@ instance IsString Key where
   fromString "OpTrue"                  = K_OpTrue
   fromString "OpTwoBars"               = K_OpTwoBars
   fromString "OpUnion"                 = K_OpUnion
+  fromString "PartialityAttr"          = K_PartialityAttr
   fromString "PartialityAttr_Partial"  = K_PartialityAttr_Partial
   fromString "PartialityAttr_Total"    = K_PartialityAttr_Total
   fromString "PartitionAttr"           = K_PartitionAttr
   fromString "PickObjective"           = K_PickObjective
+  fromString "Range"                   = K_Range
   fromString "RangeBounded"            = K_RangeBounded
   fromString "RangeLowerBounded"       = K_RangeLowerBounded
   fromString "RangeOpen"               = K_RangeOpen
@@ -416,12 +434,14 @@ instance IsString Key where
   fromString "SequenceAttr"            = K_SequenceAttr
   fromString "SetAttr"                 = K_SetAttr
   fromString "Single"                  = K_Single
+  fromString "SizeAttr"                = K_SizeAttr
   fromString "SizeAttr_MaxSize"        = K_SizeAttr_MaxSize
   fromString "SizeAttr_MinMaxSize"     = K_SizeAttr_MinMaxSize
   fromString "SizeAttr_MinSize"        = K_SizeAttr_MinSize
   fromString "SizeAttr_None"           = K_SizeAttr_None
   fromString "SizeAttr_Size"           = K_SizeAttr_Size
   fromString "Spec"                    = K_Spec
+  fromString "Type"                    = K_Type
   fromString "TypeAny"                 = K_TypeAny
   fromString "TypeBool"                = K_TypeBool
   fromString "TypeEnum"                = K_TypeEnum

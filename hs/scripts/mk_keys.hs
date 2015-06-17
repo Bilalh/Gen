@@ -13,6 +13,7 @@ import Data.List                        (intercalate, sort)
 import NeatInterpolation
 import Prelude
 
+import qualified Data.Set as S
 
 import Conjure.Language.Expression.Op.Internal.Generated (Op (..))
 
@@ -53,7 +54,8 @@ key_templete keys_data key_isString =
 main :: IO ()
 main = do
   ls <- getNames
-  let names = sort $ concat $ ls : dataNames
+  -- Don't why there are some dups in getNames
+  let names = nub2 $ sort $ concat $ ls : dataNames
 
   let keys         = [ "K_" ++ n | n <- names ]
       keys_data    = intercalate "\n| " keys
@@ -96,12 +98,13 @@ dataNames = [ strs TypeAny
             , strs (def          :: SequenceAttr Constant)
             , strs (def          :: RelationAttr Constant)
             , strs (def          :: BinaryRelationAttrs)
+            , strs (BinRelAttr_Reflexive  :: BinaryRelationAttr)
             , strs (def          :: PartitionAttr Constant)
             , strs (Single ""    :: AbstractPattern)
             , strs (Maximising   :: Objective)
-            , [ drop 2 s | s <- strs (error "OP" :: Op Constant ) ]
+            , [ if s == "Op" then s else drop 2 s
+              | s <- strs (error "OP" :: Op Constant ) ]
             , [ "Int_" ++ show i  | i :: Integer <- [0..10]  ]
-            , strs (BinRelAttr_Reflexive  :: BinaryRelationAttr)
             ]
 
 getNames :: IO [String]
@@ -111,5 +114,16 @@ getNames = do
 
 strs :: (Data a) => a -> [String]
 strs a = do
+  let tyName = tyconUQname $ dataTypeName $  dataTypeOf  a
   let names = dataTypeConstrs . dataTypeOf $ a
-  map show names
+  tyName : map show names
+
+
+
+-- | nub is O(N^2) this is O(NlogN)
+nub2 :: (Ord a) => [a] -> [a]
+nub2 l = go S.empty l
+  where
+    go _ [] = []
+    go s (x:xs) = if x `S.member` s then go s xs
+                                      else x : go (S.insert x s) xs
