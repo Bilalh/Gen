@@ -10,6 +10,7 @@ import qualified Gen.GenerateTypeCheckTest
 import qualified Gen.OlderTests
 import qualified Gen.ReduceTest
 import qualified Gen.SimplerTest
+import qualified Gen.WeightsTest
 import qualified Solver.SolverTest
 
 main :: IO ()
@@ -30,4 +31,5 @@ items = [ Gen.DepthTest.tests
         , Gen.OlderTests.tests
         , Gen.GenerateTest.tests
         , Gen.GenerateTypeCheckTest.tests
+        , Gen.WeightsTest.tests
         ]
