@@ -28,15 +28,15 @@ Usage
   
 Command completion (e.g. add to .bash_profile, .bashrc or .zshrc as appropriate):
 
-	  source hs/scripts/_gen.sh
+	  source <repo_path>/hs/scripts/_gen.sh
 	  
 
 Examples
 --------
 
-Add `-N` to hide the output of the  toolchain since it generally not useful.
+Add `-N` to hide the output of the toolchain since it generally not useful, It is still written to file.
 
-Add `-d` to specific domain depth & `-e` to specific expression depth.
+Add `-d` to specific the domain depth & `-e` to specific the expression depth.
 
 Add `-w <JSON-FILE>` to specific the weights in below format, anything not specified defaults to 100.
 
@@ -47,15 +47,15 @@ Add `-w <JSON-FILE>` to specific the weights in below format, anything not speci
 Use `gen weights` to output example weightings files.
 
 
-Run for 15 minutes with 60 seconds for the toolchain 4 cores:
+Run for 15 minutes with 60 seconds for the toolchain, 4 cores:
 
 	gen essence  -p60 -t900 -c4 
 	
-Run for 15 minutes with 30 seconds for the refinement 4 cores:
+Run for 15 minutes with 30 seconds for the refinement, 4 cores:
 	
 	gen essence  -p30 -t900 -c4  --mode=refine
 
-Run with 30 seconds per spec on 4 cores using a directory of essence files:
+Run with 30 seconds for the toolchain on 4 cores using a directory (including sub-directories) of essence files:
 
 	gen json -d <essence-dir>
 	gen essence --given <essence-dir> -p30 -c4
