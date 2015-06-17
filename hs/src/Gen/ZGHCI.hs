@@ -5,7 +5,7 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 
 -- A file which is only loaded when doing `make ghci`
--- Useful for saving trying imports and storing temp defs
+-- To saving typing imports and storing temp defs
 
 module Gen.ZGHCI(module X
   , d_boolrel, d_bool_func_set
