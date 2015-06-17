@@ -3,7 +3,7 @@
 
 mods = Dir["src/Gen/**/*.hs"].each do |g|
     g.sub!("src/", '').sub!(/.hs$/, '').gsub!('/', '.')
-end
+end.delete_if { |e| e =~ /GHCI/ }
 
 cabal=File.read "essence-gen.cabal"
 cabal[/ +--MODULES.*--MODULES END\n/m]= <<-SHELL
