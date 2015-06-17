@@ -7,13 +7,15 @@ import Conjure.Language.NameResolution (resolveNames)
 import Conjure.UI.IO                   (readModelFromFile)
 import Conjure.UI.TypeCheck            (typeCheckModel)
 import Gen.Classify.Sorter             (getRecursiveContents)
-import Gen.IO.Formats
-import Gen.Imports
-import System.FilePath                 (takeExtension)
 import Gen.Helpers.InlineLettings
+import Gen.Imports
+import Gen.IO.Formats
+import System.FilePath                 (takeExtension)
 
+import qualified Control.Exception    as Exc
 import qualified Data.Aeson           as A
 import qualified Data.ByteString.Lazy as L
+
 
 specEMain :: Bool ->  [FilePath] -> IO ()
 specEMain printSpecs = \case
@@ -23,7 +25,13 @@ specEMain printSpecs = \case
 
 
 addSpecJsons :: Bool -> FilePath -> IO ()
-addSpecJsons printSpecs = mapM_ (addSpecJson printSpecs)  <=< ffind
+addSpecJsons printSpecs = mapM_ (\fp -> catch fp $ addSpecJson printSpecs fp)  <=< ffind
+
+catch :: FilePath -> IO () -> IO ()
+catch fp f = Exc.catch (f) (handler fp)
+
+handler :: FilePath -> Exc.ErrorCall -> IO ()
+handler f _ = putStrLn $ "  FAILED(.spec.json): " ++ f
 
 addSpecJson :: Bool -> FilePath -> IO ()
 addSpecJson printSpecs fp = do

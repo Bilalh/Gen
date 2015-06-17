@@ -8,15 +8,23 @@ import Gen.IO.Formats
 import Gen.Imports
 import System.FilePath (takeExtensions)
 
+import qualified Control.Exception as Exc
+
+
 metaMain :: [FilePath] -> IO ()
 metaMain = \case
    []     ->  putStrLn "gen meta {-d <dir>}+"
    [x]    ->  addMetas x
    (x:xs) ->  addMetas x >> metaMain xs
 
-
 addMetas :: FilePath -> IO ()
-addMetas = mapM_ addMeta  <=< ffind
+addMetas = mapM_ (\fp -> catch fp $ addMeta fp)  <=< ffind
+
+catch :: FilePath -> IO () -> IO ()
+catch fp f = Exc.catch f (handler fp)
+
+handler ::  FilePath -> Exc.SomeException -> IO ()
+handler f _ = putStrLn $ "  FAILED(.meta.json): " ++ f
 
 addMeta :: FilePath -> IO ()
 addMeta fp = do
