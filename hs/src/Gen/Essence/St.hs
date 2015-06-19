@@ -46,6 +46,7 @@ module Gen.Essence.St
   , allKeys
   , withDefKeys
   , logStats
+  , getWeightsKeyed
   ) where
 
 import Conjure.Language.Constant
@@ -146,8 +147,8 @@ instance Default St where
 
 data GenerateConstraint = GNone
        | GType Type          -- The resulting type
-       | GOnlyTopLevel [Key] -- Weights to use at the toplevel
-       | GBinRel             -- For Relation Atrr
+       | GOnlyTopLevel [Key] -- Weights to use only at the toplevel
+       | GBinRel             -- For Relation Atrrs
        | GMsetAtrr           -- For Mset domain
        | GDomainDepth Int    -- For Spec, to specific a different depth for domains
  deriving (Eq, Ord, Show, Data, Typeable, Generic)
@@ -173,7 +174,7 @@ instance Hashable KeyMap where
 
 instance Default KeyMap where
     def = KeyMap $ M.fromList
-          [ -- High means that less binary attrs add to relations
+          [ -- Higher means that less binary attrs are added to relations doms
             (K_BinRelAttrStop, 1000)
           , (K_PickObjective, 70) -- 70% change of having an objective
           ]
@@ -188,6 +189,7 @@ instance FromJSON KeyMap where
   parseJSON v = KeyMap . M.mapKeys fromString <$> parseJSON v
 
 
+-- For requirements
 data RKind = RAny [Key] | RAll [Key]
            deriving (Show,Eq)
 
@@ -195,6 +197,7 @@ rKindOp :: RKind -> ( ((Int -> Bool) -> [Int] -> Bool), [Key] )
 rKindOp (RAny xs) = (any, xs)
 rKindOp (RAll xs) = (all, xs)
 
+-- | asserts Depth > 0
 sanity :: (MonadState St m) => String -> m ()
 sanity msg =  do
   d <- gets depth
@@ -205,6 +208,7 @@ sanity msg =  do
            , pretty st
            ]
 
+-- | asserts Depth > n
 sanityn :: (MonadState St m) => Int -> String -> m ()
 sanityn n msg =  do
   d <- gets depth
@@ -228,6 +232,7 @@ weightingForKey key = do
         Nothing  -> return 100
         (Just x) -> return x
 
+-- | Run the computation with the given weights
 withWeights :: [(Key, Int)] ->  GenSt a -> GenSt a
 withWeights vs f = do
   (KeyMap old) <- gets weighting
@@ -241,6 +246,14 @@ getWeights :: MonadState St m => [(Key,a)] -> m [(Int, a)]
 getWeights vs= do
   weights <- mapM (\(x,_) -> weightingForKey x  ) vs
   return [ (w,p) | ((_,p),w) <- zip vs weights ]
+
+-- | Get weights with the key added to tail in St
+getWeightsKeyed :: MonadState St m => [(Key,a)] -> m [(Int, GenSt a)]
+getWeightsKeyed vs= do
+  weights <- mapM (\(x,_) -> weightingForKey x  ) vs
+  let x = zipWith (\(k,a) i ->  (i,withKey k $ pure a)  ) vs weights
+  return x
+
 
 -- | getPossibilities but takes function. If the function return False the
 -- | weighting for that item is set to 0 regresses of current weighting
@@ -257,6 +270,23 @@ getPossibilities con vs = do
      True  -> do
        w <- weightingForKey k
        return (w,v)
+
+-- | getPossibilities but takes function. If the function return False the
+-- | weighting for that item is set to 0 regresses of current weighting
+-- | Add the Key to tail
+getPossibilitiesKeyed :: arg
+                 -> [(arg -> GenSt Bool, (Key, GenSt v))]
+                 -> GenSt [(Int, GenSt v)]
+getPossibilitiesKeyed con vs = do
+  mapM doPossibilities vs
+
+  where
+  doPossibilities (f,(k,v)) =
+   (withKey k $ f con) >>= \case
+     False -> return (0,v)
+     True  -> do
+       w <- withKey k $ weightingForKey k
+       return (w,withKey k v)
 
 
 withDepthDec :: forall m a. MonadState St m
@@ -279,7 +309,6 @@ withDepth d f = do
   return res
 
 
-
 withVars :: [Var] ->  GenSt a -> GenSt a
 withVars nvars f = do
   old <- gets newVars_
@@ -298,8 +327,6 @@ nextVarName prefix = do
   return $  mconcat [prefix, "_", (stringToText . show $ i)]
 
 
-
-
 -- | Error message for give
 giveUnmatched :: forall c a. Pretty a => Doc -> a -> GenSt c
 giveUnmatched msg t = do
@@ -310,7 +337,7 @@ giveUnmatched msg t = do
                         , "St"     <+> pretty st]
 
 
--- | Error message for give
+-- | Error message for possible
 possibleUnmatched :: forall m c a. (Pretty a, MonadState St m) => Doc -> a -> m c
 possibleUnmatched msg t = do
   st  <- get
@@ -320,6 +347,7 @@ possibleUnmatched msg t = do
                         , "St"     <+> pretty st]
 
 
+---------- Running ----------
 
 runGenerate2 :: Generate a => LogLevel -> GenSt a -> St -> IO a
 runGenerate2 allowed  f st  = do
@@ -349,6 +377,7 @@ runGenerateNullLogs con st = do
   let s = (flip evalStateT ) st (logInfo ("√Starting with State" <+> pretty st) >> give con)
   fst <$> runWriterT s
 
+----------
 
 -- | DataType of a proxy
 proxyDataTypeOf :: forall a . Data a => Proxy a -> DataType
@@ -360,6 +389,7 @@ fieldKeys a = do
   let names = dataTypeConstrs . proxyDataTypeOf $ a
   map (fromString . show) names
 
+-- | Even key that can be weighted. Note that not every key is used
 allKeys :: [Key]
 allKeys = do
   let names = dataTypeConstrs . proxyDataTypeOf $ (Proxy :: Proxy Key)
@@ -415,12 +445,12 @@ instance GenInfo Constant where
   wrapDomain   = DomainInConstant
   allowEmpty _ = False
 
-
 instance GenInfo Expression where
   wrapConstant = Constant
   wrapDomain   = Domain
   allowEmpty _ = True
 
+-- |
 class WrapVar a where
   wrapVar :: Var -> a
   namesUsed :: a -> [Text]
@@ -434,18 +464,17 @@ instance WrapVar Expression where
   -- TODO could be better
   namesUsed x = [ stringToText . show . pretty $ t | Reference t _ <- universe x]
 
--- Logging
+
+---------- Logging
+
 logHigher2 :: MonadLog m => String -> [Doc] -> m ()
 logHigher2 ln docs = log LogFollow . hang (pretty ln) 4 $ Pr.vcat docs
-
 
 logInfo2 :: MonadLog m => String -> [Doc] -> m ()
 logInfo2 ln docs = log LogInfo . hang (pretty ln) 4 $ Pr.vcat docs
 
-
 logWarn2 :: MonadLog m => String -> [Doc] -> m ()
 logWarn2 ln docs = log LogWarn . hang (pretty ln) 4 $ Pr.vcat docs
-
 
 logDebug2 :: MonadLog m => String -> [Doc] -> m ()
 logDebug2 ln docs = log LogDebug . hang (pretty ln) 4 $ Pr.vcat docs
@@ -473,6 +502,7 @@ logStats l con =
                , nn "keyPath" (groom path)
                , nn "weights" ws]
 
+----------
 
 withKey :: Key -> GenSt a -> GenSt a
 withKey k f = do
@@ -481,22 +511,6 @@ withKey k f = do
   res <- f
   modify $ \st -> st{ keyPath_ = old}
   return res
-
-
-getPossibilitiesKeyed :: arg
-                 -> [(arg -> GenSt Bool, (Key, GenSt v))]
-                 -> GenSt [(Int, GenSt v)]
-getPossibilitiesKeyed con vs = do
-  mapM doPossibilities vs
-
-  where
-  doPossibilities (f,(k,v)) =
-   (withKey k $ f con) >>= \case
-     False -> return (0,v)
-     True  -> do
-       w <- withKey k $ weightingForKey k
-       return (w,withKey k v)
-
 
 withDefKeys :: KeyMap -> KeyMap
 withDefKeys (KeyMap ms) =
