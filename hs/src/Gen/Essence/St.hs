@@ -47,6 +47,7 @@ module Gen.Essence.St
   , withDefKeys
   , logStats
   , getWeightsKeyed
+  , addTypeKey
   ) where
 
 import Conjure.Language.Constant
@@ -516,3 +517,7 @@ withDefKeys :: KeyMap -> KeyMap
 withDefKeys (KeyMap ms) =
     let (KeyMap defs) = def
     in KeyMap $ ms `M.union` defs
+
+addTypeKey :: forall a a1. GetKey a1
+           => a1 -> GenSt a -> GenSt a
+addTypeKey ty = withKey (getKey ty)

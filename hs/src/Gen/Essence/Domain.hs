@@ -14,9 +14,6 @@ import Gen.Helpers.SizeOf
 
 import qualified Data.Set as S
 
-addTypeKey :: forall a a1. GetKey a1
-           => a1 -> GenSt a -> GenSt a
-addTypeKey ty = withKey (getKey ty)
 
 instance (Generate a, GenInfo a, EvalToInt a) => Generate (Domain () a) where
   give GNone = do
@@ -184,17 +181,17 @@ doOccurAttr allowNone = do
     return $ (a,b)
 
 
-
-
 instance (Generate a, GenInfo a, EvalToInt a) => Generate (FunctionAttr a) where
-  give GNone         = FunctionAttr <$> give GNone <*> give GNone <*> give GNone
+  give GNone         = withKey K_FunctionAttr $ FunctionAttr
+                         <$> give GNone <*> give GNone <*> give GNone
   give t             = giveUnmatched "Generate (FunctionAttr a)" t
 
   possiblePure _ _ _ = True
   requires _ _       = []
 
+
 instance Generate PartialityAttr where
-  give GNone = frequency3 =<< getWeights
+  give GNone = withKey K_PartialityAttr $ frequency3 =<< getWeights
     [ (K_PartialityAttr_Partial, pure PartialityAttr_Partial)
     , (K_PartialityAttr_Total,   pure PartialityAttr_Total)
     ]
@@ -204,9 +201,8 @@ instance Generate PartialityAttr where
   possiblePure _ _ _ = True
   requires _ _       = []
 
-
 instance Generate JectivityAttr where
-  give GNone = frequency3 =<< getWeights
+  give GNone = withKey K_PartialityAttr $ frequency3 =<< getWeights
     [ (K_JectivityAttr_None,        pure JectivityAttr_None)
     , (K_JectivityAttr_Injective,   pure JectivityAttr_Injective)
     , (K_JectivityAttr_Surjective,  pure JectivityAttr_Surjective)
@@ -220,15 +216,19 @@ instance Generate JectivityAttr where
 
 
 instance (Generate a, GenInfo a, EvalToInt a) => Generate (RelationAttr a) where
-  give GNone         = RelationAttr <$> give (GNone) <*> give (GNone)
-  give GBinRel       = RelationAttr <$> give (GNone) <*> give (GBinRel)
+  give GNone         = withKey K_RelationAttr $ RelationAttr
+                         <$> give (GNone) <*> give (GNone)
+  give GBinRel       = withKey K_RelationAttr $RelationAttr
+                         <$> give (GNone) <*> give (GBinRel)
   give t             = giveUnmatched "Generate (RelationAttr a)" t
   possiblePure _ _ _ = True
   requires _ _       = []
 
 instance Generate (BinaryRelationAttrs) where
-  give GNone   = BinaryRelationAttrs <$> pure def
-  give GBinRel = BinaryRelationAttrs <$> f
+  give GNone   = withKey K_BinaryRelationAttrs $
+                   BinaryRelationAttrs <$> pure def
+  give GBinRel = withKey K_BinaryRelationAttrs $
+                   BinaryRelationAttrs <$> f
 
     where
     f ::  GenSt (Set BinaryRelationAttr)
@@ -261,7 +261,7 @@ instance Generate (BinaryRelationAttrs) where
   requires _ _       = []
 
 instance (Generate a, GenInfo a, EvalToInt a) => Generate (PartitionAttr a) where
-  give GNone = do
+  give GNone = withKey K_PartitionAttr $ do
       s1 <- give GNone
       s2 <- give GNone
       b  <- elements3 [True,False]
