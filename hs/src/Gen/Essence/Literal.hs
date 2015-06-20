@@ -31,47 +31,52 @@ instance (Generate a, GenInfo a) => Generate (AbstractLiteral a, Type) where
     ty <- give $ GOnlyTopLevel Types.literals
     give (GType ty)
 
-  give (GType r@(TypeSet ty)) = do
-    es <- boundedChecked (Proxy :: Proxy a) (0,3)  (dgive (GType ty))
-    return $ (AbsLitSet es, r)
+  give (GType top) = addTypeKey top $ give1 (GType top)
 
-  give (GType r@(TypeMSet ty)) = do
-    es <- boundedChecked (Proxy :: Proxy a) (0,3)  (dgive (GType ty))
-    return $ (AbsLitMSet es, r)
+    where
+    give1 (GType r@(TypeSet ty)) = do
+      es <- boundedChecked (Proxy :: Proxy a) (0,3)  (dgive (GType ty))
+      return $ (AbsLitSet es, r)
 
-  give (GType r@(TypeMatrix TypeInt ty)) = do
-    numElems <- chooseChecked (Proxy :: Proxy a) (0,5)
-    es <-  vectorOf3 numElems (dgive (GType ty))
-    idx <- intDomainOfSize (fromIntegral numElems)
-    return $ (AbsLitMatrix idx es, r)
+    give1 (GType r@(TypeMSet ty)) = do
+      es <- boundedChecked (Proxy :: Proxy a) (0,3)  (dgive (GType ty))
+      return $ (AbsLitMSet es, r)
 
-  give (GType r@(TypeFunction t1 t2)) = do
-    numElems <- chooseChecked (Proxy :: Proxy a) (0,5)
-    e1 <- noVars $ vectorOf3 numElems (dgive (GType t1))
-    e2 <- noVars $ vectorOf3 numElems (dgive (GType t2))
-    let es = zip e1 e2
-    return $ (AbsLitFunction es, r)
+    give1 (GType r@(TypeMatrix TypeInt ty)) = do
+      numElems <- chooseChecked (Proxy :: Proxy a) (0,5)
+      es <-  vectorOf3 numElems (dgive (GType ty))
+      idx <- intDomainOfSize (fromIntegral numElems)
+      return $ (AbsLitMatrix idx es, r)
 
-  give (GType r@(TypeRelation ts)) = do
-    numElems <- chooseChecked (Proxy :: Proxy a) (0,5)
-    ee :: [[a]] <- vectorOf3 numElems $ forM ts $ dgive . GType
-    return $ (AbsLitRelation ee, r)
+    give1 (GType r@(TypeFunction t1 t2)) = do
+      numElems <- chooseChecked (Proxy :: Proxy a) (0,5)
+      e1 <- noVars $ vectorOf3 numElems (dgive (GType t1))
+      e2 <- noVars $ vectorOf3 numElems (dgive (GType t2))
+      let es = zip e1 e2
+      return $ (AbsLitFunction es, r)
 
-  give (GType r@(TypePartition t)) = do
-    n <- chooseChecked (Proxy :: Proxy a) (0,5)
-    es <- replicateM n $ do
-            noVars $ boundedChecked (Proxy :: Proxy a) (1,5) (dgive (GType t))
+    give1 (GType r@(TypeRelation ts)) = do
+      numElems <- chooseChecked (Proxy :: Proxy a) (0,5)
+      ee :: [[a]] <- vectorOf3 numElems $ forM ts $ dgive . GType
+      return $ (AbsLitRelation ee, r)
 
-    if all (null) es then
-        logDebug2 $line  ["is Empty " <+> pretty (AbsLitPartition es)]
-    else
-        logDebug2 $line  ["not Empty " <+> pretty (AbsLitPartition es)]
+    give1 (GType r@(TypePartition t)) = do
+      n <- chooseChecked (Proxy :: Proxy a) (0,5)
+      es <- replicateM n $ do
+              noVars $ boundedChecked (Proxy :: Proxy a) (1,5) (dgive (GType t))
 
-    return $ (AbsLitPartition es, r)
+      if all (null) es then
+          logDebug2 $line  ["is Empty " <+> pretty (AbsLitPartition es)]
+      else
+          logDebug2 $line  ["not Empty " <+> pretty (AbsLitPartition es)]
 
-  give (GType r@(TypeTuple ts)) = do
-    es <- forM ts $ \t -> dgive (GType t)
-    return $ (AbsLitTuple es, r)
+      return $ (AbsLitPartition es, r)
+
+    give1 (GType r@(TypeTuple ts)) = do
+      es <- forM ts $ \t -> dgive (GType t)
+      return $ (AbsLitTuple es, r)
+
+    give1 t = giveUnmatched "Generate (AbstractLiteral a)" t
 
   give t = giveUnmatched "Generate (AbstractLiteral a)" t
 
