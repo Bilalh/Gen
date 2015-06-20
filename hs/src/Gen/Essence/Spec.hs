@@ -28,12 +28,13 @@ instance Generate Spec where
                    , nn "i_e" i_e
                    ]
 
-    doms <- withKey K_SDoms $  mapM (\_ -> withDepth dom_depth $ give GNone) [1..i_d]
+    doms <- withKey K_SDoms $ mapM
+            (\_ -> withKey K_Domain . withDepth dom_depth $ give GNone) [1..i_d]
     let withNames =  zipWith (\d i -> (name i , Findd d)) doms [1 :: Int ..]
     let mappings  = M.fromList withNames
     modify $ \st -> st{doms_=mappings}
 
-    exprs <- withKey K_SExprs $ mapM ( \_ ->  give $ GType TypeBool ) [0..i_e]
+    exprs <- withKey K_SExprs $ mapM (\_ ->  withKey K_Expr $ give $ GType TypeBool ) [0..i_e]
     Spec mappings exprs <$> (give GNone)
 
     where name i =  stringToText $  "var" ++  (show  i)
