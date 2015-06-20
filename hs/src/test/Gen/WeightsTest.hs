@@ -24,7 +24,6 @@ tests = testGroup "GenerateOnly"
   ]
 
 
-
 data Limited a =  Limited Int (String,KeyMap) GenerateConstraint a
     deriving (Eq)
 
@@ -37,7 +36,7 @@ instance (Pretty a, Show a, DepthOf a) => Show (Limited a)   where
           , nn "Weights   :"  (ks)
           ]
 
-instance (Generate a, Simpler a a, NeedsType a ) => Arbitrary (Limited a) where
+instance (Generate a, Simpler a a ) => Arbitrary (Limited a) where
   arbitrary = sized $ \s -> do
     i <- choose (2,  (max 1 (min s 3)) )
     nTypes <- choose (1,3)

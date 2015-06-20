@@ -20,4 +20,4 @@ instance (Generate a, ExpressionLike a) => Generate (OpFreq a) where
   possiblePure _ (Just _ ) _      = False
   possiblePure _ Nothing d        = d >= 1
 
-  requires _ _ = [RAny [K_TypeInt, K_TypeBool], RAll [K_TypeSet] ]
+  requires _ _ = [RAny [K_TypeInt, K_TypeBool], RAll [K_TypeMSet] ]

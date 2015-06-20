@@ -185,7 +185,7 @@ qc_tests title  =
        \(Limited _ _ (a :: Expr)) -> ( all (\b -> hash b  /= hash a )  $  limitedRun reduce a )
 
    -- Comp  like [l_1 | l_1 : mset (size 1 ** 0) of bool, true, true]
-   -- simply to [mset(true) | l_1 : mset (size 1 ** 0) of bool]
+   -- simplify to [mset(true) | l_1 : mset (size 1 ** 0) of bool]
    -- which has higher depth.
    , no $ testProperty "depth_leq" $
        \(Limited _ _ (a :: Expr)) -> ( all (\b -> depthOf b <= depthOf a )  $ limitedRun reduce a )
@@ -209,7 +209,7 @@ qc_tests title  =
 
 -- To make sure the test finish quickly
 limitedRun :: forall a t. (t -> StateT EState Identity [a]) -> t -> [a]
-limitedRun f a = take 100 $ runner f a
+limitedRun f a = take 200 $ runner f a
 
 use_qc :: [Maybe a] -> [Maybe a]
 -- use_qc = return []

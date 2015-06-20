@@ -23,5 +23,4 @@ instance Generate a => Generate (OpSupsetEq a) where
   possiblePure _ Just{} _           = False
   possiblePure _ _ d                = d >= 1
 
-  requires _ (Just ty) = [RAll $ keyList ty]
   requires _ _         = [RAny Types.unionLike]
