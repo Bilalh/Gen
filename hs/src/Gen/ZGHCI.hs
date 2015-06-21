@@ -25,7 +25,7 @@ import Gen.Essence.Literal            as X ()
 import Gen.Essence.Op                 as X ()
 import Gen.Essence.Range              as X ()
 import Gen.Essence.Rnd                as X
-import Gen.Essence.Spec               as X
+import Gen.Essence.Spec               as X ()
 import Gen.Essence.St                 as X
 import Gen.Essence.Type               as X ()
 import Gen.Helpers.SizeOf             as X
