@@ -2,7 +2,6 @@
 module Gen.Essence.Op.Supset where
 
 import Conjure.Language.Expression.Op
-import Gen.Essence.Id
 import Gen.Essence.St
 import Gen.Essence.Type               ()
 import Gen.Imports
