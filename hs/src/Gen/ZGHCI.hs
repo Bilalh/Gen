@@ -9,6 +9,7 @@
 
 module Gen.ZGHCI(module X
   , d_boolrel, d_bool_func_set
+  , aSpec
   ) where
 
 import Conjure.Language.Definition    as X
@@ -24,6 +25,7 @@ import Gen.Essence.Literal            as X ()
 import Gen.Essence.Op                 as X ()
 import Gen.Essence.Range              as X ()
 import Gen.Essence.Rnd                as X
+import Gen.Essence.Spec               as X
 import Gen.Essence.St                 as X
 import Gen.Essence.Type               as X ()
 import Gen.Helpers.SizeOf             as X
@@ -54,3 +56,9 @@ w_bool_func_set = [(K_TypeAny, 0), (K_TypeBool, 100), (K_TypeEnum, 0),
 d_bool_func_set = (pretty :: Domain () Expr -> Doc  ) <$>
    runGenerate2 LogNone (  withKey K_Domain $ give con  ) def{depth=2, weighting=KeyMap $ M.fromList w_bool_func_set}
   where con = GType (TypeSet (TypeSet TypeBool))
+
+
+
+aSpec :: St -> IO Spec
+aSpec st = do
+  runGenerate2 LogNone (give GNone) st
