@@ -29,12 +29,16 @@ class (Data a, Pretty a ) => GetKey a where
   getKey  :: a -> Key
   keyTree :: a -> KTree Key
 
+  -- getTyKey  :: a -> Key
+  -- tyTree :: a -> KTree Key
+
 keyList :: GetKey a => a ->  [Key]
 keyList = F.toList . keyTree
 
 
 instance Pretty (KTree Key) where
     pretty = pretty . displayKTree
+
 
 -- | 2d drawing of the tree horizontally
 displayTree :: Show a => Tree a -> String
@@ -73,9 +77,9 @@ instance GetKey Spec where
 
   keyTree d@(Spec doms exprs obj) =
     KTree (getKey d) $
-             [ KTree K_SDoms (map (keyTree . domOfGF ) $ M.elems doms )
-             , KTree K_SExprs (map keyTree exprs)
-             ] ++ maybeToList (fmap (KTree K_SObj . (: []) . keyTree) obj)
+      [ KTree K_SDoms (map (KTree K_Domain . (: []) . keyTree . domOfGF) $ M.elems doms )
+      , KTree K_SExprs (map (KTree K_Expr . (: []) . keyTree) exprs)
+      ] ++ maybeToList (fmap (KTree K_SObj  . (: []) . keyTree) obj)
 
 
 instance GetKey (OObjective, Expr) where

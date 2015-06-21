@@ -12,7 +12,7 @@ import qualified Data.Map as M
 
 
 instance Generate Spec where
-  -- give GNone = gets depth >>= \d -> give (GDomainDepth d)
+  give GNone = gets depth >>= \d -> give (GDomainDepth d)
   give (GDomainDepth dom_depth) = do
     modify $ \st -> st{keyPath_=[K_Spec]}
 
@@ -35,7 +35,7 @@ instance Generate Spec where
     modify $ \st -> st{doms_=mappings}
 
     exprs <- withKey K_SExprs $ mapM (\_ ->  withKey K_Expr $ give $ GType TypeBool ) [0..i_e]
-    Spec mappings exprs <$> (give GNone)
+    Spec mappings exprs <$> (withKey K_SObj $ give GNone)
 
     where name i =  stringToText $  "var" ++  (show  i)
 

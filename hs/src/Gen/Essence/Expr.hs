@@ -21,7 +21,7 @@ import qualified Text.PrettyPrint as Pr
 
 
 -- | Should specify The type at the top level
--- | i.e.  give (GType TypeBool) or
+-- | i.e.  give (GType TypeBool)
 instance Generate Expr where
   give GNone = giveUnmatched "Generate Expr" GNone
   give g  = do

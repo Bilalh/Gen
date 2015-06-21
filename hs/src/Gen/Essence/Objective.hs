@@ -36,8 +36,8 @@ instance (Generate a, WrapVar a, TTypeOf a)
   give GNone = do
     logDepthCon $line GNone
     ds <- gets doms_
-    kind <- elements3 [Maximisingg, Minimisingg]
-    e :: a <- give (GType TypeInt)
+    (ky,kind) <- elements3 [(K_Maximisingg, Maximisingg), (K_Minimisingg, Minimisingg)]
+    e :: a <- withKey ky $ give (GType TypeInt)
 
     -- Checks if a decision variable is referenced
     let names = S.fromList $  namesUsed e
