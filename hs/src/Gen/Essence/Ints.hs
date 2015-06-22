@@ -21,7 +21,7 @@ data IntAsc a = IntAsc a a
 
 instance GetKey a => GetKey (IntAsc a) where
   getKey _   = K_IntAsc
-  keyTree d  = KTree (getKey d) (map keyTree $ children d)
+  keyTree d  = KTree (defWeight d) (getKey d) (map keyTree $ children d)
 
 
 instance Pretty a => Pretty (IntAsc a) where
