@@ -68,12 +68,13 @@ noteFormat tx pr = liftIO . putStrLn . renderSized 120 $ hang tx 4 (vcat  pr)
 
 
 prettyTypeArr :: [Var] -> Doc
-prettyTypeArr [] = "[]"
-prettyTypeArr vs = vcat $ map (\(Var a b) -> pretty (a, show b) ) vs
+prettyTypeArr [] = "⟪⟫"
+prettyTypeArr vs = "⟪" <+> (vcat $ punctuate " ⋰ "
+                 $ map (\(Var a b) -> pretty (a, show b) ) vs)  <+> "⟫"
 
 prettyArr :: Pretty a => [a] -> Doc
-prettyArr [] = "[]"
-prettyArr vs = vcat $ map pretty vs
+prettyArr [] = "⟪⟫"
+prettyArr vs = "⟪" <+> ( vcat $ punctuate "⋰" $ map pretty vs) <+> "⟫"
 
 docError :: [Doc] -> a
 docError = error . show . vcat
