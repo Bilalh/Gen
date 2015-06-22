@@ -153,6 +153,10 @@ mainWithArgs u@Essence{..} = do
           Just fp -> do
             readFromJSON fp
 
+  let notUsefull =
+        [ (x,Timeout_)
+        | x <- [ RefineCompact_, RefineAll_, RefineRandom_, RefineParam_] ]
+
   let config = EC.EssenceConfig
                { outputDirectory_ = out
                , mode_            = _mode
@@ -169,13 +173,15 @@ mainWithArgs u@Essence{..} = do
                , binariesDirectory_ = binaries_directory
                , oldConjure_        = old_conjure
                , toolchainOutput_   = toolchain_ouput
-               , notUseful          = S.fromList [(Savilerow_, NumberToLarge_)]
+               , notUseful          = S.fromList $ (Savilerow_, NumberToLarge_) : notUsefull
                , givenSpecs_        = givenSpecs
                , genType_           = _gen_type
                , reduceAsWell_      = reduce_as_well
                , dbDirectory_       = db_directory
                , logLevel           = log_level
                }
+
+
 
   doMeta out no_csv binaries_directory
   generateEssence ws config

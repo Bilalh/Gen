@@ -228,23 +228,15 @@ classifyError ec@EC.EssenceConfig{..} errdir out uname (SolveResult (re,
 
           void $ copyFiles (unMaybe $ mvDirBase `M.lookup` inDir) inErrDir mvDir needed
 
-          case (kind,last_status) `S.member` (EC.notUseful ec)  of
-            False -> return ()
-            True  -> do
-              putStrLn . show . vcat $ [
-                              "Deleting " <+> (pretty . groom $ (kind,last_status) )
-                            ,  "mvDir"   <+> pretty mvDir
-                            ]
-              removeDirectoryRecursive mvDir
-
-
           let err = ErrData { kind      = kind
                             , status    = last_status
                             , choices   = mvDir </> k <.> ".choices.json"
                             , specDir   = mvDir
                             , timeTaken = floor (refineTime k re) + floor time_taken_
                             }
-          return $ Just err
+          filterUseful ec err >>= \case
+            True  -> return $ Just err
+            False -> return Nothing
 
 
         f _ _ = return Nothing
@@ -317,15 +309,6 @@ classifySettingI ec errdir out uname
 
           void $ copyFiles (unMaybe $ mvDirBase `M.lookup` inDir) inErrDir mvDir needed
 
-          case (kind_,status_) `S.member` (EC.notUseful ec)  of
-            False -> return ()
-            True  -> do
-              putStrLn . show . vcat $ [
-                              "Deleting " <+> (pretty . groom $ (kind_,status_) )
-                            ,  "mvDir"   <+> pretty mvDir
-                            ]
-              removeDirectoryRecursive mvDir
-
           let err = ErrData { kind = kind_
                             , status = status_
                             , choices = mvDir </> k <.> ".choices.json"
@@ -334,14 +317,15 @@ classifySettingI ec errdir out uname
                             }
           return err
 
-    err <- M.traverseWithKey f ms
+    errs <- M.traverseWithKey f ms
 
     case EC.deletePassing_ ec of
            False -> return ()
            True  -> do
              removeDirectoryRecursive (inErrDir)
 
-    return (time_taken_,  [ v | (_,v) <- M.toList err] )
+    kept <- filterM (\(_,x) -> filterUseful ec x  ) (M.toList errs)
+    return (time_taken_, map snd $ kept )
 
 
 classifySettingI ec _ out uname SettingI{time_taken_}  = do
@@ -351,6 +335,18 @@ classifySettingI ec _ out uname SettingI{time_taken_}  = do
       removeDirectoryRecursive (out </> uname)
 
   return (time_taken_, [])
+
+filterUseful :: EssenceConfig ->  ErrData -> IO Bool
+filterUseful ec ErrData{..} =
+  case (kind,status) `S.member` (EC.notUseful ec)  of
+    False -> return True
+    True  -> do
+      putStrLn . show . vcat $ [
+             "Deleting " <+> (pretty . groom $ (kind,status) )
+           , "specDir"   <+> pretty specDir
+           ]
+      removeDirectoryRecursive specDir
+      return False
 
 
 typeCheck :: (MonadFail m, MonadUserError m) => Model -> m Model
