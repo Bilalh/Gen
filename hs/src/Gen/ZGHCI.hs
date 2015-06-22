@@ -9,7 +9,7 @@
 
 module Gen.ZGHCI(module X
   , d_boolrel, d_bool_func_set
-  , aSpec, aExpr, aType, aDom
+  , aSpec, aExpr, aType, aDom, zz
   ) where
 
 import Conjure.Language.Definition    as X
@@ -79,3 +79,42 @@ w_bool_func_set = [(K_TypeAny, 0), (K_TypeBool, 100), (K_TypeEnum, 0),
 d_bool_func_set = (pretty :: Domain () Expr -> Doc  ) <$>
    runGenerate2 LogNone (  withKey K_Domain $ give con  ) def{depth=2, weighting=KeyMap $ M.fromList w_bool_func_set}
   where con = GType (TypeSet (TypeSet TypeBool))
+
+
+zz = Spec
+  (M.fromList
+     [("var1",
+       Findd
+         (DomainPartition ()
+            (PartitionAttr{partsNum = SizeAttr_None, partsSize = SizeAttr_None,
+                           isRegular = False})
+            DomainBool))])
+  [EOp
+     (MkOpNeq
+        (OpNeq
+           (ETyped (TypeMSet (TypeMatrix TypeInt (TypePartition TypeBool)))
+              (ELit (AbsLitMSet [])))
+           (ELit
+              (AbsLitMSet
+                 [ELit
+                    (AbsLitMatrix
+                       (DomainInt
+                          [RangeSingle (EOp (MkOpNegate (OpNegate (ECon (ConstantInt 4)))))])
+                       [ELit
+                          (AbsLitPartition
+                             [[EOp
+                                 (MkOpNeq (OpNeq (ECon (ConstantInt 0)) (ECon (ConstantInt 7))))],
+                              [ECon (ConstantBool True)]])]),
+                  ELit
+                    (AbsLitMatrix
+                       (DomainInt
+                          [RangeBounded (ECon (ConstantInt 1)) (ECon (ConstantInt 3))])
+                       [ELit
+                          (AbsLitPartition
+                             [[ECon (ConstantBool False), ECon (ConstantBool True)]]),
+                        ELit
+                          (AbsLitPartition
+                             [[ECon (ConstantBool True), ECon (ConstantBool True),
+                               ECon (ConstantBool True)]]),
+                        EVar (Var "var1" (TypePartition TypeBool))])]))))]
+  Nothing
