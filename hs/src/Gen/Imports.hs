@@ -14,6 +14,7 @@ module Gen.Imports
     , Hash
     , Time
     , Directory
+    , Weight
     ) where
 
 import Conjure.Language.AbstractLiteral as X (AbstractLiteral)
@@ -40,6 +41,7 @@ import qualified Text.PrettyPrint as Pr
 type Depth     = Int
 type Hash      = Int
 type Time      = Int
+type Weight    = Int
 type Directory = FilePath
 
 -- | nub is O(N^2) this is O(NlogN)
