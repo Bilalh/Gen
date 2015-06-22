@@ -9,7 +9,7 @@
 
 module Gen.ZGHCI(module X
   , d_boolrel, d_bool_func_set
-  , aSpec
+  , aSpec, aExpr, aType, aDom
   ) where
 
 import Conjure.Language.Definition    as X
@@ -35,6 +35,29 @@ import Gen.IO.Formats                 as X
 
 import qualified Data.Map as M
 
+-- Gives various types
+
+aSpec :: St -> IO Spec
+aSpec st = do
+  runGenerate2 LogNone (give GNone) st
+
+aExpr :: St -> IO Expr
+aExpr st = do
+  ty <- runGenerate2 LogNone (give GNone) st
+  runGenerate2 LogNone (give (GType ty )) st
+
+aDom :: St -> IO (Domain () Expr)
+aDom st = do
+  runGenerate2 LogNone (give GNone) st
+
+aType :: St -> IO Type
+aType st = do
+  runGenerate2 LogNone (give GNone) st
+
+
+
+--Debugging
+
 w_boolrel = [(K_TypeAny, 0), (K_TypeBool, 100), (K_TypeEnum, 0),
                   (K_TypeFunction, 0), (K_TypeInt, 0), (K_TypeList, 0),
                   (K_TypeMSet, 0), (K_TypeMatrix, 0), (K_TypePartition, 0),
@@ -56,9 +79,3 @@ w_bool_func_set = [(K_TypeAny, 0), (K_TypeBool, 100), (K_TypeEnum, 0),
 d_bool_func_set = (pretty :: Domain () Expr -> Doc  ) <$>
    runGenerate2 LogNone (  withKey K_Domain $ give con  ) def{depth=2, weighting=KeyMap $ M.fromList w_bool_func_set}
   where con = GType (TypeSet (TypeSet TypeBool))
-
-
-
-aSpec :: St -> IO Spec
-aSpec st = do
-  runGenerate2 LogNone (give GNone) st
