@@ -12,9 +12,11 @@ module Gen.Essence.Id( keyList
 import Conjure.Language.Definition
 import Conjure.Language.Domain
 import Conjure.Language.Expression.Op
+import Conjure.Language.TypeOf
 import Data.Data
 import Data.Generics.Uniplate.Data    (childrenBi)
 import Gen.Essence.Data.Key
+import Gen.Helpers.TypeOf
 import Gen.Imports
 
 import qualified Data.Foldable as F
@@ -29,8 +31,6 @@ class (Data a, Pretty a ) => GetKey a where
   getKey  :: a -> Key
   keyTree :: a -> KTree Key
 
-  -- getTyKey  :: a -> Key
-  -- tyTree :: a -> KTree Key
 
 keyList :: GetKey a => a ->  [Key]
 keyList = F.toList . keyTree
@@ -125,7 +125,8 @@ instance (GetKey a, ExpressionLike a) => GetKey (Op a) where
 
 
 instance GetKey Constant where
-  getKey x = fromString . show . toConstr $ x
+  getKey x@(ConstantAbstract{}) = fromString . show . toConstr $ x
+  getKey x = getKey . runIdentity . ttypeOf $ x
 
   keyTree d@(ConstantAbstract x) = KTree (getKey d) [keyTree x]
   keyTree d@(ConstantInt x)      = KTree (getKey d) [keyTree x]
@@ -138,8 +139,9 @@ instance GetKey Integer where
   keyTree x = KTree (getKey x) []
 
 
-instance GetKey a => GetKey (AbstractLiteral a) where
-  getKey x = fromString . show . toConstr $ x
+instance (GetKey a, TypeOf a, TTypeOf a) => GetKey (AbstractLiteral a) where
+  -- getKey x = fromString . show . toConstr $ x
+  getKey d = getKey . runIdentity . ttypeOf $ d
 
   keyTree d@(AbsLitTuple x)                = KTree (getKey d) (map keyTree x)
   keyTree d@(AbsLitRecord x)               = KTree (getKey d) (map (keyTree . snd) x)
@@ -199,6 +201,7 @@ instance GetKey a => GetKey (MSetAttr a) where
 
 instance GetKey a => GetKey (PartitionAttr a) where
   getKey x  = fromString . show . toConstr $ x
+  -- FIXME PartitionAttr id
   keyTree d = KTree (getKey d) ([])
 
 instance GetKey a => GetKey (RelationAttr a) where
