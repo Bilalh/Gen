@@ -333,19 +333,72 @@ instance (HasGen m,  HasLogger m) => Reduce (Domain () Expr) m where
     si   <- single li
     subs <- subterms li
     mu   <- mutate li
-    -- reduceChecks li $ mconcat  $
-    return $ mconcat  $
+    -- return $ mconcat  $
+    reduceChecks li $ mconcat  $
                [ [ x | (EDom x) <- si]
                , res
                , [ x | (EDom x) <- subs]
                , [ x | (EDom x) <- mu]
                ]
 
+  single x@DomainAny{}       = return [EDom x]
+  single x@DomainBool        = return [EDom x]
+  single x@DomainIntEmpty    = return [EDom x]
+  single x@DomainEnum{}      = return [EDom x]
+  single x@DomainUnnamed{}   = return [EDom x]
+  single x@DomainOp{}        = return [EDom x]
+  single x@DomainReference{} = return [EDom x]
+  single x@DomainMetaVar{}   = return [EDom x]
+
   single DomainInt{} = do
       i <- chooseR (0, 5)
       return $ [EDom $ DomainInt [RangeSingle (ECon $ ConstantInt i)]]
 
-  single   x = return [EDom x]
+  single (DomainTuple x) = do
+    xs <- mapM single x
+    return [ EDom $ DomainTuple vs
+           | vs <- take 2 $ transpose . map (map unEDom) $  xs]
+
+  single (DomainMatrix x1 x2) = do
+   doms <- single x1 >>= pure . map unEDom
+   inn <- single x2  >>= pure . map unEDom
+
+   return . concat . (flip map) (take 2 inn) $ \b ->
+       [ EDom $ DomainMatrix a b | a <- (take 2 doms ++ [x1] ) ]
+
+  single (DomainSet _ _ x3) = do
+    inn <- single x3  >>= pure . map unEDom
+    return [ EDom $ DomainSet () def a | a <- take 2 $ inn ]
+
+  single (DomainMSet _ _ x3) = do
+    inn <- single x3  >>= pure . map unEDom
+    return [ EDom $ DomainMSet () def a | a <- take 2 $ inn ]
+
+  single (DomainPartition _ _ x3) = do
+    inn <- single x3  >>= pure . map unEDom
+    return [ EDom $ DomainPartition () def a | a <- take 2 $ inn ]
+
+  single (DomainSequence _ _ x3) = do
+    inn <- single x3  >>= pure . map unEDom
+    return [ EDom $ DomainSequence () def a | a <- take 2 $ inn ]
+
+  single (DomainFunction _ _ x1 x2) = do
+   aa <- single x1  >>= pure . map unEDom
+   bb <- single x2  >>= pure . map unEDom
+
+   return . concat . (flip map) (take 2 aa ++ [x1]) $ \a ->
+       [ EDom $ DomainFunction () def a b | b <- (take 2 bb ++ [x2] )
+       , x1 /= a || x2 /= b ]
+
+  single (DomainRelation _ _ x3)  = do
+    xs <- mapM single x3
+    return [ EDom $ DomainRelation () def vs
+           | vs <- take 2 $ transpose . map (map unEDom) $  xs]
+
+  --FIXME other types
+  single x@(DomainRecord _)             = return [EDom x]
+  single x@(DomainVariant _)            = return [EDom x]
+
   subterms x = return . map (EDom) . innersExpand reduceLength $ x
 
   mutate (DomainFunction r _ a b)   = return [EDom $ DomainFunction r def a b ]
@@ -356,6 +409,11 @@ instance (HasGen m,  HasLogger m) => Reduce (Domain () Expr) m where
 
   -- mutate (DomainMSet r x2 x3)        = _f
   mutate _ = return []
+
+unEDom :: Expr -> Domain () Expr
+unEDom (EDom b) = b
+unEDom b        = lineError $line [ "not an Domain" <+> pretty b]
+
 
 
 instance (HasGen m,  HasLogger m) =>  Reduce (Op Expr) m where
