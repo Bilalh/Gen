@@ -182,7 +182,6 @@ removeUnusedDomains sp@(Spec ods es obj) = do
           g _ = process xs
 
 
-
     ensureADomain :: Domains -> Domains
     ensureADomain ds | M.null ds = M.insert ("unused") (Findd DomainBool) ds
     ensureADomain ds = ds
@@ -224,8 +223,7 @@ removeConstraints (Spec ds oes obj) = do
 
 simplyDomains :: Spec -> RR (Timed Spec)
 simplyDomains sp@(Spec ds es obj) = do
-  --FIXME assumes all finds
-  domsToDo <- doDoms ( map (second domOfGF) . M.toList $ ds)
+  domsToDo <- doDoms [ (name,val) | (name, Findd val) <- M.toList ds ]
   liftIO $ putStrLn . show . prettyArr $ map prettyArr domsToDo
   fin <- process1 domsToDo
 
@@ -235,8 +233,11 @@ simplyDomains sp@(Spec ds es obj) = do
       return $ fmap (const $ Spec (toDoms $ timedExtract fin) es obj) fin
 
   where
+  givens = M.filter isGiven ds where
+    isGiven Givenn{} = True
+    isGiven _        = False
   toDoms :: [(Text, Domain () Expr)] -> Domains
-  toDoms = M.fromList . map (second Findd)
+  toDoms vals = (M.fromList $ map (second Findd) vals) `M.union` givens
 
   --  | Fix the next Domain
   next :: [[(Text,Domain () Expr)]] -> RR [(Text,Domain () Expr)]
