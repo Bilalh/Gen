@@ -74,7 +74,7 @@ prettyTypeArr vs = "⟪" <+> (vcat $ punctuate " ⋰ "
 
 prettyArr :: Pretty a => [a] -> Doc
 prettyArr [] = "⟪⟫"
-prettyArr vs = "⟪" <+> ( vcat $ punctuate "⋰" $ map pretty vs) <+> "⟫"
+prettyArr vs = "⟪" <+> ( vcat $ punctuate " ⋰ " $ map pretty vs) <+> "⟫"
 
 docError :: [Doc] -> a
 docError = error . show . vcat
