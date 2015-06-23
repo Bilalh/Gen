@@ -1,20 +1,22 @@
-{-# LANGUAGE FlexibleInstances, QuasiQuotes, KindSignatures, UndecidableInstances #-}
+{-# LANGUAGE FlexibleInstances, KindSignatures, QuasiQuotes, UndecidableInstances #-}
 module Gen.SimplerTest ( tests ) where
 
+import Conjure.Language.Definition
+import Conjure.Language.Domain
 import Gen.AST.TH
+import Gen.Essence.Constant        ()
+import Gen.Essence.Expr            ()
+import Gen.Essence.Id
 import Gen.Essence.St
-import Gen.Essence.Type ()
-import Gen.Essence.Constant ()
-import Gen.Essence.Expr ()
+import Gen.Essence.Type            ()
 import Gen.Helpers.SizeOf
 import Gen.Imports
-import Gen.Reduce.Simpler
 import Gen.Reduce.Data
-import Gen.Reduce.Reduction as R
+import Gen.Reduce.Simpler
 import Gen.TestPrelude
 import Text.Printf
-import Gen.Essence.Id
-import Conjure.Language.Definition
+
+import Gen.Reduce.Reduction as R
 
 tests :: TestTree
 tests = testGroup "simpler"
@@ -96,7 +98,8 @@ tests = testGroup "simpler"
 
   ,testGroup_lt_gt "Domains"
    [
-     ([domainn| set of int |], [domainn| set (maxSize 2) of int |] )
+     (DomainBool,  [domainn| set of int |])
+   , ([domainn| set of int |], [domainn| set (maxSize 2) of int |] )
    , ([domainn| set (maxSize 2) of int |], [domainn| set (maxSize 2+1) of int |] )
    , ([domainn| set (maxSize 2) of int |], [domainn| set (maxSize 2, minSize 4) of int |] )
    , ([domainn| function int --> int |], [domainn| function (size 1) int --> int |] )
@@ -105,12 +108,13 @@ tests = testGroup "simpler"
 
    ,testGroup "Domains eq"
    [
-     eq_same  ([domainn| set of int |] :: Domain () Expr)
+     eq_same  (DomainBool :: Domain () Expr)
+   , eq_same  ([domainn| set of int |] :: Domain () Expr)
    , eq_same  [domainn| set (maxSize 2+1) of int |]
    , eq_same  ([domainn| function (maxSize 1) int --> int |] :: Domain () Expr)
    ]
 
-  ,testGroup "Expr_gen Same" $ do
+  ,testGroup "Comp Same" $ do
      let q1_Exp = EVar $ Var "q1_Expr" (TypeMatrix TypeInt TypeInt)
      let q1_ExpM = EVar $ Var "q1_ExprM" (TypeInt)
      let q10    = EVar $ Var "q10" (TypeInt)
@@ -147,10 +151,10 @@ tests = testGroup "simpler"
 
   ,testGroup "QC"
   [
-    qc_tests "Type" (Proxy :: Proxy Type)
+    qc_tests "Type"     (Proxy :: Proxy Type)
   , qc_tests "Constant" (Proxy :: Proxy (Constant))
-  , qc_tests "Expr" (Proxy :: Proxy (Expr))
-  , qc_tests "Expr" (Proxy :: Proxy (Domain () Expr))
+  , qc_tests "Expr"     (Proxy :: Proxy (Expr))
+  , qc_tests "Domain"   (Proxy :: Proxy (Domain () Expr))
   ]
 
   ]
