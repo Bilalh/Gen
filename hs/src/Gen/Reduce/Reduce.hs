@@ -35,11 +35,11 @@ reduceMain check rr = do
 
                                   _ -> return False
                        )
-  case errOccurs of
-    (False, _) -> do
+  case fst errOccurs of
+    False -> do
         putStrLn "Spec has no error with the given settings, not reducing"
         return rr
-    (True, _) -> do
+    True -> do
       -- noteFormat "StateStateStart" [pretty rr]
       (sfin,state) <- (flip runStateT) rr $
           return sp
@@ -78,13 +78,14 @@ reduceMain check rr = do
 doReductions :: Spec -> RR (Timed Spec)
 doReductions start =
     return (Continue start)
-    -- >>= con "tryRemoveConstraints" tryRemoveConstraints
-    -- >>= con "removeObjective"      removeObjective
-    -- >>= con "removeUnusedDomains"  removeUnusedDomains
+    >>= con "tryRemoveConstraints" tryRemoveConstraints
+    >>= con "removeObjective"      removeObjective
+    >>= con "removeUnusedDomains"  removeUnusedDomains
+    >>= con "removeConstraints"    removeConstraints
+    >>= con "removeUnusedDomains"  removeUnusedDomains
     >>= con "simplyDomains"        simplyDomains
-    -- >>= con "removeConstraints"    removeConstraints
-    -- >>= con "simplyConstraints"    simplyConstraints
-    -- >>= con "loopToFixed"          loopToFixed
+    >>= con "simplyConstraints"    simplyConstraints
+    >>= con "loopToFixed"          loopToFixed
 
 con :: forall (m :: * -> *) a . (MonadIO m, Pretty a)
     => Doc
@@ -107,11 +108,10 @@ loopToFixed :: Spec -> RR (Timed Spec)
 loopToFixed start = do
   noteFormat ("@" <+> "loopToFixed") []
   res <-  return (Continue start)
-      >>= con "tryRemoveConstraints" tryRemoveConstraints
       >>= con "removeObjective"      removeObjective
+      >>= con "removeConstraints"    removeConstraints
       >>= con "removeUnusedDomains"  removeUnusedDomains
       >>= con "simplyDomains"        simplyDomains
-      >>= con "removeConstraints"    removeConstraints
       >>= con "simplyConstraints"    simplyConstraints
   case res of
     (NoTimeLeft end) -> return $ NoTimeLeft end
@@ -126,7 +126,6 @@ tryRemoveConstraints :: Spec -> RR (Timed Spec)
 tryRemoveConstraints sp@(Spec _ [] _ )  = return . Continue $ sp
 tryRemoveConstraints sp@(Spec ds _ obj) = do
   timedSpec (Spec ds [] obj) f (  fmap Continue . f )
-
 
   where
     f (Just r) = do
@@ -227,11 +226,8 @@ simplyDomains :: Spec -> RR (Timed Spec)
 simplyDomains sp@(Spec ds es obj) = do
   --FIXME assumes all finds
   domsToDo <- doDoms ( map (second domOfGF) . M.toList $ ds)
-  addLog "Got Domains" []
   liftIO $ putStrLn . show . prettyArr $ map prettyArr domsToDo
   fin <- process1 domsToDo
-  -- fin    <- process [ ( map (second domOfGF) . M.toList $ ds) ]
-  addLog "finished processing" []
 
   if (timedExtract fin) == [] then
       return $ Continue sp
@@ -247,17 +243,18 @@ simplyDomains sp@(Spec ds es obj) = do
   next esR = return $ map pickFirst esR
 
     where
-    pickFirst []    = error "pickfirst empty"
+    pickFirst []    = lineError $line ["pickfirst empty"]
     pickFirst [x]   = x
     pickFirst (x:_) = x
 
   doDoms :: [(Text,Domain () Expr)] -> RR [[(Text,Domain () Expr)]]
   doDoms [] = docError [ "No domains in reduce:simplyDomains" ]
   doDoms ((tx,x):xs) = do
-    rx <- runReduce sp x
-    rs <- mapM (\(t,y) -> do{ys <- runReduce sp y; pure $ (t,y) : map (t,) ys }) xs
+    rx <- runReduce sp x >>= return . ensureElem x
+    rs <- forM xs $ \(t,y) -> do
+            ys <- runReduce sp y >>= return . ensureElem y
+            pure $ map (t,) ys
     return $ map (tx,) rx : rs
-
 
   process1 :: [[(Text,Domain () Expr)]] -> RR (Timed [(Text,Domain () Expr)])
 
@@ -290,6 +287,9 @@ simplyDomains sp@(Spec ds es obj) = do
     timedSpec (Spec (toDoms fixed) es obj) f g
 
 
+ensureElem :: a -> [a] -> [a]
+ensureElem z []  = [z]
+ensureElem _ xs  = xs
 
 simplyConstraints :: Spec -> RR (Timed Spec)
 simplyConstraints sp@(Spec ds es obj) = do
@@ -354,7 +354,7 @@ simplyConstraints sp@(Spec ds es obj) = do
         return $ map pickFirst esR
 
         where
-        pickFirst []    = error "pickfirst empty"
+        pickFirst []    = lineError $line ["pickfirst empty"]
         pickFirst [x]   = x
         pickFirst (x:_) = x
 
