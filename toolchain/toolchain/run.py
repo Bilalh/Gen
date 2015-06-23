@@ -547,7 +547,7 @@ def hash_path(path):
     sha = hashlib.sha1()
     with path.open('rb') as f:
         sha.update(b"".join([ line for line in f.readlines()
-            if not line.startswith(b"###") ]  ))
+            if not (line.startswith(b"###") or line.startswith(b"+")  ) ]  ))
     return sha.hexdigest()
 
 def uniform_int(l, u):
