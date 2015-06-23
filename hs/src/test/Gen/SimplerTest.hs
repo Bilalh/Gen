@@ -94,6 +94,21 @@ tests = testGroup "simpler"
    , ([essencee| or([true/\false,true/\false])|], [essencee| or([true/\false,true/\false,true/\false])|] )
   ]
 
+  ,testGroup_lt_gt "Domains"
+   [
+     ([domainn| set of int |], [domainn| set (maxSize 2) of int |] )
+   , ([domainn| set (maxSize 2) of int |], [domainn| set (maxSize 2+1) of int |] )
+   , ([domainn| function int --> int |], [domainn| function (size 1) int --> int |] )
+   , ([domainn| function (maxSize 1) int --> int |], [domainn| function (minSize 1, maxSize 1) int --> int |] )
+   ]
+
+   ,testGroup "Domains eq"
+   [
+     eq_same  ([domainn| set of int |] :: Domain () Expr)
+   , eq_same  [domainn| set (maxSize 2+1) of int |]
+   , eq_same  ([domainn| function (maxSize 1) int --> int |] :: Domain () Expr)
+   ]
+
   ,testGroup "Expr_gen Same" $ do
      let q1_Exp = EVar $ Var "q1_Expr" (TypeMatrix TypeInt TypeInt)
      let q1_ExpM = EVar $ Var "q1_ExprM" (TypeInt)
@@ -128,11 +143,6 @@ tests = testGroup "simpler"
 
       ]
 
-
-   -- , te 1 $ do
-   --     let a = Single "l1"
-   --     let b = EVar (Var "l1" TypeInt)
-   --     [essencee|[ &b | &a : int(1..5, 0)] |]
 
   ,testGroup "QC"
   [
