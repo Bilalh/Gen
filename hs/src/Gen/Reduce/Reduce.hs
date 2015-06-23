@@ -22,7 +22,6 @@ reduceMain check rr = do
   sp_ <- readFromJSON fp
   -- Remove quantification
   sp <-  quanToComp sp_
-  -- groomPrint sp
   errOccurs <- case check of
                  False -> return (True, rr)
                  True -> (flip runStateT) rr (return sp
@@ -86,22 +85,6 @@ doReductions start =
     >>= con "simplyDomains"        simplyDomains
     >>= con "simplyConstraints"    simplyConstraints
     >>= con "loopToFixed"          loopToFixed
-
-con :: forall (m :: * -> *) a . (MonadIO m, Pretty a)
-    => Doc
-    -> (a -> m (Timed a))
-    -> Timed a -> m (Timed a)
-con tx _ (NoTimeLeft s) = do
-    noteFormat ("@" <+> tx <+> "Start/NoTimeLeft") []
-    return $ NoTimeLeft s
-
-con tx f (Continue s) = do
-    noteFormat ("@" <+> tx <+> "Start") []
-
-    newSp <- f s
-    noteFormat ("@" <+> tx <+> "End") [pretty newSp]
-
-    return newSp
 
 
 loopToFixed :: Spec -> RR (Timed Spec)
@@ -218,8 +201,6 @@ removeConstraints (Spec ds oes obj) = do
 
           g _ = process xs
 
-    -- process ts = error . show . prettyBrackets . vcat $ map (prettyBrackets .  vcat . map pretty) ts
-
 
 simplyDomains :: Spec -> RR (Timed Spec)
 simplyDomains sp@(Spec ds es obj) = do
@@ -238,15 +219,6 @@ simplyDomains sp@(Spec ds es obj) = do
     isGiven _        = False
   toDoms :: [(Text, Domain () Expr)] -> Domains
   toDoms vals = (M.fromList $ map (second Findd) vals) `M.union` givens
-
-  --  | Fix the next Domain
-  next :: [[(Text,Domain () Expr)]] -> RR [(Text,Domain () Expr)]
-  next esR = return $ map pickFirst esR
-
-    where
-    pickFirst []    = lineError $line ["pickfirst empty"]
-    pickFirst [x]   = x
-    pickFirst (x:_) = x
 
   doDoms :: [(Text,Domain () Expr)] -> RR [[(Text,Domain () Expr)]]
   doDoms [] = docError [ "No domains in reduce:simplyDomains" ]
@@ -287,86 +259,67 @@ simplyDomains sp@(Spec ds es obj) = do
 
     timedSpec (Spec (toDoms fixed) es obj) f g
 
-
-ensureElem :: a -> [a] -> [a]
-ensureElem z []  = [z]
-ensureElem _ xs  = xs
-
 simplyConstraints :: Spec -> RR (Timed Spec)
+simplyConstraints sp@(Spec _ [] _)    = return $ Continue $ sp
 simplyConstraints sp@(Spec ds es obj) = do
-    csToDo <- doConstraints es
-    addLog "Got Constraints" []
-    fin    <- process csToDo
-    addLog "finished processing" []
+  choices <- doConstraints es
+  fin     <- process1 choices
 
-    if (timedExtract fin) == [] then
-        let f (Just r) = do
-              recordResult r
-              return (Spec ds [] obj)
-            f _ = return $ Spec ds es obj
-        in
-        timedSpec (Spec ds [] obj)  f (fmap Continue . f)
-    else
-        return $ fmap (const $ Spec ds (timedExtract fin) obj) fin
+  if (timedExtract fin) == [] then
+      return $ Continue sp
+  else
+      return $ fmap (const $ Spec ds (timedExtract fin) obj) fin
 
-    where
-    process :: [[Expr]] -> RR (Timed [Expr])
+  where
 
-    -- cannot simply any futher
-    process xs | any (== []) xs = return . Continue $ []
+  doConstraints :: [Expr] -> RR [[Expr]]
+  doConstraints [] = docError [ "No constraints in reduce:simplyConstraints" ]
+  doConstraints (x:xs) = do
+    rx <- runReduce sp x >>= return . ensureElem x
+    rs <- forM xs $ \y -> do
+            ys <- runReduce sp y >>= return . ensureElem y
+            pure ys
+    return $ rx : rs
 
-    process xs | all (singleElem) xs = do
-        addLog "processsingleElem" []
-        let fix = map head xs
-        let f (Just r) = do
-              recordResult r
-              return fix
-            f _ = return []
-        timedSpec (Spec ds fix obj) f (fmap Continue . f)
+  process1 :: [[Expr]] -> RR (Timed [Expr])
 
-    process esR = do
-        addLog "process esR" []
-        fix <- choose esR
+  process1 []              = return . Continue $ []
+  process1 xs | (== []) xs = return . Continue $ []
 
-        let
-            f (Just r) = do
-              recordResult r
-              return fix
+  process1 xs | all (singleElem) xs = do
+    let fixed = map (headNote "process simplyDomains") xs
+    let f (Just r) = do
+            recordResult r
+            return fixed
+        f _ = return []
+    timedSpec (Spec ds fixed obj) f (fmap Continue . f)
 
-            f _  = return fix
+  process1 xs = do
+    fixed <- next xs
+    let
+      f (Just r) = do
+        recordResult r
+        return fixed
 
-            g (Just r) = do
-              recordResult r
-              innerToDo <- doConstraints fix
-              inner     <- process innerToDo
-              if (timedExtract inner) == [] then
-                  return $ fmap (const fix) inner
-              else
-                  return inner
+      f _  = return []
 
-            g _  = removeNext esR >>= process
+      g (Just r) = do
+        recordResult r
+        return $ Continue  $ fixed
 
-        timedSpec (Spec ds fix obj) f g
+      g _ = removeNext xs >>= process1
 
-    -- Fix the next constraint
-    choose :: [[Expr]] -> RR [Expr]
-    choose esR = do
-        addLog "choose esR" []
-        return $ map pickFirst esR
+    timedSpec (Spec ds fixed obj) f g
 
-        where
-        pickFirst []    = lineError $line ["pickfirst empty"]
-        pickFirst [x]   = x
-        pickFirst (x:_) = x
 
-    -- Keep the orginal exprs apart from the first
-    doConstraints :: [Expr] -> RR [[Expr]]
-    doConstraints [] = return [[]]
-    doConstraints (x:xs) = do
-        addLog "doConstraints xs" []
-        rx <- runReduce sp x
-        rs <- mapM (\y -> do { ys <- runReduce sp y; return $ y : ys } ) xs
-        return $ rx : rs
+--  | Fix the next Elem
+next :: [[x]] -> RR [x]
+next esR = return $ map pickFirst esR
+
+  where
+  pickFirst []    = lineError $line ["pickfirst empty"]
+  pickFirst [x]   = x
+  pickFirst (x:_) = x
 
 removeNext :: [[a]] -> RR [[a]]
 removeNext []                     = rrError "removeNext empty" []
@@ -378,11 +331,9 @@ removeNext ([x]:xs)    = ([x]:)  <$> removeNext xs
 removeNext ((_:fs):xs) = return $ fs:xs
 
 
-
-tailR :: [a] -> [a]
-tailR []     = error "tailR empty list"
-tailR [x]    = [x]
-tailR (_:xs) = xs
+ensureElem :: a -> [a] -> [a]
+ensureElem z []  = [z]
+ensureElem _ xs  = xs
 
 singleElem :: [a] -> Bool
 singleElem [_] = True
@@ -394,3 +345,21 @@ recordResult err = do
   modify $ \st -> st{ mostReduced_=Just err
                     , mostReducedChoices_=Just (choices err) }
   return ()
+
+
+-- |  Run the computation if there is time left
+con :: forall (m :: * -> *) a . (MonadIO m, Pretty a)
+    => Doc
+    -> (a -> m (Timed a))
+    -> Timed a -> m (Timed a)
+con tx _ (NoTimeLeft s) = do
+    noteFormat ("@" <+> tx <+> "Start/NoTimeLeft") []
+    return $ NoTimeLeft s
+
+con tx f (Continue s) = do
+    noteFormat ("@" <+> tx <+> "Start") []
+
+    newSp <- f s
+    noteFormat ("@" <+> tx <+> "End") [pretty newSp]
+
+    return newSp
