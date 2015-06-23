@@ -32,6 +32,9 @@ import Gen.Helpers.SizeOf             as X
 import Gen.Helpers.TypeOf             as X
 import Gen.Imports                    as X
 import Gen.IO.Formats                 as X
+import Gen.Reduce.Reduction           as X
+import Gen.Reduce.Simpler             as X
+
 
 import qualified Data.Map as M
 
