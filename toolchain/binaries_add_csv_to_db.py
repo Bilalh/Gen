@@ -22,9 +22,10 @@ args = parser.parse_args()
 exists_query = "SELECT ? in (Select filePath from Groups)"
 with sqlite3.connect(args.db) as conn:
 	if list(conn.execute(exists_query, (args.filePath,) ))[0][0] == 1:
-		print("Already added: {} ".format(args.filePath))
+		print("Skpping(Already added): {} ".format(args.filePath))
 		sys.exit(0)
-	
+
+print("Adding: {} ".format(args.filePath))
 
 
 versions_query = 'INSERT OR IGNORE  INTO Versions ( name, hash, commitDate, scm, id) VALUES(?,?,?,?, (SELECT IFNULL(MAX(id), 0) + 1 FROM Versions))'
