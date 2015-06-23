@@ -12,8 +12,10 @@ import Gen.Helpers.Log
 import Gen.Helpers.SizeOf
 import Gen.Helpers.TypeOf
 import Conjure.Language.TypeOf
+import Conjure.Language.Domain
 
 import qualified Data.Foldable as F
+import qualified Data.Text as T
 
 -- True if a1 is simpler then a2
 class (Pretty a, Eq a, Show a, Pretty b, Eq b, Show b
@@ -132,7 +134,71 @@ instance (DepthOf c, IntRange c, DepthOf d, IntRange d, Simpler c d)
 
 
 instance Simpler (Domain () Expr) (Domain () Expr) where
-    simplerImp a b = return $ compare (depthOf a) (depthOf b)
+  simplerImp a b =
+    case compare (depthOf a) (depthOf b) of
+      EQ -> case compare
+            (length [ x :: Domain () Expr | x <- universe a ])
+            (length [ x :: Domain () Expr | x <- universe b ]) of
+              EQ -> return $ compareSameDomain a b
+              x  -> return x
+
+      x  -> return x
+
+compareSameDomain :: Domain () Expr -> Domain () Expr -> Ordering
+compareSameDomain (DomainMatrix _ a2)        (DomainMatrix _ b2) =
+    compareSameDomain a2 b2
+
+compareSameDomain (DomainSet _ a2 a3)         (DomainSet _ b2 b3) =
+  case compare (attrCount a2) (attrCount b2) of
+    EQ -> compareSameDomain a3 b3
+    x  -> x
+
+compareSameDomain (DomainMSet _ a2 a3)        (DomainMSet _ b2 b3) =
+  case compare (attrCount a2) (attrCount b2) of
+    EQ -> compareSameDomain a3 b3
+    x  -> x
+
+compareSameDomain (DomainFunction _ a2 a3 a4) (DomainFunction _ b2 b3 b4) =
+  case compare (attrCount a2) (attrCount b2) of
+    EQ -> compareSameDomain (DomainTuple [a3,a4] ) (DomainTuple [b3,b4] )
+    x  -> x
+
+compareSameDomain (DomainSequence _ a2 a3)    (DomainSequence _ b2 b3) =
+  case compare (attrCount a2) (attrCount b2) of
+    EQ -> compareSameDomain a3 b3
+    x  -> x
+
+compareSameDomain (DomainRelation _ a2 a3)    (DomainRelation _ b2 b3) =
+  case compare (attrCount a2) (attrCount b2) of
+    EQ ->
+      let os = zipWith compareSameDomain a3 b3
+          la = length (filter (== LT) os)
+          lb = length (filter (== GT) os) in
+      if      la > lb then LT
+      else if lb > la then GT
+      else EQ
+    x  -> x
+
+compareSameDomain (DomainPartition _ a2 a3)   (DomainPartition _ b2 b3) =
+  case compare (attrCount a2) (attrCount b2) of
+    EQ -> compareSameDomain a3 b3
+    x  -> x
+
+compareSameDomain (DomainTuple a)             (DomainTuple b)  =
+  let os = zipWith compareSameDomain a b
+      la = length (filter (== LT) os)
+      lb = length (filter (== GT) os) in
+  if      la > lb then LT
+  else if lb > la then GT
+  else EQ
+
+compareSameDomain _ _ = EQ
+
+-- FIXME hackly way of counting the number of attrs
+attrCount :: Pretty a => a -> Int
+attrCount a = case T.split (==',') $  stringToText $ show $  pretty a of
+  [x] | T.null (T.strip x) -> 0
+  xs  -> length xs
 
 
 instance Simpler (Op Expr) (Op Expr) where
