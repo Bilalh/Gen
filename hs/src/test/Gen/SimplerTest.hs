@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, QuasiQuotes, UndecidableInstances #-}
+{-# LANGUAGE FlexibleInstances, QuasiQuotes, KindSignatures, UndecidableInstances #-}
 module Gen.SimplerTest ( tests ) where
 
 import Gen.AST.TH
@@ -248,3 +248,8 @@ runner f ee = do
 
 use_qc :: [Maybe a] -> [Maybe a]
 use_qc xs = xs
+
+reduceSimpler :: forall (m :: * -> *) a. Reduce a m => a -> m [a]
+reduceSimpler a = do
+    rr <- reduce a
+    return $ filter (\x -> runIdentity $ simpler1 x a) rr

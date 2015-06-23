@@ -13,7 +13,6 @@ import Gen.Reduce.Runner
 import Gen.Reduce.UnusedDomains
 
 import qualified Data.Map as M
-import qualified Text.PrettyPrint as Pr
 
 reduceMain :: Bool -> RState -> IO RState
 reduceMain check rr = do

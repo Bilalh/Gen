@@ -22,7 +22,7 @@ import Gen.Reduce.Simpler
 import qualified Data.Foldable                 as F
 import qualified Data.Generics.Uniplate.Zipper as Zipper
 import qualified Data.Traversable              as T
-import qualified  Text.PrettyPrint as Pr
+
 
 class (HasGen m,  HasLogger m,  Simpler a a) => Reduce a m where
     reduce   :: a -> m [a]    -- list of smaller exprs
@@ -38,11 +38,6 @@ class (HasGen m,  HasLogger m,  Simpler a a) => Reduce a m where
        -- e.g partitions/relation reducing the number of items in each part
 
     mutate  _ = return []
-
-    reduceSimpler :: a -> m [a]
-    reduceSimpler a = do
-        rr <- reduce a
-        return $ filter (\x -> runIdentity $ simpler1 x a) rr
 
     reduceChecks :: a -> [a] -> m [a]
     reduceChecks a rs = do
