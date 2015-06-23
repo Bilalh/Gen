@@ -35,8 +35,8 @@ timedSpec :: Spec
           -> (Maybe ErrData -> RR (Timed a))  -- Time left
           -> RR (Timed a)
 timedSpec sp f g= do
-    xdb <- getsDb
-    liftIO $ putStrLn $ "%DB:" ++ groom xdb
+    -- xdb <- getsDb
+    -- liftIO $ putStrLn $ "%DB:" ++ groom xdb
     startTime <- liftIO $ round `fmap` getPOSIXTime
     (res, cpuTimeUsed) <- runSpec sp
     endTime <- liftIO $ round `fmap` getPOSIXTime
