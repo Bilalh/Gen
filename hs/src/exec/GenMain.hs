@@ -133,7 +133,7 @@ mainWithArgs u@Essence{..} = do
   let errors = catMaybes $
         [ aerr "-p|--per-spec-time"     (per_spec_time == 0)
         , aerr "--domain-depth > 0"     (domain_depth <= 0)
-        , aerr "--expression-depth > 0" (expression_depth <= 0)
+        , aerr "--expression-depth >= 0" (expression_depth < 0)
         , aerr "--given and -t/--total-time can not be used together" (isJust given_dir && total_time /= 0)
         ]  ++ fileErr ++ ls
 
