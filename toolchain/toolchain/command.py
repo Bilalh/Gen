@@ -7,7 +7,7 @@ from enum import Enum, unique
 logger = logging.getLogger(__name__)
 
 
-
+# yapf: disable
 @unique
 class K(Enum):
     refineCompact = 0,
@@ -19,14 +19,14 @@ class K(Enum):
     validate      = 6,
     validateOld   = 7
     kindAny       = 8
-
+# yapf: enable
 
 class Commands(object):
     def __init__(self, *, refine_compact, refine_all, refine_random, refine_param,
                  savilerow, translate_up, validate):
         super(Commands, self).__init__()
         self.refine_compact = (K.refineCompact, refine_compact)
-        self.refine_all=(K.refineAll, refine_all)
+        self.refine_all = (K.refineAll, refine_all)
         self.refine_random = (K.refineRandom, refine_random)
         self.refine_param = (K.refineParam, refine_param)
         self.savilerow = (K.savilerow, savilerow)
@@ -35,54 +35,50 @@ class Commands(object):
 
     def kind_to_template(self, kind):
         d = {
-        K.refineCompact: self.refine_compact,
-        K.refineAll: self.refine_all,
-        K.refineRandom: self.refine_random,
-        K.refineParam: self.refine_param,
-        K.savilerow: self.savilerow,
-        K.translateUp: self.translate_up,
-        K.validate: self.validate,
+            K.refineCompact: self.refine_compact,
+            K.refineAll: self.refine_all,
+            K.refineRandom: self.refine_random,
+            K.refineParam: self.refine_param,
+            K.savilerow: self.savilerow,
+            K.translateUp: self.translate_up,
+            K.validate: self.validate,
         }
 
         if kind in d:
             return d[kind]
         else:
-            print("%s not a vaild kind" % d )
+            print("%s not a vaild kind" % d)
             sys.exit(6)
 
     def refine_log_follow(self, kind):
         raise NotImplementedError()
 
 
-
 class ConjureOld(Commands):
     def __init__(self):
         super(ConjureOld, self).__init__(
-                refine_compact="""
+            refine_compact="""
                 conjureOld
                     --mode compact
                     --in-essence {essence}
                     --out-eprime {eprime}
                     --timelimit  {itimeout}
                 """,
-
-                refine_all="""
+            refine_all="""
                 conjureOld
                     --mode df
                     --in-essence       {essence}
                     --output-directory {outdir}
                     --timelimit        {itimeout}
                 """,
-
-                refine_random="""
+            refine_random="""
                 conjureOld
                     --mode random
                     --in-essence {essence}
                     --out-eprime {eprime}
                     --timelimit  {itimeout}
                 """,
-
-                refine_param="""
+            refine_param="""
                 conjureOld
                     --mode       refineParam
                     --in-essence       {essence}
@@ -91,8 +87,7 @@ class ConjureOld(Commands):
                     --out-eprime-param {eprime_param}
                     --timelimit        {itimeout}
                 """,
-
-                savilerow="""
+            savilerow="""
                 savilerow2.sh  -mode Normal
                     -in-eprime                   {eprime}
                     -in-param                    {eprime_param}
@@ -103,8 +98,7 @@ class ConjureOld(Commands):
                     -timelimit                   {mstimeout}
                     -solver-options '-timelimit {itimeout}'
                 """,
-
-                translate_up="""
+            translate_up="""
                 conjureOld
                     --mode translateSolution
                     --in-essence            {essence}
@@ -115,25 +109,21 @@ class ConjureOld(Commands):
                     --in-eprime-param       {eprime_param}
                     --timelimit             {itimeout}
                 """,
-
-                validate="""
+            validate="""
                 conjureOld --mode validateSolution
                              --in-essence       {essence}
                              --in-solution      {essence_solution}
                              --in-param         {essence_param}
                              --timelimit        {itimeout}
-                """
-
-                )
-        self.sovlve_cmds=[self.refine_param, self.savilerow,
-                            self.translate_up, self.validate]
-
+                """)
+        self.sovlve_cmds = [self.refine_param, self.savilerow, self.translate_up,
+                            self.validate]
 
 
 class ConjureNew(Commands):
     def __init__(self):
         super(ConjureNew, self).__init__(
-                refine_compact="""
+            refine_compact="""
                 conjureNew {essence}
                     -q f -a c
                     --output-directory '{outdir}'
@@ -143,8 +133,7 @@ class ConjureNew(Commands):
                     --log-choices
                     --log-level=logfollow
                 """,
-
-                refine_all="""
+            refine_all="""
                 conjureNew             '{essence}'
                     -q f -a x
                     --output-directory '{outdir}'
@@ -153,8 +142,7 @@ class ConjureNew(Commands):
                     --log-choices
                     --log-level=logfollow
                 """,
-
-                refine_random="""
+            refine_random="""
                 conjureNew {essence}
                     -q f -a r
                     --output-directory '{outdir}'
@@ -164,15 +152,13 @@ class ConjureNew(Commands):
                     --log-choices
                     --log-level=logfollow
                 """,
-
-                refine_param="""
+            refine_param="""
                 conjureNew refine-param
                     --eprime        '{eprime}'
                     --essence-param '{essence_param}'
                     --eprime-param  '{eprime_param}'
                 """,
-
-                savilerow="""
+            savilerow="""
                 savilerow2.sh  -mode Normal
                     -in-eprime                   '{eprime}'
                     -in-param                    '{eprime_param}'
@@ -183,25 +169,21 @@ class ConjureNew(Commands):
                     -timelimit                   {mstimeout}
                     -solver-options '-timelimit {itimeout}'
                 """,
-
-                translate_up="""
+            translate_up="""
                 conjureNew translate-solution
                     --eprime           '{eprime}'
                     --essence-param    '{essence_param}'
                     --eprime-solution  '{eprime_solution}'
                     --essence-solution '{essence_solution}'
                 """,
-
-                validate="""
+            validate="""
                 conjureNew validate-solution
                              --essence      '{essence}'
                              --param        '{essence_param}'
                              --solution     '{essence_solution}'
-                """
-                )
+                """)
 
-
-        log_follow_template="""
+        log_follow_template = """
                 conjureNew             '{essence}'
                     -q f -a l
                     --output-directory '{outdir}'
@@ -212,9 +194,7 @@ class ConjureNew(Commands):
                     --choices {saved_choices}
                 """
 
-        self.sovlve_cmds=[self.refine_param, self.savilerow, self.translate_up,
+        self.sovlve_cmds = [self.refine_param, self.savilerow, self.translate_up,
                             self.validate]
 
         self.log_follow = (K.refineRandom, log_follow_template)
-
-

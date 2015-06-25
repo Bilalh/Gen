@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 
 
 def sha1_file(filepath):
+    """ Return the sha1 of a Path """
     with filepath.open('rb') as f:
         return hashlib.sha1(f.read()).hexdigest()
 
