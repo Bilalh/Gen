@@ -129,6 +129,7 @@ Library
                      , Gen.Helpers.SizeOf
                      , Gen.Helpers.TypeOf
                      , Gen.Imports
+                     , Gen.IO.Dups
                      , Gen.IO.Formats
                      , Gen.IO.RunResult
                      , Gen.IO.Term
@@ -178,6 +179,8 @@ Library
                      , unordered-containers
                      , safe
                      , neat-interpolation
+                     , pureMD5
+
 
     if impl(ghc < 7.10)
         build-depends: unix==2.7.0.1
