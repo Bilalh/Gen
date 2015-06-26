@@ -370,9 +370,10 @@ instance (HasGen m,  HasLogger m) => Reduce (Domain () Expr) m where
     inn <- single x3  >>= pure . map unEDom
     return [ EDom $ DomainSet () def a | a <- take 2 $ inn ]
 
-  single (DomainMSet _ _ x3) = do
+  -- TODO single MSet attrs
+  single (DomainMSet _ attrs x3) = do
     inn <- single x3  >>= pure . map unEDom
-    return [ EDom $ DomainMSet () def a | a <- take 2 $ inn ]
+    return $ [ EDom $ DomainMSet () attrs a | a <- take 2 $ inn ]
 
   single (DomainPartition _ _ x3) = do
     inn <- single x3  >>= pure . map unEDom
