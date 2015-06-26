@@ -130,9 +130,7 @@ doSizeAttr allowNone = do
         , ( need, (K_SizeAttr_MinMaxSize,  (uncurry SizeAttr_MinMaxSize ) <$> minMax ))
         ]
         else
-        [ ( none, (K_SizeAttr_None,    pure SizeAttr_None))
-        , ( need, (K_SizeAttr_Size,    SizeAttr_Size <$> give (GType TypeInt)))
-        , ( need, (K_SizeAttr_MinSize, SizeAttr_MinSize <$> give (GType TypeInt)))
+        [ ( need, (K_SizeAttr_Size,    SizeAttr_Size <$> give (GType TypeInt)))
         , ( need, (K_SizeAttr_MaxSize, SizeAttr_MaxSize <$> give (GType TypeInt)))
         , ( need, (K_SizeAttr_MinMaxSize,  (uncurry SizeAttr_MinMaxSize ) <$> minMax ))
         ]
