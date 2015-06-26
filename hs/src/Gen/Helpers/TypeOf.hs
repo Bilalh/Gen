@@ -23,7 +23,7 @@ instance TTypeOf Var  where
 instance TTypeOf GF  where
   ttypeOf = return . typeOfDom . domOfGF
 
-instance TTypeOf (Domain () Expr)  where
+instance (TTypeOf a, Pretty a, Show a, TypeOf a) => TTypeOf (Domain () a)  where
   ttypeOf = return . typeOfDom
 
 instance TTypeOf Constant  where
@@ -54,7 +54,7 @@ instance TTypeOf Expr  where
 
 
 
-typeOfDom :: (Domain () Expr) ->Type
+typeOfDom :: (TypeOf a, Show a, Pretty a ) => (Domain () a) ->Type
 typeOfDom d = case typeOf d of
                 Left x -> error . show . vcat $
                           ["typeOfDom failed for", x, (pretty . groom) d, pretty d]

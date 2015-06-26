@@ -172,8 +172,9 @@ instance GetKey a => GetKey (Range a) where
   keyTree d@(RangeBounded x1 x2)  = KTree (defWeight d) (getKey d) ([keyTree x1, keyTree x2])
 
 
-instance GetKey a => GetKey (Domain () a) where
-  getKey x = fromString . show . toConstr $ x
+instance (GetKey a, TypeOf a, TTypeOf a) => GetKey (Domain () a) where
+  -- getKey x = fromString . show . toConstr $ x
+  getKey x = getKey . runIdentity . ttypeOf $ x
 
   keyTree d@DomainBool                  = KTree (defWeight d) (getKey d) ([])
   keyTree d@DomainIntEmpty              = KTree (defWeight d) (getKey d) ([])
