@@ -3,9 +3,6 @@
 set -o errexit
 set -o nounset
 
-OUR_DIR="$( cd "$( dirname "$0" )" && pwd )"
-
-
 export CORES=${CORES:-0}
 export OPTIMISATION=${OPTIMISATION:-"-O1"}
 export LLVM=${LLVM:-"llvm-off"}
@@ -37,18 +34,18 @@ echo "USE_CORES       : ${USE_CORES}"
 echo "OPTIMISATION    : ${OPTIMISATION}"
 echo "LLVM            : ${LLVM}"
 echo "BIN_DIR         : ${BIN_DIR}"
-echo "CONJURE_LIB"    : ${CONJURE_LIB}
+echo "CONJURE_LIB     : ${CONJURE_LIB}"
 echo "BUILD_TESTS     : ${BUILD_TESTS}"
 echo "RUN_TESTS       : ${RUN_TESTS}"
 
-if [ $LLVM = "llvm-on" ]; then
+if [ "$LLVM" = "llvm-on" ]; then
     LLVM='--ghc-options="-fllvm"'
 else
     LLVM=""
 fi
 
 
-if [ $BUILD_TESTS = "yes" ]; then
+if [ "$BUILD_TESTS" = "yes" ]; then
     TESTS="--enable-tests"
 else
     TESTS=""
@@ -66,7 +63,7 @@ else
     echo "Initialising cabal sandbox."
     cabal sandbox init
 	cabal update
-    cabal sandbox add-source $CONJURE_LIB
+    cabal sandbox add-source "$CONJURE_LIB"
 fi
 
 # install finally
@@ -91,8 +88,8 @@ cabal configure         \
 cabal build -j"${USE_CORES}" "$@"
 cabal copy                                  # install in ${BIN_DIR}
 
-if [ $RUN_TESTS = "yes" ]; then
-    time dist/build/gen-testing/gen-testing --color always --hide-successes -j ${TEST_CORES:-4} +RTS -s
+if [ "$RUN_TESTS" = "yes" ]; then
+    time dist/build/gen-testing/gen-testing --color always --hide-successes -j "${TEST_CORES:-${USE_CORES:-1}}" --quickcheck-tests "${QC_NUM:-100}"  +RTS -s
 fi
 
 pushd "${BIN_DIR}"
