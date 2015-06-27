@@ -1,5 +1,5 @@
 {-# LANGUAGE TupleSections, DeriveGeneric #-}
-module Gen.IO.Dups(solveDups,Dup(..)) where
+module Gen.IO.Dups(solveDups,deleteDups, Dup(..)) where
 
 import Gen.Imports
 import Data.Digest.Pure.MD5
@@ -23,11 +23,15 @@ data Dup = SolveDup{
 instance Pretty Dup where
     pretty = pretty . show
 
+deleteDups :: MonadIO m => [Dup] -> m ()
+deleteDups = liftIO . mapM_ ( removeDirectoryRecursive . dupPath)
+
 -- | Given a set of dirs return the duplicates
 solveDups :: (MonadIO m, Functor m) => [Directory] -> m [Dup]
 solveDups dirs = do
   hashes <- mapM (\d -> ( (d,) <$>) <$> makeData d) dirs >>= return . catMaybes
   process (M.empty) hashes
+
 
 process :: (MonadIO m, Functor m) => Map DirData Directory -> [(Directory,DirData)] -> m [Dup]
 process _ []              = return []
