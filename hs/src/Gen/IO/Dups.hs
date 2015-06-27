@@ -103,15 +103,35 @@ hashFileStrict :: FilePath -> IO MD5Digest
 hashFileStrict fp = do
  content <- C.readFile fp
  let slns = C.concat $ [ x | x <- C.lines content
+                        -- run infomation
                         , not $ "###" `C.isPrefixOf` x
+                        -- bash debuging
                         , not $ "+"   `C.isPrefixOf` x
+                        -- eprime choices
                         , not $ "$"   `C.isPrefixOf` x
+                        -- Conjure/SR Info
                         , not $ "Created information file" `C.isPrefixOf` x
                         , not $ "Created output file" `C.isPrefixOf` x
                         , not $ "Created solution file" `C.isPrefixOf` x
+                        , not $ "Running with a timelimit of" `C.isPrefixOf` x
+                        -- Filepaths
                         , not $ "    /home/bh246/" `C.isPrefixOf` x
                         , not $ "    /home/bilal/" `C.isPrefixOf` x
                         , not $ "    /home/ozgur/" `C.isPrefixOf` x
                         , not $ "    /Users/bilalh/" `C.isPrefixOf` x
+                        -- for old versions
+                        , not $ "conjureNew " `C.isPrefixOf` x
+                        , not $ "conjureNew: " `C.isPrefixOf` x
+                        -- for very old versions
+                        , not $ "time conjureNew " `C.isPrefixOf` x
+                        , not $ "time savilerow " `C.isPrefixOf` x
+                        -- for very^2 old versions
+                        , not $ "real\t" `C.isPrefixOf` x
+                        , not $ "user\t" `C.isPrefixOf` x
+                        , not $ "sys\t" `C.isPrefixOf` x
+                        , not $ "%CPU (" `C.isInfixOf` x
+                        , not $ "% cpu" `C.isInfixOf` x
+                        , not $ "maxresident)" `C.isInfixOf` x
+                        , not $ "pagefaults " `C.isInfixOf` x
                         ]
  return $ hash' slns
