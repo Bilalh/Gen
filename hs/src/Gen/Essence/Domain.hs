@@ -216,7 +216,7 @@ instance Generate JectivityAttr where
 instance (Generate a, GenInfo a, EvalToInt a) => Generate (RelationAttr a) where
   give GNone         = withKey K_RelationAttr $ RelationAttr
                          <$> give (GNone) <*> give (GNone)
-  give GBinRel       = withKey K_RelationAttr $RelationAttr
+  give GBinRel       = withKey K_RelationAttr $ RelationAttr
                          <$> give (GNone) <*> give (GBinRel)
   give t             = giveUnmatched "Generate (RelationAttr a)" t
   possiblePure _ _ _ = True
