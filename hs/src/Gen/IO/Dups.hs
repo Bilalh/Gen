@@ -76,8 +76,13 @@ hashFileStrict fp = do
  let slns = C.concat $ [ x | x <- C.lines content
                         , not $ "###" `C.isPrefixOf` x
                         , not $ "+"   `C.isPrefixOf` x
+                        , not $ "$"   `C.isPrefixOf` x
                         , not $ "Created information file" `C.isPrefixOf` x
                         , not $ "Created output file" `C.isPrefixOf` x
                         , not $ "Created solution file" `C.isPrefixOf` x
+                        , not $ "    /home/bh246/" `C.isPrefixOf` x
+                        , not $ "    /home/bilal/" `C.isPrefixOf` x
+                        , not $ "    /home/ozgur/" `C.isPrefixOf` x
+                        , not $ "    /Users/bilalh/" `C.isPrefixOf` x
                         ]
  return $ hash' slns
