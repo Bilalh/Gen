@@ -9,6 +9,7 @@ import Conjure.Prelude                  (padRight,def)
 import Control.Applicative              ((<$>))
 import Control.Exception                (IOException, catch)
 import Data.Data
+import Data.Hashable
 import Data.List                        (intercalate, sort)
 import NeatInterpolation
 import Prelude
@@ -56,14 +57,25 @@ main = do
   ls <- getNames
   -- Don't why there are some dups in getNames
   let names = nub2 $ sort $ concat $ ls : dataNames
+  let opNames = [  drop 2 s
+                | s <- strs (error "OP" :: Op Constant )
+                , s /= "Op"
+                ]
+
+
 
   let keys         = [ "K_" ++ n | n <- names ]
       keys_data    = intercalate "\n| " keys
-      key_isString = concat
-                            [ let a = padRight 25 ' ' ("\"" ++ n ++ "\"")
-                              in [string| fromString $a = K_$n |]
-                            | n <- "Unused" : names ]
-  let res = key_templete keys_data key_isString
+      key_isString = [ let a = padRight 27 ' ' ("\"" ++ n ++ "\"")
+                       in [string| fromString $a = K_$n |]
+                     | n <-  "Unused" : names  ] ++
+                     [ let a = padRight 27 ' ' ("\"Mk" ++ n ++ "\"")
+                       in [string| fromString $a = K_$n |]
+                     | n <-  opNames  ]
+
+
+
+  let res = key_templete keys_data  (concat . sort $ key_isString)
   writeOut "src/Gen/Essence/Data/key.hs" res
 
 
@@ -71,7 +83,7 @@ writeOut :: FilePath -> String -> IO ()
 writeOut outFile outText= do
   outText' <- catch (Just <$> readFile outFile)
                     (\ (_ :: IOException) -> return Nothing )
-  if and [ Just (length outText) /= (length <$> outText')
+  if and [ Just (hash outText) /= (hash <$> outText')
          , Just outText /= outText'
          ]
       then do
