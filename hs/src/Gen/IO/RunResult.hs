@@ -189,7 +189,7 @@ writeDB_ onlyPassing (Just dir)
 
   where
     f _ (OurError (ErrData{..})) = do
-      liftIO $ putStrLn ""
+      -- liftIO $ putStrLn ""
       let newDir = takeBaseName specDir
       copyDirectory specDir (dir </> newDir)
       let newChoices = replaceDirectory choices newDir
