@@ -118,6 +118,7 @@ data UI
   | Weights
     { default_weights  :: Bool
     , all_weights      :: Bool
+    , eprime_like      :: Bool
     , by_type          :: Maybe Int
     , output_directory :: Maybe FilePath
 
@@ -567,6 +568,10 @@ ui  = modes
      , all_weights      = False &= name "all-weights"
                                 &= groupname "Weights"
                                 &= help "Output the all weighting"
+                                &= explicit
+     , eprime_like      = False &= name "eprimeish"
+                                &= groupname "Weights"
+                                &= help "Output a weighting file for eprime like specs"
                                 &= explicit
      , by_type          = def   &= name "by-type"
                                 &= groupname "Weights"

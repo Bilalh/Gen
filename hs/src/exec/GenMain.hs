@@ -386,6 +386,7 @@ mainWithArgs Weights{..} = do
       save $ (Weights.byType i)
 
   when default_weights $ save Weights.defaults
+  when eprime_like     $ save Weights.eprimeish
   when all_weights     $ save Weights.every
 
 
