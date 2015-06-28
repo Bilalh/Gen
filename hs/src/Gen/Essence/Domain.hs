@@ -44,12 +44,14 @@ instance (Generate a, GenInfo a, EvalToInt a) => Generate (Domain () a) where
                                                                      <*> dgive (GType t)
 
 
-    give1 (GType (TypeRelation t@[a,b])) | a ==b = do
+    give1 ty@(GType (TypeRelation t@[a,b])) | a ==b = do
      elements3 [True, False] >>= \case
        False -> DomainRelation <$> pure () <*> dgive GNone <*> mapM (dgive <$> GType) t
        True -> do
          dom <- dgive (GType a)
-         DomainRelation <$> pure () <*> dgive GBinRel <*> pure [dom,dom]
+         res <- DomainRelation <$> pure () <*> dgive GBinRel <*> pure [dom,dom]
+         logInfo2 $line ["Binary Relation", nn "ty" ty, nn "dom" dom, nn "res" res ]
+         return res
 
 
     give1 (GType (TypeRelation t)) = DomainRelation <$>  pure ()
