@@ -6,10 +6,10 @@
 
 -- A file which is only loaded when doing `make ghci`
 -- To saving typing imports and storing temp defs
-
+-- Usage:  make ghci    import Gen.ZGHCI
 module Gen.ZGHCI(module X
   , d_boolrel, d_bool_func_set
-  , aSpec, aExpr, aType, aDom
+  , aSpec, aExpr, aType, aDom, aBinRel
   ) where
 
 import Conjure.Language.Definition    as X
@@ -38,7 +38,8 @@ import Gen.Reduce.Simpler             as X
 
 import qualified Data.Map as M
 
--- Gives various types
+-- Gives various expressions
+-- Usage <func>  def{depth=<n>}
 
 aSpec :: St -> IO Spec
 aSpec st = do
@@ -57,6 +58,12 @@ aType :: St -> IO Type
 aType st = do
   runGenerate2 LogNone (give GNone) st
 
+
+aBinRel :: St -> IO (Domain () Expr)
+aBinRel st = do
+  ty <- runGenerate2 LogNone (dgive GNone) st
+  let rel_ty = TypeRelation [ty,ty]
+  runGenerate2 LogNone (give $ GType rel_ty) st
 
 
 --Debugging
