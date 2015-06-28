@@ -56,7 +56,7 @@ import Data.Data                   hiding (Proxy)
 import Data.Map                    (Map)
 import Gen.Essence.Data.Key        as X
 import Gen.Essence.Id              as X (GetKey (..))
-import Gen.Essence.Log             ()
+import Gen.Essence.Log
 import Gen.Helpers.Log
 import Gen.Helpers.TypeOf
 import Gen.Imports
@@ -110,8 +110,7 @@ class (Data a, Pretty a) => Generate a where
 
 
 
--- type GenSt a = StateT St Gen a
-type GenSt a = StateT St (WriterT [(LogLevel, Doc)] Gen) a
+type GenSt a = StateT St (LogT Gen) a
 
 data St = St{
       weighting  :: KeyMap
@@ -362,7 +361,7 @@ runGenerate allowed  f st  = do
   let s = (flip evalStateT ) st ( logInfo ("√Starting with depth" <+> pretty (depth st) )
                                   >> f
                                   >>= \g -> do {logInfo "πEnding"; return g})
-  let w = runWriterT s
+  let w = runLogT2 s
   (res,logs) <- generate w
 
   let ls =  [ msg | (lvl, msg) <- logs , lvl <= allowed ]
@@ -371,12 +370,12 @@ runGenerate allowed  f st  = do
 runGenerateWithLogs :: Generate a => GenerateConstraint -> St -> Gen (a,[(LogLevel,Doc)])
 runGenerateWithLogs con st = do
   let s = (flip evalStateT ) st (logInfo ("√Starting with State" <+> pretty st) >> give con)
-  runWriterT s
+  runLogT2 s
 
 runGenerateNullLogs :: Generate a => GenerateConstraint -> St -> Gen a
 runGenerateNullLogs con st = do
   let s = (flip evalStateT ) st (logInfo ("√Starting with State" <+> pretty st) >> give con)
-  fst <$> runWriterT s
+  fst <$> runLogT LogNone s
 
 ----------
 
