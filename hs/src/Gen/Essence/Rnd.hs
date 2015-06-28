@@ -7,7 +7,9 @@ import Test.QuickCheck             (choose,elements,choose)
 
 
 frequency3 :: [(Int, GenSt a)] -> GenSt a
-frequency3 [] = error "frequency3 used with empty list"
+frequency3 [] = nnError "frequency3 used with empty list" []
+frequency3 xs0 | all ( (== 0) . fst) xs0 =
+   nnError "frequency3 used with all zero weightings" []
 frequency3 xs0 = do
   freqError $line "frequency3" xs0
   choose3 (1, tot) >>= (`pick` xs0)
@@ -21,8 +23,10 @@ frequency3 xs0 = do
 
 
 elemFreq3 :: [(Int, a)] -> GenSt a
-elemFreq3 [] = error "frequency3 used with empty list"
-elemFreq3 xs0 =  choose3 (1, tot) >>= (`pick` (map (\(a,b) -> (a,pure b) ) xs0))
+elemFreq3 [] = nnError "frequency3 used with empty list" []
+elemFreq3 xs0 | all ( (== 0) . fst) xs0 =
+   nnError "elemFreq3 used with all zero weightings" []
+elemFreq3 xs0 = choose3 (1, tot) >>= (`pick` (map (\(a,b) -> (a,pure b) ) xs0))
  where
   tot = sum (map fst xs0)
 
