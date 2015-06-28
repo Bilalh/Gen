@@ -40,7 +40,8 @@ instance (Generate a, ExpressionLike a, EvalToInt a, GenInfo a) =>
           -> m (Bool, Key)
     check (f,(k,_)) = do
       res <- f con
-      return (res,k)
+      w <- weightingForKey k
+      return (res && w > 0,k)
 
 pickOp :: Pretty arg
        => arg -> [(arg -> GenSt Bool, (Key, v))]
@@ -48,6 +49,10 @@ pickOp :: Pretty arg
 pickOp con vs = do
   res <- mapM doPossibilities vs
   logWarn2 $line $ nn "con" con : map pretty [ (k,v) | (v,(k,_)) <- res]
+  when (null [ v | (v,(_,_)) <- res, v >0]) $
+    lineError $line $ "pickOp all weights using" <+> pretty con :
+              map pretty [ (k,v) | (v,(k,_)) <- res]
+
   return res
 
   where
