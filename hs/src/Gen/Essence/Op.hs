@@ -12,8 +12,10 @@ import Gen.Imports
 instance (Generate a, ExpressionLike a, EvalToInt a, GenInfo a) =>
     Generate (Op a) where
   give a = do
+    logDepthCon $line a
+    sanityn 1 "Trying Op with depth <1"
     (key,op) <- withDepthDec $ do
-                 gets depth >>= \d -> logInfo2 $line [nn "depth" d, "Picking Op"]
+                 gets depth >>= \d -> logInfo2 $line ["Picking the op", nn "depth" d]
                  elemFreq3 =<< pickOp a (allOps a)
     logInfo2 $line [nn "Picked" key]
     res <- withDepthDec $ do
@@ -40,10 +42,13 @@ instance (Generate a, ExpressionLike a, EvalToInt a, GenInfo a) =>
       res <- f con
       return (res,k)
 
-pickOp :: arg -> [(arg -> GenSt Bool, (Key, v))]
-              -> GenSt [(Int, (Key, v))]
+pickOp :: Pretty arg
+       => arg -> [(arg -> GenSt Bool, (Key, v))]
+       -> GenSt [(Int, (Key, v))]
 pickOp con vs = do
-  mapM doPossibilities vs
+  res <- mapM doPossibilities vs
+  logWarn2 $line $ nn "con" con : map pretty [ (k,v) | (v,(k,_)) <- res]
+  return res
 
   where
   doPossibilities (f,(k,v)) =
