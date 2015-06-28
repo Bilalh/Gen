@@ -132,7 +132,7 @@ mainWithArgs u@Essence{..} = do
 
   let errors = catMaybes $
         [ aerr "-p|--per-spec-time"     (per_spec_time == 0)
-        , aerr "--domain-depth > 0"     (domain_depth <= 0)
+        , aerr "--domain-depth > 0"     (domain_depth < 0)
         , aerr "--expression-depth >= 0" (expression_depth < 0)
         , aerr "--given and -t/--total-time can not be used together" (isJust given_dir && total_time /= 0)
         ]  ++ fileErr ++ ls
@@ -153,7 +153,7 @@ mainWithArgs u@Essence{..} = do
           Just fp -> do
             readFromJSON fp
 
-  let notUsefull =
+  let notUsefull = S.fromList $ (Savilerow_, NumberToLarge_) :
         [ (x,Timeout_)
         | x <- [ RefineCompact_, RefineAll_, RefineRandom_, RefineParam_] ]
 
@@ -173,7 +173,7 @@ mainWithArgs u@Essence{..} = do
                , binariesDirectory_ = binaries_directory
                , oldConjure_        = old_conjure
                , toolchainOutput_   = toolchain_ouput
-               , notUseful          = S.fromList $ (Savilerow_, NumberToLarge_) : notUsefull
+               , notUseful          = notUsefull
                , givenSpecs_        = givenSpecs
                , genType_           = _gen_type
                , reduceAsWell_      = reduce_as_well
