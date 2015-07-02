@@ -9,7 +9,7 @@
 -- Usage:  make ghci    import Gen.ZGHCI
 module Gen.ZGHCI(module X
   , d_boolrel, d_bool_func_set
-  , aSpec, aExpr, aType, aDom, aBinRel
+  , aSpec, aExpr, aType, aDom, aBinRel, aIntRanged
   ) where
 
 import Conjure.Language.Definition    as X
@@ -21,7 +21,9 @@ import Gen.Essence.Constant           as X ()
 import Gen.Essence.Domain             as X ()
 import Gen.Essence.Expr               as X ()
 import Gen.Essence.Id                 as X
+import Gen.Essence.Ints               as X
 import Gen.Essence.Literal            as X ()
+import Gen.Essence.Log                as X
 import Gen.Essence.Op                 as X ()
 import Gen.Essence.Range              as X ()
 import Gen.Essence.Rnd                as X
@@ -34,7 +36,6 @@ import Gen.Imports                    as X
 import Gen.IO.Formats                 as X
 import Gen.Reduce.Reduction           as X
 import Gen.Reduce.Simpler             as X
-
 
 import qualified Data.Map as M
 
@@ -65,6 +66,9 @@ aBinRel st = do
   let rel_ty = TypeRelation [ty,ty]
   runGenerate2 LogNone (give $ GType rel_ty) st
 
+aIntRanged :: St -> Integer -> Integer -> IO (IntRanged Expr)
+aIntRanged st a b = do
+  runGenerate2 LogNone (give $ GIntRanged a b) st
 
 --Debugging
 

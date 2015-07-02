@@ -11,8 +11,9 @@ import Gen.Essence.Type             ()
 import Gen.Imports
 
 class EvalToInt a where
-  evalToInt  :: a -> GenSt Integer
-  ensureGTE0 :: a -> GenSt a
+  evalToInt     :: a -> GenSt Integer
+  ensureGTE0    :: a -> GenSt a
+  adjustInRange :: a -> Integer -> Integer -> GenSt (a, Integer)
 
 
 instance EvalToInt Expr where
@@ -30,6 +31,25 @@ instance EvalToInt Expr where
         | otherwise  -> do
           let c = ECon $ ConstantInt (0 - i)
           return [essencee| &x + &c |]
+
+  adjustInRange a low high = do
+    i <- evalToInt a
+    if  i == (-99) then do
+        -- recordFailEval a
+        v <- choose3 (low,high)
+        return (ECon . ConstantInt $ v, v)
+    else
+      if i > high then do
+        moda <- choose3 (high - 1, high - 1  + ( high - low ))
+        let e = ECon . ConstantInt $ moda
+        return ([essencee| &a - &e |],  i - moda )
+      else if i < low  then do
+        moda <- choose3 (low - i,  low - i  +  ( high - low ) )
+        let e = ECon . ConstantInt $ moda
+        return ([essencee| &a + &e |], i + moda)
+      else
+        return (a, i)
+
 
 instance EvalToInt Expression where
   evalToInt x = case instantiateExpression [] x of
@@ -65,6 +85,22 @@ instance EvalToInt Expression where
           let c = Constant $ ConstantInt (0 - i)
           return $ x + c
 
+  adjustInRange a low high = do
+    i <- evalToInt a
+    if  i == (-99) then do
+        -- recordFailEval a
+        v <- choose3 (low,high)
+        return (Constant . ConstantInt $ v, v)
+    else
+      if i > high then do
+        moda <- choose3 (high - 1, high - 1  + ( high - low ))
+        return $ (a - (Constant . ConstantInt) moda,  i - moda )
+      else if i < low  then do
+        moda <- choose3 (low - i,  low - i  +  ( high - low ) )
+        return $ (a + (Constant . ConstantInt) moda,  i + moda )
+      else
+        return (a, i)
+
 
 instance EvalToInt Constant where
   evalToInt (ConstantInt x) = return  x
@@ -73,3 +109,14 @@ instance EvalToInt Constant where
   ensureGTE0 (ConstantInt x) | x < 0 = return $ ConstantInt 0
   ensureGTE0 c@ConstantInt{} = return c
   ensureGTE0 x = fail $ "Not a int" <+> pretty x
+
+  adjustInRange c@(ConstantInt a) low high = do
+    if a > high || a < low then do
+      v <- choose3 (low,high)
+      return (ConstantInt $ v, v)
+    else
+      return (c, a)
+
+  adjustInRange x low high = fail $ "Not a int" <+> pretty x
+                                 <+> nn "low"  low
+                                 <+> nn "high" high

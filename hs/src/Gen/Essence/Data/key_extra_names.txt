@@ -21,3 +21,4 @@ EGen
 PickObjective
 IntAsc
 Expr
+IntRanged

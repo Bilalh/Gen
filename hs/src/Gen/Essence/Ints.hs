@@ -18,14 +18,39 @@ import qualified Data.Set as S
 data IntAsc a = IntAsc a a
  deriving (Eq, Ord, Show, Data, Typeable, Generic)
 
+data IntRanged a = IntRanged a Integer
+ deriving (Eq, Ord, Show, Data, Typeable, Generic)
+
+
+instance Pretty a => Pretty (IntAsc a) where
+    pretty (IntAsc a b) = "IntAsc" <+> pretty a <+> pretty b
+
+instance Pretty a => Pretty (IntRanged a) where
+    pretty (IntRanged a val) = "IntRanged" <+> pretty a <+> pretty val
+
 
 instance GetKey a => GetKey (IntAsc a) where
   getKey _   = K_IntAsc
   keyTree d  = KTree (defWeight d) (getKey d) (map keyTree $ children d)
 
+instance GetKey a => GetKey (IntRanged a) where
+  getKey _   = K_IntRanged
+  keyTree d  = KTree (defWeight d) (getKey d) (map keyTree $ children d)
 
-instance Pretty a => Pretty (IntAsc a) where
-    pretty (IntAsc a b) = "IntAsc" <+> pretty a <+> pretty b
+
+instance  (EvalToInt a, Generate a, GenInfo a) => Generate (IntRanged a) where
+  give (GIntRanged low high) = do
+    d <-  gets depth
+    if d < 1 then do
+       v <- choose3 (low,high)
+       return $ IntRanged (wrapConstant . ConstantInt $ v) v
+    else withWeights [(K_EVar, 0), (K_LVar,0)] $ do
+       a :: a <- give (GType TypeInt)
+       uncurry IntRanged <$>  adjustInRange a low high
+
+
+  give t       = giveUnmatched "Generate IntRanged a" t
+  possible _ _ = return True
 
 instance  (EvalToInt a, Generate a, GenInfo a) => Generate (IntAsc a) where
     give GNone = do
@@ -57,7 +82,7 @@ instance  (EvalToInt a, Generate a, GenInfo a) => Generate (IntAsc a) where
            return $ IntAsc ma mb
 
 
-    give t       = giveUnmatched "Generate Var" t
+    give t       = giveUnmatched "IntAsc a" t
     possible _ _ = return True
 
 

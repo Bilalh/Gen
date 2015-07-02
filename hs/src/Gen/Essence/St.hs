@@ -151,6 +151,7 @@ data GenerateConstraint = GNone
        | GBinRel             -- For Relation Atrrs
        | GMsetAtrr           -- For Mset domain
        | GDomainDepth Int    -- For Spec, to specific a different depth for domains
+       | GIntRanged Integer Integer  -- for IntRanged
  deriving (Eq, Ord, Show, Data, Typeable, Generic)
 
 instance Pretty GenerateConstraint where
