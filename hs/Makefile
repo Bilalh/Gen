@@ -115,6 +115,7 @@ ghci:
 		-fwarn-unused-matches                      \
 		-Wall                                      \
 		-fghci-hist-size=500                       \
+		-fno-warn-type-defaults
 		${args}                                    \
 		${files}
 
