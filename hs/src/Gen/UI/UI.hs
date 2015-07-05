@@ -751,5 +751,5 @@ ui  = modes
 
 
   ] &= program "gen"
-    &= summary (unlines ["Gen v3.2",  "Git version: " ++ autoVersion])
+    &= summary (unlines ["Gen 0.9",  "Git version: " ++ autoVersion])
     &= helpArg [name "h"]
