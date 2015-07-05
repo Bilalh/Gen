@@ -27,6 +27,7 @@ tests = testGroup "GenerateOnly"
   ]
 
 
+
 data Limited a =  Limited a Int
     deriving (Eq)
 
