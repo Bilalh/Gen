@@ -19,7 +19,7 @@ import Data.Data
 import Gen.IO.Formats
 import Gen.IO.ToolchainData        as X
 import Gen.Imports
-import Paths_essence_gen           (getDataDir)
+import Paths_gen_essence           (getDataDir)
 import System.Directory            (copyFile)
 import System.Environment          (lookupEnv)
 import System.Exit                 (ExitCode, exitSuccess)

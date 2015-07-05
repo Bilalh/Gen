@@ -15,7 +15,7 @@ Library
     hs-source-dirs   : src
     --MODULES
     exposed-modules  : Build_autoversion
-                     , Paths_essence_gen
+                     , Paths_gen_essence
                      , Gen.Arbitrary.Arbitrary
                      , Gen.Arbitrary.Common
                      , Gen.Arbitrary.Data
