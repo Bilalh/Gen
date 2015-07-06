@@ -41,7 +41,8 @@ instance GetKey a => GetKey (IntRanged a) where
 instance  (EvalToInt a, Generate a, GenInfo a) => Generate (IntRanged a) where
   give (GIntRanged low high) = do
     d <-  gets depth
-    if d < 1 then do
+    -- 2 for because the expression may need to be adjusted
+    if d < 2 then do
        v <- choose3 (low,high)
        return $ IntRanged (wrapConstant . ConstantInt $ v) v
     else withWeights [(K_EVar, 0), (K_LVar,0)] $ do
