@@ -18,6 +18,7 @@ import qualified Data.Set as S
 data IntAsc a = IntAsc a a
  deriving (Eq, Ord, Show, Data, Typeable, Generic)
 
+-- | InRanged (wraped int) (int value)
 data IntRanged a = IntRanged a Integer
  deriving (Eq, Ord, Show, Data, Typeable, Generic)
 
