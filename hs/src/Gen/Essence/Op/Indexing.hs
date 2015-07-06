@@ -86,4 +86,4 @@ _oldTupleIndexing d inn= do
 
 
   OpIndexing <$> give (GType $ TypeTuple vs)
-            <*> pure c
+             <*> pure c
