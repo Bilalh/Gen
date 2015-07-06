@@ -5,7 +5,7 @@ mods = Dir["src/Gen/**/*.hs"].each do |g|
     g.sub!("src/", '').sub!(/.hs$/, '').gsub!('/', '.')
 end.delete_if { |e| e =~ /GHCI/ }
 
-cabal=File.read "essence-gen.cabal"
+cabal=File.read "gen-essence.cabal"
 cabal[/ +--MODULES.*--MODULES END\n/m]= <<-SHELL
     --MODULES
     exposed-modules  : Build_autoversion
@@ -14,4 +14,4 @@ cabal[/ +--MODULES.*--MODULES END\n/m]= <<-SHELL
     --MODULES END
     SHELL
 
-File.write "essence-gen.cabal", cabal
+File.write "gen-essence.cabal", cabal
