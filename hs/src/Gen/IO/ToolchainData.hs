@@ -112,6 +112,17 @@ data StatusI =
     | UnknownLexeme_
     | RuleApplication_
     | TypeError_
+    | EnumerateDomain_
+    | ParseErrorUndefined_
+    | ConjureUserError_
+    | ConjureShouldNeverHappen_
+    | NotAConstant_
+    | EmptyHandling_
+    | RefineUnreferencedVar_
+    | DomainUnion_
+    | OutOfBoundsIndexing_
+    | CategoryChecking_
+    | LogFollowing_
     | StatusAny_
     deriving (Show, Eq, Enum, Generic, Typeable, Data, Read, Ord)
 
