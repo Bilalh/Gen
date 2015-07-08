@@ -17,44 +17,51 @@ from textwrap import indent
 
 from .command import K
 
-
 logger = logging.getLogger(__name__)
 
 
 @unique
 class Status(Enum):
-    success          = 0,
-    errorUnknown     = 1,
-    timeout          = 2,
-    numberToLarge    = 3,
-    heapSpace        = 4,
-    cannotEvaluate   = 5,
-    valueNotInDom    = 6,
-    parseError       = 7,
-    typeChecking     = 8,
-    varDuplicated    = 9,
+    success = 0,
+    timeout = 1,
+    errorUnknown = 2,
+    numberToLarge = 3,
+    heapSpace = 4,
+    cannotEvaluate = 5,
+    valueNotInDom = 6,
+    parseError = 7,
+    typeChecking = 8,
+    varDuplicated = 9,
     negativeExponent = 10,
-    divideByZero     = 11,
-    conjureNA        = 12,
-    conjureInvalid   = 13,
-    statusAny        = 14,
-    javaException    = 15,
-    notAHomoType     = 16,
-    forgetRepr       = 17,
-    notRefined       = 18,
-    unknownLexeme    = 19,
-    ruleApplication  = 20
-    typeError        = 21
-
-
-
+    divideByZero = 11,
+    conjureNA = 12,
+    conjureInvalid = 13,
+    statusAny = 14,
+    javaException = 15,
+    notAHomoType = 16,
+    forgetRepr = 17,
+    notRefined = 18,
+    unknownLexeme = 19,
+    ruleApplication = 20,
+    typeError = 21,
+    enumerateDomain = 22,
+    parseErrorUndefined = 23,
+    conjureUserError = 24,
+    conjureShouldNeverHappen = 25,
+    notAConstant = 26,
+    emptyHandling = 27,
+    refineUnreferencedVar = 28,
+    domainUnion = 29,
+    outOfBoundsIndexing = 30,
+    categoryChecking = 31,
+    logFollowing = 32
 
 def run_refine_essence(*, op, commands, random, cores, extra_env):
     limit = op.timeout
     date_start = datetime.utcnow()
 
     mapping = dict(essence=op.essence, outdir=op.outdir)
-    mapping['itimeout']  = int(math.ceil(limit))
+    mapping['itimeout'] = int(math.ceil(limit))
     mapping['seed_base'] = uniform_int(0, 2 ** 24)
     mapping['saved_choices'] = op.choices
 
@@ -67,21 +74,18 @@ def run_refine_essence(*, op, commands, random, cores, extra_env):
         end = random + 1
 
     rnds = list(pool.map(rr, range(0, end)))
-    (results, outputs) =list(zip( *(  rnds ) ))
+    (results, outputs) = list(zip(*(rnds)))
 
     with (op.outdir / "_refine.outputs").open("w") as f:
-        f.write("\n".join(  [ "###" + arr + "\n" + output for (arr, output) in outputs ] ))
+        f.write("\n".join(["###" + arr + "\n" + output for (arr, output) in outputs]))
 
-    date_end=datetime.utcnow()
+    date_end = datetime.utcnow()
     diff = date_end - date_start
-
 
     results_unique = remove_refine_dups(results=results, outputs=outputs, op=op)
 
-
-    return (dict(results_unique.values()), sum( data['real_time']
-                for (_, data) in results  ) )
-
+    return (dict(results_unique.values()), sum(data['real_time']
+                                               for (_, data) in results))
 
 
 # global function for run_refine_essence
@@ -95,20 +99,22 @@ def run_refine(extra_env, commands, kwargs, i):
         eprime = kwargs['outdir'] / "model{:06}.eprime".format(i)
         (cmd_kind, cmd_template) = commands.refine_random
 
-    choices_json= eprime.with_suffix('.choices.json')
+    choices_json = eprime.with_suffix('.choices.json')
 
     seed = kwargs['seed_base'] + i
-    cmd_arr=shlex.split(cmd_template.format(eprime=eprime, index=i, seed=seed, **kwargs))
+    cmd_arr = shlex.split(cmd_template.format(eprime=eprime,
+                                              index=i,
+                                              seed=seed, **kwargs))
 
     # logger.warn("running %s:  %s\n\t%s", cmd_kind, cmd_arr, " ".join(cmd_arr))
     vals = dict(eprime=eprime, index=i, seed=seed, choices_json=choices_json, **kwargs)
-    (res, output) = run_with_timeout(kwargs['itimeout'], cmd_kind, cmd_arr, extra_env=extra_env, vals=vals)
+    (res, output) = run_with_timeout(kwargs['itimeout'], cmd_kind, cmd_arr,
+                                     extra_env=extra_env,
+                                     vals=vals)
 
     dic = res.__dict__
     dic.update(vals=vals)
-    return ((eprime.stem, dic), (" ".join(cmd_arr), output) )
-
-
+    return ((eprime.stem, dic), (" ".join(cmd_arr), output))
 
 
 def run_refine_essence_with_choices(*, op, commands, extra_env):
@@ -116,20 +122,21 @@ def run_refine_essence_with_choices(*, op, commands, extra_env):
     date_start = datetime.utcnow()
 
     mapping = dict(essence=op.essence, outdir=op.outdir)
-    mapping['itimeout']  = int(math.ceil(limit))
+    mapping['itimeout'] = int(math.ceil(limit))
     mapping['seed'] = uniform_int(0, 2 ** 24)
     mapping['saved_choices'] = op.choices
-    mapping['choices_json']  = op.outdir / 'follow.choices.json'
-
+    mapping['choices_json'] = op.outdir / 'follow.choices.json'
 
     (cmd_kind, cmd_template) = commands.log_follow
 
-    cmd_arr=shlex.split(cmd_template.format(**mapping))
+    cmd_arr = shlex.split(cmd_template.format(**mapping))
 
-    (res, output0) = run_with_timeout(mapping['itimeout'], cmd_kind, cmd_arr, extra_env=extra_env, vals=mapping)
+    (res, output0) = run_with_timeout(mapping['itimeout'], cmd_kind, cmd_arr,
+                                      extra_env=extra_env,
+                                      vals=mapping)
     output = "###" + " ".join(cmd_arr) + "\n" + output0
 
-    date_end=datetime.utcnow()
+    date_end = datetime.utcnow()
     diff = date_end - date_start
 
     with (op.outdir / "_refine.outputs").open("w") as f:
@@ -141,9 +148,10 @@ def run_refine_essence_with_choices(*, op, commands, extra_env):
     dic = res.__dict__
     dic.update(vals=mapping)
 
-    eprimes = [ ep.name for ep in op.outdir.glob('*.eprime') ]
-    return (dict(eprime_names=eprimes, choices_made=mapping['choices_json'],
-                     cmd_used=dic), res.real_time)
+    eprimes = [ep.name for ep in op.outdir.glob('*.eprime')]
+    return (dict(eprime_names=eprimes,
+                 choices_made=mapping['choices_json'],
+                 cmd_used=dic), res.real_time)
 
 
 def run_refine_all_essence(*, op, commands, extra_env):
@@ -151,20 +159,21 @@ def run_refine_all_essence(*, op, commands, extra_env):
     date_start = datetime.utcnow()
 
     mapping = dict(essence=op.essence, outdir=op.outdir)
-    mapping['itimeout']      = int(math.ceil(limit))
-    mapping['seed']          = uniform_int(0, 2 ** 24)
-    mapping['choices_json']  = op.outdir / 'all.choices.json'
-
+    mapping['itimeout'] = int(math.ceil(limit))
+    mapping['seed'] = uniform_int(0, 2 ** 24)
+    mapping['choices_json'] = op.outdir / 'all.choices.json'
 
     (cmd_kind, cmd_template) = commands.refine_all
 
-    cmd_arr=shlex.split(cmd_template.format(**mapping))
+    cmd_arr = shlex.split(cmd_template.format(**mapping))
 
     logger.warn("running %s:  %s\n\t%s", cmd_kind, cmd_arr, " ".join(cmd_arr))
-    (res, output0) = run_with_timeout(mapping['itimeout'], cmd_kind, cmd_arr, extra_env=extra_env, vals=mapping)
+    (res, output0) = run_with_timeout(mapping['itimeout'], cmd_kind, cmd_arr,
+                                      extra_env=extra_env,
+                                      vals=mapping)
     output = "###" + " ".join(cmd_arr) + "\n" + output0
 
-    date_end=datetime.utcnow()
+    date_end = datetime.utcnow()
     diff = date_end - date_start
 
     with (op.outdir / "_refine.outputs").open("w") as f:
@@ -175,29 +184,28 @@ def run_refine_all_essence(*, op, commands, extra_env):
 
     dic = res.__dict__
     dic.update(vals=mapping)
-    eprimes = [ ep.name for ep in op.outdir.glob('*.eprime') ]
-    return (dict(eprime_names=eprimes, choices_made=mapping['choices_json'],
-                     cmd_used=dic), res.real_time)
-
-
+    eprimes = [ep.name for ep in op.outdir.glob('*.eprime')]
+    return (dict(eprime_names=eprimes,
+                 choices_made=mapping['choices_json'],
+                 cmd_used=dic), res.real_time)
 
 
 def remove_refine_dups(*, results, outputs, op):
     results_unique = {}
-    refine_error_hashes=set()
+    refine_error_hashes = set()
 
-    exts = ['.eprime.logs', '.eprime.error', '.eprime-solution', '.solution',
-             '.output', '.eprime-param', '.refine-output', '.choices.json']
+    exts = ['.eprime.logs', '.eprime.error', '.eprime-solution', '.solution', '.output',
+            '.eprime-param', '.refine-output', '.choices.json']
 
     for (result, (_, output)) in zip(results, outputs):
         (eprime_name, _) = result
-        ep = (op.outdir/ eprime_name).with_suffix(".eprime")
+        ep = (op.outdir / eprime_name).with_suffix(".eprime")
         log = ep.with_suffix('.refine-output')
         with log.open('w') as f:
             f.write(output)
 
         if not ep.exists():
-            err_hash = hash_path( log )
+            err_hash = hash_path(log)
             if err_hash not in refine_error_hashes:
                 refine_error_hashes.add(err_hash)
                 results_unique[eprime_name] = result
@@ -209,12 +217,12 @@ def remove_refine_dups(*, results, outputs, op):
 
             continue
 
-        hf = hash_path( ep )
+        hf = hash_path(ep)
         if hf not in results_unique:
             results_unique[hf] = result
         else:
-            logger.warn("Removing eprime %s it a duplicate of %s",
-                    eprime_name, results_unique[hf][0] )
+            logger.warn("Removing eprime %s it a duplicate of %s", eprime_name,
+                        results_unique[hf][0])
             ep.unlink()
 
             for ext in exts:
@@ -223,26 +231,27 @@ def remove_refine_dups(*, results, outputs, op):
 
     return results_unique
 
+
 def run_solve(extra_env, op, commands, limit, eprime):
-    essence          = op.essence
-    essence_param    = op.param
-    eprime_param     = eprime.with_suffix(".eprime-param")
-    eprime_solution  = eprime.with_suffix(".eprime-solution")
-    eprime_info      = eprime.with_suffix(".eprime.info")
+    essence = op.essence
+    essence_param = op.param
+    eprime_param = eprime.with_suffix(".eprime-param")
+    eprime_solution = eprime.with_suffix(".eprime-solution")
+    eprime_info = eprime.with_suffix(".eprime.info")
     essence_solution = eprime.with_suffix(".solution")
-    minion           = eprime.with_suffix(".minion")
-    solve_log        = eprime.parent / "_solve.outputs"
+    minion = eprime.with_suffix(".minion")
+    solve_log = eprime.parent / "_solve.outputs"
 
     cmds = commands.sovlve_cmds
-    results=[]
-    outputs=[]
-    total_cpu_time=0
-    total_real_time=0
-    all_finished=True
-    solving_finished=False
+    results = []
+    outputs = []
+    total_cpu_time = 0
+    total_real_time = 0
+    all_finished = True
+    solving_finished = False
     erroed = None
-    last_status=Status.success
-    last_kind  = None
+    last_status = Status.success
+    last_kind = None
 
     for i, (cmd_kind, cmd_template) in enumerate(cmds):
 
@@ -252,11 +261,11 @@ def run_solve(extra_env, op, commands, limit, eprime):
 
         if limit <= 0:
             logger.warn("### NO_TIME_LEFT before cmd %s %s", cmd_kind, cmd_template)
-            all_finished=False
+            all_finished = False
             break
 
-        itimeout=int(math.ceil(limit))
-        mstimeout=itimeout * 1000
+        itimeout = int(math.ceil(limit))
+        mstimeout = itimeout * 1000
 
         if cmd_kind == K.savilerow:
             try:
@@ -269,19 +278,20 @@ def run_solve(extra_env, op, commands, limit, eprime):
             if '-minion-options <string>' in out:
                 cmd_template = cmd_template.replace('-solver-options', '-minion-options')
 
-        c=shlex.split(cmd_template.format(**locals()))
+        c = shlex.split(cmd_template.format(**locals()))
         vals = dict(essence=essence,
-                            essence_param=essence_param,
-                            essence_solution=essence_solution,
-                            eprime_solution=eprime_solution,
-                            eprime_info=eprime_info,
-                            eprime_param=eprime_param,
-                            eprime=eprime,
-                            minion=minion,
-                            itimeout=itimeout,
-                            mstimeout=mstimeout
-                    )
-        (res, output) = run_with_timeout(limit, cmd_kind, c, extra_env=extra_env, vals=vals)
+                    essence_param=essence_param,
+                    essence_solution=essence_solution,
+                    eprime_solution=eprime_solution,
+                    eprime_info=eprime_info,
+                    eprime_param=eprime_param,
+                    eprime=eprime,
+                    minion=minion,
+                    itimeout=itimeout,
+                    mstimeout=mstimeout)
+        (res, output) = run_with_timeout(limit, cmd_kind, c,
+                                         extra_env=extra_env,
+                                         vals=vals)
 
         dres = res.__dict__
         dres['vals'] = vals
@@ -297,35 +307,34 @@ def run_solve(extra_env, op, commands, limit, eprime):
         outputs.append(output)
 
         if res.status_ == Status.timeout:
-            logger.warn("###TIMEDOUT(%0.2f) for cmd \n%s\n%s", otimeout,
-                    " ".join(c), indent(output, " \t") )
-            all_finished=False
+            logger.warn("###TIMEDOUT(%0.2f) for cmd \n%s\n%s", otimeout, " ".join(c),
+                        indent(output, " \t"))
+            all_finished = False
             break
         elif res.status_ != Status.success:
-            logger.warn("###ERROR %s for cmd \n%s\n%s",
-                    res.status_, " ".join(c), indent(output, " \t") )
-            erroed=i
-            all_finished=False
+            logger.warn("###ERROR %s for cmd \n%s\n%s", res.status_, " ".join(c),
+                        indent(output, " \t"))
+            erroed = i
+            all_finished = False
             last_status = res.status_
-            last_kind   = cmd_kind
+            last_kind = cmd_kind
             break
         elif cmd_kind == K.translateUp:
-            solving_finished=True
+            solving_finished = True
 
         if cmd_kind == K.savilerow and not eprime_solution.exists():
             logger.info("No eprime solution")
-            solving_finished=True
+            solving_finished = True
             break
 
     ret = dict(results=results,
-            total_cpu_time=total_cpu_time,
-            total_real_time=total_real_time,
-            all_finished=all_finished,
-            solving_finished=solving_finished,
-            erroed=erroed,
-            last_status=last_status,
-            last_kind=last_kind)
-
+               total_cpu_time=total_cpu_time,
+               total_real_time=total_real_time,
+               all_finished=all_finished,
+               solving_finished=solving_finished,
+               erroed=erroed,
+               last_status=last_status,
+               last_kind=last_kind)
 
     with eprime.with_suffix(".output").open("w") as f:
         f.write("\n".join(outputs))
@@ -336,11 +345,14 @@ def run_solve(extra_env, op, commands, limit, eprime):
     return (eprime.stem, ret)
 
 
-
-
 def classify_error(*, kind, output, returncode):
-    kind_conjure = {K.refineAll, K.refineRandom, K.refineCompact, K.refineParam,
-                    K.translateUp, K.validate, K.validateOld}
+    kind_conjure = {
+        K.refineAll, K.refineRandom, K.refineCompact, K.refineParam, K.translateUp,
+        K.validate, K.validateOld
+    }
+
+    kind_refine = {K.refineAll, K.refineRandom, K.refineCompact, K.refineParam}
+
     if kind == K.savilerow:
         if "java.lang.NumberFormatException: For input string: " in output:
             return Status.numberToLarge
@@ -376,6 +388,19 @@ def classify_error(*, kind, output, returncode):
         if ': Invalid' in output:
             return Status.conjureInvalid
 
+    if kind == K.translateUp or kind == K.validate:
+        if 'Invalid' in output and 'Statement evaluates to' in output:
+            return Status.conjureInvalid
+
+        if 'Expecting a ' in output and 'literal' in output:
+            if '`' in output:
+                return Status.emptyHandling
+
+    if kind in kind_refine:
+        if 'conjureNew:' in output:
+            if 'Undefined: q' in output:
+                return Status.refineUnreferencedVar
+
     if kind in kind_conjure:
         if 'Shunting Yard failed' in output:
             return Status.parseError
@@ -399,19 +424,44 @@ def classify_error(*, kind, output, returncode):
             return Status.typeError
         if 'There were type errors' in output:
             return Status.typeChecking
+        if 'enumerateDomain: ' in output:
+            return Status.enumerateDomain
+        if 'Conjure is exiting due to user errors.' in output:
+            if 'expecting expression' in output:
+                if 'undefined' in output:
+                    return Status.parseErrorUndefined
+            return Status.conjureUserError
+        if 'This should never happen' in output:
+            if 'e2c, not a constant' in output:
+                return Status.notAConstant
+            if 'domainUnions' in ouput or 'Domain.domainUnion' in output:
+                return Status.domainUnion
+            return Status.conjureShouldNeverHappen
+        if 'conjureNew: Safe.atNote' in output:
+            return Status.outOfBoundsIndexing
+        if 'Category checking' in output:
+            return Status.categoryChecking
+        if 'getReprFromAnswer unErr' in output:
+            return Status.logFollowing:
 
     return Status.errorUnknown
+
 
 def run_with_timeout(timeout, kind, cmd, *, extra_env, vals):
     logging.warn("Running %s", " ".join(cmd))
 
     if kind == K.refineCompact or kind == K.refineRandom or kind == K.refineAll:
-        return run_conjure_with_choices(timeout, kind, cmd, extra_env=extra_env, vals=vals)
+        return run_conjure_with_choices(timeout, kind, cmd,
+                                        extra_env=extra_env,
+                                        vals=vals)
     else:
         return run_process(timeout, kind, cmd, extra_env=extra_env, vals=vals)
 
 
-Results = namedtuple("Results", "rcode cpu_time real_time timeout finished cmd status_ kind_")
+Results = namedtuple("Results",
+                     "rcode cpu_time real_time timeout finished cmd status_ kind_")
+
+
 def run_process(timeout, kind, cmd, *, extra_env, vals):
     code = 0
     finished = True
@@ -424,10 +474,12 @@ def run_process(timeout, kind, cmd, *, extra_env, vals):
             my_env = os.environ
             my_env.update(extra_env)
         else:
-            my_env=None
+            my_env = None
 
         output = subprocess.check_output(cmd,
-                stderr=subprocess.STDOUT, universal_newlines=True, env=my_env)
+                                         stderr=subprocess.STDOUT,
+                                         universal_newlines=True,
+                                         env=my_env)
     except subprocess.CalledProcessError as e:
         output = e.output
         code = e.returncode
@@ -438,40 +490,45 @@ def run_process(timeout, kind, cmd, *, extra_env, vals):
     end_usr = os.times().children_user
     end_sys = os.times().children_system
 
-    date_end=datetime.utcnow()
+    date_end = datetime.utcnow()
 
     diff = date_end - date_start
     cputime_taken = (end_usr - start_usr) + (end_sys - start_sys)
 
-
     # Might be simpler to run SR and minion our self
     if code == 0 and kind == K.savilerow:
         # Old SR returns zero sometimes on error
-        mayErr = classify_error(kind=kind,output=output,returncode=0)
+        mayErr = classify_error(kind=kind, output=output, returncode=0)
         if mayErr != Status.errorUnknown:
             finished = False
-            status=mayErr
+            status = mayErr
         else:
             with vals['eprime_info'].open() as f:
-                (sr_real, m_timeout, m_total)  = [ float(l.split(":")[1])
-                    for l in sorted(f.readlines()) if l.split(":")[0]
-                        in {"SavileRowTotalTime", "SolverTimeOut", "SolverTotalTime", "MinionTimeOut", "MinionTotalTime"}]
+                (sr_real, m_timeout, m_total) = [
+                    float(l.split(":")[1]) for l in sorted(f.readlines())
+                    if l.split(":")[0] in {
+                        "SavileRowTotalTime", "SolverTimeOut", "SolverTotalTime",
+                        "MinionTimeOut", "MinionTotalTime"
+                    }
+                ]
                 if int(m_timeout) == 1:
                     if cputime_taken == 0:  # Best we can do at this point
                         # because some killed processes don't return cputime
                         logger.warn("Adding %2.0f to cpu_taken(%2.0f) cpu timeout",
-                            m_total, cputime_taken)
+                                    m_total, cputime_taken)
                         cputime_taken += sr_real
-                    cputime_taken+=m_total
-                    finished=False
-                    status=Status.timeout
-
+                    cputime_taken += m_total
+                    finished = False
+                    status = Status.timeout
 
     return (Results(rcode=code,
-                  cpu_time=cputime_taken, real_time=diff.total_seconds(),
-                  timeout=timeout, finished=finished,
-                  cmd=cmd, status_=status, kind_=kind), output)
-
+                    cpu_time=cputime_taken,
+                    real_time=diff.total_seconds(),
+                    timeout=timeout,
+                    finished=finished,
+                    cmd=cmd,
+                    status_=status,
+                    kind_=kind), output)
 
 
 def run_conjure_with_choices(timeout, kind, cmd, *, extra_env, vals):
@@ -487,16 +544,20 @@ def run_conjure_with_choices(timeout, kind, cmd, *, extra_env, vals):
         my_env = os.environ
         my_env.update(extra_env)
     else:
-        my_env=None
+        my_env = None
 
     lines = []
-    saved_first_choice=False
+    saved_first_choice = False
 
     with vals['choices_json'].open('w') as choices:
         choices.write("[")
-        with subprocess.Popen(cmd, stdout=subprocess.PIPE, universal_newlines=True,
-                        env=my_env, stderr=subprocess.STDOUT, bufsize=1 ) as proc:
-            for line in iter( proc.stdout.readline, ''):
+        with subprocess.Popen(cmd,
+                              stdout=subprocess.PIPE,
+                              universal_newlines=True,
+                              env=my_env,
+                              stderr=subprocess.STDOUT,
+                              bufsize=1) as proc:
+            for line in iter(proc.stdout.readline, ''):
                 if line.startswith("LF:") and line.endswith(" END:\n"):
                     if saved_first_choice:
                         choices.write(",")
@@ -513,42 +574,44 @@ def run_conjure_with_choices(timeout, kind, cmd, *, extra_env, vals):
 
             code = proc.wait()
 
-
         choices.write("]")
-
 
     # does not work with Pool.map
     end_usr = os.times().children_user
     end_sys = os.times().children_system
 
-    date_end=datetime.utcnow()
+    date_end = datetime.utcnow()
 
     diff = date_end - date_start
     cputime_taken = (end_usr - start_usr) + (end_sys - start_sys)
 
     output = "".join(lines)
 
-
     if code != 0:
         finished = False
         status = classify_error(kind=kind, output=output, returncode=code)
 
     if "Timed out" in output:
-        status=Status.timeout
-        finished=False
+        status = Status.timeout
+        finished = False
 
     return (Results(rcode=code,
-                  cpu_time=cputime_taken, real_time=diff.total_seconds(),
-                  timeout=timeout, finished=finished,
-                  cmd=cmd, status_=status, kind_=kind), output)
+                    cpu_time=cputime_taken,
+                    real_time=diff.total_seconds(),
+                    timeout=timeout,
+                    finished=finished,
+                    cmd=cmd,
+                    status_=status,
+                    kind_=kind), output)
 
 
 def hash_path(path):
     sha = hashlib.sha1()
     with path.open('rb') as f:
-        sha.update(b"".join([ line for line in f.readlines()
-            if not (line.startswith(b"###") or line.startswith(b"+")  ) ]  ))
+        sha.update(b"".join([line for line in f.readlines()
+                             if not (line.startswith(b"###") or line.startswith(b"+"))]))
     return sha.hexdigest()
+
 
 def uniform_int(l, u):
     return math.ceil(random.uniform(l - 1, u))
