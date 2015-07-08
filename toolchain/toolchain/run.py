@@ -435,7 +435,7 @@ def classify_error(*, kind, output, returncode):
         if 'This should never happen' in output:
             if 'e2c, not a constant' in output:
                 return Status.notAConstant
-            if 'domainUnions' in ouput or 'Domain.domainUnion' in output:
+            if 'domainUnions' in output or 'Domain.domainUnion' in output:
                 return Status.domainUnion
             return Status.conjureShouldNeverHappen
         if 'conjureNew: Safe.atNote' in output:
