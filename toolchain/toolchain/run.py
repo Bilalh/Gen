@@ -56,6 +56,7 @@ class Status(Enum):
     categoryChecking = 31,
     logFollowing = 32
 
+
 def run_refine_essence(*, op, commands, random, cores, extra_env):
     limit = op.timeout
     date_start = datetime.utcnow()
@@ -442,7 +443,7 @@ def classify_error(*, kind, output, returncode):
         if 'Category checking' in output:
             return Status.categoryChecking
         if 'getReprFromAnswer unErr' in output:
-            return Status.logFollowing:
+            return Status.logFollowing
 
     return Status.errorUnknown
 
