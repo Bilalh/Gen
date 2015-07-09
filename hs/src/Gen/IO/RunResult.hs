@@ -117,7 +117,7 @@ storeInDB sp r = do
   putsDb ndb
 
   where
-    -- Store extra version to account for any statuses
+    -- Store extra version to account for any types
     doError kind status newHash m e =
       H.insertWith comp (newHash,kind,status) e
       $ H.insertWith comp (newHash,KindAny_,status) e
