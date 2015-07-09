@@ -153,9 +153,9 @@ mainWithArgs u@Essence{..} = do
           Just fp -> do
             readFromJSON fp
 
-  let notUsefull = S.fromList $ (Savilerow_, NumberToLarge_) :
+  let notUseful = S.fromList $ (Savilerow_, NumberToLarge_) : (KindAny_, NumberToLarge_) :
         [ (x,Timeout_)
-        | x <- [ RefineCompact_, RefineAll_, RefineRandom_, RefineParam_] ]
+        | x <- [ RefineCompact_, RefineAll_, RefineRandom_, RefineParam_, KindAny_] ]
 
   let config = EC.EssenceConfig
                { outputDirectory_ = out
@@ -173,7 +173,7 @@ mainWithArgs u@Essence{..} = do
                , binariesDirectory_ = binaries_directory
                , oldConjure_        = old_conjure
                , toolchainOutput_   = toolchain_ouput
-               , notUseful          = notUsefull
+               , notUseful          = notUseful
                , givenSpecs_        = givenSpecs
                , genType_           = _gen_type
                , reduceAsWell_      = reduce_as_well
