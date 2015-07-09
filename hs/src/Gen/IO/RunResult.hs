@@ -1,11 +1,12 @@
 {-# LANGUAGE DeriveDataTypeable, DeriveGeneric, ViewPatterns #-}
 module Gen.IO.RunResult where
 
-import Data.HashMap.Strict (HashMap)
+import Data.HashMap.Strict  (HashMap)
 import Gen.Imports
-import Gen.IO.Formats      (copyDirectory, writeToJSON,readFromJSONMay)
-import Gen.IO.Toolchain    (KindI, StatusI)
-import System.FilePath     (replaceDirectory, takeBaseName)
+import Gen.IO.Formats       (copyDirectory, readFromJSONMay, writeToJSON)
+import Gen.IO.Toolchain     (KindI, StatusI)
+import Gen.IO.ToolchainData (KindI (..), StatusI (..))
+import System.FilePath      (replaceDirectory, takeBaseName)
 
 import qualified Data.HashMap.Strict as H
 
@@ -108,14 +109,22 @@ storeInDB sp r = do
       return $ db{resultsPassing = Mapped $ H.insertWith max newHash t m}
 
     (e@(OurError ErrData{..}), ResultsDB{resultsErrors=Mapped m}) -> return $
-      db{resultsErrors = Mapped $ H.insertWith comp (newHash,kind,status) e m}
+      db{resultsErrors = Mapped $ doError kind status newHash m e }
 
     (e@(StoredError ErrData{..}), ResultsDB{resultsErrors=Mapped m}) -> return $
-      db{resultsErrors = Mapped $ H.insertWith comp (newHash,kind,status) e m}
+      db{resultsErrors = Mapped $ doError kind status newHash m e}
 
   putsDb ndb
 
   where
+    -- Store extra version to account for any statuses
+    doError kind status newHash m e =
+      H.insertWith comp (newHash,kind,status) e
+      $ H.insertWith comp (newHash,KindAny_,status) e
+      $ H.insertWith comp (newHash,kind,StatusAny_) e
+      $ H.insertWith comp (newHash,KindAny_,StatusAny_) e
+      $ m
+
     comp e1@(viewResultTime -> t1) e2@(viewResultTime -> t2) = if t1 > t2 then e1 else e2
 
 inDB :: (MonadDB m) => Spec -> m Bool
