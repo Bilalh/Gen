@@ -54,7 +54,8 @@ class Status(Enum):
     domainUnion = 29,
     outOfBoundsIndexing = 30,
     categoryChecking = 31,
-    logFollowing = 32
+    logFollowing = 32,
+    conjureOtherUserError = 33
 
 
 def run_refine_essence(*, op, commands, random, cores, extra_env):
@@ -427,6 +428,12 @@ def classify_error(*, kind, output, returncode):
             return Status.typeChecking
         if 'enumerateDomain: ' in output:
             return Status.enumerateDomain
+        if 'conjureNew: Safe.atNote' in output:
+            return Status.outOfBoundsIndexing
+        if 'Category checking' in output:
+            return Status.categoryChecking
+        if 'getReprFromAnswer unErr' in output:
+            return Status.logFollowing
         if 'Conjure is exiting due to user errors.' in output:
             if 'expecting expression' in output:
                 if 'undefined' in output:
@@ -438,12 +445,9 @@ def classify_error(*, kind, output, returncode):
             if 'domainUnions' in output or 'Domain.domainUnion' in output:
                 return Status.domainUnion
             return Status.conjureShouldNeverHappen
-        if 'conjureNew: Safe.atNote' in output:
-            return Status.outOfBoundsIndexing
-        if 'Category checking' in output:
-            return Status.categoryChecking
-        if 'getReprFromAnswer unErr' in output:
-            return Status.logFollowing
+        if 'conjureNew: user error'  in output:
+            return Status.conjureOtherUserError
+
 
     return Status.errorUnknown
 

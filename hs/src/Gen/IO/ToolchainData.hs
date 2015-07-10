@@ -123,6 +123,7 @@ data StatusI =
     | OutOfBoundsIndexing_
     | CategoryChecking_
     | LogFollowing_
+    | ConjureOtherUserError_
     | StatusAny_
     deriving (Show, Eq, Enum, Generic, Typeable, Data, Read, Ord)
 
