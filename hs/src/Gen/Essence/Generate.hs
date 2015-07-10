@@ -161,9 +161,10 @@ doCommon ec@EC.EssenceConfig{..} refineType = do
               mapM_ (\x -> storeInDB sp (OurError x)) rdata
               writeDB False
 
-              case reduceAsWell_ of
-                Nothing -> return ()
-                Just{}  -> do
+              case (rdata,reduceAsWell_) of
+                (_, Nothing) -> return ()
+                ([], _)      -> return ()
+                (_, Just{})  -> do
                   liftIO $ putStrLn $ "> Reducing: " ++ (show $ hash sp)
                   res <- reduceErrors ec rdata
                   liftIO $ putStrLn $ "> Reduced: " ++ (show $ hash sp)
