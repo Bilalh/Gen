@@ -15,12 +15,12 @@ data UI
     , per_spec_time      :: Int
     , _mode              :: EssenceMode
     , _gen_type          :: GenType
-    ,  output_directory  :: Maybe FilePath
+    , keep_passing       :: Bool
+    , output_directory   :: Maybe FilePath
     , domain_depth       :: Int
     , expression_depth   :: Int
     , _cores             :: Maybe Int
     , _seed              :: Maybe Int
-    , keep_passing       :: Bool
     , total_is_cpu_time  :: Bool
 
     , toolchain_ouput    :: ToolchainOutput
@@ -33,6 +33,9 @@ data UI
     , _weightings        :: Maybe FilePath
     , db_directory       :: Maybe FilePath
     , log_level          :: LogLevel
+    , delete_immediately :: Maybe FilePath
+    , list_kinds         :: Bool
+    , list_statuses      :: Bool
     }
 
   | Instance
@@ -211,14 +214,14 @@ ui  = modes
                                     &= groupname "Required"
                                     &= explicit
                                     &= help "Number of cores to use, required unless CORES is set"
+     , keep_passing       = False   &= name "keep-passing"
+                                    &= groupname "Filters"
+                                    &= explicit
+                                    &= help "Keep non-failing test cases"
      , _seed              = def     &= name "seed"
                                     &= groupname "Other"
                                     &= explicit
                                     &= help "Random Seed to use"
-     , keep_passing       = False   &= name "keep-passing"
-                                    &= groupname "Other"
-                                    &= explicit
-                                    &= help "Keep non-failing test"
      , total_is_cpu_time = False    &= name "total-is-cpu-time"
                                     &= groupname "Other"
                                     &= explicit
@@ -257,6 +260,12 @@ ui  = modes
                                     &= groupname "Generation"
                                     &= explicit
                                     &= help "Weighting json key value pairs e.g. {\"TypeSet\":100}"
+     , delete_immediately= Nothing  &= typFile
+                                    &= name "X"
+                                    &= name "delete-immediately"
+                                    &= groupname "Filters"
+                                    &= explicit
+                                    &= help "Delete the specs that match the specifed kinds and statuses. The default is [[\"KindAny_\",\"NumberToLarge_\"], [\"KindAny_\",\"Timeout_\"] ] "
      , db_directory      = Nothing  &= name "db-dir"
                                     &= groupname "Other"
                                     &= typDir
@@ -266,6 +275,15 @@ ui  = modes
                                     &= groupname "Other"
                                     &= explicit
                                     &= help "Logging level, default LogDebug"
+     , list_statuses    = False     &= name "list-statuses"
+                                    &= groupname "Filters"
+                                    &= explicit
+                                    &= help "Just list the statuses then exit"
+     , list_kinds       = False     &= name "list-kinds"
+                                    &= groupname "Filters"
+                                    &= explicit
+                                    &= help "Just list the kinds then exit"
+
      , toolchain_ouput    = enum
                             [
                               ToolchainScreen_ &= name "show-toolchain-output"

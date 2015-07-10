@@ -54,17 +54,17 @@ main = do
        args <- helpArg
        void $ withArgs [x, args] (cmdArgs ui)
 
-    ["reduce", "--list-kinds"] -> do
+    [_, "--list-kinds"] -> do
         mapM_ (putStrLn) kindsList
         exitSuccess
-    ["reduce", "--list-statuses"] -> do
+    [_, "--list-statuses"] -> do
         mapM_ (putStrLn) statusesList
         exitSuccess
 
-    ["generalise", "--list-kinds"] -> do
+    ["--list-kinds"] -> do
         mapM_ (putStrLn) kindsList
         exitSuccess
-    ["generalise", "--list-statuses"] -> do
+    ["--list-statuses"] -> do
         mapM_ (putStrLn) statusesList
         exitSuccess
 
@@ -118,6 +118,18 @@ limiter (Just sec) f  =  do
 mainWithArgs :: UI -> IO ()
 mainWithArgs u@Essence{..} = do
 
+  if list_kinds then do
+        mapM_ (putStrLn) kindsList
+        exitSuccess
+  else
+      return ()
+
+  if list_statuses then do
+        mapM_ (putStrLn) statusesList
+        exitSuccess
+  else
+      return ()
+
   let ls = case given_dir of
              Nothing  -> [ aerr "-t|--total-time" (total_time == 0)]
              Just{} -> []
@@ -127,6 +139,7 @@ mainWithArgs u@Essence{..} = do
               dirExistsMay "--givens"  given_dir
             , dirExistsMay "--db_dir"  db_directory
             , dirExistsMay "--bin-dir" binaries_directory
+            , fileExistsMay "--delete-immediately/-X" delete_immediately
             , fileExistsMay "--weightings/-w" _weightings
             ]
 
@@ -153,9 +166,13 @@ mainWithArgs u@Essence{..} = do
           Just fp -> do
             readFromJSON fp
 
-  let notUseful = S.fromList $ (Savilerow_, NumberToLarge_) : (KindAny_, NumberToLarge_) :
-        [ (x,Timeout_)
-        | x <- [ RefineCompact_, RefineAll_, RefineRandom_, RefineParam_, KindAny_] ]
+  notUseful <- case delete_immediately of
+          Nothing -> return $ S.fromList $  [(KindAny_, NumberToLarge_), (KindAny_,Timeout_)]
+          Just fp -> do
+            vals <- readFromJSON fp
+            when ( (KindAny_,StatusAny_) `S.member` vals ) $
+                 error "Error (--delete_immediately/-X): Specifying (KindAny_,StatusAny_) would delete every generated specification."
+            return vals
 
   let config = EC.EssenceConfig
                { outputDirectory_ = out
@@ -600,6 +617,9 @@ _essenceDebug = do
              , _weightings        = Nothing
              , db_directory       = Nothing
              , log_level          = LogDebug
+             , delete_immediately = Nothing
+             , list_kinds         = False
+             , list_statuses      = False
              }
     limiter (limit_time ec) (mainWithArgs ec)
 
@@ -629,6 +649,9 @@ _givenDebug = do
              , _weightings        = Nothing
              , db_directory       = Nothing
              , log_level          = LogDebug
+             , delete_immediately = Nothing
+             , list_kinds         = False
+             , list_statuses      = False
              }
     limiter (limit_time ec) (mainWithArgs ec)
 
