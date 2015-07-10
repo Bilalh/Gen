@@ -338,7 +338,9 @@ classifySettingI ec _ out uname SettingI{time_taken_}  = do
 
 filterUseful :: EssenceConfig ->  ErrData -> IO Bool
 filterUseful ec ErrData{..} =
-  case (kind,status) `S.member` (EC.notUseful ec)  of
+  case (kind,status)     `S.member` (EC.notUseful ec)
+    || (kind,StatusAny_) `S.member` (EC.notUseful ec)
+    || (KindAny_,status) `S.member` (EC.notUseful ec) of
     False -> return True
     True  -> do
       putStrLn . show . vcat $ [
