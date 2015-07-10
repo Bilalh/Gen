@@ -347,11 +347,18 @@ filterUseful ec ErrData{..} =
     || (KindAny_,status) `S.member` (EC.notUseful ec) of
     False -> return True
     True  -> do
-      putStrLn . show . vcat $ [
+      doesDirectoryExist specDir >>= \case
+        True  -> do
+           putStrLn . show . vcat $ [
              "Deleting " <+> (pretty . groom $ (kind,status) )
-           , "specDir"   <+> pretty specDir
-           ]
-      removeDirectoryRecursive specDir
+            , "specDir"   <+> pretty specDir
+            ]
+           removeDirectoryRecursive specDir
+        False -> do
+           putStrLn . show . vcat $ [
+             "Already Removed " <+> (pretty . groom $ (kind,status) )
+            , "specDir"   <+> pretty specDir
+            ]
       return False
 
 
