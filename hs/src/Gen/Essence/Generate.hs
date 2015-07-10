@@ -161,19 +161,22 @@ doCommon ec@EC.EssenceConfig{..} refineType = do
               mapM_ (\x -> storeInDB sp (OurError x)) rdata
               writeDB False
 
-              case (rdata,reduceAsWell_) of
-                (_, Nothing) -> return ()
-                ([], _)      -> return ()
-                (_, Just{})  -> do
-                  liftIO $ putStrLn $ "> Reducing: " ++ (show $ hash sp)
-                  res <- reduceErrors ec rdata
-                  liftIO $ putStrLn $ "> Reduced: " ++ (show $ hash sp)
-                  liftIO $ putStrLn $ "!l rdata: " ++ (show $ length rdata)
-                  liftIO $ putStrLn $ "! rdata: " ++ (show $ vcat $ map pretty rdata)
-                  liftIO $ putStrLn $ "!l errData: " ++ (show $ length res)
-                  liftIO $ putStrLn $ "! errData: " ++ (show $ vcat $ map pretty res)
-                  writeDB False
-                  mapM_ adjust res
+              case rdata of
+                [] ->  liftIO $ putStrLn $ "> Passing: " ++ (show $ hash sp)
+                _  -> do
+                  liftIO $ putStrLn $ "> Erred: "  ++ (show $ hash sp)
+                  case (reduceAsWell_) of
+                    (Nothing) -> return ()
+                    (Just{})  -> do
+                      liftIO $ putStrLn $ "> Reducing: " ++ (show $ hash sp)
+                      res <- reduceErrors ec rdata
+                      liftIO $ putStrLn $ "> Reduced: " ++ (show $ hash sp)
+                      liftIO $ putStrLn $ "!l rdata: " ++ (show $ length rdata)
+                      liftIO $ putStrLn $ "! rdata: " ++ (show $ vcat $ map pretty rdata)
+                      liftIO $ putStrLn $ "!l errData: " ++ (show $ length res)
+                      liftIO $ putStrLn $ "! errData: " ++ (show $ vcat $ map pretty res)
+                      writeDB False
+                      mapM_ adjust res
 
               liftIO $ putStrLn $ "> Processed: " ++ (show $ hash sp)
               liftIO $ putStrLn $ ""
