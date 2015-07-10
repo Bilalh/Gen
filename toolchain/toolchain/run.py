@@ -404,8 +404,27 @@ def classify_error(*, kind, output, returncode):
                 return Status.refineUnreferencedVar
 
     if kind in kind_conjure:
+        if 'getReprFromAnswer unErr' in output:
+                return Status.logFollowing
+
+        if 'Conjure is exiting due to user errors.' in output:
+            if 'expecting expression' in output:
+                if 'undefined' in output:
+                    return Status.parseErrorUndefined
+            if 'Shunting Yard failed' in output:
+                return Status.parseError
+            return Status.conjureUserError
+
         if 'Shunting Yard failed' in output:
             return Status.parseError
+
+        if 'This should never happen' in output:
+            if 'e2c, not a constant' in output:
+                return Status.notAConstant
+            if 'domainUnions' in output or 'Domain.domainUnion' in output:
+                return Status.domainUnion
+            return Status.conjureShouldNeverHappen
+
         if 'Cannot fully evaluate' in output:
             return Status.cannotEvaluate
         if 'not a homoType' in output:
@@ -432,19 +451,6 @@ def classify_error(*, kind, output, returncode):
             return Status.outOfBoundsIndexing
         if 'Category checking' in output:
             return Status.categoryChecking
-        if 'getReprFromAnswer unErr' in output:
-            return Status.logFollowing
-        if 'Conjure is exiting due to user errors.' in output:
-            if 'expecting expression' in output:
-                if 'undefined' in output:
-                    return Status.parseErrorUndefined
-            return Status.conjureUserError
-        if 'This should never happen' in output:
-            if 'e2c, not a constant' in output:
-                return Status.notAConstant
-            if 'domainUnions' in output or 'Domain.domainUnion' in output:
-                return Status.domainUnion
-            return Status.conjureShouldNeverHappen
         if 'conjureNew: user error'  in output:
             return Status.conjureOtherUserError
 
