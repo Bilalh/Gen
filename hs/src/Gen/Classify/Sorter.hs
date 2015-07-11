@@ -47,20 +47,29 @@ sorter SArgs{fp_,types_} = do
   let meta :: [(FilePath, SpecMeta)]  = map ( \(a,b) -> (a, fromJust b) )
                  $ flip filter metaA $ \(_,b) -> isJust b
 
-  void $ zipWithM relink meta [0..]
+  zipWithM_ relink meta [0..]
 
   where
   relink (fp, meta) i = do
-    let dirName = case (takeFileName . takeDirectory) fp of
-                    "final" ->  (takeFileName . takeDirectory .takeDirectory) fp
-                    s       ->  s
+    let (re,dirName) = case (takeFileName . takeDirectory) fp of
+                    "final" ->  (True, (takeFileName . takeDirectory .takeDirectory) fp)
+                    s       ->  (False,s)
     let dir = dirName ++ "#" ++ zeroPad 4 i
 
-    forM types_ $ \type_ -> do
+    forM_ types_ $ \type_ -> do
       let newDir = map ("link" </>) (getFunc type_ $ meta)
       forM newDir $ \d -> do
         createDirectoryIfMissing True d
         createSymbolicLink (takeDirectory fp) (d </> dir)
+
+    let allBase = "link" </> "all"
+    createDirectoryIfMissing True allBase
+    createSymbolicLink (takeDirectory fp) (allBase </> dir)
+
+    when re $ do
+      let reBase = "link" </> "Reduced"
+      createDirectoryIfMissing True reBase
+      createSymbolicLink (takeDirectory fp) (reBase </> dir)
 
 getFunc :: FuncType -> (SpecMeta -> [FilePath])
 getFunc TDepth = \SpecMeta{..} ->
