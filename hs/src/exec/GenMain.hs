@@ -381,7 +381,7 @@ mainWithArgs Link{..} = do
     [] -> return ()
     xs -> mapM putStrLn xs >> exitFailure
 
-  sorterMain [directory]
+  sorterMain reduced_only [directory]
 
 mainWithArgs Weights{..} = do
 

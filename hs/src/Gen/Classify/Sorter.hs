@@ -14,11 +14,6 @@ import System.Directory(canonicalizePath)
 import qualified Data.Text as T
 
 
-data SArgs = SArgs{
-        fp_ :: String
-      , types_ :: [FuncType]
-    }
-
 data FuncType =
       TDepth
     | TcDepth
@@ -32,16 +27,16 @@ data FuncType =
 fall :: [FuncType]
 fall = map fromConstr $ dataTypeConstrs . dataTypeOf $ (error "FuncType" :: FuncType)
 
-sorterMain :: [String] -> IO ()
-sorterMain = \case
+sorterMain :: Bool -> [String] -> IO ()
+sorterMain onlyr = \case
    []     ->  putStrLn "sorterLink <dir+>"
-   [x]    ->  sorter SArgs{fp_=x,types_=fall}
-   (x:xs) ->  sorter SArgs{fp_=x,types_=fall} >> sorterMain xs
+   [x]    ->  sorter onlyr x fall
+   (x:xs) ->  sorter onlyr x fall >> sorterMain onlyr xs
    <=< mapM canonicalizePath
 
 
-sorter :: SArgs -> IO ()
-sorter SArgs{fp_,types_} = do
+sorter :: Bool -> FilePath -> [FuncType] -> IO ()
+sorter onlyr fp_ types_ = do
   metaJson <- ffind fp_
   metaA :: [(FilePath, Maybe SpecMeta)] <- fmap (zip metaJson) $ mapM readFromJSON metaJson
   let meta :: [(FilePath, SpecMeta)]  = map ( \(a,b) -> (a, fromJust b) )
@@ -58,24 +53,25 @@ sorter SArgs{fp_,types_} = do
     let (re,dirName) = case (takeFileName . takeDirectory) fp of
                     "final" ->  (True, (takeFileName . takeDirectory .takeDirectory) fp)
                     s       ->  (False,s)
-    let dir = dirName ++ "#" ++ zeroPad 4 i
-    let linker = doLink dir
+    when ( (not onlyr) || (onlyr && re) ) $ do
+      let dir = dirName ++ "#" ++ zeroPad 4 i
+      let linker = doLink dir
 
-    forM_ types_ $ \type_ -> do
-      let newDir = map ("link" </>) (getFunc type_ $ meta)
-      forM newDir $ \d -> do
-        createDirectoryIfMissing True d
-        createSymbolicLink (takeDirectory fp) (d </> dir)
+      forM_ types_ $ \type_ -> do
+        let newDir = map ("link" </>) (getFunc type_ $ meta)
+        forM newDir $ \d -> do
+          createDirectoryIfMissing True d
+          createSymbolicLink (takeDirectory fp) (d </> dir)
 
-    linker $ "link" </> "All"
+      linker $ "link" </> "All"
 
-    when re $ linker $ "link" </> "Reduced"
+      when (re && not onlyr) $ linker $ "link" </> "Reduced"
 
-    case stats of
-      Nothing -> return ()
-      Just DirError{..} -> do
-        linker $ "link" </> "Kind" </> show dirKind
-        linker $ "link" </> "Status" </> show dirStatus
+      case stats of
+        Nothing -> return ()
+        Just DirError{..} -> do
+          linker $ "link" </> "Kind" </> show dirKind
+          linker $ "link" </> "Status" </> show dirStatus
 
     where
     doLink dir base = do

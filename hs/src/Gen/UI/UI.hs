@@ -101,8 +101,9 @@ data UI
     , from_essence       :: Bool
     }
   | Link
-    { directory   :: FilePath
-    , limit_time  :: Maybe Int
+    { directory    :: FilePath
+    , reduced_only :: Bool
+    , limit_time   :: Maybe Int
     }
   | SpecEE
     { directories :: [FilePath]
@@ -536,11 +537,15 @@ ui  = modes
 
   , Link
      {
-       directory = "Errors" &= typDir
-                            &= argPos 0
-     , limit_time  = def    &= name "limit-time"
-                            &= explicit
-                            &= help "Time limit in seconds of CPU time of this program"
+       directory    = "Errors" &= typDir
+                               &= argPos 0
+     , reduced_only = False    &= name "reduced_only"
+                               &= name "r"
+                               &= explicit
+                               &= help "Link only reduced specs"
+     , limit_time   = def      &= name "limit-time"
+                               &= explicit
+                               &= help "Time limit in seconds of CPU time of this program"
 
      } &= explicit
        &= name "link"
