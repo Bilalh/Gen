@@ -405,7 +405,7 @@ def classify_error(*, kind, output, returncode):
 
     if kind in kind_conjure:
         if 'getReprFromAnswer unErr' in output:
-                return Status.logFollowing
+            return Status.logFollowing
 
         if 'Conjure is exiting due to user errors.' in output:
             if 'expecting expression' in output:
@@ -451,9 +451,8 @@ def classify_error(*, kind, output, returncode):
             return Status.outOfBoundsIndexing
         if 'Category checking' in output:
             return Status.categoryChecking
-        if 'conjureNew: user error'  in output:
+        if 'conjureNew: user error' in output:
             return Status.conjureOtherUserError
-
 
     return Status.errorUnknown
 
@@ -619,8 +618,25 @@ def run_conjure_with_choices(timeout, kind, cmd, *, extra_env, vals):
 def hash_path(path):
     sha = hashlib.sha1()
     with path.open('rb') as f:
-        sha.update(b"".join([line for line in f.readlines()
-                             if not (line.startswith(b"###") or line.startswith(b"+"))]))
+        sha.update(b"".join([line for line in f.readlines() if not (
+                #run infomation
+                line.startswith(b"###") or
+                #bash debuging
+                line.startswith(b"+") or
+                #eprime choices
+                line.startswith(b"$") or
+                #Conjure/SR Info
+                line.startswith(b"Created information file" ) or
+                line.startswith(b"Created output file" ) or
+                line.startswith(b"Created solution file" ) or
+                line.startswith(b"Running with a timelimit of" ) or
+                #Filepaths
+                line.startswith(b"    /home/bh246/" ) or
+                line.startswith(b"    /home/bilal/" ) or
+                line.startswith(b"    /home/ozgur/" ) or
+                line.startswith(b"    /Users/bilalh/" )
+            )]))  # yapf: disable
+
     return sha.hexdigest()
 
 
