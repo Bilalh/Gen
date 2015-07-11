@@ -8,7 +8,7 @@ import Gen.Arbitrary.Data
 import Gen.Classify.AddMeta       (metaMain)
 import Gen.Classify.AddMeta       (addMeta)
 import Gen.Classify.AddSpecE      (addSpecJson, specEMain)
-import Gen.Classify.Sorter        (getRecursiveContents, sorterMain')
+import Gen.Classify.Sorter        (getRecursiveContents, sorterMain)
 import Gen.Classify.UpdateChoices (updateChoices)
 import Gen.Essence.Generate       (generateEssence)
 import Gen.Essence.UIData
@@ -75,15 +75,6 @@ main = do
     [_, "--toolchain-path"] -> do
          dir <- Toolchain.getToolchainDir Nothing
          putStrLn dir
-
-    ["link", fp] -> do
-      input <- withArgs ["link", "-d", fp] (cmdArgs ui)
-      let workload = do
-            putStrLn . show . vcat $ ["Command line options: ", pretty (groom input)]
-            mainWithArgs input
-
-      limiter (getLimit input) workload
-
 
     xs -> do
       newArgs <- replaceOldHelpArg xs
@@ -383,14 +374,14 @@ mainWithArgs Solver{..} = do
                  }
 
 mainWithArgs Link{..} = do
-  errors <- catMaybes <$> (mapM (dirExists "-d") directories  )
-  l <- maybeToList <$> ( dirExistsErr "Delete to recreate "  "link" )
+  errors <- catMaybes <$> (mapM (dirExists "-d") [directory]  )
+  l <- maybeToList <$> ( dirExistsErr "Delete to recreate"  "link" )
 
   case errors ++ l  of
     [] -> return ()
     xs -> mapM putStrLn xs >> exitFailure
 
-  sorterMain' directories
+  sorterMain [directory]
 
 mainWithArgs Weights{..} = do
 

@@ -7,9 +7,9 @@ import Gen.Classify.Meta
 import Gen.Imports
 import Gen.IO.Formats
 import Gen.IO.ToolchainData
-import System.Directory     (canonicalizePath)
 import System.FilePath      (takeDirectory, takeExtensions, takeFileName)
 import System.Posix.Files   (createSymbolicLink)
+import System.Directory(canonicalizePath)
 
 import qualified Data.Text as T
 
@@ -32,14 +32,12 @@ data FuncType =
 fall :: [FuncType]
 fall = map fromConstr $ dataTypeConstrs . dataTypeOf $ (error "FuncType" :: FuncType)
 
-sorterMain :: IO ()
-sorterMain = getArgs >>=  mapM canonicalizePath >>= sorterMain'
-
-sorterMain' :: [String] -> IO ()
-sorterMain' = \case
+sorterMain :: [String] -> IO ()
+sorterMain = \case
    []     ->  putStrLn "sorterLink <dir+>"
    [x]    ->  sorter SArgs{fp_=x,types_=fall}
-   (x:xs) ->  sorter SArgs{fp_=x,types_=fall} >> sorterMain' xs
+   (x:xs) ->  sorter SArgs{fp_=x,types_=fall} >> sorterMain xs
+   <=< mapM canonicalizePath
 
 
 sorter :: SArgs -> IO ()

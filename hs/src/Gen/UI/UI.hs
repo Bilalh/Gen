@@ -101,7 +101,7 @@ data UI
     , from_essence       :: Bool
     }
   | Link
-    { directories :: [FilePath]
+    { directory   :: FilePath
     , limit_time  :: Maybe Int
     }
   | SpecEE
@@ -536,18 +536,15 @@ ui  = modes
 
   , Link
      {
-       directories = def &= typDir
-                         &= name "directory"
-                         &= name "d"
-                         &= explicit
-                         &= help "Directories containing spec.meta.json files "
-     , limit_time  = def &= name "limit-time"
-                         &= explicit
-                         &= help "Time limit in seconds of CPU time of this program"
+       directory = "Errors" &= typDir
+                            &= argPos 0
+     , limit_time  = def    &= name "limit-time"
+                            &= explicit
+                            &= help "Time limit in seconds of CPU time of this program"
 
      } &= explicit
        &= name "link"
-       &= help "Classify the specs by creating symlinks (using .meta.json files)"
+       &= help "Classify a dir of specs by creating symlinks (using .meta.json files)"
 
   , SpecEE
      {
