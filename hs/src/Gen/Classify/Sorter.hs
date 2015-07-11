@@ -2,12 +2,13 @@
 module Gen.Classify.Sorter where
 
 import Data.Data
-import Data.Maybe         (fromJust)
+import Data.Maybe           (fromJust)
 import Gen.Classify.Meta
-import Gen.IO.Formats
 import Gen.Imports
-import System.FilePath    (takeDirectory, takeExtensions, takeFileName)
-import System.Posix.Files (createSymbolicLink)
+import Gen.IO.Formats
+import Gen.IO.ToolchainData
+import System.FilePath      (takeDirectory, takeExtensions, takeFileName)
+import System.Posix.Files   (createSymbolicLink)
 
 import qualified Data.Text as T
 
@@ -47,14 +48,19 @@ sorter SArgs{fp_,types_} = do
   let meta :: [(FilePath, SpecMeta)]  = map ( \(a,b) -> (a, fromJust b) )
                  $ flip filter metaA $ \(_,b) -> isJust b
 
-  zipWithM_ relink meta [0..]
+  withStats <- forM meta $ \(fp,m) -> do
+    v :: Maybe DirError <- readFromJSONMay (takeDirectory fp </> "dir_error.json" )
+    return (fp,m,v)
+
+  zipWithM_ relink withStats [0..]
 
   where
-  relink (fp, meta) i = do
+  relink (fp, meta, stats) i = do
     let (re,dirName) = case (takeFileName . takeDirectory) fp of
                     "final" ->  (True, (takeFileName . takeDirectory .takeDirectory) fp)
                     s       ->  (False,s)
     let dir = dirName ++ "#" ++ zeroPad 4 i
+    let linker = doLink dir
 
     forM_ types_ $ \type_ -> do
       let newDir = map ("link" </>) (getFunc type_ $ meta)
@@ -62,14 +68,20 @@ sorter SArgs{fp_,types_} = do
         createDirectoryIfMissing True d
         createSymbolicLink (takeDirectory fp) (d </> dir)
 
-    let allBase = "link" </> "all"
-    createDirectoryIfMissing True allBase
-    createSymbolicLink (takeDirectory fp) (allBase </> dir)
+    linker $ "link" </> "All"
 
-    when re $ do
-      let reBase = "link" </> "Reduced"
-      createDirectoryIfMissing True reBase
-      createSymbolicLink (takeDirectory fp) (reBase </> dir)
+    when re $ linker $ "link" </> "Reduced"
+
+    case stats of
+      Nothing -> return ()
+      Just DirError{..} -> do
+        linker $ "link" </> "Kind" </> show dirKind
+        linker $ "link" </> "Status" </> show dirStatus
+
+    where
+    doLink dir base = do
+      createDirectoryIfMissing True base
+      createSymbolicLink (takeDirectory fp) (base </> dir)
 
 getFunc :: FuncType -> (SpecMeta -> [FilePath])
 getFunc TDepth = \SpecMeta{..} ->
