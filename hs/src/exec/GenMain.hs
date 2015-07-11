@@ -76,6 +76,15 @@ main = do
          dir <- Toolchain.getToolchainDir Nothing
          putStrLn dir
 
+    ["link", fp] -> do
+      input <- withArgs ["link", "-d", fp] (cmdArgs ui)
+      let workload = do
+            putStrLn . show . vcat $ ["Command line options: ", pretty (groom input)]
+            mainWithArgs input
+
+      limiter (getLimit input) workload
+
+
     xs -> do
       newArgs <- replaceOldHelpArg xs
       input <- withArgs newArgs (cmdArgs ui)
@@ -374,9 +383,10 @@ mainWithArgs Solver{..} = do
                  }
 
 mainWithArgs Link{..} = do
-  errors <- catMaybes <$> (mapM (dirExists "-d") directories )
+  errors <- catMaybes <$> (mapM (dirExists "-d") directories  )
+  l <- maybeToList <$> ( dirExistsErr "Delete to recreate "  "link" )
 
-  case errors of
+  case errors ++ l  of
     [] -> return ()
     xs -> mapM putStrLn xs >> exitFailure
 
@@ -524,6 +534,12 @@ dirExists :: String -> FilePath -> IO (Maybe String)
 dirExists s x = do
   b <- doesDirectoryExist x
   return $ aerr (s ++ " ~ Directory does not exist: " ++ x ) (not b)
+
+dirExistsErr :: String -> FilePath -> IO (Maybe String)
+dirExistsErr s x = do
+  b <- doesDirectoryExist x
+  return $ aerr (s ++ " ~ Directory Exist: " ++ x ) (b)
+
 
 fileExistsMay :: String -> Maybe FilePath -> IO (Maybe String)
 fileExistsMay _ Nothing  = return Nothing
