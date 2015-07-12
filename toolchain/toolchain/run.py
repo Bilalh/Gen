@@ -12,7 +12,7 @@ from datetime import datetime
 from enum import Enum, unique
 from functools import partial
 from multiprocessing import Pool
-from pprint import pprint, pformat
+# from pprint import pprint, pformat
 from textwrap import indent
 
 from .command import K
@@ -83,6 +83,7 @@ def run_refine_essence(*, op, commands, random, cores, extra_env):
 
     date_end = datetime.utcnow()
     diff = date_end - date_start
+    logger.debug(diff)
 
     results_unique = remove_refine_dups(results=results, outputs=outputs, op=op)
 
@@ -140,6 +141,7 @@ def run_refine_essence_with_choices(*, op, commands, extra_env):
 
     date_end = datetime.utcnow()
     diff = date_end - date_start
+    logger.debug(diff)
 
     with (op.outdir / "_refine.outputs").open("w") as f:
         f.write(output)
@@ -177,6 +179,7 @@ def run_refine_all_essence(*, op, commands, extra_env):
 
     date_end = datetime.utcnow()
     diff = date_end - date_start
+    logger.debug(diff)
 
     with (op.outdir / "_refine.outputs").open("w") as f:
         f.write(output)
@@ -619,23 +622,23 @@ def hash_path(path):
     sha = hashlib.sha1()
     with path.open('rb') as f:
         sha.update(b"".join([line for line in f.readlines() if not (
-                #run infomation
-                line.startswith(b"###") or
-                #bash debuging
-                line.startswith(b"+") or
-                #eprime choices
-                line.startswith(b"$") or
-                #Conjure/SR Info
-                line.startswith(b"Created information file" ) or
-                line.startswith(b"Created output file" ) or
-                line.startswith(b"Created solution file" ) or
-                line.startswith(b"Running with a timelimit of" ) or
-                #Filepaths
-                line.startswith(b"    /home/bh246/" ) or
-                line.startswith(b"    /home/bilal/" ) or
-                line.startswith(b"    /home/ozgur/" ) or
-                line.startswith(b"    /Users/bilalh/" )
-            )]))  # yapf: disable
+            #run infomation
+            line.startswith(b"###") or
+            #bash debuging
+            line.startswith(b"+") or
+            #eprime choices
+            line.startswith(b"$") or
+            #Conjure/SR Info
+            line.startswith(b"Created information file" ) or
+            line.startswith(b"Created output file" ) or
+            line.startswith(b"Created solution file" ) or
+            line.startswith(b"Running with a timelimit of" ) or
+            #Filepaths
+            line.startswith(b"    /home/bh246/" ) or
+            line.startswith(b"    /home/bilal/" ) or
+            line.startswith(b"    /home/ozgur/" ) or
+            line.startswith(b"    /Users/bilalh/" )
+        )]))  # yapf: disable
 
     return sha.hexdigest()
 
