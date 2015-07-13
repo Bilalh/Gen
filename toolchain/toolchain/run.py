@@ -55,7 +55,8 @@ class Status(Enum):
     outOfBoundsIndexing = 30,
     categoryChecking = 31,
     logFollowing = 32,
-    conjureOtherUserError = 33
+    conjureOtherUserError = 33,
+    jvmMemory = 34
 
 
 def run_refine_essence(*, op, commands, random, cores, extra_env):
@@ -359,6 +360,8 @@ def classify_error(*, kind, output, returncode):
     kind_refine = {K.refineAll, K.refineRandom, K.refineCompact, K.refineParam}
 
     if kind == K.savilerow:
+        if '# There is insufficient memory for the Java Runtime Environment to continue.' in output:
+            return Status.jvmMemory
         if "java.lang.NumberFormatException: For input string: " in output:
             return Status.numberToLarge
         if "Failed when parsing rest of structure following" in output:
