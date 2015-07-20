@@ -120,7 +120,7 @@ conjureNewPath="$(which conjure)"
 
 conjureNew_version="$(conjure --version | egrep -o 'Version: \w+' | egrep -o ': \w+' | egrep -o '\w+')"
 
-vd="$(conjure --version | egrep -o '201[0-9]-[0-9][0-9]-[0-9][0-9] [0-9]+:[0-9]+ \+[0-9]+')"
+vd="$(conjure --version | egrep -o '201[0-9]-[0-9][0-9]-[0-9][0-9] [0-9]+:[0-9]+ [+-][0-9]+')"
 
 if (sw_vers &>/dev/null); then
 	conjureNew_date="$(date -jf '%Y-%m-%e %H:%M %z' "${vd}" '+%F_%s')"
@@ -170,7 +170,7 @@ if ( which conjureOld &> /dev/null ); then
 	binPath="$(which ${name})"
 
 	version="$(conjureOld  2>&1 | egrep -o 'Version: \w+' | egrep -o ': \w+' | egrep -o '\w+')"
-	vd="$(conjureOld 2>&1 | egrep -o '201[0-9]-[0-9][0-9]-[0-9][0-9] [0-9]+:[0-9]+ \+[0-9]+')"
+	vd="$(conjureOld 2>&1 | egrep -o '201[0-9]-[0-9][0-9]-[0-9][0-9] [0-9]+:[0-9]+ [+-][0-9]+')"
 
 	if (sw_vers &>/dev/null); then
 		version_date="$(date -jf '%Y-%m-%e %H:%M %z' "${vd}" '+%F_%s')"
@@ -212,7 +212,7 @@ mkdir -p "${cbase}"
 binPath="$(which ${name})"
 
 version="$(savilerow | egrep -o 'Version: \w+' | egrep -o ': \w+' | egrep -o '\w+')"
-vd="$(savilerow  | egrep -o '201[0-9]-[0-9][0-9]-[0-9][0-9] [0-9]+:[0-9]+ \+[0-9]+')"
+vd="$(savilerow  | egrep -o '201[0-9]-[0-9][0-9]-[0-9][0-9] [0-9]+:[0-9]+ [+-][0-9]+')"
 
 if (sw_vers &>/dev/null); then
 	version_date="$(date -jf '%Y-%m-%e %H:%M %z' "${vd}" '+%F_%s')"
