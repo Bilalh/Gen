@@ -23,6 +23,7 @@ parser.add_argument('-t', dest='total_time', help='Total real time', type=int)
 parser.add_argument('-bin_dir', dest='bin_dir', help='--bin-dir')
 parser.add_argument('-c', dest='cores', help='cores to use, default 1', type=int)
 parser.add_argument('--passing_db', help='for gen reduce --db-passing-in')
+parser.add_argument('--temp_db', help='for gen reduce --db-passing-in', required=True)
 
 args = parser.parse_args()
 
@@ -50,7 +51,7 @@ def process(status, kind, refinement, name, vals, refine_times, cmd_str, is_last
         status = "StatusAny_"
 
     spec_time = args.spec_time
-    db_dir = Path(args.output) / "temp_db"
+    db_dir = args.temp_db
 
     ts = int(datetime.datetime.now().timestamp())
     if refinement:
