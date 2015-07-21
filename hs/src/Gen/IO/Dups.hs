@@ -1,6 +1,6 @@
 {-# LANGUAGE TupleSections, DeriveGeneric #-}
 module Gen.IO.Dups( solveDups,refineDups
-                  , deleteDups, Dup(..)) where
+                  , deleteDups, deleteDups2, Dup(..)) where
 
 import Gen.Imports
 import Data.Digest.Pure.MD5
@@ -35,6 +35,11 @@ instance Pretty Dup where
 deleteDups :: MonadIO m => [Dup] -> m ()
 deleteDups = liftIO . mapM_ ( removeDirectoryRecursive . dupPath)
 
+deleteDups2 :: MonadIO m => [Dup] -> m ()
+deleteDups2 fps = liftIO . forM_ fps $ \dup -> do
+                    putStrLn $ "Removing " ++ (dupPath dup)
+                    removeDirectoryRecursive (dupPath dup)
+
 
 -- | Given a set of dirs return the duplicates
 refineDups :: (MonadIO m, Functor m) => [Directory] -> m [Dup]
@@ -45,6 +50,9 @@ refineDups dirs = do
   where
   makeData :: (MonadIO m) => Directory -> m (Maybe DirData)
   makeData dir = do
+    invaild <- liftIO $ allFilesWithSuffix "solve_eprime.json" dir
+    when (not $ null invaild) $ docError ["This is not a refinement error:", pretty dir]
+
     con (dir </> "spec.essence") $ \spec_hash -> do
       os <- liftIO $ allFilesWithSuffix ".refine-output" dir
       h_os <- mapM hashIfExists os >>= return . catMaybes
@@ -62,6 +70,9 @@ solveDups dirs = do
   where
   makeData :: (MonadIO m) => Directory -> m (Maybe DirData)
   makeData dir = do
+    invaild <- liftIO $ allFilesWithSuffix "solve_eprime.json" dir
+    when (null invaild) $ docError ["This is not a solving error:", pretty dir]
+
     con (dir </> "spec.essence") $ \spec_hash -> do
       eps <- liftIO $ allFilesWithSuffix ".eprime" dir
       h_eps <- mapM hashIfExists eps >>= return . catMaybes

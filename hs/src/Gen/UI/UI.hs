@@ -166,8 +166,17 @@ data UI
     , choices_out_ :: FilePath
     , limit_time   :: Maybe Int
     }
+  | Script_RemoveDups
+    {
+      dups_      :: [FilePath]
+    , dups_kind  :: DupKind
+    , limit_time :: Maybe Int
+    }
   deriving (Show, Data, Typeable)
 
+
+data DupKind = DupSolve | DupRefine
+  deriving (Show, Data, Typeable)
 
 ui :: UI
 ui  = modes
@@ -551,6 +560,7 @@ ui  = modes
        &= name "link"
        &= help "Classify a dir of specs by creating symlinks (using .meta.json files)"
 
+
   , SpecEE
      {
        directories = def   &= typDir
@@ -609,8 +619,6 @@ ui  = modes
      } &= explicit
        &= name "weights"
        &= help "Create weighting file for use with gen essence --weightings"
-
-
 
 
   , Script_Toolchain
@@ -703,6 +711,8 @@ ui  = modes
      } &= explicit
        &= name "script-toolchain"
        &= help "Run the toolchain on an essence spec"
+
+
   , Script_ToolchainRecheck
      { essence_path       = def     &= typDir
                                     &= argPos 0
@@ -754,6 +764,7 @@ ui  = modes
        &= name "script-recheck"
        &= help "Reruns the toolchain with previous used settings"
 
+
   , Script_UpdateChoices
      {
        choices_in_  = def     &= typ "IN-JSON"
@@ -768,6 +779,33 @@ ui  = modes
      } &= explicit
        &= name "script-updateChoices"
        &= help "Convert AnsweredRepr to AnsweredReprStored from IN to OUT"
+
+  , Script_RemoveDups
+     {
+       dups_       = def    &= typDir
+                            &= explicit
+                            &= name "d"
+                            &= name "dup"
+                            &= groupname "Required"
+                            &= help "Directories to check"
+     , dups_kind  = enum [
+                  DupRefine &= name "refine"
+                            &= explicit
+                            &= groupname "Error Kind (defulat refine)"
+                            &= help "Refinement Errors"
+                , DupSolve  &= name "solve"
+                            &= explicit
+                            &= groupname "Error Kind (defulat refine)"
+                            &= help "All other Errors"
+                ]
+     , limit_time  = Nothing &= name "limit-time"
+                             &= groupname "Other"
+                             &= explicit
+                             &= help "Time limit in seconds of CPU time of this program"
+
+     } &= explicit
+       &= name "script-removeDups"
+       &= help "Remove Duplicate Errors"
 
 
   ] &= program "gen"

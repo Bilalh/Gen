@@ -14,6 +14,7 @@ import Gen.Essence.Generate       (generateEssence)
 import Gen.Essence.UIData
 import Gen.Generalise.Generalise  (generaliseMain)
 import Gen.Imports
+import Gen.IO.Dups                (deleteDups2, refineDups, solveDups)
 import Gen.IO.Formats             (readFromJSON)
 import Gen.IO.RunResult           (giveDb, writeDB_)
 import Gen.IO.Term
@@ -50,7 +51,8 @@ main = do
        args <- helpArg
        void $ withArgs [args] (cmdArgs ui)
     [x] | x `elem` [ "essence", "reduce", "link", "meta", "json", "generalise", "solve", "weights"
-                   , "script-toolchain", "script-recheck", "script-updateChoices"] -> do
+                   , "script-toolchain", "script-recheck"
+                   , "script-updateChoices", "script-removeDups"] -> do
        args <- helpArg
        void $ withArgs [x, args] (cmdArgs ui)
 
@@ -511,6 +513,23 @@ mainWithArgs Script_UpdateChoices{..} = do
 
 
   updateChoices choices_in_ choices_out_
+
+
+mainWithArgs Script_RemoveDups{..} = do
+
+  errors <- catMaybes <$> (mapM (dirExists "-d") dups_)
+
+  case errors of
+    [] -> return ()
+    xs -> mapM putStrLn xs >> exitFailure
+
+  dups <- case dups_kind of
+    DupRefine -> refineDups dups_
+    DupSolve  -> solveDups  dups_
+  putStrLn "Result"
+  putStrLn $ show $ map pretty  dups
+  deleteDups2 dups
+
 
 
 aerr :: String -> Bool -> Maybe String
