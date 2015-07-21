@@ -31,7 +31,7 @@ essence = Path(args.essence)
 essence_dir = essence.parent
 
 cmd_str = """
-     gen reduce {essence_dir} -o '{output}' -p {spec_time}  --kind {kind} --status {status} --delete-steps -N  --db-dir '{db_dir}'
+     gen reduce {essence_dir} -o '{output}' -p {spec_time}  --kind {kind} --status {status} --delete-steps --delete-others -N  --db-dir '{db_dir}'
 """
 
 if args.passing_db:
