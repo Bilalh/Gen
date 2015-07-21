@@ -49,6 +49,9 @@ formatResults delete_steps delete_others RState{rconfig=RConfig{..},..} = do
     renameDirectory (outputDir_ </> d) (stepsDir </> d)
 
   when delete_steps  $ removeDirectoryRecursive stepsDir
+  -- FIXME removeDirectoryRecursive crashes when the directory is not there
+  -- hack it by creating the directory if it is missing
+  createDirectoryIfMissing True othersDir
   when delete_others $ removeDirectoryRecursive othersDir
 
   return res
