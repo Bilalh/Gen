@@ -63,7 +63,7 @@ reduceError EssenceConfig{..} ErrData{..}= do
 
   state <- liftIO $ reduceMain False args
   writeDB_ False db_dir (resultsDB_  state)
-  dir <- liftIO $ formatResults True state >>= \case
+  dir <- liftIO $ formatResults True False state >>= \case
          (Just x) -> return x
          Nothing  -> return specDir
 

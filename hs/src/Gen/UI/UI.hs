@@ -66,6 +66,7 @@ data UI
 
     , keep_passing       :: Bool
     , delete_steps       :: Bool
+    , delete_others      :: Bool
     , toolchain_ouput    :: ToolchainOutput
     , binaries_directory :: Maybe FilePath
     , limit_time         :: Maybe Int
@@ -404,6 +405,10 @@ ui  = modes
                                      &= groupname "Other"
                                      &= explicit
                                      &= help "Delete intermediate test case generated which have the same error"
+     , delete_others      = False    &= name "delete-others"
+                                     &= groupname "Other"
+                                     &= explicit
+                                     &= help "Delete test cases found during reductionwhich have a different error"
      , from_essence       = False    &= name "from-essence"
                                      &= groupname "Other"
                                      &= explicit

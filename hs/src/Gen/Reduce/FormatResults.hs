@@ -7,8 +7,8 @@ import Gen.Reduce.Data
 import System.Directory (renameDirectory)
 import System.FilePath  (takeFileName)
 
-formatResults :: Bool -> RState -> IO (Maybe FilePath)
-formatResults delete_steps RState{rconfig=RConfig{..},..} = do
+formatResults :: Bool -> Bool -> RState -> IO (Maybe FilePath)
+formatResults delete_steps delete_others RState{rconfig=RConfig{..},..} = do
 
   res <- case mostReduced_ of
     Just r -> do
@@ -48,7 +48,9 @@ formatResults delete_steps RState{rconfig=RConfig{..},..} = do
              ]
     renameDirectory (outputDir_ </> d) (stepsDir </> d)
 
-  when delete_steps $ removeDirectoryRecursive stepsDir
+  when delete_steps  $ removeDirectoryRecursive stepsDir
+  when delete_others $ removeDirectoryRecursive othersDir
+
   return res
 
   where

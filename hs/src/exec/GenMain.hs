@@ -282,7 +282,7 @@ mainWithArgs u@Reduce{..} = do
 
   state <- reduceMain (not no_check) args
   writeDB_ db_only_passing db_directory (resultsDB_  state)
-  void $ formatResults (delete_steps) state
+  void $ formatResults delete_steps delete_others state
 
 mainWithArgs Generalise{..} = do
 
@@ -698,7 +698,7 @@ _reduceDebug = do
               list_statuses = False, total_time_may = Nothing,
               total_is_cpu_time = False, output_directory = Nothing,
               _cores = Just 1, _seed = Nothing, keep_passing = False,
-              delete_steps = True, toolchain_ouput = ToolchainNull_,
+              delete_steps = True, delete_others = False, toolchain_ouput = ToolchainNull_,
               binaries_directory = Nothing, limit_time = Nothing, no_csv = False,
               db_directory = Just "db", db_passing_in = Nothing,
               db_only_passing = False, from_essence = False,no_check=True}
