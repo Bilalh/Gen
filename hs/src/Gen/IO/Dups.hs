@@ -37,7 +37,7 @@ deleteDups = liftIO . mapM_ ( removeDirectoryRecursive . dupPath)
 
 deleteDups2 :: MonadIO m => [Dup] -> m ()
 deleteDups2 fps = liftIO . forM_ fps $ \dup -> do
-                    putStrLn $ "Removing " ++ (dupPath dup)
+                    putStrLn $ "Deleting " ++ (dupPath dup)
                     removeDirectoryRecursive (dupPath dup)
 
 
