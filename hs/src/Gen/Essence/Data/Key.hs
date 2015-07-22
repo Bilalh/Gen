@@ -53,7 +53,6 @@ data Key = K_Unused
          | K_DomainFunction
          | K_DomainInConstant
          | K_DomainInt
-         | K_DomainIntEmpty
          | K_DomainMSet
          | K_DomainMatrix
          | K_DomainMetaVar
@@ -290,7 +289,6 @@ instance IsString Key where
   fromString "DomainFunction"            = K_DomainFunction
   fromString "DomainInConstant"          = K_DomainInConstant
   fromString "DomainInt"                 = K_DomainInt
-  fromString "DomainIntEmpty"            = K_DomainIntEmpty
   fromString "DomainMSet"                = K_DomainMSet
   fromString "DomainMatrix"              = K_DomainMatrix
   fromString "DomainMetaVar"             = K_DomainMetaVar

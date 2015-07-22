@@ -343,7 +343,6 @@ instance (HasGen m,  HasLogger m) => Reduce (Domain () Expr) m where
 
   single x@DomainAny{}       = return [EDom x]
   single x@DomainBool        = return [EDom x]
-  single x@DomainIntEmpty    = return [EDom x]
   single x@DomainEnum{}      = return [EDom x]
   single x@DomainUnnamed{}   = return [EDom x]
   single x@DomainOp{}        = return [EDom x]

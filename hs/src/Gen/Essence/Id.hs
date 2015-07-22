@@ -177,7 +177,6 @@ instance (GetKey a, TypeOf a, TTypeOf a) => GetKey (Domain () a) where
   getKey x = getKey . runIdentity . ttypeOf $ x
 
   keyTree d@DomainBool                  = KTree (defWeight d) (getKey d) ([])
-  keyTree d@DomainIntEmpty              = KTree (defWeight d) (getKey d) ([])
   keyTree d@(DomainInt x)               = KTree (defWeight d) (getKey d) (map keyTree x)
   keyTree d@(DomainEnum _ _ _)          = KTree (defWeight d) (getKey d) ([])
   keyTree d@(DomainUnnamed _ _)         = KTree (defWeight d) (getKey d) ([])

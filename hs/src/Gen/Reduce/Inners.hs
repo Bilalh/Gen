@@ -49,7 +49,6 @@ instance (IntRange c, Pretty c, Eq c) => Inners (Domain () c) where
   innersExpand _ DomainOp{}        = []
   innersExpand _ DomainReference{} = []
   innersExpand _ DomainMetaVar{}   = []
-  innersExpand _ DomainIntEmpty    = []
 
   innersExpand f (DomainInt xs)             = map DomainInt (f xs)
   innersExpand f (DomainTuple x)            = map (DomainTuple ) (f x)
