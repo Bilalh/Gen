@@ -27,5 +27,4 @@ allow TypeSet{}       = True
 allow TypeMSet{}      = True
 allow TypeFunction{}  = True
 allow TypeRelation{}  = True
-allow TypePartition{} = True
 allow _               = False
