@@ -11,7 +11,7 @@ import Gen.Imports
 instance (Generate a, ExpressionLike a) => Generate (OpFactorial a) where
   give GNone = give (GType TypeInt)
 
-  give ty@(GType TypeInt) = OpFactorial <$> give ty
+  give ty@(GType TypeInt) = noDecisions $ OpFactorial <$> give ty
   give t                  = giveUnmatched "Generate OpFactorial" t
 
   possiblePure _ (Just TypeInt ) _ = True

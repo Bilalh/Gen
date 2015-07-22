@@ -48,6 +48,7 @@ module Gen.Essence.St
   , logStats
   , getWeightsKeyed
   , addTypeKey
+  , noDecisions
   ) where
 
 import Conjure.Language.Constant
@@ -317,6 +318,9 @@ withVars nvars f = do
   res <- f
   modify $ \st -> st{ newVars_ = old }
   return res
+
+noDecisions :: GenSt a -> GenSt a
+noDecisions = withWeights [(K_EVar, 0)]
 
 noVars :: GenSt a -> GenSt a
 noVars = withWeights [(K_EVar, 0), (K_LVar, 0)]
