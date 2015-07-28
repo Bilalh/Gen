@@ -43,6 +43,7 @@ data EssenceConfig = EssenceConfig
       , dbDirectory_       :: Maybe Directory
       , reduceAsWell_      :: Maybe Time
       , logLevel           :: LogLevel
+      , strictTypeChecking :: Bool
       } deriving (Show)
 
 instance Default EssenceConfig where
@@ -67,4 +68,5 @@ instance Default EssenceConfig where
       , reduceAsWell_      = Nothing
       , dbDirectory_       = Nothing
       , logLevel           = LogDebug
+      , strictTypeChecking = False
       }

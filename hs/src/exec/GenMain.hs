@@ -198,6 +198,7 @@ mainWithArgs u@Essence{..} = do
                , reduceAsWell_      = reduce_as_well
                , dbDirectory_       = db_directory
                , logLevel           = log_level
+               , strictTypeChecking = strict_checking
                }
 
 
@@ -646,6 +647,7 @@ _essenceDebug = do
              , delete_immediately = Nothing
              , list_kinds         = False
              , list_statuses      = False
+             , strict_checking    = False
              }
     limiter (limit_time ec) (mainWithArgs ec)
 
@@ -678,6 +680,7 @@ _givenDebug = do
              , delete_immediately = Nothing
              , list_kinds         = False
              , list_statuses      = False
+             , strict_checking    = False
              }
     limiter (limit_time ec) (mainWithArgs ec)
 

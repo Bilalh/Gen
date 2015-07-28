@@ -36,6 +36,7 @@ data UI
     , delete_immediately :: Maybe FilePath
     , list_kinds         :: Bool
     , list_statuses      :: Bool
+    , strict_checking    :: Bool
     }
 
   | Instance
@@ -258,7 +259,7 @@ ui  = modes
                                     &= help "Don't save version of the tools used, The script if used requires bash"
      , given_dir         = Nothing  &= typDir
                                     &= name "given"
-                                    &= groupname "Other"
+                                    &= groupname "Filters"
                                     &= explicit
                                     &= help "Instead of generating specs, act like the .spec.json files in the given dir were the generated specs, -t/--total-time can not be used with this option"
      , reduce_as_well    = Nothing  &= name "reduce-as-well"
@@ -294,6 +295,10 @@ ui  = modes
                                     &= groupname "Filters"
                                     &= explicit
                                     &= help "Just list the kinds then exit"
+     , strict_checking  = False     &= name "strict-type-checking"
+                                    &= groupname "Other"
+                                    &= explicit
+                                    &= help "Crash when a type incorrect spec is generated/given"
 
      , toolchain_ouput    = enum
                             [

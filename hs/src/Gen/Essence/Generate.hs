@@ -111,15 +111,15 @@ doCommon ec@EC.EssenceConfig{..} refineType = do
           let model :: Model = toConjureNote "Generate toConjure" sp
           case typeCheck model  of
             Left x ->
-                case givenSpecs_ of
-                  Just{} ->
+                case strictTypeChecking of
+                  True ->
                     error . show . vcat $
                         [ "Spec failed type checking"
                         , pretty model
                         , pretty x
                         , pretty . groom $ model
                         ]
-                  Nothing -> process timeLeft (nextElem mayGiven)
+                  False -> process timeLeft (nextElem mayGiven)
 
             Right{} -> do
               num <- liftIO (randomRIO (10,99) :: IO Int)  >>= return . show
