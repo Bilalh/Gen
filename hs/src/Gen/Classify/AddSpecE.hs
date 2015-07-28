@@ -35,10 +35,11 @@ addSpecJsons verbose printSpecs = ffind >=>
   catch :: FilePath -> IO () -> IO ()
   catch fp f = Exc.catch f (handler fp)
 
-  handler :: FilePath -> Exc.ErrorCall -> IO ()
+  handler :: FilePath -> Exc.SomeException -> IO ()
   handler f e= do
     putStrLn $ "  FAILED(.spec.json): " ++ f
     when verbose (print e)
+
 
 addSpecJson :: Bool -> FilePath -> IO ()
 addSpecJson printSpecs fp = do

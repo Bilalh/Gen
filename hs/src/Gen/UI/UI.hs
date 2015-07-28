@@ -108,11 +108,12 @@ data UI
     , limit_time   :: Maybe Int
     }
   | SpecEE
-    { directories :: [FilePath]
-    , print_specs :: Bool
-    , meta_only   :: Bool
-    , limit_time  :: Maybe Int
-    , verboseOpt  :: Bool
+    { directories     :: [FilePath]
+    , print_specs     :: Bool
+    , meta_only       :: Bool
+    , limit_time      :: Maybe Int
+    , verboseOpt      :: Bool
+    , strict_checking :: Bool
     }
   | Solver
     {
@@ -299,7 +300,6 @@ ui  = modes
                                     &= groupname "Other"
                                     &= explicit
                                     &= help "Crash when a type incorrect spec is generated/given"
-
      , toolchain_ouput    = enum
                             [
                               ToolchainScreen_ &= name "show-toolchain-output"
@@ -592,7 +592,9 @@ ui  = modes
                            &= explicit
                            &= help "Show more infomation, and info on error if any"
 
-
+     , strict_checking = False &= name "strict-type-checking"
+                               &= explicit
+                               &= help "Crash when a type incorrect spec is generated/given"
 
      } &= explicit
        &= name "json"
