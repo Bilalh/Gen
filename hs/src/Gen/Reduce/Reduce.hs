@@ -46,7 +46,7 @@ reduceMain check rr = do
           >>= \ret -> get >>= \g -> addLog "FinalState" [pretty g] >> return ret
 
 
-      noteFormat "StateState" [pretty state]
+      noteFormat "StartState" [pretty state]
       noteFormat "Start" [pretty sp]
 
       end <- case sfin of

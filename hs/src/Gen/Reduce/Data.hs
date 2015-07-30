@@ -50,11 +50,11 @@ instance Pretty RState where
     pretty RState{..} =
         "RState" <+> Pr.braces (
             Pr.sep
-                [ nn "rconfig"  rconfig
-                , nn "mostReduced_" mostReduced_
-                , nn "mostReducedChoices_" mostReducedChoices_
-                , nn "timeLeft_"        timeLeft_
-                , nn "otherErrors_" (prettyArr otherErrors_)
+                [ nn "rconfig ="  rconfig
+                , nn "mostReduced_ =" mostReduced_
+                , nn "mostReducedChoices_ =" mostReducedChoices_
+                , nn "timeLeft_ = " timeLeft_
+                , nn "otherErrors_ =" (prettyArr otherErrors_)
                 , nn "rgen_ =" (show rgen_)
                 ])
 instance Default RConfig where
