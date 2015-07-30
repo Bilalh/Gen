@@ -11,7 +11,7 @@ formatResults :: Bool -> Bool -> RState -> IO (Maybe FilePath)
 formatResults delete_steps delete_others RState{rconfig=RConfig{..},..} = do
 
   res <- case mostReduced_ of
-    Just r -> do
+    Just r | (specDir r) /= specDir_ -> do
       putStrLn . show . vcat $
                    [ "Renaming "
                    , pretty (specDir r)
@@ -21,7 +21,7 @@ formatResults delete_steps delete_others RState{rconfig=RConfig{..},..} = do
       renameDirectory  (specDir r) finalDir
       return $ Just finalDir
 
-    Nothing -> do
+    _ -> do
       putStrLn "No final directory: no reductions produced"
       createDirectoryIfMissing True finalDir
       return $ Nothing
@@ -35,7 +35,7 @@ formatResults delete_steps delete_others RState{rconfig=RConfig{..},..} = do
   files <- getDirectoryContents outputDir_
   let toMove = flip filter files
                  (`notElem` [
-                   "others", "final", "zsteps", ".", ".."
+                    "others", "final", "zsteps", ".", "..", ".DS_Store"
                   , "zreduce.logs", "versions.csv", "meta.json","_reduced.logs"] )
   createDirectoryIfMissing True stepsDir
 
