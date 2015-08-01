@@ -424,13 +424,6 @@ def classify_error(*, kind, output, returncode):
         if 'Shunting Yard failed' in output:
             return Status.parseError
 
-        if 'This should never happen' in output:
-            if 'e2c, not a constant' in output:
-                return Status.notAConstant
-            if 'domainUnions' in output or 'Domain.domainUnion' in output:
-                return Status.domainUnion
-            return Status.conjureShouldNeverHappen
-
         if 'Cannot fully evaluate' in output:
             return Status.cannotEvaluate
         if 'not a homoType' in output:
@@ -459,6 +452,14 @@ def classify_error(*, kind, output, returncode):
             return Status.categoryChecking
         if 'conjureNew: user error' in output:
             return Status.conjureOtherUserError
+
+        if 'e2c, not a constant' in output:
+            return Status.notAConstant
+        if 'domainUnions' in output or 'Domain.domainUnion' in output:
+            return Status.domainUnion
+
+        if 'This should never happen' in output:
+            return Status.conjureShouldNeverHappen
 
     return Status.errorUnknown
 
