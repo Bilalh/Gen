@@ -1,9 +1,12 @@
 module Gen.IO.Formats where
 
-import Conjure.Language.NameGen        (runNameGen)
+
+import Conjure.Language.Definition
 import Conjure.Language.NameResolution
+import Conjure.Language.Parser
+import Conjure.Language.Pretty
 import Conjure.UI.IO                   (readModelFromFile)
-import Conjure.UserError               (MonadUserError)
+import Conjure.UserError
 import Data.Time                       (formatTime, getCurrentTime)
 import Data.Time.Format                (defaultTimeLocale)
 import Gen.Imports
@@ -13,6 +16,7 @@ import System.Posix.Files              (fileSize)
 
 import qualified Data.Aeson           as A
 import qualified Data.ByteString.Lazy as L
+import qualified Data.Text as T
 
 
 timestamp :: MonadIO m => m Int
@@ -64,3 +68,22 @@ copyDirectory from to = do
 getFileSize :: FilePath -> IO Integer
 getFileSize path = getFileStatus
                    path >>= \s -> return $ fromIntegral $ fileSize s
+
+
+readEprimeAsEssence :: (MonadFail m, MonadIO m) => FilePath -> m Model
+readEprimeAsEssence fp= do
+  pa <- liftIO $ pairWithContents fp
+  m <- readModel2 discardConjureJSON pa
+  return m{mLanguage=def}
+
+  where
+  discardConjureJSON :: Text -> Text
+  discardConjureJSON = discardAfter "$ Conjure's"
+    where discardAfter t = fst . T.breakOn t
+
+
+readModel2 :: (MonadFail m) => (Text -> Text) -> (FilePath, Text) -> m Model
+readModel2 preprocess (fp, con) =
+  case runLexerAndParser parseModel fp (preprocess con) of
+    Left  e -> fail e
+    Right x -> return x
