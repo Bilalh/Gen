@@ -6,6 +6,7 @@ import Conjure.Language.NameResolution
 import Conjure.Language.Parser
 import Conjure.Language.Pretty
 import Conjure.UI.IO                   (readModelFromFile)
+import Conjure.UI.TypeCheck            (typeCheckModel)
 import Conjure.UserError
 import Data.Time                       (formatTime, getCurrentTime)
 import Data.Time.Format                (defaultTimeLocale)
@@ -16,7 +17,9 @@ import System.Posix.Files              (fileSize)
 
 import qualified Data.Aeson           as A
 import qualified Data.ByteString.Lazy as L
-import qualified Data.Text as T
+import qualified Data.Text            as T
+import qualified Control.Exception    as Exc
+import qualified System.Exit          as Exc
 
 
 timestamp :: MonadIO m => m Int
@@ -70,13 +73,31 @@ getFileSize path = getFileStatus
                    path >>= \s -> return $ fromIntegral $ fileSize s
 
 
-readEprimeAsEssence :: (MonadFail m, MonadIO m) => FilePath -> m Model
+readEprimeAsEssence :: MonadIO m => FilePath -> m (Maybe Model)
 readEprimeAsEssence fp= do
-  pa <- liftIO $ pairWithContents fp
-  m <- readModel2 discardConjureJSON pa
-  return m{mLanguage=def}
+  liftIO $ (flip Exc.catches) handlers $ do
+    pa <- liftIO $ pairWithContents fp
+    m <- readModel2 discardConjureJSON pa
+    named <- ignoreLogs . runNameGen $ resolveNames $ m{mLanguage=def}
+    x <- ignoreLogs . runNameGen . typeCheckModel $ named
+    return $ Just x
 
   where
+
+  handlers = [ Exc.Handler handler1  -- MonadUserError
+             , Exc.Handler handler2  -- File access
+             , Exc.Handler handler3  -- MonadFail
+             ]
+
+  handler1 :: Exc.ExitCode -> IO (Maybe Model)
+  handler1 _ = return Nothing
+
+  handler2 :: Exc.IOException -> IO (Maybe Model)
+  handler2 _ = return Nothing
+
+  handler3 :: Exc.ErrorCall -> IO (Maybe Model)
+  handler3 _ = return Nothing
+
   discardConjureJSON :: Text -> Text
   discardConjureJSON = discardAfter "$ Conjure's"
     where discardAfter t = fst . T.breakOn t
