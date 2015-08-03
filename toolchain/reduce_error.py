@@ -69,8 +69,10 @@ def process(status, kind, refinement, name, vals, refine_times, cmd_str, is_last
         else:
             out_dir = Path(args.output) / ("all_" + ts)
 
-        cpu_used = vals['cpu_time']
-        spec_time = min(max(cpu_used * 2, 20), spec_time)
+        # Timeout to SR is real time, not cpu time,
+        # So be consistent with below calculation
+        time_used = max(vals['cpu_time'], vals['real_time'])
+        spec_time = min(max(time_used * 2, 20), spec_time)
 
     else:
         eprime = (essence_dir / name).with_suffix('.eprime')
@@ -81,9 +83,9 @@ def process(status, kind, refinement, name, vals, refine_times, cmd_str, is_last
 
         out_dir = Path(args.output) / "{}_r-.{}.choices@{}".format(essence_dir.name, name,
                                                                    ts)
-
-        cpu_used = refine_times[name] + vals['total_cpu_time']
-        spec_time = min(max(cpu_used * 2, 20), spec_time)
+        # Timeout to SR is real time, not cpu time
+        time_used = refine_times[name] + max(vals['total_cpu_time'], vals['total_real_time'])
+        spec_time = min(max(time_used * 2, 20), spec_time)
 
     spec_time = int(spec_time)
     cmd_str = cmd_str.format(essence_dir=essence_dir,
