@@ -73,6 +73,15 @@ getFileSize path = getFileStatus
                    path >>= \s -> return $ fromIntegral $ fileSize s
 
 
+readEprimeAsSpec :: MonadIO m => FilePath -> m (Maybe Spec)
+readEprimeAsSpec fp = do
+  model <- readEprimeAsEssence fp
+  case model of
+    Nothing -> return Nothing
+    Just x  ->  case fromConjure x of
+        Left{}    -> return Nothing
+        (Right y) -> return $ Just y
+
 readEprimeAsEssence :: MonadIO m => FilePath -> m (Maybe Model)
 readEprimeAsEssence fp= do
   liftIO $ (flip Exc.catches) handlers $ do
