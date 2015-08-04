@@ -34,11 +34,34 @@ timedSpec :: Spec
           -> (Maybe ErrData -> RR a)          -- No time left
           -> (Maybe ErrData -> RR (Timed a))  -- Time left
           -> RR (Timed a)
-timedSpec sp f g= do
+timedSpec sp f g = timedSpec2 runSpec sp f g
+
+timedCompactSpec :: Spec
+                 -> (Maybe ErrData -> RR a)          -- No time left
+                 -> (Maybe ErrData -> RR (Timed a))  -- Time left
+                 -> RR (Timed a) -- True means a similar error  still occured
+timedCompactSpec = timedSpec2 (runSpec2 refineWay)
+
+  where
+    refineWay :: Maybe FilePath -> KindI -> RefineType
+    refineWay Nothing  RefineCompact_ = Refine_Only
+    refineWay Nothing  RefineRandom_  = Refine_Only
+    refineWay (Just _) RefineCompact_ = Refine_Only
+    refineWay (Just _) RefineRandom_  = Refine_Only
+    refineWay (Just _) _              = Refine_Solve
+    refineWay _        _              = Refine_Solve
+
+
+timedSpec2 :: (Spec -> RR (Maybe ErrData, Int) )
+           -> Spec
+           -> (Maybe ErrData -> RR a)          -- No time left
+           -> (Maybe ErrData -> RR (Timed a))  -- Time left
+           -> RR (Timed a)
+timedSpec2 runner sp f g= do
     -- xdb <- getsDb
     -- liftIO $ putStrLn $ "%DB:" ++ groom xdb
     startTime <- liftIO $ round `fmap` getPOSIXTime
-    (res, cpuTimeUsed) <- runSpec sp
+    (res, cpuTimeUsed) <- runner sp
     endTime <- liftIO $ round `fmap` getPOSIXTime
     let realTimeUsed = endTime - startTime
 
@@ -54,7 +77,7 @@ timedSpec sp f g= do
 
     let process (Just a) b | a < b = do
           inner <- f res
-          return $ NoTimeLeft inner
+          return $ (NoTimeLeft inner)
         process _ _ = g res
 
     get >>= \RState{timeLeft_,rconfig=RConfig{specTime_}} -> process timeLeft_ specTime_
@@ -65,7 +88,22 @@ timedSpec sp f g= do
 runSpec :: (MonadDB m, MonadIO m, Applicative m, Functor m, HasLogger m, HasGen m, MonadR m)
         => Spec
         -> m (Maybe ErrData, Int)
-runSpec spE = do
+runSpec spE =
+  let refineWay :: Maybe FilePath -> KindI -> RefineType
+      refineWay Nothing  RefineCompact_ = Refine_All
+      refineWay Nothing  RefineRandom_  = Refine_All
+      refineWay (Just _) RefineCompact_ = Refine_Only
+      refineWay (Just _) RefineRandom_  = Refine_Only
+      refineWay (Just _) _              = Refine_Solve
+      refineWay _        _              = Refine_Solve_All
+  in runSpec2 refineWay spE
+
+
+runSpec2 :: (MonadDB m, MonadIO m, Applicative m, Functor m, HasLogger m, HasGen m, MonadR m)
+        => (Maybe FilePath -> KindI -> RefineType)
+        -> Spec
+        -> m (Maybe ErrData, Int)
+runSpec2 refineWay spE = do
   liftIO $ logSpec spE
 
   RConfig{..} <- getRconfig
@@ -102,14 +140,6 @@ runSpec spE = do
       seed        <- chooseR (0, 2^(24 :: Int))
       essencePath <- writeModelDef path sp
       choices     <- getChoicesToUse
-
-      let refineWay :: Maybe FilePath -> KindI -> RefineType
-          refineWay Nothing  RefineCompact_ = Refine_All
-          refineWay Nothing  RefineRandom_  = Refine_All
-          refineWay (Just _) RefineCompact_ = Refine_Only
-          refineWay (Just _) RefineRandom_  = Refine_Only
-          refineWay (Just _) _              = Refine_Solve
-          refineWay _        _              = Refine_Solve_All
 
 
       (stillErroed, timeTaken) <- if oErrKind_ == TypeCheck_ then do
@@ -272,8 +302,6 @@ runSpec spE = do
         tu -> docError [ pretty $line
                        , "Invaild stillErroed"
                        , pretty tu]
-
-
 
 
 modelRefineError :: KindI -> Bool

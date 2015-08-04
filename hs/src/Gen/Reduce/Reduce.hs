@@ -1,13 +1,15 @@
-{-# LANGUAGE TupleSections, ViewPatterns, KindSignatures #-}
+{-# LANGUAGE KindSignatures, TupleSections #-}
 module Gen.Reduce.Reduce where
 
+import Conjure.Language.Definition
 import Conjure.Language.Domain
 import Gen.Helpers.Log
 import Gen.Imports
 import Gen.IO.Formats
 import Gen.IO.RunResult
+import Gen.IO.ToolchainData
 import Gen.Reduce.Data
-import Gen.Reduce.QuanToComp    (quanToComp)
+import Gen.Reduce.QuanToComp       (quanToComp)
 import Gen.Reduce.Reduction
 import Gen.Reduce.Runner
 import Gen.Reduce.UnusedDomains
@@ -68,10 +70,12 @@ reduceMain check rr = do
 
       return (state)
 
-  where
-  noteMsg tx s = do
-      noteFormat ("@" <+> tx) []
-      return s
+
+
+noteMsg :: MonadIO m => Doc -> b -> m b
+noteMsg tx s = do
+    noteFormat ("@" <+> tx) []
+    return s
 
 
 doReductions :: Spec -> RR (Timed Spec)
@@ -85,6 +89,36 @@ doReductions start =
     >>= con "simplyDomains"        simplyDomains
     >>= con "simplyConstraints"    simplyConstraints
     >>= con "loopToFixed"          loopToFixed
+    -- >>= con "eprimeAsSpec"         eprimeAsSpec
+
+
+eprimeAsSpec :: Spec -> RR (Timed Spec)
+eprimeAsSpec start = do
+  config <- gets rconfig
+  process config
+
+  where
+  process RConfig{..} |  oErrKind_ `notElem` [Savilerow_]
+                      || oErrStatus_ `elem`  [ParseError_] =
+    return (Continue start)
+
+  process config = do
+    eprimeModel :: Model <- $notDone -- TODO readEprimeAsEssence of eprime not start
+    eprimeSpec <- fromConjure eprimeModel
+    timedCompactSpec eprimeSpec f g
+
+    where
+      f _ = do -- No time to reduce the eprime
+        return $ start
+
+      g Nothing = do -- No Error occured, should not happen
+        return $ Continue $ start
+
+      g (Just r) = do
+        recordResult r
+        sp :: Spec <- $notDone  -- TODO read spec from err
+        loopToFixed sp
+
 
 
 loopToFixed :: Spec -> RR (Timed Spec)
