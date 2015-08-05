@@ -110,14 +110,14 @@ runSpec2 refineWay spE = do
 
   checkDB oErrKind_ oErrStatus_ spE >>= \case
     Just StoredError{} -> rrError "StoredResult in runSpec" []
-    Just Passing{} -> do
-      liftIO $ print $ ("Stored no rrError(P)"  :: String)
-      liftIO $ putStrLn ""
+    Just rr@Passing{} -> do
+      liftIO $ putStrLn "? Using Cached data"
+      showrrError rr
       processPassing spE
       return (Nothing, 0)
-    Just (OurError r)  -> do
-      liftIO $ print $ ("Stored has rrError(O)" :: String)
-      liftIO $ putStrLn ""
+    Just rr@(OurError r)  -> do
+      liftIO $  putStrLn "? Using Cached data"
+      showrrError rr
       return $ (Just r, 0)
 
     Nothing -> do
@@ -280,9 +280,6 @@ runSpec2 refineWay spE = do
 
         _ -> return ()
 
-      -- liftIO $ print $ ("Has rrError?" :: String, fst stillErroed)
-      -- liftIO $ putStrLn $ groom stillErroed
-      -- liftIO $ putStrLn "\n\n"
       showrrError (snd stillErroed)
 
       case stillErroed of
@@ -310,7 +307,7 @@ showrrError x = do
     Passing{}        -> out $ "? Has rrError:" <+> pretty False
     (OurError ed)    -> f ed
     (StoredError ed) -> f ed
-  liftIO $ putStrLn "\n\n"
+  liftIO $ putStrLn "\n"
 
   where
     out = liftIO  . putStrLn . show . pretty
