@@ -280,10 +280,10 @@ runSpec2 refineWay spE = do
 
         _ -> return ()
 
-      liftIO $ print $ ("Has rrError?" :: String, fst stillErroed)
+      -- liftIO $ print $ ("Has rrError?" :: String, fst stillErroed)
       -- liftIO $ putStrLn $ groom stillErroed
-
-      liftIO $ putStrLn "\n\n"
+      -- liftIO $ putStrLn "\n\n"
+      showrrError (snd stillErroed)
 
       case stillErroed of
         (True, Passing{})  -> rrError "Same error but no result" []
@@ -302,6 +302,28 @@ runSpec2 refineWay spE = do
         tu -> docError [ pretty $line
                        , "Invaild stillErroed"
                        , pretty tu]
+
+
+showrrError :: (MonadR m, MonadIO m) => RunResult -> m ()
+showrrError x = do
+  case x of
+    Passing{}        -> out $ "? Has rrError:" <+> pretty False
+    (OurError ed)    -> f ed
+    (StoredError ed) -> f ed
+  liftIO $ putStrLn "\n\n"
+
+  where
+    out = liftIO  . putStrLn . show . pretty
+
+    f ErrData{..} = do
+      RConfig{..} <- getRconfig
+      let b = (oErrKind_, oErrStatus_) == (kind, status)
+      out . hang ("? Has rrError: " <+> pretty b) 4 . vcat  $ [
+          nn "kind:   "  kind  <+>
+             if kind /= oErrKind_ then "/=" <+> pretty oErrKind_ else ""
+        , nn "status: " status <+>
+             if status /= oErrStatus_ then "/=" <+> pretty oErrStatus_ else ""
+        ]
 
 
 modelRefineError :: KindI -> Bool

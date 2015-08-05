@@ -1,7 +1,6 @@
 {-# LANGUAGE KindSignatures, TupleSections #-}
 module Gen.Reduce.Reduce where
 
-import Conjure.Language.Definition
 import Conjure.Language.Domain
 import Gen.Helpers.Log
 import Gen.Imports
