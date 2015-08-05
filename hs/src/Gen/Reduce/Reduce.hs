@@ -13,6 +13,7 @@ import Gen.Reduce.QuanToComp       (quanToComp)
 import Gen.Reduce.Reduction
 import Gen.Reduce.Runner
 import Gen.Reduce.UnusedDomains
+import System.FilePath(takeExtension )
 
 import qualified Data.Map as M
 
@@ -89,7 +90,7 @@ doReductions start =
     >>= con "simplyDomains"        simplyDomains
     >>= con "simplyConstraints"    simplyConstraints
     >>= con "loopToFixed"          loopToFixed
-    -- >>= con "eprimeAsSpec"         eprimeAsSpec
+    >>= con "eprimeAsSpec"         eprimeAsSpec
 
 
 eprimeAsSpec :: Spec -> RR (Timed Spec)
@@ -102,21 +103,39 @@ eprimeAsSpec start = do
                       || oErrStatus_ `elem`  [ParseError_] =
     return (Continue start)
 
-  process config = do
-    eprimeModel :: Model <- $notDone -- TODO readEprimeAsEssence of eprime not start
-    eprimeSpec <- fromConjure eprimeModel
-    timedCompactSpec eprimeSpec f g
+  process _ = do
+    gets mostReduced_ >>= \case
+      Nothing -> return (Continue start)
+      Just (ErrData{specDir}) -> do
+
+        files <- liftIO $  getDirectoryContents  specDir
+        case [ h | h <- files, takeExtension h == ".eprime" ] of
+          [ele] -> do
+            readEprimeAsEssence ele >>= \case
+              Nothing  -> return (Continue start)
+              (Just x) -> do
+                eprimeSpec <- fromConjure x
+                noteFormat "eprimeAsSpec Spec" [pretty eprimeSpec]
+                timedCompactSpec eprimeSpec f (g eprimeSpec)
+                -- docError [nn "res" res]
+
+          -- TODO handle multiple eprimes
+          _  -> do
+            liftIO $ noteFormat "eprimeAsSpec NotDone" ["multiple eprimes not supported"]
+            return (Continue start)
 
     where
-      f _ = do -- No time to reduce the eprime
+      f x = do -- No time to reduce the eprime
+        liftIO $ noteFormat "eprimeAsSpec noTimeLeft" [pretty x]
         return $ start
 
-      g Nothing = do -- No Error occured, should not happen
+      g _ Nothing = do -- No Error occured, should not happen
+        liftIO $ noteFormat "eprimeAsSpec NoError" []
         return $ Continue $ start
 
-      g (Just r) = do
+      g sp (Just r) = do
+        liftIO $ noteFormat "eprimeAsSpec SameError" [pretty r]
         recordResult r
-        sp :: Spec <- $notDone  -- TODO read spec from err
         loopToFixed sp
 
 
