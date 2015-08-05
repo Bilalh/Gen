@@ -115,7 +115,7 @@ eprimeAsSpec start = do
               (Just x) -> do
                 eprimeSpec <- fromConjure x
                 noteFormat "eprimeAsSpec Spec" [pretty eprimeSpec]
-                res <- timedCompactSpec eprimeSpec f (g eprimeSpec)
+                timedCompactSpec eprimeSpec f (g eprimeSpec)
                 -- docError [nn "res" res]
 
           -- TODO handle multiple eprimes

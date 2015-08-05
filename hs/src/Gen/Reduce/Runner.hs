@@ -304,7 +304,7 @@ runSpec2 refineWay spE = do
 showrrError :: (MonadR m, MonadIO m) => RunResult -> m ()
 showrrError x = do
   case x of
-    Passing{}        -> out $ "? Has rrError:" <+> pretty False
+    Passing{}        -> out $ "? Has rrError:" <+> pretty False <+> "(Passing)"
     (OurError ed)    -> f ed
     (StoredError ed) -> f ed
   liftIO $ putStrLn "\n"
