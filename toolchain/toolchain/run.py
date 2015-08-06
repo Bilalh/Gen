@@ -380,6 +380,8 @@ def classify_error(*, kind, output, returncode):
             return Status.heapSpace
         if 'conjureNew: Heap exhausted' in output:
             return Status.heapSpace
+        if 'conjure: Heap exhausted' in output:
+            return Status.heapSpace
 
     if kind == K.validateOld and 'Value not in' in output:
         return Status.valueNotInDom
@@ -405,7 +407,7 @@ def classify_error(*, kind, output, returncode):
                 return Status.emptyHandling
 
     if kind in kind_refine:
-        if 'conjureNew:' in output:
+        if 'conjureNew:' in output or 'conjure:' in output=:
             if 'Undefined: q' in output:
                 return Status.refineUnreferencedVar
 
@@ -448,10 +450,15 @@ def classify_error(*, kind, output, returncode):
             return Status.enumerateDomain
         if 'conjureNew: Safe.atNote' in output:
             return Status.outOfBoundsIndexing
+        if 'conjure: Safe.atNote' in output:
+            return Status.outOfBoundsIndexing
         if 'Category checking' in output:
             return Status.categoryChecking
         if 'conjureNew: user error' in output:
             return Status.conjureOtherUserError
+        if 'conjure: user error' in output:
+            return Status.conjureOtherUserError
+
 
         if 'e2c, not a constant' in output:
             return Status.notAConstant
