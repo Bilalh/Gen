@@ -46,6 +46,7 @@ tests = testGroup "ReductionTests"
        [
          [essencee| mset(true, true) supsetEq mset(false, true) |]
        , [essencee| (-5, false, false) |]
+       , EDom ([domainn| int(2, 3..5) |] :: Domain () Expr)
        ]
     ]
 

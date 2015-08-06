@@ -112,6 +112,7 @@ tests = testGroup "simpler"
    , eq_same  ([domainn| set of int |] :: Domain () Expr)
    , eq_same  [domainn| set (maxSize 2+1) of int |]
    , eq_same  ([domainn| function (maxSize 1) int --> int |] :: Domain () Expr)
+   , eq_same  ([domainn| int(2, 3..5) |] :: Domain () Expr)
    ]
 
   ,testGroup "Comp Same" $ do
