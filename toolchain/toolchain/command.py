@@ -175,12 +175,14 @@ class ConjureNew(Commands):
                     --essence-param    '{essence_param}'
                     --eprime-solution  '{eprime_solution}'
                     --essence-solution '{essence_solution}'
+                    --limit-time        {itimeout}
                 """,
             validate="""
                 conjureNew validate-solution
                              --essence      '{essence}'
                              --param        '{essence_param}'
                              --solution     '{essence_solution}'
+                             --limit-time    {itimeout}
                 """)
 
         log_follow_template = """
