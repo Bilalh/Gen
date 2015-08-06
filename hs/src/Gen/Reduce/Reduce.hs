@@ -24,7 +24,7 @@ reduceMain check rr = do
   sp_ <- readFromJSON fp
   -- Remove quantification
   sp <-  quanToComp sp_
-  errOccurs <- case check of
+  (errOccurs,_) <- case check of
                  False -> return (True, rr)
                  True -> (flip runStateT) rr (return sp
                            >>= noteMsg "Checking if error still occurs"
@@ -36,19 +36,18 @@ reduceMain check rr = do
 
                                   _ -> return False
                        )
-  case fst errOccurs of
+  case errOccurs of
     False -> do
         putStrLn "Spec has no error with the given settings, not reducing"
         return rr
     True -> do
-      -- noteFormat "StateStateStart" [pretty rr]
       (sfin,state) <- (flip runStateT) rr $
           return sp
           >>= doReductions
           >>= \ret -> get >>= \g -> addLog "FinalState" [pretty g] >> return ret
 
 
-      noteFormat "StartState" [pretty state]
+      noteFormat "FinalState" [pretty state]
       noteFormat "Start" [pretty sp]
 
       end <- case sfin of
@@ -114,7 +113,9 @@ eprimeAsSpec start = do
               Nothing  -> return (Continue start)
               (Just x) -> do
                 eprimeSpec <- fromConjure x
-                noteFormat "eprimeAsSpec Spec" [pretty eprimeSpec]
+                -- curState <- get
+                -- noteFormat "eprimeAsSpec curState" [pretty curState]
+
                 timedCompactSpec eprimeSpec f (g eprimeSpec)
                 -- docError [nn "res" res]
 
@@ -256,9 +257,10 @@ removeConstraints (Spec ds oes obj) = do
 
 simplyDomains :: Spec -> RR (Timed Spec)
 simplyDomains sp@(Spec ds es obj) = do
-  domsToDo <- doDoms [ (name,val) | (name, Findd val) <- M.toList ds ]
+  let org = [ (name,val) | (name, Findd val) <- M.toList ds ]
+  domsToDo <- doDoms org
   liftIO $ putStrLn . show . prettyArr $ map prettyArr domsToDo
-  fin <- process1 domsToDo
+  fin <- process1 [ dd |  dd <- domsToDo, dd /= org]
 
   if (timedExtract fin) == [] then
       return $ Continue sp
@@ -400,10 +402,10 @@ recordResult err = do
 
 
 -- |  Run the computation if there is time left
-con :: forall (m :: * -> *) a . (MonadIO m, Pretty a)
+con :: forall a . Pretty a
     => Doc
-    -> (a -> m (Timed a))
-    -> Timed a -> m (Timed a)
+    -> (a -> RR (Timed a))
+    -> Timed a -> RR (Timed a)
 con tx _ (NoTimeLeft s) = do
     noteFormat ("@" <+> tx <+> "Start/NoTimeLeft") []
     return $ NoTimeLeft s
@@ -413,5 +415,8 @@ con tx f (Continue s) = do
 
     newSp <- f s
     noteFormat ("@" <+> tx <+> "End") [pretty newSp]
+    endState <- get
+    noteFormat ("@" <+> tx <+> "EndState") [pretty endState]
+    liftIO $ putStrLn ""
 
     return newSp
