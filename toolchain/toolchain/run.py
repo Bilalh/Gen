@@ -407,7 +407,7 @@ def classify_error(*, kind, output, returncode):
                 return Status.emptyHandling
 
     if kind in kind_refine:
-        if 'conjureNew:' in output or 'conjure:' in output=:
+        if 'conjureNew:' in output or 'conjure:' in output:
             if 'Undefined: q' in output:
                 return Status.refineUnreferencedVar
 
@@ -458,7 +458,6 @@ def classify_error(*, kind, output, returncode):
             return Status.conjureOtherUserError
         if 'conjure: user error' in output:
             return Status.conjureOtherUserError
-
 
         if 'e2c, not a constant' in output:
             return Status.notAConstant
