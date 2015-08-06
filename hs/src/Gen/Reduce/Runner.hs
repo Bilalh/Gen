@@ -320,6 +320,7 @@ showrrError x = do
              if kind /= oErrKind_ then "/=" <+> pretty oErrKind_ else ""
         , nn "status: " status <+>
              if status /= oErrStatus_ then "/=" <+> pretty oErrStatus_ else ""
+        , nn "path:   " specDir
         ]
 
 
