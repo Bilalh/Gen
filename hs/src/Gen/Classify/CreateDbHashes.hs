@@ -8,6 +8,7 @@ import System.FilePath     (takeExtensions, takeDirectory)
 
 import qualified Control.Exception   as Exc
 import qualified Data.IntSet as I
+import qualified Data.HashMap.Strict as H
 
 
 createDbHashesMain :: FilePath -> FilePath -> IO ()
@@ -19,11 +20,27 @@ createDbHashesMain dir out = do
     return [a,b]
     )
 
-  let hashes = nub2 $ catMaybes hashesMay
-  let passing = I.fromList $ hashes
+  let hashes = catMaybes hashesMay
+  let skipping = I.fromList $ hashes
 
   let dbDef :: ResultsDB = def
-  let db = dbDef{resultsSkipped= passing}
+
+  fdbs <- findDBs out
+  groomPrint $ fdbs
+  olds <- forM fdbs $ \cur -> do
+    readFromJSON cur >>= \case
+      Nothing -> return []
+      Just (ResultsDB{resultsSkipped=rs
+             ,resultsPassing=Mapped rp
+             ,resultsErrors=Mapped re}) -> do
+        return $[ I.fromList . H.keys $ rp
+                , I.fromList . map fst3 . H.keys $ re
+                , rs ]
+
+  groomPrint $ olds
+
+  let db = dbDef{resultsSkipped= I.unions $ skipping : concat olds }
+
 
   writeDB_ False (Just out) db
 
@@ -54,11 +71,21 @@ readModelHash fp = do
       return $ Just $ hash sp
 
 
+findDBs :: FilePath -> IO [FilePath]
+findDBs path = do
+  names <- getDirectoryContents path
+  filterM p $ map (path </>) names
+
+  where
+    p fp = do
+      return $ (takeExtensions $ fp)  == ".json"
+
+
 
 ffind :: FilePath -> IO [FilePath]
 ffind path = do
   names <- getRecursiveContents path
-  filterM p names
+  filterM p $ names
 
   where
     p fp = do
