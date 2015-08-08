@@ -137,10 +137,15 @@ storeInDB sp r = do
 inDB :: (MonadDB m) => Spec -> m Bool
 inDB sp = do
   let newHash = hash sp
-  getsDb >>= \ResultsDB{resultsPassing = Mapped m1, resultsErrors = Mapped m2 } -> do
+  getsDb >>= \ResultsDB{resultsPassing = Mapped m1, resultsErrors = Mapped m2
+                       , resultsSkipped} -> do
    case newHash `H.lookup` m1 of
      Just{}  -> return True
-     Nothing -> return $ any (\(h,_,_) -> h == newHash ) $  H.keys m2
+     Nothing -> case any (\(h,_,_) -> h == newHash ) $  H.keys m2 of
+                  True  -> return True
+                  False -> do
+                    useS <- useSkipped
+                    return $ useS && newHash `I.member` resultsSkipped
 
 
 
