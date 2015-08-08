@@ -39,6 +39,7 @@ Library
                      , Gen.AST.Translate
                      , Gen.Classify.AddMeta
                      , Gen.Classify.AddSpecE
+                     , Gen.Classify.CreateDbHashes
                      , Gen.Classify.DomTypes
                      , Gen.Classify.Meta
                      , Gen.Classify.Sorter

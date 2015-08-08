@@ -169,6 +169,11 @@ data UI
     , choices_out_ :: FilePath
     , limit_time   :: Maybe Int
     }
+  | Script_CreateDBHashes
+    {
+      directory    :: FilePath
+    , limit_time   :: Maybe Int
+    }
   | Script_RemoveDups
     {
       dups_      :: [FilePath]
@@ -791,6 +796,20 @@ ui  = modes
      } &= explicit
        &= name "script-updateChoices"
        &= help "Convert AnsweredRepr to AnsweredReprStored from IN to OUT"
+
+
+  , Script_CreateDBHashes
+     {
+       directory  = def     &= typDir
+                            &= argPos 0
+     , limit_time = Nothing &= name "limit-time"
+                            &= explicit
+                            &= help "Time limit in seconds of CPU time of this program"
+
+     } &= explicit
+       &= name "script-createDbHashes"
+       &= help "Make a db.json using the hashes of spec.spec.json files. This can be given to `gen essence --db-dir` so that same spec is not generated again"
+
 
   , Script_RemoveDups
      {

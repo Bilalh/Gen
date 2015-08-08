@@ -272,7 +272,6 @@ classifySettingI :: EssenceConfig
                  -> FilePath
                  -> FilePath
                  -> SettingI RefineM
-                 -- -> IO Double -- timetaken
                  -> IO (Double, [(ErrData)]) -- timetaken
 classifySettingI ec errdir out uname
                  ee@SettingI{successful_=False,data_=RefineMap ms,time_taken_} = do

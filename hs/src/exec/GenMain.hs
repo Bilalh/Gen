@@ -2,37 +2,38 @@
 {-# OPTIONS_GHC -fno-cse #-} -- stupid cmdargs?
 module Main where
 
-import Data.Time                  (formatTime, getCurrentTime)
-import Data.Time.Format           (defaultTimeLocale)
+import Data.Time                   (formatTime, getCurrentTime)
+import Data.Time.Format            (defaultTimeLocale)
 import Gen.Arbitrary.Data
-import Gen.Classify.AddMeta       (metaMain)
-import Gen.Classify.AddMeta       (addMeta)
-import Gen.Classify.AddSpecE      (addSpecJson, specEMain)
-import Gen.Classify.Sorter        (getRecursiveContents, sorterMain)
-import Gen.Classify.UpdateChoices (updateChoices)
-import Gen.Essence.Generate       (generateEssence)
+import Gen.Classify.AddMeta        (metaMain)
+import Gen.Classify.AddMeta        (addMeta)
+import Gen.Classify.AddSpecE       (addSpecJson, specEMain)
+import Gen.Classify.CreateDbHashes (createDbHashesMain)
+import Gen.Classify.Sorter         (getRecursiveContents, sorterMain)
+import Gen.Classify.UpdateChoices  (updateChoices)
+import Gen.Essence.Generate        (generateEssence)
 import Gen.Essence.UIData
-import Gen.Generalise.Generalise  (generaliseMain)
+import Gen.Generalise.Generalise   (generaliseMain)
 import Gen.Imports
-import Gen.IO.Dups                (deleteDups2, refineDups, solveDups)
-import Gen.IO.Formats             (readFromJSON)
-import Gen.IO.RunResult           (giveDb, writeDB_)
+import Gen.IO.Dups                 (deleteDups2, refineDups, solveDups)
+import Gen.IO.Formats              (readFromJSON)
+import Gen.IO.RunResult            (giveDb, writeDB_)
 import Gen.IO.Term
-import Gen.IO.Toolchain           (KindI (..), StatusI (..), ToolchainOutput (..),
-                                   doMeta, kindsList, statusesList)
-import Gen.Reduce.Data            (RState (..), mkrGen)
-import Gen.Reduce.FormatResults   (formatResults)
-import Gen.Reduce.Reduce          (reduceMain)
-import Gen.Solver.Solver          (SolverArgs (..), solverMain)
+import Gen.IO.Toolchain            (KindI (..), StatusI (..), ToolchainOutput (..),
+                                    doMeta, kindsList, statusesList)
+import Gen.Reduce.Data             (RState (..), mkrGen)
+import Gen.Reduce.FormatResults    (formatResults)
+import Gen.Reduce.Reduce           (reduceMain)
+import Gen.Solver.Solver           (SolverArgs (..), solverMain)
 import Gen.UI.UI
-import System.Console.CmdArgs     (cmdArgs)
-import System.CPUTime             (getCPUTime)
-import System.Directory           (getCurrentDirectory, setCurrentDirectory)
-import System.Environment         (lookupEnv, withArgs)
-import System.Exit                (exitFailure, exitSuccess, exitWith)
-import System.FilePath            (replaceExtension, takeExtensions)
-import System.Timeout             (timeout)
-import Text.Printf                (printf)
+import System.Console.CmdArgs      (cmdArgs)
+import System.CPUTime              (getCPUTime)
+import System.Directory            (getCurrentDirectory, setCurrentDirectory)
+import System.Environment          (lookupEnv, withArgs)
+import System.Exit                 (exitFailure, exitSuccess, exitWith)
+import System.FilePath             (replaceExtension, takeExtensions)
+import System.Timeout              (timeout)
+import Text.Printf                 (printf)
 
 import qualified Data.Set                as S
 import qualified Gen.Essence.UIData      as EC
@@ -51,7 +52,7 @@ main = do
        args <- helpArg
        void $ withArgs [args] (cmdArgs ui)
     [x] | x `elem` [ "essence", "reduce", "link", "meta", "json", "generalise", "solve", "weights"
-                   , "script-toolchain", "script-recheck"
+                   , "script-toolchain", "script-recheck", "script-createDbHashes"
                    , "script-updateChoices", "script-removeDups"] -> do
        args <- helpArg
        void $ withArgs [x, args] (cmdArgs ui)
@@ -514,6 +515,22 @@ mainWithArgs Script_UpdateChoices{..} = do
 
 
   updateChoices choices_in_ choices_out_
+
+
+
+mainWithArgs Script_CreateDBHashes{..} = do
+
+  errors <- catMaybes <$> sequence
+            [
+              dirExists "First argument " directory
+            ]
+
+  case errors of
+    [] -> return ()
+    xs -> mapM putStrLn xs >> exitFailure
+
+
+  createDbHashesMain directory (directory)
 
 
 mainWithArgs Script_RemoveDups{..} = do
