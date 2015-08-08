@@ -30,12 +30,8 @@ createDbHashesMain dir out = do
   olds <- forM fdbs $ \cur -> do
     readFromJSON cur >>= \case
       Nothing -> return []
-      Just (ResultsDB{resultsSkipped=rs
-             ,resultsPassing=Mapped rp
-             ,resultsErrors=Mapped re}) -> do
-        return $[ I.fromList . H.keys $ rp
-                , I.fromList . map fst3 . H.keys $ re
-                , rs ]
+      Just (ResultsDB{resultsSkipped=rs, resultsErrors=Mapped re}) -> do
+        return $[ I.fromList . map fst3 . H.keys $ re , rs ]
 
   groomPrint $ olds
 
