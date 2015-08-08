@@ -197,7 +197,7 @@ checkDB kind status newE= do
 writeDB :: (MonadDB m, MonadIO m) => Bool -> m ()
 writeDB onlyPassing = do
   db  <- getsDb
-  out <-  getDbDirectory
+  out <- getDbDirectory
   writeDB_ onlyPassing out db
 
 

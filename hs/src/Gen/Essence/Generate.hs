@@ -162,7 +162,10 @@ doCommon ec@EC.EssenceConfig{..} refineType = do
               writeDB False
 
               case rdata of
-                [] ->  liftIO $ putStrLn $ "> Passing: " ++ (show $ hash sp)
+                [] ->  do
+                  storeInDB sp (Passing $ truncate runTime)
+                  liftIO $ putStrLn $ "> Passing: " ++ (show $ hash sp)
+
                 _  -> do
                   liftIO $ putStrLn $ "> Erred: "  ++ (show $ hash sp)
                   case (reduceAsWell_) of
@@ -175,8 +178,9 @@ doCommon ec@EC.EssenceConfig{..} refineType = do
                       liftIO $ putStrLn $ "! rdata: " ++ (show $ vcat $ map pretty rdata)
                       liftIO $ putStrLn $ "!l errData: " ++ (show $ length res)
                       liftIO $ putStrLn $ "! errData: " ++ (show $ vcat $ map pretty res)
-                      writeDB False
                       mapM_ adjust res
+
+              writeDB False
 
               liftIO $ putStrLn $ "> Processed: " ++ (show $ hash sp)
               liftIO $ putStrLn $ ""
