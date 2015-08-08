@@ -19,3 +19,4 @@ instance Monad m => MonadDB (StateT Carry m) where
     getDbDirectory     = gets cDBDir >>= return . Just
     getOutputDirectory = gets cSpecDir
     sortByKindStatus   = return True
+    useSkipped         = return True

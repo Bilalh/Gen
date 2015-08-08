@@ -4,35 +4,38 @@ import Gen.Classify.Sorter (getRecursiveContents)
 import Gen.Imports
 import Gen.IO.Formats
 import Gen.IO.RunResult
-import System.FilePath     (takeExtensions)
+import System.FilePath     (takeExtensions, takeDirectory)
 
 import qualified Control.Exception   as Exc
-import qualified Data.HashMap.Strict as H
+import qualified Data.IntSet as I
 
 
 createDbHashesMain :: FilePath -> FilePath -> IO ()
 createDbHashesMain dir out = do
   fps <- ffind dir
-  hashesMay <- forM fps $ (\fp -> do
-    catch fp $ readSpecHash fp
+  hashesMay <- (flip concatMapM) fps $ (\fp -> do
+    a <- catch1 fp $ readSpecHash  fp
+    b <- catch2 fp $ readModelHash fp
+    return [a,b]
     )
-  let hashes = catMaybes hashesMay
 
-  let passing = H.fromList $ zip hashes (repeat 0)
+  let hashes = nub2 $ catMaybes hashesMay
+  let passing = I.fromList $ hashes
 
   let dbDef :: ResultsDB = def
-  let db = dbDef{resultsPassing=Mapped $ passing}
+  let db = dbDef{resultsSkipped= passing}
 
-  writeDB_ True (Just out) db
+  writeDB_ False (Just out) db
 
 
   where
-  catch :: FilePath -> IO (Maybe Hash) -> IO (Maybe Hash)
-  catch fp f = Exc.catch f (handler fp)
+  catch1, catch2 :: FilePath -> IO (Maybe Hash) -> IO (Maybe Hash)
+  catch1 fp f = Exc.catch f (handler "  FAILED(.spec.json): " fp)
+  catch2 fp f = Exc.catch f (handler "  FAILED(spec.essence): " fp)
 
-  handler :: FilePath -> Exc.SomeException -> IO (Maybe Hash)
-  handler f _ = do
-    putStrLn $ "  FAILED(.spec.json): " ++ f
+  handler :: String -> FilePath -> Exc.SomeException -> IO (Maybe Hash)
+  handler prefix f _ = do
+    putStrLn $ prefix ++ f
     return Nothing
 
 
@@ -40,6 +43,16 @@ readSpecHash :: FilePath -> IO (Maybe Hash)
 readSpecHash fp = do
   sp :: Spec <- readFromJSON fp
   return $ Just $ hash sp
+
+readModelHash :: FilePath -> IO (Maybe Hash)
+readModelHash fp = do
+  let model = takeDirectory fp </> "spec.essence"
+  doesFileExist model >>= \case
+    False -> return Nothing
+    True  -> do
+      sp <- readSpecFromEssence model
+      return $ Just $ hash sp
+
 
 
 ffind :: FilePath -> IO [FilePath]

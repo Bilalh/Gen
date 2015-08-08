@@ -530,7 +530,7 @@ mainWithArgs Script_CreateDBHashes{..} = do
     xs -> mapM putStrLn xs >> exitFailure
 
 
-  createDbHashesMain directory (directory)
+  createDbHashesMain directory (directory </> "hashes")
 
 
 mainWithArgs Script_RemoveDups{..} = do

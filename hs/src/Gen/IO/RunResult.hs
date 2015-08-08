@@ -9,6 +9,8 @@ import Gen.IO.ToolchainData (KindI (..), StatusI (..))
 import System.FilePath      (replaceDirectory, takeBaseName)
 
 import qualified Data.HashMap.Strict as H
+import qualified Data.IntSet as I
+
 
 -- | Results of running a spec for caching
 class Monad m => MonadDB m where
@@ -23,6 +25,9 @@ class Monad m => MonadDB m where
     -- | Mainly for generate
     sortByKindStatus :: m Bool
     sortByKindStatus = return False
+
+    useSkipped :: m Bool
+    useSkipped = return False
 
 data ErrData = ErrData
     { kind      :: KindI
@@ -49,6 +54,7 @@ data RunResult =
 data ResultsDB = ResultsDB{
       resultsPassing :: Mapped Hash Time
     , resultsErrors  :: Mapped (Hash, KindI, StatusI) RunResult
+    , resultsSkipped :: I.IntSet
     }
   deriving (Eq, Show, Data, Typeable, Generic)
 
@@ -59,6 +65,7 @@ newtype Mapped a b = Mapped (HashMap a b)
 instance Default ResultsDB where
     def = ResultsDB{resultsPassing = def
                    ,resultsErrors  = def
+                   ,resultsSkipped = def
                    }
 
 instance FromJSON ResultsDB
@@ -145,8 +152,17 @@ checkDB :: (MonadDB m, MonadIO m)
         -> m (Maybe RunResult)
 checkDB kind status newE= do
   let newHash = hash newE
-  getsDb >>= \ResultsDB{resultsPassing = Mapped m1, resultsErrors = Mapped m2 } -> do
-    case newHash `H.lookup` m1 of
+  getsDb >>= \ResultsDB{resultsPassing = Mapped m1, resultsErrors = Mapped m2
+                       , resultsSkipped } -> do
+    useS <- useSkipped
+    let c1 = newHash `H.lookup` m1
+    let c2 = case c1 of
+             c@Just{} -> c
+             Nothing  -> case useS && newHash `I.member` resultsSkipped of
+               True  -> Just 0
+               False -> Nothing
+
+    case c2  of
       Just i -> return . Just . Passing $ i
       Nothing -> do
         case (newHash, kind, status) `H.lookup` m2 of
@@ -189,12 +205,12 @@ writeDB onlyPassing = do
 writeDB_ :: MonadIO m => Bool -> Maybe FilePath -> ResultsDB -> m ()
 writeDB_ _ Nothing  _    = return ()
 writeDB_ onlyPassing (Just dir)
-         ResultsDB{resultsPassing = Mapped m1, resultsErrors = Mapped m2 } = do
+    ResultsDB{resultsPassing = Mapped m1, resultsErrors = Mapped m2,resultsSkipped } = do
   liftIO $ createDirectoryIfMissing True dir
 
   nm2 <- liftIO $ H.traverseWithKey f (if onlyPassing then H.empty else m2)
   liftIO $ writeToJSON (dir </> "db.json")
-           (ResultsDB{resultsPassing=Mapped m1,resultsErrors=Mapped nm2})
+           (ResultsDB{resultsPassing=Mapped m1,resultsErrors=Mapped nm2,resultsSkipped})
 
   where
     f _ (OurError (ErrData{..})) = do
