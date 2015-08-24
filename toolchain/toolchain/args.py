@@ -36,6 +36,10 @@ def do_args():
         "--reduce_time",
         help=
         'look for solve_eprime.json &| refine_essence.json in `essence`  dir  to reduce the running time if they exist, the given arg must exist if they do ')
+    parse_args.add_argument(
+        "--exit_if_not_enough_time",
+        action='store_true',
+        help='exit(73) if there would not be enough time left when using --reduce_time ')
 
     args = parse_args.parse_args()
 

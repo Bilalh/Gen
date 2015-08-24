@@ -27,6 +27,8 @@ from toolchain.run import Status
 
 logger = logging.getLogger(__name__)
 
+SKIP_CODE = 73
+
 
 def sha1_file(filepath):
     """ Return the sha1 of a Path """
@@ -185,8 +187,12 @@ if __name__ == "__main__":
 
         if new_timeout:
             if new_timeout > op.timeout:
-                logger.warn("Timeout previously used %s, is less then given time %s",
-                            new_timeout, op.timeout)
+                logger.warning("Timeout previously used %s, is less then given time %s",
+                               new_timeout, op.timeout)
+
+                if op.exit_if_not_enough_time:
+                    sys.exit(SKIP_CODE)
+
             old = op.timeout
             op.timeout = int(min(max(new_timeout * 3, 20), op.timeout))
 
