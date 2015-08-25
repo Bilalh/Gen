@@ -187,7 +187,7 @@ if __name__ == "__main__":
 
         if new_timeout:
             if new_timeout > op.timeout:
-                logger.warning("Timeout previously used %s, is less then given time %s",
+                logger.warning("Timeout previously used %s, is greater then the given time %s",
                                new_timeout, op.timeout)
 
                 if op.exit_if_not_enough_time:
