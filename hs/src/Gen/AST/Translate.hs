@@ -151,8 +151,8 @@ instance Translate Text Name where
 
 instance ExpressionLike Expr where
     fromInt = ECon . fromInt
-    intOut (ECon c) = intOut c
-    intOut x = fail ("Expecting a constant, but got:" <+> pretty x)
+    intOut doc (ECon c) = intOut doc c
+    intOut doc x = fail ("Expecting a constant, but got:" <+> pretty x <+> "from" <+> doc)
 
     fromBool = ECon . fromBool
     boolOut (ECon c) = boolOut c
