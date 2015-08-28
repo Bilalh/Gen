@@ -4,6 +4,7 @@ module Gen.Essence.EvalToInt where
 
 import Conjure.Language.Definition
 import Conjure.Language.Instantiate
+import Conjure.Process.Enumerate
 import Gen.AST.TH
 import Gen.Essence.St
 import Gen.Essence.Rnd
@@ -52,27 +53,24 @@ instance EvalToInt Expr where
 
 
 instance EvalToInt Expression where
-  evalToInt x = case instantiateExpression [] x of
-    Right (ConstantInt v) -> return v
+  evalToInt x = case (instantiateExpression [] x :: EnumerateDomainNoIO Constant ) of
 
-    -- FIXME terrible hacks
-    Right (ConstantUndefined _ TypeInt)     -> return (-99)
-    Right (ConstantUndefined _ TypeAny)     -> return (-99)
-    Left msg | "N/A:" `isPrefixOf` (dropWhile (==' ') $ show msg) -> return (-99)
+   Done (ConstantInt v ) -> return v
 
-    Right v -> docError ["Not an int in EvalToInt Expression"
-                        , "exprI :"  <+> pretty x
-                        , "result:"  <+> pretty v
-                        , "resultGroomed:"  <+> (pretty . groom) v
-                        , "exprGroomed:"    <+> (pretty . groom) x
-                        ]
-    -- FIXME errors in instantiateExpression happen too often
-    _  -> return (-99)
-    -- Left msg -> docError ["instantiateExpression bug in EvalToInt Expression"
-    --                      , "expr:" <+> pretty x
-    --                      , "msg : " <+> pretty msg
-    --                      , "exprGroomed:" <+> pretty (groom x)
-    --                      ]
+   -- FIXME terrible hacks
+   TriedIO                            -> return (-99)
+   Done (ConstantUndefined _ TypeInt) -> return (-99)
+   Done (ConstantUndefined _ TypeAny) -> return (-99)
+
+   Failed msg | "N/A:" `isPrefixOf` (dropWhile (==' ') $ show msg) -> return (-99)
+   Failed _  -> return (-99)
+
+   Done v -> docError ["Not an int in EvalToInt Expression"
+                       , "exprI :"  <+> pretty x
+                       , "result:"  <+> pretty v
+                       , "resultGroomed:"  <+> (pretty . groom) v
+                       , "exprGroomed:"    <+> (pretty . groom) x
+                       ]
 
   ensureGTE0 x = do
     i <- evalToInt x

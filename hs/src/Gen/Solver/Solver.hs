@@ -8,7 +8,7 @@ import Conjure.UI.IO
 import Conjure.UserError               (MonadUserError)
 import Gen.Helpers.InlineLettings
 import Gen.Imports
-import Gen.Solver.Enumerate
+import Conjure.Process.Enumerate
 
 import qualified Data.Set as S
 
@@ -31,7 +31,7 @@ data SolverArgs = SolverArgs {
 solverMain :: SolverArgs -> IO ()
 solverMain SolverArgs{..} = do
   model <- readModelFromFile essencePath
-  runLoggerIO LogNone $ solver model >>= \case
+  ignoreLogs $ solver model >>= \case
     Nothing -> do
       liftIO $ putStrLn "No solution found"
     (Just solution) -> do
@@ -40,7 +40,7 @@ solverMain SolverArgs{..} = do
       writeModel PlainEssence (Just solutionPath) solution
 
 
-solver :: (MonadFail m, MonadLog m, MonadUserError m)
+solver :: (MonadFail m, MonadLog m, MonadUserError m, EnumerateDomain m)
        =>  Model -> m (Maybe Solution)
 solver modelStart = do
   modelNamed <- ignoreLogs . runNameGen $ resolveNames modelStart
@@ -67,11 +67,11 @@ solver modelStart = do
   logInfo $ "doms"    <+> (vcat $ map (pretty . groom)  doms)
   logInfo $ "trie"    <+> (pretty $ groom trie)
 
-  case violates noVars [] of
+  violates noVars [] >>= \case
     True  -> return Nothing
     False -> do
       -- Do the search
-      let assigments = dfsSolve doms trie
+      assigments <- dfsSolve doms trie
       logInfo $ "assigments" <+> ( pretty $ groom assigments)
 
       case assigments of
@@ -81,20 +81,21 @@ solver modelStart = do
 
 
 -- The search
-dfsSolve :: DomValues-> Trie Expression -> Maybe [Assigment]
+dfsSolve :: (EnumerateDomain m) =>  DomValues  -> Trie Expression -> m (Maybe [Assigment])
 dfsSolve a b = solve a b []
   where
-  solve :: DomValues -> Trie Expression -> [Assigment] -> Maybe [Assigment]
-  solve [] _ []  = Nothing   -- No Variables
-  solve [] _ env = Just env  -- Assigned all variables successfully
+  solve :: (EnumerateDomain m) =>
+           DomValues -> Trie Expression -> [Assigment] -> m (Maybe [Assigment])
+  solve [] _ []  = return $ Nothing   -- No Variables
+  solve [] _ env = return $ Just env  -- Assigned all variables successfully
 
 
   -- Variables without any constraints
   -- Assign the first value in it's domain
   solve ds@(_:_) TNone env = let vs =  map f ds in
           case all isJust vs of
-              True  -> Just $ catMaybes vs ++ env
-              False -> Nothing
+              True  -> return $ Just $ catMaybes vs ++ env
+              False -> return $ Nothing
 
       where f (_, [])    = Nothing
             f (t, (e:_)) = Just (t, e)
@@ -102,15 +103,15 @@ dfsSolve a b = solve a b []
   -- dfs search
   solve ( (dname, dvals) : drest) trie@(TSome _ cs trest) env =
     case dvals of
-    []     -> Nothing  -- no values left in the domain
+    []     -> return $ Nothing  -- no values left in the domain
 
     (x:xs) -> let newEnv = updateEnv env (dname,x) in
-      case violates cs newEnv of
+      violates cs newEnv >>= \case
         True  -> solve ( (dname, xs) : drest ) trie env
         False ->
-          case solve drest trest newEnv of
-            Just jenv -> Just jenv
-            Nothing -> solve ( (dname, xs) : drest ) trie env
+          solve drest trest newEnv >>= \case
+            Just jenv  -> return $ Just jenv
+            Nothing    -> solve ( (dname, xs) : drest ) trie env
 
 
   updateEnv :: [Assigment] -> (Name,Constant) -> [Assigment]
@@ -118,19 +119,23 @@ dfsSolve a b = solve a b []
 
 
 -- Returns True if any constraint is not satisfied
-violates  :: [Expression] -> [Assigment] -> Bool
-violates xs vals =
-  any violate xs
+violates  :: (EnumerateDomain m) =>  [Expression] -> [Assigment] -> m Bool
+violates xs vals = do
+  bs :: [Bool] <- mapM violate xs
+  return $ or  $ bs
 
   where
-  violate x =
-    case instantiateExpression (map ( \(a,b) -> (a,Constant b) ) vals) x of
+  violate x = do
+    let f = runMaybeT $  instantiateExpression (map ( \(a,b) -> (a,Constant b) ) vals) x
+    b <- f
+    case b of
       Nothing -> lineError $line ["can not instantiateExpression"
                                  , "expr:" <+> pretty x
                                  , "vals:" <+> (vcat $ map pretty vals)
                                  ]
-      (Just (ConstantBool False)) -> True
-      (Just (ConstantBool True)) -> False
+
+      (Just (ConstantBool False)) -> return True
+      (Just (ConstantBool True))  -> return False
       (Just c) -> lineError $line ["Not a constant" <+> pretty c ]
 
 
@@ -154,10 +159,11 @@ createSolution :: [(Name,Constant)] -> Solution
 createSolution xs = def{mStatements= [ Declaration $ (Letting n) (Constant e)
                                      | (n,e) <- sortOn fst xs ] }
 
+
 _run :: FilePath -> IO ()
 _run fp = do
   model <- readModelFromFile fp
-  solution <- runLoggerIO LogNone $ solver model
+  solution <- ignoreLogs $ solver model
   print fp
   print . pretty $ model
   print . pretty $ solution

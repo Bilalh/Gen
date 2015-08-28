@@ -23,7 +23,7 @@ doSpec :: (MonadFail m, MonadIO m, MonadUserError m)
        => FilePath -> m TestTree
 doSpec fp = do
   model <- readModelFromFile fp
-  let solMay = solveSpec model
+  solMay <- liftIO $ solveSpec model
   possibleFps  <- liftIO $ allFilesWithSuffix ".solution" (takeDirectory fp)
   let parts = testGroup (takeDirectory fp)
         [
@@ -33,11 +33,12 @@ doSpec fp = do
   return parts
 
 
-solveSpec :: Model -> Maybe Model
+solveSpec :: Model -> IO (Maybe Model)
 solveSpec model = do
-  case runLogger LogNone $ solver model of
-    (Right (solution, _)) -> solution
-    _                     -> Nothing
+  x <- ignoreLogs $ solver model
+  return x
+
+
 
 checkSpec :: Maybe Solution -> [FilePath] -> Assertion
 checkSpec Nothing [] = assertBool "No solution expected" True
