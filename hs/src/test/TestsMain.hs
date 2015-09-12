@@ -17,7 +17,7 @@ main :: IO ()
 main = do
     ts <- sequence
           [
-            Solver.SolverTest.tests
+            -- Solver.SolverTest.tests
           ]
 
     defaultMainWithIngredients (antXMLRunner : defaultIngredients)
