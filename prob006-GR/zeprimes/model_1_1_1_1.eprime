@@ -1,0 +1,75 @@
+language ESSENCE' 1.0
+
+given n: int(0..100)
+letting bound be 2 ** n
+find Ticks_Occurrence: matrix indexed by [int(0..bound)] of bool
+find aux1: int(0..bound)
+minimising aux1
+such that
+    and([Ticks_Occurrence[q2] -> q2 <= aux1 | q2 : int(0..bound)]),
+    or([Ticks_Occurrence[q2] /\ q2 = aux1 | q2 : int(0..bound)]),
+    and([Ticks_Occurrence[pair1_1] /\ Ticks_Occurrence[pair1_2] ->
+         and([Ticks_Occurrence[pair2_1] /\ Ticks_Occurrence[pair2_2] ->
+              max([pair1_1, pair1_2; int(1..2)]) - min([pair1_1, pair1_2; int(1..2)]) !=
+              max([pair2_1, pair2_2; int(1..2)]) - min([pair2_1, pair2_2; int(1..2)])
+                  | pair2_1 : int(0..bound), pair2_2 : int(0..bound), pair2_2 > pair2_1,
+                    !(pair1_1 = pair2_1 /\ pair1_2 = pair2_2)])
+             | pair1_1 : int(0..bound), pair1_2 : int(0..bound), pair1_2 > pair1_1]),
+    n = sum([toInt(Ticks_Occurrence[q1]) | q1 : int(0..bound)])
+
+$ Conjure's
+$ {"finds": [{"Name": "Ticks"}],
+$  "givens": [{"Name": "n"}],
+$  "enumGivens": [],
+$  "enumLettings": [],
+$  "unnameds": [],
+$  "strategyQ": {"PickFirst": []},
+$  "strategyA": {"PickAll": []},
+$  "trailCompact": [[1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 2], [1, 1], [1, 2],
+$                   [1, 1], [1, 2], [1, 1], [1, 2], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1],
+$                   [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1],
+$                   [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1],
+$                   [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1],
+$                   [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1],
+$                   [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1],
+$                   [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1],
+$                   [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1],
+$                   [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1],
+$                   [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1],
+$                   [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1],
+$                   [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1],
+$                   [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1]],
+$  "trailVerbose": [],
+$  "nameGenState": [["aux", 2], ["q", 11]],
+$  "representations": [[{"Name": "n"},
+$                       {"DomainInt": [{"RangeBounded": [{"Constant": {"ConstantInt": 0}},
+$                                                        {"Constant": {"ConstantInt": 100}}]}]}],
+$                      [{"Name": "Ticks"},
+$                       {"DomainSet": [{"HasRepresentation": {"Name": "Occurrence"}},
+$                                      {"SizeAttr_Size": {"Reference": [{"Name": "n"},
+$                                                                       {"DeclHasRepr": ["Given", {"Name": "n"},
+$                                                                                        {"DomainInt": [{"RangeBounded": [{"Constant": {"ConstantInt": 0}},
+$                                                                                                                         {"Constant": {"ConstantInt": 100}}]}]}]}]}},
+$                                      {"DomainInt": [{"RangeBounded": [{"Constant": {"ConstantInt": 0}},
+$                                                                       {"Reference": [{"Name": "bound"},
+$                                                                                      {"Alias": {"Op": {"MkOpPow": [{"Constant": {"ConstantInt": 2}},
+$                                                                                                                    {"Reference": [{"Name": "n"},
+$                                                                                                                                   {"DeclHasRepr": ["Given",
+$                                                                                                                                                    {"Name": "n"},
+$                                                                                                                                                    {"DomainInt": [{"RangeBounded": [{"Constant": {"ConstantInt": 0}},
+$                                                                                                                                                                                     {"Constant": {"ConstantInt": 100}}]}]}]}]}]}}}]}]}]}]}]],
+$  "representationsTree": [[{"Name": "Ticks"},
+$                           [{"rootLabel": {"HasRepresentation": {"Name": "Occurrence"}},
+$                             "subForest": [{"rootLabel": null,
+$                                            "subForest": []}]}]],
+$                          [{"Name": "n"},
+$                           [{"rootLabel": null,
+$                             "subForest": []}]]],
+$  "originalDomains": [[{"Name": "n"},
+$                       {"DomainInt": [{"RangeBounded": [{"Constant": {"ConstantInt": 0}},
+$                                                        {"Constant": {"ConstantInt": 100}}]}]}],
+$                      [{"Name": "Ticks"},
+$                       {"DomainSet": [[], {"SizeAttr_Size": {"Reference": [{"Name": "n"}, null]}},
+$                                      {"DomainInt": [{"RangeBounded": [{"Constant": {"ConstantInt": 0}},
+$                                                                       {"Reference": [{"Name": "bound"}, null]}]}]}]}]],
+$  "questionAnswered": []}

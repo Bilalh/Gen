@@ -2,7 +2,6 @@
 set -o nounset
 export OUR="$( cd "$( dirname "$0" )" && pwd )";
 
-set -x
 pushd ..
 export PARAM_GEN_SCRIPTS="$PWD/scripts/"
 popd
@@ -15,7 +14,7 @@ export OUT_BASE_DIR="$PWD/out"
 
 now="$(date +%s)"
 param_path="$PWD/./params/1.param"
-time_per_model=10
+time_per_model=60
 working_dir="$PWD"
 
 rm -rf out
@@ -23,6 +22,3 @@ mkdir out
 
 "$PARAM_GEN_SCRIPTS/wrappers/run.sh" \
 	"$now"  "${param_path}" "${time_per_model}" "${working_dir}"
-
-set +x
-

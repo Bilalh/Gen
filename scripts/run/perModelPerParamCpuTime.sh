@@ -86,12 +86,10 @@ date +'StartP %a %d %b %Y %k:%M:%S %z%nStartP(timestamp) %s' >&2
 
 echoer \
 ${CPUTIMEOUT} --write-time ${REFINE_TIME} --previous-used $PREVIOUS_USED $TOTAL_TIMEOUT  \
-conjure                                                            \
-    --mode       refineParam                                       \
-    --in-essence $ESSENCE                                          \
-    --in-eprime  $EPRIME                                           \
-    --in-essence-param $PARAM                                      \
-    --out-eprime-param $EPRIME_PARAM;
+conjure refine-param                                                            \
+    --eprime  $EPRIME                                           \
+    --essence-param $PARAM                                      \
+    --eprime-param $EPRIME_PARAM;
 
 RESULTOF_REFINEPARAM=$?
 echo "~~~ RESULTOF_REFINEPARAM ${RESULTOF_REFINEPARAM}"
