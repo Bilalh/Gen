@@ -140,7 +140,7 @@ rmdir "${LOCKDIR}"
 function check_errors(){
 	out_dir=$1
 	param=$2
-	if  ( ls "${out_dir}/p-${2}.errors" ); then
+	if  ( ls "${out_dir}/p-${2}.errors" &>/dev/null ); then
 		echo "Found errors for ${param}"
 		return 1
 	else
