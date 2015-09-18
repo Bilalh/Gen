@@ -10,6 +10,7 @@ export NUM_JOBS=3
 export USE_MODE=df
 export OUT_BASE_DIR="$PWD/out"
 
+# TODO specify the model ordering
 # export MODELS_TO_USE=
 
 
@@ -26,6 +27,8 @@ mkdir out
 
 export USE_DATE="${now}"
 export TOTAL_TIMEOUT="${time_per_model}"
+# Called param_hash in old script but seem to be the name of param file
+# which happen to the hash
 param_hash="6e0c6b668"
 
 # Need to do this first globally
