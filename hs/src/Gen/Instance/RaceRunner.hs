@@ -50,6 +50,7 @@ sampleParamFromMinion = do
   let timeout = 300 :: Int
   let paramName = "empty"
   let paramFp = (out </> paramName) <.> ".param"
+  let solutionFp = out </> ("essence_param_find"  ++ "-" ++ paramName  <.> ".solution" )
 
   liftIO $ createDirectoryIfMissing True out
   writeParam [] paramFp
@@ -66,6 +67,10 @@ sampleParamFromMinion = do
             ]
   cmd <- wrappers "create_param_from_essence.sh"
   res <- runCommand' (Just env) cmd args Nothing
+
+  solution_param <- liftIO $ readModelFromFile solutionFp
+
+  logDebug ("produced" <+> pretty solution_param)
   return ()
 
 wrappers :: MonadIO m => FilePath -> m FilePath
