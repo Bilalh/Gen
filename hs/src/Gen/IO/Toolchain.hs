@@ -6,6 +6,7 @@ module Gen.IO.Toolchain (
   , getToolchainDir
   , writeModelDef
   , runCommand
+  , runCommand'
   , saveBinariesCsv
   , copyMetaToSpecDir
   , logSpec

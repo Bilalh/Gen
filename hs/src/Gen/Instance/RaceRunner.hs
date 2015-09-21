@@ -7,20 +7,23 @@ import Conjure.UI.IO
 import Gen.Imports
 import Gen.Instance.Data
 import Gen.IO.Formats
-import Gen.IO.Toolchain                         (runCommand)
+import Gen.IO.Toolchain                         (runCommand,runCommand')
 import System.Directory                         (renameFile)
 import System.Exit                              (ExitCode (..))
 import System.IO.Temp                           (withSystemTempDirectory)
+import System.Environment(lookupEnv)
 
 import qualified Data.Set as S
 
-createParamEssence ::  (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
+createParamEssence :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
                    => m ()
 createParamEssence = do
   logDebug "createParamEssence"
   (Method MCommon{mEssencePath,mVarInfo, mOutputDir} _) <- get
   let specFp   = (mOutputDir </> "essence_param_find.essence")
   let eprimeFp = (mOutputDir </> "essence_param_find.eprime")
+  liftIO $ createDirectoryIfMissing True mOutputDir
+
 
   liftIO $ doesFileExist specFp >>= \case
     True  -> return ()
@@ -37,8 +40,45 @@ createParamEssence = do
         False -> userErr1 "Failed to refine the param specification, namely essence_param_find.essence "
 
 
-sampleParamFromMinion :: (Sampling a, MonadState (Method a) m, MonadIO m) => Point -> m ()
-sampleParamFromMinion = $notDone
+sampleParamFromMinion :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
+                      => m ()
+sampleParamFromMinion = do
+  (Method MCommon{mOutputDir} _) <- get
+  let seed = 4 :: Int
+  now <- timestamp
+  let out = mOutputDir </> show now
+  let timeout = 300 :: Int
+  let paramName = "empty"
+  let paramFp = (out </> paramName) <.> ".param"
+
+  liftIO $ createDirectoryIfMissing True out
+  writeParam [] paramFp
+
+  let args = [ (mOutputDir </> "essence_param_find.essence")
+             , (mOutputDir </> "essence_param_find.eprime")
+             , paramFp
+             , show timeout
+             , show timeout
+             , show seed
+             ]
+  let env = [ ("GENERATED_OUTPUT_DIR", out)
+            , ("TIMEOUT5_FILE", out </> "timeout_file")
+            ]
+  cmd <- wrappers "create_param_from_essence.sh"
+  res <- runCommand' (Just env) cmd args Nothing
+  return ()
+
+wrappers :: MonadIO m => FilePath -> m FilePath
+wrappers fp = do
+  liftIO $ lookupEnv ("PARAM_GEN_SCRIPTS" :: String) >>= \case
+            Nothing -> liftIO $ error "No PARAM_GEN_SCRIPTS variable"
+            Just p -> do
+                return $ p </> "wrappers" </> fp
+
+writeParam :: MonadIO m => [()] -> FilePath -> m ()
+writeParam _ fp = do
+  let m :: Model = def
+  liftIO $ writeModel PlainEssence (Just fp) m
 
 createParamSpecification :: (MonadUserError m, MonadFail m) => Model -> VarInfo -> m Model
 createParamSpecification model VarInfo{..} = do

@@ -31,6 +31,7 @@ START_FILE="${EPRIMEBASE}-${PARAMBASE}.zstarted"
 END_FILE="${EPRIMEBASE}-${PARAMBASE}.zfinished"
 
 EPRIME_PARAM="${EPRIMEBASE}-${PARAMBASE}.eprime-param"
+AUX="${EPRIMEBASE}-${PARAMBASE}.eprime-aux"
 EPRIME_SOLUTION="${EPRIMEBASE}-${PARAMBASE}.eprime-solution"
 ESSENCE_SOLUTION="${EPRIMEBASE}-${PARAMBASE}.solution"
 
@@ -139,6 +140,7 @@ savilerow $TOTAL_TIMEOUT ${SAVILEROW_TIME} -mode Normal \
     -in-eprime    $EPRIME       \
     -in-param     $EPRIME_PARAM \
     -out-minion   $MINION       \
+    -out-aux      $AUX
 
 date +'finSR %a %d %b %Y %k:%M:%S %z%nfinSR(timestamp) %s' >&2
 
@@ -200,7 +202,8 @@ savilerow  $TOTAL_TIMEOUT ${SAVILEROW_TIME_UP}  \
     -mode ReadSolution \
     -out-minion      $MINION    \
     -minion-sol-file $MINION_SOLUTION \
-    -out-solution    $EPRIME_SOLUTION 1>/dev/null
+    -out-solution    $EPRIME_SOLUTION \
+    -out-aux         $AUX  1>/dev/null
 date +'finSR2 %a %d %b %Y %k:%M:%S %z%nfinSR2(timestamp) %s' >&2
 
 
@@ -235,7 +238,7 @@ echo "$MSG_TRANSLATESOLN"
 date +'StartUP %a %d %b %Y %k:%M:%S %z%nStartUP(timestamp) %s' >&2
 echoer \
 ${CPUTIMEOUT} --write-time ${TRANSLATESOLN_TIME} --previous-used $PREVIOUS_USED $TOTAL_TIMEOUT  \
-conjure translateSolution                                           \
+conjure translate-solution                                          \
     --eprime              $EPRIME                                   \
     --essence-param       $PARAM                                    \
     --eprime-solution    $EPRIME_SOLUTION                           \
