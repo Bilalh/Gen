@@ -14,8 +14,10 @@ import System.IO.Temp                           (withSystemTempDirectory)
 
 import qualified Data.Set as S
 
-createParamEssence ::  (Sampling a, MonadState (Method a) m, MonadIO m) => m ()
+createParamEssence ::  (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
+                   => m ()
 createParamEssence = do
+  logDebug "createParamEssence"
   (Method MCommon{mEssencePath,mVarInfo, mOutputDir} _) <- get
   let specFp   = (mOutputDir </> "essence_param_find.essence")
   let eprimeFp = (mOutputDir </> "essence_param_find.eprime")
@@ -25,7 +27,7 @@ createParamEssence = do
     False -> do
       model     <- liftIO $ readModelFromFile mEssencePath
       paramSpec <- liftIO $ createParamSpecification model mVarInfo
-      writeModel PlainEssence (Just "essence_param_find.essence") paramSpec
+      writeModel PlainEssence (Just $ mOutputDir </> "essence_param_find.essence") paramSpec
 
   liftIO $ doesFileExist eprimeFp >>= \case
     True  -> return ()
