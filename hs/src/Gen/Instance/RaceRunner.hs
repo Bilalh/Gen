@@ -1,23 +1,33 @@
 module Gen.Instance.RaceRunner where
 
+import Conjure.Language
+import Conjure.Language.Expression.DomainSizeOf (domainSizeOf)
+import Conjure.Language.NameResolution          (resolveNames)
+import Conjure.UI.IO
 import Gen.Imports
 import Gen.Instance.Data
 import Gen.IO.Formats
-import Conjure.UI.IO
-import Conjure.Language
-import Conjure.Language.NameResolution ( resolveNames )
-import Conjure.Language.Expression.DomainSizeOf ( domainSizeOf )
+import Gen.IO.Toolchain                         (runCommand)
+import System.Directory                         (renameFile)
+import System.Exit                              (ExitCode (..))
+import System.IO.Temp                           (withSystemTempDirectory)
 
 import qualified Data.Set as S
 
 createParamEssence ::  (Sampling a, MonadState (Method a) m, MonadIO m) => m ()
-createParamEssence = $notDone
-
+createParamEssence = do
+  (Method MCommon{mEssencePath,mVarInfo, mOutputDir} _) <- get
+  let specFp = (mOutputDir </> "essence_param_find.essence")
+  liftIO $ doesFileExist specFp >>= \case
+    True  -> return ()
+    False -> do
+      model     <- liftIO $ readModelFromFile mEssencePath
+      paramSpec <- liftIO $ createParamSpecification model mVarInfo
+      writeModel PlainEssence (Just "essence_param_find.essence") paramSpec
 
 
 sampleParamFromMinion :: (Sampling a, MonadState (Method a) m, MonadIO m) => Point -> m ()
 sampleParamFromMinion = $notDone
-
 
 createParamSpecification :: (MonadUserError m, MonadFail m) => Model -> VarInfo -> m Model
 createParamSpecification model VarInfo{..} = do
@@ -48,8 +58,22 @@ createParamSpecification model VarInfo{..} = do
                            | (nm, dom) <- errs
                            ]
 
+conjureCompact :: MonadIO m => FilePath -> FilePath -> m Bool
+conjureCompact inn out = do
+  liftIO $ withSystemTempDirectory "gen-compact" $ \tmp -> do
+    let args = ["-qf", "-ac", inn, "-o", tmp]
+    runCommand  "conjure" args Nothing >>= \case
+      (ExitFailure _) -> return False
+      ExitSuccess     -> do
+        renameFile (tmp </> "model000001.eprime") out
+        return True
 
-example = do
+ex2 = do
+  res <- conjureCompact "/Users/bilalh/CS/instancegen-models/_new/prob013-PPP/prob013-PPP.essence"
+                        "/Users/bilalh/CS/instancegen-models/_new/prob013-PPP/a.eprime"
+  print res
+
+ex1 = do
   i :: VarInfo <- readFromJSON "/Users/bilalh/CS/instancegen-models/_new/prob013-PPP/info.json"
   m <- readModelFromFile "/Users/bilalh/CS/instancegen-models/_new/prob013-PPP/prob013-PPP.essence"
   param <- createParamSpecification m i

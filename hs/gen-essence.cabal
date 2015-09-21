@@ -181,6 +181,7 @@ Library
                      , safe
                      , neat-interpolation
                      , pureMD5
+                     , temporary
 
 
     if impl(ghc < 7.10)
