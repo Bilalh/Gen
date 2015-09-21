@@ -2,7 +2,6 @@
              DeriveTraversable #-}
 module Gen.Instance.Data where
 
-import Conjure.Language.Definition
 import Gen.Imports
 
 import qualified Data.Aeson as A
@@ -11,6 +10,7 @@ import qualified Data.Set   as S
 
 
 data Method kind = Method MCommon kind
+  deriving (Eq, Show, Data, Typeable, Generic)
 
 data MCommon = MCommon
   { mEssencePath :: FilePath
@@ -19,18 +19,21 @@ data MCommon = MCommon
   , mVarInfo     :: VarInfo         -- | Variable Ordering
   , mPreGenerate :: Maybe FilePath  -- | Generate all solution once and pick from them
   , mIterations  :: Int             -- | Number of races to run
-  }
+  } deriving (Eq, Show, Data, Typeable, Generic)
 
 data Uniform = Uniform
+  deriving (Eq, Show, Data, Typeable, Generic)
 
 data Markov = Markov
   { extra2 :: Int
   }
+  deriving (Eq, Show, Data, Typeable, Generic)
 
 data SamplingResult = SamplingSuccess
                     | SamplingNoValuesLeft
                     | SamplingFailedToGenerateParam
                     | SamplingDontCountIteration
+  deriving (Eq, Show, Data, Typeable, Generic)
 
 class Sampling a where
     doIteration :: (MonadIO m, MonadState (Method a) m) => m SamplingResult

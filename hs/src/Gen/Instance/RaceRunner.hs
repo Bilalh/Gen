@@ -79,8 +79,6 @@ conjureCompact inn out = do
 
 
 _ex1, _ex2 :: IO ()
-
-
 _ex2 = do
   res <- conjureCompact "/Users/bilalh/CS/instancegen-models/_new/prob013-PPP/prob013-PPP.essence"
                         "/Users/bilalh/CS/instancegen-models/_new/prob013-PPP/a.eprime"
