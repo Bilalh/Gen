@@ -24,7 +24,6 @@ looper i = do
       _               -> looper (i)
 
 
-type Point = [(Text,Int)]
 
 randomPoint :: (Sampling a, MonadState (Method a) m, MonadIO m) =>  m Point
 randomPoint = $notDone

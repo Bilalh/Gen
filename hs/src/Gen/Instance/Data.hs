@@ -1,19 +1,24 @@
+{-# LANGUAGE DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveGeneric,
+             DeriveTraversable #-}
 module Gen.Instance.Data where
 
-import Gen.Imports
 import Conjure.Language.Definition
+import Gen.Imports
 
+import qualified Data.Aeson as A
+import qualified Data.Set   as S
 -- import qualified Text.PrettyPrint   as Pr
+
 
 data Method kind = Method MCommon kind
 
 data MCommon = MCommon
-  { mEssenceFile :: FilePath
-  , mOutputDir   :: FilePath        -- Where to put the results.
-  , mRaceTimeout :: FilePath        -- Time per race
-  , mVarInfo     :: FilePath        -- Variable Ordering
-  , mPreGenerate :: Maybe FilePath  -- Generate all solution once and pick from them
-  , mIterations  :: Int
+  { mEssencePath :: FilePath
+  , mOutputDir   :: FilePath        -- | Where to put the results.
+  , mRaceTimeout :: FilePath        -- | Total Time per race
+  , mVarInfo     :: VarInfo         -- | Variable Ordering
+  , mPreGenerate :: Maybe FilePath  -- | Generate all solution once and pick from them
+  , mIterations  :: Int             -- | Number of races to run
   }
 
 data Uniform = Uniform
@@ -29,3 +34,15 @@ data SamplingResult = SamplingSuccess
 
 class Sampling a where
     doIteration :: (MonadIO m, MonadState (Method a) m) => m SamplingResult
+
+type Point = [(Text,Int)]
+
+-- info.json
+data VarInfo =
+  VarInfo { ordering :: [Text]     -- | Order to generate the variables
+          , givens   :: S.Set Text -- | givens which are not converted
+          , finds    :: S.Set Text -- | givens to be converted to finds
+          } deriving (Eq, Show, Data, Typeable, Generic)
+
+instance A.FromJSON VarInfo
+instance A.ToJSON VarInfo
