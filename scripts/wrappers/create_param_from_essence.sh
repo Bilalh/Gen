@@ -46,9 +46,6 @@ SAVILEROW_TIME="${EPRIMEBASE}-${PARAMBASE}.sr-time"
 SAVILEROW_TIME_UP="${EPRIMEBASE}-${PARAMBASE}.sr2-time"
 TRANSLATESOLN_TIME="${EPRIMEBASE}-${PARAMBASE}.up-time"
 
-JSON_TIME="${EPRIMEBASE}-${PARAMBASE}.json-time"
-ESSENCE_JSON="${EPRIMEBASE}-${PARAMBASE}.json"
-
 
 touch $START_FILE
 
@@ -93,12 +90,10 @@ date +'StartP %a %d %b %Y %k:%M:%S %z%nStartP(timestamp) %s' >&2
 
 echoer \
 ${CPUTIMEOUT} --write-time ${REFINE_TIME} --previous-used $PREVIOUS_USED $TOTAL_TIMEOUT  \
-conjure                                                            \
-    --mode       refineParam                                       \
-    --in-essence $ESSENCE                                          \
-    --in-eprime  $EPRIME                                           \
-    --in-essence-param $PARAM                                      \
-    --out-eprime-param $EPRIME_PARAM;
+conjure refine-param                                                            \
+    --eprime  $EPRIME                                           \
+    --essence-param $PARAM                                      \
+    --eprime-param $EPRIME_PARAM;
 
 RESULTOF_REFINEPARAM=$?
 
@@ -240,14 +235,11 @@ echo "$MSG_TRANSLATESOLN"
 date +'StartUP %a %d %b %Y %k:%M:%S %z%nStartUP(timestamp) %s' >&2
 echoer \
 ${CPUTIMEOUT} --write-time ${TRANSLATESOLN_TIME} --previous-used $PREVIOUS_USED $TOTAL_TIMEOUT  \
-conjure                                                                 \
-    --mode translateSolution                                            \
-    --in-essence            $ESSENCE                                    \
-    --in-essence-param      $PARAM                                      \
-    --in-eprime             $EPRIME                                     \
-    --in-eprime-param       $EPRIME_PARAM                               \
-    --in-eprime-solution    $EPRIME_SOLUTION                            \
-    --out-essence-solution  $ESSENCE_SOLUTION
+conjure translateSolution                                           \
+    --eprime              $EPRIME                                   \
+    --essence-param       $PARAM                                    \
+    --eprime-solution    $EPRIME_SOLUTION                           \
+    --essence-solution  $ESSENCE_SOLUTION
 date +'finUP %a %d %b %Y %k:%M:%S %z%nfinUP(timestamp) %s' >&2
 
 
@@ -261,11 +253,6 @@ fi
 grep -v 'new type of' $ESSENCE_SOLUTION > $ESSENCE_SOLUTION.tmp
 mv $ESSENCE_SOLUTION.tmp $ESSENCE_SOLUTION
 
-echoer /usr/bin/time -p  essenceLettingsToJson $ESSENCE_SOLUTION $ESSENCE_JSON  3>&1 1>&2 2>&3 \
-    |  egrep 'real|usr' \
-    |  egrep -o '[0-9].*' \
-    |  ruby -e 'puts "cpu #{$stdin.readlines.map(&:to_f).reduce(:+)}"' \
-    > "${JSON_TIME}"
 
 cat ${OUTPUT_BASE}/*.*-time \
     | grep cpu \
