@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveDataTypeable, DeriveGeneric, QuasiQuotes #-}
 module Gen.Instance.RaceRunner(
     runRace
   , doRace
@@ -10,15 +11,19 @@ import Conjure.Language
 import Conjure.Language.Expression.DomainSizeOf (domainSizeOf)
 import Conjure.Language.NameResolution          (resolveNames)
 import Conjure.UI.IO
+import Database.SQLite.Simple
+import Database.SQLite.Simple.FromRow()
+import Gen.Helpers.Str
 import Gen.Imports
 import Gen.Instance.Data
 import Gen.IO.Formats
-import Gen.IO.Toolchain                         (runCommand,runCommand')
+import Gen.IO.Toolchain                         (runCommand, runCommand')
 import System.Directory                         (renameFile)
+import System.Environment                       (lookupEnv)
 import System.Exit                              (ExitCode (..))
+import System.FilePath                          (takeBaseName, takeDirectory)
 import System.IO.Temp                           (withSystemTempDirectory)
-import System.Environment(lookupEnv)
-import System.FilePath(takeDirectory, takeBaseName)
+import Data.List(  foldl1')
 
 import qualified Data.Set as S
 
@@ -26,11 +31,13 @@ type ParamFP   = FilePath
 type ParamName = FilePath
 type TimeStamp = Int
 
+
 runRace :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
         => ParamFP -> m ()
 runRace paramFP = do
   ts <- doRace paramFP
-  parseRaceResult (takeBaseName paramFP) ts
+  totals <- parseRaceResult (takeBaseName paramFP) ts
+  logDebug $ nn "totals:" totals
 
 doRace :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
         => ParamFP -> m TimeStamp
@@ -56,7 +63,7 @@ doRace paramFP = do
 
 
 parseRaceResult :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
-                => ParamName -> TimeStamp -> m ()
+                => ParamName -> TimeStamp -> m RaceTotals
 parseRaceResult paramName ts =do
   (Method MCommon{mEssencePath, mOutputDir, mModelTimeout} _) <- get
 
@@ -72,8 +79,37 @@ parseRaceResult paramName ts =do
 
   cmd <- wrappers "run_gather.sh"
   res <- runCommand' (Just env) cmd args Nothing
-  return ()
 
+  conn <- liftIO $ open (mOutputDir </> "results.db")
+  rows :: [RaceTotals] <- liftIO $ query conn raceResultsSql (Only paramName)
+  let total = flip foldl1' rows (\(RaceTotals a1 b1 c1 d1 e1 f1)
+                                  (RaceTotals a2 b2 c2 d2 e2 f2)
+            -> (RaceTotals (a1+a2) (b1+b2) (c1+c2) (d1+d2) (e1+e2) (f1+f2)) )
+
+  logDebugVerbose $ "Totals for " <+> pretty paramName <+> pretty ts
+  mapM_ (logDebugVerbose . pretty . groom) rows
+
+  return total
+
+data RaceTotals = RaceTotals
+    { tCount                :: Int
+    , tMinionTimeout        :: Int
+    , tMinionSatisfiable    :: Int
+    , tMinionSolutionsFound :: Int
+    , tIsOptimum            :: Int
+    , tisDominated          :: Int
+    } deriving (Eq, Show, Data, Typeable, Generic)
+instance Pretty RaceTotals where pretty = pretty . groom
+
+instance FromRow RaceTotals where
+    fromRow = RaceTotals <$> field <*> field <*> field <*> field <*> field <*> field
+
+
+raceResultsSql = [str|
+  SELECT  1, MinionTimeout, MinionSatisfiable,MinionSolutionsFound, IsOptimum, isDominated
+  FROM TimingsDomination
+  Where paramHash = ?
+  |]
 
 
 -- To parse results:
