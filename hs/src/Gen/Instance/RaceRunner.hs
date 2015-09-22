@@ -46,7 +46,7 @@ sampleParamFromMinion = do
   (Method MCommon{mOutputDir} _) <- get
   let seed = 4 :: Int
   now <- timestamp
-  let out = mOutputDir </> show now
+  let out = mOutputDir </> "_param_gen" </> show now
   let timeout = 300 :: Int
   let paramName = "empty"
   let paramFp = (out </> paramName) <.> ".param"
