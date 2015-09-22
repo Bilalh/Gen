@@ -182,6 +182,7 @@ Library
                      , neat-interpolation
                      , pureMD5
                      , temporary
+                     , sqlite-simple
 
 
     if impl(ghc < 7.10)
