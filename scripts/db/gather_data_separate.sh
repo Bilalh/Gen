@@ -4,7 +4,7 @@ set -o nounset
 # get the repository base
 Dir="$( cd "$( dirname "$0" )" && pwd )"
 Script_Base="$Dir/../"
-
+export NUM_JOBS=1
 
 results_dir=${GENERATED_OUTPUT_DIR:-"${OUT_BASE_DIR:-.}/results_${USE_MODE}"}
 #"
@@ -111,7 +111,7 @@ export  results_dir
 export  fastest_dir
 export TOTAL_TIMEOUT
 
-parallel --tagstring "{/}"  'echo "isDominated:$(isDominated {/.})"'  \
+parallel -j"${NUM_JOBS}" --tagstring "{/}"  'echo "isDominated:$(isDominated {/.})"'  \
 	::: `ls ${results_dir}/*${param_glob}.zstarted` \
 	|   runhaskell ${Script_Base}/db/gather_data.hs  ${Essence_base} \
 	|   sqlite3 ${REPOSITORY_BASE}/results.db
@@ -120,7 +120,7 @@ parallel --tagstring "{/}"  'echo "isDominated:$(isDominated {/.})"'  \
 
 echo "$0 Calcuate total solving time"
 if (ls ${results_dir}/*${param_glob}.param-time &>/dev/null); then
-parallel "grep ${timing_method} {} | egrep -o '[0-9].*'  " ::: `ls ${results_dir}/*${param_glob}.param-time`  `ls ${results_dir}/*${param_glob}.sr-time` `ls ${results_dir}/*${param_glob}.minion-time` \
+parallel -j"${NUM_JOBS}" "grep ${timing_method} {} | egrep -o '[0-9].*'  " ::: `ls ${results_dir}/*${param_glob}.param-time`  `ls ${results_dir}/*${param_glob}.sr-time` `ls ${results_dir}/*${param_glob}.minion-time` \
    	| ruby -e 'p $stdin.readlines.map(&:to_f).reduce(&:+)' > ${stats_dir}/${USE_DATE}.total_solving_time
 else
 	# i.e  param refinement timed out
