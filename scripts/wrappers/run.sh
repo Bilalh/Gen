@@ -26,9 +26,11 @@ export NO_VALIDATE=true;
 export NO_TRANSLATE=true
 
 if [ "${LIMIT_MODELS:-}" ]; then
-	models=${MODELS_TO_USE:-`ls -1 $BASE/$DIR-$USE_MODE/*.eprime | head -n ${LIMIT_MODELS}`}
+	models=${MODELS_TO_USE:-`ls -1 $BASE/${DIR}_${USE_MODE}/*.eprime | head -n ${LIMIT_MODELS}`}
+    echo "LIMITING to running ${LIMIT_MODELS} models"
+    echo $models
 else
-	models=${MODELS_TO_USE:-`ls -1 $BASE/$DIR-$USE_MODE/*.eprime`}
+	models=${MODELS_TO_USE:-`ls -1 $BASE/${DIR}_${USE_MODE}/*.eprime`}
 fi
 
 export MODELS_TO_USE="${models}";

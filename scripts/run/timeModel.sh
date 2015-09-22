@@ -13,11 +13,11 @@ fi
 
 set -x
 # Put the results in a different directory by default
-export GENERATED_OUTPUT_DIR=${GENERATED_OUTPUT_DIR:-"${OUT_BASE_DIR:-.}/results-${Mode}"}
+export GENERATED_OUTPUT_DIR=${GENERATED_OUTPUT_DIR:-"${OUT_BASE_DIR:-.}/results_${Mode}"}
 #"
-export STATS_OUTPUT_DIR=${STATS_OUTPUT_DIR:-"${OUT_BASE_DIR:-.}/stats-${Mode}"}
+export STATS_OUTPUT_DIR=${STATS_OUTPUT_DIR:-"${OUT_BASE_DIR:-.}/stats_${Mode}"}
 #"
-export FASTEST_OUTPUT_DIR=${FASTEST_OUTPUT_DIR:-"${OUT_BASE_DIR:-.}/fastest-${Mode}"}
+export FASTEST_OUTPUT_DIR=${FASTEST_OUTPUT_DIR:-"${OUT_BASE_DIR:-.}/fastest_${Mode}"}
 #"
 set +x
 

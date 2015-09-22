@@ -17,12 +17,12 @@ Essence="${Name}.essence";
 
 Mode="${3:-${USE_MODE:-df}}";
 
-Eprime_dir="${Name}-${Mode}";
+Eprime_dir="${Name}_${Mode}";
 Param_dir="params";
 
 Output_dir=${GENERATED_OUTPUT_DIR:-}
 
-TIMEOUT5_FILE_BASE=${Output_dir}/__timeout5-$Name-$Mode
+TIMEOUT5_FILE_BASE=${Output_dir}/__timeout5-${Name}_${Mode}
 echo "TIMEOUT5_FILE_BASE is ${TIMEOUT5_FILE_BASE}"
 
 timing_method=${TIMING_METHOD:-cpu}

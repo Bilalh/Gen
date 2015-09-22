@@ -6,11 +6,11 @@ Dir="$( cd "$( dirname "$0" )" && pwd )"
 Script_Base="$Dir/../"
 
 
-results_dir=${GENERATED_OUTPUT_DIR:-"${OUT_BASE_DIR:-.}/results-${USE_MODE}"}
+results_dir=${GENERATED_OUTPUT_DIR:-"${OUT_BASE_DIR:-.}/results_${USE_MODE}"}
 #"
-stats_dir=${STATS_OUTPUT_DIR:-"${OUT_BASE_DIR:-.}/stats-${USE_MODE}"}
+stats_dir=${STATS_OUTPUT_DIR:-"${OUT_BASE_DIR:-.}/stats_${USE_MODE}"}
 #"
-fastest_dir=${FASTEST_OUTPUT_DIR:-"${OUT_BASE_DIR:-.}/fastest-${USE_MODE}"}
+fastest_dir=${FASTEST_OUTPUT_DIR:-"${OUT_BASE_DIR:-.}/fastest_${USE_MODE}"}
 #"
 
 timing_method=${TIMING_METHOD:-cpu}
