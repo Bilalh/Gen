@@ -13,12 +13,12 @@ data Method kind = Method MCommon kind
   deriving (Eq, Show, Data, Typeable, Generic)
 
 data MCommon = MCommon
-  { mEssencePath :: FilePath
-  , mOutputDir   :: FilePath        -- | Where to put the results.
-  , mRaceTimeout :: FilePath        -- | Total Time per race
-  , mVarInfo     :: VarInfo         -- | Variable Ordering
-  , mPreGenerate :: Maybe FilePath  -- | Generate all solution once and pick from them
-  , mIterations  :: Int             -- | Number of races to run
+  { mEssencePath  :: FilePath
+  , mOutputDir    :: FilePath        -- | Where to put the results.
+  , mModelTimeout :: Int             -- | Total time for each model in the race
+  , mVarInfo      :: VarInfo         -- | Variable Ordering
+  , mPreGenerate  :: Maybe FilePath  -- | Generate all solution once and pick from them
+  , mIterations   :: Int             -- | Number of races to run
   } deriving (Eq, Show, Data, Typeable, Generic)
 
 data Uniform = Uniform
