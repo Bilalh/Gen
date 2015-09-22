@@ -6,7 +6,35 @@ import Gen.Instance.RaceRunner
 import Gen.Instance.Uniform()
 import Gen.IO.Formats
 
--- Running a race
+
+-- Runn a race and collect results
+_ex7  :: IO ()
+_ex7 = do
+  i :: VarInfo <- readFromJSON "/Users/bilalh/CS/instancegen-models/_new/prob006-GR/info.json"
+  let common = MCommon{
+        mEssencePath = "/Users/bilalh/CS/instancegen-models/_new/prob006-GR/prob006-GR.essence"
+      , mOutputDir   = "/Users/bilalh/CS/gen/__"
+      , mModelTimeout = 30
+      , mVarInfo     = i
+      , mPreGenerate = Nothing
+      , mIterations  = 1
+      }
+  let state = Method common Uniform
+
+  let paramPath = "/Users/bilalh/CS/gen/__/_params/test.param"
+
+  let workload = runLoggerPipeIO (LogDebug) $ do
+        (re,reState) <- runStateT (runRace paramPath) state
+        logInfo "Finished"
+        liftIO $  groomPrint re
+        liftIO $  groomPrint reState
+
+
+  workload
+
+
+
+-- do a race
 _ex6  :: IO ()
 _ex6 = do
   i :: VarInfo <- readFromJSON "/Users/bilalh/CS/instancegen-models/_new/prob006-GR/info.json"
@@ -23,7 +51,7 @@ _ex6 = do
   let paramPath = "/Users/bilalh/CS/gen/__/_params/test.param"
 
   let workload = runLoggerPipeIO (LogDebug) $ do
-        (re,reState) <- runStateT (runRace paramPath) state
+        (re,reState) <- runStateT (doRace paramPath) state
         logInfo "Finished"
         liftIO $  groomPrint re
         liftIO $  groomPrint reState

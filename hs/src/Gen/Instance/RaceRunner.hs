@@ -1,5 +1,7 @@
 module Gen.Instance.RaceRunner(
     runRace
+  , doRace
+  , parseRaceResult
   , createParamEssence
   , sampleParamFromMinion
   ) where
@@ -16,15 +18,23 @@ import System.Directory                         (renameFile)
 import System.Exit                              (ExitCode (..))
 import System.IO.Temp                           (withSystemTempDirectory)
 import System.Environment(lookupEnv)
-import System.FilePath(takeDirectory)
+import System.FilePath(takeDirectory, takeBaseName)
 
 import qualified Data.Set as S
 
-type ParamFP = FilePath
+type ParamFP   = FilePath
+type ParamName = FilePath
+type TimeStamp = Int
 
 runRace :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
         => ParamFP -> m ()
 runRace paramFP = do
+  ts <- doRace paramFP
+  parseRaceResult (takeBaseName paramFP) ts
+
+doRace :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
+        => ParamFP -> m TimeStamp
+doRace paramFP = do
   (Method MCommon{mEssencePath, mOutputDir, mModelTimeout} _) <- get
   now <- timestamp
 
@@ -34,7 +44,7 @@ runRace paramFP = do
              , takeDirectory mEssencePath
              ]
 
-  let env = [ ("NUM_JOBS", show 2)
+  let env = [ ("NUM_JOBS", "2")
             , ("USE_MODE", "df")
             , ("OUT_BASE_DIR", mOutputDir)
             , ("LIMIT_MODELS", "3")  -- Only race the first 3 models
@@ -42,7 +52,28 @@ runRace paramFP = do
 
   cmd <- wrappers "run.sh"
   res <- runCommand' (Just env) cmd args Nothing
+  return now
+
+
+parseRaceResult :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
+                => ParamName -> TimeStamp -> m ()
+parseRaceResult paramName ts =do
+  (Method MCommon{mEssencePath, mOutputDir, mModelTimeout} _) <- get
+
+  let args = [ paramName
+             , takeDirectory mEssencePath
+             ]
+
+  let env = [ ("USE_DATE", show ts)
+            , ("TOTAL_TIMEOUT", show mModelTimeout)
+            , ("USE_MODE", "df")
+            , ("OUT_BASE_DIR", mOutputDir)
+            ]
+
+  cmd <- wrappers "run_gather.sh"
+  res <- runCommand' (Just env) cmd args Nothing
   return ()
+
 
 
 -- To parse results:
