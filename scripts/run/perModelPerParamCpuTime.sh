@@ -66,7 +66,7 @@ echo "$MSG_REFINEPARAM"
 
 # print the command the run it
 function echoer(){
-    echo "$@"
+    echo "$@" >&2
     $Time "$@"
 }
 
