@@ -14,6 +14,7 @@ import Conjure.Language.NameResolution          (resolveNames)
 import Conjure.UI.IO
 import Database.SQLite.Simple
 import Database.SQLite.Simple.FromRow()
+import Database.SQLite.Simple.FromField()
 import Gen.Helpers.Str
 import Gen.Imports
 import Gen.Instance.Data
@@ -41,9 +42,14 @@ mMode="df"
 runRace :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
         => ParamFP -> m Quality
 runRace paramFP = do
-  ts <- doRace paramFP
+
+  ordering <- getModelOrdering
+  logDebug2 "runRace ordering:" (map pretty ordering)
+
   let paramHash = takeBaseName paramFP
   let paramName = takeBaseName paramFP
+
+  ts <- doRace paramFP
 
   totals <- parseRaceResult (paramHash) ts
   logDebug2 "runRace totals:" [pretty totals]
@@ -57,6 +63,19 @@ runRace paramFP = do
   -- store prev_timestamp if doing a cpu limit
   return quality
 
+getModelOrdering :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
+        => m [ FilePath ]
+getModelOrdering = do
+  (Method MCommon{mEssencePath, mOutputDir} _) <- get
+  let dbPath  =  mOutputDir </> "results.db"
+  liftIO $ doesFileExist dbPath >>= \case
+    False -> return []
+    True  -> do
+      conn <- liftIO $ open dbPath
+      eprimes :: [[String]] <- query_ conn ("SELECT eprime FROM EprimeOrdering")
+      let mModelsDir = takeDirectory mEssencePath </> takeBaseName mEssencePath ++ mMode
+      let paths = [ mModelsDir </> row `at` 0 | row <- eprimes  ]
+      return paths
 
 doRace :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
         => ParamFP -> m TimeStamp
