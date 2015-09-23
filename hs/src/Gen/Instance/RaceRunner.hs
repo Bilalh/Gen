@@ -57,38 +57,6 @@ runRace paramFP = do
   -- store prev_timestamp if doing a cpu limit
   return quality
 
-saveQuery = [str|
-  INSERT OR REPLACE INTO ParamQuality(param, paramHash, quality, paramCpuTime)
-  Values(?, ?, ?, ?)
-  |]
-saveQualityToDb :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
-                =>  ParamName -> ParamHash -> Quality -> Double ->  m ()
-saveQualityToDb paramName paramHash quality cputime = do
-  (Method MCommon{mOutputDir} _) <- get
-  conn <- liftIO $ open (mOutputDir </> "results.db")
-  liftIO $ execute conn saveQuery (paramName, paramHash, quality, cputime)
-  return ()
-
-
-
-readParamRaceCpuTime :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
-                     => TimeStamp -> m Double
-readParamRaceCpuTime ts = do
-  (Method MCommon{mOutputDir} _) <- get
-  let statsDir = mOutputDir </> ("stats-" ++ mMode)
-  fps   <- liftIO  $ allFilesWithSuffix ".total_solving_time" statsDir
-  times :: [Maybe Double] <- liftIO  $  forM fps $ \fp -> do
-             st <- readFile fp
-             return $ readMay st
-  return . sum . catMaybes $ times
-
-calculateParamQuality :: RaceTotals -> Quality
-calculateParamQuality RaceTotals{..} =
-    if tMinionTimeout == tCount then
-        1.0
-    else
-        1.0 - ((fromIntegral tIsDominated) / (fromIntegral  tCount))
-
 
 doRace :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
         => ParamFP -> m TimeStamp
@@ -116,12 +84,6 @@ doRace paramFP = do
   return now
 
 
-
-raceResultsSql = [str|
-  SELECT  1, MinionTimeout, MinionSatisfiable,MinionSolutionsFound, IsOptimum, isDominated
-  FROM TimingsDomination
-  Where paramHash = ?
-  |]
 
 parseRaceResult :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
                 => ParamHash -> TimeStamp -> m RaceTotals
@@ -165,6 +127,49 @@ instance Pretty RaceTotals where pretty = pretty . groom
 
 instance FromRow RaceTotals where
     fromRow = RaceTotals <$> field <*> field <*> field <*> field <*> field <*> field
+
+
+readParamRaceCpuTime :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
+                     => TimeStamp -> m Double
+readParamRaceCpuTime ts = do
+  (Method MCommon{mOutputDir} _) <- get
+  let statsDir = mOutputDir </> ("stats-" ++ mMode)
+  fps   <- liftIO  $ allFilesWithSuffix ".total_solving_time" statsDir
+  times :: [Maybe Double] <- liftIO  $  forM fps $ \fp -> do
+             st <- readFile fp
+             return $ readMay st
+  return . sum . catMaybes $ times
+
+calculateParamQuality :: RaceTotals -> Quality
+calculateParamQuality RaceTotals{..} =
+    if tMinionTimeout == tCount then
+        1.0
+    else
+        1.0 - ((fromIntegral tIsDominated) / (fromIntegral  tCount))
+
+
+saveQuery :: Query
+saveQuery = [str|
+  INSERT OR REPLACE INTO ParamQuality(param, paramHash, quality, paramCpuTime)
+  Values(?, ?, ?, ?)
+  |]
+
+saveQualityToDb :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
+                =>  ParamName -> ParamHash -> Quality -> Double ->  m ()
+saveQualityToDb paramName paramHash quality cputime = do
+  (Method MCommon{mOutputDir} _) <- get
+  conn <- liftIO $ open (mOutputDir </> "results.db")
+  liftIO $ execute conn saveQuery (paramName, paramHash, quality, cputime)
+  return ()
+
+
+
+
+raceResultsSql = [str|
+  SELECT  1, MinionTimeout, MinionSatisfiable,MinionSolutionsFound, IsOptimum, isDominated
+  FROM TimingsDomination
+  Where paramHash = ?
+  |]
 
 
 
