@@ -24,6 +24,9 @@ import System.Exit                              (ExitCode (..))
 import System.FilePath                          (takeBaseName, takeDirectory)
 import System.IO.Temp                           (withSystemTempDirectory)
 import Data.List(  foldl1')
+import Shelly ( setenv, fromText,runHandles,  transferLinesAndCombine,print_stdout,print_stderr,transferFoldHandleLines )
+import System.IO ( stderr,stdout,hPutStrLn,hPutChar,hPutStr  )
+import Control.Concurrent(forkIO)
 
 import qualified Data.Set as S
 
@@ -45,7 +48,10 @@ doRace paramFP = do
   (Method MCommon{mEssencePath, mOutputDir, mModelTimeout} _) <- get
   now <- timestamp
 
-  let args = [ show now
+
+
+  let args = map stringToText
+             [ show now
              , paramFP
              , show mModelTimeout
              , takeDirectory mEssencePath
@@ -53,12 +59,13 @@ doRace paramFP = do
 
   let env = [ ("NUM_JOBS", "2")
             , ("USE_MODE", "df")
-            , ("OUT_BASE_DIR", mOutputDir)
+            , ("OUT_BASE_DIR", stringToText mOutputDir)
             , ("LIMIT_MODELS", "3")  -- Only race the first 3 models
             ]
 
   cmd <- wrappers "run.sh"
-  res <- runCommand' (Just env) cmd args Nothing
+  -- res <- runCommand' (Just env) cmd args Nothing
+  liftIO $ runPadded env (stringToText cmd) args
   return now
 
 
@@ -214,6 +221,12 @@ sampleParamFromMinion = do
   logDebug ("produced" <+> pretty solution_param)
   return ()
 
+writeParam :: MonadIO m => [()] -> FilePath -> m ()
+writeParam _ fp = do
+  let m :: Model = def
+  liftIO $ writeModel PlainEssence (Just fp) m
+
+
 wrappers :: MonadIO m => FilePath -> m FilePath
 wrappers fp = do
   liftIO $ lookupEnv ("PARAM_GEN_SCRIPTS" :: String) >>= \case
@@ -221,10 +234,39 @@ wrappers fp = do
             Just p -> do
                 return $ p </> "wrappers" </> fp
 
-writeParam :: MonadIO m => [()] -> FilePath -> m ()
-writeParam _ fp = do
-  let m :: Model = def
-  liftIO $ writeModel PlainEssence (Just fp) m
+
+-- | Run a command with the output padded with leading spaces
+-- | n.b  sterr will be redirected to stdin
+runPadded ::  [(Text,Text)] -> Text -> [Text] -> IO ()
+runPadded env cmd args = do
+  com <- wrappers "to_stdout.sh"
+  sh  . print_stdout False . print_stderr False $ do
+    mapM_ (\(a,b) ->  setenv a b) env
+
+    let handler _ hout herr = do
+          -- void $ liftIO  $ transferLinesAndCombine hout (printer stdout)
+          -- void $ liftIO  $ transferLinesAndCombine herr (printer stderr)
+
+          -- void $ liftIO $ forkIO $ void $
+          --      transferFoldHandleLines "" (\_ b-> b) hout (printer stdout)
+          -- void $ liftIO $ forkIO $ void $
+          --      transferFoldHandleLines "" (\_ b-> b) herr (printer1 stderr)
+
+          void $ liftIO  $ transferFoldHandleLines "" (\_ b-> b) hout (printer stdout)
+          void $ liftIO  $ transferFoldHandleLines "" (\_ b-> b) herr (printer1 stderr)
+
+          return ()
+
+    void $ runHandles (fromString com) (cmd:args) [] handler
+
+  where
+    printer1 hto lnn = do
+      hPutStr hto " ERR:"
+      hPutStrLn hto  (textToString lnn)
+
+    printer hto lnn = do
+      hPutStr hto " ⌇ "
+      hPutStrLn hto  (textToString lnn)
 
 
 _ex1, _ex2 :: IO ()
