@@ -5,6 +5,7 @@ module Gen.Instance.RaceRunner(
   , parseRaceResult
   , createParamEssence
   , sampleParamFromMinion
+  , RaceTotals(..)
   ) where
 
 import Conjure.Language
@@ -25,29 +26,75 @@ import System.FilePath                          (takeBaseName, takeDirectory)
 import System.IO.Temp                           (withSystemTempDirectory)
 import Data.List(  foldl1')
 import Shelly ( setenv, fromText,runHandles,  transferLinesAndCombine,print_stdout,print_stderr,transferFoldHandleLines )
-import System.IO ( stderr,stdout,hPutStrLn,hPutChar,hPutStr  )
-import Control.Concurrent(forkIO)
+import System.IO ( stderr,stdout,hPutStrLn,hPutChar,hPutStr ,readFile )
 
 import qualified Data.Set as S
 
 type ParamFP   = FilePath
-type ParamName = FilePath
+type ParamName = String
+type ParamHash = String
 type TimeStamp = Int
+type Quality   = Double
 
+mMode="df"
 
 runRace :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
-        => ParamFP -> m ()
+        => ParamFP -> m Quality
 runRace paramFP = do
   ts <- doRace paramFP
-  totals <- parseRaceResult (takeBaseName paramFP) ts
-  logDebug $ nn "totals:" totals
+  let paramHash = takeBaseName paramFP
+  let paramName = takeBaseName paramFP
+
+  totals <- parseRaceResult (paramHash) ts
+  logDebug2 "runRace totals:" [pretty totals]
+
+  let quality = calculateParamQuality totals
+  logDebug $ "runRace quality:" <+> pretty quality
+
+  timeTaken <- readParamRaceCpuTime ts
+  saveQualityToDb paramName paramHash quality timeTaken
+
+  -- store prev_timestamp if doing a cpu limit
+  return quality
+
+saveQuery = [str|
+  INSERT OR REPLACE INTO ParamQuality(param, paramHash, quality, paramCpuTime)
+  Values(?, ?, ?, ?)
+  |]
+saveQualityToDb :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
+                =>  ParamName -> ParamHash -> Quality -> Double ->  m ()
+saveQualityToDb paramName paramHash quality cputime = do
+  (Method MCommon{mOutputDir} _) <- get
+  conn <- liftIO $ open (mOutputDir </> "results.db")
+  liftIO $ execute conn saveQuery (paramName, paramHash, quality, cputime)
+  return ()
+
+
+
+readParamRaceCpuTime :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
+                     => TimeStamp -> m Double
+readParamRaceCpuTime ts = do
+  (Method MCommon{mOutputDir} _) <- get
+  let statsDir = mOutputDir </> ("stats-" ++ mMode)
+  fps   <- liftIO  $ allFilesWithSuffix ".total_solving_time" statsDir
+  times :: [Maybe Double] <- liftIO  $  forM fps $ \fp -> do
+             st <- readFile fp
+             return $ readMay st
+  return . sum . catMaybes $ times
+
+calculateParamQuality :: RaceTotals -> Quality
+calculateParamQuality RaceTotals{..} =
+    if tMinionTimeout == tCount then
+        1.0
+    else
+        1.0 - ((fromIntegral tIsDominated) / (fromIntegral  tCount))
+
 
 doRace :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
         => ParamFP -> m TimeStamp
 doRace paramFP = do
   (Method MCommon{mEssencePath, mOutputDir, mModelTimeout} _) <- get
   now <- timestamp
-
 
 
   let args = map stringToText
@@ -58,7 +105,7 @@ doRace paramFP = do
              ]
 
   let env = [ ("NUM_JOBS", "2")
-            , ("USE_MODE", "df")
+            , ("USE_MODE",stringToText mMode)
             , ("OUT_BASE_DIR", stringToText mOutputDir)
             , ("LIMIT_MODELS", "3")  -- Only race the first 3 models
             ]
@@ -69,18 +116,25 @@ doRace paramFP = do
   return now
 
 
+
+raceResultsSql = [str|
+  SELECT  1, MinionTimeout, MinionSatisfiable,MinionSolutionsFound, IsOptimum, isDominated
+  FROM TimingsDomination
+  Where paramHash = ?
+  |]
+
 parseRaceResult :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
-                => ParamName -> TimeStamp -> m RaceTotals
-parseRaceResult paramName ts =do
+                => ParamHash -> TimeStamp -> m RaceTotals
+parseRaceResult paramHash ts =do
   (Method MCommon{mEssencePath, mOutputDir, mModelTimeout} _) <- get
 
-  let args = map stringToText [ paramName
+  let args = map stringToText [ paramHash
              , takeDirectory mEssencePath
              ]
 
   let env = map (second stringToText) [ ("USE_DATE", show ts)
             , ("TOTAL_TIMEOUT", show mModelTimeout)
-            , ("USE_MODE", "df")
+            , ("USE_MODE", mMode)
             , ("OUT_BASE_DIR", mOutputDir)
             ]
 
@@ -89,12 +143,12 @@ parseRaceResult paramName ts =do
   liftIO $ runPadded "❮" env (stringToText cmd) args
 
   conn <- liftIO $ open (mOutputDir </> "results.db")
-  rows :: [RaceTotals] <- liftIO $ query conn raceResultsSql (Only paramName)
+  rows :: [RaceTotals] <- liftIO $ query conn raceResultsSql (Only paramHash)
   let total = flip foldl1' rows (\(RaceTotals a1 b1 c1 d1 e1 f1)
                                   (RaceTotals a2 b2 c2 d2 e2 f2)
             -> (RaceTotals (a1+a2) (b1+b2) (c1+c2) (d1+d2) (e1+e2) (f1+f2)) )
 
-  logDebugVerbose $ "Totals for " <+> pretty paramName <+> pretty ts
+  logDebugVerbose $ "Totals for " <+> pretty paramHash <+> pretty ts
   mapM_ (logDebugVerbose . pretty . groom) rows
 
   return total
@@ -105,7 +159,7 @@ data RaceTotals = RaceTotals
     , tMinionSatisfiable    :: Int
     , tMinionSolutionsFound :: Int
     , tIsOptimum            :: Int
-    , tisDominated          :: Int
+    , tIsDominated          :: Int
     } deriving (Eq, Show, Data, Typeable, Generic)
 instance Pretty RaceTotals where pretty = pretty . groom
 
@@ -113,11 +167,6 @@ instance FromRow RaceTotals where
     fromRow = RaceTotals <$> field <*> field <*> field <*> field <*> field <*> field
 
 
-raceResultsSql = [str|
-  SELECT  1, MinionTimeout, MinionSatisfiable,MinionSolutionsFound, IsOptimum, isDominated
-  FROM TimingsDomination
-  Where paramHash = ?
-  |]
 
 
 -- To parse results:
@@ -197,9 +246,9 @@ sampleParamFromMinion = do
   now <- timestamp
   let out = mOutputDir </> "_param_gen" </> show now
   let timeout = 300 :: Int
-  let paramName = "empty"
-  let paramFp = (out </> paramName) <.> ".param"
-  let solutionFp = out </> ("essence_param_find"  ++ "-" ++ paramName  <.> ".solution" )
+  let paramHash = "empty"
+  let paramFp = (out </> paramHash) <.> ".param"
+  let solutionFp = out </> ("essence_param_find"  ++ "-" ++ paramHash  <.> ".solution" )
 
   liftIO $ createDirectoryIfMissing True out
   writeParam [] paramFp
