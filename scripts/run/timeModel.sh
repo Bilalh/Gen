@@ -28,9 +28,11 @@ parallel "test -n {}  && mkdir {}" ::: \
 export Date="${USE_DATE}"
 echo "DATE: ${Date}"
 (
+(
 	time ${Dir}/perModel.sh "$@" 2>&1 \
 	| tee "${STATS_OUTPUT_DIR}/${Date}.output"
 ) \
 	3>&1 1>&2 2>&3  \
 	|  tee "${STATS_OUTPUT_DIR}/${Date}.time"
 
+) 3>&2 2>&1 1>&3
