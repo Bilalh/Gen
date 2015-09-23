@@ -183,6 +183,7 @@ Library
                      , pureMD5
                      , temporary
                      , sqlite-simple
+                     , shelly
 
 
     if impl(ghc < 7.10)
