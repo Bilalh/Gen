@@ -65,7 +65,7 @@ doRace paramFP = do
 
   cmd <- wrappers "run.sh"
   -- res <- runCommand' (Just env) cmd args Nothing
-  liftIO $ runPadded env (stringToText cmd) args
+  liftIO $ runPadded "⌇" env (stringToText cmd) args
   return now
 
 
@@ -74,18 +74,19 @@ parseRaceResult :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
 parseRaceResult paramName ts =do
   (Method MCommon{mEssencePath, mOutputDir, mModelTimeout} _) <- get
 
-  let args = [ paramName
+  let args = map stringToText [ paramName
              , takeDirectory mEssencePath
              ]
 
-  let env = [ ("USE_DATE", show ts)
+  let env = map (second stringToText) [ ("USE_DATE", show ts)
             , ("TOTAL_TIMEOUT", show mModelTimeout)
             , ("USE_MODE", "df")
             , ("OUT_BASE_DIR", mOutputDir)
             ]
 
   cmd <- wrappers "run_gather.sh"
-  res <- runCommand' (Just env) cmd args Nothing
+  -- res <- runCommand' (Just env) cmd args Nothing
+  liftIO $ runPadded "❮" env (stringToText cmd) args
 
   conn <- liftIO $ open (mOutputDir </> "results.db")
   rows :: [RaceTotals] <- liftIO $ query conn raceResultsSql (Only paramName)
@@ -237,13 +238,16 @@ wrappers fp = do
 
 -- | Run a command with the output padded with leading spaces
 -- | n.b  sterr will be redirected to stdin
-runPadded ::  [(Text,Text)] -> Text -> [Text] -> IO ()
-runPadded env cmd args = do
+runPadded :: String -> [(Text,Text)] -> Text -> [Text] -> IO ()
+runPadded ch env cmd args = do
   com <- wrappers "to_stdout.sh"
+  let pad =  " " ++ ch ++ " "
   sh  . print_stdout False . print_stderr False $ do
     mapM_ (\(a,b) ->  setenv a b) env
 
     let handler _ hout herr = do
+
+          {- Ways that did not work -}
           -- void $ liftIO  $ transferLinesAndCombine hout (printer stdout)
           -- void $ liftIO  $ transferLinesAndCombine herr (printer stderr)
 
@@ -252,7 +256,8 @@ runPadded env cmd args = do
           -- void $ liftIO $ forkIO $ void $
           --      transferFoldHandleLines "" (\_ b-> b) herr (printer1 stderr)
 
-          void $ liftIO  $ transferFoldHandleLines "" (\_ b-> b) hout (printer stdout)
+          void $ liftIO  $ transferFoldHandleLines "" (\_ b-> b) hout (printer pad stdout)
+          -- There should not be any stderr
           void $ liftIO  $ transferFoldHandleLines "" (\_ b-> b) herr (printer1 stderr)
 
           return ()
@@ -261,11 +266,11 @@ runPadded env cmd args = do
 
   where
     printer1 hto lnn = do
-      hPutStr hto " ERR:"
+      hPutStr hto " ⤬ "
       hPutStrLn hto  (textToString lnn)
 
-    printer hto lnn = do
-      hPutStr hto " ⌇ "
+    printer pad hto lnn = do
+      hPutStr hto $ pad
       hPutStrLn hto  (textToString lnn)
 
 
