@@ -15,6 +15,11 @@ module Gen.Imports
     , Time
     , Directory
     , Weight
+    , logHigher2
+    , logInfo2
+    , logWarn2
+    , logDebug2
+    , logDebugVerbose2
     ) where
 
 import Conjure.Language.AbstractLiteral as X (AbstractLiteral)
@@ -94,3 +99,19 @@ nnError title docs = do
   error . show $ ( Pr.text $ padRight 15 ' ' title  )
     Pr.$+$ (nest 4 $ vcat (docs ))
     Pr.$+$ (nest 4 $ pretty st)
+
+
+logHigher2 :: MonadLog m => String -> [Doc] -> m ()
+logHigher2 ln docs = log LogFollow . hang (pretty ln) 4 $ Pr.vcat docs
+
+logInfo2 :: MonadLog m => String -> [Doc] -> m ()
+logInfo2 ln docs = log LogInfo . hang (pretty ln) 4 $ Pr.vcat docs
+
+logWarn2 :: MonadLog m => String -> [Doc] -> m ()
+logWarn2 ln docs = log LogWarn . hang (pretty ln) 4 $ Pr.vcat docs
+
+logDebug2 :: MonadLog m => String -> [Doc] -> m ()
+logDebug2 ln docs = log LogDebug . hang (pretty ln) 4 $ Pr.vcat docs
+
+logDebugVerbose2 :: MonadLog m => String -> [Doc] -> m ()
+logDebugVerbose2 ln docs = log LogDebugVerbose . hang (pretty ln) 4 $ Pr.vcat docs

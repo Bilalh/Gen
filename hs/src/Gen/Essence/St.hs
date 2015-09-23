@@ -472,22 +472,6 @@ instance WrapVar Expression where
 
 ---------- Logging
 
-logHigher2 :: MonadLog m => String -> [Doc] -> m ()
-logHigher2 ln docs = log LogFollow . hang (pretty ln) 4 $ Pr.vcat docs
-
-logInfo2 :: MonadLog m => String -> [Doc] -> m ()
-logInfo2 ln docs = log LogInfo . hang (pretty ln) 4 $ Pr.vcat docs
-
-logWarn2 :: MonadLog m => String -> [Doc] -> m ()
-logWarn2 ln docs = log LogWarn . hang (pretty ln) 4 $ Pr.vcat docs
-
-logDebug2 :: MonadLog m => String -> [Doc] -> m ()
-logDebug2 ln docs = log LogDebug . hang (pretty ln) 4 $ Pr.vcat docs
-
-logDebugVerbose2 :: MonadLog m => String -> [Doc] -> m ()
-logDebugVerbose2 ln docs = log LogDebugVerbose . hang (pretty ln) 4 $ Pr.vcat docs
-
-
 logDepthCon :: forall m b. (MonadState St m, MonadLog m, Pretty b) =>
                String -> b -> m ()
 logDepthCon l con= gets depth >>= \d ->
