@@ -23,23 +23,24 @@ module Gen.Imports
     ) where
 
 import Conjure.Language.AbstractLiteral as X (AbstractLiteral)
-import Conjure.Language.Domain          as X (Domain)
-import Conjure.Language.Pretty          as X (Pretty (..))
 import Conjure.Language.Constant        as X (Constant)
 import Conjure.Language.Definition      as X (Expression)
+import Conjure.Language.Domain          as X (Domain)
+import Conjure.Language.Pretty          as X (Pretty (..))
 import Conjure.Language.Type            as X
 import Conjure.Prelude                  as X hiding (dropExtension)
+import Control.Monad                    as X (liftM)
 import Control.Monad.State.Strict       as X (execStateT)
 import Control.Monad.State.Strict       as X (MonadState (get, put))
 import Data.Set                         as X (Set)
 import Gen.AST.Imports                  as X
 import Gen.Helpers.LineError            as X
 import Gen.Helpers.Placeholders         as X
-import GHC.Real                         as X (round,truncate)
+import GHC.Real                         as X (round, truncate)
 import System.FilePath                  as X (dropExtension, dropExtensions, (<.>))
 import Text.Groom                       as X (groom)
-import qualified Data.Map.Strict as M
 
+import qualified Data.Map.Strict  as M
 import qualified Data.Set         as S
 import qualified Text.PrettyPrint as Pr
 
