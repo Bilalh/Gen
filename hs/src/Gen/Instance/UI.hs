@@ -10,9 +10,9 @@ import Gen.IO.Formats
 -- Runn a race and collect results
 _ex7  :: IO ()
 _ex7 = do
-  i :: VarInfo <- readFromJSON "/Users/bilalh/CS/instancegen-models/_new/prob006-GR/info.json"
+  i :: VarInfo <- readFromJSON "/Users/bilalh/CS/instancegen-models/_current/prob006-GR/info.json"
   let common = MCommon{
-        mEssencePath = "/Users/bilalh/CS/instancegen-models/_new/prob006-GR/prob006-GR.essence"
+        mEssencePath = "/Users/bilalh/CS/instancegen-models/_current/prob006-GR/prob006-GR.essence"
       , mOutputDir   = "/Users/bilalh/CS/gen/__"
       , mModelTimeout = 30
       , mVarInfo     = i
@@ -37,9 +37,9 @@ _ex7 = do
 -- do a race
 _ex6  :: IO ()
 _ex6 = do
-  i :: VarInfo <- readFromJSON "/Users/bilalh/CS/instancegen-models/_new/prob006-GR/info.json"
+  i :: VarInfo <- readFromJSON "/Users/bilalh/CS/instancegen-models/_current/prob006-GR/info.json"
   let common = MCommon{
-        mEssencePath = "/Users/bilalh/CS/instancegen-models/_new/prob006-GR/prob006-GR.essence"
+        mEssencePath = "/Users/bilalh/CS/instancegen-models/_current/prob006-GR/prob006-GR.essence"
       , mOutputDir   = "/Users/bilalh/CS/gen/__"
       , mModelTimeout = 30
       , mVarInfo     = i
@@ -63,9 +63,9 @@ _ex6 = do
 -- Sampling using minion
 _ex5  :: IO ()
 _ex5 = do
-  i :: VarInfo <- readFromJSON "/Users/bilalh/CS/instancegen-models/_new/prob006-GR/info.json"
+  i :: VarInfo <- readFromJSON "/Users/bilalh/CS/instancegen-models/_current/prob006-GR/info.json"
   let common = MCommon{
-        mEssencePath = "/Users/bilalh/CS/instancegen-models/_new/prob006-GR/prob006-GR.essence"
+        mEssencePath = "/Users/bilalh/CS/instancegen-models/_current/prob006-GR/prob006-GR.essence"
       , mOutputDir   = "/Users/bilalh/CS/gen/__"
       , mModelTimeout = 60
       , mVarInfo     = i
@@ -87,9 +87,9 @@ _ex5 = do
 -- Creating the param essence
 _ex4  :: IO ()
 _ex4 = do
-  i :: VarInfo <- readFromJSON "/Users/bilalh/CS/instancegen-models/_new/prob006-GR/info.json"
+  i :: VarInfo <- readFromJSON "/Users/bilalh/CS/instancegen-models/_current/prob006-GR/info.json"
   let common = MCommon{
-        mEssencePath = "/Users/bilalh/CS/instancegen-models/_new/prob006-GR/prob006-GR.essence"
+        mEssencePath = "/Users/bilalh/CS/instancegen-models/_current/prob006-GR/prob006-GR.essence"
       , mOutputDir   = "/Users/bilalh/CS/gen/__"
       , mModelTimeout = 60
       , mVarInfo     = i
