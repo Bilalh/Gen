@@ -28,6 +28,7 @@ import System.IO.Temp                           (withSystemTempDirectory)
 import Data.List(  foldl1')
 import Shelly ( setenv, fromText,runHandles,  transferLinesAndCombine,print_stdout,print_stderr,transferFoldHandleLines )
 import System.IO ( stderr,stdout,hPutStrLn,hPutChar,hPutStr ,readFile )
+import System.Environment          (lookupEnv)
 
 import qualified Data.Set as S
 
@@ -63,6 +64,7 @@ runRace paramFP = do
   -- store prev_timestamp if doing a cpu limit
   return quality
 
+
 getModelOrdering :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
         => m [ FilePath ]
 getModelOrdering = do
@@ -75,7 +77,15 @@ getModelOrdering = do
       eprimes :: [[String]] <- query_ conn ("SELECT eprime FROM EprimeOrdering")
       let mModelsDir = takeDirectory mEssencePath </> takeBaseName mEssencePath ++ mMode
       let paths = [ mModelsDir </> row `at` 0 | row <- eprimes  ]
-      return paths
+
+      lookupEnv ("LIMIT_MODELS" :: String) >>= \case
+         Nothing   -> return paths
+         Just sInt -> do
+           case readMay sInt of
+             Nothing  -> docError ["LIMIT_MODELS specifed but is not a int:"
+                                  , pretty sInt]
+             (Just i) -> return $ take i paths
+
 
 doRace :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
         => ParamFP -> m TimeStamp
@@ -102,7 +112,12 @@ doRace paramFP = do
   liftIO $ runPadded "⌇" env (stringToText cmd) args
   return now
 
-
+raceResultsQuery :: Query
+raceResultsQuery = [str|
+  SELECT  1, MinionTimeout, MinionSatisfiable,MinionSolutionsFound, IsOptimum, isDominated
+  FROM TimingsDomination
+  Where paramHash = ?
+  |]
 
 parseRaceResult :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
                 => ParamHash -> TimeStamp -> m RaceTotals
@@ -124,7 +139,7 @@ parseRaceResult paramHash ts =do
   liftIO $ runPadded "❮" env (stringToText cmd) args
 
   conn <- liftIO $ open (mOutputDir </> "results.db")
-  rows :: [RaceTotals] <- liftIO $ query conn raceResultsSql (Only paramHash)
+  rows :: [RaceTotals] <- liftIO $ query conn raceResultsQuery (Only paramHash)
   let total = flip foldl1' rows (\(RaceTotals a1 b1 c1 d1 e1 f1)
                                   (RaceTotals a2 b2 c2 d2 e2 f2)
             -> (RaceTotals (a1+a2) (b1+b2) (c1+c2) (d1+d2) (e1+e2) (f1+f2)) )
@@ -152,8 +167,9 @@ readParamRaceCpuTime :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLo
                      => TimeStamp -> m Double
 readParamRaceCpuTime ts = do
   (Method MCommon{mOutputDir} _) <- get
-  let statsDir = mOutputDir </> ("stats-" ++ mMode)
-  fps   <- liftIO  $ allFilesWithSuffix ".total_solving_time" statsDir
+  let statsDir = mOutputDir </> ("stats_" ++ mMode)
+  -- fps   <- liftIO  $ allFilesWithSuffix ".total_solving_time" statsDir
+  let fps = [statsDir </> (show ts :: String) <.>  ".total_solving_time"]
   times :: [Maybe Double] <- liftIO  $  forM fps $ \fp -> do
              st <- readFile fp
              return $ readMay st
@@ -180,17 +196,6 @@ saveQualityToDb paramName paramHash quality cputime = do
   conn <- liftIO $ open (mOutputDir </> "results.db")
   liftIO $ execute conn saveQuery (paramName, paramHash, quality, cputime)
   return ()
-
-
-
-
-raceResultsSql = [str|
-  SELECT  1, MinionTimeout, MinionSatisfiable,MinionSolutionsFound, IsOptimum, isDominated
-  FROM TimingsDomination
-  Where paramHash = ?
-  |]
-
-
 
 
 -- To parse results:
@@ -277,18 +282,18 @@ sampleParamFromMinion = do
   liftIO $ createDirectoryIfMissing True out
   writeParam [] paramFp
 
-  let args = [ (mOutputDir </> "essence_param_find.essence")
+  let args = map stringToText [ (mOutputDir </> "essence_param_find.essence")
              , (mOutputDir </> "essence_param_find.eprime")
              , paramFp
              , show timeout
              , show timeout
              , show seed
              ]
-  let env = [ ("GENERATED_OUTPUT_DIR", out)
+  let env = map (second stringToText) [ ("GENERATED_OUTPUT_DIR", out)
             , ("TIMEOUT5_FILE", out </> "timeout_file")
             ]
   cmd <- wrappers "create_param_from_essence.sh"
-  res <- runCommand' (Just env) cmd args Nothing
+  res <- liftIO $ runPadded " ⦿ " env (stringToText cmd) args
 
   solution_param <- liftIO $ readModelFromFile solutionFp
 
