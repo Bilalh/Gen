@@ -12,23 +12,26 @@ import Conjure.Language
 import Conjure.Language.Expression.DomainSizeOf (domainSizeOf)
 import Conjure.Language.NameResolution          (resolveNames)
 import Conjure.UI.IO
+import Data.List                                (foldl1')
 import Database.SQLite.Simple
-import Database.SQLite.Simple.FromRow()
-import Database.SQLite.Simple.FromField()
+import Database.SQLite.Simple.FromField         ()
+import Database.SQLite.Simple.FromRow           ()
 import Gen.Helpers.Str
 import Gen.Imports
 import Gen.Instance.Data
 import Gen.IO.Formats
-import Gen.IO.Toolchain                         (runCommand, runCommand')
+import Gen.IO.Toolchain                         (runCommand)
+import Shelly                                   (print_stderr, print_stdout,
+                                                 runHandles, setenv,
+                                                 transferFoldHandleLines,
+                                                 transferLinesAndCombine)
 import System.Directory                         (renameFile)
 import System.Environment                       (lookupEnv)
 import System.Exit                              (ExitCode (..))
 import System.FilePath                          (takeBaseName, takeDirectory)
+import System.IO                                (hPutStr, hPutStrLn, readFile,
+                                                 stderr, stdout)
 import System.IO.Temp                           (withSystemTempDirectory)
-import Data.List(  foldl1')
-import Shelly ( setenv, fromText,runHandles,  transferLinesAndCombine,print_stdout,print_stderr,transferFoldHandleLines )
-import System.IO ( stderr,stdout,hPutStrLn,hPutChar,hPutStr ,readFile )
-import System.Environment          (lookupEnv)
 
 import qualified Data.Set as S
 
@@ -38,7 +41,8 @@ type ParamHash = String
 type TimeStamp = Int
 type Quality   = Double
 
-mMode="df"
+mMode = "df"
+mDataPoints = $notDone
 
 runRace :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
         => ParamFP -> m Quality

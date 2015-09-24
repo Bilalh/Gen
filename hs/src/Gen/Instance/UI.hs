@@ -3,11 +3,35 @@ module Gen.Instance.UI where
 import Gen.Imports
 import Gen.Instance.Data
 import Gen.Instance.RaceRunner
-import Gen.Instance.Uniform()
+import Gen.Instance.Uniform
 import Gen.IO.Formats
+import Gen.Instance.Method
+
+-- Run Uniform once
+_ex8 :: IO ()
+_ex8 = do
+  i :: VarInfo <- readFromJSON "/Users/bilalh/CS/instancegen-models/_current/prob006-GR/info.json"
+  let common = MCommon{
+        mEssencePath = "/Users/bilalh/CS/instancegen-models/_current/prob006-GR/prob006-GR.essence"
+      , mOutputDir   = "/Users/bilalh/CS/gen/__"
+      , mModelTimeout = 30
+      , mVarInfo     = i
+      , mPreGenerate = Nothing
+      , mIterations  = 1
+      }
+  let state = Method common Uniform
 
 
--- Runn a race and collect results
+  let workload = runLoggerPipeIO (LogDebug) $ do
+        (re,reState) <- runStateT (run) state
+        logInfo "Finished"
+        liftIO $  groomPrint re
+        liftIO $  groomPrint reState
+
+  workload
+
+
+-- Run a race and collect results
 _ex7  :: IO ()
 _ex7 = do
   i :: VarInfo <- readFromJSON "/Users/bilalh/CS/instancegen-models/_current/prob006-GR/info.json"

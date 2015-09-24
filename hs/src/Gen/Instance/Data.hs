@@ -6,11 +6,13 @@ import Gen.Imports
 
 import qualified Data.Aeson as A
 import qualified Data.Set   as S
--- import qualified Text.PrettyPrint   as Pr
+
+class Sampling a where
+    doIteration :: (MonadIO m, MonadState (Method a) m) => m SamplingResult
 
 
 data Method kind = Method MCommon kind
-  deriving (Eq, Show, Data, Typeable, Generic)
+  deriving (Eq, Show, Data, Typeable, Generic, Functor)
 
 data MCommon = MCommon
   { mEssencePath  :: FilePath
@@ -21,13 +23,6 @@ data MCommon = MCommon
   , mIterations   :: Int             -- | Number of races to run
   } deriving (Eq, Show, Data, Typeable, Generic)
 
-data Uniform = Uniform
-  deriving (Eq, Show, Data, Typeable, Generic)
-
-data Markov = Markov
-  { extra2 :: Int
-  }
-  deriving (Eq, Show, Data, Typeable, Generic)
 
 data SamplingResult = SamplingSuccess
                     | SamplingNoValuesLeft
@@ -35,8 +30,6 @@ data SamplingResult = SamplingSuccess
                     | SamplingDontCountIteration
   deriving (Eq, Show, Data, Typeable, Generic)
 
-class Sampling a where
-    doIteration :: (MonadIO m, MonadState (Method a) m) => m SamplingResult
 
 type Point = [(Text,Int)]
 
