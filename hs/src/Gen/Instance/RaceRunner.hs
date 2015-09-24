@@ -345,16 +345,3 @@ runPadded ch env cmd args = do
     printer pad hto lnn = do
       hPutStr hto $ pad
       hPutStrLn hto  (textToString lnn)
-
-
-_ex1, _ex2 :: IO ()
-_ex2 = do
-  res <- conjureCompact "/Users/bilalh/CS/instancegen-models/_new/prob013-PPP/prob013-PPP.essence"
-                        "/Users/bilalh/CS/instancegen-models/_new/prob013-PPP/a.eprime"
-  print res
-
-_ex1 = do
-  i :: VarInfo <- readFromJSON "/Users/bilalh/CS/instancegen-models/_new/prob013-PPP/info.json"
-  m <- readModelFromFile "/Users/bilalh/CS/instancegen-models/_new/prob013-PPP/prob013-PPP.essence"
-  param <- createParamSpecification m i
-  print . pretty $ param
