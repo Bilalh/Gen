@@ -31,7 +31,6 @@ data SamplingResult = SamplingSuccess
   deriving (Eq, Show, Data, Typeable, Generic)
 
 
-type Point = [(Text,Int)]
 
 -- info.json
 data VarInfo =

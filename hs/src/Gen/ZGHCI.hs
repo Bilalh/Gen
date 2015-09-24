@@ -16,6 +16,7 @@ import Conjure.Language.Definition    as X
 import Conjure.Language.Domain        as X
 import Conjure.Language.Expression.Op as X
 import Conjure.Language.TH            as X
+import Conjure.UI.IO                  as X
 import Gen.AST.TH                     as X
 import Gen.Essence.Constant           as X ()
 import Gen.Essence.Domain             as X ()

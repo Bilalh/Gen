@@ -23,8 +23,7 @@ import Gen.IO.Formats
 import Gen.IO.Toolchain                         (runCommand)
 import Shelly                                   (print_stderr, print_stdout,
                                                  runHandles, setenv,
-                                                 transferFoldHandleLines,
-                                                 transferLinesAndCombine)
+                                                 transferFoldHandleLines)
 import System.Directory                         (renameFile)
 import System.Environment                       (lookupEnv)
 import System.Exit                              (ExitCode (..))
@@ -32,6 +31,7 @@ import System.FilePath                          (takeBaseName, takeDirectory)
 import System.IO                                (hPutStr, hPutStrLn, readFile,
                                                  stderr, stdout)
 import System.IO.Temp                           (withSystemTempDirectory)
+import Gen.Instance.Value
 
 import qualified Data.Set as S
 

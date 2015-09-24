@@ -2,8 +2,9 @@ module Gen.Instance.Method where
 
 import Gen.Imports
 import Gen.Instance.Data
-import Gen.IO.Formats
 import Gen.Instance.RaceRunner
+import Gen.Instance.Value
+import Gen.IO.Formats
 
 run :: (Sampling a, MonadState (Method a) m, MonadIO m) => m ()
 run = do
