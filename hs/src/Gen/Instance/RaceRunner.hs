@@ -35,9 +35,6 @@ import System.IO.Temp                           (withSystemTempDirectory)
 
 import qualified Data.Set as S
 
-type ParamFP   = FilePath
-type ParamName = String
-type ParamHash = String
 type TimeStamp = Int
 type Quality   = Double
 
@@ -276,17 +273,21 @@ conjureCompact inn out = do
 sampleParamFromMinion :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
                       => m Point
 sampleParamFromMinion = do
+
+  let point = Point []
+  let phash = pointHash point
+
   (Method MCommon{mOutputDir} _) <- get
   now <- timestamp
-  let seed       = 4   :: Int
   let out        = mOutputDir </> "_param_gen" </> show now
+  let paramFp    = (out </> phash) <.> ".param"
+  let solutionFp = out </> ("essence_param_find"  ++ "-" ++ phash  <.> ".solution" )
+
   let timeout    = 300 :: Int
-  let paramHash  = "empty"
-  let paramFp    = (out </> paramHash) <.> ".param"
-  let solutionFp = out </> ("essence_param_find"  ++ "-" ++ paramHash  <.> ".solution" )
+  let seed       = 4   :: Int
 
   liftIO $ createDirectoryIfMissing True out
-  writeParam (Point []) paramFp
+  writeParam point paramFp
 
   let args = map stringToText [ (mOutputDir </> "essence_param_find.essence")
              , (mOutputDir </> "essence_param_find.eprime")
@@ -303,19 +304,10 @@ sampleParamFromMinion = do
   cmd <- wrappers "create_param_from_essence.sh"
   res <- liftIO $ runPadded " ⦿ " env (stringToText cmd) args
 
-  sp@Model{mStatements=sts} <- liftIO $ readModelFromFile solutionFp
-  logDebug ("produced" <+> pretty sp)
-  let exprs = concatMap (\st ->
-            [ (label,lit) | Declaration (Letting (label) (lit))
-                          <- universe st]) sts
+  (Point ps) <- readParam solutionFp
+  -- FIXME append the givens
 
-  let cons = (flip map) exprs $ \(n,expr) ->
-          case e2c expr of
-            Just x -> (n,x)
-            Nothing -> error "Not a constant"
-
-
-  return $ Point cons
+  return $ Point ps
 
 
 writeParam :: MonadIO m => Point  -> FilePath -> m ()

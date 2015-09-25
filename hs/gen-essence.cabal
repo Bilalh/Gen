@@ -184,6 +184,7 @@ Library
                      , temporary
                      , sqlite-simple
                      , shelly
+                     , cryptohash
 
 
     if impl(ghc < 7.10)

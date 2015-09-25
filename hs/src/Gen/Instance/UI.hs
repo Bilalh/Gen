@@ -62,7 +62,6 @@ _ex7 = do
   workload
 
 
-
 -- do a race
 _ex6  :: IO ()
 _ex6 = do
