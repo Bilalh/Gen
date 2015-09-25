@@ -171,5 +171,13 @@ export -f check_errors
 export TOTAL_TIMEOUT
 export TIMEOUT5_FILE_BASE
 
-parallel --tagstring "{1/.} {2/.}" --halt 1 -j${NUM_JOBS:-6}  $Command ::: ${Eprimes} ::: ${Params};
-
+if [ "$( parallel --version | egrep -o '[0-9]+$'  )" -ge "20141122"  ]; then
+	parallel --halt 1 -j"${NUM_JOBS:-6}" \
+		--rpl '{param} s:.*/::; s:\.[^/.]+$::; $_=substr($_,0,6);' \
+		--tagstring '{1/.} {2param}' \
+		$Command ::: ${Eprimes} ::: ${Params};
+else
+	echo "INSTALL a newer version of parallel (>=20141122) for much nicer output "
+	echo "INSTALL a newer version of parallel (>=20141122) for much nicer output " >2
+	parallel --tagstring "{1/.} {2/.}" --halt 1 -j${NUM_JOBS:-6}  $Command ::: ${Eprimes} ::: ${Params};
+fi
