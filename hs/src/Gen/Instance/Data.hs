@@ -8,7 +8,8 @@ import qualified Data.Aeson as A
 import qualified Data.Set   as S
 
 class Sampling a where
-    doIteration :: (MonadIO m, MonadState (Method a) m) => m SamplingResult
+    doIteration :: (MonadIO m, MonadState (Method a) m, MonadLog m)
+                => m SamplingResult
 
 
 data Method kind = Method MCommon kind

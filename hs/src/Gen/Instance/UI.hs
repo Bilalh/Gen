@@ -6,13 +6,16 @@ import Gen.Instance.RaceRunner
 import Gen.Instance.Uniform
 import Gen.IO.Formats
 import Gen.Instance.Method
+import Gen.Instance.Point
+import Conjure.Language.Constant
 
--- FilePaths for examples
-_ex_info, _ex_essence, _ex_out, _ex_param :: FilePath
+-- for examples
+_ex_info, _ex_essence, _ex_out :: FilePath
+_ex_point :: Point
 _ex_info    = "/Users/bilalh/CS/instancegen-models/_current/prob006-GR/info.json"
 _ex_essence = "/Users/bilalh/CS/instancegen-models/_current/prob006-GR/prob006-GR.essence"
 _ex_out     = "/Users/bilalh/CS/gen/__"
-_ex_param   = "/Users/bilalh/CS/gen/__/_params/test.param"
+_ex_point   = Point [("n", ConstantInt 4)]
 
 -- Run Uniform once
 _ex8 :: IO ()
@@ -53,7 +56,7 @@ _ex7 = do
   let state = Method common Uniform
 
   let workload = runLoggerPipeIO (LogDebug) $ do
-        (re,reState) <- runStateT (runRace _ex_param) state
+        (re,reState) <- runStateT (runParamAndStoreQuality _ex_point) state
         logInfo "Finished"
         liftIO $  groomPrint re
         liftIO $  groomPrint reState
@@ -61,30 +64,6 @@ _ex7 = do
 
   workload
 
-
--- do a race
-_ex6  :: IO ()
-_ex6 = do
-  i :: VarInfo <- readFromJSON _ex_info
-  let common = MCommon{
-        mEssencePath  = _ex_essence
-      , mOutputDir    = _ex_out
-      , mModelTimeout = 30
-      , mVarInfo      = i
-      , mPreGenerate  = Nothing
-      , mIterations   = 1
-      }
-  let state = Method common Uniform
-
-
-  let workload = runLoggerPipeIO (LogDebug) $ do
-        (re,reState) <- runStateT (doRace _ex_param) state
-        logInfo "Finished"
-        liftIO $  groomPrint re
-        liftIO $  groomPrint reState
-
-
-  workload
 
 
 -- Sampling using minion

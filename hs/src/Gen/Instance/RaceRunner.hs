@@ -6,6 +6,7 @@ module Gen.Instance.RaceRunner(
   , createParamEssence
   , sampleParamFromMinion
   , RaceTotals(..)
+  , getModelOrdering
   ) where
 
 import Conjure.Language
@@ -49,8 +50,9 @@ runRace paramFP = do
   ordering <- getModelOrdering
   logDebug2 "runRace ordering:" (map pretty ordering)
 
-  let paramHash = takeBaseName paramFP
-  let paramName = takeBaseName paramFP
+  p <- readPoint paramFP
+  let paramHash = pointHash p
+  let paramName = pointName p
 
   ts <- doRace paramFP
 

@@ -6,7 +6,8 @@ import Gen.Instance.RaceRunner
 import Gen.Instance.Point
 import Gen.IO.Formats
 
-run :: (Sampling a, MonadState (Method a) m, MonadIO m) => m ()
+run :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
+    => m ()
 run = do
   date_start <- timestamp
 
@@ -15,7 +16,8 @@ run = do
   date_end <- timestamp
   $notDone
 
-looper :: (Sampling a, MonadState (Method a) m, MonadIO m) =>  Int -> m ()
+looper :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
+       => Int -> m ()
 looper i = do
   (Method MCommon{mIterations} _) <- get
   if i == mIterations then
@@ -27,11 +29,20 @@ looper i = do
 
 
 
-randomPoint :: (Sampling a, MonadState (Method a) m, MonadIO m) =>  m Point
+randomPoint :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
+            =>  m Point
 randomPoint = $notDone
 
-createRunParamAndStoreQuality :: (Sampling a, MonadState (Method a) m, MonadIO m) => Point -> m ()
-createRunParamAndStoreQuality point = $notDone
+runParamAndStoreQuality :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
+                        => Point -> m ()
+runParamAndStoreQuality point = do
+  (Method MCommon{mOutputDir} _) <- get
+  let fp = mOutputDir </> "_params" </> pointHash point <.> ".param"
+  writePoint point fp
+  _ <- runRace fp
+  return ()
 
-storeDataPoint :: (Sampling a, MonadState (Method a) m, MonadIO m) => Point -> m ()
+
+storeDataPoint :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
+               => Point -> m ()
 storeDataPoint point = $notDone

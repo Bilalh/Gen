@@ -11,6 +11,6 @@ data Uniform = Uniform
 instance Sampling Uniform where
   doIteration = do
     picked <- randomPoint
-    createRunParamAndStoreQuality picked
+    runParamAndStoreQuality picked
     storeDataPoint picked
     return SamplingSuccess

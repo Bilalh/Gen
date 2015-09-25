@@ -3,9 +3,11 @@ module Gen.Instance.Point where
 
 import Conjure.Language.Constant
 import Conjure.Language.Definition
-import Gen.Imports hiding (hash)
+import Conjure.UI.IO               (EssenceFileMode (PlainEssence),
+                                    readModelFromFile, writeModel)
 import Crypto.Hash
-import Conjure.UI.IO(readModelFromFile,writeModel,EssenceFileMode(PlainEssence))
+import Gen.Imports                 hiding (hash)
+import System.FilePath             (takeDirectory)
 
 import qualified Data.ByteString.Char8 as B
 
@@ -45,4 +47,5 @@ writePoint (Point ps) fp = do
   let sts = [ Declaration (Letting (label) (Constant con))
             |  (label,con) <- ps ]
   let m :: Model = def{mStatements=sts}
+  liftIO $ createDirectoryIfMissing True (takeDirectory fp)
   liftIO $ writeModel PlainEssence (Just fp) m
