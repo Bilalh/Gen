@@ -23,6 +23,7 @@ data MCommon = MCommon
   , mPreGenerate  :: Maybe FilePath  -- | Generate all solution once and pick from them
   , mIterations   :: Int             -- | Number of races to run
   , mMode         :: String          -- | the directory suffix
+  -- above fields do not change
   } deriving (Eq, Show, Data, Typeable, Generic)
 
 

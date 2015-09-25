@@ -181,6 +181,7 @@ readParamRaceCpuTime ts = do
   return . sum . catMaybes $ times
 
 
+-- 0.0 perfect  1.0 terrible
 calculateParamQuality :: RaceTotals -> Quality
 calculateParamQuality RaceTotals{..} =
     if tMinionTimeout == tCount then
