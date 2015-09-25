@@ -39,7 +39,6 @@ import qualified Data.Set as S
 type TimeStamp = Int
 type Quality   = Double
 
-mMode = "df"
 mDataPoints = $notDone
 
 
@@ -72,7 +71,7 @@ runRace paramFP = do
 getModelOrdering :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
         => m [ FilePath ]
 getModelOrdering = do
-  (Method MCommon{mEssencePath, mOutputDir} _) <- get
+  (Method MCommon{mEssencePath, mOutputDir, mMode} _) <- get
   let dbPath  =  mOutputDir </> "results.db"
   liftIO $ doesFileExist dbPath >>= \case
     False -> return []
@@ -94,7 +93,7 @@ getModelOrdering = do
 doRace :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
         => ParamFP -> m TimeStamp
 doRace paramFP = do
-  (Method MCommon{mEssencePath, mOutputDir, mModelTimeout} _) <- get
+  (Method MCommon{mEssencePath, mOutputDir, mModelTimeout, mMode} _) <- get
   now <- timestamp
 
 
@@ -127,7 +126,7 @@ raceResultsQuery = [str|
 parseRaceResult :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
                 => ParamHash -> TimeStamp -> m RaceTotals
 parseRaceResult paramHash ts =do
-  (Method MCommon{mEssencePath, mOutputDir, mModelTimeout} _) <- get
+  (Method MCommon{mEssencePath, mOutputDir, mModelTimeout, mMode} _) <- get
 
   let args = map stringToText [ paramHash
              , takeDirectory mEssencePath
@@ -172,7 +171,7 @@ instance FromRow RaceTotals where
 readParamRaceCpuTime :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
                      => TimeStamp -> m Double
 readParamRaceCpuTime ts = do
-  (Method MCommon{mOutputDir} _) <- get
+  (Method MCommon{mOutputDir, mMode} _) <- get
   let statsDir = mOutputDir </> ("stats_" ++ mMode)
   -- fps   <- liftIO  $ allFilesWithSuffix ".total_solving_time" statsDir
   let fps = [statsDir </> (show ts :: String) <.>  ".total_solving_time"]

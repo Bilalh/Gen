@@ -10,11 +10,12 @@ import Gen.Instance.Point
 import Conjure.Language.Constant
 
 -- for examples
-_ex_info, _ex_essence, _ex_out :: FilePath
-_ex_point :: Point
+_ex_info, _ex_essence, _ex_out, _ex_mode :: String
 _ex_info    = "/Users/bilalh/CS/instancegen-models/_current/prob006-GR/info.json"
 _ex_essence = "/Users/bilalh/CS/instancegen-models/_current/prob006-GR/prob006-GR.essence"
 _ex_out     = "/Users/bilalh/CS/gen/__"
+_ex_mode    = "df"
+_ex_point  :: Point
 _ex_point   = Point [("n", ConstantInt 4)]
 
 -- Run Uniform once
@@ -28,6 +29,7 @@ _ex8 = do
       , mVarInfo      = i
       , mPreGenerate  = Nothing
       , mIterations   = 1
+      , mMode         = _ex_mode
       }
   let state = Method common Uniform
 
@@ -52,6 +54,7 @@ _ex7 = do
       , mVarInfo      = i
       , mPreGenerate  = Nothing
       , mIterations   = 1
+      , mMode         = _ex_mode
       }
   let state = Method common Uniform
 
@@ -77,6 +80,7 @@ _ex5 = do
       , mVarInfo      = i
       , mPreGenerate  = Nothing
       , mIterations   = 1
+      , mMode         = _ex_mode
       }
   let state = Method common Uniform
 
@@ -101,6 +105,7 @@ _ex4 = do
       , mVarInfo      = i
       , mPreGenerate  = Nothing
       , mIterations   = 1
+      , mMode         = _ex_mode
       }
   let state = Method common Uniform
 
