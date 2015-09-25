@@ -304,7 +304,7 @@ sampleParamFromMinion = do
   cmd <- wrappers "create_param_from_essence.sh"
   res <- liftIO $ runPadded " ⦿ " env (stringToText cmd) args
 
-  (Point ps) <- readParam solutionFp
+  (Point ps) <- readPoint solutionFp
   -- FIXME append the givens
 
   return $ Point ps

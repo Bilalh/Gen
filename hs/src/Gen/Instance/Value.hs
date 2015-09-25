@@ -25,8 +25,8 @@ pointHash px =
 pointName :: Point -> ParamName
 pointName (Point xs) = renderSized 100000 $ vcat [ pretty n <+> pretty c  | (n,c) <- xs ]
 
-readParam :: MonadIO m => ParamFP -> m Point
-readParam fp = do
+readPoint :: MonadIO m => ParamFP -> m Point
+readPoint fp = do
   Model{mStatements=sts} <- liftIO $ readModelFromFile fp
   let exprs = concatMap (\st ->
             [ (label,lit) | Declaration (Letting (label) (lit))
