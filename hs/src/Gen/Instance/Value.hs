@@ -1,8 +1,12 @@
+{-# LANGUAGE DeriveDataTypeable, DeriveGeneric #-}
 module Gen.Instance.Value where
 
-import Gen.Imports
-import Conjure.Language.AbstractLiteral
 import Conjure.Language.Constant
 import Conjure.Language.Definition
+import Gen.Imports
 
-type Point = ()
+newtype Point  = Point [(Name,Constant)]
+ deriving (Eq, Show, Data, Typeable, Generic)
+
+pointHash :: Point -> String
+pointHash _ = "empty"

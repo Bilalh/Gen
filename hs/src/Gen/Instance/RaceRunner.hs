@@ -19,6 +19,7 @@ import Database.SQLite.Simple.FromRow           ()
 import Gen.Helpers.Str
 import Gen.Imports
 import Gen.Instance.Data
+import Gen.Instance.Value
 import Gen.IO.Formats
 import Gen.IO.Toolchain                         (runCommand)
 import Shelly                                   (print_stderr, print_stdout,
@@ -31,7 +32,6 @@ import System.FilePath                          (takeBaseName, takeDirectory)
 import System.IO                                (hPutStr, hPutStrLn, readFile,
                                                  stderr, stdout)
 import System.IO.Temp                           (withSystemTempDirectory)
-import Gen.Instance.Value
 
 import qualified Data.Set as S
 
@@ -43,6 +43,7 @@ type Quality   = Double
 
 mMode = "df"
 mDataPoints = $notDone
+
 
 runRace :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
         => ParamFP -> m Quality
@@ -65,7 +66,7 @@ runRace paramFP = do
   timeTaken <- readParamRaceCpuTime ts
   saveQualityToDb paramName paramHash quality timeTaken
 
-  -- store prev_timestamp if doing a cpu limit
+  -- FIXME store prev_timestamp if doing a cpu limit
   return quality
 
 
@@ -116,6 +117,7 @@ doRace paramFP = do
   liftIO $ runPadded "⌇" env (stringToText cmd) args
   return now
 
+
 raceResultsQuery :: Query
 raceResultsQuery = [str|
   SELECT  1, MinionTimeout, MinionSatisfiable,MinionSolutionsFound, IsOptimum, isDominated
@@ -153,6 +155,7 @@ parseRaceResult paramHash ts =do
 
   return total
 
+
 data RaceTotals = RaceTotals
     { tCount                :: Int
     , tMinionTimeout        :: Int
@@ -179,6 +182,7 @@ readParamRaceCpuTime ts = do
              return $ readMay st
   return . sum . catMaybes $ times
 
+
 calculateParamQuality :: RaceTotals -> Quality
 calculateParamQuality RaceTotals{..} =
     if tMinionTimeout == tCount then
@@ -193,6 +197,7 @@ saveQuery = [str|
   Values(?, ?, ?, ?)
   |]
 
+
 saveQualityToDb :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
                 =>  ParamName -> ParamHash -> Quality -> Double ->  m ()
 saveQualityToDb paramName paramHash quality cputime = do
@@ -201,10 +206,6 @@ saveQualityToDb paramName paramHash quality cputime = do
   liftIO $ execute conn saveQuery (paramName, paramHash, quality, cputime)
   return ()
 
-
--- To parse results:
--- Need to do this first globally
--- cabal install split
 
 createParamEssence :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
                    => m ()
@@ -260,6 +261,7 @@ createParamSpecification model VarInfo{..} = do
                            | (nm, dom) <- errs
                            ]
 
+
 conjureCompact :: MonadIO m => FilePath -> FilePath -> m Bool
 conjureCompact inn out = do
   liftIO $ withSystemTempDirectory "gen-compact" $ \tmp -> do
@@ -272,19 +274,19 @@ conjureCompact inn out = do
 
 
 sampleParamFromMinion :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
-                      => m ()
+                      => m Point
 sampleParamFromMinion = do
   (Method MCommon{mOutputDir} _) <- get
-  let seed = 4 :: Int
   now <- timestamp
-  let out = mOutputDir </> "_param_gen" </> show now
-  let timeout = 300 :: Int
-  let paramHash = "empty"
-  let paramFp = (out </> paramHash) <.> ".param"
+  let seed       = 4   :: Int
+  let out        = mOutputDir </> "_param_gen" </> show now
+  let timeout    = 300 :: Int
+  let paramHash  = "empty"
+  let paramFp    = (out </> paramHash) <.> ".param"
   let solutionFp = out </> ("essence_param_find"  ++ "-" ++ paramHash  <.> ".solution" )
 
   liftIO $ createDirectoryIfMissing True out
-  writeParam [] paramFp
+  writeParam (Point []) paramFp
 
   let args = map stringToText [ (mOutputDir </> "essence_param_find.essence")
              , (mOutputDir </> "essence_param_find.eprime")
@@ -293,20 +295,34 @@ sampleParamFromMinion = do
              , show timeout
              , show seed
              ]
+
   let env = map (second stringToText) [ ("GENERATED_OUTPUT_DIR", out)
             , ("TIMEOUT5_FILE", out </> "timeout_file")
             ]
+
   cmd <- wrappers "create_param_from_essence.sh"
   res <- liftIO $ runPadded " ⦿ " env (stringToText cmd) args
 
-  solution_param <- liftIO $ readModelFromFile solutionFp
+  sp@Model{mStatements=sts} <- liftIO $ readModelFromFile solutionFp
+  logDebug ("produced" <+> pretty sp)
+  let exprs = concatMap (\st ->
+            [ (label,lit) | Declaration (Letting (label) (lit))
+                          <- universe st]) sts
 
-  logDebug ("produced" <+> pretty solution_param)
-  return ()
+  let cons = (flip map) exprs $ \(n,expr) ->
+          case e2c expr of
+            Just x -> (n,x)
+            Nothing -> error "Not a constant"
 
-writeParam :: MonadIO m => [()] -> FilePath -> m ()
-writeParam _ fp = do
-  let m :: Model = def
+
+  return $ Point cons
+
+
+writeParam :: MonadIO m => Point  -> FilePath -> m ()
+writeParam (Point ps) fp = do
+  let sts = [ Declaration (Letting (label) (Constant con))
+            |  (label,con) <- ps ]
+  let m :: Model = def{mStatements=sts}
   liftIO $ writeModel PlainEssence (Just fp) m
 
 
