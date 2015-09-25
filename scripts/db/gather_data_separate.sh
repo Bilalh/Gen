@@ -76,7 +76,7 @@ export -f doMinionTable
 
 if [ "$( parallel --version | egrep -o '[0-9]+$'  )" -ge "20141122"  ]; then
 	ls ${results_dir}/*${param_glob}*.minion-table | parallel -j1 \
-		--rpl '{base} s:.*/::; s:\.[^/.]+$::; $_=substr($_,0,-123) . "..";' \
+		--rpl '{base} s:.*/::; s:\.[^/.]+$::; s:^model_::; $_=substr($_,0,-123) . "..";' \
 		--tagstring "{base}"  'echo $(doMinionTable {} {/.})'
 else
 	echo "INSTALL a newer version of parallel (>=20141122) for much nicer output "
