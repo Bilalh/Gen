@@ -173,7 +173,7 @@ export TIMEOUT5_FILE_BASE
 
 if [ "$( parallel --version | egrep -o '[0-9]+$'  )" -ge "20141122"  ]; then
 	parallel --halt 1 -j"${NUM_JOBS:-6}" \
-		--rpl '{param} s:.*/::; s:\.[^/.]+$::; $_=substr($_,0,6);' \
+		--rpl '{param} s:.*/::; s:\.[^/.]+$::; $_=substr($_,0,5) . "..";' \
 		--tagstring '{1/.} {2param}' \
 		$Command ::: ${Eprimes} ::: ${Params};
 else

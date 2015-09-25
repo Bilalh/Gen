@@ -74,8 +74,15 @@ export Script_Base
 export REPOSITORY_BASE
 export -f doMinionTable
 
-ls ${results_dir}/*${param_glob}*.minion-table | parallel -j1 --tagstring "{/.}"  'echo $(doMinionTable {} {/.})'
-
+if [ "$( parallel --version | egrep -o '[0-9]+$'  )" -ge "20141122"  ]; then
+	ls ${results_dir}/*${param_glob}*.minion-table | parallel -j1 \
+		--rpl '{base} s:.*/::; s:\.[^/.]+$::; $_=substr($_,0,-123) . "..";' \
+		--tagstring "{base}"  'echo $(doMinionTable {} {/.})'
+else
+	echo "INSTALL a newer version of parallel (>=20141122) for much nicer output "
+	echo "INSTALL a newer version of parallel (>=20141122) for much nicer output " >2
+	ls ${results_dir}/*${param_glob}*.minion-table | parallel -j1 --tagstring "{/.}"  'echo $(doMinionTable {} {/.})'
+fi
 
 
 # I could not get traping SIGTERM to work in perModel.sh, so store files to specify if the process has finished
