@@ -1,11 +1,11 @@
 {-# LANGUAGE DeriveDataTypeable, DeriveGeneric #-}
-module Gen.Instance.Value where
+module Gen.Instance.Point where
 
 import Conjure.Language.Constant
 import Conjure.Language.Definition
 import Gen.Imports hiding (hash)
 import Crypto.Hash
-import Conjure.UI.IO(readModelFromFile)
+import Conjure.UI.IO(readModelFromFile,writeModel,EssenceFileMode(PlainEssence))
 
 import qualified Data.ByteString.Char8 as B
 
@@ -38,3 +38,11 @@ readPoint fp = do
             Nothing -> error "Not a constant"
 
   return $ Point cons
+
+
+writePoint :: MonadIO m => Point  -> FilePath -> m ()
+writePoint (Point ps) fp = do
+  let sts = [ Declaration (Letting (label) (Constant con))
+            |  (label,con) <- ps ]
+  let m :: Model = def{mStatements=sts}
+  liftIO $ writeModel PlainEssence (Just fp) m

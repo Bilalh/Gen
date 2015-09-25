@@ -19,7 +19,7 @@ import Database.SQLite.Simple.FromRow           ()
 import Gen.Helpers.Str
 import Gen.Imports
 import Gen.Instance.Data
-import Gen.Instance.Value
+import Gen.Instance.Point
 import Gen.IO.Formats
 import Gen.IO.Toolchain                         (runCommand)
 import Shelly                                   (print_stderr, print_stdout,
@@ -287,7 +287,7 @@ sampleParamFromMinion = do
   let seed       = 4   :: Int
 
   liftIO $ createDirectoryIfMissing True out
-  writeParam point paramFp
+  writePoint point paramFp
 
   let args = map stringToText [ (mOutputDir </> "essence_param_find.essence")
              , (mOutputDir </> "essence_param_find.eprime")
@@ -308,14 +308,6 @@ sampleParamFromMinion = do
   -- FIXME append the givens
 
   return $ Point ps
-
-
-writeParam :: MonadIO m => Point  -> FilePath -> m ()
-writeParam (Point ps) fp = do
-  let sts = [ Declaration (Letting (label) (Constant con))
-            |  (label,con) <- ps ]
-  let m :: Model = def{mStatements=sts}
-  liftIO $ writeModel PlainEssence (Just fp) m
 
 
 wrappers :: MonadIO m => FilePath -> m FilePath
