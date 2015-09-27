@@ -276,10 +276,11 @@ sampleParamFromMinion :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadL
                       => m Point
 sampleParamFromMinion = do
 
-  let point = Point []
+  (Method MCommon{mOutputDir, mGivensProvider} _) <- get
+
+  point <- provideValues mGivensProvider
   let phash = pointHash point
 
-  (Method MCommon{mOutputDir} _) <- get
   now <- timestamp
   let out        = mOutputDir </> "_param_gen" </> show now
   let paramFp    = (out </> phash) <.> ".param"
