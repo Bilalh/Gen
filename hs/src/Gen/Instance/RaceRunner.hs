@@ -109,7 +109,6 @@ doRace paramFP = do
             ]
 
   cmd <- wrappers "run.sh"
-  -- res <- runCommand' (Just env) cmd args Nothing
   liftIO $ runPadded "⌇" env (stringToText cmd) args
   return now
 
