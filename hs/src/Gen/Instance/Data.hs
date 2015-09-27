@@ -3,6 +3,7 @@
 module Gen.Instance.Data where
 
 import Gen.Imports
+import Conjure.Language.Definition
 
 import qualified Data.Aeson as A
 import qualified Data.Set   as S
@@ -16,13 +17,14 @@ data Method kind = Method MCommon kind
   deriving (Eq, Show, Data, Typeable, Generic, Functor)
 
 data MCommon = MCommon
-  { mEssencePath  :: FilePath
-  , mOutputDir    :: FilePath        -- | Where to put the results.
-  , mModelTimeout :: Int             -- | Total time for each model in the race
-  , mVarInfo      :: VarInfo         -- | Variable Ordering
-  , mPreGenerate  :: Maybe FilePath  -- | Generate all solution once and pick from them
-  , mIterations   :: Int             -- | Number of races to run
-  , mMode         :: String          -- | the directory suffix
+  { mEssencePath    :: FilePath
+  , mOutputDir      :: FilePath        -- | Where to put the results.
+  , mModelTimeout   :: Int             -- | Total time for each model in the race
+  , mVarInfo        :: VarInfo         -- | Variable Ordering
+  , mPreGenerate    :: Maybe FilePath  -- | Generate all solution once and pick from them
+  , mIterations     :: Int             -- | Number of races to run
+  , mMode           :: String          -- | the directory suffix
+  , mGivensProvider :: Provider        -- | Generating the given
   -- above fields do not change
   } deriving (Eq, Show, Data, Typeable, Generic)
 
@@ -44,3 +46,7 @@ data VarInfo =
 
 instance A.FromJSON VarInfo
 instance A.ToJSON VarInfo
+
+-- | Provides values for givens
+newtype Provider = Provider [(Name, Domain () Constant)]
+    deriving (Eq, Show, Data, Typeable, Generic)

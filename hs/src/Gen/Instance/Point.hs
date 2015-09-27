@@ -3,12 +3,13 @@ module Gen.Instance.Point where
 
 import Conjure.Language.Constant
 import Conjure.Language.Definition
+import Conjure.Language.Domain
 import Conjure.UI.IO               (EssenceFileMode (PlainEssence),
                                     readModelFromFile, writeModel)
 import Crypto.Hash
 import Gen.Imports                 hiding (hash)
+import Gen.Instance.Data
 import System.FilePath             (takeDirectory)
-import Conjure.Language.Domain
 
 import qualified Data.ByteString.Char8 as B
 
@@ -60,16 +61,15 @@ writePoint (Point ps) fp = do
   liftIO $ writeModel PlainEssence (Just fp) m
 
 
--- | Provides values for givens
-newtype Provider = Provider [(Name, Domain () Constant)]
-
 -- Give a value for each domain using the previous values for future domains references
-provideValues :: Provider -> Point
-provideValues (Provider xs) = Point $ runIdentity . flip evalStateT [] $
-  forM xs $ \(n, d) ->
-      return (n, domainRandomValue d)
-
+provideValues :: Monad m => Provider -> m Point
+provideValues (Provider xs) = do
+  vs <- flip execStateT [] $
+    forM xs $ \(n, d) -> do
+        rnd <- domainRandomValue d
+        modify $ \old -> (n,rnd) : old
+  return $ Point vs
 
 -- For simple true like ints and bools
-domainRandomValue :: Domain () Constant -> Constant
-domainRandomValue (DomainInt rs) = (ConstantInt 33)
+domainRandomValue :: Monad m => Domain () Constant -> m Constant
+domainRandomValue (DomainInt rs) = return (ConstantInt 3)
