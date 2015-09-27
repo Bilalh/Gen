@@ -5,10 +5,13 @@ import Gen.Instance.Data
 import Gen.Instance.RaceRunner
 import Gen.Instance.Point
 import Gen.IO.Formats
+import System.Random(setStdGen, mkStdGen)
 
 run :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m, ToJSON a)
     => m ()
 run = do
+  liftIO $ setStdGen (mkStdGen 33)
+
   date_start <- timestamp
 
   looper 0

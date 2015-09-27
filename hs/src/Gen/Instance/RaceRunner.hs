@@ -209,13 +209,15 @@ checkPrevious :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
               => ParamHash -> m (Maybe TimeStamp)
 checkPrevious paramHash =do
   (Method MCommon{mOutputDir} _) <- get
+  liftIO $ doesFileExist (mOutputDir </> "results.db") >>= \case
+    False -> return Nothing
+    True -> do
+      conn <- liftIO $ open (mOutputDir </> "results.db")
+      rows :: [Only Int]  <- liftIO $ query conn checkPreviousQuery (Only paramHash)
 
-  conn <- liftIO $ open (mOutputDir </> "results.db")
-  rows :: [Only Int]  <- liftIO $ query conn checkPreviousQuery (Only paramHash)
-
-  case rows of
-    [Only ts] -> return $ Just ts
-    _    -> return Nothing
+      case rows of
+        [Only ts] -> return $ Just ts
+        _    -> return Nothing
 
 
 
