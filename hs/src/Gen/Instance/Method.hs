@@ -20,8 +20,9 @@ run = do
   liftIO $ groomPrint date_start
   liftIO $ groomPrint date_end
 
-  st@(Method MCommon{mOutputDir} _) <- get
+  st@(Method MCommon{mOutputDir, mPoints} _) <- get
   liftIO $ writeToJSON (mOutputDir </> "state.json") st
+  liftIO $ writeToJSON (mOutputDir </> "points.json") mPoints
 
 
 looper :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
