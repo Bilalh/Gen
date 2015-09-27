@@ -6,7 +6,6 @@ import Gen.Instance.RaceRunner
 import Gen.Instance.Uniform
 import Gen.IO.Formats
 import Gen.Instance.Method
-import Gen.Instance.Point
 import Conjure.Language.Constant
 import Conjure.Language.NameResolution          (resolveNames)
 import Conjure.UI.IO
@@ -69,7 +68,7 @@ _ex_common = do
       , mModelTimeout   = 30
       , mVarInfo        = i
       , mPreGenerate    = Nothing
-      , mIterations     = 1
+      , mIterations     = 3
       , mMode           = _ex_mode
       , mGivensProvider = p
       , mPoints         = []
@@ -78,7 +77,7 @@ _ex_common = do
   return common
 
 
--- Run Uniform once
+-- Run Uniform
 _ex8 :: IO ()
 _ex8 = do
   common <- _ex_common

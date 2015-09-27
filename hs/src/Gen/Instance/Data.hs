@@ -16,6 +16,9 @@ class Sampling a where
 data Method kind = Method MCommon kind
   deriving (Eq, Show, Data, Typeable, Generic, Functor)
 
+instance A.FromJSON a => A.FromJSON (Method a)
+instance A.ToJSON a   => A.ToJSON   (Method a)
+
 data MCommon = MCommon
   { mEssencePath    :: FilePath
   , mOutputDir      :: FilePath        -- | Where to put the results.
@@ -30,12 +33,19 @@ data MCommon = MCommon
   } deriving (Eq, Show, Data, Typeable, Generic)
 
 
+instance A.FromJSON MCommon
+instance A.ToJSON MCommon
+
+
+
 data SamplingResult = SamplingSuccess
                     | SamplingNoValuesLeft
                     | SamplingFailedToGenerateParam
                     | SamplingDontCountIteration
   deriving (Eq, Show, Data, Typeable, Generic)
 
+instance A.FromJSON SamplingResult
+instance A.ToJSON SamplingResult
 
 
 -- info.json
@@ -57,7 +67,13 @@ instance Monoid Point where
   mempty                        = Point []
   mappend (Point xs) (Point ys) = Point $ xs ++ ys
 
+instance A.FromJSON Point
+instance A.ToJSON Point
+
 
 -- | Provides values for givens
 newtype Provider = Provider [(Name, Domain () Constant)]
     deriving (Eq, Show, Data, Typeable, Generic)
+
+instance A.FromJSON Provider
+instance A.ToJSON Provider

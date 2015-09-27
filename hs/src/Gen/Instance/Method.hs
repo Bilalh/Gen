@@ -6,7 +6,7 @@ import Gen.Instance.RaceRunner
 import Gen.Instance.Point
 import Gen.IO.Formats
 
-run :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
+run :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m, ToJSON a)
     => m ()
 run = do
   date_start <- timestamp
@@ -16,6 +16,10 @@ run = do
   date_end <- timestamp
   liftIO $ groomPrint date_start
   liftIO $ groomPrint date_end
+
+  st@(Method MCommon{mOutputDir} _) <- get
+  liftIO $ writeToJSON (mOutputDir </> "state.json") st
+
 
 looper :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
        => Int -> m ()
@@ -32,7 +36,7 @@ looper i = do
 
 randomPoint :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
             =>  m Point
-randomPoint = $notDone
+randomPoint = sampleParamFromMinion
 
 runParamAndStoreQuality :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
                         => Point -> m ()
