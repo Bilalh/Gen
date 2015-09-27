@@ -15,14 +15,13 @@ import Conjure.Language
 import qualified Data.Set as S
 
 -- | Make the value provider for the givens
-makeProvider :: MonadIO m => FilePath -> VarInfo ->  m Provider
+makeProvider :: (MonadIO m, MonadLog m) => FilePath -> VarInfo ->  m Provider
 makeProvider fp  VarInfo{..} = do
   model <-  liftIO $ ignoreLogs $ readModelFromFile fp >>= runNameGen . resolveNames
-  vs <- ignoreLogs $ core model
-  let cons = (flip map) vs $ \(n,expr) ->
-          case e2c (Domain expr) of
-            Just (DomainInConstant x) -> (n,x)
-            _ -> error "Not a constant Domain"
+  vs <- core model
+  cons <- liftIO $ forM vs $ \(n,expr) -> do
+          v <- mapM e2c expr
+          return (n, v)
   return $ Provider cons
 
   where
@@ -39,18 +38,31 @@ makeProvider fp  VarInfo{..} = do
 
 -- for examples
 _ex_info, _ex_essence, _ex_out, _ex_mode :: String
-_ex_info    = "/Users/bilalh/CS/instancegen-models/_current/prob006-GR/info.json"
-_ex_essence = "/Users/bilalh/CS/instancegen-models/_current/prob006-GR/prob006-GR.essence"
+_ex_info    = "/Users/bilalh/CS/instancegen-models/_current/prob013-PPP/info.json"
+_ex_essence = "/Users/bilalh/CS/instancegen-models/_current/prob013-PPP/prob013-PPP.essence"
 _ex_out     = "/Users/bilalh/CS/gen/__"
 _ex_mode    = "df"
 _ex_point  :: Point
-_ex_point   = Point [("n", ConstantInt 4)]
+-- _ex_point   = Point [("n", ConstantInt 4)] -- GR
+_ex_point = Point -- PPP
+  [(Name "capacity",
+    ConstantAbstract
+      (AbsLitFunction
+         [(ConstantInt 1, ConstantInt 3), (ConstantInt 2, ConstantInt 2),
+          (ConstantInt 3, ConstantInt 3)])),
+   (Name "crew",
+    ConstantAbstract
+      (AbsLitFunction
+         [(ConstantInt 1, ConstantInt 2), (ConstantInt 2, ConstantInt 2),
+          (ConstantInt 3, ConstantInt 1)])),
+   (Name "n_periods", ConstantInt 89),
+   (Name "n_boats", ConstantInt 3), (Name "n_upper", ConstantInt 3)]
 
 -- Common settings
 _ex_common :: IO MCommon
 _ex_common = do
   i :: VarInfo <- readFromJSON _ex_info
-  p <- makeProvider _ex_essence i
+  p <- ignoreLogs $ makeProvider _ex_essence i
   let common            = MCommon{
         mEssencePath    = _ex_essence
       , mOutputDir      = _ex_out
