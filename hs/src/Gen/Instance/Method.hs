@@ -41,11 +41,15 @@ randomPoint = sampleParamFromMinion
 runParamAndStoreQuality :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
                         => Point -> m ()
 runParamAndStoreQuality point = do
-  (Method MCommon{mOutputDir} _) <- get
-  let fp = mOutputDir </> "_params" </> pointHash point <.> ".param"
-  writePoint point fp
-  _ <- runRace fp
-  return ()
+  let h =pointHash point
+  checkPrevious h >>= \case
+    Just _  -> return ()
+    Nothing -> do
+      (Method MCommon{mOutputDir} _) <- get
+      let fp = mOutputDir </> "_params" </> h <.> ".param"
+      writePoint point fp
+      _ <- runRace fp
+      return ()
 
 
 storeDataPoint :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)

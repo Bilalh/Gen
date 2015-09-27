@@ -7,6 +7,7 @@ module Gen.Instance.RaceRunner(
   , sampleParamFromMinion
   , RaceTotals(..)
   , getModelOrdering
+  , checkPrevious
   ) where
 
 import Conjure.Language
@@ -201,6 +202,24 @@ saveQualityToDb paramName paramHash quality cputime = do
   return ()
 
 
+checkPreviousQuery :: Query
+checkPreviousQuery = "SELECT timestamp FROM Timeouts WHERE paramHash = ?"
+
+checkPrevious :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
+              => ParamHash -> m (Maybe TimeStamp)
+checkPrevious paramHash =do
+  (Method MCommon{mOutputDir} _) <- get
+
+  conn <- liftIO $ open (mOutputDir </> "results.db")
+  rows :: [Only Int]  <- liftIO $ query conn checkPreviousQuery (Only paramHash)
+
+  case rows of
+    [Only ts] -> return $ Just ts
+    _    -> return Nothing
+
+
+
+
 createParamEssence :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
                    => m ()
 createParamEssence = do
@@ -282,7 +301,7 @@ sampleParamFromMinion = do
   let solutionFp = out </> ("essence_param_find"  ++ "-" ++ phash  <.> ".solution" )
 
   let timeout    = 300 :: Int
-  let seed       = 4   :: Int
+  seed :: Int <- liftIO $ randomRIO (1,2147483647)
 
   liftIO $ createDirectoryIfMissing True out
   writePoint givens paramFp
@@ -305,6 +324,8 @@ sampleParamFromMinion = do
   finds <- readPoint solutionFp
 
   return $ finds `mappend` givens
+
+
 
 
 wrappers :: MonadIO m => FilePath -> m FilePath
