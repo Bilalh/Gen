@@ -278,8 +278,8 @@ sampleParamFromMinion = do
 
   (Method MCommon{mOutputDir, mGivensProvider} _) <- get
 
-  point <- provideValues mGivensProvider
-  let phash = pointHash point
+  givens <- provideValues mGivensProvider
+  let phash = pointHash givens
 
   now <- timestamp
   let out        = mOutputDir </> "_param_gen" </> show now
@@ -290,7 +290,7 @@ sampleParamFromMinion = do
   let seed       = 4   :: Int
 
   liftIO $ createDirectoryIfMissing True out
-  writePoint point paramFp
+  writePoint givens paramFp
 
   let args = map stringToText [ (mOutputDir </> "essence_param_find.essence")
              , (mOutputDir </> "essence_param_find.eprime")
@@ -307,10 +307,9 @@ sampleParamFromMinion = do
   cmd <- wrappers "create_param_from_essence.sh"
   res <- liftIO $ runPadded " ⦿ " env (stringToText cmd) args
 
-  (Point ps) <- readPoint solutionFp
-  -- FIXME append the givens
+  finds <- readPoint solutionFp
 
-  return $ Point ps
+  return $ finds `mappend` givens
 
 
 wrappers :: MonadIO m => FilePath -> m FilePath
