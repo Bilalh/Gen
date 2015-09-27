@@ -13,15 +13,6 @@ import System.FilePath             (takeDirectory)
 
 import qualified Data.ByteString.Char8 as B
 
-
--- | Param Values
-newtype Point  = Point [(Name,Constant)]
- deriving (Eq, Show, Data, Typeable, Generic)
-
-instance Monoid Point where
-  mempty                        = Point []
-  mappend (Point xs) (Point ys) = Point $ xs ++ ys
-
 type ParamFP   = FilePath
 type ParamName = String
 type ParamHash = String
@@ -62,7 +53,7 @@ writePoint (Point ps) fp = do
 
 
 -- Give a value for each domain using the previous values for future domains references
-provideValues :: Monad m => Provider -> m Point
+provideValues :: MonadIO m => Provider -> m Point
 provideValues (Provider xs) = do
   vs <- flip execStateT [] $
     forM xs $ \(n, d) -> do
@@ -71,5 +62,12 @@ provideValues (Provider xs) = do
   return $ Point vs
 
 -- For simple true like ints and bools
-domainRandomValue :: Monad m => Domain () Constant -> m Constant
-domainRandomValue (DomainInt rs) = return (ConstantInt 3)
+domainRandomValue :: MonadIO m => Domain () Constant -> m Constant
+domainRandomValue (DomainInt [])              = error "Not int values"
+domainRandomValue (DomainInt [RangeSingle a]) = return a
+domainRandomValue (DomainInt [RangeBounded (ConstantInt a) (ConstantInt b) ]) = do
+  chosen <- liftIO $ randomRIO (a,b)
+  return $ ConstantInt chosen
+
+domainRandomValue (DomainInt _) = error "Only single range of int allowed"
+domainRandomValue _             = error "Only Int domains supported"

@@ -14,7 +14,8 @@ run = do
   looper 0
 
   date_end <- timestamp
-  $notDone
+  liftIO $ groomPrint date_start
+  liftIO $ groomPrint date_end
 
 looper :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
        => Int -> m ()
@@ -45,4 +46,5 @@ runParamAndStoreQuality point = do
 
 storeDataPoint :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
                => Point -> m ()
-storeDataPoint point = $notDone
+storeDataPoint point = modify $ \(Method c@MCommon{mPoints} x) ->
+                         (Method c{mPoints=point:mPoints} x)

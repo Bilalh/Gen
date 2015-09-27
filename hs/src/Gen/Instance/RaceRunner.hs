@@ -39,8 +39,6 @@ import qualified Data.Set as S
 type TimeStamp = Int
 type Quality   = Double
 
-mDataPoints = $notDone
-
 
 runRace :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
         => ParamFP -> m Quality

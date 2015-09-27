@@ -72,6 +72,7 @@ _ex_common = do
       , mIterations     = 1
       , mMode           = _ex_mode
       , mGivensProvider = p
+      , mPoints         = []
       }
 
   return common

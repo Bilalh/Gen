@@ -26,6 +26,7 @@ data MCommon = MCommon
   , mMode           :: String          -- | the directory suffix
   , mGivensProvider :: Provider        -- | Generating the given
   -- above fields do not change
+  , mPoints         :: [Point]
   } deriving (Eq, Show, Data, Typeable, Generic)
 
 
@@ -46,6 +47,16 @@ data VarInfo =
 
 instance A.FromJSON VarInfo
 instance A.ToJSON VarInfo
+
+
+-- | Param Values
+newtype Point  = Point [(Name,Constant)]
+ deriving (Eq, Show, Data, Typeable, Generic)
+
+instance Monoid Point where
+  mempty                        = Point []
+  mappend (Point xs) (Point ys) = Point $ xs ++ ys
+
 
 -- | Provides values for givens
 newtype Provider = Provider [(Name, Domain () Constant)]
