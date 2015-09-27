@@ -31,7 +31,7 @@ sqlite3 "${REPOSITORY_BASE}/results.db" <<SQL
 	"paramHash" TEXT NOT NULL PRIMARY KEY NOT NULL UNIQUE,
 	"MinionTimeout" REAL NOT NULL,
 	"TotalTimeout" REAL NOT NULL,
-	"timestamp" TEXT NOT NULL
+	"timestamp" INTEGER NOT NULL
 	);
 
 
