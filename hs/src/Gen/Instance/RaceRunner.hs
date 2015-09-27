@@ -136,7 +136,6 @@ parseRaceResult paramHash ts =do
             ]
 
   cmd <- wrappers "run_gather.sh"
-  -- res <- runCommand' (Just env) cmd args Nothing
   liftIO $ runPadded "❮" env (stringToText cmd) args
 
   conn <- liftIO $ open (mOutputDir </> "results.db")
@@ -170,7 +169,6 @@ readParamRaceCpuTime :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLo
 readParamRaceCpuTime ts = do
   (Method MCommon{mOutputDir, mMode} _) <- get
   let statsDir = mOutputDir </> ("stats_" ++ mMode)
-  -- fps   <- liftIO  $ allFilesWithSuffix ".total_solving_time" statsDir
   let fps = [statsDir </> (show ts :: String) <.>  ".total_solving_time"]
   times :: [Maybe Double] <- liftIO  $  forM fps $ \fp -> do
              st <- readFile fp
