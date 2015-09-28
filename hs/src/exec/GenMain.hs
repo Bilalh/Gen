@@ -34,6 +34,8 @@ import System.Exit                 (exitFailure, exitSuccess, exitWith)
 import System.FilePath             (replaceExtension, takeExtensions)
 import System.Timeout              (timeout)
 import Text.Printf                 (printf)
+import Gen.Instance.UI ()
+import Gen.Instance.Data ()
 
 import qualified Data.Set                as S
 import qualified Gen.Essence.UIData      as EC
