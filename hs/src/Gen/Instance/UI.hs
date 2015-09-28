@@ -13,6 +13,7 @@ import Conjure.Language
 
 import qualified Data.Set as S
 
+
 -- | Make the value provider for the givens
 makeProvider :: (MonadIO m, MonadLog m) => FilePath -> VarInfo ->  m Provider
 makeProvider fp  VarInfo{..} = do

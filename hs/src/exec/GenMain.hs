@@ -53,9 +53,10 @@ main = do
     [] -> do
        args <- helpArg
        void $ withArgs [args] (cmdArgs ui)
-    [x] | x `elem` [ "essence", "reduce", "link", "meta", "json", "generalise", "solve", "weights"
-                   , "script-toolchain", "script-recheck", "script-createDbHashes"
-                   , "script-updateChoices", "script-removeDups"] -> do
+    [x] | x `elem` [ "essence", "reduce", "link", "meta", "json", "generalise", "solve"
+                   , "weights" , "script-toolchain", "script-recheck",  "instance"
+                   , "script-createDbHashes" , "script-updateChoices"
+                   , "script-removeDups"] -> do
        args <- helpArg
        void $ withArgs [x, args] (cmdArgs ui)
 
