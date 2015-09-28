@@ -128,8 +128,15 @@ Library
                      , Gen.Helpers.Log
                      , Gen.Helpers.Placeholders
                      , Gen.Helpers.SizeOf
+                     , Gen.Helpers.Str
                      , Gen.Helpers.TypeOf
                      , Gen.Imports
+                     , Gen.Instance.Data
+                     , Gen.Instance.Method
+                     , Gen.Instance.Point
+                     , Gen.Instance.RaceRunner
+                     , Gen.Instance.UI
+                     , Gen.Instance.Uniform
                      , Gen.IO.Dups
                      , Gen.IO.Formats
                      , Gen.IO.RunResult
