@@ -31,7 +31,7 @@ import Gen.Solver.Solver           (SolverArgs (..), solverMain)
 import Gen.UI.UI
 import System.Console.CmdArgs      (cmdArgs)
 import System.CPUTime              (getCPUTime)
-import System.Directory            (getCurrentDirectory, setCurrentDirectory)
+import System.Directory            (getCurrentDirectory, setCurrentDirectory, makeAbsolute)
 import System.Environment          (lookupEnv, withArgs)
 import System.Exit                 (exitFailure, exitSuccess, exitWith)
 import System.FilePath             (replaceExtension, replaceFileName, takeBaseName,
@@ -215,11 +215,12 @@ mainWithArgs u@Essence{..} = do
 
 mainWithArgs u@Instance{..} = do
 
-  let info_path   = replaceFileName essence_path "info.json"
-  let models_path = replaceFileName essence_path (takeBaseName essence_path ++ "_" ++ mode)
+  essence <- makeAbsolute essence_path
+  let info_path   = replaceFileName essence "info.json"
+  let models_path = replaceFileName essence (takeBaseName essence_path ++ "_" ++ mode)
   fileErr <- catMaybes <$> sequence
     [
-      fileExists   "essence" essence_path
+      fileExists   "essence" essence
     , dirExistsMay "-o/--output-directory" output_directory
     , fileExists   "info.json needs to be next to the essence" info_path
     , dirExists    "Model dir missing" models_path
@@ -234,13 +235,13 @@ mainWithArgs u@Instance{..} = do
   case errors of
     [] -> return ()
     xs -> mapM putStrLn xs >> exitFailure
-  out   <- giveOutputDirectory output_directory
+  out   <- giveOutputDirectory output_directory >>= makeAbsolute
   cores <- giveCores u
 
   i :: VarInfo <- readFromJSON info_path
   p <- ignoreLogs $ makeProvider essence_path i
   let common            = MCommon{
-        mEssencePath    = essence_path
+        mEssencePath    = essence
       , mOutputDir      = out
       , mModelTimeout   = per_model_time
       , mVarInfo        = i
