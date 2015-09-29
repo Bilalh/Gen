@@ -27,7 +27,7 @@ import Gen.IO.Toolchain                         (runCommand)
 import Shelly                                   (print_stderr, print_stdout,
                                                  runHandles, setenv,
                                                  transferFoldHandleLines)
-import System.Directory                         (renameFile)
+import System.Directory                         (renameFile,copyFile)
 import System.Environment                       (lookupEnv)
 import System.Exit                              (ExitCode (..))
 import System.FilePath                          (takeBaseName, takeDirectory)
@@ -283,7 +283,11 @@ conjureCompact inn out = do
     runCommand  "conjure" args Nothing >>= \case
       (ExitFailure _) -> return False
       ExitSuccess     -> do
-        renameFile (tmp </> "model000001.eprime") out
+        -- renameFile (tmp </> "model000001.eprime") out
+        -- Not using the above renameFile since it broken when moving across partitions
+        -- gen: /tmp/gen-compact546073/model000001.eprime:
+        --      renameFile: unsupported operation (Invalid cross-device link)
+        copyFile (tmp </> "model000001.eprime") out
         return True
 
 
