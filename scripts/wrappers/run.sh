@@ -27,7 +27,7 @@ export NO_TRANSLATE=true
 echo "PWD: $PWD"
 
 if [ "${LIMIT_MODELS:-}" ]; then
-	models=${MODELS_TO_USE:-`ls -1 $BASE/${DIR}_${USE_MODE}/*.eprime | head -n ${LIMIT_MODELS}`}
+	models="$( echo "${MODELS_TO_USE:-`ls -1 $BASE/${DIR}_${USE_MODE}/*.eprime`}"  | head -n ${LIMIT_MODELS} )"
     echo "LIMITING to running ${LIMIT_MODELS} models"
     echo $models
 else
