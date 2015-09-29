@@ -7,7 +7,7 @@ import Gen.Instance.Point
 import Gen.IO.Formats
 import System.Random(setStdGen, mkStdGen)
 
-
+-- | The starting point for instance generation,
 run :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m, ToJSON a)
     => m ()
 run = do

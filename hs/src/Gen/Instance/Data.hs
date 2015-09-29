@@ -28,6 +28,7 @@ data MCommon = MCommon
   , mIterations     :: Int             -- | Number of races to run
   , mMode           :: String          -- | the directory suffix
   , mGivensProvider :: Provider        -- | Generating the given
+  , mCores          :: Int
   -- above fields do not change
   , mPoints         :: [Point]
   } deriving (Eq, Show, Data, Typeable, Generic)

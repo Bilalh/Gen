@@ -13,6 +13,11 @@ import Conjure.Language
 
 import qualified Data.Set as S
 
+-- The starting point for instance generation
+runMethod :: (Sampling a, ToJSON a, MonadIO m) => LogLevel -> Method a -> m ()
+runMethod lvl state= runLoggerPipeIO lvl $
+       void $ execStateT run state
+
 
 -- | Make the value provider for the givens
 makeProvider :: (MonadIO m, MonadLog m) => FilePath -> VarInfo ->  m Provider
@@ -73,6 +78,7 @@ _ex_common = do
       , mMode           = _ex_mode
       , mGivensProvider = p
       , mPoints         = []
+      , mCores          = 2
       }
 
   return common

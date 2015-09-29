@@ -15,6 +15,9 @@ import Gen.Essence.Generate        (generateEssence)
 import Gen.Essence.UIData
 import Gen.Generalise.Generalise   (generaliseMain)
 import Gen.Imports
+import Gen.Instance.Data
+import Gen.Instance.UI             (makeProvider, runMethod)
+import Gen.Instance.Uniform        (Uniform (..))
 import Gen.IO.Dups                 (deleteDups2, refineDups, solveDups)
 import Gen.IO.Formats              (readFromJSON)
 import Gen.IO.RunResult            (giveDb, writeDB_)
@@ -31,11 +34,10 @@ import System.CPUTime              (getCPUTime)
 import System.Directory            (getCurrentDirectory, setCurrentDirectory)
 import System.Environment          (lookupEnv, withArgs)
 import System.Exit                 (exitFailure, exitSuccess, exitWith)
-import System.FilePath             (replaceExtension, takeExtensions)
+import System.FilePath             (replaceExtension, replaceFileName, takeBaseName,
+                                    takeExtensions)
 import System.Timeout              (timeout)
 import Text.Printf                 (printf)
-import Gen.Instance.UI ()
-import Gen.Instance.Data ()
 
 import qualified Data.Set                as S
 import qualified Gen.Essence.UIData      as EC
@@ -211,8 +213,47 @@ mainWithArgs u@Essence{..} = do
   generateEssence ws config
 
 
-mainWithArgs Instance{..} = do
-  error . show . vcat $ ["gen instance not done yet" ]
+mainWithArgs u@Instance{..} = do
+
+  let info_path   = replaceFileName essence_path "info.json"
+  let models_path = replaceFileName essence_path (takeBaseName essence_path ++ "_" ++ mode)
+  fileErr <- catMaybes <$> sequence
+    [
+      fileExists   "essence" essence_path
+    , dirExistsMay "-o/--output-directory" output_directory
+    , fileExists   "info.json needs to be next to the essence" info_path
+    , dirExists    "Model dir missing" models_path
+    ]
+
+  let errors = catMaybes
+        [ aerr "-p|--per-model-time >0" (per_model_time == 0)
+        , aerr "-i|--iterations >0" (iterations == 0)
+        , aerr "-m/--mode not empty" (null mode)
+        ] ++ fileErr
+
+  case errors of
+    [] -> return ()
+    xs -> mapM putStrLn xs >> exitFailure
+  out   <- giveOutputDirectory output_directory
+  cores <- giveCores u
+
+  i :: VarInfo <- readFromJSON info_path
+  p <- ignoreLogs $ makeProvider essence_path i
+  let common            = MCommon{
+        mEssencePath    = essence_path
+      , mOutputDir      = out
+      , mModelTimeout   = per_model_time
+      , mVarInfo        = i
+      , mPreGenerate    = Nothing
+      , mIterations     = iterations
+      , mMode           = mode
+      , mGivensProvider = p
+      , mPoints         = []
+      , mCores          = cores
+      }
+
+  runMethod LogDebug (Method common Uniform)
+
 
 mainWithArgs u@Reduce{..} = do
 
@@ -357,6 +398,8 @@ mainWithArgs Generalise{..} = do
 
   state <- generaliseMain args
   writeDB_ False db_directory (E.resultsDB_  state)
+
+
 
 mainWithArgs Solver{..} = do
 
