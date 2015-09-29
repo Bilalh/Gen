@@ -24,6 +24,7 @@ export NO_MINION_STATS=true;
 export NO_TIMERS=true;
 export NO_VALIDATE=true;
 export NO_TRANSLATE=true
+echo "PWD: $PWD"
 
 if [ "${LIMIT_MODELS:-}" ]; then
 	models=${MODELS_TO_USE:-`ls -1 $BASE/${DIR}_${USE_MODE}/*.eprime | head -n ${LIMIT_MODELS}`}
