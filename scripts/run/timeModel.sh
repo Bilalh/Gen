@@ -6,8 +6,8 @@ Tools="$Dir/../tools"
 Mode="${USE_MODE}";
 
 
-if [ ! -f "$Tools/timeout5" ]; then
-	echo "Compile 'timeout5' in $Tools/"
+if [ ! -f "$Tools/cputimeout/cputimeout" ]; then
+	echo "Compile 'cputimeout' in $Tools/cputimeout using make"
 	exit  1
 fi
 
