@@ -175,10 +175,10 @@ if [ "$( parallel --version | egrep -o '[0-9]+$'  )" -ge "20141122"  ]; then
 	parallel --halt 1 -j"${NUM_JOBS:-6}" \
 		--rpl '{param} s:.*/::; s:\.[^/.]+$::; $_=substr($_,0,5) . "..";' \
 		--rpl '{model} s:.*/::; s:\.[^/.]+$::; s:^model_::;' \
-		--tagstring '{1model} {2param}' \
+		--tagstring '{#} {1model} {2param}' \
 		$Command ::: ${Eprimes} ::: ${Params};
 else
 	echo "INSTALL a newer version of parallel (>=20141122) for much nicer output "
 	echo "INSTALL a newer version of parallel (>=20141122) for much nicer output " >2
-	parallel --tagstring "{1/.} {2/.}" --halt 1 -j${NUM_JOBS:-6}  $Command ::: ${Eprimes} ::: ${Params};
+	parallel --tagstring "{#} {1/.} {2/.}" --halt 1 -j${NUM_JOBS:-6}  $Command ::: ${Eprimes} ::: ${Params};
 fi
