@@ -92,7 +92,7 @@ getModelOrdering = do
 doRace :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
         => ParamFP -> m TimeStamp
 doRace paramFP = do
-  (Method MCommon{mEssencePath, mOutputDir, mModelTimeout, mMode} _) <- get
+  (Method MCommon{mEssencePath, mOutputDir, mModelTimeout, mMode, mCores} _) <- get
   now <- timestamp
 
 
@@ -103,10 +103,9 @@ doRace paramFP = do
              , takeDirectory mEssencePath
              ]
 
-  let env = [ ("NUM_JOBS", "2")
+  let env = [ ("NUM_JOBS", stringToText (show mCores) )
             , ("USE_MODE",stringToText mMode)
             , ("OUT_BASE_DIR", stringToText mOutputDir)
-            , ("LIMIT_MODELS", "3")  -- Only race the first 3 models
             ]
 
   cmd <- wrappers "run.sh"
