@@ -82,6 +82,7 @@ _ex_common = do
       , mGivensProvider = p
       , mPoints         = []
       , mCores          = 2
+      , mCompactFirst   = Nothing
       }
 
   return common

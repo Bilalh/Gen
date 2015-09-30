@@ -71,10 +71,13 @@ runRace paramFP = do
 getModelOrdering :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
         => m [ FilePath ]
 getModelOrdering = do
-  (Method MCommon{mEssencePath, mOutputDir, mMode} _) <- get
+  (Method MCommon{mEssencePath, mOutputDir, mMode, mCompactFirst} _) <- get
   let dbPath  =  mOutputDir </> "results.db"
   liftIO $ doesFileExist dbPath >>= \case
-    False -> return []
+    False -> do
+      case mCompactFirst of
+        Nothing -> return []
+        Just xs -> return xs
     True  -> do
       conn <- liftIO $ open dbPath
       eprimes :: [[String]] <- query_ conn ("SELECT eprime FROM EprimeOrdering")

@@ -23,16 +23,17 @@ instance A.ToJSON a   => A.ToJSON   (Method a)
 
 data MCommon = MCommon
   { mEssencePath    :: FilePath
-  , mOutputDir      :: FilePath        -- | Where to put the results.
-  , mModelTimeout   :: Int             -- | Total time for each model in the race
-  , mVarInfo        :: VarInfo         -- | Variable Ordering
-  , mPreGenerate    :: Maybe FilePath  -- | Generate all solution once and pick from them
-  , mIterations     :: Int             -- | Number of races to run
-  , mMode           :: String          -- | the directory suffix
-  , mGivensProvider :: Provider        -- | Generating the given
+  , mOutputDir      :: FilePath         -- | Where to put the results.
+  , mModelTimeout   :: Int              -- | Total time for each model in the race
+  , mVarInfo        :: VarInfo          -- | Variable Ordering
+  , mPreGenerate    :: Maybe FilePath   -- | Generate all solution once and pick from them
+  , mIterations     :: Int              -- | Number of races to run
+  , mMode           :: String           -- | the directory suffix
+  , mGivensProvider :: Provider         -- | Generating the given
   , mCores          :: Int
+  , mCompactFirst   :: Maybe [FilePath] -- | Ordering with compact first
   -- above fields do not change
-  , mPoints         :: [Point]         -- |  The instance that have been run
+  , mPoints         :: [Point]          -- |  The instance that have been run
   } deriving (Eq, Show, Data, Typeable, Generic)
 
 

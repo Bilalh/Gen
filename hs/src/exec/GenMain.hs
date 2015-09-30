@@ -2,6 +2,7 @@
 {-# OPTIONS_GHC -fno-cse #-} -- stupid cmdargs?
 module Main where
 
+import Gen.IO.FindCompact(findCompact)
 import Data.Time                   (formatTime, getCurrentTime)
 import Data.Time.Format            (defaultTimeLocale)
 import Gen.Arbitrary.Data
@@ -238,6 +239,20 @@ mainWithArgs u@Instance{..} = do
   out   <- giveOutputDirectory output_directory >>= makeAbsolute
   cores <- giveCores u
 
+  let compact_path = (models_path ++ "-compact")
+  compactFirst <- doesDirectoryExist (models_path ++ "-compact") >>= \case
+    False -> return Nothing
+    True  -> do
+      [compact_file] <- allFilesWithSuffix ".eprime" compact_path
+      findCompact compact_file models_path >>= \case
+        Nothing -> return Nothing
+        Just compact_twin -> do
+          print . pretty $ "compact_twin is" <+> pretty compact_twin
+          all_eprimes <- allFilesWithSuffix ".eprime" models_path
+          let all_but_compact = [ fp | fp <- all_eprimes, fp /= compact_twin ]
+          return $ Just $ compact_twin : all_but_compact
+
+
   i :: VarInfo <- readFromJSON info_path
   p <- ignoreLogs $ makeProvider essence_path i
   let common            = MCommon{
@@ -251,6 +266,7 @@ mainWithArgs u@Instance{..} = do
       , mGivensProvider = p
       , mPoints         = []
       , mCores          = cores
+      , mCompactFirst   = compactFirst
       }
 
   runMethod LogDebug (Method common Uniform)
