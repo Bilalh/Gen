@@ -16,9 +16,7 @@ import qualified Data.Set as S
 -- The starting point for instance generation
 runMethod :: (Sampling a, ToJSON a, MonadIO m) => LogLevel -> Method a -> m ()
 runMethod lvl state= runLoggerPipeIO lvl $
-       void $ flip execStateT state $ do
-         createParamEssence
-         run
+       void $ flip execStateT state (createParamEssence >> run)
 
 
 -- | Make the value provider for the givens
@@ -44,26 +42,29 @@ makeProvider fp  VarInfo{..} = do
 
 
 -- for examples
-_ex_info, _ex_essence, _ex_out, _ex_mode :: String
-_ex_info    = "/Users/bilalh/CS/instancegen-models/_current/prob013-PPP/info.json"
-_ex_essence = "/Users/bilalh/CS/instancegen-models/_current/prob013-PPP/prob013-PPP.essence"
-_ex_out     = "/Users/bilalh/CS/gen/__"
+_ex_info, _ex_essence, _ex_out, _ex_mode, _ex_dir :: String
+_ex_prob    = "prob006-GR"
 _ex_mode    = "df"
+_ex_out     = "/Users/bilalh/CS/gen/__"
+_ex_dir     = "/Users/bilalh/CS/instancegen-models/2015-09-23/"
+_ex_info    = _ex_dir </> _ex_prob </> "info.json"
+_ex_essence = _ex_dir </> _ex_prob </> _ex_prob <.> ".essence"
 _ex_point  :: Point
--- _ex_point   = Point [("n", ConstantInt 4)] -- GR
-_ex_point = Point -- PPP
-  [(Name "capacity",
-    ConstantAbstract
-      (AbsLitFunction
-         [(ConstantInt 1, ConstantInt 3), (ConstantInt 2, ConstantInt 2),
-          (ConstantInt 3, ConstantInt 3)])),
-   (Name "crew",
-    ConstantAbstract
-      (AbsLitFunction
-         [(ConstantInt 1, ConstantInt 2), (ConstantInt 2, ConstantInt 2),
-          (ConstantInt 3, ConstantInt 1)])),
-   (Name "n_periods", ConstantInt 89),
-   (Name "n_boats", ConstantInt 3), (Name "n_upper", ConstantInt 3)]
+_ex_point   = Point [("n", ConstantInt 4)] -- GR
+-- _ex_point   = Point [("k", ConstantInt 2),("n", ConstantInt 4)] -- Langford
+-- _ex_point = Point -- PPP
+--   [(Name "capacity",
+--     ConstantAbstract
+--       (AbsLitFunction
+--          [(ConstantInt 1, ConstantInt 3), (ConstantInt 2, ConstantInt 2),
+--           (ConstantInt 3, ConstantInt 3)])),
+--    (Name "crew",
+--     ConstantAbstract
+--       (AbsLitFunction
+--          [(ConstantInt 1, ConstantInt 2), (ConstantInt 2, ConstantInt 2),
+--           (ConstantInt 3, ConstantInt 1)])),
+--    (Name "n_periods", ConstantInt 89),
+--    (Name "n_boats", ConstantInt 3), (Name "n_upper", ConstantInt 3)]
 
 -- Common settings
 _ex_common :: IO MCommon
