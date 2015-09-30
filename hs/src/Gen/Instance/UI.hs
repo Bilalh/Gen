@@ -42,7 +42,7 @@ makeProvider fp  VarInfo{..} = do
 
 
 -- for examples
-_ex_info, _ex_essence, _ex_out, _ex_mode, _ex_dir :: String
+_ex_info, _ex_essence, _ex_out, _ex_mode, _ex_dir, _ex_prob :: String
 _ex_prob    = "prob006-GR"
 _ex_mode    = "df"
 _ex_out     = "/Users/bilalh/CS/gen/__"
