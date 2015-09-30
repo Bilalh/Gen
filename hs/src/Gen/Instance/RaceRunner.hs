@@ -27,7 +27,7 @@ import Gen.IO.Toolchain                         (runCommand)
 import Shelly                                   (print_stderr, print_stdout,
                                                  runHandles, setenv,
                                                  transferFoldHandleLines)
-import System.Directory                         (renameFile,copyFile)
+import System.Directory                         (copyFile)
 import System.Environment                       (lookupEnv)
 import System.Exit                              (ExitCode (..))
 import System.FilePath                          (takeBaseName, takeDirectory)
@@ -39,6 +39,7 @@ import qualified Data.Set as S
 
 type TimeStamp = Int
 type Quality   = Double
+
 
 
 runRace :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
