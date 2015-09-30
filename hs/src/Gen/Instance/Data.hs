@@ -8,6 +8,8 @@ import Conjure.Language.Definition
 import qualified Data.Aeson as A
 import qualified Data.Set   as S
 
+-- | The class defines the how sampling occurs
+-- | See undirected for an exmaple
 class Sampling a where
     doIteration :: (MonadIO m, MonadState (Method a) m, MonadLog m)
                 => m SamplingResult
@@ -30,7 +32,7 @@ data MCommon = MCommon
   , mGivensProvider :: Provider        -- | Generating the given
   , mCores          :: Int
   -- above fields do not change
-  , mPoints         :: [Point]
+  , mPoints         :: [Point]         -- |  The instance that have been run
   } deriving (Eq, Show, Data, Typeable, Generic)
 
 
@@ -78,3 +80,16 @@ newtype Provider = Provider [(Name, Domain () Constant)]
 
 instance A.FromJSON Provider
 instance A.ToJSON Provider
+
+data RunMetadata = RunMetadata
+    { rTimestampStart                :: Int
+    , rTimestampEnd                  :: Int
+    , rRealTime                      :: Int
+    , rCPUTime                       :: Int
+    , rIterationsDone                :: Int
+     ,rIterationsDoneIncludingFailed :: Int
+    } deriving (Eq, Show, Data, Typeable, Generic)
+
+
+instance A.FromJSON RunMetadata
+instance A.ToJSON RunMetadata
