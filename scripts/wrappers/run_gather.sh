@@ -19,4 +19,6 @@ export REPOSITORY_BASE="$OUT_BASE_DIR"
 echo $USE_DATE
 set +x
 
-$PARAM_GEN_SCRIPTS/db/gather_data_separate.sh
+stats_dir=${STATS_OUTPUT_DIR:-"${OUT_BASE_DIR:-.}/stats_${USE_MODE}"}
+$PARAM_GEN_SCRIPTS/db/gather_data_separate.sh 2>&1 | tee "${stats_dir}/${USE_DATE}.output-gather"
+
