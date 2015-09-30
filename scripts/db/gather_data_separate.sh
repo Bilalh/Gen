@@ -87,21 +87,29 @@ fi
 
 # I could not get traping SIGTERM to work in perModel.sh, so store files to specify if the process has finished
 function isDominated(){
+	set -x
 	f="$1"
 	sr_time="${results_dir}/$1.sr-time"
 	minion_time="${results_dir}/$1.minion-time"
 
+    # Now assuming we use smart file names
+	# so we split model_1_1_1_1-5b0..4d9
+	# into model_1_1_1_1 5b0..4d9
+	# and use indexing to get 5b0..4d9
+	f_arr=(${f//-/ })
+	f_base="${f_arr[@]:1}"
+
 	MIN_TOTAL_TIME=${MIN_TOTAL_TIME:-1}
-	if [ ! -f "$fastest_dir/${f:5}.param.fastest" ]; then
+	if [ ! -f "$fastest_dir/${f_base}.param.fastest" ]; then
 		echo 0
 	elif [ ! -f $results_dir/${f}.zfinished ]; then
 		# Not allways 1
 		# only Dominated if  the timeout is  >  DOMINATION_MULTIPLIER  * fastest
-		(( fastest =  `head -n 1 $fastest_dir/${f:5}.param.fastest` * ${DOMINATION_MULTIPLIER:-2}))
+		(( fastest =  `head -n 1 $fastest_dir/${f_base}.param.fastest` * ${DOMINATION_MULTIPLIER:-2}))
 		(( dominated  =  TOTAL_TIMEOUT > MIN_TOTAL_TIME &&  TOTAL_TIMEOUT > fastest ))
 		echo $dominated
 	else
-		(( fastest =  `head -n 1 $fastest_dir/${f:5}.param.fastest` * ${DOMINATION_MULTIPLIER:-2}))
+		(( fastest =  `head -n 1 $fastest_dir/${f_base}.param.fastest` * ${DOMINATION_MULTIPLIER:-2}))
 		(( time_taken  = `grep "${timing_method}" ${sr_time}     |  ruby -e 'print gets[4..-1].to_f.floor' ` ))
 		(( time_taken  += `grep "${timing_method}" ${minion_time} |  ruby -e 'print gets[4..-1].to_f.floor' ` ))
 
@@ -109,6 +117,7 @@ function isDominated(){
 		(( dominated  =  time_taken > MIN_TOTAL_TIME &&  time_taken > $fastest ))
 		echo $dominated
 	fi
+	set +x
 }
 
 echo "<$0> using *.param"
