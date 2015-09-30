@@ -53,7 +53,7 @@ runRace paramFP = do
   let paramHash = pointHash p
   let paramName = pointName p
 
-  ts <- doRace paramFP
+  ts <- doRace paramFP ordering
 
   totals <- parseRaceResult (paramHash) ts
   logDebug2 "runRace totals:" [pretty totals]
@@ -80,19 +80,12 @@ getModelOrdering = do
       eprimes :: [[String]] <- query_ conn ("SELECT eprime FROM EprimeOrdering")
       let mModelsDir = takeDirectory mEssencePath </> takeBaseName mEssencePath ++ mMode
       let paths = [ mModelsDir </> row `at` 0 | row <- eprimes  ]
-
-      lookupEnv ("LIMIT_MODELS" :: String) >>= \case
-         Nothing   -> return paths
-         Just sInt -> do
-           case readMay sInt of
-             Nothing  -> docError ["LIMIT_MODELS specifed but is not a int:"
-                                  , pretty sInt]
-             (Just i) -> return $ take i paths
+      return paths
 
 
 doRace :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
-        => ParamFP -> m TimeStamp
-doRace paramFP = do
+        => ParamFP -> [FilePath] -> m TimeStamp
+doRace paramFP ordering = do
   (Method MCommon{mEssencePath, mOutputDir, mModelTimeout, mMode, mCores} _) <- get
   now <- timestamp
 
@@ -107,7 +100,7 @@ doRace paramFP = do
   let env = [ ("NUM_JOBS", stringToText (show mCores) )
             , ("USE_MODE",stringToText mMode)
             , ("OUT_BASE_DIR", stringToText mOutputDir)
-            ]
+            ] ++ if null ordering then [] else [ ( "MODELS_TO_USE", stringToText $ intercalate "\n" ordering)]
 
   cmd <- wrappers "run.sh"
   liftIO $ runPadded "⌇" env (stringToText cmd) args
