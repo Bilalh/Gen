@@ -138,6 +138,7 @@ Library
                      , Gen.Instance.UI
                      , Gen.Instance.Uniform
                      , Gen.IO.Dups
+                     , Gen.IO.FindCompact
                      , Gen.IO.Formats
                      , Gen.IO.RunResult
                      , Gen.IO.Term
