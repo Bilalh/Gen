@@ -263,6 +263,7 @@ mainWithArgs u@Instance{..} = do
       , mPreGenerate    = Nothing
       , mIterations     = iterations
       , mMode           = mode
+      , mModelDir       = models_path
       , mGivensProvider = p
       , mPoints         = []
       , mCores          = cores

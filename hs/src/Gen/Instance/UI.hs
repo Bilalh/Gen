@@ -10,6 +10,8 @@ import Conjure.Language.Constant
 import Conjure.Language.NameResolution          (resolveNames)
 import Conjure.UI.IO
 import Conjure.Language
+import System.FilePath             (replaceFileName, takeBaseName)
+import System.Directory            (makeAbsolute)
 
 import qualified Data.Set as S
 
@@ -70,7 +72,9 @@ _ex_point   = Point [("n", ConstantInt 4)] -- GR
 _ex_common :: IO MCommon
 _ex_common = do
   i :: VarInfo <- readFromJSON _ex_info
+  ess <- makeAbsolute _ex_essence
   p <- ignoreLogs $ makeProvider _ex_essence i
+  let mModelsDir = replaceFileName ess (takeBaseName  _ex_essence ++ "_" ++ _ex_out)
   let common            = MCommon{
         mEssencePath    = _ex_essence
       , mOutputDir      = _ex_out
@@ -83,6 +87,7 @@ _ex_common = do
       , mPoints         = []
       , mCores          = 2
       , mCompactFirst   = Nothing
+      , mModelsDir
       }
 
   return common

@@ -31,7 +31,7 @@ import Shelly                                   (print_stderr, print_stdout,
 import System.Directory                         (copyFile)
 import System.Environment                       (lookupEnv)
 import System.Exit                              (ExitCode (..))
-import System.FilePath                          (takeBaseName, takeDirectory)
+import System.FilePath                          (takeDirectory)
 import System.IO                                (hPutStr, hPutStrLn, readFile,
                                                  stderr, stdout)
 import System.IO.Temp                           (withSystemTempDirectory)
@@ -72,7 +72,7 @@ runRace paramFP = do
 getModelOrdering :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
         => m [ FilePath ]
 getModelOrdering = do
-  (Method MCommon{mEssencePath, mOutputDir, mMode, mCompactFirst} _) <- get
+  (Method MCommon{mOutputDir, mMode, mCompactFirst, mModelsDir} _) <- get
   let dbPath  =  mOutputDir </> "results.db"
   liftIO $ doesFileExist dbPath >>= \case
     False -> do
@@ -82,9 +82,7 @@ getModelOrdering = do
     True  -> do
       conn <- liftIO $ open dbPath
       eprimes :: [[String]] <- query_ conn ("SELECT eprime FROM EprimeOrdering")
-      let mModelsDir = takeDirectory mEssencePath </> takeBaseName mEssencePath ++ mMode
-      let paths = [ mModelsDir </> row `at` 0 | row <- eprimes  ]
-      return paths
+      return [ mModelsDir </> row `at` 0 | row <- eprimes  ]
 
 
 doRace :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
