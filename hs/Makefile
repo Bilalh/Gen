@@ -127,3 +127,11 @@ files := `find src -name '*.hs' | egrep -v 'exec|test/' | grep -v \${hash}`
 ifdef $$files
 files := $$files
 endif
+
+
+dev:
+	CORES=1 RUN_TESTS=yes make install etags 2>&1 | tee build.log
+
+prod:
+	RUN_TESTS=yes make install
+
