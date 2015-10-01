@@ -50,6 +50,7 @@ data SamplingResult = SamplingSuccess
 
 instance A.FromJSON SamplingResult
 instance A.ToJSON SamplingResult
+instance Pretty SamplingResult where pretty = pretty . show
 
 
 -- info.json
@@ -86,9 +87,11 @@ data RunMetadata = RunMetadata
     { rTimestampStart                :: Int
     , rTimestampEnd                  :: Int
     , rRealTime                      :: Int
-    , rCPUTime                       :: Int
+    , rCPUTime                       :: Double
+    , rSubCPUTime                    :: Double
+    , rOurCPUTime                    :: Double
     , rIterationsDone                :: Int
-     ,rIterationsDoneIncludingFailed :: Int
+    , rIterationsDoneIncludingFailed :: Int
     } deriving (Eq, Show, Data, Typeable, Generic)
 
 

@@ -8,6 +8,7 @@ module Gen.Instance.RaceRunner(
   , RaceTotals(..)
   , getModelOrdering
   , checkPrevious
+  , subprocessTotalCpuTime
   ) where
 
 import Conjure.Language
@@ -159,6 +160,18 @@ instance Pretty RaceTotals where pretty = pretty . groom
 
 instance FromRow RaceTotals where
     fromRow = RaceTotals <$> field <*> field <*> field <*> field <*> field <*> field
+
+
+subprocessTotalCpuTime :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
+                       => m Double
+subprocessTotalCpuTime = do
+  (Method MCommon{mOutputDir, mMode} _) <- get
+  let statsDir = mOutputDir </> ("stats_" ++ mMode)
+  fps <- liftIO $ allFilesWithSuffix ".total_solving_time" statsDir
+  times :: [Maybe Double] <- liftIO  $  forM fps $ \fp -> do
+             st <- readFile fp
+             return $ readMay st
+  return . sum . catMaybes $ times
 
 
 readParamRaceCpuTime :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)

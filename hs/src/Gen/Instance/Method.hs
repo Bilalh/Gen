@@ -6,36 +6,59 @@ import Gen.Instance.RaceRunner
 import Gen.Instance.Point
 import Gen.IO.Formats
 import System.Random(setStdGen, mkStdGen)
+import System.CPUTime ( getCPUTime )
+
 
 -- | The main instance generation,
 run :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m, ToJSON a)
     => m ()
 run = do
+  startOurCPU <- liftIO $  getCPUTime
+
   liftIO $ setStdGen (mkStdGen 33)
 
-  date_start <- timestamp
+  rTimestampStart <- timestamp
 
-  looper 0
+  (rIterationsDone, rIterationsDoneIncludingFailed) <- looper 0 0
 
-  date_end <- timestamp
-  liftIO $ groomPrint date_start
-  liftIO $ groomPrint date_end
+  rTimestampEnd <- timestamp
 
   st@(Method MCommon{mOutputDir, mPoints} _) <- get
   liftIO $ writeToJSON (mOutputDir </> "state.json") st
   liftIO $ writeToJSON (mOutputDir </> "points.json") mPoints
 
+  subCPU <- subprocessTotalCpuTime
+  endOurCPU <- liftIO $ getCPUTime
+  let ourCPU = fromIntegral (endOurCPU - startOurCPU) / ((10 :: Double) ^ (12 :: Int))
+
+
+  let meta = RunMetadata
+        { rTimestampStart
+        , rTimestampEnd
+        , rRealTime   = rTimestampEnd - rTimestampStart
+        , rCPUTime    = subCPU + ourCPU
+        , rSubCPUTime = subCPU
+        , rOurCPUTime = ourCPU
+        , rIterationsDone
+        , rIterationsDoneIncludingFailed
+        }
+
+  liftIO $ groomPrint meta
+  liftIO $ writeToJSON (mOutputDir </> "metadata.json") st
+
 
 looper :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
-       => Int -> m ()
-looper i = do
+       => Int -> Int -> m (Int,Int)
+looper i j= do
   (Method MCommon{mIterations} _) <- get
   if i == mIterations then
-      return ()
+      return (i,j)
   else
     doIteration >>= \case
-      SamplingSuccess -> looper (i + 1)
-      _               -> looper (i)
+      SamplingSuccess{} -> looper (i + 1) (j + 1)
+      x               -> do
+        logInfo2 $line ["Not counting iteration because of" <+> pretty x ]
+        looper i (j + 1)
 
 
 
