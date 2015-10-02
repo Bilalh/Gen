@@ -72,7 +72,7 @@ runRace paramFP = do
 getModelOrdering :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
         => m [ FilePath ]
 getModelOrdering = do
-  (Method MCommon{mOutputDir, mMode, mCompactFirst, mModelsDir} _) <- get
+  (Method MCommon{mOutputDir, mCompactFirst, mModelsDir} _) <- get
   let dbPath  =  mOutputDir </> "results.db"
   liftIO $ doesFileExist dbPath >>= \case
     False -> do
