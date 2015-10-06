@@ -51,8 +51,8 @@ while read minion_timeout total_timeout; do
 done < `ls ${stats_dir}/${USE_DATE}.timeout-used | tail -n1`
 
 
-echo "INSERT OR REPLACE into Metadata('essence')
-			  Values('${Essence_base}');" \
+echo "INSERT OR REPLACE into Metadata('essence', 'mode')
+			  Values('${Essence_base}', '${USE_MODE}');" \
 	|  sqlite3 ${REPOSITORY_BASE}/results.db
 
 
