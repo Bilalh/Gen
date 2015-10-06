@@ -59,14 +59,14 @@ runRace paramFP = do
 
   ts <- doRace paramFP ordering
   (Method MCommon{mOutputDir, mMode} _) <- get
-  let statsDir = mOutputDir </> ("stats_" ++ mMode)
-  let errorFile = statsDir </> ("p-" ++ paramHash)
+  let resDir = mOutputDir </> ("results" ++ mMode)
+  let errorFile = resDir </> ("p-" ++ paramHash ) <.> ".errors"
   erred <- liftIO $ doesFileExist errorFile
 
   case erred of
     True -> do
       (_, info) <- liftIO $ pairWithContents errorFile
-      return $ Left $ ErrRace $ pretty info
+      return $ Left $ ErrRace $ (pretty errorFile <++> pretty info)
     False -> do
       totals <- parseRaceResult (paramHash) ts
       logDebug2 "runRace totals:" [pretty totals]
