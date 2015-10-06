@@ -35,6 +35,7 @@ import System.FilePath                          (takeDirectory)
 import System.IO                                (hPutStr, hPutStrLn, readFile,
                                                  stderr, stdout)
 import System.IO.Temp                           (withSystemTempDirectory)
+import Gen.Helpers.InlineLettings
 
 import qualified Data.Set as S
 import Gen.Instance.SamplingError
@@ -265,7 +266,7 @@ createParamEssence = do
 
 createParamSpecification :: (MonadUserError m, MonadFail m) => Model -> VarInfo -> m Model
 createParamSpecification model VarInfo{..} = do
-  let f = runNameGen . resolveNames  >=> core
+  let f = runNameGen . resolveNames  >=> return . inlineLettings >=> core
   ignoreLogs $ f model
 
   where
