@@ -37,6 +37,7 @@ import System.IO                                (hPutStr, hPutStrLn, readFile,
 import System.IO.Temp                           (withSystemTempDirectory)
 
 import qualified Data.Set as S
+import Gen.Instance.SamplingError
 
 type TimeStamp = Int
 type Quality   = Double
@@ -44,29 +45,39 @@ type Quality   = Double
 
 
 runRace :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
-        => ParamFP -> m Quality
+        => ParamFP -> m (Either SamplingErr Quality)
 runRace paramFP = do
 
   ordering <- getModelOrdering
   logDebug2 "runRace ordering:" (map pretty ordering)
+
 
   p <- readPoint paramFP
   let paramHash = pointHash p
   let paramName = pointName p
 
   ts <- doRace paramFP ordering
+  (Method MCommon{mOutputDir, mMode} _) <- get
+  let statsDir = mOutputDir </> ("stats_" ++ mMode)
+  let errorFile = statsDir </> ("p-" ++ paramHash)
+  erred <- liftIO $ doesFileExist errorFile
 
-  totals <- parseRaceResult (paramHash) ts
-  logDebug2 "runRace totals:" [pretty totals]
+  case erred of
+    True -> do
+      (_, info) <- liftIO $ pairWithContents errorFile
+      return $ Left $ ErrRace $ pretty info
+    False -> do
+      totals <- parseRaceResult (paramHash) ts
+      logDebug2 "runRace totals:" [pretty totals]
 
-  let quality = calculateParamQuality totals
-  logDebug $ "runRace quality:" <+> pretty quality
+      let quality = calculateParamQuality totals
+      logDebug $ "runRace quality:" <+> pretty quality
 
-  timeTaken <- readParamRaceCpuTime ts
-  saveQualityToDb paramName paramHash quality timeTaken
+      timeTaken <- readParamRaceCpuTime ts
+      saveQualityToDb paramName paramHash quality timeTaken
 
-  -- FIXME store prev_timestamp if doing a cpu limit
-  return quality
+      -- FIXME store prev_timestamp if doing a cpu limit
+      return $ Right quality
 
 
 getModelOrdering :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
@@ -227,8 +238,6 @@ checkPrevious paramHash =do
         _    -> return Nothing
 
 
-
-
 createParamEssence :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
                    => m ()
 createParamEssence = do
@@ -300,7 +309,7 @@ conjureCompact inn out = do
 
 
 sampleParamFromMinion :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
-                      => m Point
+                      => m (Either SamplingErr Point)
 sampleParamFromMinion = do
 
   (Method MCommon{mOutputDir, mGivensProvider} _) <- get
@@ -334,10 +343,13 @@ sampleParamFromMinion = do
   cmd <- wrappers "create_param_from_essence.sh"
   res <- liftIO $ runPadded " ⦿ " env (stringToText cmd) args
 
-  finds <- readPoint solutionFp
-
-  return $ finds `mappend` givens
-
+  worked <- liftIO $ doesFileExist solutionFp
+  case worked of
+    False -> return $ Left $ ErrFailedToGenerateParam
+             (vcat [nn "givens" givens, nn "ts" now, nn "hash" phash ])
+    True  -> do
+      finds <- readPoint solutionFp
+      return $ Right $ finds `mappend` givens
 
 
 

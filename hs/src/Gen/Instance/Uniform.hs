@@ -10,12 +10,17 @@ import qualified Data.Aeson as A
 data Uniform = Uniform
   deriving (Eq, Show, Data, Typeable, Generic)
 
+
 instance Sampling Uniform where
   doIteration = do
-    picked <- randomPoint
-    runParamAndStoreQuality picked
-    storeDataPoint picked
-    return SamplingSuccess
+    randomPoint >>= \case
+      Left x -> return $ Left x
+      Right picked -> do
+        runParamAndStoreQuality picked >>= \case
+          Left err -> return $ Left err
+          Right{}  -> do
+            storeDataPoint picked
+            return $ Right ()
 
 instance A.FromJSON Uniform
 instance A.ToJSON Uniform

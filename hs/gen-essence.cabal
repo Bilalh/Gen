@@ -135,6 +135,7 @@ Library
                      , Gen.Instance.Method
                      , Gen.Instance.Point
                      , Gen.Instance.RaceRunner
+                     , Gen.Instance.SamplingError
                      , Gen.Instance.UI
                      , Gen.Instance.Uniform
                      , Gen.IO.Dups

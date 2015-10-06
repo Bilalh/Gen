@@ -1,3 +1,4 @@
+{-# LANGUAGE MultiParamTypeClasses #-}
 module Gen.Instance.Method where
 
 import Gen.Imports
@@ -7,7 +8,7 @@ import Gen.Instance.Point
 import Gen.IO.Formats
 import System.Random(setStdGen, mkStdGen)
 import System.CPUTime ( getCPUTime )
-
+import Gen.Instance.SamplingError
 
 -- | The main instance generation,
 run :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m, ToJSON a)
@@ -44,43 +45,60 @@ run = do
         }
 
   liftIO $ groomPrint meta
-  liftIO $ writeToJSON (mOutputDir </> "metadata.json") st
 
 
-looper :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
+looper :: forall m a . (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
        => Int -> Int -> m (Int,Int)
 looper i j= do
   (Method MCommon{mIterations} _) <- get
   if i == mIterations then
       return (i,j)
-  else
+  else do
     doIteration >>= \case
-      SamplingSuccess{} -> looper (i + 1) (j + 1)
-      x               -> do
-        logInfo2 $line ["Not counting iteration because of" <+> pretty x ]
-        looper i (j + 1)
-
+      Right{} ->     looper (i + 1) (j + 1)
+      Left (ErrDontCountIteration d) -> do
+         logInfo2 $line ["Not counting iteration because of" <+> pretty d ]
+         looper i (j + 1)
+      Left (x) -> do
+         docError ["Error because of ", pretty x]
 
 
 randomPoint :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
-            =>  m Point
+            =>  m (Either SamplingErr Point)
 randomPoint = sampleParamFromMinion
 
 runParamAndStoreQuality :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
-                        => Point -> m ()
+                        => Point -> m (Either SamplingErr ())
 runParamAndStoreQuality point = do
   let h =pointHash point
   checkPrevious h >>= \case
-    Just _  -> return ()
+    Just _  -> return $ Right ()
     Nothing -> do
       (Method MCommon{mOutputDir} _) <- get
       let fp = mOutputDir </> "_params" </> h <.> ".param"
       writePoint point fp
-      _ <- runRace fp
-      return ()
+      voidRes $ runRace fp
 
 
 storeDataPoint :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
                => Point -> m ()
 storeDataPoint point = modify $ \(Method c@MCommon{mPoints} x) ->
                          (Method c{mPoints=point:mPoints} x)
+
+
+
+class MonadState (Method a) m => Test a m where
+    doTest :: (MonadIO m,  MonadLog m, MonadSamplingFail m) => m a
+
+
+-- tester :: forall a m .  (Test a m, MonadIO m, MonadLog m)
+--        => Int -> Int -> m (Int,Int)
+-- tester i j= do
+--   (Method MCommon{mIterations} _) <- get
+--   if i == mIterations then
+--       return (i,j)
+--   else do
+--     x <- runErrT doTest
+--     case x of
+--       Right (c :: a) -> tester (i + 1) (j + 1)
+--       Left x -> error "d"

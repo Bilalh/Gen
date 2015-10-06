@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveGeneric,
              DeriveTraversable #-}
-
+{-# LANGUAGE TypeFamilies #-}
 module Gen.Instance.SamplingError where
 
 import Conjure.Language.Pretty
@@ -11,12 +11,14 @@ import System.IO               as X (hPutStrLn, stderr)
 
 import qualified Conjure.Prelude as Prelude (MonadFail (..))
 
+
 data SamplingErr = ErrDontCountIteration Doc
                  | ErrNoValuesLeft Doc
                  | ErrFailedToGenerateParam Doc
                  | ErrRace Doc
                  | ErrGather Doc
-  deriving (Eq, Show, Typeable)
+                 | ErrFail Doc
+  deriving (Eq, Show)
 
 instance  Pretty SamplingErr  where
     pretty (ErrDontCountIteration d)    = hang "ErrDontCountIteration" 4 d
@@ -24,6 +26,71 @@ instance  Pretty SamplingErr  where
     pretty (ErrFailedToGenerateParam d) = hang "ErrFailedToGenerateParam" 4 d
     pretty (ErrRace d)                  = hang "ErrRace" 4 d
     pretty (ErrGather d)                = hang "ErrGather" 4 d
+    pretty (ErrFail d)                  = hang "ErrFail" 4 d
+
+-- Other Ideas
+
+
+newtype ErrT m a = ErrT { runErrT :: m (Either SamplingErr a) }
+
+instance (Functor m) => Functor (ErrT m) where
+    fmap f = ErrT . fmap (fmap f) . runErrT
+
+instance (Functor m, Monad m) => Applicative (ErrT m) where
+    pure = return
+    (<*>) = ap
+
+instance (Monad m) => Monad (ErrT m) where
+    return a = ErrT $ return (Right a)
+    m >>= k = ErrT $ do
+        a <- runErrT m
+        case a of
+            Left e -> return (Left e)
+            Right x -> runErrT (k x)
+    fail   = ErrT . return . Left . ErrFail . stringToDoc
+
+instance MonadIO m => MonadIO (ErrT m) where
+    liftIO comp = ErrT $ do
+        res <- liftIO comp
+        return (Right res)
+
+instance MonadTrans ErrT where
+    lift comp = ErrT $ do
+        res <- comp
+        return (Right res)
+
+instance MonadLog m => MonadLog (ErrT m) where
+    log l m = log l m >> ErrT (return (Right ()))
+
+class (Functor m, Applicative m, Monad m) => MonadSamplingFail m where
+    sfail :: SamplingErr -> m a
+
+instance MonadSamplingFail Identity where
+    sfail = Control.Monad.fail . show
+
+instance MonadSamplingFail Maybe where
+    sfail = const Nothing
+
+instance (a ~ SamplingErr) => MonadSamplingFail (Either a) where
+    sfail = Left
+
+instance MonadSamplingFail m => MonadSamplingFail (IdentityT m) where
+    sfail = lift . sfail
+
+instance (Functor m, Monad m) => MonadSamplingFail (MaybeT m) where
+    sfail = const $ MaybeT $ return Nothing
+
+instance (Functor m, Monad m, MonadSamplingFail m) => MonadSamplingFail (StateT st m) where
+    sfail = lift . sfail
+
+instance (MonadSamplingFail m, Monoid w) => MonadSamplingFail (WriterT w m) where
+    sfail = lift . sfail
+
+instance MonadSamplingFail m => MonadSamplingFail (ReaderT r m) where
+    sfail = lift . sfail
+
+instance (Functor m, Monad m) => MonadSamplingFail (ErrT m) where
+    sfail = ErrT . return . Left
 
 
 class Monad m => MonadSamplingError m where
@@ -60,8 +127,13 @@ instance MonadSamplingError m => MonadSamplingError (ReaderT r m) where
 -- | This is to run a MonadSamplingError. Everything else should lift.
 newtype SamplingErrorT m a = SamplingErrorT { runSamplingErrorT :: m (Either SamplingErr a) }
 
-runSampingError :: SamplingErrorT Identity a -> Either SamplingErr a
-runSampingError ma = runIdentity (runSamplingErrorT ma)
+runSamplingError2 :: SamplingErrorT Identity a -> Either SamplingErr a
+runSamplingError2 ma = runIdentity (runSamplingErrorT ma)
+
+runSamplingError :: Monad m =>
+                      SamplingErrorT m a -> m (Either SamplingErr a)
+runSamplingError = runSamplingErrorT
+
 
 instance (Functor m) => Functor (SamplingErrorT m) where
     fmap f = SamplingErrorT . fmap (fmap f) . runSamplingErrorT
@@ -91,6 +163,8 @@ instance MonadTrans SamplingErrorT where
 
 instance MonadFail m => MonadFail (SamplingErrorT m) where
     fail = lift . Prelude.fail
+
+
 
 instance MonadFail m => MonadSamplingError (SamplingErrorT m) where
     sampingErr msgs = SamplingErrorT $ return $ sampingErr msgs

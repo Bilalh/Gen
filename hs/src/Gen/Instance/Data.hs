@@ -4,6 +4,7 @@ module Gen.Instance.Data where
 
 import Gen.Imports
 import Conjure.Language.Definition
+import Gen.Instance.SamplingError
 
 import qualified Data.Aeson as A
 import qualified Data.Set   as S
@@ -12,7 +13,7 @@ import qualified Data.Set   as S
 -- | See undirected for an exmaple
 class Sampling a where
     doIteration :: (MonadIO m, MonadState (Method a) m, MonadLog m)
-                => m SamplingResult
+                => m (Either SamplingErr ())
 
 
 data Method kind = Method MCommon kind
@@ -53,7 +54,6 @@ instance A.FromJSON SamplingResult
 instance A.ToJSON SamplingResult
 instance Pretty SamplingResult where pretty = pretty . show
 
-
 -- info.json
 data VarInfo =
   VarInfo { ordering :: [Text]     -- | Order to generate the variables
@@ -76,6 +76,8 @@ instance Monoid Point where
 instance A.FromJSON Point
 instance A.ToJSON Point
 
+instance Pretty Point where
+    pretty (Point xs) = "Point:" <+>  (vcat . map pretty $ xs)
 
 -- | Provides values for givens
 newtype Provider = Provider [(Name, Domain () Constant)]
@@ -98,3 +100,11 @@ data RunMetadata = RunMetadata
 
 instance A.FromJSON RunMetadata
 instance A.ToJSON RunMetadata
+
+voidRes :: Monad m => m (Either a t) -> m (Either a ())
+voidRes x = fmap (const ()) <$> x
+-- voidRes x = do
+--   res <- x
+--   case res of
+--     Left x -> return $ Left x
+--     Right x -> return $ Right ()
