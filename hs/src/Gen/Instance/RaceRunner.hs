@@ -95,7 +95,7 @@ getModelOrdering = do
     True  -> do
       conn <- liftIO $ open dbPath
       eprimes :: [[String]] <- query_ conn ("SELECT eprime FROM EprimeOrdering")
-      return [ mModelsDir </> row `at` 0 | row <- eprimes  ]
+      return [ mModelsDir </> row `at` 0 <.> ".eprime" | row <- eprimes  ]
 
 
 doRace :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
