@@ -61,6 +61,7 @@ runRace paramFP = do
   (Method MCommon{mOutputDir, mMode} _) <- get
   let resDir = mOutputDir </> ("results" ++ mMode)
   let errorFile = resDir </> ("p-" ++ paramHash ) <.> ".errors"
+  liftIO $ print $ nn "errorFile" errorFile
   erred <- liftIO $ doesFileExist errorFile
 
   case erred of

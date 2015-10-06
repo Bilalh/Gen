@@ -45,6 +45,8 @@ run = do
         }
 
   liftIO $ groomPrint meta
+  liftIO $ writeToJSON (mOutputDir </> "metadata.json") meta
+
 
 
 looper :: forall m a . (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
@@ -55,7 +57,9 @@ looper i j= do
       return (i,j)
   else do
     doIteration >>= \case
-      Right{} ->     looper (i + 1) (j + 1)
+      Right{} -> do
+         logInfo2 $line ["no error on iteration " <+> pretty (i,j)]
+         looper (i + 1) (j + 1)
       Left (ErrDontCountIteration d) -> do
          logInfo2 $line ["Not counting iteration because of" <+> pretty d ]
          looper i (j + 1)
