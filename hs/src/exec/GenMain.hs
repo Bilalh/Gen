@@ -2,7 +2,6 @@
 {-# OPTIONS_GHC -fno-cse #-} -- stupid cmdargs?
 module Main where
 
-import Gen.IO.FindCompact(findCompact)
 import Data.Time                   (formatTime, getCurrentTime)
 import Data.Time.Format            (defaultTimeLocale)
 import Gen.Arbitrary.Data
@@ -18,8 +17,9 @@ import Gen.Generalise.Generalise   (generaliseMain)
 import Gen.Imports
 import Gen.Instance.Data
 import Gen.Instance.UI             (makeProvider, runMethod)
-import Gen.Instance.Uniform        (Uniform (..))
+import Gen.Instance.Undirected     (Undirected (..))
 import Gen.IO.Dups                 (deleteDups2, refineDups, solveDups)
+import Gen.IO.FindCompact          (findCompact)
 import Gen.IO.Formats              (readFromJSON)
 import Gen.IO.RunResult            (giveDb, writeDB_)
 import Gen.IO.Term
@@ -32,7 +32,8 @@ import Gen.Solver.Solver           (SolverArgs (..), solverMain)
 import Gen.UI.UI
 import System.Console.CmdArgs      (cmdArgs)
 import System.CPUTime              (getCPUTime)
-import System.Directory            (getCurrentDirectory, setCurrentDirectory, makeAbsolute)
+import System.Directory            (getCurrentDirectory, makeAbsolute,
+                                    setCurrentDirectory)
 import System.Environment          (lookupEnv, withArgs)
 import System.Exit                 (exitFailure, exitSuccess, exitWith)
 import System.FilePath             (replaceExtension, replaceFileName, takeBaseName,
@@ -270,7 +271,7 @@ mainWithArgs u@Instance{..} = do
       , mCompactFirst   = compactFirst
       }
 
-  runMethod LogDebug (Method common Uniform)
+  runMethod LogDebug (Method common Undirected)
 
 
 mainWithArgs u@Reduce{..} = do

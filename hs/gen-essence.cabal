@@ -137,7 +137,7 @@ Library
                      , Gen.Instance.RaceRunner
                      , Gen.Instance.SamplingError
                      , Gen.Instance.UI
-                     , Gen.Instance.Uniform
+                     , Gen.Instance.Undirected
                      , Gen.IO.Dups
                      , Gen.IO.FindCompact
                      , Gen.IO.Formats

@@ -3,7 +3,7 @@ module Gen.Instance.UI where
 import Gen.Imports
 import Gen.Instance.Data
 import Gen.Instance.RaceRunner
-import Gen.Instance.Uniform
+import Gen.Instance.Undirected
 import Gen.IO.Formats
 import Gen.Instance.Method
 import Conjure.Language.Constant
@@ -93,11 +93,11 @@ _ex_common = do
   return common
 
 
--- Run Uniform
+-- Run Undirected
 _ex8 :: IO ()
 _ex8 = do
   common <- _ex_common
-  let state = Method common Uniform
+  let state = Method common Undirected
 
   let workload = runLoggerPipeIO (LogDebug) $ do
         (re,reState) <- runStateT (run) state
@@ -112,7 +112,7 @@ _ex8 = do
 _ex7  :: IO ()
 _ex7 = do
   common <- _ex_common
-  let state = Method common Uniform
+  let state = Method common Undirected
 
   let workload = runLoggerPipeIO (LogDebug) $ do
         (re,reState) <- runStateT (runParamAndStoreQuality _ex_point) state
@@ -128,7 +128,7 @@ _ex7 = do
 _ex5  :: IO ()
 _ex5 = do
   common <- _ex_common
-  let state = Method common Uniform
+  let state = Method common Undirected
 
   let workload = runLoggerPipeIO (LogDebug) $ do
         (re,reState) <- runStateT sampleParamFromMinion state
@@ -144,7 +144,7 @@ _ex5 = do
 _ex4  :: IO ()
 _ex4 = do
   common <- _ex_common
-  let state = Method common Uniform
+  let state = Method common Undirected
 
   let workload = runLoggerPipeIO (LogDebug) $ do
         (re,reState) <- runStateT createParamEssence state

@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable, DeriveGeneric #-}
-module Gen.Instance.Uniform where
+module Gen.Instance.Undirected where
 
 import Gen.Imports
 import Gen.Instance.Data
@@ -7,11 +7,11 @@ import Gen.Instance.Method
 
 import qualified Data.Aeson as A
 
-data Uniform = Uniform
+data Undirected = Undirected
   deriving (Eq, Show, Data, Typeable, Generic)
 
 
-instance Sampling Uniform where
+instance Sampling Undirected where
   doIteration = do
     randomPoint >>= \case
       Left x -> return $ Left x
@@ -22,5 +22,5 @@ instance Sampling Uniform where
             storeDataPoint picked
             return $ Right ()
 
-instance A.FromJSON Uniform
-instance A.ToJSON Uniform
+instance A.FromJSON Undirected
+instance A.ToJSON Undirected
