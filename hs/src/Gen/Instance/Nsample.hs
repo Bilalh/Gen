@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable, DeriveGeneric #-}
-module Gen.Instance.Undirected where
+module Gen.Instance.Nsample where
 
 import Gen.Imports
 import Gen.Instance.Data
@@ -7,14 +7,13 @@ import Gen.Instance.Method
 
 import qualified Data.Aeson as A
 
-data Undirected = Undirected
+data Nsample = Nsample
   deriving (Eq, Show, Data, Typeable, Generic)
 
-instance A.FromJSON Undirected
-instance A.ToJSON Undirected
+instance A.FromJSON Nsample
+instance A.ToJSON Nsample
 
-
-instance Sampling Undirected where
+instance Sampling Nsample where
   doIteration = do
     randomPoint >>= \case
       Left x -> return $ Left x

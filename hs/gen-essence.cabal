@@ -118,6 +118,7 @@ Library
                      , Gen.Imports
                      , Gen.Instance.Data
                      , Gen.Instance.Method
+                     , Gen.Instance.Nsample
                      , Gen.Instance.Point
                      , Gen.Instance.RaceRunner
                      , Gen.Instance.SamplingError

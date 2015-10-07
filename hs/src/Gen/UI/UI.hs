@@ -50,6 +50,17 @@ data UI
     , log_level          :: LogLevel
     }
 
+  | Instance_Nsample
+    { essence_path       :: FilePath
+    , per_model_time     :: Int
+    , iterations         :: Int
+    , mode               :: String
+    , _cores             :: Maybe Int
+    , output_directory   :: Maybe FilePath
+    , limit_time         :: Maybe Int
+    , log_level          :: LogLevel
+    }
+
   | Reduce
     {
       per_spec_time      :: Int
@@ -368,6 +379,47 @@ ui  = modes
                                   &= help "Logging level, default LogDebug"
      } &= name "instance_undirected"
        &= help "Generate discriminating instance for the given essence specification using a baseline method"
+
+
+  , Instance_Nsample
+     { essence_path     = def     &= typ "essence"
+                                  &= argPos 0
+     , per_model_time   = def     &= name "per-model-time"
+                                  &= name "p"
+                                  &= groupname "Required"
+                                  &= explicit
+                                  &= help "Time per model"
+     , iterations       = def     &= name "iterations"
+                                  &= name "i"
+                                  &= groupname "Required"
+                                  &= explicit
+                                  &= help "Number of races"
+     , mode             = def     &= name "mode"
+                                  &= name "m"
+                                  &= groupname "Required"
+                                  &= help "The suffix of the models directory"
+     , _cores           = Nothing &= name "cores"
+                                  &= name "c"
+                                  &= groupname "Required"
+                                  &= explicit
+                                  &= help "Number of cores to use, required unless CORES is set"
+     , output_directory = def     &= typDir
+                                  &= name "output-directory"
+                                  &= name "o"
+                                  &= groupname "Other"
+                                  &= explicit
+                                  &= help "Output directory default is %F_%H-%M_%s e.g. 2015-03-23_01-04_1427072681"
+     , limit_time       = Nothing &= name "limit-time"
+                                  &= explicit
+                                  &= help "Time limit in seconds of CPU time of this program"
+                                  &= groupname "Other"
+                                  &= explicit
+     , log_level       = LogDebug &= name "log-level"
+                                  &= groupname "Other"
+                                  &= explicit
+                                  &= help "Logging level, default LogDebug"
+     } &= name "instance-nsample"
+       &= help "Generate discriminating instance for the given essence specification using the nsample method"
 
 
 

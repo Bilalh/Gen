@@ -17,6 +17,7 @@ import Gen.Imports
 import Gen.Instance.Data
 import Gen.Instance.UI             (makeProvider, runMethod)
 import Gen.Instance.Undirected     (Undirected (..))
+import Gen.Instance.Nsample        (Nsample  (..))
 import Gen.IO.Dups                 (deleteDups2, refineDups, solveDups)
 import Gen.IO.FindCompact          (findCompact)
 import Gen.IO.Formats              (readFromJSON)
@@ -57,7 +58,8 @@ main = do
        args <- helpArg
        void $ withArgs [args] (cmdArgs ui)
     [x] | x `elem` [ "essence", "reduce", "link", "meta", "json", "generalise", "solve"
-                   , "weights" , "script-toolchain", "script-recheck",  "instance"
+                   , "weights" , "script-toolchain", "script-recheck"
+                   , "instance-nsample", "instance-undirected"
                    , "script-createDbHashes" , "script-updateChoices"
                    , "script-removeDups"] -> do
        args <- helpArg
@@ -220,6 +222,13 @@ mainWithArgs u@Instance_Undirected{..} = do
   common <- instanceCommon cores Instance_Common{..}
 
   runMethod log_level (Method common Undirected)
+
+mainWithArgs u@Instance_Nsample{..} = do
+
+  cores  <- giveCores u
+  common <- instanceCommon cores Instance_Common{..}
+
+  runMethod log_level (Method common Nsample)
 
 
 mainWithArgs u@Reduce{..} = do
