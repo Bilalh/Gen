@@ -161,7 +161,6 @@ Library
                      , groom
                      , hashable
                      , mtl
-                     , parsec
                      , pretty
                      , process
                      , random
@@ -180,6 +179,7 @@ Library
                      , sqlite-simple
                      , shelly
                      , cryptohash
+                     , megaparsec
 
 
     if impl(ghc < 7.10)

@@ -9,8 +9,8 @@ import Conjure.Prelude
 import Conjure.Language.Domain
 import Conjure.Language.Parser
 
-import Text.Parsec ( SourcePos, setPosition )
-import Text.Parsec.Pos ( newPos )
+import Text.Megaparsec.Prim ( setPosition )
+import Text.Megaparsec.Pos ( SourcePos, newPos )
 
 import Language.Haskell.TH ( Q, runIO, Loc(..), location, mkName, ExpQ, varE, appE, PatQ, varP )
 import Language.Haskell.TH.Quote ( QuasiQuoter(..), dataToExpQ, dataToPatQ )
