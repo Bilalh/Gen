@@ -214,59 +214,10 @@ mainWithArgs u@Essence{..} = do
   generateEssence ws config
 
 
-mainWithArgs u@Instance{..} = do
+mainWithArgs u@Instance_Undirected{..} = do
 
-  essence <- makeAbsolute essence_path
-  let info_path   = replaceFileName essence "info.json"
-  let models_path = replaceFileName essence (takeBaseName essence_path ++ "_" ++ mode)
-  fileErr <- catMaybes <$> sequence
-    [
-      fileExists   "essence" essence
-    , dirExistsMay "-o/--output-directory" output_directory
-    , fileExists   "info.json needs to be next to the essence" info_path
-    , dirExists    "Model dir missing" models_path
-    ]
-
-  let errors = catMaybes
-        [ aerr "-p|--per-model-time >0" (per_model_time == 0)
-        , aerr "-i|--iterations >0" (iterations == 0)
-        , aerr "-m/--mode not empty" (null mode)
-        ] ++ fileErr
-
-  case errors of
-    [] -> return ()
-    xs -> mapM putStrLn xs >> exitFailure
-  out   <- giveOutputDirectory output_directory >>= makeAbsolute
-  cores <- giveCores u
-
-  let compact_path = (models_path ++ "-compact")
-  compactFirst <- doesDirectoryExist (models_path ++ "-compact") >>= \case
-    False -> return Nothing
-    True  -> do
-      [compact_file] <- allFilesWithSuffix ".eprime" compact_path
-      findCompact compact_file models_path >>= \case
-        Nothing -> return Nothing
-        Just compact_twin -> do
-          print . pretty $ "compact_twin is" <+> pretty compact_twin
-          return $ Just $ (takeBaseName compact_twin)
-
-
-  i :: VarInfo <- readFromJSON info_path
-  p <- ignoreLogs $ makeProvider essence_path i
-  let common            = MCommon{
-        mEssencePath    = essence
-      , mOutputDir      = out
-      , mModelTimeout   = per_model_time
-      , mVarInfo        = i
-      , mPreGenerate    = Nothing
-      , mIterations     = iterations
-      , mMode           = mode
-      , mModelsDir      = models_path
-      , mGivensProvider = p
-      , mPoints         = []
-      , mCores          = cores
-      , mCompactName    = compactFirst
-      }
+  cores  <- giveCores u
+  common <- instanceCommon cores Instance_Common{..}
 
   runMethod log_level (Method common Undirected)
 
@@ -609,6 +560,62 @@ mainWithArgs Script_RemoveDups{..} = do
   putStrLn "Result"
   putStrLn $ show $ map pretty  dups
   deleteDups2 dups
+
+
+instanceCommon :: Int -> Instance_Common -> IO MCommon
+instanceCommon cores Instance_Common{..} = do
+  essence <- makeAbsolute essence_path
+  let info_path   = replaceFileName essence "info.json"
+  let models_path = replaceFileName essence (takeBaseName essence_path ++ "_" ++ mode)
+  fileErr <- catMaybes <$> sequence
+    [
+      fileExists   "essence" essence
+    , dirExistsMay "-o/--output-directory" output_directory
+    , fileExists   "info.json needs to be next to the essence" info_path
+    , dirExists    "Model dir missing" models_path
+    ]
+
+  let errors = catMaybes
+        [ aerr "-p|--per-model-time >0" (per_model_time == 0)
+        , aerr "-i|--iterations >0" (iterations == 0)
+        , aerr "-m/--mode not empty" (null mode)
+        ] ++ fileErr
+
+  case errors of
+    [] -> return ()
+    xs -> mapM putStrLn xs >> exitFailure
+  out   <- giveOutputDirectory output_directory >>= makeAbsolute
+
+  let compact_path = (models_path ++ "-compact")
+  compactFirst <- doesDirectoryExist (models_path ++ "-compact") >>= \case
+    False -> return Nothing
+    True  -> do
+      [compact_file] <- allFilesWithSuffix ".eprime" compact_path
+      findCompact compact_file models_path >>= \case
+        Nothing -> return Nothing
+        Just compact_twin -> do
+          print . pretty $ "compact_twin is" <+> pretty compact_twin
+          return $ Just $ (takeBaseName compact_twin)
+
+
+  i :: VarInfo <- readFromJSON info_path
+  p <- ignoreLogs $ makeProvider essence_path i
+  let common            = MCommon{
+        mEssencePath    = essence
+      , mOutputDir      = out
+      , mModelTimeout   = per_model_time
+      , mVarInfo        = i
+      , mPreGenerate    = Nothing
+      , mIterations     = iterations
+      , mMode           = mode
+      , mModelsDir      = models_path
+      , mGivensProvider = p
+      , mPoints         = []
+      , mCores          = cores
+      , mCompactName    = compactFirst
+      }
+
+  return common
 
 
 

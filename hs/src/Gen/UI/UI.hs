@@ -39,7 +39,7 @@ data UI
     , strict_checking    :: Bool
     }
 
-  | Instance
+  | Instance_Undirected
     { essence_path       :: FilePath
     , per_model_time     :: Int
     , iterations         :: Int
@@ -329,7 +329,7 @@ ui  = modes
        &= name "essence"
        &= help "Generates essence test cases"
 
-  , Instance
+  , Instance_Undirected
      { essence_path     = def     &= typ "essence"
                                   &= argPos 0
      , per_model_time   = def     &= name "per-model-time"
@@ -366,8 +366,8 @@ ui  = modes
                                   &= groupname "Other"
                                   &= explicit
                                   &= help "Logging level, default LogDebug"
-     } &= name "instance"
-       &= help "Generate discriminating instance for the given essence specification"
+     } &= name "instance_undirected"
+       &= help "Generate discriminating instance for the given essence specification using a baseline method"
 
 
 

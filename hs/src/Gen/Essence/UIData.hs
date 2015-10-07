@@ -69,3 +69,13 @@ instance Default EssenceConfig where
       , logLevel           = LogDebug
       , strictTypeChecking = False
       }
+
+
+data Instance_Common = Instance_Common
+    { essence_path       :: FilePath
+    , per_model_time     :: Int
+    , iterations         :: Int
+    , mode               :: String
+    , output_directory   :: Maybe FilePath
+    , log_level          :: LogLevel
+    } deriving (Show, Data, Typeable, Eq)
