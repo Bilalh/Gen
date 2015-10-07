@@ -111,7 +111,6 @@ saveEprimes= do
       if Just (takeBaseName ep) == mCompactName then Just True else Nothing )
 
 
---FIXME missing s
 getModelOrdering :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
         => m (Either SamplingErr [ FilePath ])
 getModelOrdering = do

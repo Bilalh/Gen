@@ -245,7 +245,7 @@ sqlite3 "${REPOSITORY_BASE}/results.db" <<SQL
 	UNION
 
 	-- Eprime that have *NOT* been run
-	Select eprime, 3 as Ord, isCompact as Ord2, -1 as Ord3 From(
+	Select eprime, 3 as Ord, coalesce(isCompact,-1) as Ord2, -1 as Ord3 From(
 		Select eprime, isCompact
 		From Eprimes
 		Where eprime not in (Select Distinct eprime From TimingsDomination)
