@@ -104,11 +104,14 @@ saveEprimes :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
             => m ()
 saveEprimes= do
   (Method MCommon{mOutputDir, mModelsDir,mCompactName} _) <- get
+  let check = case mCompactName of
+                Nothing -> (\_ -> Nothing)
+                Just c  -> (\x ->  if x == c then Just True else Just False )
+
   eprimes <- liftIO $ allFilesWithSuffix ".eprime" mModelsDir
   conn <- liftIO $ open (mOutputDir </> "results.db")
   void $ liftIO $ withTransaction conn $ forM (eprimes) $ \(ep) -> do
-    execute conn saveEprimesQuery (takeBaseName ep,
-      if Just (takeBaseName ep) == mCompactName then Just True else Nothing )
+    execute conn saveEprimesQuery (takeBaseName ep,  check (takeBaseName ep)  )
 
 
 getModelOrdering :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
