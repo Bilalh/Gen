@@ -51,7 +51,7 @@ sqlite3 "${REPOSITORY_BASE}/results.db" <<SQL
 
 	CREATE VIEW IF NOT EXISTS TimingsDomination as
 
-	Select *
+	Select X.*, EP.eprimeId
 
 	From(
 		Select SR.paramHash, SR.eprime, SavileRow, Minion,  (SavileRow + Minion) as TotalTime,
@@ -105,11 +105,10 @@ sqlite3 "${REPOSITORY_BASE}/results.db" <<SQL
 			Where f.eprime = g.eprime and f.paramHash = g.paramHash
 		) = 1
 
-	)
+	) X Join Eprimes EP where X.eprime = EP.eprime
 
 	Order by paramHash, eprime
-		;
-
+	;
 
 
 	CREATE VIEW IF NOT EXISTS TimingsRecorded as
