@@ -58,7 +58,6 @@ import Data.Map                    (Map)
 import Gen.Essence.Data.Key        as X
 import Gen.Essence.Id              as X (GetKey (..))
 import Gen.Essence.Log
-import Gen.Helpers.Log
 import Gen.Helpers.TypeOf
 import Gen.Imports
 import Test.QuickCheck             (Gen, generate)
