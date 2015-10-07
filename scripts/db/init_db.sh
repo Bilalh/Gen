@@ -113,7 +113,7 @@ sqlite3 "${REPOSITORY_BASE}/results.db" <<SQL
 
 	CREATE VIEW IF NOT EXISTS TimingsRecorded as
 
-	Select SR.paramHash, SR.eprime, SavileRow, Minion,  (SavileRow + Minion) as TotalTime,
+	Select SR.paramHash, SR.eprime, EP.eprimeId, SavileRow, Minion,  (SavileRow + Minion) as TotalTime,
            Cast(MinionNodes AS Integer) as MinionNodes, MinionTimeout,
 		   MinionSatisfiable, MinionSolutionsFound,
 		   (MinionSatisfiable = 1 and MinionTimeOut = 0) as IsOptimum, isDominated
@@ -145,18 +145,19 @@ sqlite3 "${REPOSITORY_BASE}/results.db" <<SQL
 		Select eprime, paramHash, Cast(f.value as Integer) as isDominated From Experiment f
 		Where f.attribute='isDominated'
 		Order By paramHash, eprime
-	) DO
+	) DO Join Eprimes EP
 
 	on  SR.eprime = M.eprime And M.eprime  = N.eprime And N.eprime  = MS.eprime And MS.eprime  = MF.eprime And MF.eprime  = MT.eprime And MT.eprime  = DO.eprime
-	and SR.paramHash  = M.paramHash  And M.paramHash   = N.paramHash  And N.paramHash   = MS.paramHash  And MS.paramHash   = MF.paramHash  And MF.paramHash   = MT.paramHash  And MT.paramHash   = DO.paramHash
+	and SR.paramHash  = M.paramHash  And M.paramHash   = N.paramHash  And N.paramHash   = MS.paramHash  And MS.paramHash   = MF.paramHash  And MF.paramHash   = MT.paramHash  And MT.paramHash   = DO.paramHash And EP.eprime = SR.eprime
 
 	Order by SR.paramHash, SR.eprime
-		;
+	;
 
 
 	CREATE VIEW IF NOT EXISTS DiscriminatingParams as
     Select P.paramHash, P.quality, P.ordering,
     	Cast(count(eprime) as Integer) as eprimesLeft, Cast(max(D.MinionSatisfiable) as Integer) as Satisfiable, Cast(max(MinionSolutionsFound) as Integer) as MaxSolutions,
+		group_concat(D.eprimeId, ", ") as eprimesIds,
     	group_concat(D.eprime, ", ") as eprimes
     From ParamQuality P
     Join TimingsDomination D on P.paramHash = D.paramHash
@@ -166,12 +167,14 @@ sqlite3 "${REPOSITORY_BASE}/results.db" <<SQL
         ;
 
 	CREATE VIEW IF NOT EXISTS ParamsData as
-	    Select P.paramHash, P.param, Cast(T.TotalTimeout as  Integer) as modelTimeoutUsed, T.timestamp ,
-		 P.quality, P.ordering, Cast(count(D.eprime) as Integer) as eprimesLeft,
-		Cast(max(D.MinionSatisfiable) as Integer) as Satisfiable, Cast(max(D.MinionSolutionsFound) as Integer) as MaxSolutions,
-		F.minTime, F.maxTime, F.avgTime, paramCpuTime, numFinished,
-    	group_concat(D.eprime, ", ") as eprimes
-    From ParamQuality P
+    Select P.paramHash, P.param, Cast(T.TotalTimeout as  Integer) as modelTimeoutUsed, T.timestamp ,
+	 P.quality, P.ordering, Cast(count(D.eprime) as Integer) as eprimesLeft,
+	Cast(max(D.MinionSatisfiable) as Integer) as Satisfiable, Cast(max(D.MinionSolutionsFound) as Integer) as MaxSolutions,
+	F.minTime, F.maxTime, F.avgTime, paramCpuTime, numFinished,
+	group_concat(D.eprimeId, ", ") as eprimesIds,
+	group_concat(D.eprime, ", ") as eprimes
+
+	From ParamQuality P
 
 	Join TimingsDomination D on P.paramHash = D.paramHash
 	Join Timeouts T on T.paramHash = D.paramHash
@@ -182,15 +185,15 @@ sqlite3 "${REPOSITORY_BASE}/results.db" <<SQL
 	  on F.paramHash = D.paramHash
 
 	Join ( Select paramHash,
-           count() as numFinished
-           From TimingsRecorded TR
-           Group By paramHash) TR
-         on TR.paramHash = D.paramHash
+	       count() as numFinished
+	       From TimingsRecorded TR
+	       Group By paramHash) TR
+	     on TR.paramHash = D.paramHash
 
-    Where D.isDominated = 0
-    Group by P.paramHash
-    Order by P.quality
-    	;
+	Where D.isDominated = 0
+	Group by P.paramHash
+	Order by P.quality
+	;
 
 
 	CREATE VIEW IF NOT EXISTS Fastest as
