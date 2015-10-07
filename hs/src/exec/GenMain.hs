@@ -268,7 +268,7 @@ mainWithArgs u@Instance{..} = do
       , mCompactName    = compactFirst
       }
 
-  runMethod LogDebug (Method common Undirected)
+  runMethod log_level (Method common Undirected)
 
 
 mainWithArgs u@Reduce{..} = do

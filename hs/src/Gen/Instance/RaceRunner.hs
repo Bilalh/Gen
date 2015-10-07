@@ -84,8 +84,6 @@ runRace paramFP = do
           return $ Right quality
 
 
-
-
 initDB :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
             => m ()
 initDB = do

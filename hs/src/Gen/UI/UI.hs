@@ -47,6 +47,7 @@ data UI
     , _cores             :: Maybe Int
     , output_directory   :: Maybe FilePath
     , limit_time         :: Maybe Int
+    , log_level          :: LogLevel
     }
 
   | Reduce
@@ -360,8 +361,12 @@ ui  = modes
                                   &= explicit
                                   &= help "Time limit in seconds of CPU time of this program"
                                   &= groupname "Other"
-     }                            &= explicit
-       &= name "instance"
+                                  &= explicit
+     , log_level       = LogDebug &= name "log-level"
+                                  &= groupname "Other"
+                                  &= explicit
+                                  &= help "Logging level, default LogDebug"
+     } &= name "instance"
        &= help "Generate discriminating instance for the given essence specification"
 
 
