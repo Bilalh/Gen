@@ -14,8 +14,7 @@ data EssenceMode =
 instance Default EssenceMode where
     def = Solve_
 
-data GenType = FirstGen
-             | SecondGen
+data GenType = SecondGen
   deriving (Show, Data, Typeable, Eq)
 
 instance Default GenType where

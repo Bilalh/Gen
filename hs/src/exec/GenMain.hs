@@ -4,7 +4,6 @@ module Main where
 
 import Data.Time                   (formatTime, getCurrentTime)
 import Data.Time.Format            (defaultTimeLocale)
-import Gen.Arbitrary.Data
 import Gen.Classify.AddMeta        (metaMain)
 import Gen.Classify.AddMeta        (addMeta)
 import Gen.Classify.AddSpecE       (addSpecJson, specEMain)

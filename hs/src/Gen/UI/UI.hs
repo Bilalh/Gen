@@ -208,7 +208,7 @@ ui  = modes
                                     &= typ "type"
                                     &= groupname "Generation"
                                     &= explicit
-                                    &= help "The generator to use, one of FirstGen or SecondGen (default)"
+                                    &= help "The generator to use, only SecondGen is allowed"
      , total_time         = def     &= name "total-time"
                                     &= name "t"
                                     &= groupname "Required"

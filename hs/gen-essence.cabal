@@ -16,21 +16,6 @@ Library
     --MODULES
     exposed-modules  : Build_autoversion
                      , Paths_gen_essence
-                     , Gen.Arbitrary.Arbitrary
-                     , Gen.Arbitrary.Common
-                     , Gen.Arbitrary.Data
-                     , Gen.Arbitrary.Debug
-                     , Gen.Arbitrary.Domain
-                     , Gen.Arbitrary.Expr
-                     , Gen.Arbitrary.FromNested
-                     , Gen.Arbitrary.Generators
-                     , Gen.Arbitrary.Literal
-                     , Gen.Arbitrary.Op
-                     , Gen.Arbitrary.OrderedType
-                     , Gen.Arbitrary.Prelude
-                     , Gen.Arbitrary.QuickCheck2
-                     , Gen.Arbitrary.Type
-                     , Gen.Arbitrary.TypeConversions
                      , Gen.AST.Data
                      , Gen.AST.Imports
                      , Gen.AST.Ops

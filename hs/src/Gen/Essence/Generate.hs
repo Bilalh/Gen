@@ -24,8 +24,6 @@ import Test.QuickCheck                 (Gen, generate)
 
 import qualified Data.Map                as M
 import qualified Data.Set                as S
-import qualified Gen.Arbitrary.Arbitrary as FirstGen
-import qualified Gen.Arbitrary.Data      as FirstGen
 import qualified Gen.Essence.UIData      as EC
 import qualified Gen.IO.Toolchain        as Toolchain
 
@@ -508,16 +506,3 @@ genToUse EC.EssenceConfig{genType_=EC.SecondGen,logLevel} dom_depth expr_depth =
   where
   f :: (Spec,[(LogLevel,Doc)]) -> (Spec,Doc)
   f (sp,logs) = (sp, vcat [ msg | (lvl, msg) <- logs , lvl <= logLevel ])
-
-genToUse EC.EssenceConfig{genType_=EC.FirstGen} _ depth = do
- let g = f <$> FirstGen.spec depth def{FirstGen.gen_useFunc = myUseFunc}
- return g
-
-  where
-  f (sp,logs) = (sp, pretty logs)
-
-  myUseFunc :: FirstGen.FuncsNames -> Bool
-  myUseFunc FirstGen.Aapply   = False
-  myUseFunc FirstGen.Ahist    = False
-  myUseFunc FirstGen.Ainverse = False
-  myUseFunc _                 = True
