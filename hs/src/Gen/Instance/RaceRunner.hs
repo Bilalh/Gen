@@ -102,12 +102,13 @@ saveEprimesQuery = [str|
 
 saveEprimes :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
             => m ()
-saveEprimes = do
-  (Method MCommon{mOutputDir, mModelsDir} _) <- get
+saveEprimes= do
+  (Method MCommon{mOutputDir, mModelsDir,mCompactName} _) <- get
   eprimes <- liftIO $ allFilesWithSuffix ".eprime" mModelsDir
   conn <- liftIO $ open (mOutputDir </> "results.db")
   void $ liftIO $ withTransaction conn $ forM (eprimes) $ \(ep) -> do
-    execute conn saveEprimesQuery (takeBaseName ep, Just False)
+    execute conn saveEprimesQuery (takeBaseName ep,
+      if Just (takeBaseName ep) == mCompactName then Just True else Nothing )
 
 
 --FIXME missing s

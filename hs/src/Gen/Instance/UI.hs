@@ -18,8 +18,8 @@ import qualified Data.Set as S
 -- The starting point for instance generation
 runMethod :: (Sampling a, ToJSON a, MonadIO m) => LogLevel -> Method a -> m ()
 runMethod lvl state= runLoggerPipeIO lvl $
-       void $ flip execStateT state $
-               createParamEssence >> initDB >> saveEprimes >> run
+  void $ flip execStateT state $
+    createParamEssence >> initDB >> saveEprimes >> run
 
 
 -- | Make the value provider for the givens

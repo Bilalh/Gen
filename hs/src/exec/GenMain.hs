@@ -597,7 +597,9 @@ instanceCommon cores Instance_Common{..} = do
 
   let compact_path = (models_path ++ "-compact")
   compactFirst <- doesDirectoryExist (models_path ++ "-compact") >>= \case
-    False -> return Nothing
+    False -> do
+      print . pretty $  "no compact found"  <+> pretty compact_path
+      return Nothing
     True  -> do
       [compact_file] <- allFilesWithSuffix ".eprime" compact_path
       findCompact compact_file models_path >>= \case
