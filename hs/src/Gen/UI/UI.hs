@@ -48,6 +48,7 @@ data UI
     , output_directory   :: Maybe FilePath
     , limit_time         :: Maybe Int
     , log_level          :: LogLevel
+    , _seed              :: Maybe Int
     }
 
   | Instance_Nsample
@@ -59,6 +60,7 @@ data UI
     , output_directory   :: Maybe FilePath
     , limit_time         :: Maybe Int
     , log_level          :: LogLevel
+    , _seed              :: Maybe Int
     }
 
   | Reduce
@@ -377,6 +379,10 @@ ui  = modes
                                   &= groupname "Other"
                                   &= explicit
                                   &= help "Logging level, default LogDebug"
+     , _seed              = def   &= name "seed"
+                                  &= groupname "Other"
+                                  &= explicit
+                                  &= help "Random Seed to use"
      } &= name "instance_undirected"
        &= help "Generate discriminating instance for the given essence specification using a baseline method"
 
@@ -418,6 +424,10 @@ ui  = modes
                                   &= groupname "Other"
                                   &= explicit
                                   &= help "Logging level, default LogDebug"
+     , _seed              = def   &= name "seed"
+                                  &= groupname "Other"
+                                  &= explicit
+                                  &= help "Random Seed to use"
      } &= name "instance-nsample"
        &= help "Generate discriminating instance for the given essence specification using the nsample method"
 

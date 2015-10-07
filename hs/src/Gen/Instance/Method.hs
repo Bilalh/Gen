@@ -6,7 +6,6 @@ import Gen.Instance.Data
 import Gen.Instance.RaceRunner
 import Gen.Instance.Point
 import Gen.IO.Formats
-import System.Random(setStdGen, mkStdGen)
 import System.CPUTime ( getCPUTime )
 import Gen.Instance.SamplingError
 
@@ -15,8 +14,6 @@ run :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m, ToJSON a)
     => m ()
 run = do
   startOurCPU <- liftIO $  getCPUTime
-
-  liftIO $ setStdGen (mkStdGen 33)
 
   rTimestampStart <- timestamp
 

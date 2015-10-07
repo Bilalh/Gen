@@ -221,14 +221,16 @@ mainWithArgs u@Instance_Undirected{..} = do
   cores  <- giveCores u
   common <- instanceCommon cores Instance_Common{..}
 
-  runMethod log_level (Method common Undirected)
+  seed_  <- giveSeed _seed
+  runMethod seed_ log_level (Method common Undirected)
 
 mainWithArgs u@Instance_Nsample{..} = do
 
   cores  <- giveCores u
   common <- instanceCommon cores Instance_Common{..}
 
-  runMethod log_level (Method common Nsample)
+  seed_  <- giveSeed _seed
+  runMethod seed_ log_level (Method common Nsample)
 
 
 mainWithArgs u@Reduce{..} = do

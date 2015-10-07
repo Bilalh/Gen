@@ -1,6 +1,5 @@
 import Control.Arrow
 import Data.List
-import Data.List.Split
 import Data.Maybe
 import System.Environment
 
@@ -19,7 +18,7 @@ main = do
 
 nonHash = not . ('#' `elem`)
 
-parse line = case splitOn ":" blah of
+parse line = case splitOn (== ':') blah of
     [attribute, value] -> Just [ eprime
                                , param
                                , filter (/=' ') attribute
@@ -39,3 +38,8 @@ toSQL conjure_repo essence xs
     $ intercalate "," $ map show (xs)
 
 
+splitOn     :: (Char -> Bool) -> String -> [String]
+splitOn p s =  case dropWhile p s of
+                      "" -> []
+                      s' -> w : splitOn p s''
+                            where (w, s'') = break p s'

@@ -12,14 +12,17 @@ import Conjure.UI.IO
 import Conjure.Language
 import System.FilePath             (replaceFileName, takeBaseName)
 import System.Directory            (makeAbsolute)
+import System.Random(setStdGen, mkStdGen)
 
 import qualified Data.Set as S
 
 -- The starting point for instance generation
-runMethod :: (Sampling a, ToJSON a, MonadIO m) => LogLevel -> Method a -> m ()
-runMethod lvl state= runLoggerPipeIO lvl $
-  void $ flip execStateT state $
-    createParamEssence >> initDB >> saveEprimes >> run
+runMethod :: (Sampling a, ToJSON a, MonadIO m) => Int -> LogLevel -> Method a -> m ()
+runMethod seed lvl state= do
+  liftIO $ setStdGen (mkStdGen seed)
+  runLoggerPipeIO lvl $
+    void $ flip execStateT state $
+     createParamEssence >> initDB >> saveEprimes >> run
 
 
 -- | Make the value provider for the givens
