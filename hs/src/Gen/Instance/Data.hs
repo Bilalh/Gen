@@ -22,6 +22,7 @@ data Method kind = Method MCommon kind
 instance A.FromJSON a => A.FromJSON (Method a)
 instance A.ToJSON a   => A.ToJSON   (Method a)
 
+type EprimeName = String
 data MCommon = MCommon
   { mEssencePath    :: FilePath
   , mOutputDir      :: FilePath         -- | Where to put the results.
@@ -33,7 +34,7 @@ data MCommon = MCommon
   , mModelsDir      :: FilePath         -- | The models directory e.g. prob006-GR_df
   , mGivensProvider :: Provider         -- | Generating the given
   , mCores          :: Int
-  , mCompactFirst   :: Maybe [FilePath] -- | Ordering with compact first
+  , mCompactName    :: Maybe EprimeName -- | Ordering with compact first
   -- above fields do not change
   , mPoints         :: [Point]          -- |  The instance that have been run
   } deriving (Eq, Show, Data, Typeable, Generic)

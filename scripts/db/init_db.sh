@@ -28,6 +28,12 @@ sqlite3 "${REPOSITORY_BASE}/results.db" <<SQL
 	"mode"    TEXT NOT NULL UNIQUE
 	);
 
+	CREATE TABLE IF NOT EXISTS "Eprimes" (
+	"eprime"     TEXT NOT NULL UNIQUE,
+	"eprimeId"   INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+	"isCompact"  INTEGER
+	);
+
 	CREATE TABLE IF NOT EXISTS "Timeouts" (
 	"paramHash" TEXT NOT NULL PRIMARY KEY NOT NULL UNIQUE,
 	"MinionTimeout" REAL NOT NULL,
@@ -207,8 +213,6 @@ sqlite3 "${REPOSITORY_BASE}/results.db" <<SQL
 		;
 
 
-
-
 	CREATE VIEW IF NOT EXISTS EprimeOrdering as
 	-- Eprimes which were the fastest on some paramHash
 	Select eprime, 0 as Ord, count as Ord2,  avg as Ord3  From (
@@ -236,6 +240,17 @@ sqlite3 "${REPOSITORY_BASE}/results.db" <<SQL
 		From TimingsDomination
 		Where eprime not in (Select Distinct eprime From TimingsRecorded)
 	)
+
+
+	UNION
+
+	-- Eprime that have *NOT* been run
+	Select eprime, 3 as Ord, isCompact as Ord2, -1 as Ord3 From(
+		Select eprime, isCompact
+		From Eprimes
+		Where eprime not in (Select Distinct eprime From TimingsDomination)
+	)
+
 
 	Order by Ord asc, Ord2 desc, Ord3 asc
 		;

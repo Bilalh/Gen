@@ -13,6 +13,8 @@ import qualified Conjure.Prelude as Prelude (MonadFail (..))
 
 
 data SamplingErr = ErrDontCountIteration Doc
+                 | ErrCompact Doc
+                 | ErrDB Doc
                  | ErrNoValuesLeft Doc
                  | ErrFailedToGenerateParam Doc
                  | ErrRace Doc
@@ -27,6 +29,7 @@ instance  Pretty SamplingErr  where
     pretty (ErrRace d)                  = hang "ErrRace" 4 d
     pretty (ErrGather d)                = hang "ErrGather" 4 d
     pretty (ErrFail d)                  = hang "ErrFail" 4 d
+    pretty x                            = hang "noPretty" 4 (pretty $ groom x)
 
 -- Other Ideas
 

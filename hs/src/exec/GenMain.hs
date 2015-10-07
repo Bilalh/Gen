@@ -249,9 +249,7 @@ mainWithArgs u@Instance{..} = do
         Nothing -> return Nothing
         Just compact_twin -> do
           print . pretty $ "compact_twin is" <+> pretty compact_twin
-          all_eprimes <- allFilesWithSuffix ".eprime" models_path
-          let all_but_compact = [ fp | fp <- all_eprimes, fp /= compact_twin ]
-          return $ Just $ compact_twin : all_but_compact
+          return $ Just $ (takeBaseName compact_twin)
 
 
   i :: VarInfo <- readFromJSON info_path
@@ -268,7 +266,7 @@ mainWithArgs u@Instance{..} = do
       , mGivensProvider = p
       , mPoints         = []
       , mCores          = cores
-      , mCompactFirst   = compactFirst
+      , mCompactName    = compactFirst
       }
 
   runMethod LogDebug (Method common Undirected)

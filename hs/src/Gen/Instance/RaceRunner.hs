@@ -9,6 +9,8 @@ module Gen.Instance.RaceRunner(
   , getModelOrdering
   , checkPrevious
   , subprocessTotalCpuTime
+  , saveEprimes
+  , initDB
   ) where
 
 import Conjure.Language
@@ -31,7 +33,7 @@ import Shelly                                   (print_stderr, print_stdout,
 import System.Directory                         (copyFile)
 import System.Environment                       (lookupEnv)
 import System.Exit                              (ExitCode (..))
-import System.FilePath                          (takeDirectory)
+import System.FilePath                          (takeDirectory, takeBaseName)
 import System.IO                                (hPutStr, hPutStrLn, readFile,
                                                  stderr, stdout)
 import System.IO.Temp                           (withSystemTempDirectory)
@@ -48,54 +50,82 @@ type Quality   = Double
 runRace :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
         => ParamFP -> m (Either SamplingErr Quality)
 runRace paramFP = do
+  getModelOrdering >>= \case
+    Left x -> return $ Left x
+    Right ordering -> do
+      logDebug2 "runRace ordering:" (map pretty ordering)
 
-  ordering <- getModelOrdering
-  logDebug2 "runRace ordering:" (map pretty ordering)
+      p <- readPoint paramFP
+      let paramHash = pointHash p
+      let paramName = pointName p
+
+      ts <- doRace paramFP ordering
+      (Method MCommon{mOutputDir, mMode} _) <- get
+      let resDir = mOutputDir </> ("results_" ++ mMode)
+      let errorFile = resDir </> ("p-" ++ paramHash ) <.> ".errors"
+      liftIO $ print $ nn "errorFile" errorFile
+      erred <- liftIO $ doesFileExist errorFile
+
+      case erred of
+        True -> do
+          (_, info) <- liftIO $ pairWithContents errorFile
+          return $ Left $ ErrRace $ (pretty errorFile <++> pretty info)
+        False -> do
+          totals <- parseRaceResult (paramHash) ts
+          logDebug2 "runRace totals:" [pretty totals]
+
+          let quality = calculateParamQuality totals
+          logDebug $ "runRace quality:" <+> pretty quality
+
+          timeTaken <- readParamRaceCpuTime ts
+          saveQualityToDb paramName paramHash quality timeTaken
+
+          -- FIXME store prev_timestamp if doing a cpu limit
+          return $ Right quality
 
 
-  p <- readPoint paramFP
-  let paramHash = pointHash p
-  let paramName = pointName p
-
-  ts <- doRace paramFP ordering
-  (Method MCommon{mOutputDir, mMode} _) <- get
-  let resDir = mOutputDir </> ("results_" ++ mMode)
-  let errorFile = resDir </> ("p-" ++ paramHash ) <.> ".errors"
-  liftIO $ print $ nn "errorFile" errorFile
-  erred <- liftIO $ doesFileExist errorFile
-
-  case erred of
-    True -> do
-      (_, info) <- liftIO $ pairWithContents errorFile
-      return $ Left $ ErrRace $ (pretty errorFile <++> pretty info)
-    False -> do
-      totals <- parseRaceResult (paramHash) ts
-      logDebug2 "runRace totals:" [pretty totals]
-
-      let quality = calculateParamQuality totals
-      logDebug $ "runRace quality:" <+> pretty quality
-
-      timeTaken <- readParamRaceCpuTime ts
-      saveQualityToDb paramName paramHash quality timeTaken
-
-      -- FIXME store prev_timestamp if doing a cpu limit
-      return $ Right quality
 
 
+initDB :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
+            => m ()
+initDB = do
+  (Method MCommon{mOutputDir} _) <- get
+  let env = [ ("REPOSITORY_BASE",stringToText mOutputDir)
+            ]
+
+  cmd <- pg "db/init_db.sh"
+  liftIO $ runPadded "^" env (stringToText cmd) []
+
+saveEprimesQuery :: Query
+saveEprimesQuery = [str|
+  INSERT INTO Eprimes(eprime,isCompact)
+  Values(?, ?)
+  |]
+
+saveEprimes :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
+            => m ()
+saveEprimes = do
+  (Method MCommon{mOutputDir, mModelsDir} _) <- get
+  eprimes <- liftIO $ allFilesWithSuffix ".eprime" mModelsDir
+  conn <- liftIO $ open (mOutputDir </> "results.db")
+  void $ liftIO $ withTransaction conn $ forM (eprimes) $ \(ep) -> do
+    execute conn saveEprimesQuery (takeBaseName ep, Just False)
+
+
+--FIXME missing s
 getModelOrdering :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
-        => m [ FilePath ]
+        => m (Either SamplingErr [ FilePath ])
 getModelOrdering = do
-  (Method MCommon{mOutputDir, mCompactFirst, mModelsDir} _) <- get
+  (Method MCommon{mOutputDir, mModelsDir} _) <- get
   let dbPath  =  mOutputDir </> "results.db"
   liftIO $ doesFileExist dbPath >>= \case
-    False -> do
-      case mCompactFirst of
-        Nothing -> return []
-        Just xs -> return xs
+    False -> return . Left $ ErrDB "DB not found"
     True  -> do
       conn <- liftIO $ open dbPath
       eprimes :: [[String]] <- query_ conn ("SELECT eprime FROM EprimeOrdering")
-      return [ mModelsDir </> row `at` 0 <.> ".eprime" | row <- eprimes  ]
+      return $ Right [ mModelsDir </> row `at` 0 <.> ".eprime" | row <- eprimes  ]
+
+
 
 
 doRace :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
@@ -262,7 +292,7 @@ createParamEssence = do
     False -> do
       conjureCompact specFp eprimeFp >>= \case
         True  -> return ()
-        False -> userErr1 "Failed to refine the param specification, namely essence_param_find.essence "
+        False -> error  "Failed to refine the param specification, namely essence_param_find.essence "
 
 
 createParamSpecification :: (MonadUserError m, MonadFail m) => Model -> VarInfo -> m Model
@@ -356,11 +386,17 @@ sampleParamFromMinion = do
 
 
 wrappers :: MonadIO m => FilePath -> m FilePath
-wrappers fp = do
+wrappers fp = pg ("wrappers" </> fp)
+
+
+pg :: MonadIO m => FilePath -> m FilePath
+pg fp = do
   liftIO $ lookupEnv ("PARAM_GEN_SCRIPTS" :: String) >>= \case
             Nothing -> liftIO $ error "No PARAM_GEN_SCRIPTS variable"
             Just p -> do
-                return $ p </> "wrappers" </> fp
+                return $ p </> fp
+
+
 
 
 -- | Run a command with the output padded with leading spaces
