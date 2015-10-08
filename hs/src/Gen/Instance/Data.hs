@@ -36,13 +36,12 @@ data MCommon = MCommon
   , mCores          :: Int
   , mCompactName    :: Maybe EprimeName -- | Ordering with compact first
   -- above fields do not change
-  , mPoints         :: [Point]          -- |  The instance that have been run
+  , mPoints         :: [Point]          -- | Instances that have been run, newest first
   } deriving (Eq, Show, Data, Typeable, Generic)
 
 
 instance A.FromJSON MCommon
 instance A.ToJSON MCommon
-
 
 
 data SamplingResult = SamplingSuccess
@@ -101,6 +100,9 @@ data RunMetadata = RunMetadata
 
 instance A.FromJSON RunMetadata
 instance A.ToJSON RunMetadata
+
+type TimeStamp = Int
+type Quality   = Double
 
 voidRes :: Monad m => m (Either a t) -> m (Either a ())
 voidRes x = fmap (const ()) <$> x

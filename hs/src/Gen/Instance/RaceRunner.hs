@@ -11,6 +11,7 @@ module Gen.Instance.RaceRunner(
   , subprocessTotalCpuTime
   , saveEprimes
   , initDB
+  , getPointQuailty
   ) where
 
 import Conjure.Language
@@ -21,6 +22,7 @@ import Data.List                                (foldl1')
 import Database.SQLite.Simple
 import Database.SQLite.Simple.FromField         ()
 import Database.SQLite.Simple.FromRow           ()
+import Gen.Helpers.InlineLettings
 import Gen.Helpers.Str
 import Gen.Imports
 import Gen.Instance.Data
@@ -33,18 +35,13 @@ import Shelly                                   (print_stderr, print_stdout,
 import System.Directory                         (copyFile)
 import System.Environment                       (lookupEnv)
 import System.Exit                              (ExitCode (..))
-import System.FilePath                          (takeDirectory, takeBaseName)
+import System.FilePath                          (takeBaseName, takeDirectory)
 import System.IO                                (hPutStr, hPutStrLn, readFile,
                                                  stderr, stdout)
 import System.IO.Temp                           (withSystemTempDirectory)
-import Gen.Helpers.InlineLettings
 
-import qualified Data.Set as S
-import Gen.Instance.SamplingError
-
-type TimeStamp = Int
-type Quality   = Double
-
+import qualified Data.Set                   as S
+import           Gen.Instance.SamplingError
 
 
 runRace :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
@@ -271,6 +268,25 @@ checkPrevious paramHash =do
         _    -> return Nothing
 
 
+getPointQuery :: Query
+getPointQuery = "SELECT quality FROM ParamQuality WHERE paramHash = ?"
+
+getPointQuailty :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
+                => ParamHash -> m Quality
+getPointQuailty paramHash = do
+  (Method MCommon{mOutputDir} _) <- get
+  liftIO $ doesFileExist (mOutputDir </> "results.db") >>= \case
+    False -> docError ["db does not exist", pretty $line, "getPointQuailty"]
+    True  ->  do
+      conn <- liftIO $ open (mOutputDir </> "results.db")
+      rows :: [Only Quality]  <- liftIO $ query conn getPointQuery (Only paramHash)
+
+      case rows of
+        [Only qu] -> return $ qu
+        xs        -> docError $ "multiple results returned for getPointQuailty"
+                              : (pretty $line) : map (pretty . groom) xs
+
+
 createParamEssence :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
                    => m ()
 createParamEssence = do
@@ -383,6 +399,7 @@ sampleParamFromMinion = do
     True  -> do
       finds <- readPoint solutionFp
       return $ Right $ finds `mappend` givens
+
 
 
 

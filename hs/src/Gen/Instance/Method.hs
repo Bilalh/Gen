@@ -58,7 +58,7 @@ looper i j= do
          logInfo2 $line ["no error on iteration " <+> pretty (i,j)]
          looper (i + 1) (j + 1)
       Left (ErrDontCountIteration d) -> do
-         logInfo2 $line ["Not counting iteration because of" <+> pretty d ]
+         logInfo2 $line ["REJECTED Not counting iteration because of" <+> pretty d ]
          looper i (j + 1)
       Left (x) -> do
          docError ["Error because of ", pretty x]

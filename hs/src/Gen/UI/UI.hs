@@ -61,6 +61,7 @@ data UI
     , limit_time         :: Maybe Int
     , log_level          :: LogLevel
     , _seed              :: Maybe Int
+    , influence_radius   :: Int
     }
 
   | Reduce
@@ -397,6 +398,11 @@ ui  = modes
                                   &= help "Time per model"
      , iterations       = def     &= name "iterations"
                                   &= name "i"
+                                  &= groupname "Required"
+                                  &= explicit
+                                  &= help "Number of races"
+     , influence_radius = def     &= name "influence_radius"
+                                  &= name "f"
                                   &= groupname "Required"
                                   &= explicit
                                   &= help "Number of races"

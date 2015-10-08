@@ -229,8 +229,20 @@ mainWithArgs u@Instance_Nsample{..} = do
   cores  <- giveCores u
   common <- instanceCommon cores Instance_Common{..}
 
+  let errors = catMaybes
+        [ aerr "-i|--influence-radius >0" (influence_radius < 0)
+        ]
+
+  case errors of
+    [] -> return ()
+    xs -> mapM putStrLn xs >> exitFailure
+
+
+  let ns = Nsample{mInfluence_radius=influence_radius}
+
+
   seed_  <- giveSeed _seed
-  runMethod seed_ log_level (Method common Nsample)
+  runMethod seed_ log_level (Method common ns)
 
 
 mainWithArgs u@Reduce{..} = do
