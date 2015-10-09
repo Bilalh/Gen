@@ -1,14 +1,18 @@
 language Essence 1.3
 
+$ Number of nodes
 given N : int(1..20)
 letting num_nodes be domain int(1..N)
 
+$ Directed edges, (a,b) means a depends on the value of b.
 given Edges : set ( maxSize (N * (N-1)) / 2 ) of (num_nodes, num_nodes)
 
-find ordering : matrix indexed by [num_nodes] of num_nodes
+$ The generation order indexed by the node id
+find ordering : function(total) num_nodes --> num_nodes
 
 such that
-	allDiff(ordering),
+	$ Nodes that are depend on are placed first
 	forAll (fro,to) in Edges .
-		ordering[to] < ordering[fro]
+		ordering(to) < ordering(fro)
 
+minimising max(range(ordering))
