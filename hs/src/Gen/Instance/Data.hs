@@ -56,9 +56,7 @@ instance Pretty SamplingResult where pretty = pretty . show
 
 -- info.json
 data VarInfo =
-  VarInfo { ordering :: [Text]     -- | Order to generate the variables
-          , givens   :: S.Set Text -- | givens which are not converted
-          , finds    :: S.Set Text -- | givens to be converted to finds
+  VarInfo { givens   :: S.Set Text -- | givens which are not converted
           } deriving (Eq, Show, Data, Typeable, Generic)
 
 instance A.FromJSON VarInfo
