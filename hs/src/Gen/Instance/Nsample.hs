@@ -85,6 +85,8 @@ goodness point = do
    case influence_points of
      [] -> return 0.5
      _ -> do
+       logWarn2 $line [nn "len(influence_points)" (length influence_points)
+                      ,nn "len(data_points)" (length mPoints)]
        quailties :: [Quality] <- mapM get_quailty influence_points
        let mean = sum quailties / fromIntegral (length quailties)
        return mean

@@ -71,3 +71,26 @@ domainRandomValue (DomainInt [RangeBounded (ConstantInt a) (ConstantInt b) ]) = 
 
 domainRandomValue (DomainInt _) = error "Only single range of int allowed"
 domainRandomValue _             = error "Only Int domains supported"
+
+class Distance a where
+    distance :: a -> a -> Integer
+
+-- instance Distance Constant where
+--   distance (ConstantBool c)        (ConstantBool d)        = _x
+--   distance (ConstantInt c)         (ConstantInt d)         = (c ^ d)
+--   distance (ConstantEnum c1 c2 c3) (ConstantEnum d1 d2 d3) = _x
+--   distance (ConstantField c1 c2)   (ConstantField d1 d2)   = _x
+--   distance (ConstantAbstract c)    (ConstantAbstract d)    = _x
+--   distance c d = docError ["Unsupported" ,nn "c" c ,nn "d" d ]
+
+-- instance Distance (AbstractLiteral Constant) where
+--   distance (AbsLitTuple c)           (AbsLitTuple d)          = _x
+--   distance (AbsLitRecord c)          (AbsLitRecord d)         = _x
+--   distance (AbsLitVariant c1 c2 c3)  (AbsLitVariant d1 d2 d3) = _x
+--   distance (AbsLitMatrix c1 c2)      (AbsLitMatrix d1 d2)     = _x
+--   distance (AbsLitSet c)             (AbsLitSet d)            = _x
+--   distance (AbsLitMSet c)            (AbsLitMSet d)           = _x
+--   distance (AbsLitFunction c)        (AbsLitFunction d)       = _x
+--   distance (AbsLitSequence c)        (AbsLitSequence d)       = _x
+--   distance (AbsLitRelation c)        (AbsLitRelation d)       = _x
+--   distance (AbsLitPartition c)       (AbsLitPartition d)      = _x
