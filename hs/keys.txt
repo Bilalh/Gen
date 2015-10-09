@@ -40,3 +40,5 @@ C-c<
 Make the indentation of the region shallower.
 C-c>
 Make the indentation of the region deeper.
+
+(setq ghc-ghc-options '("-fdefer-type-errors"))
