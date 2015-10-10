@@ -27,21 +27,22 @@ import Gen.Helpers.Str
 import Gen.Imports
 import Gen.Instance.Data
 import Gen.Instance.Point
+import Gen.Instance.SamplingError
 import Gen.IO.Formats
 import Gen.IO.Toolchain                         (runCommand)
+import Gen.IO.Toolchain                         (getToolchainDir)
 import Shelly                                   (print_stderr, print_stdout,
                                                  runHandles, setenv,
                                                  transferFoldHandleLines)
 import System.Directory                         (copyFile)
-import System.Environment                       (lookupEnv)
 import System.Exit                              (ExitCode (..))
 import System.FilePath                          (takeBaseName, takeDirectory)
 import System.IO                                (hPutStr, hPutStrLn, readFile,
                                                  stderr, stdout)
 import System.IO.Temp                           (withSystemTempDirectory)
 
-import qualified Data.Set                   as S
-import           Gen.Instance.SamplingError
+import qualified Data.Set as S
+
 
 
 runRace :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
@@ -88,8 +89,8 @@ initDB = do
   let env = [ ("REPOSITORY_BASE",stringToText mOutputDir)
             ]
 
-  cmd <- pg "db/init_db.sh"
-  liftIO $ runPadded "^" env (stringToText cmd) []
+  cmd <- script_lookup "instances/db/init_db.sh"
+  liftIO $ runPadded "^" env cmd []
 
 saveEprimesQuery :: Query
 saveEprimesQuery = [str|
@@ -145,8 +146,8 @@ doRace paramFP ordering = do
             , ("OUT_BASE_DIR", stringToText mOutputDir)
             ] ++ if null ordering then [] else [ ( "MODELS_TO_USE", stringToText $ intercalate "\n" ordering)]
 
-  cmd <- wrappers "run.sh"
-  liftIO $ runPadded "⌇" env (stringToText cmd) args
+  cmd <- script_lookup "instances/race.sh"
+  liftIO $ runPadded "⌇" env cmd args
   return now
 
 
@@ -172,8 +173,8 @@ parseRaceResult paramHash ts =do
             , ("OUT_BASE_DIR", mOutputDir)
             ]
 
-  cmd <- wrappers "run_gather.sh"
-  liftIO $ runPadded "❮" env (stringToText cmd) args
+  cmd <- script_lookup "instances/gather_race_results.sh"
+  liftIO $ runPadded "❮" env cmd args
 
   conn <- liftIO $ open (mOutputDir </> "results.db")
   rows :: [RaceTotals] <- liftIO $ query conn raceResultsQuery (Only paramHash)
@@ -389,8 +390,8 @@ sampleParamFromMinion = do
             , ("TIMEOUT5_FILE", out </> "timeout_file")
             ]
 
-  cmd <- wrappers "create_param_from_essence.sh"
-  res <- liftIO $ runPadded " ⦿ " env (stringToText cmd) args
+  cmd <- script_lookup "instances/generate_param.sh"
+  void $ liftIO $ runPadded " ⦿ " env cmd args
 
   worked <- liftIO $ doesFileExist solutionFp
   case worked of
@@ -401,27 +402,17 @@ sampleParamFromMinion = do
       return $ Right $ finds `mappend` givens
 
 
-
-
-wrappers :: MonadIO m => FilePath -> m FilePath
-wrappers fp = pg ("wrappers" </> fp)
-
-
-pg :: MonadIO m => FilePath -> m FilePath
-pg fp = do
-  liftIO $ lookupEnv ("PARAM_GEN_SCRIPTS" :: String) >>= \case
-            Nothing -> liftIO $ error "No PARAM_GEN_SCRIPTS variable"
-            Just p -> do
-                return $ p </> fp
-
-
+script_lookup :: MonadIO m => FilePath -> m Text
+script_lookup fp = do
+  stringToText <$> (</> fp)  <$> liftIO (getToolchainDir Nothing)
 
 
 -- | Run a command with the output padded with leading spaces
 -- | n.b  sterr will be redirected to stdin
+-- |  parallel -j1 --tagstring may be a better option
 runPadded :: String -> [(Text,Text)] -> Text -> [Text] -> IO ()
 runPadded ch env cmd args = do
-  com <- wrappers "to_stdout.sh"
+  com <- script_lookup "instances/to_stdout.sh"
   let pad =  " " ++ ch ++ " "
   sh  . print_stdout False . print_stderr False $ do
     mapM_ (\(a,b) ->  setenv a b) env
@@ -443,7 +434,7 @@ runPadded ch env cmd args = do
 
           return ()
 
-    void $ runHandles (fromString com) (cmd:args) [] handler
+    void $ runHandles (fromString $ textToString com) (cmd:args) [] handler
 
   where
     printer1 hto lnn = do

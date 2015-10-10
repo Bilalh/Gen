@@ -1,16 +1,13 @@
 #!/bin/bash
 set -o nounset
-
-# get the repository base
-Dir="$( cd "$( dirname "$0" )" && pwd )"
-Script_Base="$Dir/../"
+OUR="$( cd "$( dirname "$0" )" && pwd )";
 export NUM_JOBS=1
 
-results_dir=${GENERATED_OUTPUT_DIR:-"${OUT_BASE_DIR:-.}/results_${USE_MODE}"}
+results_dir="${OUT_BASE_DIR}/results_${USE_MODE}/"
 #"
-stats_dir=${STATS_OUTPUT_DIR:-"${OUT_BASE_DIR:-.}/stats_${USE_MODE}"}
+stats_dir="${OUT_BASE_DIR}/stats_${USE_MODE}/"
 #"
-fastest_dir=${FASTEST_OUTPUT_DIR:-"${OUT_BASE_DIR:-.}/fastest_${USE_MODE}"}
+fastest_dir="${OUT_BASE_DIR}/fastest_${USE_MODE}/"
 #"
 
 timing_method=${TIMING_METHOD:-cpu}
@@ -33,7 +30,7 @@ echo "USE_DATE: $USE_DATE"
 Essence=$(ls *.essence | head -n 1)
 Essence_base=${Essence%.essence}
 
-${Script_Base}/db/init_db.sh
+"${OUR}/init_db.sh"
 
 param_glob=${PARAM_BASE_NAME}
 echo "param_glob ${param_glob}"
@@ -65,12 +62,12 @@ function doMinionTable(){
 	sr_time="${results_dir}/$2.sr-time"
 
 
-	${Script_Base}/db/parse_minion_tableout_sql.py "$fp" ${REPOSITORY_BASE}/results.db `grep ${timing_method} ${sr_time} | egrep -o '[0-9]+(.[0-9]+)?'`
+	"${OUR}/parse_minion_tableout_sql.py" "$fp" ${REPOSITORY_BASE}/results.db `grep ${timing_method} ${sr_time} | egrep -o '[0-9]+(.[0-9]+)?'`
 	set +x
 }
 
-export  results_dir
-export Script_Base
+export results_dir
+export OUR
 export REPOSITORY_BASE
 export -f doMinionTable
 
@@ -129,7 +126,7 @@ export TOTAL_TIMEOUT
 
 parallel -j"${NUM_JOBS}" --tagstring "{/}"  'echo "isDominated:$(isDominated {/.})"'  \
 	::: `ls ${results_dir}/*${param_glob}.zstarted` 2>"${stats_dir}/${USE_DATE}.isDominated-trace" \
-	|   runhaskell ${Script_Base}/db/gather_data.hs  ${Essence_base} \
+	|   runhaskell "${OUR}/gather_data.hs"  ${Essence_base} \
 	|   sqlite3 ${REPOSITORY_BASE}/results.db
 
 

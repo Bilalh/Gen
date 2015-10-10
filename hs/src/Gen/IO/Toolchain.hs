@@ -116,25 +116,23 @@ statusesList = do
 
 getToolchainDir :: (MonadFail m, MonadIO m) => Maybe FilePath -> m FilePath
 getToolchainDir binDir = liftIO $ lookupEnv "REPO_GEN" >>= \case
-                  Nothing -> do
-                    case binDir of
-                      Nothing -> useNextToApp >>= \case
-                                 Just tc -> return tc
-                                 Nothing -> useDataDir
+  Nothing -> do
+    case binDir of
+      Nothing -> useNextToApp >>= \case
+                 Just tc -> return tc
+                 Nothing -> useDataDir
 
-                      Just bp -> doesDirectoryExist (bp </> "toolchain") >>= \case
-                                    True  -> do
-                                      return (bp </> "toolchain")
-                                    False -> fail . vcat $
-                                       [" Can't find toolchain directory in" <+> pretty bp
-                                       , "set REPO_GEN to gen/ repo" ]
-                  Just fp -> do
-                    doesDirectoryExist (fp </> "toolchain") >>= \case
-                       True -> do
-                         return $ fp </> "toolchain"
-                       False -> do
-                         fail . vcat $ [" Can't find toolchain directory in REPO_GEN "
-                                       , "set REPO_GEN to gen/ repo"]
+      Just bp -> doesDirectoryExist (bp </> "toolchain") >>= \case
+                    True  -> do
+                      return (bp </> "toolchain")
+                    False -> fail . vcat $
+                       [" Can't find toolchain directory in" <+> pretty bp ]
+  Just fp -> do
+    doesDirectoryExist (fp </> "toolchain") >>= \case
+       True -> do
+         return $ fp </> "toolchain"
+       False -> do
+         fail . vcat $ [" Can't find toolchain directory in REPO_GEN "]
 
   where
 
@@ -153,7 +151,7 @@ getToolchainDir binDir = liftIO $ lookupEnv "REPO_GEN" >>= \case
         return $ fp </> "toolchain"
       False -> do
          fail . vcat $ [" Can't find toolchain directory next to gen binary or in data dir"
-                       , "place toolchain/ next to gen binary or set REPO_GEN to gen/ repo"]
+                       , "recompile or place toolchain/ from gen next to the gen binary"]
 
 runCommand :: MonadIO m => FilePath -> [String] -> Maybe String -> m ExitCode
 runCommand = runCommand' Nothing

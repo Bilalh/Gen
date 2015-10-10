@@ -2,25 +2,27 @@
 # Bilal Syed Hussain
 set -o nounset
 
-Dir="$( cd "$( dirname "$0" )" && pwd )";
+OUR="$( cd "$( dirname "$0" )" && pwd )";
 Time="/usr/bin/time -p"
 
 MINION_TIMEOUT=${1:-${MINION_TIMEOUT}}
 TOTAL_TIMEOUT=${2:-${TOTAL_TIMEOUT}}
 
-echo "MINION_TIMEOUT is ${MINION_TIMEOUT}"
-echo "TOTAL_TIMEOUT  is ${TOTAL_TIMEOUT}"
+echo "MINION_TIMEOUT       is ${MINION_TIMEOUT}"
+echo "TOTAL_TIMEOUT        is ${TOTAL_TIMEOUT}"
+echo "GENERATED_OUTPUT_DIR is ${GENERATED_OUTPUT_DIR}"
+echo "STATS_OUTPUT_DIR     is ${STATS_OUTPUT_DIR}"
 
-Base="`pwd`";
-Name="`basename ${Base}`";
+Base="$PWD";
+Name="$(basename "${Base}")";
 Essence="${Name}.essence";
 
-Mode="${3:-${USE_MODE:-df}}";
+Mode="${USE_MODE}";
 
 Eprime_dir="${Name}_${Mode}";
 Param_dir="params";
 
-Output_dir=${GENERATED_OUTPUT_DIR:-}
+Output_dir="${GENERATED_OUTPUT_DIR}/"
 
 TIMEOUT5_FILE_BASE=${Output_dir}/__timeout5-${Name}_${Mode}
 echo "TIMEOUT5_FILE_BASE is ${TIMEOUT5_FILE_BASE}"
@@ -29,29 +31,17 @@ timing_method=${TIMING_METHOD:-cpu}
 echo "timing_method: ${timing_method}"
 export  timing_method
 
-Stats_output=${STATS_OUTPUT_DIR:-}
-if [ ! "${Stats_output}" == "" ]; then
-	Stats_output="${Stats_output}/"
-fi
-
-
-if [ ! "${Output_dir}" == "" ]; then
-	Output_dir="${Output_dir}/";
-else
-	Output_dir="${Eprime_dir}";
-fi
-
-[ -z "${FASTEST_OUTPUT_DIR}" ] && echo '$FASTEST_OUTPUT_DIR Not defined'  && exit 1
+Stats_output=${STATS_OUTPUT_DIR}
 
 Params="${PARAMS_TO_USE:-`ls -1 $Param_dir/*.param`}"
 echo "${Params}" > "${Stats_output}${Date}.params-used";
 
-Eprimes="${MODELS_TO_USE:-`ls -1 $Eprime_dir/*.eprime`}"
+Eprimes="${MODELS_TO_USE:-$(ls -1 "$Eprime_dir/"*.eprime)}"
 echo "${Eprimes}" > "${Stats_output}${Date}.models-used";
 
 echo "${MINION_TIMEOUT} ${TOTAL_TIMEOUT}" > "${Stats_output}${Date}.timeout-used";
 
-echo "`pwd`";
+echo "$PWD";
 echo " --- ${Essence} --- ";
 
 
@@ -78,7 +68,7 @@ else
 		fi
 	done
     echo "<update_timeout> successfully acquired lock: ${LOCKDIR} for $1 after ${total} seconds"
-    mkdir ${LOCKDIR};
+    mkdir "${LOCKDIR}";
 fi
 
 echo "<update_timeout> fin ${fin}"
@@ -158,7 +148,7 @@ echo "lddd \${LOCKDIR}";
 export LOCKDIR;
 (
 $Time \
-	bash "${Dir}/perModelPerParamCpuTime.sh"  ${Essence} {1} {2} ${MINION_TIMEOUT} ${TOTAL_TIMEOUT} ${Mode}  \
+	bash "${OUR}/perModelPerParamCpuTime.sh"  ${Essence} {1} {2} ${MINION_TIMEOUT} ${TOTAL_TIMEOUT} ${Mode}  \
 ) 3>&1 1>&2 2>&3  | tee "${Output_dir}/{1/.}-{2/.}.stderr";
 echo "";
 update_timeout  "${Output_dir}/{1/.}-{2/.}" {1/} {2/};
@@ -172,7 +162,8 @@ export TOTAL_TIMEOUT
 export TIMEOUT5_FILE_BASE
 
 if [ "$( parallel --version | egrep -o '[0-9]+$'  )" -ge "20141122"  ]; then
-	parallel --halt 1 -j"${NUM_JOBS:-6}" \
+	#shellcheck disable=SC2016
+	parallel --halt 1 -j"${NUM_JOBS}" \
 		--rpl '{param} s:.*/::; s:\.[^/.]+$::; $_=substr($_,0,5) . "..";' \
 		--rpl '{model} s:.*/::; s:\.[^/.]+$::; s:^model_::;' \
 		--tagstring '{#} {1model} {2param}' \
@@ -180,5 +171,5 @@ if [ "$( parallel --version | egrep -o '[0-9]+$'  )" -ge "20141122"  ]; then
 else
 	echo "INSTALL a newer version of parallel (>=20141122) for much nicer output "
 	echo "INSTALL a newer version of parallel (>=20141122) for much nicer output " >2
-	parallel --tagstring "{#} {1/.} {2/.}" --halt 1 -j${NUM_JOBS:-6}  $Command ::: ${Eprimes} ::: ${Params};
+	parallel --tagstring "{#} {1/.} {2/.}" --halt 1 -j${NUM_JOBS}  $Command ::: ${Eprimes} ::: ${Params};
 fi
