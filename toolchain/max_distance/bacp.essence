@@ -1,0 +1,9 @@
+language Essence 1.3
+
+letting Course be domain int(1..100)
+find prereq : relation of (Course*Course)
+find siz : int(1..500000)
+such that
+	siz= |prereq|
+
+maximising siz

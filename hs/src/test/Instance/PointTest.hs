@@ -75,6 +75,31 @@ tests = testGroup "PointTests"
                     ]
      in distanceTest "sonet point max distance" 35 ma mi
 
+   , let ma = Point [ ("nnodes", ConstantInt 100)
+                    , ("maxl", ConstantInt 100)
+                    , ("minl", ConstantInt 100)
+                    , ("n_courses", ConstantInt 100)
+                    , ("maxc", ConstantInt 100)
+                    , ("minc", ConstantInt 100)
+                    , ("n_credits", ConstantInt 100)
+                    , ("prereq", relation_prereq_max)
+                    , ("credits",  ConstantAbstract $ AbsLitFunction
+                       [ (ConstantInt i, ConstantInt 100) | i  <- [1..100] ])
+                    ]
+         mi = Point [ ("nnodes", ConstantInt 1)
+                    , ("maxl", ConstantInt 1)
+                    , ("minl", ConstantInt 1)
+                    , ("n_courses", ConstantInt 1)
+                    , ("maxc", ConstantInt 1)
+                    , ("minc", ConstantInt 1)
+                    , ("n_credits", ConstantInt 1)
+                    , ("prereq", ConstantAbstract (AbsLitRelation []))
+                    , ("credits",  ConstantAbstract $ AbsLitFunction
+                       [ (ConstantInt i, ConstantInt 1) | i  <- [1..100] ])
+                    ]
+     in distanceTest "bacp point max distance" 1028 ma mi
+
+
    ]
 
   ]
