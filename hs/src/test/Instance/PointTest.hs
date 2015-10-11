@@ -1,4 +1,5 @@
 module Instance.PointTest ( tests ) where
+-- Test the distance between two, Constants and two Points
 
 import Conjure.Language.Definition
 import Gen.Imports
