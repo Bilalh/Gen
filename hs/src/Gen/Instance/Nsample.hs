@@ -4,7 +4,7 @@ module Gen.Instance.Nsample(Nsample(..),Sampling(..)) where
 import Gen.Imports
 import Gen.Instance.Data
 import Gen.Instance.Method
-import Gen.Instance.Point         (pointHash,Distance(..),squareRoot)
+import Gen.Instance.Point         (pointHash,Distance(..))
 import Gen.Instance.RaceRunner    (getPointQuailty)
 import Gen.Instance.SamplingError (SamplingErr (ErrDontCountIteration))
 import Text.Printf                (printf)

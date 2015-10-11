@@ -77,7 +77,7 @@ domainRandomValue _             = error "Only Int domains supported"
 class Distance a where
     distance :: a -> a -> Integer
     distanceSq :: a -> a -> Integer
-    distanceSq a b = distance a b ^ 2
+    distanceSq a b = distance a b ^ (2 :: Integer)
 
 instance Distance Point where
   distance (Point center) (Point point) =
