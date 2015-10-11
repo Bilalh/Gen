@@ -1,5 +1,9 @@
-install:
+install: ../toolchain/cputimeout/cputimeout
 	@bash scripts/install.sh
+
+../toolchain/cputimeout/cputimeout:
+	make -C ../toolchain/cputimeout
+
 
 install_and_meta: keys update_ops_metadata install
 
@@ -8,6 +12,8 @@ test:
 
 clean:
 	@bash scripts/clean.sh
+	make -C ../toolchain/cputimeout clean
+
 
 # Use `make ghci` to run ghci on .hs files
 # Or  `make ghci files=<files>` to run on specific files
@@ -134,4 +140,3 @@ dev:
 
 prod:
 	RUN_TESTS=yes make install
-
