@@ -10,6 +10,7 @@ import Crypto.Hash
 import Gen.Imports                 hiding (hash)
 import Gen.Instance.Data
 import System.FilePath             (takeDirectory)
+import Data.List                  (iterate, takeWhile)
 
 import qualified Data.ByteString.Char8 as B
 import qualified Data.Set as S
@@ -75,14 +76,21 @@ domainRandomValue _             = error "Only Int domains supported"
 
 class Distance a where
     distance :: a -> a -> Integer
+    distanceSq :: a -> a -> Integer
+    distanceSq a b = distance a b ^ 2
+
+instance Distance Point where
+  distance (Point center) (Point point) =
+    let summed = sum [ (distanceSq c p)   | ((_,p),(_,c)) <- zip center point ]
+    in squareRoot summed
 
 instance Distance Constant where
   distance (ConstantAbstract c)    (ConstantAbstract d)    =
       distance c d
   distance (ConstantBool c)        (ConstantBool d)        =
-      fromIntegral $ (fromEnum c) ^ (fromEnum d)
+      fromIntegral $ (fromEnum c) - (fromEnum d)
   distance (ConstantInt c)         (ConstantInt d)         =
-      (c ^ d)
+      (c - d)
 --   distance (ConstantEnum c1 c2 c3) (ConstantEnum d1 d2 d3) = _x
 --   distance (ConstantField c1 c2)   (ConstantField d1 d2)   = _x
 
@@ -92,7 +100,7 @@ instance Distance Constant where
 
 instance Distance (AbstractLiteral Constant) where
   distance (AbsLitTuple c)           (AbsLitTuple d)          =
-       sum [ distance a b  |  (Just a, Just b) <- zipPad c d  ]
+       squareRoot $ sum [ distanceSq a b  |  (Just a, Just b) <- zipPad c d  ]
   -- distance (AbsLitRecord c)          (AbsLitRecord d)         = _x
   -- distance (AbsLitVariant c1 c2 c3)  (AbsLitVariant d1 d2 d3) = _x
   -- distance (AbsLitMatrix c1 c2)      (AbsLitMatrix d1 d2)     = _x
@@ -100,10 +108,10 @@ instance Distance (AbstractLiteral Constant) where
       let sc  = S.fromList c
           sd  = S.fromList d
           res = S.size (S.difference sc sd) + S.size (S.difference sd sc)
-      in fromIntegral res
+      in squareRoot $  fromIntegral res
   -- distance (AbsLitMSet c)            (AbsLitMSet d)           = _x
   distance (AbsLitFunction c)        (AbsLitFunction d)       =
-       sum [ distance v1 v2 | (Just (_,v1), Just (_,v2))
+       squareRoot $ sum [ distanceSq v1 v2 | (Just (_,v1), Just (_,v2))
                             <- zipPad (sort c) (sort d)]
   -- distance (AbsLitSequence c)        (AbsLitSequence d)       = _x
   distance (AbsLitRelation c)        (AbsLitRelation d)       =
@@ -127,3 +135,21 @@ next (x:_) = Just x
 rest ::  [a] -> [a]
 rest [] = []
 rest xs = tail xs
+
+-- sqrt does not work on Integers
+-- https://wiki.haskell.org/Generic_number_type#squareRoot
+squareRoot :: Integer -> Integer
+squareRoot 0 = 0
+squareRoot 1 = 1
+squareRoot n =
+   let twopows = iterate (^!2) 2
+       (lowerRoot, lowerN) =
+          last $ takeWhile ((n>=) . snd) $ zip (1:twopows) twopows
+       newtonStep x = div (x + div n x) 2
+       iters = iterate newtonStep (squareRoot (div n lowerN) * lowerRoot)
+       isRoot r  =  r^!2 <= n && n < (r+1)^!2
+   in  head $ dropWhile (not . isRoot) iters
+
+   where
+     (^!) :: Num a => a -> Int -> a
+     (^!) x m = x^m

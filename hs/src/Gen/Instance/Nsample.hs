@@ -1,11 +1,10 @@
 {-# LANGUAGE DeriveDataTypeable, DeriveGeneric #-}
 module Gen.Instance.Nsample(Nsample(..),Sampling(..)) where
 
-import Data.List                  (iterate, takeWhile)
 import Gen.Imports
 import Gen.Instance.Data
 import Gen.Instance.Method
-import Gen.Instance.Point         (pointHash,Distance(..))
+import Gen.Instance.Point         (pointHash,Distance(..),squareRoot)
 import Gen.Instance.RaceRunner    (getPointQuailty)
 import Gen.Instance.SamplingError (SamplingErr (ErrDontCountIteration))
 import Text.Printf                (printf)
@@ -97,10 +96,18 @@ shape_is_in_inside :: MonadLog m => Int -> Point -> Point -> m Bool
 shape_is_in_inside = eucludean_is_in_inside
 
 eucludean_is_in_inside :: MonadLog m => Int -> Point -> Point -> m Bool
-eucludean_is_in_inside radius (Point center) (Point point) = do
-  let summed = sum [ distance c p  | ((_,p),(_,c)) <- zip center point ]
-
-  return $ squareRoot summed  <= fromIntegral radius
+eucludean_is_in_inside radius a@(Point center) b@(Point point) = do
+  let summed = sum [ (distanceSq c p)   | ((_,p),(_,c)) <- zip center point ]
+  let rooted = squareRoot summed
+  let res    = rooted  <= fromIntegral radius
+  logWarn2 $line [ nn "distance between" summed
+                 , nn "sqrt" rooted
+                 , nn "inside?" res
+                 , nn "radius" radius
+                 , nn "center" a
+                 , nn "point"  b
+                 ]
+  return res
 
 
 get_quailty :: (MonadIO m, MonadState (Method Nsample) m, MonadLog m, Sampling Nsample)
@@ -123,21 +130,3 @@ runPoint picked = do
 
 n3 :: Doc -> Double -> Doc
 n3 a d = a <+> ":"  <+> pretty (printf "%.3f" d :: String) <+> ""
-
--- sqrt does not work on Integers
--- https://wiki.haskell.org/Generic_number_type#squareRoot
-squareRoot :: Integer -> Integer
-squareRoot 0 = 0
-squareRoot 1 = 1
-squareRoot n =
-   let twopows = iterate (^!2) 2
-       (lowerRoot, lowerN) =
-          last $ takeWhile ((n>=) . snd) $ zip (1:twopows) twopows
-       newtonStep x = div (x + div n x) 2
-       iters = iterate newtonStep (squareRoot (div n lowerN) * lowerRoot)
-       isRoot r  =  r^!2 <= n && n < (r+1)^!2
-   in  head $ dropWhile (not . isRoot) iters
-
-   where
-     (^!) :: Num a => a -> Int -> a
-     (^!) x m = x^m

@@ -11,6 +11,7 @@ import qualified Gen.ReduceTest
 import qualified Gen.SimplerTest
 import qualified Gen.WeightsTest
 import qualified Solver.SolverTest
+import qualified Instance.PointTest
 
 main :: IO ()
 main = do
@@ -30,4 +31,5 @@ items = [ Gen.DepthTest.tests
         , Gen.GenerateTest.tests
         , Gen.GenerateTypeCheckTest.tests
         , Gen.WeightsTest.tests
+        , Instance.PointTest.tests
         ]

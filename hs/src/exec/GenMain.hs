@@ -230,7 +230,7 @@ mainWithArgs u@Instance_Nsample{..} = do
   common <- instanceCommon cores Instance_Common{..}
 
   let errors = catMaybes
-        [ aerr "-i|--influence-radius >0" (influence_radius < 0)
+        [ aerr "-f|--influence-radius >0" (influence_radius <= 0)
         ]
 
   case errors of
