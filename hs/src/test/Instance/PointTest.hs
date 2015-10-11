@@ -1,7 +1,6 @@
 {-# LANGUAGE QuasiQuotes #-}
 module Instance.PointTest ( tests ) where
 
-import Gen.AST.TH
 import Gen.Imports
 import Gen.Instance.Point
 import Gen.Instance.Data
@@ -33,7 +32,21 @@ tests = testGroup "PointTests"
      let ma = Point [("k", ConstantInt 10), ("n", ConstantInt 50)]
          mi = Point [("k", ConstantInt 2),  ("n", ConstantInt 1)]
      in distanceTest "langford point" 49 ma mi
+   , let ma = Point [ ("n", ConstantInt 100)
+                    , ("totalWeight", ConstantInt 1000)
+                    , ("weights",  ConstantAbstract $ AbsLitFunction
+                       [ (ConstantInt i, ConstantInt 100) | i  <- [1..100] ])
+                    , ("values",  ConstantAbstract $ AbsLitFunction
+                       [ (ConstantInt i, ConstantInt 100) | i  <- [1..100] ])
+                    ]
+         mi = Point [ ("n", ConstantInt 1)
+                    , ("totalWeight", ConstantInt 1)
+                    , ("weights",  ConstantAbstract $ AbsLitFunction
+                       [ (ConstantInt i, ConstantInt 1) | i  <- [1..100] ])
+                    , ("values",  ConstantAbstract $ AbsLitFunction
+                       [ (ConstantInt i, ConstantInt 1) | i  <- [1..100] ])
+                    ]
+     in distanceTest "knapsack point" 1722 ma mi
    ]
 
   ]
---980100
