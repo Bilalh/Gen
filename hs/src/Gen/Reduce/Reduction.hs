@@ -183,7 +183,7 @@ instance (HasGen m,  HasLogger m) =>  Reduce Constant m where
     -- Don't try to reduce empty literals
     reduce (ConstantAbstract li) | isLitEmpty li = return []
 
-    -- FIXME finish?
+    -- TODO finish?
     reduce (ConstantAbstract AbsLitTuple{}) =  return []
     reduce (ConstantAbstract _)             =  return []
     reduce _                                =  return []
@@ -395,7 +395,7 @@ instance (HasGen m,  HasLogger m) => Reduce (Domain () Expr) m where
     return [ EDom $ DomainRelation () def vs
            | vs <- take 2 $ transpose . map (map unEDom) $  xs]
 
-  --FIXME other types
+  --TODO other types
   single x@(DomainRecord _)             = return [EDom x]
   single x@(DomainVariant _)            = return [EDom x]
 

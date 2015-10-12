@@ -79,7 +79,6 @@ runRace paramFP = do
           timeTaken <- readParamRaceCpuTime ts
           saveQualityToDb paramName paramHash quality timeTaken
 
-          -- FIXME store prev_timestamp if doing a cpu limit
           return $ Right quality
 
 

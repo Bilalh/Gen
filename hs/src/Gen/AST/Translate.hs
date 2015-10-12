@@ -69,7 +69,6 @@ instance Translate Expr Expression where
   toConjure (ETyped x1 x2) =  Typed <$> toConjure x2 <*> pure x1
   toConjure (EOp x)        =  Op <$> toConjure x
 
-  --FIXME correct? not the first
   toConjure (EVar (Var x _) ) =  Reference <$> toConjure x <*> return Nothing
   toConjure (EMetaVar x)      = return $ ExpressionMetaVar x
 
