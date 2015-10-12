@@ -174,6 +174,7 @@ minion $MINION  \
     -preprocess SACBounds \
     -tableout $MINION_TABLE \
     -solsout  $MINION_SOLUTION \
+    -randomiseorder \
     -randomseed ${RANDOM_SEED}
 
 date +'finMINION %a %d %b %Y %k:%M:%S %z%nfinMINION(timestamp) %s' >&2
