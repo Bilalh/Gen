@@ -11,12 +11,16 @@ $ The generation order indexed by the node id
 find ordering : function(total) num_nodes --> num_nodes
 find levelsNeeded : num_nodes
 
+$ find dependent: set (maxSize N) of num_nodes
+
+
 such that
 	$ Nodes that are depend on other nodes are placed first
 	forAll (fro,to) in Edges .
 		ordering(to) < ordering(fro),
 
 	levelsNeeded = max(range(ordering))
+	$dependent = toSet([ n  | (n,i) <- toSet(ordering) ])
 
 
 minimising max(range(ordering))

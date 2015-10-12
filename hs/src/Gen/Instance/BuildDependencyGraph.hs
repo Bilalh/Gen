@@ -45,7 +45,7 @@ buildDependencyGraph outBase model = do
   ess <- liftIO $ script_lookup1 "instances/find_generation_order/find_generation_order.essence"
   let eprime = outBase </> "find_generation_order.eprime"
   conjureCompact ess eprime >>= \case
-    False -> return $ Left $ ErrFailedRunSolve ("failed to refine" <+> pretty ess )
+    False -> return $ Left $ ErrFailedRunSolve (nn "failed to refine" (groom ess) )
     True  -> do
       runSolve outBase ess eprime point >>= \case
         Left x  -> return (Left x)
