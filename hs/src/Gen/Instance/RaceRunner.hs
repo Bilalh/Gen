@@ -392,7 +392,7 @@ sampleParamFromMinion = do
   let args = map stringToText [ (mOutputDir </> "essence_param_find.essence")
              , (mOutputDir </> "essence_param_find.eprime")
              , paramFp
-             , show timeout
+             , show timeout -- used
              , show timeout
              , show seed
              ]
