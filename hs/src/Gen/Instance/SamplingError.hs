@@ -17,6 +17,7 @@ data SamplingErr = ErrDontCountIteration Doc
                  | ErrDB Doc
                  | ErrNoValuesLeft Doc
                  | ErrFailedToGenerateParam Doc
+                 | ErrFailedRunSolve Doc
                  | ErrRace Doc
                  | ErrGather Doc
                  | ErrFail Doc

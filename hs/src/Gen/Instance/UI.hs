@@ -1,7 +1,6 @@
 module Gen.Instance.UI where
 
 import Conjure.Language
-import Conjure.Language.Constant
 import Conjure.Language.NameResolution   (resolveNames)
 import Conjure.UI.IO
 import Gen.Imports
@@ -26,12 +25,12 @@ runMethod seed lvl state= do
      createParamEssence >> initDB >> saveEprimes >> run
 
 
-makeDeps :: (MonadIO m, MonadLog m) => FilePath -> m ()
-makeDeps fp = do
+makeDeps :: (MonadIO m, MonadLog m)
+         => FilePath -> FilePath -> m ()
+makeDeps outBase fp = do
   model <-  liftIO $ ignoreLogs $ readModelFromFile fp >>= runNameGen . resolveNames
-  edges <- buildDependencyGraph model
-  liftIO $ groomPrint edges
-  return ()
+  info <- buildDependencyGraph outBase model
+  liftIO $ groomPrint info
 
 -- | Make the value provider for the givens
 makeProvider :: (MonadIO m, MonadLog m) => FilePath -> VarInfo ->  m Provider

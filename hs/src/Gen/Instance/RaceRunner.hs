@@ -13,6 +13,10 @@ module Gen.Instance.RaceRunner(
   , initDB
   , getPointQuailty
   , paramGenCpuTime
+  , readCpuTime
+  , runSolve
+  , script_lookup1
+  , conjureCompact
   ) where
 
 import Conjure.Language
@@ -219,9 +223,7 @@ paramGenCpuTime = do
   (Method MCommon{mOutputDir} _) <- get
   let statsDir = mOutputDir </> "_param_gen"
   fps <- liftIO $ allFilesWithSuffix "total.time" statsDir
-  times :: [Maybe Double] <- liftIO  $  forM fps $ \fp -> do
-             st <- readFile fp
-             return $ readMay st
+  times :: [Maybe Double] <- liftIO  $  forM fps $ readCpuTime
   return . sum . catMaybes $ times
 
 
@@ -231,10 +233,16 @@ readParamRaceCpuTime ts = do
   (Method MCommon{mOutputDir, mMode} _) <- get
   let statsDir = mOutputDir </> ("stats_" ++ mMode)
   let fps = [statsDir </> (show ts :: String) <.>  ".total_solving_time"]
-  times :: [Maybe Double] <- liftIO  $  forM fps $ \fp -> do
+  times :: [Maybe Double] <- liftIO  $  forM fps $ readCpuTime
+  return . sum . catMaybes $ times
+
+
+readCpuTime :: (MonadIO m) => FilePath -> m (Maybe Double)
+readCpuTime fp = do
+  times :: Maybe Double <- liftIO  $ do
              st <- readFile fp
              return $ readMay st
-  return . sum . catMaybes $ times
+  return times
 
 
 -- 0.0 perfect  1.0 terrible
@@ -401,7 +409,7 @@ sampleParamFromMinion = do
             , ("TIMEOUT5_FILE", out </> "timeout_file")
             ]
 
-  cmd <- script_lookup "instances/generate_param.sh"
+  cmd <- script_lookup "instances/run_solve.sh"
   void $ liftIO $ runPadded " ⦿ " env cmd args
 
   worked <- liftIO $ doesFileExist solutionFp
@@ -412,11 +420,58 @@ sampleParamFromMinion = do
       finds <- readPoint solutionFp
       return $ Right $ finds `mappend` givens
 
+runSolve  :: (MonadIO m)
+          => FilePath -> FilePath -> FilePath -> Point
+         -> m (Either SamplingErr (Point,Double))
+runSolve outputDir ess eprime point = do
+
+  let phash   = pointHash point
+  let baseName = takeBaseName ess
+
+  now <- timestamp
+  let out        = outputDir </> "_run_solve" </> show now
+  let paramFp    = (out </> phash) <.> ".param"
+  let solutionFp = out </> (baseName  ++ "-" ++ phash  <.> ".solution" )
+
+  let timeout    = 300 :: Int
+  seed :: Int <- liftIO $ randomRIO (1,2147483647)
+
+  liftIO $ createDirectoryIfMissing True out
+  writePoint point paramFp
+
+  let args = map stringToText [ ess
+             , eprime
+             , paramFp
+             , show timeout -- used
+             , show timeout
+             , show seed
+             ]
+
+  let env = map (second stringToText) [ ("GENERATED_OUTPUT_DIR", out)
+            , ("TIMEOUT5_FILE", out </> "timeout_file")
+            ]
+
+  cmd <- script_lookup "instances/run_solve.sh"
+  void $ liftIO $ runPadded " ⦿ " env cmd args
+
+  worked <- liftIO $ doesFileExist solutionFp
+  timeMay <- readCpuTime (out </> "total.time")
+
+  case (worked, timeMay) of
+    (True, Just time)  -> do
+      sol <- readPoint solutionFp
+      return $ Right (sol, time)
+    _ -> return $ Left $ ErrFailedRunSolve
+             (vcat [nn "point" point, nn "ts" now, nn "hash" phash,
+                    nn  "outdir" out, nn "timeMay" timeMay ])
+
 
 script_lookup :: MonadIO m => FilePath -> m Text
-script_lookup fp = do
-  stringToText <$> (</> fp)  <$> liftIO (getToolchainDir Nothing)
+script_lookup fp = stringToText <$> script_lookup1 fp
 
+script_lookup1 :: MonadIO m => FilePath -> m String
+script_lookup1 fp =
+  (</> fp)  <$> liftIO (getToolchainDir Nothing)
 
 -- | Run a command with the output padded with leading spaces
 -- | n.b  sterr will be redirected to stdin

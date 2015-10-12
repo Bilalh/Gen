@@ -8,13 +8,15 @@ $ Directed edges, (a,b) means a depends on the value of b.
 given Edges : set ( maxSize (N * (N-1)) / 2 ) of (num_nodes, num_nodes)
 
 $ The generation order indexed by the node id
-$
 find ordering : function(total) num_nodes --> num_nodes
+find levelsNeeded : num_nodes
 
 such that
-	$ Nodes that are depend on are placed first
+	$ Nodes that are depend on other nodes are placed first
 	forAll (fro,to) in Edges .
-		ordering(to) < ordering(fro)
+		ordering(to) < ordering(fro),
+
+	levelsNeeded = max(range(ordering))
 
 
 minimising max(range(ordering))
