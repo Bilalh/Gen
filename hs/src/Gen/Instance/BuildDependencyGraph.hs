@@ -22,9 +22,9 @@ buildDependencyGraph outBase model = do
              tell refs
   let edges = nub2 state
 
-  let (l_n_i,l_i_n) = unzip $ zipWith (\(n,_) i -> ((n,i), (i,n)) )  vs [1:: Int ..]
+  let (l_n_i,l_i_n) = unzip $ zipWith (\(n,_) i -> ((n,i), (i,n)) )  vs [1:: Integer ..]
   let n_i = M.fromList l_n_i
-  let i_n = M.fromList l_i_n
+  let i_n = M.fromList (map (first ConstantInt)  l_i_n)
 
   let numbedMay = map (\(fro,to) -> (fro `M.lookup` n_i, to `M.lookup` n_i)) edges
   let numbed = [ (a,b) |  (Just a, Just b) <- numbedMay ]
@@ -42,6 +42,12 @@ buildDependencyGraph outBase model = do
   let point = Point [("N", ConstantInt (genericLength vs)), ("Edges", edgesSet)]
   logWarn2 $line [nn "point" point]
 
+  -- let namedMay x = map (\(fro,to) -> (fro `M.lookup` i_n, to `M.lookup` i_n)) x
+  -- let named x = [ (a,b) |  (Just a, Just b) <- namedMay x ]
+
+  let namedMay x = map (\(to) -> (to `M.lookup` i_n)) x
+  let named x = [ b |  (Just (Name b)) <- namedMay x ]
+
   ess <- liftIO $ script_lookup1 "instances/find_generation_order/find_generation_order.essence"
   let eprime = outBase </> "find_generation_order.eprime"
   conjureCompact ess eprime >>= \case
@@ -51,14 +57,19 @@ buildDependencyGraph outBase model = do
         Left x  -> return (Left x)
         Right (solPoint@(Point xs), time) -> do
           logInfo2 $line [nn "solution Point" solPoint]
-          case lookup "levelsNeeded" xs of
-            Nothing -> return $ Left $ ErrFailedRunSolve (nn "failed to Read" (solPoint))
-            Just x  -> if x > 2 then
+          case (lookup "levelsNeeded" xs, lookup "dependent" xs) of
+            (Just l, Just (ConstantAbstract (AbsLitSet ds )))  -> if l > 2 then
               return $ Left $ ErrFailedRunSolve (nn "LevelNeeded needs to <2" (solPoint))
               else do
-                return $ Right $ (VarInfo{givens=S.empty}, time)
+                let ns =  named ds
+                logInfo2 $line ("Dependent:" : map pretty ns)
+                let res = Right $ (VarInfo{givens=S.fromList $ ns}, time)
+                return $ res
+            _ -> return $ Left $ ErrFailedRunSolve (nn "failed to Read" (solPoint))
 
   where
+
+
   core m = do
     vs <- forM (mStatements m) $ \ st -> case st of
       Declaration (FindOrGiven Given nm dom) ->

@@ -409,7 +409,7 @@ sampleParamFromMinion = do
             , ("TIMEOUT5_FILE", out </> "timeout_file")
             ]
 
-  cmd <- script_lookup "instances/run_solve.sh"
+  cmd <- script_lookup "instances/generate_param.sh"
   void $ liftIO $ runPadded " ⦿ " env cmd args
 
   worked <- liftIO $ doesFileExist solutionFp

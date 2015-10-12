@@ -13,6 +13,7 @@ import Gen.IO.Formats
 import System.Directory                  (makeAbsolute)
 import System.FilePath                   (replaceFileName, takeBaseName)
 import System.Random                     (mkStdGen, setStdGen)
+import Gen.Instance.SamplingError
 
 import qualified Data.Set as S
 
@@ -25,12 +26,12 @@ runMethod seed lvl state= do
      createParamEssence >> initDB >> saveEprimes >> run
 
 
-makeDeps :: (MonadIO m, MonadLog m)
-         => FilePath -> FilePath -> m ()
-makeDeps outBase fp = do
+findDependencies :: (MonadIO m, MonadLog m)
+                 => FilePath -> FilePath
+                 -> m (Either SamplingErr (VarInfo, Double))
+findDependencies outBase fp = do
   model <-  liftIO $ ignoreLogs $ readModelFromFile fp >>= runNameGen . resolveNames
-  info <- buildDependencyGraph outBase model
-  liftIO $ groomPrint info
+  buildDependencyGraph outBase model
 
 -- | Make the value provider for the givens
 makeProvider :: (MonadIO m, MonadLog m) => FilePath -> VarInfo ->  m Provider
