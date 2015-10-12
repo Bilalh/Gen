@@ -49,9 +49,14 @@ buildDependencyGraph outBase model = do
     True  -> do
       runSolve outBase ess eprime point >>= \case
         Left x  -> return (Left x)
-        Right (solPoint, time) -> do
+        Right (solPoint@(Point xs), time) -> do
           logInfo2 $line [nn "solution Point" solPoint]
-          return $ Right $ (VarInfo{givens=S.empty}, time)
+          case lookup "levelsNeeded" xs of
+            Nothing -> return $ Left $ ErrFailedRunSolve (nn "failed to Read" (solPoint))
+            Just x  -> if x > 2 then
+              return $ Left $ ErrFailedRunSolve (nn "LevelNeeded needs to <2" (solPoint))
+              else do
+                return $ Right $ (VarInfo{givens=S.empty}, time)
 
   where
   core m = do

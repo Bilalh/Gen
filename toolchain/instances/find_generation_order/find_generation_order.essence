@@ -11,7 +11,7 @@ $ The generation order indexed by the node id
 find ordering : function(total) num_nodes --> num_nodes
 find levelsNeeded : num_nodes
 
-$ find dependent: set (maxSize N) of num_nodes
+find dependent: set (maxSize N) of num_nodes
 
 
 such that
@@ -19,8 +19,10 @@ such that
 	forAll (fro,to) in Edges .
 		ordering(to) < ordering(fro),
 
-	levelsNeeded = max(range(ordering))
-	$dependent = toSet([ n  | (n,i) <- toSet(ordering) ])
+	levelsNeeded = max(range(ordering)),
+	forAll (n,i) in ordering .
+		(i > 1  -> n in dependent) /\
+		( i <= 1 -> ! (n in dependent) )
 
 
 minimising max(range(ordering))
