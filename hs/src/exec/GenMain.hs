@@ -638,6 +638,7 @@ instanceCommon cores Instance_Common{..} = do
       , mPoints         = []
       , mCores          = cores
       , mCompactName    = compactFirst
+      , mSubCpu         = 0
       }
 
   return common

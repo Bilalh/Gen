@@ -99,6 +99,7 @@ _ex_common = do
       , mPoints         = []
       , mCores          = 2
       , mCompactName    = Nothing
+      , mSubCpu  = 0
       , mModelsDir
       }
 

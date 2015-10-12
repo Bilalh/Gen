@@ -3,7 +3,6 @@ module Gen.Instance.BuildDependencyGraph where
 
 import Gen.Imports
 import Conjure.Language.Definition
-import Data.Map(Map)
 import qualified Data.Map as M
 
 type Edge = (Name, Name)

@@ -116,6 +116,7 @@ Library
                      , Gen.Helpers.Str
                      , Gen.Helpers.TypeOf
                      , Gen.Imports
+                     , Gen.Instance.BuildDependencyGraph
                      , Gen.Instance.Data
                      , Gen.Instance.Method
                      , Gen.Instance.Nsample

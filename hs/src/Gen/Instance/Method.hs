@@ -21,22 +21,27 @@ run = do
 
   rTimestampEnd <- timestamp
 
-  st@(Method MCommon{mOutputDir, mPoints} _) <- get
+  st@(Method MCommon{mOutputDir, mPoints, mSubCpu=rSubCPUTime} _) <- get
   liftIO $ writeToJSON (mOutputDir </> "state.json") st
   liftIO $ writeToJSON (mOutputDir </> "points.json") mPoints
 
-  subCPU <- racesTotalCpuTime
-  endOurCPU <- liftIO $ getCPUTime
-  let ourCPU = fromIntegral (endOurCPU - startOurCPU) / ((10 :: Double) ^ (12 :: Int))
+  rRacesCPUTime    <- racesTotalCpuTime
+  rParamGenCPUTime <- paramGenCpuTime
+  endOurCPU        <- liftIO $ getCPUTime
 
+  let rOurCPUTime = fromIntegral (endOurCPU - startOurCPU) / ((10 :: Double) ^ (12 :: Int))
+  let rCPUTime    = rRacesCPUTime + rParamGenCPUTime +  rOurCPUTime  + rSubCPUTime
+  let rRealTime   = rTimestampEnd - rTimestampStart
 
   let meta = RunMetadata
         { rTimestampStart
         , rTimestampEnd
-        , rRealTime   = rTimestampEnd - rTimestampStart
-        , rCPUTime    = subCPU + ourCPU
-        , rSubCPUTime = subCPU
-        , rOurCPUTime = ourCPU
+        , rRealTime
+        , rCPUTime
+        , rRacesCPUTime
+        , rParamGenCPUTime
+        , rSubCPUTime
+        , rOurCPUTime
         , rIterationsDone
         , rIterationsDoneIncludingFailed
         }

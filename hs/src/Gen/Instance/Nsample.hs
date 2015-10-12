@@ -96,16 +96,14 @@ shape_is_in_inside :: MonadLog m => Int -> Point -> Point -> m Bool
 shape_is_in_inside = eucludean_is_in_inside
 
 eucludean_is_in_inside :: MonadLog m => Int -> Point -> Point -> m Bool
-eucludean_is_in_inside radius a@(Point center) b@(Point point) = do
-  -- let summed = sum [ (distanceSq c p)   | ((_,p),(_,c)) <- zip center point ]
-  -- let rooted = squareRoot summed
-  let rooted = distance a b
+eucludean_is_in_inside radius center point = do
+  let rooted = distance center point
   let res    = rooted  <= fromIntegral radius
-  logWarn2 $line [ nn "distance" rooted
+  logDebug2 $line [ nn "distance" rooted
                  , nn "inside?" res
                  , nn "radius" radius
-                 , nn "center" a
-                 , nn "point"  b
+                 , nn "center" center
+                 , nn "point"  point
                  ]
   return res
 

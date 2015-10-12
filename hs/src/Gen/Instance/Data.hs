@@ -33,10 +33,11 @@ data MCommon = MCommon
   , mMode           :: String           -- | the directory suffix
   , mModelsDir      :: FilePath         -- | The models directory e.g. prob006-GR_df
   , mGivensProvider :: Provider         -- | Generating the given
-  , mCores          :: Int
+  , mCores          :: Int              -- | Number of cores to use
   , mCompactName    :: Maybe EprimeName -- | Ordering with compact first
   -- above fields do not change
   , mPoints         :: [Point]          -- | Instances that have been run, newest first
+  , mSubCpu         :: Double           -- | Other sub-processes
   } deriving (Eq, Show, Data, Typeable, Generic)
 
 
@@ -89,7 +90,9 @@ data RunMetadata = RunMetadata
     , rTimestampEnd                  :: Int
     , rRealTime                      :: Int
     , rCPUTime                       :: Double
-    , rSubCPUTime                    :: Double
+    , rRacesCPUTime                  :: Double
+    , rParamGenCPUTime               :: Double
+    , rSubCPUTime                    :: Double  -- Any other subprocess
     , rOurCPUTime                    :: Double
     , rIterationsDone                :: Int
     , rIterationsDoneIncludingFailed :: Int

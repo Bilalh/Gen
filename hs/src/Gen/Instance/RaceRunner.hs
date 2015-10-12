@@ -12,6 +12,7 @@ module Gen.Instance.RaceRunner(
   , saveEprimes
   , initDB
   , getPointQuailty
+  , paramGenCpuTime
   ) where
 
 import Conjure.Language
@@ -203,11 +204,22 @@ instance FromRow RaceTotals where
 
 
 racesTotalCpuTime :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
-                       => m Double
+                  => m Double
 racesTotalCpuTime = do
   (Method MCommon{mOutputDir, mMode} _) <- get
   let statsDir = mOutputDir </> ("stats_" ++ mMode)
   fps <- liftIO $ allFilesWithSuffix ".total_solving_time" statsDir
+  times :: [Maybe Double] <- liftIO  $  forM fps $ \fp -> do
+             st <- readFile fp
+             return $ readMay st
+  return . sum . catMaybes $ times
+
+paramGenCpuTime :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
+                => m Double
+paramGenCpuTime = do
+  (Method MCommon{mOutputDir} _) <- get
+  let statsDir = mOutputDir </> "_param_gen"
+  fps <- liftIO $ allFilesWithSuffix "total.time" statsDir
   times :: [Maybe Double] <- liftIO  $  forM fps $ \fp -> do
              st <- readFile fp
              return $ readMay st

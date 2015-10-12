@@ -136,6 +136,9 @@ endif
 
 
 dev:
+	CORES=4 RUN_TESTS=yes make install etags 2>&1 | tee build.log
+
+dev1:
 	CORES=1 RUN_TESTS=yes make install etags 2>&1 | tee build.log
 
 prod:
