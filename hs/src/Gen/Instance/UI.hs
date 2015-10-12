@@ -1,18 +1,19 @@
 module Gen.Instance.UI where
 
+import Conjure.Language
+import Conjure.Language.Constant
+import Conjure.Language.NameResolution   (resolveNames)
+import Conjure.UI.IO
 import Gen.Imports
+import Gen.Instance.BuildDependencyGraph
 import Gen.Instance.Data
+import Gen.Instance.Method
 import Gen.Instance.RaceRunner
 import Gen.Instance.Undirected
 import Gen.IO.Formats
-import Gen.Instance.Method
-import Conjure.Language.Constant
-import Conjure.Language.NameResolution          (resolveNames)
-import Conjure.UI.IO
-import Conjure.Language
-import System.FilePath             (replaceFileName, takeBaseName)
-import System.Directory            (makeAbsolute)
-import System.Random(setStdGen, mkStdGen)
+import System.Directory                  (makeAbsolute)
+import System.FilePath                   (replaceFileName, takeBaseName)
+import System.Random                     (mkStdGen, setStdGen)
 
 import qualified Data.Set as S
 
@@ -24,6 +25,13 @@ runMethod seed lvl state= do
     void $ flip execStateT state $
      createParamEssence >> initDB >> saveEprimes >> run
 
+
+makeDeps :: (MonadIO m, MonadLog m) => FilePath -> m ()
+makeDeps fp = do
+  model <-  liftIO $ ignoreLogs $ readModelFromFile fp >>= runNameGen . resolveNames
+  edges <- buildDependencyGraph model
+  liftIO $ groomPrint edges
+  return ()
 
 -- | Make the value provider for the givens
 makeProvider :: (MonadIO m, MonadLog m) => FilePath -> VarInfo ->  m Provider

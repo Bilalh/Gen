@@ -8,7 +8,7 @@ module Gen.Instance.RaceRunner(
   , RaceTotals(..)
   , getModelOrdering
   , checkPrevious
-  , subprocessTotalCpuTime
+  , racesTotalCpuTime
   , saveEprimes
   , initDB
   , getPointQuailty
@@ -202,9 +202,9 @@ instance FromRow RaceTotals where
     fromRow = RaceTotals <$> field <*> field <*> field <*> field <*> field <*> field
 
 
-subprocessTotalCpuTime :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
+racesTotalCpuTime :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
                        => m Double
-subprocessTotalCpuTime = do
+racesTotalCpuTime = do
   (Method MCommon{mOutputDir, mMode} _) <- get
   let statsDir = mOutputDir </> ("stats_" ++ mMode)
   fps <- liftIO $ allFilesWithSuffix ".total_solving_time" statsDir

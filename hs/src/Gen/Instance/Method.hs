@@ -25,7 +25,7 @@ run = do
   liftIO $ writeToJSON (mOutputDir </> "state.json") st
   liftIO $ writeToJSON (mOutputDir </> "points.json") mPoints
 
-  subCPU <- subprocessTotalCpuTime
+  subCPU <- racesTotalCpuTime
   endOurCPU <- liftIO $ getCPUTime
   let ourCPU = fromIntegral (endOurCPU - startOurCPU) / ((10 :: Double) ^ (12 :: Int))
 
