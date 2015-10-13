@@ -56,7 +56,7 @@ runRace paramFP = do
   getModelOrdering >>= \case
     Left x -> return $ Left x
     Right ordering -> do
-      logDebug2 "runRace ordering:" (map pretty ordering)
+      -- logDebug2 "runRace ordering:" (map pretty ordering)
 
       p <- readPoint paramFP
       let paramHash = pointHash p
