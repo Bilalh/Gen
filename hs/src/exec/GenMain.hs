@@ -615,13 +615,15 @@ instanceCommon cores Instance_Common{..} = do
       print . pretty $  "no compact found"  <+> pretty compact_path
       return Nothing
     True  -> do
-      [compact_file] <- allFilesWithSuffix ".eprime" compact_path
-      findCompact compact_file models_path >>= \case
-        Nothing -> return Nothing
-        Just compact_twin -> do
-          print . pretty $ "compact_twin is" <+> pretty compact_twin
-          return $ Just $ (takeBaseName compact_twin)
-
+      cs <- allFilesWithSuffix ".eprime" compact_path
+      catMaybes <$> mapM ((flip findCompact) models_path) cs  >>= \case
+        []   -> return Nothing
+        [x]  -> do
+          print . pretty $ "compact_twin is" <+> pretty x
+          return $ Just $ (takeBaseName x)
+        (x:_) -> do
+          print . pretty $ "Picking first compact_twin" <+> pretty x
+          return $ Just $ (takeBaseName x)
 
   i :: VarInfo <- readFromJSON info_path
   p <- ignoreLogs $ makeProvider essence_path i
