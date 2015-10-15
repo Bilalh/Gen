@@ -51,19 +51,14 @@ sqlite3 "${REPOSITORY_BASE}/results.db" <<SQL
 
 
 	CREATE VIEW IF NOT EXISTS TimingsDomination as
-	Select X.*, EP.eprimeId
+	Select X.*, EP.eprimeId as eprimeId
 
 	From(
 		Select SR.paramHash, SR.eprime, SavileRow, Minion,  (SavileRow + Minion) as TotalTime,
 	           Cast(MinionNodes AS Integer) as MinionNodes, MinionTimeout,
 			   MinionSatisfiable, MinionSolutionsFound,
 			   (MinionSatisfiable = 1 and MinionTimeOut = 0) as IsOptimum, isDominated,
-              CASE WHEN (Select minimising from Metadata) = 1 THEN
-					-SO.solutionValue
-              ELSE
-					SO.solutionValue
-              END as solutionValue
-
+              SO.solutionValue, (Select minimising from Metadata) as minimising
 		From (
 			Select eprime, paramHash, f.value as SavileRow From Experiment f
 			Where f.attribute='SavileRowTotalTime'
@@ -109,7 +104,7 @@ sqlite3 "${REPOSITORY_BASE}/results.db" <<SQL
 		  -1 as MinionNodes ,1 as MinionTimeout,
 		   0 as MinionSatisfiable , 0 as MinionSolutionsFound,
 		   0 as IsOptimum, Cast(f.value as Integer) as isDominated,
-          0 as solutionValue
+       0 as solutionValue, (Select minimising from Metadata) as minimising
 		From  Experiment f
 		Where f.attribute = 'isDominated' and (
 			Select count(attribute) From Experiment g
@@ -123,16 +118,14 @@ sqlite3 "${REPOSITORY_BASE}/results.db" <<SQL
 
 
 	CREATE VIEW IF NOT EXISTS TimingsRecorded as
+	Select X.*, EP.eprimeId as eprimeId
 
-	Select SR.paramHash, SR.eprime, EP.eprimeId, SavileRow, Minion,  (SavileRow + Minion) as TotalTime,
+	From(
+	Select SR.paramHash, SR.eprime, SavileRow, Minion,  (SavileRow + Minion) as TotalTime,
            Cast(MinionNodes AS Integer) as MinionNodes, MinionTimeout,
 		   MinionSatisfiable, MinionSolutionsFound,
 		   (MinionSatisfiable = 1 and MinionTimeOut = 0) as IsOptimum, coalesce(isDominated,0) as isDominated,
-              CASE WHEN (Select minimising from Metadata) = 1 THEN
-					-SO.solutionValue
-              ELSE
-					SO.solutionValue
-              END as solutionValue
+		   SO.solutionValue, (Select minimising from Metadata) as minimising
 	From (
 		Select eprime, paramHash, f.value as SavileRow From Experiment f
 		Where f.attribute='SavileRowTotalTime'
@@ -161,7 +154,7 @@ sqlite3 "${REPOSITORY_BASE}/results.db" <<SQL
 		Select eprime, paramHash, Cast(f.value as Integer) as solutionValue From Experiment f
 		Where f.attribute='solutionValue'
 		Order By paramHash, eprime
-	) SO Join Eprimes EP Left Join (
+	) SO Join (
 		Select eprime, paramHash, Cast(f.value as Integer) as isDominated From Experiment f
 		Where f.attribute='isDominated'
 		Order By paramHash, eprime
@@ -170,7 +163,9 @@ sqlite3 "${REPOSITORY_BASE}/results.db" <<SQL
 	on  SR.eprime     = M.eprime And M.eprime  = N.eprime And N.eprime  = MS.eprime And MS.eprime  = MF.eprime And MF.eprime  = MT.eprime And MT.eprime  = SO.eprime And SO.eprime  = DO.eprime
 	and SR.paramHash  = M.paramHash  And M.paramHash   = N.paramHash  And N.paramHash   = MS.paramHash  And MS.paramHash   = MF.paramHash  And MF.paramHash   = MT.paramHash  And MT.paramHash   = SO.paramHash And SO.paramHash   = DO.paramHash
 
-	Order by SR.paramHash, SR.eprime
+	) X Join Eprimes EP where X.eprime = EP.eprime
+
+	Order by paramHash, eprime
 	;
 
 
