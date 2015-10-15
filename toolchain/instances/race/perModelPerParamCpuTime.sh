@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 set -o nounset
 
 SCRIPT_DIR="$( cd "$( dirname "$0" )" && pwd )";
@@ -213,4 +213,3 @@ fi
 
 echo "YFINISHED ${EPRIMEBASE}-${PARAMBASE}"
 touch $END_FILE
-
