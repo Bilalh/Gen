@@ -183,6 +183,11 @@ MSG_MINION="{minion}             $MSG_TEMPLATE"
 echo "$MSG_MINION"
 
 
+minion_cpu=$((TOTAL_TIMEOUT - PREVIOUS_USED - 2))
+if [ ${minion_cpu} -lt 0 ]; then
+    minion_cpu=0
+fi
+
 date +'StartMINION %a %d %b %Y %k:%M:%S %z%nStartMINION(timestamp) %s' >&2
 echoer \
 ${CPUTIMEOUT} --write-time $MINION_TIME --previous-used $PREVIOUS_USED $TOTAL_TIMEOUT \
@@ -190,12 +195,22 @@ minion $MINION  \
     -noprintsols \
     -preprocess SACBounds \
     -tableout $MINION_TABLE \
-    -solsout  $MINION_SOLUTION
+    -solsout  $MINION_SOLUTION \
+    -cpulimit ${minion_cpu};
+
 RESULTOF_MINION=$?
 echo "~~~ RESULTOF_MINION ${RESULTOF_MINION}"
 date +'finMINION %a %d %b %Y %k:%M:%S %z%nfinMINION(timestamp) %s' >&2
 
 
+# For optimisation problem if we may have a non-optimal solution
+# We at the moment consider this a failure but not an error
+
+#  SIGKILL and SIGTEM
+if (( $RESULTOF_MINION == 137 ||  $RESULTOF_MINION == 124  )) ; then
+    echo "$MSG_MINION" >> "$FAIL_FILE"
+    exit 1
+fi
 
 if (( $RESULTOF_MINION != 0 )) ; then
     echo "$MSG_MINION" >> "$FAIL_FILE"
@@ -203,12 +218,27 @@ if (( $RESULTOF_MINION != 0 )) ; then
     exit 1
 fi
 
-# For optimisation problem if we may have a non-optimal solution
-# We at the moment consider this a failure
+
+# When the timeout of CPUTIMEOUT was reduced, but minion was SIGKILL'd
 if [  ! -f ${MINION_TABLE} ]; then
     echo "$MSG_MINION" >> "$FAIL_FILE"
     exit 1
 fi
+
+check="$(grep TimeOut  "${MINION_TABLE}" | cut -d' ' -f14)"
+echo "check: ${check}"
+if [ "${check}" != '"TimeOut"' ]; then
+    echo "$MSG_MINION" >> "$FAIL_FILE"
+    echo "$MSG_MINION ~ reading MINION_TABLE" >> "$PARAM_ERROR_FILE"
+    exit 1
+fi
+
+timeout="$(tail -n1  "${MINION_TABLE}" | cut -d' ' -f14)"
+if [ "${timeout}" -ne 0 ]; then
+    echo "$MSG_MINION" >> "$FAIL_FILE"
+    exit 1
+fi
+
 
 echo "YFINISHED ${EPRIMEBASE}-${PARAMBASE}"
 touch $END_FILE
