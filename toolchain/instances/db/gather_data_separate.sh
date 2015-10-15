@@ -88,7 +88,7 @@ else
 fi
 
 
-# I could not get traping SIGTERM to work in perModel.sh, so store files to specify if the process has finished
+# We store files .zfinished to specify if the process has finished
 function isDominated(){
 	set -x
 	f="$1"
@@ -131,10 +131,30 @@ export  fastest_dir
 export TOTAL_TIMEOUT
 
 parallel -j"${NUM_JOBS}" --tagstring "{/}"  'echo "isDominated:$(isDominated {/.})"'  \
-	::: `ls ${results_dir}/*${param_glob}.zstarted` 2>"${stats_dir}/${USE_DATE}.isDominated-trace" \
+	::: $(ls ${results_dir}/*${param_glob}.zstarted)  2>"${stats_dir}/${USE_DATE}.isDominated-trace" \
 	|   runhaskell "${OUR}/gather_data.hs"  ${Essence_base} \
 	|   sqlite3 ${REPOSITORY_BASE}/results.db
 
+
+function solutionValue(){
+	set -x
+	minion_out="$1.minion-output"
+
+	if [ ! -f "${minion_out}" ]; then
+		echo 0
+	else
+		grep 'Solution found with Value:'  "${minion_out}" | \
+		egrep -o '[0-9]+' | \
+		ruby -e 'p $stdin.readlines.map(&:to_i).max'
+	fi
+	set +x
+}
+export -f solutionValue
+
+parallel -j"${NUM_JOBS}" --tagstring "{/}"  'echo "solutionValue:$(solutionValue {.})"'  \
+	::: $(ls ${results_dir}/*${param_glob}.zstarted) 2>"${stats_dir}/${USE_DATE}.solutionValue-trace" \
+	|   runhaskell "${OUR}/gather_data.hs"  ${Essence_base} \
+	|   sqlite3 ${REPOSITORY_BASE}/results.db
 
 
 echo "$0 Calcuate total solving time"
