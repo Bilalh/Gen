@@ -272,19 +272,34 @@ sqlite3 "${REPOSITORY_BASE}/results.db" <<SQL
 	Order by Ord asc, Ord2 desc, Ord3 asc
 		;
 
-CREATE VIEW IF NOT EXISTS ParamSolutionValues as
 
-Select paramHash, minimising,
-       case when minimising  = 1 THEN
-			min(solutionValue)
-		else
-			max(solutionValue)
-		END as solutionValue,
-       (select group_concat(eprime) From TimingsRecorded X where R.paramHash=X.paramHash) as whichEprimes,
-       (select group_concat(eprimeId) From TimingsRecorded X where R.paramHash=X.paramHash) as whichIds,
-       (select count(eprimeId) From TimingsRecorded X where R.paramHash=X.paramHash) as eprimeCount
+	CREATE VIEW IF NOT EXISTS ParamSolutionAllValues as
+	Select SO.paramHash as paramHash, SO.eprime as eprime, EP.eprimeId as eprimeId,
+		   SO.solutionValue as solutionValue, (Select minimising from Metadata) as minimising
+	From (
+		Select eprime, paramHash, Cast(f.value as Integer) as solutionValue From Experiment f
+		Where f.attribute='solutionValue'
+	)  SO Join Eprimes EP where SO.eprime = EP.eprime
 
-FROM TimingsRecorded R
-	;
-	
+
+	Order by SO.paramHash, SO.eprime
+		;
+
+	CREATE VIEW IF NOT EXISTS ParamSolutionValues as
+
+	Select paramHash, minimising,
+	       case when minimising  = 1 THEN
+				min(solutionValue)
+			else
+				max(solutionValue)
+			END as solutionValue,
+	       (select group_concat(eprime) From ParamSolutionAllValues X where R.paramHash=X.paramHash) as whichEprimes,
+	       (select group_concat(eprimeId) From ParamSolutionAllValues X where R.paramHash=X.paramHash) as whichIds,
+	       (select count(eprimeId) From ParamSolutionAllValues X where R.paramHash=X.paramHash) as eprimeCount
+
+	FROM ParamSolutionAllValues R
+	GROUP BY paramHash
+		;
+
+
 SQL
