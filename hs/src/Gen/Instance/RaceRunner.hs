@@ -110,7 +110,7 @@ saveEprimes= do
                 Nothing -> (\_ -> Nothing)
                 Just c  -> (\x ->  if x == c then Just True else Just False )
 
-  eprimes <- liftIO $ allFilesWithSuffix ".eprime" mModelsDir
+  eprimes <- liftIO $ sort <$> allFilesWithSuffix ".eprime" mModelsDir
   conn <- liftIO $ open (mOutputDir </> "results.db")
   void $ liftIO $ withTransaction conn $ forM (eprimes) $ \(ep) -> do
     execute conn saveEprimesQuery (takeBaseName ep,  check (takeBaseName ep)  )
