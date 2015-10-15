@@ -46,7 +46,7 @@ echo " --- ${Essence} --- ";
 
 
 function update_timeout(){
-trap "excode=$?; echo '<update_timeout>  removing ${LOCKDIR} from trap for $1'; rmdir "${LOCKDIR}"; trap - EXIT; echo $excode" EXIT SIGHUP SIGINT SIGTERM
+trap "excode=$?; echo '<update_timeout>  removing ${LOCKDIR} from trap for $1'; rmdir ${LOCKDIR}; trap - EXIT; echo $excode" EXIT SIGHUP SIGINT SIGTERM
 
 sr_time="$1.sr-time"
 minion_time="$1.minion-time"
