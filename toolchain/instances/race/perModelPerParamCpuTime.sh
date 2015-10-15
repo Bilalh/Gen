@@ -12,10 +12,9 @@ fi
 ESSENCE="$1"
 EPRIME="$2"
 PARAM="$3"
-MINION_TIMEOUT=${4}  # not used anymore
+# MINION_TIMEOUT=${4}  # not used anymore
 TOTAL_TIMEOUT=${5}
 
-DIR=$(dirname $ESSENCE)
 EPRIMEBASE=${EPRIME%.eprime}
 
 OUTPUT_BASE=${GENERATED_OUTPUT_DIR:-}
@@ -30,12 +29,12 @@ START_FILE="${EPRIMEBASE}-${PARAMBASE}.zstarted"
 END_FILE="${EPRIMEBASE}-${PARAMBASE}.zfinished"
 
 EPRIME_PARAM="${EPRIMEBASE}-${PARAMBASE}.eprime-param"
-EPRIME_SOLUTION="${EPRIMEBASE}-${PARAMBASE}.eprime-solution"
-ESSENCE_SOLUTION="${EPRIMEBASE}-${PARAMBASE}.solution"
+# EPRIME_SOLUTION="${EPRIMEBASE}-${PARAMBASE}.eprime-solution"
+# ESSENCE_SOLUTION="${EPRIMEBASE}-${PARAMBASE}.solution"
 
 MINION="${EPRIMEBASE}-${PARAMBASE}.minion"
 MINION_SOLUTION="${EPRIMEBASE}-${PARAMBASE}.minion-solution"
-MINION_STATS="${EPRIMEBASE}-${PARAMBASE}.minion-stats"
+# MINION_STATS="${EPRIMEBASE}-${PARAMBASE}.minion-stats"
 MINION_TABLE="${EPRIMEBASE}-${PARAMBASE}.minion-table"
 MINION_TIME="${EPRIMEBASE}-${PARAMBASE}.minion-time"
 
@@ -45,7 +44,6 @@ touch $START_FILE
 
 
 MSG_TEMPLATE="$ESSENCE `basename ${EPRIME}` $PARAM_NAME"
-TIME_TEMPLATE="${EPRIMEBASE}-${PARAMBASE}.time"
 
 FAIL_FILE="${EPRIMEBASE}.fails"
 PARAM_ERROR_FILE="`dirname ${EPRIMEBASE}`/p-${PARAMBASE}.errors"
@@ -132,9 +130,9 @@ echo "$MSG_SAVILEROW"
 function savilerow(){
     timeout=$1
     shift
-    sr_dir="`dirname $(which savilerow)`"
-    echo "savilerow $@"
-    echo "java -XX:ParallelGCThreads=1 -Xmx${JAVA_MEMORY:-4G}  -server -ea -jar $sr_dir/savilerow.jar $@"
+    sr_dir="$(dirname "$(which savilerow)")"
+    echo "savilerow $*"
+    echo "java -XX:ParallelGCThreads=1 -Xmx${JAVA_MEMORY:-4G}  -server -ea -jar $sr_dir/savilerow.jar $*"
 
     echoer \
     ${CPUTIMEOUT} --write-time ${SAVILEROW_TIME} --previous-used $PREVIOUS_USED $timeout \
@@ -201,11 +199,12 @@ date +'finMINION %a %d %b %Y %k:%M:%S %z%nfinMINION(timestamp) %s' >&2
 
 if (( $RESULTOF_MINION != 0 )) ; then
     echo "$MSG_MINION" >> "$FAIL_FILE"
-    #FIXME can param be invaild at this point?
-    # echo "$MSG_MINION" >> "$PARAM_ERROR_FILE"
+    echo "$MSG_MINION" >> "$PARAM_ERROR_FILE"
     exit 1
 fi
 
+# For optimisation problem if we may have a non-optimal solution
+# We at the moment consider this a failure
 if [  ! -f ${MINION_TABLE} ]; then
     echo "$MSG_MINION" >> "$FAIL_FILE"
     exit 1
