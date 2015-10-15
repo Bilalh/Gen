@@ -51,14 +51,19 @@ sqlite3 "${REPOSITORY_BASE}/results.db" <<SQL
 
 
 	CREATE VIEW IF NOT EXISTS TimingsDomination as
-
 	Select X.*, EP.eprimeId
 
 	From(
 		Select SR.paramHash, SR.eprime, SavileRow, Minion,  (SavileRow + Minion) as TotalTime,
 	           Cast(MinionNodes AS Integer) as MinionNodes, MinionTimeout,
 			   MinionSatisfiable, MinionSolutionsFound,
-			   (MinionSatisfiable = 1 and MinionTimeOut = 0) as IsOptimum, isDominated
+			   (MinionSatisfiable = 1 and MinionTimeOut = 0) as IsOptimum, coalesce(isDominated,0) as isDominated,
+              CASE WHEN (Select minimising from Metadata) = 1 THEN
+					-SO.solutionValue
+              ELSE
+					SO.solutionValue
+              END as solutionValue
+
 		From (
 			Select eprime, paramHash, f.value as SavileRow From Experiment f
 			Where f.attribute='SavileRowTotalTime'
@@ -83,14 +88,18 @@ sqlite3 "${REPOSITORY_BASE}/results.db" <<SQL
 			Select eprime, paramHash, Cast(f.value as Integer) as MinionTimeOut From Experiment f
 			Where f.attribute='MinionTimeOut'
 			Order By paramHash, eprime
-		) MT  Join (
+		) MT Join (
+			Select eprime, paramHash, Cast(f.value as Integer) as solutionValue From Experiment f
+			Where f.attribute='solutionValue'
+			Order By paramHash, eprime
+       ) SO Left Join (
 			Select eprime, paramHash, Cast(f.value as Integer) as isDominated From Experiment f
 			Where f.attribute='isDominated'
 			Order By paramHash, eprime
 		) DO
 
-		on  SR.eprime = M.eprime And M.eprime  = N.eprime And N.eprime  = MS.eprime And MS.eprime  = MF.eprime And MF.eprime  = MT.eprime And MT.eprime  = DO.eprime
-		and SR.paramHash  = M.paramHash  And M.paramHash   = N.paramHash  And N.paramHash   = MS.paramHash  And MS.paramHash   = MF.paramHash  And MF.paramHash   = MT.paramHash  And MT.paramHash   = DO.paramHash
+		on  SR.eprime     = M.eprime And M.eprime  = N.eprime And N.eprime  = MS.eprime And MS.eprime  = MF.eprime And MF.eprime  = MT.eprime And MT.eprime  = SO.eprime And SO.eprime  = DO.eprime
+		and SR.paramHash  = M.paramHash  And M.paramHash   = N.paramHash  And N.paramHash   = MS.paramHash  And MS.paramHash   = MF.paramHash  And MF.paramHash   = MT.paramHash  And MT.paramHash   = SO.paramHash And SO.paramHash   = DO.paramHash
 
 		Union
 
@@ -99,7 +108,8 @@ sqlite3 "${REPOSITORY_BASE}/results.db" <<SQL
 		  -1 as SavileRow, -1 as Minion, -1 as TotalTime,
 		  -1 as MinionNodes ,1 as MinionTimeout,
 		   0 as MinionSatisfiable , 0 as MinionSolutionsFound,
-		   0 as IsOptimum, Cast(f.value as Integer) as isDominated
+		   0 as IsOptimum, Cast(f.value as Integer) as isDominated,
+          0 as solutionValue
 		From  Experiment f
 		Where f.attribute = 'isDominated' and (
 			Select count(attribute) From Experiment g
