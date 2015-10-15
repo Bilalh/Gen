@@ -37,6 +37,7 @@ MINION_SOLUTION="${EPRIMEBASE}-${PARAMBASE}.minion-solution"
 # MINION_STATS="${EPRIMEBASE}-${PARAMBASE}.minion-stats"
 MINION_TABLE="${EPRIMEBASE}-${PARAMBASE}.minion-table"
 MINION_TIME="${EPRIMEBASE}-${PARAMBASE}.minion-time"
+MINION_OUTPUT="${EPRIMEBASE}-${PARAMBASE}.minion-output"
 
 REFINE_TIME="${EPRIMEBASE}-${PARAMBASE}.param-time"
 SAVILEROW_TIME="${EPRIMEBASE}-${PARAMBASE}.sr-time"
@@ -51,6 +52,9 @@ echo "PARAM_ERROR_FILE is $PARAM_ERROR_FILE"
 
 echo "TIMEOUT5_FILE is ${TIMEOUT5_FILE}"
 CPUTIMEOUT="${SCRIPT_DIR}/../../cputimeout/cputimeout --timeout-file $TIMEOUT5_FILE --interval 1 -f -k1 --preserve-status"
+CPUTIMEOUT_ARR=("${SCRIPT_DIR}/../../cputimeout/cputimeout")
+CPUTIMEOUT_ARR+=(--timeout-file "$TIMEOUT5_FILE" --interval 1 -f -k1 --preserve-status)
+
 
 PREVIOUS_USED=0
 
@@ -189,14 +193,32 @@ if [ ${minion_cpu} -lt 0 ]; then
 fi
 
 date +'StartMINION %a %d %b %Y %k:%M:%S %z%nStartMINION(timestamp) %s' >&2
-echoer \
-${CPUTIMEOUT} --write-time $MINION_TIME --previous-used $PREVIOUS_USED $TOTAL_TIMEOUT \
-minion $MINION  \
-    -noprintsols \
-    -preprocess SACBounds \
-    -tableout $MINION_TABLE \
-    -solsout  $MINION_SOLUTION \
-    -cpulimit ${minion_cpu};
+# echoer \
+# ${CPUTIMEOUT} --write-time $MINION_TIME --previous-used $PREVIOUS_USED $TOTAL_TIMEOUT \
+# minion $MINION  \
+#     -noprintsols \
+#     -preprocess SACBounds \
+#     -tableout $MINION_TABLE \
+#     -solsout  $MINION_SOLUTION \
+#     -cpulimit ${minion_cpu};
+
+
+mcmd=("${CPUTIMEOUT_ARR[@]}")
+mcmd+=(--write-time "$MINION_TIME" --previous-used "$PREVIOUS_USED" "$TOTAL_TIMEOUT")
+mcmd+=(minion "$MINION" -noprintsols -preprocess SACBounds )
+mcmd+=(-tableout "$MINION_TABLE" -solsout "$MINION_SOLUTION")
+mcmd+=(-cpulimit ${minion_cpu})
+
+echo "${mcmd[@]}" >&2
+
+# Using just tee loses the exit code
+(
+set -o pipefail
+(
+	/usr/bin/time -p  "${mcmd[@]}" 2>&1 \
+	| tee "${MINION_OUTPUT}"
+)
+)
 
 RESULTOF_MINION=$?
 echo "~~~ RESULTOF_MINION ${RESULTOF_MINION}"
