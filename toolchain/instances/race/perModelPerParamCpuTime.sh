@@ -51,9 +51,11 @@ PARAM_ERROR_FILE="`dirname ${EPRIMEBASE}`/p-${PARAMBASE}.errors"
 echo "PARAM_ERROR_FILE is $PARAM_ERROR_FILE"
 
 echo "TIMEOUT5_FILE is ${TIMEOUT5_FILE}"
-CPUTIMEOUT="${SCRIPT_DIR}/../../cputimeout/cputimeout --timeout-file $TIMEOUT5_FILE --interval 1 -f -k1 --preserve-status"
+
 CPUTIMEOUT_ARR=("${SCRIPT_DIR}/../../cputimeout/cputimeout")
 CPUTIMEOUT_ARR+=(--timeout-file "$TIMEOUT5_FILE" --interval 1 -f -k1 --preserve-status)
+CPUTIMEOUT="${CPUTIMEOUT_ARR[*]}"
+
 
 
 PREVIOUS_USED=0
