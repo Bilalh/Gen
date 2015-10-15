@@ -272,4 +272,19 @@ sqlite3 "${REPOSITORY_BASE}/results.db" <<SQL
 	Order by Ord asc, Ord2 desc, Ord3 asc
 		;
 
+CREATE VIEW IF NOT EXISTS ParamSolutionValues as
+
+Select paramHash, minimising,
+       case when minimising  = 1 THEN
+			min(solutionValue)
+		else
+			max(solutionValue)
+		END as solutionValue,
+       (select group_concat(eprime) From TimingsRecorded X where R.paramHash=X.paramHash) as whichEprimes,
+       (select group_concat(eprimeId) From TimingsRecorded X where R.paramHash=X.paramHash) as whichIds,
+       (select count(eprimeId) From TimingsRecorded X where R.paramHash=X.paramHash) as eprimeCount
+
+FROM TimingsRecorded R
+	;
+	
 SQL
