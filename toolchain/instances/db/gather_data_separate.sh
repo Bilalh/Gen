@@ -48,8 +48,14 @@ while read minion_timeout total_timeout; do
 done < `ls ${stats_dir}/${USE_DATE}.timeout-used | tail -n1`
 
 
-echo "INSERT OR REPLACE into Metadata('essence', 'mode')
-			  Values('${Essence_base}', '${USE_MODE}');" \
+minimising=0
+
+if (grep -c minimising "$Essence"); then
+	minimising=1
+fi
+
+echo "INSERT OR REPLACE into Metadata('essence', 'mode', 'minimising')
+			  Values('${Essence_base}', '${USE_MODE}', '${minimising}');" \
 	|  sqlite3 ${REPOSITORY_BASE}/results.db
 
 
@@ -94,7 +100,7 @@ function isDominated(){
 	# into model_1_1_1_1 5b0..4d9
 	# and use indexing to get 5b0..4d9
 	f_arr=(${f//-/ })
-	f_base="${f_arr[@]:1}"
+	f_base="${f_arr[*]:1}"
 
 	MIN_TOTAL_TIME=${MIN_TOTAL_TIME:-1}
 	if [ ! -f "$fastest_dir/${f_base}.param.fastest" ]; then
