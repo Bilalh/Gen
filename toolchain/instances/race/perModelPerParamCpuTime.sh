@@ -244,7 +244,7 @@ fi
 
 
 # When the timeout of CPUTIMEOUT was reduced, but minion was SIGKILL'd
-if [  ! -f ${MINION_TABLE} ]; then
+if [[  ! -s ${MINION_TABLE} ]]; then
     echo "$MSG_MINION" >> "$FAIL_FILE"
     exit 1
 fi
