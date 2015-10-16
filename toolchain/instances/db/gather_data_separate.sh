@@ -48,11 +48,14 @@ while read minion_timeout total_timeout; do
 done < `ls ${stats_dir}/${USE_DATE}.timeout-used | tail -n1`
 
 
-minimising=0
-
 if (grep -c minimising "$Essence"); then
-	minimising=1
+	minimising="1"
+elif (grep -c maximising "$Essence"); then
+	minimising="0"
+else
+	minimising="NULL"
 fi
+export minimising
 
 echo "INSERT OR REPLACE into Metadata('essence', 'mode', 'minimising')
 			  Values('${Essence_base}', '${USE_MODE}', '${minimising}');" \
@@ -87,18 +90,18 @@ else
 	ls ${results_dir}/*${param_glob}*.minion-table | parallel -j1 --tagstring "{/.}"  'echo $(doMinionTable {} {/.})'
 fi
 
-isminimising="$(sqlite3 ${REPOSITORY_BASE}/results.db  "Select minimising from metadata")"
-export isminimising
 
 function solutionValue(){
 	set -x
 	minion_out="$1.minion-output"
 
 	if [ ! -f "${minion_out}" ]; then
-		if [  "${isminimising}" -eq 1 ]; then
+		if [  "${minimising}" = "1" ]; then
 			echo "2147483647"
-		else
+		elif [  "${minimising}" = "0" ]; then
 			echo "–2147483648"
+		else
+			echo "0"
 		fi
 	else
 		if (grep -c  'Solution found with Value:' "${minion_out}" &>/dev/null ); then
@@ -106,10 +109,12 @@ function solutionValue(){
 			egrep -o '[0-9]+' | \
 			ruby -e 'p $stdin.readlines.map(&:to_i).max'
 		else
-			if [  "${isminimising}" -eq 1 ]; then
+			if [  "${minimising}" = "1" ]; then
 				echo "2147483647"
-			else
+			elif [  "${minimising}" = "0" ]; then
 				echo "–2147483648"
+			else
+				echo "0"
 			fi
 		fi
 	fi
@@ -125,7 +130,7 @@ parallel -j"${NUM_JOBS}" --tagstring "{/}"  'echo "solutionValue:$(solutionValue
 
 set -x
 solutionValue="$(sqlite3 ${REPOSITORY_BASE}/results.db "Select solutionValue from ParamSolutionValues where paramHash='${PARAM_BASE_NAME}';")"
-echo "@@isminimising:${isminimising} solutionValue:${solutionValue}"
+echo "@@solutionValue:${solutionValue}"
 set +x
 
 # We store files .zfinished to specify if the process has finished

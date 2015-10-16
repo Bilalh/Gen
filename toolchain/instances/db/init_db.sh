@@ -26,7 +26,7 @@ sqlite3 "${REPOSITORY_BASE}/results.db" <<SQL
 	CREATE TABLE IF NOT EXISTS "Metadata" (
 	"essence"     TEXT PRIMARY KEY NOT NULL UNIQUE,
 	"mode"        TEXT NOT NULL UNIQUE,
-	"minimising"  INTEGER NOT NULL
+	"minimising"  INTEGER
 	);
 
 	CREATE TABLE IF NOT EXISTS "Eprimes" (
