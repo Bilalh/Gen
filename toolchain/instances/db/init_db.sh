@@ -108,7 +108,8 @@ sqlite3 "${REPOSITORY_BASE}/results.db" <<SQL
 		From  Experiment f
 		Where f.attribute = 'isDominated' and (
 			Select count(attribute) From Experiment g
-			Where f.eprime = g.eprime and f.paramHash = g.paramHash
+			Where attribute = 'isDominated'
+			And   f.eprime = g.eprime and f.paramHash = g.paramHash
 		) = 1
 
 	) X Join Eprimes EP where X.eprime = EP.eprime
