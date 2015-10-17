@@ -1,7 +1,7 @@
 #!/bin/bash
 set -o nounset
 
-SCRIPT_DIR="$( cd "$( dirname "$0" )" && pwd )";
+OUR="$( cd "$( dirname "$0" )" && pwd )";
 Time="/usr/bin/time -p"
 
 # limit swap space used on my laptop
@@ -52,7 +52,7 @@ echo "PARAM_ERROR_FILE is $PARAM_ERROR_FILE"
 
 echo "TIMEOUT5_FILE is ${TIMEOUT5_FILE}"
 
-CPUTIMEOUT_ARR=("${SCRIPT_DIR}/../../cputimeout/cputimeout")
+CPUTIMEOUT_ARR=("${OUR}/../../cputimeout/cputimeout")
 CPUTIMEOUT_ARR+=(--timeout-file "$TIMEOUT5_FILE" --interval 1 -f -k1 --preserve-status)
 CPUTIMEOUT="${CPUTIMEOUT_ARR[*]}"
 
@@ -243,21 +243,20 @@ if (( $RESULTOF_MINION != 0 )) ; then
 fi
 
 
-# When the timeout of CPUTIMEOUT was reduced, but minion was SIGKILL'd
+# When the timeout of CPUTIMEOUT was reduced, and minion was SIGKILL'd
 if [[  ! -s ${MINION_TABLE} ]]; then
     echo "$MSG_MINION" >> "$FAIL_FILE"
     exit 1
 fi
 
-check="$(grep TimeOut  "${MINION_TABLE}" | cut -d' ' -f14)"
-echo "check: ${check}"
-if [ "${check}" != '"TimeOut"' ]; then
+
+timeout="$( "${OUR}/didMinionTimeout.py" "${MINION_TABLE}" )"
+if [ $? -ne 0 ]; then
     echo "$MSG_MINION" >> "$FAIL_FILE"
-    echo "$MSG_MINION ~ reading MINION_TABLE" >> "$PARAM_ERROR_FILE"
+    echo "$MSG_MINION  didMinionTimeout.py failed with output ${timeout}" >> "$PARAM_ERROR_FILE"
     exit 1
 fi
 
-timeout="$(tail -n1  "${MINION_TABLE}" | cut -d' ' -f14)"
 if [ "${timeout}" -ne 0 ]; then
     echo "$MSG_MINION" >> "$FAIL_FILE"
     exit 1
