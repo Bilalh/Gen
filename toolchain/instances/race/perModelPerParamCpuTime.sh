@@ -31,6 +31,8 @@ END_FILE="${EPRIMEBASE}-${PARAMBASE}.zfinished"
 EPRIME_PARAM="${EPRIMEBASE}-${PARAMBASE}.eprime-param"
 # EPRIME_SOLUTION="${EPRIMEBASE}-${PARAMBASE}.eprime-solution"
 # ESSENCE_SOLUTION="${EPRIMEBASE}-${PARAMBASE}.solution"
+SR_OUTPUT="${EPRIMEBASE}-${PARAMBASE}.sr-output"
+
 
 MINION="${EPRIMEBASE}-${PARAMBASE}.minion"
 MINION_SOLUTION="${EPRIMEBASE}-${PARAMBASE}.minion-solution"
@@ -105,11 +107,11 @@ if (( RESULTOF_REFINEPARAM != 0 )) ; then
     echo "$MSG_REFINEPARAM" >> "$FAIL_FILE"
 
     # exit code 2 seem to be stack overflow
-    if (( RESULTOF_REFINEPARAM < 128 && RESULTOF_REFINEPARAM != 2  )); then
+    if (( RESULTOF_REFINEPARAM != 137 &&  RESULTOF_REFINEPARAM != 124  && RESULTOF_REFINEPARAM != 2  )); then
         echo "$MSG_REFINEPARAM" >> "$PARAM_ERROR_FILE"
     fi
 
-    exit 1
+    exit 2
 fi
 
 if [ ! -f $EPRIME_PARAM ]; then
@@ -133,23 +135,27 @@ MSG_SAVILEROW="{savilerow}          $MSG_TEMPLATE"
 echo "$MSG_SAVILEROW"
 
 
-function savilerow(){
-    timeout=$1
-    shift
-    sr_dir="$(dirname "$(which savilerow)")"
-    echo "savilerow $*"
-    echo "java -XX:ParallelGCThreads=1 -Xmx${JAVA_MEMORY:-4G}  -server -ea -jar $sr_dir/savilerow.jar $*"
-
-    echoer \
-    ${CPUTIMEOUT} --write-time ${SAVILEROW_TIME} --previous-used $PREVIOUS_USED $timeout \
-    java -XX:ParallelGCThreads=1 -Xmx${JAVA_MEMORY:-4G}  -server -ea -jar $sr_dir/savilerow.jar "$@"
-}
 
 date +'StartSR %a %d %b %Y %k:%M:%S %z%nStartSR(timestamp) %s' >&2
-savilerow $TOTAL_TIMEOUT -mode Normal \
-    -in-eprime    $EPRIME       \
-    -in-param     $EPRIME_PARAM \
-    -out-minion   $MINION       \
+
+sr_dir="$(dirname "$(which savilerow)")"
+scmd=("${CPUTIMEOUT_ARR[@]}")
+scmd+=(--write-time "${SAVILEROW_TIME}" --previous-used "$PREVIOUS_USED" "$TOTAL_TIMEOUT")
+scmd+=(java -XX:ParallelGCThreads=1 -Xmx${JAVA_MEMORY:-4G} -server -ea -jar "$sr_dir/savilerow.jar")
+scmd+=(-in-eprime "$EPRIME" -in-param "$EPRIME_PARAM" -out-minion "$MINION")
+
+echo "${scmd[@]}"
+echo "${scmd[@]}" >&2
+
+# Using just tee loses the exit code
+(
+set -o pipefail
+(
+	/usr/bin/time -p  "${scmd[@]}" 2>&1 \
+	| tee "${SR_OUTPUT}"
+)
+)
+
 
 RESULTOF_SAVILEROW=$?
 echo "~~~ RESULTOF_SAVILEROW ${RESULTOF_SAVILEROW}"
@@ -159,13 +165,25 @@ date +'finSR %a %d %b %Y %k:%M:%S %z%nfinSR(timestamp) %s' >&2
 
 
 if (( RESULTOF_SAVILEROW != 0 )) ; then
-    echo "$MSG_SAVILEROW" >> "$FAIL_FILE"
+	echo "$MSG_SAVILEROW" >> "$FAIL_FILE"
+	if (( RESULTOF_SAVILEROW != 137 &&  RESULTOF_SAVILEROW != 124  )) ; then
 
-    if (( RESULTOF_SAVILEROW < 128  )); then
-        echo "$MSG_SAVILEROW" >> "$PARAM_ERROR_FILE"
-    fi
+		if ( grep -qc 'Error occurred during initialization of VM' "${SR_OUTPUT}"); then
+			if ( grep -qc 'java.lang.OutOfMemoryError: unable to create new native thread' "${SR_OUTPUT}"); then
+				echo "$MSG_SAVILEROW ~ Error occurred during initialization of VM, java.lang.OutOfMemoryError: unable to create new native thread" >> "$PARAM_ERROR_FILE"
+				exit 3
+			else
+				echo "$MSG_SAVILEROW Error occurred during initialization of VM" >> "$PARAM_ERROR_FILE"
+				exit 4
+			fi
+		else
+			echo "$MSG_SAVILEROW" >> "$PARAM_ERROR_FILE"
+			exit 5
+		fi
+	else
+		exit 1
+	fi
 
-    exit 1
 fi
 
 if [ ! -f $MINION ]; then
@@ -195,15 +213,6 @@ if [ ${minion_cpu} -lt 0 ]; then
 fi
 
 date +'StartMINION %a %d %b %Y %k:%M:%S %z%nStartMINION(timestamp) %s' >&2
-# echoer \
-# ${CPUTIMEOUT} --write-time $MINION_TIME --previous-used $PREVIOUS_USED $TOTAL_TIMEOUT \
-# minion $MINION  \
-#     -noprintsols \
-#     -preprocess SACBounds \
-#     -tableout $MINION_TABLE \
-#     -solsout  $MINION_SOLUTION \
-#     -cpulimit ${minion_cpu};
-
 
 mcmd=("${CPUTIMEOUT_ARR[@]}")
 mcmd+=(--write-time "$MINION_TIME" --previous-used "$PREVIOUS_USED" "$TOTAL_TIMEOUT")
@@ -211,6 +220,7 @@ mcmd+=(minion "$MINION" -noprintsols -preprocess SACBounds )
 mcmd+=(-tableout "$MINION_TABLE" -solsout "$MINION_SOLUTION")
 mcmd+=(-cpulimit ${minion_cpu})
 
+echo "${mcmd[@]}"
 echo "${mcmd[@]}" >&2
 
 # Using just tee loses the exit code
@@ -239,7 +249,7 @@ fi
 if (( $RESULTOF_MINION != 0 )) ; then
     echo "$MSG_MINION" >> "$FAIL_FILE"
     echo "$MSG_MINION" >> "$PARAM_ERROR_FILE"
-    exit 1
+    exit 6
 fi
 
 
@@ -254,7 +264,7 @@ timeout="$( "${OUR}/didMinionTimeout.py" "${MINION_TABLE}" )"
 if [ $? -ne 0 ]; then
     echo "$MSG_MINION" >> "$FAIL_FILE"
     echo "$MSG_MINION  didMinionTimeout.py failed with output ${timeout}" >> "$PARAM_ERROR_FILE"
-    exit 1
+    exit 7
 fi
 
 if [ "${timeout}" -ne 0 ]; then

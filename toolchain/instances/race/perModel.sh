@@ -46,7 +46,7 @@ echo " --- ${Essence} --- ";
 
 
 function update_timeout(){
-trap "excode=$?; echo '<update_timeout>  removing ${LOCKDIR} from trap for $1'; rmdir ${LOCKDIR}; trap - EXIT; echo $excode" EXIT SIGHUP SIGINT SIGTERM
+trap "excode=$?; echo '<update_timeout>  removing ${LOCKDIR} from trap for $1'; [ -d ${LOCKDIR} ] && rmdir ${LOCKDIR}; trap - EXIT; echo $excode" EXIT SIGHUP SIGINT SIGTERM
 
 sr_time="$1.sr-time"
 minion_time="$1.minion-time"
@@ -77,7 +77,7 @@ echo "<update_timeout> tf $TIMEOUT5_FILE"
 if [ ! -f "${fin}" ]; then
 	echo "<update_timeout> no ${fin}"
 	echo "<update_timeout>  removing ${LOCKDIR} no ${fin} for $1"
-	rmdir "${LOCKDIR}"
+	[ -d "${LOCKDIR}" ] && rmdir "${LOCKDIR}"
 	return
 fi
 
