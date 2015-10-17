@@ -47,6 +47,7 @@ import System.IO                                (hPutStr, hPutStrLn, readFile,
 import System.IO.Temp                           (withSystemTempDirectory)
 
 import qualified Data.Set as S
+import qualified Data.Text as T
 
 
 
@@ -72,7 +73,10 @@ runRace paramFP = do
       case erred of
         True -> do
           (_, info) <- liftIO $ pairWithContents errorFile
-          return $ Left $ ErrRace $ (pretty errorFile <++> pretty info)
+          if "Error occurred during initialization of VM" `T.isInfixOf` info then
+              return $ Left $ ErrRaceSrInit $ (pretty errorFile <++> pretty info)
+          else
+              return $ Left $ ErrRace $ (pretty errorFile <++> pretty info)
         False -> do
           totals <- parseRaceResult (paramHash) ts
           logDebug2 "runRace totals:" [pretty totals]

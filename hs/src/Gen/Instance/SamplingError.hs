@@ -19,6 +19,7 @@ data SamplingErr = ErrDontCountIteration Doc
                  | ErrFailedToGenerateParam Doc
                  | ErrFailedRunSolve Doc
                  | ErrRace Doc
+                 | ErrRaceSrInit Doc
                  | ErrGather Doc
                  | ErrFail Doc
   deriving (Eq, Show)
@@ -28,11 +29,12 @@ instance  Pretty SamplingErr  where
     pretty (ErrNoValuesLeft d)          = hang "ErrNoValuesLeft" 4 d
     pretty (ErrFailedToGenerateParam d) = hang "ErrFailedToGenerateParam" 4 d
     pretty (ErrRace d)                  = hang "ErrRace" 4 d
+    pretty (ErrRaceSrInit d)            = hang "ErrRace" 4 d
     pretty (ErrGather d)                = hang "ErrGather" 4 d
     pretty (ErrFail d)                  = hang "ErrFail" 4 d
     pretty x                            = hang "noPretty" 4 (pretty $ groom x)
 
--- Other Ideas
+-- Other Ideas that did not work because of ambiguous types
 
 
 newtype ErrT m a = ErrT { runErrT :: m (Either SamplingErr a) }
