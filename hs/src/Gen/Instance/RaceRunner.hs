@@ -161,7 +161,7 @@ doRace paramFP ordering = do
 
 raceResultsQuery :: Query
 raceResultsQuery = [str|
-  SELECT  1, MinionTimeout, MinionSatisfiable,MinionSolutionsFound, IsOptimum, isDominated
+  SELECT  1, MinionTimeout, MinionSatisfiable, IsOptimum, isDominated
   FROM TimingsDomination
   Where paramHash = ?
   |]
@@ -186,9 +186,9 @@ parseRaceResult paramHash ts =do
 
   conn <- liftIO $ open (mOutputDir </> "results.db")
   rows :: [RaceTotals] <- liftIO $ query conn raceResultsQuery (Only paramHash)
-  let total = flip foldl1' rows (\(RaceTotals a1 b1 c1 d1 e1 f1)
-                                  (RaceTotals a2 b2 c2 d2 e2 f2)
-            -> (RaceTotals (a1+a2) (b1+b2) (c1+c2) (d1+d2) (e1+e2) (f1+f2)) )
+  let total = flip foldl1' rows (\(RaceTotals a1 b1 c1 d1 e1)
+                                  (RaceTotals a2 b2 c2 d2 e2)
+            -> (RaceTotals (a1+a2) (b1+b2) (c1+c2) (d1+d2) (e1+e2)) )
 
   logDebugVerbose $ "Totals for " <+> pretty paramHash <+> pretty ts
   mapM_ (logDebugVerbose . pretty . groom) rows
@@ -200,14 +200,13 @@ data RaceTotals = RaceTotals
     { tCount                :: Int
     , tMinionTimeout        :: Int
     , tMinionSatisfiable    :: Int
-    , tMinionSolutionsFound :: Int
     , tIsOptimum            :: Int
     , tIsDominated          :: Int
     } deriving (Eq, Show, Data, Typeable, Generic)
 instance Pretty RaceTotals where pretty = pretty . groom
 
 instance FromRow RaceTotals where
-    fromRow = RaceTotals <$> field <*> field <*> field <*> field <*> field <*> field
+    fromRow = RaceTotals <$> field <*> field <*> field <*> field <*> field
 
 
 racesTotalCpuTime :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
