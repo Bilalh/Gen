@@ -99,18 +99,26 @@ sqlite3 "${REPOSITORY_BASE}/results.db" <<SQL
 		Union
 
 		-- Unioning the eprime that never finished
-		Select paramHash , eprime,
+		Select f.paramHash , f.eprime,
 		  -1 as SavileRow, -1 as Minion, -1 as TotalTime,
 		  -1 as MinionNodes ,1 as MinionTimeout,
-		   0 as MinionSatisfiable , 0 as MinionSolutionsFound,
+          -- For opt problems
+		   ((Select minimising from Metadata) is NOT NULL
+             And SOU.solutionValue != -2147483648 and SOU.solutionValue != 2147483647)
+             as MinionSatisfiable,
+          -1 as MinionSolutionsFound,
 		   0 as IsOptimum, Cast(f.value as Integer) as isDominated,
-       0 as solutionValue, (Select minimising from Metadata) as minimising
+          SOU.solutionValue, (Select minimising from Metadata) as minimising
 		From  Experiment f
+       Join (
+			Select eprime, paramHash, Cast(g.value as Integer) as solutionValue From Experiment g
+			Where g.attribute='solutionValue'
+			Order By paramHash, eprime
+		) SOU
 		Where f.attribute = 'isDominated' and (
 			Select count(attribute) From Experiment g
-			Where attribute = 'isDominated'
-			And   f.eprime = g.eprime and f.paramHash = g.paramHash
-		) = 1
+			Where f.eprime = g.eprime and f.paramHash = g.paramHash
+		) = 2 --  One for isDominated, one for solutionValue
 
 	) X Join Eprimes EP where X.eprime = EP.eprime
 
