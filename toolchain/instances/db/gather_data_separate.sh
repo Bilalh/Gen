@@ -112,7 +112,7 @@ function solutionValue(){
 			if [  "${minimising}" = "1" ]; then
 				echo "2147483647"
 			elif [  "${minimising}" = "0" ]; then
-				echo "–2147483648"
+				echo "-2147483648"
 			else
 				echo "0"
 			fi
