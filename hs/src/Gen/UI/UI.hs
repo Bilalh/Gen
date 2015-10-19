@@ -64,6 +64,13 @@ data UI
     , influence_radius   :: Int
     }
 
+  | Instance_Summary
+    { input_directory    :: FilePath
+    , mode               :: String
+    , limit_time         :: Maybe Int
+    , log_level          :: LogLevel
+    }
+
   | Reduce
     {
       per_spec_time      :: Int
@@ -436,6 +443,31 @@ ui  = modes
                                   &= help "Random Seed to use"
      } &= name "instance-nsample"
        &= help "Generate discriminating instance for the given essence specification using the nsample method"
+
+
+
+  , Instance_Summary
+     { mode             = def     &= name "mode"
+                                  &= name "m"
+                                  &= groupname "Required"
+                                  &= help "The suffix of the models directory"
+     , input_directory = def      &= typDir
+                                  &= name "output-directory"
+                                  &= name "o"
+                                  &= groupname "Required"
+                                  &= explicit
+                                  &= help "Output directory"
+     , limit_time       = Nothing &= name "limit-time"
+                                  &= explicit
+                                  &= help "Time limit in seconds of CPU time of this program"
+                                  &= groupname "Other"
+                                  &= explicit
+     , log_level       = LogDebug &= name "log-level"
+                                  &= groupname "Other"
+                                  &= explicit
+                                  &= help "Logging level, default LogDebug"
+     } &= name "instance-summary"
+       &= help "Generate a summary of the results, placed in the summary sub-directory."
 
 
 

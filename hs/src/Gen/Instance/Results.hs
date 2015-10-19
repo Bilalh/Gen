@@ -22,9 +22,8 @@ smallestQuery =[str|
   Where eprimesLeft = (Select min(eprimesLeft) From ParamsData);
   |]
 
-numSetsQuery = "Select distinct count(eprimes) From ParamsData Where quality < 1;"
+numSetsQuery = "Select distinct count(*) From ParamQuality"
 numModelsQuery = "Select count(eprime) From Eprimes;"
--- selectorQuery = "Select distinct  eprimesIds  as A from ParamsData where quality < 1;"
 selectorQuery = [str|
     Select group_concat(D.eprimeId, ", ") as eprimesIds
 
@@ -32,9 +31,9 @@ selectorQuery = [str|
         Join TimingsRecorded D on P.paramHash = D.paramHash
 
         Where D.isDominated = 0
+
         Group by P.paramHash
         Order by P.quality;
-
   |]
 
 showResults :: (MonadIO m)

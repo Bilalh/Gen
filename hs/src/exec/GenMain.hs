@@ -40,6 +40,7 @@ import System.FilePath             (replaceExtension, replaceFileName, takeBaseN
                                     takeExtensions)
 import System.Timeout              (timeout)
 import Text.Printf                 (printf)
+import Gen.Instance.Results(showResults)
 
 import qualified Data.Set                as S
 import qualified Gen.Essence.UIData      as EC
@@ -59,7 +60,7 @@ main = do
        void $ withArgs [args] (cmdArgs ui)
     [x] | x `elem` [ "essence", "reduce", "link", "meta", "json", "generalise", "solve"
                    , "weights" , "script-toolchain", "script-recheck"
-                   , "instance-nsample", "instance-undirected"
+                   , "instance-nsample", "instance-undirected", "instance-summary"
                    , "script-createDbHashes" , "script-updateChoices"
                    , "script-removeDups"] -> do
        args <- helpArg
@@ -244,6 +245,19 @@ mainWithArgs u@Instance_Nsample{..} = do
   seed_  <- giveSeed _seed
   runMethod seed_ log_level (Method common ns)
 
+mainWithArgs Instance_Summary{..} = do
+  fileErr <- catMaybes <$> sequence
+          [ dirExists "-o/--output-directory" input_directory ]
+
+  let errors = catMaybes
+        [ aerr "-m|--mode" (null mode)
+        ]
+
+  case errors ++ fileErr of
+    [] -> return ()
+    xs -> mapM putStrLn xs >> exitFailure
+
+  showResults input_directory
 
 mainWithArgs u@Reduce{..} = do
 
