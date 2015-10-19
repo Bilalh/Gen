@@ -1,10 +1,6 @@
 #!/bin/bash
 set -o nounset
 
-# get the repository base
-DIR="$( cd "$( dirname "$0" )" && pwd )"
-DIR="$DIR/../../"
-
 sqlite3 "${REPOSITORY_BASE}/results.db" <<SQL
 	CREATE TABLE IF NOT EXISTS  "Experiment" (
 	"eprime" TEXT NOT NULL,
@@ -62,35 +58,27 @@ sqlite3 "${REPOSITORY_BASE}/results.db" <<SQL
 		From (
 			Select eprime, paramHash, f.value as SavileRow From Experiment f
 			Where f.attribute='SavileRowTotalTime'
-			Order By paramHash, eprime
 		) SR Join (
 			Select eprime, paramHash, f.value as Minion From Experiment f
 			Where f.attribute='MinionTotalTime'
-			Order By paramHash, eprime
 		) M Join (
 			Select eprime, paramHash, Cast(f.value as Integer) as MinionNodes From Experiment f
 			Where f.attribute='MinionNodes'
-			Order By paramHash, eprime
 		) N Join (
 			Select eprime, paramHash, Cast(f.value as Integer) as MinionSatisfiable From Experiment f
 			Where f.attribute='MinionSatisfiable'
-			Order By paramHash, eprime
 		) MS Join (
 			Select eprime, paramHash, Cast(f.value as Integer) as MinionSolutionsFound From Experiment f
 			Where f.attribute='MinionSolutionsFound'
-			Order By paramHash, eprime
 		) MF Join (
 			Select eprime, paramHash, Cast(f.value as Integer) as MinionTimeOut From Experiment f
 			Where f.attribute='MinionTimeOut'
-			Order By paramHash, eprime
 		) MT Join (
 			Select eprime, paramHash, Cast(f.value as Integer) as solutionValue From Experiment f
 			Where f.attribute='solutionValue'
-			Order By paramHash, eprime
 		) SO Join (
 			Select eprime, paramHash, Cast(f.value as Integer) as isDominated From Experiment f
 			Where f.attribute='isDominated'
-			Order By paramHash, eprime
 		) DO
 
 		on  SR.eprime     = M.eprime And M.eprime  = N.eprime And N.eprime  = MS.eprime And MS.eprime  = MF.eprime And MF.eprime  = MT.eprime And MT.eprime  = SO.eprime And SO.eprime  = DO.eprime
@@ -113,7 +101,6 @@ sqlite3 "${REPOSITORY_BASE}/results.db" <<SQL
        Join (
 			Select eprime, paramHash, Cast(g.value as Integer) as solutionValue From Experiment g
 			Where g.attribute='solutionValue'
-			Order By paramHash, eprime
 		) SOU
 		Where f.attribute = 'isDominated' and (
 			Select count(attribute) From Experiment g
@@ -138,35 +125,27 @@ sqlite3 "${REPOSITORY_BASE}/results.db" <<SQL
 	From (
 		Select eprime, paramHash, f.value as SavileRow From Experiment f
 		Where f.attribute='SavileRowTotalTime'
-		Order By paramHash, eprime
 	) SR Join (
 		Select eprime, paramHash, f.value as Minion From Experiment f
 		Where f.attribute='MinionTotalTime'
-		Order By paramHash, eprime
 	) M Join (
 		Select eprime, paramHash, Cast(f.value as Integer) as MinionNodes From Experiment f
 		Where f.attribute='MinionNodes'
-		Order By paramHash, eprime
 	) N Join (
 		Select eprime, paramHash, Cast(f.value as Integer) as MinionSatisfiable From Experiment f
 		Where f.attribute='MinionSatisfiable'
-		Order By paramHash, eprime
 	) MS Join (
 		Select eprime, paramHash, Cast(f.value as Integer) as MinionSolutionsFound From Experiment f
 		Where f.attribute='MinionSolutionsFound'
-		Order By paramHash, eprime
 	) MF Join (
 		Select eprime, paramHash, Cast(f.value as Integer) as MinionTimeOut From Experiment f
 		Where f.attribute='MinionTimeOut'
-		Order By paramHash, eprime
 	) MT Join (
 		Select eprime, paramHash, Cast(f.value as Integer) as solutionValue From Experiment f
 		Where f.attribute='solutionValue'
-		Order By paramHash, eprime
 	) SO Join (
 		Select eprime, paramHash, Cast(f.value as Integer) as isDominated From Experiment f
 		Where f.attribute='isDominated'
-		Order By paramHash, eprime
 	) DO
 
 	on  SR.eprime     = M.eprime And M.eprime  = N.eprime And N.eprime  = MS.eprime And MS.eprime  = MF.eprime And MF.eprime  = MT.eprime And MT.eprime  = SO.eprime And SO.eprime  = DO.eprime
