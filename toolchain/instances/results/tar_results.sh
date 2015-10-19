@@ -51,7 +51,7 @@ EOF
 )
 
 
-parallel -j"${NUM_JOBS}" --tagstring "finding finished {/.}" 'find . -maxdepth 1 -name "*{/.}*.zfinished " > p{/.}.pfinished' ::: ../_params/*
+parallel -j"${NUM_JOBS}" --tagstring "finding finished {/.}" 'find . -maxdepth 1 -name "*{/.}*.zfinished" > p{/.}.pfinished' ::: ../_params/*
 find . -name '*.pfinished' -empty -delete
 
 parallel -j"${NUM_JOBS}" --tagstring "{/.}" "$Params" ::: ../_params/*
