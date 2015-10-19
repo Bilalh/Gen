@@ -294,8 +294,8 @@ sqlite3 "${REPOSITORY_BASE}/results.db" <<SQL
 	From (
 		Select eprime, paramHash, Cast(f.value as Integer) as solutionValue From Experiment f
 		Where f.attribute='solutionValue'
-	)  SO Join Eprimes EP where SO.eprime = EP.eprime
-
+	)  SO Join Eprimes EP
+    ON  SO.eprime = EP.eprime
 
 	Order by SO.paramHash, SO.eprime
 		;
