@@ -54,8 +54,7 @@ buildDependencyGraph outBase model = do
     False -> return $ Left $ ErrFailedRunSolve (nn "failed to refine" (groom ess) )
     True  -> do
       runSolve outBase ess eprime point >>= \case
-        Left x  -> return (Left x)
-        Right (solPoint@(Point xs), time) -> do
+        Right (solPoint@(Just (Point xs)), time) -> do
           logInfo2 $line [nn "solution Point" solPoint]
           case (lookup "levelsNeeded" xs, lookup "dependent" xs) of
             (Just l, Just (ConstantAbstract (AbsLitSet ds )))  -> if l > 2 then
@@ -66,6 +65,8 @@ buildDependencyGraph outBase model = do
                 let res = Right $ (VarInfo{givens=S.fromList $ ns}, time)
                 return $ res
             _ -> return $ Left $ ErrFailedRunSolve (nn "failed to Read" (solPoint))
+        Left x  -> return (Left x)
+        Right _ -> return $ Left $ ErrFailedRunSolve (nn "No solution for " point)
 
   where
 

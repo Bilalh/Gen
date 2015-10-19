@@ -425,7 +425,7 @@ sampleParamFromMinion = do
 
 runSolve  :: (MonadIO m)
           => FilePath -> FilePath -> FilePath -> Point
-         -> m (Either SamplingErr (Point,Double))
+         -> m (Either SamplingErr (Maybe Point,Double))
 runSolve outputDir ess eprime point = do
 
   let phash   = pointHash point
@@ -463,7 +463,9 @@ runSolve outputDir ess eprime point = do
   case (worked, timeMay) of
     (True, Just time)  -> do
       sol <- readPoint solutionFp
-      return $ Right (sol, time)
+      return $ Right (Just sol, time)
+    (False, Just time)  -> do
+      return $ Right (Nothing, time)
     _ -> return $ Left $ ErrFailedRunSolve
              (vcat [nn "point" point, nn "ts" now, nn "hash" phash,
                     nn  "outdir" out, nn "timeMay" timeMay ])
