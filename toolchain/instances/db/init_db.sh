@@ -115,6 +115,10 @@ sqlite3 "${REPOSITORY_BASE}/results.db" <<SQL
 			Where g.attribute='solutionValue'
 			Order By paramHash, eprime
 		) SOU
+
+        On  f.paramHash   = SOU.paramHash
+        And f.eprime      = SOU.eprime
+
 		Where f.attribute = 'isDominated' and (
 			Select count(attribute) From Experiment g
 			Where f.eprime = g.eprime and f.paramHash = g.paramHash
