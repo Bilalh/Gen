@@ -199,8 +199,8 @@ sqlite3 "${REPOSITORY_BASE}/results.db" <<SQL
 	 P.quality, P.ordering, Cast(count(D.eprime) as Integer) as eprimesLeft,
 	Cast(max(D.MinionSatisfiable) as Integer) as Satisfiable, Cast(max(D.MinionSolutionsFound) as Integer) as MaxSolutions,
 	F.minTime, F.maxTime, F.avgTime, paramCpuTime, numFinished,
-	group_concat(D.eprimeId, ", ") as eprimesIds,
-	group_concat(D.eprime, ", ") as eprimes
+	TR.eprimesIds,
+	TR.eprimes
 
 	From ParamQuality P
 
@@ -213,7 +213,9 @@ sqlite3 "${REPOSITORY_BASE}/results.db" <<SQL
 	  on F.paramHash = D.paramHash
 
 	Join ( Select paramHash,
-	       count() as numFinished
+	       count() as numFinished,
+			group_concat(TR.eprimeId, ", ") as eprimesIds,
+			group_concat(TR.eprime, ", ") as eprimes
 	       From TimingsRecorded TR
 	       Group By paramHash) TR
 	     on TR.paramHash = D.paramHash
@@ -221,7 +223,7 @@ sqlite3 "${REPOSITORY_BASE}/results.db" <<SQL
 	Where D.isDominated = 0
 	Group by P.paramHash
 	Order by P.quality
-	;
+		;
 
 
 	CREATE VIEW IF NOT EXISTS Fastest as
