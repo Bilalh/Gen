@@ -1,16 +1,17 @@
 {-# LANGUAGE DeriveDataTypeable, DeriveGeneric, QuasiQuotes #-}
 module Gen.Instance.Results where
 
+import Conjure.Language.Definition
 import Database.SQLite.Simple
 import Database.SQLite.Simple.FromField ()
 import Database.SQLite.Simple.FromRow   ()
 import Gen.Helpers.Str
 import Gen.Imports
 import Gen.Instance.Data
-import Gen.Instance.Point
-import System.IO.Temp                   (withSystemTempDirectory)
-import Conjure.Language.Definition
-import Gen.Instance.RaceRunner (runSolve, script_lookup1,conjureCompact)
+import Gen.Instance.RaceRunner          (conjureCompact, runSolve, script_lookup1)
+import Gen.IO.Toolchain                 (runCommand')
+import System.Exit                      (ExitCode (ExitSuccess))
+import System.IO                        (readFile)
 
 import qualified Data.Text as T
 
@@ -59,24 +60,42 @@ showResults outdir = do
                     ,("sets",  (ConstantAbstract $ AbsLitMSet sets ) )
                     ,("numModels", ConstantInt numModels)]
 
-  results <- hittingSet summary param
-  liftIO $ print . pretty $ results
+  liftIO $ close conn
+
+  hittingSet summary param >>= \case
+    Nothing -> do
+      liftIO $ writeFile (summary </> "hittingSet" ) "NOTHING"
+      liftIO $ writeFile (summary </> "resultSet" ) "NOTHING"
+    Just( hset@(Point [(_,hval)])) -> do
+      liftIO $ print . pretty $ hset
+      liftIO $ writeFile (summary </> "hittingSet" ) (renderSized 10000 $  pretty hval)
+      findResultingSet db summary hval
+    _ -> do
+      docError [nn  "hittingSet failed on" param]
+
+findResultingSet :: MonadIO m => FilePath -> FilePath -> Constant -> m ()
+findResultingSet db out hval = do
+  script <- liftIO $ script_lookup1 "instances/results/gent_idea.py"
+  runCommand' Nothing (script) [db,  (renderSized 10000 $  pretty hval) ]
+    (Just (out </> "resultSet")) >>= \case
+      ExitSuccess ->  liftIO $ readFile (out </> "resultSet") >>= putStrLn
+      x           -> docError [ "findResultingSet failed with"  <+> (pretty . show $ x)
+                              , nn "on" hval]
 
 
-hittingSet :: MonadIO m => FilePath -> Point -> m Point
+
+hittingSet :: MonadIO m => FilePath -> Point -> m (Maybe Point)
 hittingSet out point = do
-  liftIO $ createDirectoryIfMissing True out
+  liftIO $ createDirectoryIfMissing True (out </> "_run_solve")
 
-  ess <- liftIO $ script_lookup1 "instances/hittingSetMsetOpt/hittingSetMsetOpt.essence"
-  let eprime = out </> "hittingSet.eprime"
+  ess <- liftIO $ script_lookup1 "instances/results/hittingSetMsetOpt.essence"
+  let eprime = out </> "_run_solve" </> "hittingSet.eprime"
   conjureCompact ess eprime >>= \case
     False -> docError [nn "failed to refine" (groom ess) ]
     True  -> do
       runSolve out ess eprime point >>= \case
         Left x  -> error . show $ x
-        Right (Just solPoint, _) -> do
-          return solPoint
-        Right x -> docError ["No solution in hitting set" <+> pretty x]
+        Right (res, _) -> return res
 
 _ex1 :: IO ()
 _ex1 = showResults "/Users/bilalh/Desktop/fractest/"

@@ -32,7 +32,7 @@ with sqlite3.connect(args.db) as conn:
 	for e in hset:
 		logging.info("processing %s", e)
 		sets_with_e =[ (set(eprimes.split(", ")), ordering) for (eprimes, ordering) in
-			conn.execute("Select eprimesIds, ordering From ParamsData Where eprimesIds like '%{:04d}%' Order By ordering".format(e))]
+			conn.execute("Select eprimesIds, ordering From ParamsData Where eprimesIds like '%{}%' Order By ordering".format(e))]
 
 		logger.info(len(sets_with_e))
 		assert len(sets_with_e) > 0
@@ -58,7 +58,7 @@ conn.close()
 logger.info("ordering end %s", highest_ordering_needed)
 
 for intersection in insection_mapping.values():
-	print(len(intersection), sorted(intersection))
+	print(len(intersection), sorted(map(int,intersection)))
 
 
 print("highest_ordering_needed: {}".format(highest_ordering_needed))
