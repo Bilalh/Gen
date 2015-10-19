@@ -51,8 +51,8 @@ EOF
 )
 
 
-parallel -j"${NUM_JOBS}" --tagstring "finding finished {/.}" 'find . -maxdepth 1 -name "*{/.}*.zfinished " > p{/.}.finished' ::: ../params/*
-find . -name '*.finished' -empty -delete
+parallel -j"${NUM_JOBS}" --tagstring "finding finished {/.}" 'find . -maxdepth 1 -name "*{/.}*.zfinished " > p{/.}.pfinished' ::: ../_params/*
+find . -name '*.pfinished' -empty -delete
 
 parallel -j"${NUM_JOBS}" --tagstring "{/.}" "$Params" ::: ../_params/*
 
@@ -82,7 +82,7 @@ if [ -d "smac-output" ]; then
 fi
 
 
-tar -c "stats-${mode}" | pigz -c -p"${NUM_JOBS}" > "stats-${mode}.tar.gz"
-rm -rf "stats-${mode}"
+tar -c "stats_${mode}" | pigz -c -p"${NUM_JOBS}" > "stats_${mode}.tar.gz"
+rm -rf "stats_${mode}"
 
 popd
