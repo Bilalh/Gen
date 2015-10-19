@@ -122,6 +122,7 @@ Library
                      , Gen.Instance.Nsample
                      , Gen.Instance.Point
                      , Gen.Instance.RaceRunner
+                     , Gen.Instance.Results
                      , Gen.Instance.SamplingError
                      , Gen.Instance.UI
                      , Gen.Instance.Undirected

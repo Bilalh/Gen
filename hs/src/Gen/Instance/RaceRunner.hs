@@ -429,7 +429,7 @@ runSolve  :: (MonadIO m)
 runSolve outputDir ess eprime point = do
 
   let phash   = pointHash point
-  let baseName = takeBaseName ess
+  let baseName = takeBaseName eprime
 
   now <- timestamp
   let out        = outputDir </> "_run_solve" </> show now
@@ -458,6 +458,7 @@ runSolve outputDir ess eprime point = do
   void $ liftIO $ runPadded " ⦿ " env cmd args
 
   worked <- liftIO $ doesFileExist solutionFp
+  liftIO $ print . pretty  $ nn "solutionFp" solutionFp
   timeMay <- readCpuTime (out </> "total.time")
 
   case (worked, timeMay) of
