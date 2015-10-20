@@ -64,6 +64,22 @@ tar -c "${base_out}" | pigz -c -p"${NUM_JOBS}" > "${base_out}".tar.gz
 rm -rf "${base_out}"
 popd
 
+
 pushd ${GENERATED_SOLUTIONS_DIR}
+function minions(){
+    newlines="$(egrep -cv '\S' "$1")"
+    all=$( wc -l "$1" | egrep -o '^ *[0-9]+ ' | egrep -o '[0-9]+')
+
+    if [ "$all" -eq "${newlines}" ]; then
+        echo "Deleting $1 it's empty "
+        find . -name "$2*" -delete
+        echo "$2" >> "empty.log"
+    fi
+}
+export -f minions
+
+parallel -j1 --tag "minions {} {/.}" ::: "$(find . -name '*.minion-solution')"
+
+
 wc -l *.minion-solution | sed '$ d' > solutions.counts
 popd
