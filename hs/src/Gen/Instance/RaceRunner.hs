@@ -19,6 +19,7 @@ module Gen.Instance.RaceRunner(
   , script_lookup
   , runPadded
   , conjureCompact
+  , createParamEssence1
   ) where
 
 import Conjure.Language
@@ -312,11 +313,15 @@ getPointQuailty paramHash = do
                               : (pretty $line) : map (pretty . groom) xs
 
 
-createParamEssence :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
+createParamEssence :: (MonadState (Method a) m, MonadIO m, MonadLog m )
                    => m ()
 createParamEssence = do
-  logDebug "createParamEssence"
   (Method MCommon{mEssencePath,mVarInfo, mOutputDir} _) <- get
+  createParamEssence1 mEssencePath mVarInfo mOutputDir
+
+createParamEssence1 :: (MonadIO m, MonadLog m )
+                   => FilePath -> VarInfo -> FilePath -> m ()
+createParamEssence1 mEssencePath mVarInfo mOutputDir = do
   let specFp   = (mOutputDir </> "essence_param_find.essence")
   let eprimeFp = (mOutputDir </> "essence_param_find.eprime")
   liftIO $ createDirectoryIfMissing True mOutputDir

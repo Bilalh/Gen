@@ -4,14 +4,12 @@ import Data.List               (dropWhileEnd)
 import Gen.Imports
 import Gen.Instance.Data
 import Gen.Instance.Point      (readPoint)
-import Gen.Instance.RaceRunner (runPadded, script_lookup, readCpuTime)
+import Gen.Instance.Point
+import Gen.Instance.RaceRunner (createParamEssence1, readCpuTime, runPadded,
+                                script_lookup, script_lookup1)
+import System.Directory        (copyFile)
 import System.IO               (readFile)
 import Text.Printf
-
-data Solutions     = Solutions Int [SolutionCount]
-  deriving (Eq, Show)
-data SolutionCount = SolCount Int String
-  deriving (Eq, Show)
 
 readSolutionCounts :: MonadIO m => FilePath -> m Solutions
 readSolutionCounts fp = do
@@ -90,3 +88,19 @@ randomPointFromAllSolutions = do
 
   p <- readPoint (out </> paramBase <.> ".solution")
   return $ (p,timeMay)
+
+createAllSolutionScript :: (MonadIO m, MonadLog m)
+                        => Provider -> VarInfo -> FilePath -> FilePath
+                        -> m ()
+createAllSolutionScript provider info essence out = do
+  createParamEssence1 essence info out
+
+  let param_dir =  out </> "_params"
+  liftIO $ createDirectoryIfMissing True param_dir
+  points <- provideAllValues provider
+  liftIO $ forM_ points $ \p -> do
+    let name = pointHash p
+    let fp = param_dir </> name <.> ".param"
+    writePoint p fp
+    scriptPath <- script_lookup1 "instances/all_solutions/create_all_solutions.sh"
+    copyFile scriptPath (out </> "create_all_solutions.sh")

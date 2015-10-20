@@ -4,16 +4,17 @@ module Gen.Instance.Point where
 import Conjure.Language.Constant
 import Conjure.Language.Definition
 import Conjure.Language.Domain
+import Conjure.Process.Enumerate
 import Conjure.UI.IO               (EssenceFileMode (PlainEssence),
                                     readModelFromFile, writeModel)
 import Crypto.Hash
+import Data.List                   (iterate, takeWhile)
 import Gen.Imports                 hiding (hash)
 import Gen.Instance.Data
 import System.FilePath             (takeDirectory)
-import Data.List                  (iterate, takeWhile)
 
 import qualified Data.ByteString.Char8 as B
-import qualified Data.Set as S
+import qualified Data.Set              as S
 
 type ParamFP   = FilePath
 type ParamName = String
@@ -62,6 +63,16 @@ provideValues (Provider xs) = do
         rnd <- domainRandomValue d
         modify $ \old -> (n,rnd) : old
   return $ Point vs
+
+-- Uses enumerateDomain to provides all the values of the givens
+provideAllValues :: MonadIO m => Provider -> m [Point]
+provideAllValues (Provider xs) = do
+  cs <- forM xs $ \(n,d) -> do
+          ds <- liftIO $ enumerateDomain d
+          return (n,ds)
+  let (names,byName) = unzip cs
+  let res = [  Point $ zip names vals   | vals <- transpose byName ]
+  return res
 
 -- For simple true like ints and bools
 domainRandomValue :: MonadIO m => Domain () Constant -> m Constant

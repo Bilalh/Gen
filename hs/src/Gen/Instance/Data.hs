@@ -92,7 +92,7 @@ data RunMetadata = RunMetadata
     , rCPUTime                       :: Double
     , rRacesCPUTime                  :: Double
     , rParamGenCPUTime               :: Double
-    , rSubCPUTime                    :: Double  -- Any other subprocess
+    , rSubCPUTime                    :: Double  -- | Any other subprocess
     , rOurCPUTime                    :: Double
     , rIterationsDone                :: Int
     , rIterationsDoneIncludingFailed :: Int
@@ -112,3 +112,9 @@ voidRes x = fmap (const ()) <$> x
 --   case res of
 --     Left x -> return $ Left x
 --     Right x -> return $ Right ()
+
+-- For all Solutions
+data Solutions  = Solutions Int [SolutionCount]
+  deriving (Eq, Show)
+data SolutionCount = SolCount Int String
+  deriving (Eq, Show)

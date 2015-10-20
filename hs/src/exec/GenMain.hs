@@ -14,10 +14,12 @@ import Gen.Essence.Generate        (generateEssence)
 import Gen.Essence.UIData
 import Gen.Generalise.Generalise   (generaliseMain)
 import Gen.Imports
+import Gen.Instance.AllSolutions   (createAllSolutionScript)
 import Gen.Instance.Data
+import Gen.Instance.Nsample        (Nsample (..))
+import Gen.Instance.Results        (showResults)
 import Gen.Instance.UI             (makeProvider, runMethod)
 import Gen.Instance.Undirected     (Undirected (..))
-import Gen.Instance.Nsample        (Nsample  (..))
 import Gen.IO.Dups                 (deleteDups2, refineDups, solveDups)
 import Gen.IO.FindCompact          (findCompact)
 import Gen.IO.Formats              (readFromJSON)
@@ -40,7 +42,6 @@ import System.FilePath             (replaceExtension, replaceFileName, takeBaseN
                                     takeExtensions)
 import System.Timeout              (timeout)
 import Text.Printf                 (printf)
-import Gen.Instance.Results(showResults)
 
 import qualified Data.Set                as S
 import qualified Gen.Essence.UIData      as EC
@@ -61,8 +62,8 @@ main = do
     [x] | x `elem` [ "essence", "reduce", "link", "meta", "json", "generalise", "solve"
                    , "weights" , "script-toolchain", "script-recheck"
                    , "instance-nsample", "instance-undirected", "instance-summary"
-                   , "script-createDbHashes" , "script-updateChoices"
-                   , "script-removeDups"] -> do
+                   , "script-createDbHashes", "script-updateChoices"
+                   , "script-removeDups", "instance-allsols"] -> do
        args <- helpArg
        void $ withArgs [x, args] (cmdArgs ui)
 
@@ -244,6 +245,30 @@ mainWithArgs u@Instance_Nsample{..} = do
 
   seed_  <- giveSeed _seed
   runMethod seed_ log_level (Method common ns)
+
+mainWithArgs Instance_AllSolutions{..} = do
+  essence <- makeAbsolute essence_path
+  let info_path   = replaceFileName essence "info.json"
+  fileErr <- catMaybes <$> sequence
+    [
+      fileExists   "essence" essence
+    , fileExists   "info.json needs to be next to the essence" info_path
+    ]
+
+  case fileErr of
+    [] -> return ()
+    xs -> mapM putStrLn xs >> exitFailure
+
+  out  <- makeAbsolute =<< case output_directory of
+            Just i  -> return i
+            Nothing -> return $ "allsols@" ++ takeBaseName essence_path
+
+  i :: VarInfo <- readFromJSON info_path
+  p <- ignoreLogs $ makeProvider essence_path i
+
+  runLoggerPipeIO log_level $
+    createAllSolutionScript p i essence out
+
 
 mainWithArgs Instance_Summary{..} = do
   fileErr <- catMaybes <$> sequence
@@ -607,7 +632,6 @@ instanceCommon cores Instance_Common{..} = do
   fileErr <- catMaybes <$> sequence
     [
       fileExists   "essence" essence
-    , dirExistsMay "-o/--output-directory" output_directory
     , fileExists   "info.json needs to be next to the essence" info_path
     , dirExists    "Model dir missing" models_path
     ]
