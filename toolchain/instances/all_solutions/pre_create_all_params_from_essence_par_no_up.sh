@@ -76,8 +76,8 @@ popd
 
 pushd ${GENERATED_SOLUTIONS_DIR}
 function minions(){
-    newlines="$(egrep -cv '\S' "$1")"
-    all=$( wc -l "$1" | egrep -o '^ *[0-9]+ ' | egrep -o '[0-9]+')
+    newlines="$(head -n5 "$1" | egrep -cv '\S')"
+    all=$( head -n5 "$1" | wc -l "$1" | egrep -o '^ *[0-9]+ ' | egrep -o '[0-9]+')
 
     if [ "$all" -eq "${newlines}" ]; then
         echo "Deleting $1 it's empty "
@@ -90,5 +90,11 @@ export -f minions
 parallel -j1 --tag "minions {} {/.}" ::: "$(find . -name '*.minion-solution')"
 
 
-wc -l *.minion-solution | sed '$ d'  > solutions.counts
+# # mimics wc -l *.minion-solution but a lot faster (seconds instead of hours for a 1tb file)
+"${OUR_DIR}/count_lines.sh"
+
+# slow wc -l
+# wc -l *.minion-solution | sed '$ d'  > solutions.counts
+
+
 popd

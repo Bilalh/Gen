@@ -26,6 +26,6 @@ function count_lines(){
 }
 export -f count_lines
 
-count_file=${COUNT_FILE:-solutions.counts}
+count_file=solutions.counts
 
-parallel --keep-order  "count_lines {}" ::: *.minion-solution | tee ${count_file} 
+parallel --keep-order  "count_lines {}" ::: *.minion-solution | tee ${count_file}

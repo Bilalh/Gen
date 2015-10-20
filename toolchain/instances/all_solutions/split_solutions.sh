@@ -7,17 +7,17 @@ echo "NUM_JOBS is ${NUM_JOBS}"
 dir="$1"
 cd "$dir"
 
-if (sw_vers &>/dev/null); then
+if [ "$(uname)" == "Darwin" ]; then
 	export cmd="gsplit"
 else
 	export cmd="split"
 fi
 
+hash "$cmd" || echo "$cmd not found" >&2
+
+
 function process(){
 	[ "$1" = "" ] && return 0
-
-
-
 	"$cmd" -d -a10 -l 1000000 "$1" "$1."
 	tar -c "$1" | pigz -c -p"${NUM_JOBS}" > "${1}".tar.gz
 	rm "$1"
