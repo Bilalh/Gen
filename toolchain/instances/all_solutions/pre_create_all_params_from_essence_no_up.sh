@@ -18,7 +18,7 @@ BASE="${GENERATED_OUTPUT_DIR}"
 
 PARAM_NAME="`basename ${PARAM}`"
 PARAMBASE=${PARAM_NAME%.param}
-
+ 
 
 START_FILE="${BASE}/${PARAMBASE}.zstarted"
 END_FILE="${BASE}/${PARAMBASE}.zfinished"

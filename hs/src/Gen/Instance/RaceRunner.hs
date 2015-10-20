@@ -16,6 +16,8 @@ module Gen.Instance.RaceRunner(
   , readCpuTime
   , runSolve
   , script_lookup1
+  , script_lookup
+  , runPadded
   , conjureCompact
   ) where
 

@@ -101,9 +101,9 @@ _ex9 = do
   let state = Method common Undirected
 
   let workload = runLoggerPipeIO (LogDebug) $ do
-        (re,reState) <- runStateT (randomPointFromAllSolutions) state
+        (re,_) <- runStateT (randomPointFromAllSolutions) state
         logInfo "Finished"
-        liftIO $  groomPrint re
+        liftIO $  print . pretty $ re
 
   workload
 
