@@ -97,6 +97,7 @@ store:
 # Usage:
 # `make ghci` to run ghci on .hs files
 # `make ghci files=<files>` to run on specific files
+# The files can be seperated by commas or spaces
 ghci:
 	@cabal exec ghci -- -isrc -isrc/test -idist/build/autogen  \
 	-XNoImplicitPrelude                        \
@@ -123,7 +124,7 @@ ghci:
 		-fghci-hist-size=500                       \
 		-fno-warn-type-defaults                    \
 		${args}                                    \
-		${files}
+		$(subst ${comma}, ,${files})
 
 # To use a # in a subshell you have to esacpe it twice (for make & for shell)
 # to do this we put it in a varible
