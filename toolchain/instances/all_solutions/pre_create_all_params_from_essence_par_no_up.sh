@@ -81,5 +81,5 @@ export -f minions
 parallel -j1 --tag "minions {} {/.}" ::: "$(find . -name '*.minion-solution')"
 
 
-wc -l *.minion-solution  > solutions.counts
+wc -l *.minion-solution | sed '$ d'  > solutions.counts
 popd

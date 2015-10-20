@@ -22,6 +22,7 @@ data SamplingErr = ErrDontCountIteration Doc
                  | ErrRaceSrInit Doc
                  | ErrGather Doc
                  | ErrFail Doc
+                 | ErrAllSolutions Doc
   deriving (Eq, Show)
 
 instance  Pretty SamplingErr  where

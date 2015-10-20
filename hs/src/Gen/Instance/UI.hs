@@ -14,6 +14,7 @@ import System.Directory                  (makeAbsolute)
 import System.FilePath                   (replaceFileName, takeBaseName)
 import System.Random                     (mkStdGen, setStdGen)
 import Gen.Instance.SamplingError
+import  Gen.Instance.AllSolutions
 
 import qualified Data.Set as S
 
@@ -60,25 +61,11 @@ _ex_info, _ex_essence, _ex_out, _ex_mode, _ex_dir, _ex_prob :: String
 _ex_prob    = "prob006-GR"
 _ex_mode    = "df"
 _ex_out     = "/Users/bilalh/CS/gen/__"
-_ex_dir     = "/Users/bilalh/CS/instancegen-models/2015-09-23/"
+_ex_dir     = "/Users/bilalh/CS/essence-refinements/_current"
 _ex_info    = _ex_dir </> _ex_prob </> "info.json"
 _ex_essence = _ex_dir </> _ex_prob </> _ex_prob <.> ".essence"
 _ex_point  :: Point
 _ex_point   = Point [("n", ConstantInt 4)] -- GR
--- _ex_point   = Point [("k", ConstantInt 2),("n", ConstantInt 4)] -- Langford
--- _ex_point = Point -- PPP
---   [(Name "capacity",
---     ConstantAbstract
---       (AbsLitFunction
---          [(ConstantInt 1, ConstantInt 3), (ConstantInt 2, ConstantInt 2),
---           (ConstantInt 3, ConstantInt 3)])),
---    (Name "crew",
---     ConstantAbstract
---       (AbsLitFunction
---          [(ConstantInt 1, ConstantInt 2), (ConstantInt 2, ConstantInt 2),
---           (ConstantInt 3, ConstantInt 1)])),
---    (Name "n_periods", ConstantInt 89),
---    (Name "n_boats", ConstantInt 3), (Name "n_upper", ConstantInt 3)]
 
 -- Common settings
 _ex_common :: IO MCommon
@@ -104,6 +91,21 @@ _ex_common = do
       }
 
   return common
+
+
+
+-- Run give a solution from all
+_ex9 :: IO ()
+_ex9 = do
+  common <- _ex_common
+  let state = Method common Undirected
+
+  let workload = runLoggerPipeIO (LogDebug) $ do
+        (re,reState) <- runStateT (randomPointFromAllSolutions) state
+        logInfo "Finished"
+        liftIO $  groomPrint re
+
+  workload
 
 
 -- Run Undirected
