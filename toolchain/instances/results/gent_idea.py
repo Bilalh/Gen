@@ -28,11 +28,25 @@ insection_mapping = {}
 
 highest_ordering_needed=-1
 
+query = """
+    Select * From
+    (Select group_concat(D.eprimeId, ", ") as eprimesIds, ordering, count(D.eprimeId) as len
+
+    From ParamQuality P
+    Join TimingsDomination D on P.paramHash = D.paramHash
+
+    Where D.isDominated = 0 AND quality < 1
+
+    Group by P.paramHash
+    Order by P.quality
+    ) Where eprimesIds like '%{}%'
+"""
+
 with sqlite3.connect(args.db) as conn:
 	for e in hset:
 		logging.info("processing %s", e)
-		sets_with_e =[ (set(eprimes.split(", ")), ordering) for (eprimes, ordering) in
-			conn.execute("Select eprimesIds, ordering From ParamsData Where eprimesIds like '%{}%' Order By ordering".format(e))]
+		sets_with_e =[ (set(eprimes.split(", ")), ordering) for (eprimes, ordering, numEprimes) in
+			conn.execute(query.format(e))]
 
 		logger.info(len(sets_with_e))
 		assert len(sets_with_e) > 0
