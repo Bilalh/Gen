@@ -7,11 +7,16 @@ OUR_DIR="$( cd "$( dirname "$0" )" && pwd )";
 TOTAL_TIMEOUT="${1}"
 ESSENCE="${2}"
 EPRIME="${3}"
+out_base="${4}"
+
 
 [ -f "${ESSENCE}" ] || (echo "${ESSENCE} missing" exit 1)
 [ -f "${EPRIME}" ]  || (echo "${EPRIME} missing" exit 1)
 
 function check_variables(){
+    # check that the variables specified by the array vars_needed are set.
+    # Return return 0 only if they are >0 if there they are not
+
     echo ""
     echo "                *** Variables ***"
     var_err=0
@@ -19,11 +24,15 @@ function check_variables(){
         val="${!var:-MISSING}"
         printf "%-24s: %s\n" "$var" "${val}"
         if [ "$val" = "MISSING" ]; then
-            var_err=1
+            var_err+=1
         fi
     done
     return $var_err
 }
+
+export GENERATED_OUTPUT_DIR="${out_base}/solve_data"
+export GENERATED_SOLUTIONS_DIR="${out_base}/all_sols"
+export PARAMS_DIR="${out_base}/_params"
 
 export vars_needed=(GENERATED_OUTPUT_DIR GENERATED_SOLUTIONS_DIR PARAMS_DIR NUM_JOBS TOTAL_TIMEOUT ESSENCE EPRIME )
 if ( ! check_variables ) then
