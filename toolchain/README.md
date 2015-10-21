@@ -12,8 +12,8 @@ Used by gen essence reduce script-toolchain
 
 Used by gen instance*
 
-* wrappers
-* tools
+* instances
+* cputimeout
 
 Used by `breaking_conjure`
 
