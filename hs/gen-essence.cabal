@@ -146,7 +146,6 @@ Library
                      , Gen.Reduce.Simpler
                      , Gen.Reduce.TypeCheck
                      , Gen.Reduce.UnusedDomains
-                     , Gen.Solver.Enumerate
                      , Gen.Solver.Solver
                      , Gen.UI.UI
     --MODULES END
