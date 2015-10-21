@@ -858,3 +858,11 @@ _reduceDebug = do
               db_directory = Just "db", db_passing_in = Nothing,
               db_only_passing = False, from_essence = False,no_check=True}
   limiter (limit_time ec) (mainWithArgs ec)
+
+_instanceDebug :: IO ()
+_instanceDebug = do
+  let ec = Instance_AllSolutions{essence_path =
+     "/Users/bilalh/CS/essence-refinements/_current/prob034-warehouse/prob034-warehouse.essence",
+     output_directory = Just "__", limit_time = Nothing,
+     log_level = LogDebug}
+  limiter (limit_time ec) (mainWithArgs ec)

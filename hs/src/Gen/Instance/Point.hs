@@ -65,13 +65,19 @@ provideValues (Provider xs) = do
   return $ Point vs
 
 -- Uses enumerateDomain to provides all the values of the givens
-provideAllValues :: MonadIO m => Provider -> m [Point]
+provideAllValues :: (MonadIO m, MonadLog m) => Provider -> m [Point]
 provideAllValues (Provider xs) = do
   cs <- forM xs $ \(n,d) -> do
           ds <- liftIO $ enumerateDomain d
           return (n,ds)
   let (names,byName) = unzip cs
-  let res = [  Point $ zip names vals   | vals <- transpose byName ]
+  -- logDebug2 $line (map (prettyArr) byName)
+  let expended = sequence byName
+
+  let res = [  Point $ zip names vals   | vals <-expended]
+  -- logDebug2 $line [ nn "res" (length res)
+  --                 , nn "expended" (length expended)
+  --                 , nn "byName" (length byName)]
   return res
 
 -- For simple true like ints and bools

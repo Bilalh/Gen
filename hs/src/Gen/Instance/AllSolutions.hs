@@ -10,6 +10,7 @@ import Gen.Instance.RaceRunner (createParamEssence1, readCpuTime, runPadded,
 import System.Directory        (copyFile)
 import System.IO               (readFile)
 import Text.Printf
+import Conjure.Language.Domain
 
 readSolutionCounts :: MonadIO m => FilePath -> m Solutions
 readSolutionCounts fp = do
@@ -98,9 +99,22 @@ createAllSolutionScript provider info essence out = do
   let param_dir =  out </> "_params"
   liftIO $ createDirectoryIfMissing True param_dir
   points <- provideAllValues provider
+
+  let nf = nameFunc provider
+
   liftIO $ forM_ points $ \p -> do
-    let name = pointHash p
-    let fp = param_dir </> name <.> ".param"
+    let fp = param_dir </> nf p <.> ".param"
     writePoint p fp
     scriptPath <- script_lookup1 "instances/all_solutions/create_all_solutions.sh"
     copyFile scriptPath (out </> "create_all_solutions.sh")
+
+  where
+  nameFunc :: Provider -> (Point -> String)
+  nameFunc (Provider xs) | all (simple . snd) xs = simpleName
+  nameFunc _ = pointHash
+
+  simple DomainInt{}  = True
+  simple DomainBool{} = True
+  simple _            = False
+
+  simpleName (Point xs) =  intercalate "-" $ map (show . pretty . snd) xs
