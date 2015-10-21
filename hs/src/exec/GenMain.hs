@@ -871,7 +871,7 @@ _reduceDebug = do
 
 _instanceDebug :: IO ()
 _instanceDebug = do
-  let ec = Instance_Undirected{essence_path = "/Users/bilalh/CS/essence-refinements/_current/prob010-SGP/prob010-SGP.essence",
+  let ec = Instance_Undirected{essence_path = "/Users/bilalh/CS/essence-refinements/_current/prob028-BIBD/prob028-BIBD.essence",
                     per_model_time = 30, iterations = 1, mode = "df-every-givens-all",
                     _cores = Nothing, output_directory = Nothing, limit_time = Nothing,
                     log_level = LogDebug, _seed = Nothing, pre_solutions = Nothing}
