@@ -671,7 +671,10 @@ instanceCommon cores Instance_Common{..} = do
              return $ Just (fp, counts)
 
   i :: VarInfo <- readFromJSON info_path
+  putStrLn $ "VarInfo: " ++ (groom i)
   p <- ignoreLogs $ makeProvider essence_path i
+  putStrLn $ "Provider: " ++ (groom p)
+
   let common            = MCommon{
         mEssencePath    = essence
       , mOutputDir      = out
@@ -868,8 +871,8 @@ _reduceDebug = do
 
 _instanceDebug :: IO ()
 _instanceDebug = do
-  let ec = Instance_AllSolutions{essence_path =
-     "/Users/bilalh/CS/essence-refinements/_current/prob034-warehouse/prob034-warehouse.essence",
-     output_directory = Just "__", limit_time = Nothing,
-     log_level = LogDebug}
+  let ec = Instance_Undirected{essence_path = "/Users/bilalh/CS/essence-refinements/_current/prob010-SGP/prob010-SGP.essence",
+                    per_model_time = 30, iterations = 1, mode = "df-every-givens-all",
+                    _cores = Nothing, output_directory = Nothing, limit_time = Nothing,
+                    log_level = LogDebug, _seed = Nothing, pre_solutions = Nothing}
   limiter (limit_time ec) (mainWithArgs ec)

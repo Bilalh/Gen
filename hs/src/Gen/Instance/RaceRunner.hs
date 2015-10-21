@@ -26,6 +26,7 @@ import Conjure.Language
 import Conjure.Language.Expression.DomainSizeOf (domainSizeOf)
 import Conjure.Language.NameResolution          (resolveNames)
 import Conjure.UI.IO
+import Conjure.UI.TypeCheck
 import Data.List                                (foldl1')
 import Database.SQLite.Simple
 import Database.SQLite.Simple.FromField         ()
@@ -49,7 +50,7 @@ import System.IO                                (hPutStr, hPutStrLn, readFile,
                                                  stderr, stdout)
 import System.IO.Temp                           (withSystemTempDirectory)
 
-import qualified Data.Set as S
+import qualified Data.Set  as S
 import qualified Data.Text as T
 
 
@@ -333,7 +334,9 @@ createParamEssence1 mEssencePath mVarInfo mOutputDir = do
   liftIO $ doesFileExist specFp >>= \case
     True  -> return ()
     False -> do
-      model     <- liftIO $ readModelFromFile mEssencePath
+      model     <- liftIO $ ignoreLogs $ readModelFromFile mEssencePath
+                     >>= runNameGen . typeCheckModel_StandAlone
+                     >>= runNameGen . resolveNames
       paramSpec <- liftIO $ createParamSpecification model mVarInfo
       writeModel PlainEssence (Just $ mOutputDir </> "essence_param_find.essence") paramSpec
 

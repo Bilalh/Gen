@@ -8,13 +8,12 @@ import Gen.Instance.BuildDependencyGraph
 import Gen.Instance.Data
 import Gen.Instance.Method
 import Gen.Instance.RaceRunner
-import Gen.Instance.Undirected
 import Gen.IO.Formats
 import System.Directory                  (makeAbsolute)
 import System.FilePath                   (replaceFileName, takeBaseName)
 import System.Random                     (mkStdGen, setStdGen)
 import Gen.Instance.SamplingError
-import  Gen.Instance.AllSolutions
+import Conjure.UI.TypeCheck
 
 import qualified Data.Set as S
 
@@ -31,13 +30,19 @@ findDependencies :: (MonadIO m, MonadLog m)
                  => FilePath -> FilePath
                  -> m (Either SamplingErr (VarInfo, Double))
 findDependencies outBase fp = do
-  model <-  liftIO $ ignoreLogs $ readModelFromFile fp >>= runNameGen . resolveNames
+  model <-  liftIO $ ignoreLogs $ readModelFromFile fp
+              >>= runNameGen . typeCheckModel_StandAlone
+              >>= runNameGen .  resolveNames
   buildDependencyGraph outBase model
 
 -- | Make the value provider for the givens
 makeProvider :: (MonadIO m, MonadLog m) => FilePath -> VarInfo ->  m Provider
 makeProvider fp  VarInfo{..} = do
-  model <-  liftIO $ ignoreLogs $ readModelFromFile fp >>= runNameGen . resolveNames
+  model <-  liftIO $ ignoreLogs $ readModelFromFile fp
+               >>= runNameGen . typeCheckModel_StandAlone
+               >>= runNameGen .  resolveNames
+
+
   vs <- core model
   cons <- liftIO $ forM vs $ \(n,expr) -> do
           v <- mapM e2c expr
@@ -91,81 +96,3 @@ _ex_common = do
       }
 
   return common
-
-
-
--- Run give a solution from all
-_ex9 :: IO ()
-_ex9 = do
-  common <- _ex_common
-  let state = Method common Undirected
-
-  let workload = runLoggerPipeIO (LogDebug) $ do
-        (re,_) <- runStateT (randomPointFromAllSolutions) state
-        logInfo "Finished"
-        liftIO $  print . pretty $ re
-
-  workload
-
-
--- Run Undirected
-_ex8 :: IO ()
-_ex8 = do
-  common <- _ex_common
-  let state = Method common Undirected
-
-  let workload = runLoggerPipeIO (LogDebug) $ do
-        (re,reState) <- runStateT (run) state
-        logInfo "Finished"
-        liftIO $  groomPrint re
-        liftIO $  groomPrint reState
-
-  workload
-
-
--- Run a race and collect results
-_ex7  :: IO ()
-_ex7 = do
-  common <- _ex_common
-  let state = Method common Undirected
-
-  let workload = runLoggerPipeIO (LogDebug) $ do
-        (re,reState) <- runStateT (runParamAndStoreQuality _ex_point) state
-        logInfo "Finished"
-        liftIO $  groomPrint re
-        liftIO $  groomPrint reState
-
-
-  workload
-
-
--- Sampling using minion
-_ex5  :: IO ()
-_ex5 = do
-  common <- _ex_common
-  let state = Method common Undirected
-
-  let workload = runLoggerPipeIO (LogDebug) $ do
-        (re,reState) <- runStateT sampleParamFromMinion state
-        logInfo "Finished"
-        liftIO $  groomPrint re
-        liftIO $  groomPrint reState
-
-
-  workload
-
-
--- Creating the param essence
-_ex4  :: IO ()
-_ex4 = do
-  common <- _ex_common
-  let state = Method common Undirected
-
-  let workload = runLoggerPipeIO (LogDebug) $ do
-        (re,reState) <- runStateT createParamEssence state
-        logInfo "Finished"
-        liftIO $  groomPrint re
-        liftIO $  groomPrint reState
-
-
-  workload
