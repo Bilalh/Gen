@@ -3,7 +3,6 @@
 set -o nounset
 OUR="$( cd "$( dirname "$0" )" && pwd )";
 
-
 set -x
 export USE_DATE="$1";
 export PARAMS_TO_USE="$2";
@@ -18,11 +17,6 @@ mkdir -p "$OUT_BASE_DIR"
 echo "$USE_MODE"
 set +x
 
-
-export NO_MINION_STATS=true;
-export NO_TIMERS=true;
-export NO_VALIDATE=true;
-export NO_TRANSLATE=true
 echo "PWD: $PWD"
 
 if [ "${LIMIT_MODELS:-}" ]; then
