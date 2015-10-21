@@ -105,8 +105,10 @@ createAllSolutionScript provider info essence out = do
   liftIO $ forM_ points $ \p -> do
     let fp = param_dir </> nf p <.> ".param"
     writePoint p fp
-    scriptPath <- script_lookup1 "instances/all_solutions/create_all_solutions.sh"
-    copyFile scriptPath (out </> "create_all_solutions.sh")
+    base <- script_lookup1 "instances/all_solutions_run/"
+    forM_ ["create_all_solutions.sh", "split_results.sh", "README.md"] $ \name -> do
+      copyFile (base </> name) (out </> name)
+
 
   where
   nameFunc :: Provider -> (Point -> String)
