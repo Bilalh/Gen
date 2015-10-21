@@ -227,7 +227,10 @@ paramGenCpuTime :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
                 => m Double
 paramGenCpuTime = do
   (Method MCommon{mOutputDir} _) <- get
-  let statsDir = mOutputDir </> "_param_gen"
+  statsDir <- liftIO $ doesDirectoryExist (mOutputDir </> "all_sols") >>= \case
+              True  -> return (mOutputDir </> "all_sols")
+              False -> return (mOutputDir </> "_param_gen")
+
   fps <- liftIO $ allFilesWithSuffix "total.time" statsDir
   times :: [Maybe Double] <- liftIO  $  forM fps $ readCpuTime
   return . sum . catMaybes $ times
@@ -462,7 +465,7 @@ runSolve outputDir ess eprime point = do
             ]
 
   cmd <- script_lookup "instances/run_solve.sh"
-  void $ liftIO $ runPadded " ⦿ " env cmd args
+  void $ liftIO $ runPadded " ● " env cmd args
 
   worked <- liftIO $ doesFileExist solutionFp
   liftIO $ print . pretty  $ nn "solutionFp" solutionFp

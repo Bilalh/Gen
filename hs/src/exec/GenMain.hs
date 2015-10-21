@@ -14,7 +14,7 @@ import Gen.Essence.Generate        (generateEssence)
 import Gen.Essence.UIData
 import Gen.Generalise.Generalise   (generaliseMain)
 import Gen.Imports
-import Gen.Instance.AllSolutions   (createAllSolutionScript)
+import Gen.Instance.AllSolutions   (createAllSolutionScript, readSolutionCounts)
 import Gen.Instance.Data
 import Gen.Instance.Nsample        (Nsample (..))
 import Gen.Instance.Results        (showResults)
@@ -634,6 +634,7 @@ instanceCommon cores Instance_Common{..} = do
       fileExists   "essence" essence
     , fileExists   "info.json needs to be next to the essence" info_path
     , dirExists    "Model dir missing" models_path
+    , dirExistsMay "--generated-solutions" pre_solutions
     ]
 
   let errors = catMaybes
@@ -663,6 +664,12 @@ instanceCommon cores Instance_Common{..} = do
           print . pretty $ "Picking first compact_twin" <+> pretty x
           return $ Just $ (takeBaseName x)
 
+  pre <- case pre_solutions of
+           Nothing -> return Nothing
+           Just fp -> do
+             counts <- readSolutionCounts (fp </> "all_sols" </> "solutions.counts")
+             return $ Just (fp, counts)
+
   i :: VarInfo <- readFromJSON info_path
   p <- ignoreLogs $ makeProvider essence_path i
   let common            = MCommon{
@@ -670,7 +677,7 @@ instanceCommon cores Instance_Common{..} = do
       , mOutputDir      = out
       , mModelTimeout   = per_model_time
       , mVarInfo        = i
-      , mPreGenerate    = Nothing
+      , mPreGenerate    = pre
       , mIterations     = iterations
       , mMode           = mode
       , mModelsDir      = models_path

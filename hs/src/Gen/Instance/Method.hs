@@ -8,6 +8,7 @@ import Gen.Instance.Point
 import Gen.IO.Formats
 import System.CPUTime ( getCPUTime )
 import Gen.Instance.SamplingError
+import Gen.Instance.AllSolutions
 
 -- | The main instance generation,
 run :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m, ToJSON a)
@@ -71,7 +72,12 @@ looper i j= do
 
 randomPoint :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
             =>  m (Either SamplingErr Point)
-randomPoint = sampleParamFromMinion
+randomPoint = do
+  (Method MCommon{mPreGenerate} _) <- get
+  if isJust mPreGenerate then
+    Right <$> randomPointFromAllSolutions
+  else
+      sampleParamFromMinion
 
 runParamAndStoreQuality :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
                         => Point -> m (Either SamplingErr ())

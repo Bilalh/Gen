@@ -72,10 +72,11 @@ instance Default EssenceConfig where
 
 
 data Instance_Common = Instance_Common
-    { essence_path       :: FilePath
-    , per_model_time     :: Int
-    , iterations         :: Int
-    , mode               :: String
-    , output_directory   :: Maybe FilePath
-    , log_level          :: LogLevel
+    { essence_path        :: FilePath
+    , per_model_time      :: Int
+    , iterations          :: Int
+    , mode                :: String
+    , output_directory    :: Maybe FilePath
+    , log_level           :: LogLevel
+    , pre_solutions       :: Maybe FilePath
     } deriving (Show, Data, Typeable, Eq)

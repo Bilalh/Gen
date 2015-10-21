@@ -1,14 +1,14 @@
 #!/bin/bash
 set -o nounset
-
 OUR="$( cd "$( dirname "$0" )" && pwd )";
 
-
-SOL_NAME="$1"
-LINE="$2"
-EPRIME="$3"
-PARAM="$4"
+set -x
+BASE="$1"
+SOL_NAME="$2"
+LINE="$3"
+PARAMBASE="$4"
 TOTAL_TIMEOUT="$5"
+set +x
 
 Time="/usr/bin/time -p"
 
@@ -19,23 +19,28 @@ fi
 
 
 OUTPUT_BASE=${GENERATED_OUTPUT_DIR}
-SOLS_BASE=${GENERATED_SOLUTIONS_DIR}
+SOLS_BASE="${BASE}/all_sols/"
 
-PARAM_NAME="$(basename "${PARAM}")"
-PARAMBASE=${PARAM_NAME%.param}
-
+PARAM="${BASE}/_params/${PARAMBASE}.param"
 
 START_FILE="${OUTPUT_BASE}/${PARAMBASE}.zstarted"
 END_FILE="${OUTPUT_BASE}/${PARAMBASE}.zfinished"
 
+EPRIME="${BASE}/essence_param_find.eprime"
 AUX="${SOLS_BASE}/${PARAMBASE}.eprime-param.aux"
 EPRIME_SOLUTION="${SOLS_BASE}/${PARAMBASE}.eprime-solution"
 ESSENCE_SOLUTION="${OUTPUT_BASE}/${PARAMBASE}.solution"
-
 MINION="${SOLS_BASE}/${PARAMBASE}.minion"
-MINION_SOLUTION="${OUTPUT_BASE}/${SOL_NAME}-${LINE}.minion-solution"
+MINION_SOLUTION="${OUTPUT_BASE}/$(basename "${SOL_NAME}")-${LINE}.minion-solution"
 
 SOL_PATH="${SOLS_BASE}/${SOL_NAME}"
+sed "${LINE}q;d" "${SOL_PATH}" > "${MINION_SOLUTION}"
+
+if [ ! -s "${MINION_SOLUTION}" ]; then
+	echo "Not solution created for SR" >&2
+	exit 1
+fi
+
 
 
 SAVILEROW_TIME_UP="${OUTPUT_BASE}/${PARAMBASE}.sr2-time"
@@ -71,7 +76,7 @@ function update_total_time(){
 touch "$START_FILE"
 
 
-sed "${LINE}q;d" "${SOL_PATH}" > "${MINION_SOLUTION}"
+
 
 function savilerow(){
     timeout=$1
@@ -94,7 +99,7 @@ savilerow  $TOTAL_TIMEOUT ${SAVILEROW_TIME_UP}  \
     -out-minion      $MINION    \
     -minion-sol-file $MINION_SOLUTION \
     -out-solution    $EPRIME_SOLUTION \
-    -out-aux         $AUX  1>/dev/null
+    -out-aux         $AUX
 date +'finSR2 %a %d %b %Y %k:%M:%S %z%nfinSR2(timestamp) %s' >&2
 
 
@@ -146,6 +151,11 @@ fi
 # work around
 grep -v 'new type of' $ESSENCE_SOLUTION > $ESSENCE_SOLUTION.tmp
 mv $ESSENCE_SOLUTION.tmp $ESSENCE_SOLUTION
+
+if [ ! -s "$ESSENCE_SOLUTION" ]; then
+	echo "Empty Solution ${ESSENCE_SOLUTION}" >&2
+	exit 1
+fi
 
 
 cat ${OUTPUT_BASE}/*.*-time \

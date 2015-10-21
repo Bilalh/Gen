@@ -1,16 +1,16 @@
 module Gen.Instance.AllSolutions where
 
+import Conjure.Language.Domain
 import Data.List               (dropWhileEnd)
 import Gen.Imports
 import Gen.Instance.Data
-import Gen.Instance.Point      (readPoint)
 import Gen.Instance.Point
-import Gen.Instance.RaceRunner (createParamEssence1, readCpuTime, runPadded,
-                                script_lookup, script_lookup1)
+import Gen.Instance.RaceRunner (createParamEssence1, runPadded, script_lookup,
+                                script_lookup1)
 import System.Directory        (copyFile)
+import System.FilePath         (takeBaseName)
 import System.IO               (readFile)
 import Text.Printf
-import Conjure.Language.Domain
 
 readSolutionCounts :: MonadIO m => FilePath -> m Solutions
 readSolutionCounts fp = do
@@ -32,14 +32,14 @@ readSolutionCounts fp = do
 
 randomPointFromAllSolutions
     :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
-    => m (Point, Double)
+    => m Point
 randomPointFromAllSolutions = do
-  (Solutions total sols) <- readSolutionCounts "/Users/bilalh/Desktop/all_solutions/all_sols/solutions.counts"
+  (Method MCommon{mOutputDir,mPreGenerate=Just (preBase,(Solutions total sols))} _) <- get
 
   -- The nth solution (indexed from 1)
-  -- solNum <- liftIO $ randomRIO (1,total)
+  solNum <- liftIO $ randomRIO (1,total)
   -- let solNum = 656590 + (1000000)
-  let solNum = 15005497
+  -- let solNum = 15005497
 
   let (SolCount lix solBase) = last $ filter
                                   (\(SolCount ix _) -> solNum > ix) sols
@@ -50,45 +50,41 @@ randomPointFromAllSolutions = do
   let fileLineIdx = lineIdx `mod` 1000000
 
   let solName :: String = printf "%s.%010d" solBase fileIdx
+  let paramBase = takeBaseName solBase
 
-  logDebug2 $line [ nn "solNum" solNum
-                  , nn "solBase" (show solBase)
-                  , nn "solNameIdx" lix
-                  , nn "lineIdx" lineIdx
-                  , nn "fileIdx" fileIdx
-                  , nn "fileLineIdx" fileLineIdx
-                  , nn "solName" solName
-                  ]
+  logDebugVerbose2 $line [ nn "solNum" solNum
+                         , nn "solBase" (show solBase)
+                         , nn "solNameIdx" lix
+                         , nn "lineIdx" lineIdx
+                         , nn "fileIdx" fileIdx
+                         , nn "fileLineIdx" fileLineIdx
+                         , nn "solName" solName
+                         ]
 
-  -- Convert the solution back to essence
-  (Method MCommon{mOutputDir} _) <- get
   let out = mOutputDir </> "all_sols" </> show solNum
   liftIO $ createDirectoryIfMissing True out
-  let solsDir = "/Users/bilalh/Desktop/all_solutions/"
 
-  let paramBase = "3-3-3"
   let args = map stringToText [
-               solName
+               preBase
+             , solName
              , show fileLineIdx
-             , (mOutputDir </> "essence_param_find.eprime")
-             , solsDir </>  "_params" </> ( paramBase <.> ".param")
+             , paramBase
              , show (60 :: Int)
              ]
 
-
   let env = map (second stringToText) [
               ("GENERATED_OUTPUT_DIR", out)
-            , ("GENERATED_SOLUTIONS_DIR", solsDir </> "all_sols")
             , ("TIMEOUT5_FILE", out </> "timeout_file")
             ]
 
+  -- Convert the solution back to essence
   cmd <- script_lookup "instances/all_solutions/get_solution.sh"
   void $ liftIO $ runPadded " € " env cmd args
 
-  timeMay <- fromMaybe (error $line) <$> readCpuTime (out </> "total.time")
+  finds  <- readPoint (out </> paramBase <.> ".solution")
+  givens <- readPoint (preBase </> "_params" </>  paramBase <.> ".param")
 
-  p <- readPoint (out </> paramBase <.> ".solution")
-  return $ (p,timeMay)
+  return $ finds `mappend` givens
 
 createAllSolutionScript :: (MonadIO m, MonadLog m)
                         => Provider -> VarInfo -> FilePath -> FilePath

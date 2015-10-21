@@ -28,13 +28,13 @@ data MCommon = MCommon
   , mOutputDir      :: FilePath         -- | Where to put the results.
   , mModelTimeout   :: Int              -- | Total time for each model in the race
   , mVarInfo        :: VarInfo          -- | Variable Ordering
-  , mPreGenerate    :: Maybe FilePath   -- | Generate all solution once and pick from them
   , mIterations     :: Int              -- | Number of races to run
   , mMode           :: String           -- | the directory suffix
   , mModelsDir      :: FilePath         -- | The models directory e.g. prob006-GR_df
   , mGivensProvider :: Provider         -- | Generating the given
   , mCores          :: Int              -- | Number of cores to use
   , mCompactName    :: Maybe EprimeName -- | Ordering with compact first
+  , mPreGenerate    :: Maybe (FilePath,Solutions) -- | Generate all solution once and pick from them
   -- above fields do not change
   , mPoints         :: [Point]          -- | Instances that have been run, newest first
   , mSubCpu         :: Double           -- | Other sub-processes
@@ -115,6 +115,12 @@ voidRes x = fmap (const ()) <$> x
 
 -- For all Solutions
 data Solutions  = Solutions Int [SolutionCount]
-  deriving (Eq, Show)
+  deriving (Eq, Show, Data, Typeable, Generic)
 data SolutionCount = SolCount Int String
-  deriving (Eq, Show)
+  deriving (Eq, Show, Data, Typeable, Generic)
+
+instance A.FromJSON Solutions
+instance A.ToJSON Solutions
+
+instance A.FromJSON SolutionCount
+instance A.ToJSON SolutionCount
