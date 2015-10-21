@@ -9,10 +9,6 @@ ESSENCE="${2}"
 EPRIME="${3}"
 out_base="${4}"
 
-
-[ -f "${ESSENCE}" ] || (echo "${ESSENCE} missing" exit 1)
-[ -f "${EPRIME}" ]  || (echo "${EPRIME} missing" exit 1)
-
 function check_variables(){
     # check that the variables specified by the array vars_needed are set.
     # Return return 0 only if they are >0 if there they are not
@@ -41,40 +37,33 @@ if ( ! check_variables ) then
     exit 1
 fi
 
+[ -f "${ESSENCE}" ] || (echo "${ESSENCE} missing" exit 1)
+[ -f "${EPRIME}" ]  || (echo "${EPRIME} missing" exit 1)
+
 mkdir -p "${GENERATED_OUTPUT_DIR}"
 mkdir -p "${GENERATED_SOLUTIONS_DIR}"
 
-parallel -j${NUM_JOBS} "${OUR_DIR}/pre_create_all_params_from_essence_no_up.sh ${TOTAL_TIMEOUT} ${ESSENCE} ${EPRIME} {}" \
-    ::: ${PARAMS_DIR}/*.param
+# Do the refinement in parallel
+parallel --tagstring "{/.}"  \
+	-j"${NUM_JOBS}" "${OUR_DIR}/pre_create_all_params_from_essence_no_up.sh \
+	${TOTAL_TIMEOUT} ${ESSENCE} ${EPRIME} {}" \
+	:::: <(find  "${PARAMS_DIR}" -name '*.param') 2>&1 | tee "output.log"
 
-function record_time(){
-    cat ${GENERATED_OUTPUT_DIR}/*.*-time \
-        | grep cpu \
-        | ruby -e 'p $stdin.readlines.map{|n| n[4..-1].to_f }.reduce(:+)' \
-        > ${GENERATED_OUTPUT_DIR}/total.time
-}
-
-record_time
-echo "TOTAL CPU TIME `cat ${GENERATED_OUTPUT_DIR}/total.time`"
-
+# Save the results
+mv "${GENERATED_OUTPUT_DIR}/"*.minion-solution \
+	 "${GENERATED_OUTPUT_DIR}/"*.eprime-param.aux \
+	 "${GENERATED_OUTPUT_DIR}/"*.eprime-param \
+"${GENERATED_SOLUTIONS_DIR}"
 
 
-
-mv ${GENERATED_OUTPUT_DIR}/*.minion-solution \
-	 ${GENERATED_OUTPUT_DIR}/*.eprime-param.aux \
-	 ${GENERATED_OUTPUT_DIR}/*.eprime-param \
-${GENERATED_SOLUTIONS_DIR}
-
-mv 	 ${GENERATED_OUTPUT_DIR}/total.time ${GENERATED_OUTPUT_DIR}/../total.time
-
-pushd ${GENERATED_OUTPUT_DIR}/..
+pushd "${GENERATED_OUTPUT_DIR}/.."
 base_out="$(basename "${GENERATED_OUTPUT_DIR}")"
 tar -c "${base_out}" | pigz -c -p"${NUM_JOBS}" > "${base_out}".tar.gz
 rm -rf "${base_out}"
 popd
 
 
-pushd ${GENERATED_SOLUTIONS_DIR}
+pushd "${GENERATED_SOLUTIONS_DIR}"
 function minions(){
     newlines="$(head -n5 "$1" | egrep -cv '\S')"
     all=$( head -n5 "$1" | wc -l "$1" | egrep -o '^ *[0-9]+ ' | egrep -o '[0-9]+')
