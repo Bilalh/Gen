@@ -39,6 +39,63 @@ data UI
     , strict_checking    :: Bool
     }
 
+  | Reduce
+    {
+      per_spec_time      :: Int
+    , spec_directory     :: FilePath
+    , error_kind         :: KindI
+    , error_status       :: StatusI
+    , error_choices      :: Maybe FilePath
+
+    , list_kinds         :: Bool
+    , list_statuses      :: Bool
+
+    , total_time_may     :: Maybe Int
+    , total_is_cpu_time  :: Bool
+
+    , output_directory   :: Maybe FilePath
+    , _cores             :: Maybe Int
+    , _seed              :: Maybe Int
+
+    , keep_passing       :: Bool
+    , delete_steps       :: Bool
+    , delete_others      :: Bool
+    , toolchain_ouput    :: ToolchainOutput
+    , binaries_directory :: Maybe FilePath
+    , limit_time         :: Maybe Int
+
+    , no_csv             :: Bool
+    , db_directory       :: Maybe FilePath
+    , db_passing_in      :: Maybe FilePath
+    , db_only_passing    :: Bool
+    , from_essence       :: Bool
+    , no_check           :: Bool
+    }
+
+  | Generalise
+    {
+      per_spec_time      :: Int
+    , spec_directory     :: FilePath
+    , error_kind         :: KindI
+    , error_status       :: StatusI
+    , error_choices      :: Maybe FilePath
+
+    , list_kinds         :: Bool
+    , list_statuses      :: Bool
+
+    , output_directory   :: Maybe FilePath
+    , _cores             :: Maybe Int
+    , _seed              :: Maybe Int
+
+    , keep_passing       :: Bool
+    , toolchain_ouput    :: ToolchainOutput
+    , binaries_directory :: Maybe FilePath
+    , limit_time         :: Maybe Int
+    , no_csv             :: Bool
+    , db_directory       :: Maybe FilePath
+    , from_essence       :: Bool
+    }
+
   | Instance_Undirected
     { essence_path       :: FilePath
     , per_model_time     :: Int
@@ -79,68 +136,6 @@ data UI
     , limit_time         :: Maybe Int
     , log_level          :: LogLevel
     }
-
-
-  | Reduce
-    {
-      per_spec_time      :: Int
-    , spec_directory     :: FilePath
-    , error_kind         :: KindI
-    , error_status       :: StatusI
-    , error_choices      :: Maybe FilePath
-
-    , list_kinds         :: Bool
-    , list_statuses      :: Bool
-
-    , total_time_may     :: Maybe Int
-    , total_is_cpu_time  :: Bool
-
-    , output_directory   :: Maybe FilePath
-    , _cores             :: Maybe Int
-    , _seed              :: Maybe Int
-
-    , keep_passing       :: Bool
-    , delete_steps       :: Bool
-    , delete_others      :: Bool
-    , toolchain_ouput    :: ToolchainOutput
-    , binaries_directory :: Maybe FilePath
-    , limit_time         :: Maybe Int
-
-    , no_csv             :: Bool
-    , db_directory       :: Maybe FilePath
-    , db_passing_in      :: Maybe FilePath
-    , db_only_passing    :: Bool
-    , from_essence       :: Bool
-    , no_check           :: Bool
-    }
-  | Generalise
-    {
-      per_spec_time      :: Int
-    , spec_directory     :: FilePath
-    , error_kind         :: KindI
-    , error_status       :: StatusI
-    , error_choices      :: Maybe FilePath
-
-    , list_kinds         :: Bool
-    , list_statuses      :: Bool
-
-    , output_directory   :: Maybe FilePath
-    , _cores             :: Maybe Int
-    , _seed              :: Maybe Int
-
-    , keep_passing       :: Bool
-    , toolchain_ouput    :: ToolchainOutput
-    , binaries_directory :: Maybe FilePath
-    , limit_time         :: Maybe Int
-    , no_csv             :: Bool
-    , db_directory       :: Maybe FilePath
-    , from_essence       :: Bool
-    }
-  | Link
-    { directory    :: FilePath
-    , reduced_only :: Bool
-    , limit_time   :: Maybe Int
-    }
   | SpecEE
     { directories     :: [FilePath]
     , print_specs     :: Bool
@@ -148,6 +143,11 @@ data UI
     , limit_time      :: Maybe Int
     , verboseOpt      :: Bool
     , strict_checking :: Bool
+    }
+  | Link
+    { directory    :: FilePath
+    , reduced_only :: Bool
+    , limit_time   :: Maybe Int
     }
   | Solver
     {
@@ -359,156 +359,6 @@ ui  = modes
      } &= explicit
        &= name "essence"
        &= help "Generates essence test cases"
-
-  , Instance_Undirected
-     { essence_path     = def     &= typ "essence"
-                                  &= argPos 0
-     , per_model_time   = def     &= name "per-model-time"
-                                  &= name "p"
-                                  &= groupname "Required"
-                                  &= explicit
-                                  &= help "Time per model"
-     , iterations       = def     &= name "iterations"
-                                  &= name "i"
-                                  &= groupname "Required"
-                                  &= explicit
-                                  &= help "Number of races"
-     , mode             = def     &= name "mode"
-                                  &= name "m"
-                                  &= groupname "Required"
-                                  &= help "The suffix of the models directory"
-     , _cores           = Nothing &= name "cores"
-                                  &= name "c"
-                                  &= groupname "Required"
-                                  &= explicit
-                                  &= help "Number of cores to use, required unless CORES is set"
-     , output_directory = def     &= typDir
-                                  &= name "output-directory"
-                                  &= name "o"
-                                  &= groupname "Other"
-                                  &= explicit
-                                  &= help "Output directory default is %F_%H-%M_%s e.g. 2015-03-23_01-04_1427072681"
-     , limit_time       = Nothing &= name "limit-time"
-                                  &= explicit
-                                  &= help "Time limit in seconds of CPU time of this program"
-                                  &= groupname "Other"
-                                  &= explicit
-     , log_level       = LogDebug &= name "log-level"
-                                  &= groupname "Other"
-                                  &= explicit
-                                  &= help "Logging level, default LogDebug"
-     , _seed            = def     &= name "seed"
-                                  &= groupname "Other"
-                                  &= explicit
-                                  &= help "Random Seed to use"
-     , pre_solutions    =  def    &= typDir
-                                  &= name "generated-solutions"
-                                  &= groupname "Other"
-                                  &= explicit
-                                  &= help "Sample only from these solution generated by `gen instance-allsols`"
-     } &= name "instance-undirected"
-       &= help "Generate discriminating instance for the given essence specification using a baseline method"
-
-
-  , Instance_Nsample
-     { essence_path     = def     &= typ "essence"
-                                  &= argPos 0
-     , per_model_time   = def     &= name "per-model-time"
-                                  &= name "p"
-                                  &= groupname "Required"
-                                  &= explicit
-                                  &= help "Time per model"
-     , iterations       = def     &= name "iterations"
-                                  &= name "i"
-                                  &= groupname "Required"
-                                  &= explicit
-                                  &= help "Number of races"
-     , influence_radius = def     &= name "influence_radius"
-                                  &= name "f"
-                                  &= groupname "Required"
-                                  &= explicit
-                                  &= help "Number of races"
-     , mode             = def     &= name "mode"
-                                  &= name "m"
-                                  &= groupname "Required"
-                                  &= help "The suffix of the models directory"
-     , _cores           = Nothing &= name "cores"
-                                  &= name "c"
-                                  &= groupname "Required"
-                                  &= explicit
-                                  &= help "Number of cores to use, required unless CORES is set"
-     , output_directory = def     &= typDir
-                                  &= name "output-directory"
-                                  &= name "o"
-                                  &= groupname "Other"
-                                  &= explicit
-                                  &= help "Output directory default is %F_%H-%M_%s e.g. 2015-03-23_01-04_1427072681"
-     , limit_time       = Nothing &= name "limit-time"
-                                  &= explicit
-                                  &= help "Time limit in seconds of CPU time of this program"
-                                  &= groupname "Other"
-                                  &= explicit
-     , log_level       = LogDebug &= name "log-level"
-                                  &= groupname "Other"
-                                  &= explicit
-                                  &= help "Logging level, default LogDebug"
-     , _seed              = def   &= name "seed"
-                                  &= groupname "Other"
-                                  &= explicit
-                                  &= help "Random Seed to use"
-     , pre_solutions    =  def    &= typDir
-                                  &= name "generated-solutions"
-                                  &= groupname "Other"
-                                  &= explicit
-                                  &= help "Sample only from these solution generated by `gen instance-allsols`"
-     } &= name "instance-nsample"
-       &= help "Generate discriminating instance for the given essence specification using the nsample method"
-
-
-  , Instance_AllSolutions
-     { essence_path     = def     &= typ "essence"
-                                  &= argPos 0
-     , output_directory = def     &= typDir
-                                  &= name "output-directory"
-                                  &= name "o"
-                                  &= groupname "Other"
-                                  &= explicit
-                                  &= help "Output directory default is %F_%H-%M_%s e.g. 2015-03-23_01-04_1427072681"
-     , limit_time       = Nothing &= name "limit-time"
-                                  &= explicit
-                                  &= help "Time limit in seconds of CPU time of this program"
-                                  &= groupname "Other"
-                                  &= explicit
-     , log_level       = LogDebug &= name "log-level"
-                                  &= groupname "Other"
-                                  &= explicit
-                                  &= help "Logging level, default LogDebug"
-     } &= name "instance-allsols"
-       &= help "Generate the *script* and data required to create all solutions. This will usually requires TB(s) of space"
-
-
-  , Instance_Summary
-     { mode             = def     &= name "mode"
-                                  &= name "m"
-                                  &= groupname "Required"
-                                  &= help "The suffix of the models directory"
-     , input_directory = def      &= typDir
-                                  &= name "output-directory"
-                                  &= name "o"
-                                  &= groupname "Required"
-                                  &= explicit
-                                  &= help "Output directory"
-     , limit_time       = Nothing &= name "limit-time"
-                                  &= explicit
-                                  &= help "Time limit in seconds of CPU time of this program"
-                                  &= groupname "Other"
-                                  &= explicit
-     , log_level       = LogDebug &= name "log-level"
-                                  &= groupname "Other"
-                                  &= explicit
-                                  &= help "Logging level, default LogDebug"
-     } &= name "instance-summary"
-       &= help "Generate a summary of the results, placed in the summary sub-directory."
 
 
 
@@ -724,42 +574,155 @@ ui  = modes
        &= help "Generalises a .spec.json file"
 
 
-  , Solver
-     { essence_path   = def     &= typ "essence"
-                                &= argPos 0
-     , solution_path  = Nothing &= typ "solution"
-                                &= name "output-solution"
-                                &= name "o"
-                                &= explicit
-                                &= help "Where to place writes solution, defaults to essence's path with last extension change"
-     , print_solution = False   &= name "print-solution"
-                                &= name "s"
-                                &= explicit
-                                &= help "Print the solution as well"
-     , limit_time     = Nothing &= name "limit-time"
-                                &= explicit
-                                &= help "Time limit in seconds of CPU time of this program"
-     } &= explicit
-       &= name "solve"
-       &= help "Solve a .essence file, and write the first solution to file if there is one"
+  , Instance_Undirected
+     { essence_path     = def     &= typ "essence"
+                                  &= argPos 0
+     , per_model_time   = def     &= name "per-model-time"
+                                  &= name "p"
+                                  &= groupname "Required"
+                                  &= explicit
+                                  &= help "Time per model"
+     , iterations       = def     &= name "iterations"
+                                  &= name "i"
+                                  &= groupname "Required"
+                                  &= explicit
+                                  &= help "Number of races"
+     , mode             = def     &= name "mode"
+                                  &= name "m"
+                                  &= groupname "Required"
+                                  &= help "The suffix of the models directory"
+     , _cores           = Nothing &= name "cores"
+                                  &= name "c"
+                                  &= groupname "Required"
+                                  &= explicit
+                                  &= help "Number of cores to use, required unless CORES is set"
+     , output_directory = def     &= typDir
+                                  &= name "output-directory"
+                                  &= name "o"
+                                  &= groupname "Other"
+                                  &= explicit
+                                  &= help "Output directory default is %F_%H-%M_%s e.g. 2015-03-23_01-04_1427072681"
+     , limit_time       = Nothing &= name "limit-time"
+                                  &= explicit
+                                  &= help "Time limit in seconds of CPU time of this program"
+                                  &= groupname "Other"
+                                  &= explicit
+     , log_level       = LogDebug &= name "log-level"
+                                  &= groupname "Other"
+                                  &= explicit
+                                  &= help "Logging level, default LogDebug"
+     , _seed            = def     &= name "seed"
+                                  &= groupname "Other"
+                                  &= explicit
+                                  &= help "Random Seed to use"
+     , pre_solutions    =  def    &= typDir
+                                  &= name "generated-solutions"
+                                  &= groupname "Other"
+                                  &= explicit
+                                  &= help "Sample only from these solution generated by `gen instance-allsols`"
+     } &= name "instance-undirected"
+       &= help "Generate discriminating instance for the given essence specification using a baseline method"
 
 
+  , Instance_Nsample
+     { essence_path     = def     &= typ "essence"
+                                  &= argPos 0
+     , per_model_time   = def     &= name "per-model-time"
+                                  &= name "p"
+                                  &= groupname "Required"
+                                  &= explicit
+                                  &= help "Time per model"
+     , iterations       = def     &= name "iterations"
+                                  &= name "i"
+                                  &= groupname "Required"
+                                  &= explicit
+                                  &= help "Number of races"
+     , influence_radius = def     &= name "influence_radius"
+                                  &= name "f"
+                                  &= groupname "Required"
+                                  &= explicit
+                                  &= help "Number of races"
+     , mode             = def     &= name "mode"
+                                  &= name "m"
+                                  &= groupname "Required"
+                                  &= help "The suffix of the models directory"
+     , _cores           = Nothing &= name "cores"
+                                  &= name "c"
+                                  &= groupname "Required"
+                                  &= explicit
+                                  &= help "Number of cores to use, required unless CORES is set"
+     , output_directory = def     &= typDir
+                                  &= name "output-directory"
+                                  &= name "o"
+                                  &= groupname "Other"
+                                  &= explicit
+                                  &= help "Output directory default is %F_%H-%M_%s e.g. 2015-03-23_01-04_1427072681"
+     , limit_time       = Nothing &= name "limit-time"
+                                  &= explicit
+                                  &= help "Time limit in seconds of CPU time of this program"
+                                  &= groupname "Other"
+                                  &= explicit
+     , log_level       = LogDebug &= name "log-level"
+                                  &= groupname "Other"
+                                  &= explicit
+                                  &= help "Logging level, default LogDebug"
+     , _seed              = def   &= name "seed"
+                                  &= groupname "Other"
+                                  &= explicit
+                                  &= help "Random Seed to use"
+     , pre_solutions    =  def    &= typDir
+                                  &= name "generated-solutions"
+                                  &= groupname "Other"
+                                  &= explicit
+                                  &= help "Sample only from these solution generated by `gen instance-allsols`"
+     } &= name "instance-nsample"
+       &= help "Generate discriminating instance for the given essence specification using the nsample method"
 
-  , Link
-     {
-       directory    = "Errors" &= typDir
-                               &= argPos 0
-     , reduced_only = False    &= name "reduced_only"
-                               &= name "r"
-                               &= explicit
-                               &= help "Link only reduced specs"
-     , limit_time   = def      &= name "limit-time"
-                               &= explicit
-                               &= help "Time limit in seconds of CPU time of this program"
 
-     } &= explicit
-       &= name "link"
-       &= help "Classify a dir of specs by creating symlinks (using .meta.json files)"
+  , Instance_AllSolutions
+     { essence_path     = def     &= typ "essence"
+                                  &= argPos 0
+     , output_directory = def     &= typDir
+                                  &= name "output-directory"
+                                  &= name "o"
+                                  &= groupname "Other"
+                                  &= explicit
+                                  &= help "Output directory default is %F_%H-%M_%s e.g. 2015-03-23_01-04_1427072681"
+     , limit_time       = Nothing &= name "limit-time"
+                                  &= explicit
+                                  &= help "Time limit in seconds of CPU time of this program"
+                                  &= groupname "Other"
+                                  &= explicit
+     , log_level       = LogDebug &= name "log-level"
+                                  &= groupname "Other"
+                                  &= explicit
+                                  &= help "Logging level, default LogDebug"
+     } &= name "instance-allsols"
+       &= help "Generate the *script* and data required to create all solutions. This will usually requires TB(s) of space"
+
+
+  , Instance_Summary
+     { mode             = def     &= name "mode"
+                                  &= name "m"
+                                  &= groupname "Required"
+                                  &= help "The suffix of the models directory"
+     , input_directory = def      &= typDir
+                                  &= name "output-directory"
+                                  &= name "o"
+                                  &= groupname "Required"
+                                  &= explicit
+                                  &= help "Output directory"
+     , limit_time       = Nothing &= name "limit-time"
+                                  &= explicit
+                                  &= help "Time limit in seconds of CPU time of this program"
+                                  &= groupname "Other"
+                                  &= explicit
+     , log_level       = LogDebug &= name "log-level"
+                                  &= groupname "Other"
+                                  &= explicit
+                                  &= help "Logging level, default LogDebug"
+     } &= name "instance-summary"
+       &= help "Generate a summary of the results, placed in the summary sub-directory."
 
 
   , SpecEE
@@ -790,6 +753,43 @@ ui  = modes
      } &= explicit
        &= name "json"
        &= help "Create .spec.json and .meta.json files for each .essence file recursively"
+
+
+  , Link
+     {
+       directory    = "Errors" &= typDir
+                               &= argPos 0
+     , reduced_only = False    &= name "reduced_only"
+                               &= name "r"
+                               &= explicit
+                               &= help "Link only reduced specs"
+     , limit_time   = def      &= name "limit-time"
+                               &= explicit
+                               &= help "Time limit in seconds of CPU time of this program"
+
+     } &= explicit
+       &= name "link"
+       &= help "Classify a dir of specs by creating symlinks (using .meta.json files)"
+
+
+  , Solver
+     { essence_path   = def     &= typ "essence"
+                                &= argPos 0
+     , solution_path  = Nothing &= typ "solution"
+                                &= name "output-solution"
+                                &= name "o"
+                                &= explicit
+                                &= help "Where to place writes solution, defaults to essence's path with last extension change"
+     , print_solution = False   &= name "print-solution"
+                                &= name "s"
+                                &= explicit
+                                &= help "Print the solution as well"
+     , limit_time     = Nothing &= name "limit-time"
+                                &= explicit
+                                &= help "Time limit in seconds of CPU time of this program"
+     } &= explicit
+       &= name "solve"
+       &= help "Solve a .essence file, and write the first solution to file if there is one"
 
 
   , Weights
