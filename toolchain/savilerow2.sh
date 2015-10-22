@@ -11,5 +11,6 @@ java -ea -XX:ParallelGCThreads=1 \
 	-jar "$SR_DIR/savilerow.jar" \
 	"$@"                         \
 	${SR_ARGS}
-
+code=$?
 set +x
+exit $code
