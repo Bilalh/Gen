@@ -648,13 +648,19 @@ instanceCommon cores Instance_Common{..} = do
     xs -> mapM putStrLn xs >> exitFailure
   out   <- giveOutputDirectory output_directory >>= makeAbsolute
 
-  let compact_path = (models_path ++ "-compact")
-  compactFirst <- doesDirectoryExist (models_path ++ "-compact") >>= \case
-    False -> do
-      print . pretty $  "no compact found"  <+> pretty compact_path
+  -- Look for compact in  <models_dir>-compact &  <essence_name>_df-compact
+  let compactPaths = [ (models_path ++ "-compact")
+                     , replaceFileName essence (takeBaseName essence_path ++ "_" ++ "df-compact")
+                     ]
+  cExists <- filterM doesDirectoryExist compactPaths
+
+  compactFirst <- case cExists of
+    [] -> do
+      print . pretty $  "no compact found, at"  <+> vcat (map pretty compactPaths)
       return Nothing
-    True  -> do
-      cs <- allFilesWithSuffix ".eprime" compact_path
+    (path:_)  -> do
+      print . pretty $ "checking for compact in: " <+> pretty path
+      cs <- allFilesWithSuffix ".eprime" path
       catMaybes <$> mapM ((flip findCompact) models_path) cs  >>= \case
         []   -> return Nothing
         [x]  -> do
