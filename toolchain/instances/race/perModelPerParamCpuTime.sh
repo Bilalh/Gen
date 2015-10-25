@@ -81,7 +81,7 @@ function update_total_time(){
     fp=$2
     taken="`grep cpu $fp | egrep -o '[0-9]+.[0-9]+'`"
     set -x
-	# we are using floor which will give up to a second more time.
+    # we are using floor which will give up to a second more time.
     TOTAL_TIMEOUT="$(echo "(${cur}-${taken})/1" | bc)"
     set +x
     taken="$(echo "${taken}/1" | bc )"
@@ -168,12 +168,20 @@ if (( RESULTOF_SAVILEROW != 0 )) ; then
 	echo "$MSG_SAVILEROW" >> "$FAIL_FILE"
 	if (( RESULTOF_SAVILEROW != 137 &&  RESULTOF_SAVILEROW != 124  )) ; then
 
-		if ( grep -qc 'Error occurred during initialization of VM' "${SR_OUTPUT}"); then
+		if ( grep -qc 'Sub-process exited with error code:137' "${SR_OUTPUT}"); then
+			echo "savilerow's sub-process was killed with code 137"
+			echo "savilerow's sub-process was killed with code 137" >&2
+			exit 1
+		elif ( grep -qc 'Sub-process exited with error code:124' "${SR_OUTPUT}"); then
+			echo "savilerow's sub-process was killed with code 124"
+			echo "savilerow's sub-process was killed with code 127" >&2
+			exit 1
+		elif ( grep -qc 'Error occurred during initialization of VM' "${SR_OUTPUT}"); then
 			if ( grep -qc 'java.lang.OutOfMemoryError: unable to create new native thread' "${SR_OUTPUT}"); then
 				echo "$MSG_SAVILEROW ~ Error occurred during initialization of VM, java.lang.OutOfMemoryError: unable to create new native thread" >> "$PARAM_ERROR_FILE"
 				exit 3
 			else
-				echo "$MSG_SAVILEROW Error occurred during initialization of VM" >> "$PARAM_ERROR_FILE"
+				echo "$MSG_SAVILEROW ~ Error occurred during initialization of VM" >> "$PARAM_ERROR_FILE"
 				exit 4
 			fi
 		else
