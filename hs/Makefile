@@ -15,6 +15,15 @@ clean:
 	make -C ../toolchain/cputimeout clean
 
 
+dev:
+	CORES=4 RUN_TESTS=yes make install etags 2>&1 | tee build.log
+
+dev1:
+	CORES=1 RUN_TESTS=yes make install etags 2>&1 | tee build.log
+
+prod:
+	RUN_TESTS=yes make install
+
 # Use `make ghci` to run ghci on .hs files
 # Or  `make ghci files=<files>` to run on specific files
 
@@ -100,7 +109,7 @@ store:
 # The files can be seperated by commas or spaces
 ghci:
 	@cabal exec ghci -- -isrc -isrc/test -idist/build/autogen  \
-	-XNoImplicitPrelude                        \
+		-XNoImplicitPrelude                        \
 		-XOverloadedStrings                        \
 		-XScopedTypeVariables                      \
 		-XTemplateHaskell                          \
@@ -134,13 +143,3 @@ files := `find src -name '*.hs' | egrep -v 'exec|test/' | grep -v \${hash}`
 ifdef $$files
 files := $$files
 endif
-
-
-dev:
-	CORES=4 RUN_TESTS=yes make install etags 2>&1 | tee build.log
-
-dev1:
-	CORES=1 RUN_TESTS=yes make install etags 2>&1 | tee build.log
-
-prod:
-	RUN_TESTS=yes make install
