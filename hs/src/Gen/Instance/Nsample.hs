@@ -35,7 +35,8 @@ instance Sampling Nsample where
 
         goodness_x_prev :: Goodness <- case mPoints of
           (las:_) -> do
-            logWarn2 $line ["Using previous data point"]
+            logWarn2 $line ["Using previous data point"
+                           , nn "hash" (pointHash las) ]
             (1 -) <$> get_quailty las
           [] -> do
             logWarn2 $line ["No previous data point"]
@@ -112,6 +113,7 @@ get_quailty :: (MonadIO m, MonadState (Method Nsample) m, MonadLog m, Sampling N
             => Point -> m Quality
 get_quailty p = do
   let h  = pointHash p
+  logDebug2 $line [nn "for hash" h ]
   q <- getPointQuailty h
   logDebug2 $line [n3 "qu" q, nn "for hash" h ]
   return q

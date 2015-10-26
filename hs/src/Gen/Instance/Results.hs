@@ -42,15 +42,17 @@ showResults outdir = do
   let db = outdir </> "results.db"
   let summary = outdir </> "summary"
 
-  conn <- liftIO $ open (db)
-  -- rows :: [Only String] <- liftIO $ query_ conn smallestQuery
-  -- let smallest =  [ s | Only s <- rows  ]
-  -- liftIO $ print smallest
 
-  [Only numSets]    <- liftIO $ query_ conn numSetsQuery
-  [Only numModels]  <- liftIO $ query_ conn numModelsQuery
+  (numSets,numModels,groups) <- liftIO $ withConnection db $ \conn -> do
+    [Only numSets]    <- query_ conn numSetsQuery
+    [Only numModels]  <- query_ conn numModelsQuery
+    groups :: [Only Text] <- query_ conn selectorQuery
 
-  groups :: [Only Text] <- liftIO $ query_ conn selectorQuery
+    -- rows :: [Only String] <- liftIO $ query_ conn smallestQuery
+    -- let smallest =  [ s | Only s <- rows  ]
+    -- liftIO $ print smallest
+    return (numSets,numModels,groups)
+
   let ints :: [[Integer]] = [ mapMaybe (readMay . textToString) $ T.split (== ',') g
                             | Only g <- groups ]
   let sets = [ ConstantAbstract . AbsLitSet $ map (ConstantInt) is  | is <- ints ]
@@ -59,7 +61,6 @@ showResults outdir = do
                     ,("sets",  (ConstantAbstract $ AbsLitMSet sets ) )
                     ,("numModels", ConstantInt numModels)]
 
-  liftIO $ close conn
 
   hittingSet summary param >>= \case
     Nothing -> do

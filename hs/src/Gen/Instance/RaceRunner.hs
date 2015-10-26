@@ -119,9 +119,9 @@ saveEprimes= do
                 Just c  -> (\x ->  if x == c then Just True else Just False )
 
   eprimes <- liftIO $ sort <$> allFilesWithSuffix ".eprime" mModelsDir
-  conn <- liftIO $ open (mOutputDir </> "results.db")
-  void $ liftIO $ withTransaction conn $ forM (eprimes) $ \(ep) -> do
-    execute conn saveEprimesQuery (takeBaseName ep,  check (takeBaseName ep)  )
+  void $ liftIO $ withConnection (mOutputDir </> "results.db") $ \conn ->
+    withTransaction conn $ forM (eprimes) $ \(ep) -> do
+      execute conn saveEprimesQuery (takeBaseName ep,  check (takeBaseName ep)  )
 
 
 getModelOrdering :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
@@ -132,9 +132,9 @@ getModelOrdering = do
   liftIO $ doesFileExist dbPath >>= \case
     False -> return . Left $ ErrDB "DB not found"
     True  -> do
-      conn <- liftIO $ open dbPath
-      eprimes :: [[String]] <- query_ conn ("SELECT eprime FROM EprimeOrdering")
-      return $ Right [ mModelsDir </> row `at` 0 <.> ".eprime" | row <- eprimes  ]
+      liftIO $ withConnection dbPath $ \conn -> do
+        eprimes :: [[String]] <- query_ conn ("SELECT eprime FROM EprimeOrdering")
+        return $ Right [ mModelsDir </> row `at` 0 <.> ".eprime" | row <- eprimes  ]
 
 
 
@@ -188,8 +188,10 @@ parseRaceResult paramHash ts =do
   cmd <- script_lookup "instances/gather_race_results.sh"
   liftIO $ runPadded "❮" env cmd args
 
-  conn <- liftIO $ open (mOutputDir </> "results.db")
-  rows :: [RaceTotals] <- liftIO $ query conn raceResultsQuery (Only paramHash)
+  rows <- liftIO $ withConnection (mOutputDir </> "results.db") $ \conn -> do
+    rows :: [RaceTotals] <- query conn raceResultsQuery (Only paramHash)
+    return rows
+
   let total = flip foldl1' rows (\(RaceTotals a1 b1 c1 d1 e1)
                                   (RaceTotals a2 b2 c2 d2 e2)
             -> (RaceTotals (a1+a2) (b1+b2) (c1+c2) (d1+d2) (e1+e2)) )
@@ -275,9 +277,8 @@ saveQualityToDb :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
                 =>  ParamName -> ParamHash -> Quality -> Double ->  m ()
 saveQualityToDb paramName paramHash quality cputime = do
   (Method MCommon{mOutputDir} _) <- get
-  conn <- liftIO $ open (mOutputDir </> "results.db")
-  liftIO $ execute conn saveQuery (paramName, paramHash, quality, cputime)
-  return ()
+  void $ liftIO $ withConnection (mOutputDir </> "results.db") $ \conn -> do
+    execute conn saveQuery (paramName, paramHash, quality, cputime)
 
 
 checkPreviousQuery :: Query
@@ -290,12 +291,11 @@ checkPrevious paramHash =do
   liftIO $ doesFileExist (mOutputDir </> "results.db") >>= \case
     False -> return Nothing
     True -> do
-      conn <- liftIO $ open (mOutputDir </> "results.db")
-      rows :: [Only Int]  <- liftIO $ query conn checkPreviousQuery (Only paramHash)
-
-      case rows of
-        [Only ts] -> return $ Just ts
-        _    -> return Nothing
+      withConnection (mOutputDir </> "results.db") $ \conn -> do
+        rows :: [Only Int]  <-  query conn checkPreviousQuery (Only paramHash)
+        case rows of
+          [Only ts] -> return $ Just ts
+          _    -> return Nothing
 
 
 getPointQuery :: Query
@@ -305,16 +305,17 @@ getPointQuailty :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
                 => ParamHash -> m Quality
 getPointQuailty paramHash = do
   (Method MCommon{mOutputDir} _) <- get
+  logDebugVerbose2 $line ["before opening db", nn "for hash" paramHash ]
   liftIO $ doesFileExist (mOutputDir </> "results.db") >>= \case
     False -> docError ["db does not exist", pretty $line, "getPointQuailty"]
     True  ->  do
-      conn <- liftIO $ open (mOutputDir </> "results.db")
-      rows :: [Only Quality]  <- liftIO $ query conn getPointQuery (Only paramHash)
+      liftIO $ withConnection (mOutputDir </> "results.db") $ \conn -> do
+        rows :: [Only Quality]  <- liftIO $ query conn getPointQuery (Only paramHash)
 
-      case rows of
-        [Only qu] -> return $ qu
-        xs        -> docError $ "multiple results returned for getPointQuailty"
-                              : (pretty $line) : map (pretty . groom) xs
+        case rows of
+          [Only qu] -> return $ qu
+          xs        -> docError $ "multiple results returned for getPointQuailty"
+                                : (pretty $line) : map (pretty . groom) xs
 
 
 createParamEssence :: (MonadState (Method a) m, MonadIO m, MonadLog m )
