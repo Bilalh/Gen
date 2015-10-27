@@ -17,7 +17,7 @@ export STATS_OUTPUT_DIR="${OUT_BASE_DIR}/stats_${Mode}/"
 export FASTEST_OUTPUT_DIR="${OUT_BASE_DIR}/fastest_${Mode}/"
 set +x
 
-parallel "test -n {}  && mkdir {}" ::: \
+parallel "[ -d {} ] ||  mkdir {}" ::: \
 	"${STATS_OUTPUT_DIR}" "${GENERATED_OUTPUT_DIR}" "${FASTEST_OUTPUT_DIR}"
 
 
