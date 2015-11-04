@@ -14,12 +14,7 @@ import System.Exit                      (ExitCode (ExitSuccess))
 
 import qualified Data.Text as T
 
-smallestQuery, numSetsQuery, numModelsQuery, selectorQuery :: Query
-
-smallestQuery =[str|
-  Select DISTINCT eprimes From  ParamsData
-  Where eprimesLeft = (Select min(eprimesLeft) From ParamsData);
-  |]
+numSetsQuery, numModelsQuery, selectorQuery, compactQuery :: Query
 
 numSetsQuery = "Select distinct count(*) From ParamQuality"
 numModelsQuery = "Select count(eprime) From Eprimes;"
@@ -35,6 +30,9 @@ selectorQuery = [str|
         Order by P.quality;
   |]
 
+compactQuery = "Select eprimeId from Eprimes where isCompact = 1"
+
+
 showResults :: (MonadIO m)
             => FilePath ->m ()
 showResults outdir = do
@@ -42,15 +40,13 @@ showResults outdir = do
   let summary = outdir </> "summary"
 
 
-  (numSets,numModels,groups) <- liftIO $ withConnection db $ \conn -> do
+  (numSets,numModels,groups,comp) <- liftIO $ withConnection db $ \conn -> do
     [Only numSets]    <- query_ conn numSetsQuery
     [Only numModels]  <- query_ conn numModelsQuery
-    groups :: [Only Text] <- query_ conn selectorQuery
+    groups   :: [Only Text] <- query_ conn selectorQuery
+    compacts :: [Only Int]  <- query_ conn compactQuery
 
-    -- rows :: [Only String] <- liftIO $ query_ conn smallestQuery
-    -- let smallest =  [ s | Only s <- rows  ]
-    -- liftIO $ print smallest
-    return (numSets,numModels,groups)
+    return (numSets,numModels,groups,compacts)
 
   let ints :: [[Integer]] = [ mapMaybe (readMay . textToString) $ T.split (== ',') g
                             | Only g <- groups ]
@@ -60,11 +56,15 @@ showResults outdir = do
                     ,("sets",  (ConstantAbstract $ AbsLitMSet sets ) )
                     ,("numModels", ConstantInt numModels)]
 
+  liftIO $ writeFile (summary </> "meta" ) $ show $ vcat [
+        "Compact is " <+> hcat (punctuate ", " [ pretty num | (Only num) <- comp  ])
+      , ""
+      ]
 
   hittingSet summary param >>= \case
     Just (Point [(_,ConstantAbstract (AbsLitSet []))]) -> do
-      liftIO $ writeFile (summary </> "hittingSet" ) "NOTHING"
-      liftIO $ writeFile (summary </> "resultSet" ) "NOTHING"
+      liftIO $ writeFile (summary </> "hittingSet" ) "NOTHING\n"
+      liftIO $ writeFile (summary </> "resultSet" ) "NOTHING\n"
     Just (hset@(Point [(_,hval)])) -> do
       liftIO $ print . pretty $ hset
       liftIO $ writeFile (summary </> "hittingSet" ) (renderSized 10000 $  pretty hval)
