@@ -11,7 +11,6 @@ import Gen.Instance.Data
 import Gen.Instance.RaceRunner          (conjureCompact, runSolve, script_lookup1)
 import Gen.IO.Toolchain                 (runCommand')
 import System.Exit                      (ExitCode (ExitSuccess))
-import System.IO                        (readFile)
 
 import qualified Data.Text as T
 
@@ -31,8 +30,8 @@ selectorQuery = [str|
         Join TimingsRecorded D on P.paramHash = D.paramHash
 
         Where D.isDominated = 0
-
         Group by P.paramHash
+        Having P.quality < 1
         Order by P.quality;
   |]
 
@@ -63,10 +62,10 @@ showResults outdir = do
 
 
   hittingSet summary param >>= \case
-    Nothing -> do
+    Just (Point [(_,ConstantAbstract (AbsLitSet []))]) -> do
       liftIO $ writeFile (summary </> "hittingSet" ) "NOTHING"
       liftIO $ writeFile (summary </> "resultSet" ) "NOTHING"
-    Just( hset@(Point [(_,hval)])) -> do
+    Just (hset@(Point [(_,hval)])) -> do
       liftIO $ print . pretty $ hset
       liftIO $ writeFile (summary </> "hittingSet" ) (renderSized 10000 $  pretty hval)
       findResultingSet db summary hval
