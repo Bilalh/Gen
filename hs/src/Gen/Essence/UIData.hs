@@ -79,4 +79,5 @@ data Instance_Common = Instance_Common
     , output_directory    :: Maybe FilePath
     , log_level           :: LogLevel
     , pre_solutions       :: Maybe FilePath
+    , given_dir           :: Maybe FilePath
     } deriving (Show, Data, Typeable, Eq)

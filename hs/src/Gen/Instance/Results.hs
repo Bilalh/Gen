@@ -38,7 +38,7 @@ showResults :: (MonadIO m)
 showResults outdir = do
   let db = outdir </> "results.db"
   let summary = outdir </> "summary"
-
+  liftIO $ createDirectoryIfMissing True summary
 
   (numSets,numModels,groups,comp) <- liftIO $ withConnection db $ \conn -> do
     [Only numSets]    <- query_ conn numSetsQuery

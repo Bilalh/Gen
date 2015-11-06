@@ -73,11 +73,17 @@ looper i j= do
 randomPoint :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
             =>  m (Either SamplingErr Point)
 randomPoint = do
-  (Method MCommon{mPreGenerate} _) <- get
-  if isJust mPreGenerate then
-    Right <$> randomPointFromAllSolutions
-  else
-      sampleParamFromMinion
+  (Method MCommon{mPreGenerate,mPointsGiven} _ ) <- get
+  case mPointsGiven of
+    Just [] -> docError ["Not point left in randomPoint using given points "]
+    Just (x:xs) -> do
+      modify $ \(Method mc o) -> Method mc{mPointsGiven=Just xs} o
+      return $ Right x
+    Nothing ->
+      if isJust mPreGenerate then
+        Right <$> randomPointFromAllSolutions
+      else
+          sampleParamFromMinion
 
 runParamAndStoreQuality :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
                         => Point -> m (Either SamplingErr ())

@@ -39,9 +39,10 @@ import System.Directory            (getCurrentDirectory, makeAbsolute,
 import System.Environment          (lookupEnv, withArgs)
 import System.Exit                 (exitFailure, exitSuccess, exitWith)
 import System.FilePath             (replaceExtension, replaceFileName, takeBaseName,
-                                    takeExtensions)
+                                    takeExtensions, takeExtension)
 import System.Timeout              (timeout)
 import Text.Printf                 (printf)
+import Gen.Instance.Point(readPoint)
 
 import qualified Data.Set                as S
 import qualified Gen.Essence.UIData      as EC
@@ -635,14 +636,16 @@ instanceCommon cores Instance_Common{..} = do
     , fileExists   "info.json needs to be next to the essence" info_path
     , dirExists    "Model dir missing" models_path
     , dirExistsMay "--generated-solutions" pre_solutions
+    , dirExistsMay "--given" given_dir
     ]
 
-  let errors = catMaybes
+  let argErr = catMaybes
         [ aerr "-p|--per-model-time >0" (per_model_time == 0)
         , aerr "-i|--iterations >0" (iterations == 0)
         , aerr "-m/--mode not empty" (null mode)
         ] ++ fileErr
 
+  let errors = argErr ++ fileErr
   case errors of
     [] -> return ()
     xs -> mapM putStrLn xs >> exitFailure
@@ -681,7 +684,20 @@ instanceCommon cores Instance_Common{..} = do
   p <- ignoreLogs $ makeProvider essence_path i
   putStrLn $ "Provider: " ++ (groom p)
 
-  let common            = MCommon{
+  mPointsGiven <- case given_dir of
+    Nothing -> return $ Nothing
+    Just x  -> do
+      fps <- filesWithSuffix x ".param"
+      if length fps /= iterations then
+          docError [ "Length mismatch"
+                   , nn "iterations" iterations
+                   , nn "given_dir"  (length fps)
+                   ]
+      else do
+          ps <- mapM readPoint fps
+          return $ Just ps
+
+  let   common          = MCommon{
         mEssencePath    = essence
       , mOutputDir      = out
       , mModelTimeout   = per_model_time
@@ -695,10 +711,17 @@ instanceCommon cores Instance_Common{..} = do
       , mCores          = cores
       , mCompactName    = compactFirst
       , mSubCpu         = 0
+      , mPointsGiven    = mPointsGiven
       }
 
   return common
 
+
+filesWithSuffix :: FilePath -> String -> IO [FilePath]
+filesWithSuffix x ext= do
+    let keep i = takeExtension i == ext
+    ys' <- getDirectoryContents x `catchError` const (return [])
+    return $ filter keep ys'
 
 
 aerr :: String -> Bool -> Maybe String
@@ -880,5 +903,5 @@ _instanceDebug = do
   let ec = Instance_Undirected{essence_path = "/Users/bilalh/CS/essence-refinements/_current/prob028-BIBD/prob028-BIBD.essence",
                     per_model_time = 30, iterations = 1, mode = "df-every-givens-all",
                     _cores = Nothing, output_directory = Nothing, limit_time = Nothing,
-                    log_level = LogDebug, _seed = Nothing, pre_solutions = Nothing}
+                    log_level = LogDebug, _seed = Nothing, pre_solutions = Nothing, given_dir=Nothing}
   limiter (limit_time ec) (mainWithArgs ec)

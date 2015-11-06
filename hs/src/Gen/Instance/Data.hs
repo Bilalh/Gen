@@ -38,6 +38,7 @@ data MCommon = MCommon
   -- above fields do not change
   , mPoints         :: [Point]          -- | Instances that have been run, newest first
   , mSubCpu         :: Double           -- | Other sub-processes
+  , mPointsGiven    :: Maybe [Point]    -- | Uses these point for generation
   } deriving (Eq, Show, Data, Typeable, Generic)
 
 

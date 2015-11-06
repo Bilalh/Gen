@@ -93,6 +93,7 @@ _ex_common = do
       , mCompactName    = Nothing
       , mSubCpu  = 0
       , mModelsDir
+      , mPointsGiven = Nothing
       }
 
   return common
