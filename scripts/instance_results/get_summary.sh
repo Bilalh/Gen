@@ -20,7 +20,7 @@ function process(){
 	json="${ef}/${essence}/${essence}_${mode}.json"
 	db="${base}/results.db"
 
-	"${OUR}/kinds.py" "${db}" "${json}"
+	[ -f "${json}" ] && "${OUR}/kinds.py" "${db}" "${json}"
 	echo ""
 }
 export -f process
