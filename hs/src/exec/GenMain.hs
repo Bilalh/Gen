@@ -718,10 +718,9 @@ instanceCommon cores Instance_Common{..} = do
 
 
 filesWithSuffix :: FilePath -> String -> IO [FilePath]
-filesWithSuffix x ext= do
-    let keep i = takeExtension i == ext
-    ys' <- getDirectoryContents x `catchError` const (return [])
-    return $ filter keep ys'
+filesWithSuffix dir ext= do
+    fps <- getDirectoryContents dir `catchError` const (return [])
+    return $ [  dir </> fp  | fp <- fps, takeExtension fp == ext  ]
 
 
 aerr :: String -> Bool -> Maybe String
