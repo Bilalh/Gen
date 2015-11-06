@@ -5,7 +5,6 @@ server="$1"
 
 pushd "${server}"
 set -x
-rsync -avh --progress --compress --stats "${server}":sampling/ ./ --exclude="results_*"
+rsync -avh --links --progress --compress --stats "${server}":sampling/ ./ --exclude="results_*"
 set +x
 popd
-
