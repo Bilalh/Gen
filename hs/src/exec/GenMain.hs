@@ -694,8 +694,11 @@ instanceCommon cores Instance_Common{..} = do
                    , nn "given_dir"  (length fps)
                    ]
       else do
-          ps <- mapM readPoint fps
-          return $ Just ps
+        ps <- mapM readPoint fps
+        putStrLn . show . vcat $ [ nn "length given points" (length ps)
+                                 , "first 5 points" <+> (vcat $ map pretty . take 5 $ ps)
+                                 ]
+        return $ Just ps
 
   let   common          = MCommon{
         mEssencePath    = essence

@@ -46,7 +46,7 @@ import Shelly                                   (print_stderr, print_stdout,
 import System.Directory                         (copyFile)
 import System.Exit                              (ExitCode (..))
 import System.FilePath                          (takeBaseName, takeDirectory)
-import System.IO                                (hPutStr, hPutStrLn, readFile,
+import System.IO                                (hPutStr, hPutStrLn,
                                                  stderr, stdout)
 import System.IO.Temp                           (withSystemTempDirectory)
 
@@ -357,7 +357,7 @@ createParamSpecification model VarInfo{..} = do
   where
   core m = do
     (outStatements, errs) <- runWriterT $ forM (mStatements m) $ \ st -> case st of
-      Declaration (FindOrGiven Given nm@(Name te) dom) ->
+      Declaration (FindOrGiven Given nm@(Name te) dom) -> do
         case domainSizeOf dom of
           Nothing -> tell [(nm, dom)] >> return []
           Just (_ :: Expression) -> do
@@ -365,11 +365,12 @@ createParamSpecification model VarInfo{..} = do
             return [Declaration (FindOrGiven k nm dom)]
 
       Declaration (FindOrGiven Find _  _  ) -> return []
-      Declaration {}                        -> return [st]
-      SearchOrder {}                        -> return []
-      Where       xs                        -> return [SuchThat xs]
-      Objective   {}                        -> return []
-      SuchThat    {}                        -> return []
+      Declaration     {}                    -> return [st]
+      SearchOrder     {}                    -> return []
+      Where           xs                    -> return [SuchThat xs]
+      Objective       {}                    -> return []
+      SuchThat        {}                    -> return []
+      SearchHeuristic {}                    -> return []
 
     if null errs
       then return m { mStatements = concat outStatements }
