@@ -16,7 +16,7 @@ function process(){
 
 	essence="$(sqlite3 "${base}/results.db" 'Select essence from metadata')"
 	mode="$(sqlite3 "${base}/results.db" 'Select mode from metadata')"
-	ef="${EF:-~/repos/essence-refinements/_current}"
+	ef="${EF:-"$HOME"/repos/essence-refinements/_current}"
 	json="${ef}/${essence}/${essence}_${mode}.json"
 	db="${base}/results.db"
 
