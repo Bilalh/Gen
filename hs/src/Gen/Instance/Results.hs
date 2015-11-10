@@ -75,12 +75,12 @@ showResults outdir = do
       , ""
       ]
 
-  fracs <- hittingSet summary param >>= \case
+  (fracs,hOrder) <- hittingSet summary param >>= \case
     Just (Point [(_,ConstantAbstract (AbsLitSet []))]) -> do
       liftIO $ writeFile (summary </> "hittingSet" ) "NOTHING\n"
       liftIO $ writeFile (summary </> "resultSet" ) "NOTHING\n"
       liftIO $ writeFile (summary </> "resultSet2" ) "NOTHING\n"
-      return []
+      return ([], Nothing)
     Just (hset@(Point [(_,hval)])) -> do
       liftIO $ print . pretty $ hset
       liftIO $ writeFile (summary </> "hittingSet" ) (renderSized 10000 $  pretty hval)
@@ -104,7 +104,7 @@ showResults outdir = do
 
 
   let vs2 = map (processSettings meta (length fracs)
-                                 fracs_size fracs_str compact_str compactWon) vs
+                                 fracs_size fracs_str compact_str compactWon hOrder) vs
   liftIO $ encodeCSV (summary </> "summary.csv") vs2
 
   return ()
@@ -112,16 +112,17 @@ showResults outdir = do
   where
     pa m =  "[" ++ (intercalate ", " m) ++ "]"
 
-    processSettings meta numFracs fracs_size fracs_str compact_str compactWon lin =
-      let (he, clas) =
+    processSettings meta numFracs fracs_size fracs_str compact_str compactWon hOrder lin =
+      let ho = fromMaybe (rIterationsDone meta) hOrder
+          (he, clas) =
             case splitOn "@" (IN.essence_name lin) of
               [h,c] -> (Just h,c)
               _         -> (Nothing, IN.essence_name lin)
 
 
-      in  inToOut meta lin clas he numFracs fracs_size fracs_str compact_str compactWon
+      in  inToOut meta lin clas he numFracs fracs_size fracs_str compact_str compactWon ho
 
-findResultingSet :: MonadIO m => FilePath -> FilePath -> Constant -> m [[Int]]
+findResultingSet :: MonadIO m => FilePath -> FilePath -> Constant -> m ([[Int]], Maybe Int)
 findResultingSet db out hval = do
   script <- liftIO $ script_lookup1 "instances/results/gent_idea.py"
   runCommand' Nothing (script) [db,  (renderSized 10000 $  pretty hval) ]
@@ -130,6 +131,9 @@ findResultingSet db out hval = do
         st <- liftIO $ readFile (out </> "resultSet")
         liftIO $ putStrLn st
         let (fLines,end) = break ( (==) 'h'  . head ) (lines st)
+        let hOrder = fromJustNote "findResultingSet" .
+                     readMay .  tail . dropWhile (/=' ') . head $ end
+
         let fIds :: [[Int]] = [ fromJustNote "findResultingSet readIds"
                               . readMay. tail . dropWhile (/= ' ') $ ids
                               | ids <- fLines ]
@@ -139,10 +143,11 @@ findResultingSet db out hval = do
           query_ conn "Select eprimeId, eprime from Eprimes"
         let errX = fromJustNote "Missing Id"
         let mapped = [ [ errX $ f  `M.lookup` mapping | f <- ids ]  |  ids <- fIds ]
-        let res = [ (show $ length m) ++ " "  ++ "[" ++ (intercalate ", " m) ++ "]"  | m  <- mapped  ]
+        let res = [ (show $ length m) ++ " "  ++ "[" ++ (intercalate ", " m) ++ "]"
+                  | m  <- mapped  ]
 
         liftIO $ writeFile (out </> "resultSet2") $ unlines (res ++ end)
-        return $ fIds
+        return $ (fIds, Just hOrder)
 
       x -> docError [ "findResultingSet failed with"  <+> (pretty . show $ x)
                     , nn "on" hval]
@@ -176,10 +181,11 @@ encodeCSV fp cs = do
   BL.writeFile fp $ encodeDefaultOrderedByName cs
 
 inToOut :: RunMetadata -> IN.CSV_IN
-        -> String -> Maybe String -> Int -> String -> String -> String -> Int
+        -> String -> Maybe String -> Int -> String -> String -> String -> Int -> Int
         -> OUT.CSV_OUT
 inToOut RunMetadata{..} IN.CSV_IN{..}
         essenceClass heuristic numFractures fracturesSize fractures compact compactWon
+        highestOrderingNeeded
       = OUT.CSV_OUT{..}
 
 _ex1, _ex2 :: IO ()

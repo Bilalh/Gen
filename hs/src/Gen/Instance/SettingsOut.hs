@@ -26,6 +26,7 @@ data CSV_OUT = CSV_OUT
   , fractures                      :: !String
   , compact                        :: !String
   , compactWon                     :: !Int
+  , highestOrderingNeeded          :: !Int
   , rTimestampStart                :: !Int
   , rTimestampEnd                  :: !Int
   , rRealTime                      :: !Int
