@@ -2,20 +2,27 @@
 module Gen.Instance.Results where
 
 import Conjure.Language.Definition
+import Data.Csv                         hiding (Only)
+import Data.List                        (break)
+import Data.Map                         (Map)
 import Database.SQLite.Simple
 import Database.SQLite.Simple.FromField ()
 import Database.SQLite.Simple.FromRow   ()
 import Gen.Helpers.Str
-import Gen.Imports
+import Gen.Imports                      hiding (group)
 import Gen.Instance.Data
 import Gen.Instance.RaceRunner          (conjureCompact, runSolve, script_lookup1)
+import Gen.IO.Formats                   (readFromJSON)
 import Gen.IO.Toolchain                 (runCommand')
 import System.Exit                      (ExitCode (ExitSuccess))
-import Data.List(break)
-import Data.Map (Map)
 
-import qualified Data.Text as T
-import qualified Data.Map as M
+import qualified Data.ByteString.Lazy     as BL
+import qualified Data.Map                 as M
+import qualified Data.Text                as T
+import qualified Data.Vector              as V
+import qualified Gen.Instance.SettingsIn  as IN
+import qualified Gen.Instance.SettingsOut as OUT
+
 
 numSetsQuery, numModelsQuery, selectorQuery, compactQuery :: Query
 
@@ -68,11 +75,12 @@ showResults outdir = do
       , ""
       ]
 
-  hittingSet summary param >>= \case
+  fracs <- hittingSet summary param >>= \case
     Just (Point [(_,ConstantAbstract (AbsLitSet []))]) -> do
       liftIO $ writeFile (summary </> "hittingSet" ) "NOTHING\n"
       liftIO $ writeFile (summary </> "resultSet" ) "NOTHING\n"
       liftIO $ writeFile (summary </> "resultSet2" ) "NOTHING\n"
+      return []
     Just (hset@(Point [(_,hval)])) -> do
       liftIO $ print . pretty $ hset
       liftIO $ writeFile (summary </> "hittingSet" ) (renderSized 10000 $  pretty hval)
@@ -80,8 +88,40 @@ showResults outdir = do
     _ -> do
       docError [nn  "hittingSet failed on" param]
 
+  meta ::  RunMetadata <- liftIO $ readFromJSON (outdir </> "metadata.json")
+  vs <- liftIO $ V.toList <$> decodeCSV (outdir </> "settings.csv")
 
-findResultingSet :: MonadIO m => FilePath -> FilePath -> Constant -> m ()
+  let fracs_size = pa $ map ( show . length ) fracs
+  let fracs_str  = pa $ map ( pa . map show ) fracs
+  let compact_str  = pa $ map ( show . snd ) comp
+
+  let compactWon = case comp of
+        [(_, num)] -> case fracs of
+                        [[x]] -> if x == num then 1 else 0
+                        _     -> 0
+        _          ->  0
+
+
+
+  let vs2 = map (processSettings meta (length fracs)
+                                 fracs_size fracs_str compact_str compactWon) vs
+  liftIO $ encodeCSV (summary </> "summary.csv") vs2
+
+  return ()
+
+  where
+    pa m =  "[" ++ (intercalate ", " m) ++ "]"
+
+    processSettings meta numFracs fracs_size fracs_str compact_str compactWon lin =
+      let (he, clas) =
+            case splitOn "@" (IN.essence_name lin) of
+              [h,c] -> (Just h,c)
+              _         -> (Nothing, IN.essence_name lin)
+
+
+      in  inToOut meta lin clas he numFracs fracs_size fracs_str compact_str compactWon
+
+findResultingSet :: MonadIO m => FilePath -> FilePath -> Constant -> m [[Int]]
 findResultingSet db out hval = do
   script <- liftIO $ script_lookup1 "instances/results/gent_idea.py"
   runCommand' Nothing (script) [db,  (renderSized 10000 $  pretty hval) ]
@@ -102,7 +142,7 @@ findResultingSet db out hval = do
         let res = [ (show $ length m) ++ " "  ++ "[" ++ (intercalate ", " m) ++ "]"  | m  <- mapped  ]
 
         liftIO $ writeFile (out </> "resultSet2") $ unlines (res ++ end)
-
+        return $ fIds
 
       x -> docError [ "findResultingSet failed with"  <+> (pretty . show $ x)
                     , nn "on" hval]
@@ -123,8 +163,25 @@ hittingSet out point = do
         Left x  -> error . show $ x
         Right (res, _) -> return res
 
-_ex1 :: IO ()
-_ex1 = showResults "/Users/bilalh/Desktop/fractest/"
 
-_ex2 :: IO ()
-_ex2 = showResults "/Users/bilalh/Desktop/fractest/org"
+decodeCSV ::FilePath -> IO (V.Vector IN.CSV_IN)
+decodeCSV fp = do
+    csvData <- BL.readFile fp
+    case decodeByName csvData of
+        Left err -> error  err
+        Right (_, v) -> V.forM v $ \(p :: IN.CSV_IN) -> return p
+
+encodeCSV :: FilePath -> [OUT.CSV_OUT] -> IO ()
+encodeCSV fp cs = do
+  BL.writeFile fp $ encodeDefaultOrderedByName cs
+
+inToOut :: RunMetadata -> IN.CSV_IN
+        -> String -> Maybe String -> Int -> String -> String -> String -> Int
+        -> OUT.CSV_OUT
+inToOut RunMetadata{..} IN.CSV_IN{..}
+        essenceClass heuristic numFractures fracturesSize fractures compact compactWon
+      = OUT.CSV_OUT{..}
+
+_ex1, _ex2 :: IO ()
+_ex1 = showResults "/Users/bilalh/Desktop/Results/sampling_no_large/babbage/results/sdf@prob034-warehouse/nsample/sample-64_rndsols%1%16035"
+_ex2 = showResults "/Users/bilalh/Desktop/Results/sampling_no_large/babbage/results/prob030-BACP/nsample/sample-64_rndsols%1%16005/"

@@ -125,6 +125,8 @@ Library
                      , Gen.Instance.RaceRunner
                      , Gen.Instance.Results
                      , Gen.Instance.SamplingError
+                     , Gen.Instance.SettingsIn
+                     , Gen.Instance.SettingsOut
                      , Gen.Instance.UI
                      , Gen.Instance.Undirected
                      , Gen.IO.Dups
@@ -182,6 +184,8 @@ Library
                      , shelly
                      , cryptohash
                      , megaparsec
+                     , cassava
+                     , vector
 
 
     if impl(ghc < 7.10)
