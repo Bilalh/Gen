@@ -3,8 +3,10 @@ set -o nounset
 OUR="$( cd "$( dirname "$0" )" && pwd )";
 export OUR
 
+cores=${CORES:-"$(parallel --number-of-cores)"};
+
 # shellcheck disable=SC2016
-parallel --keep-order \
+parallel -j"${cores}" --keep-order \
 	--rpl '{fmt} $Global::use{"File::Basename"} ||= eval "use File::Basename; 1;"; $_ = dirname($_);$_=sprintf("%-80s",$_)' \
 	--tagstring '{fmt}' \
 	'cat {//}/summary/hittingSet; echo "" ' \
@@ -40,14 +42,19 @@ function process2(){
 export -f process2
 
 # shellcheck disable=SC2016
-parallel --keep-order  \
+parallel -j"${cores}" --keep-order  \
 	--rpl '{fmt} $Global::use{"File::Basename"} ||= eval "use File::Basename; 1;"; $_ = dirname($_);$_=sprintf("%-80s",$_)' \
 	--tagstring '{fmt}' \
 	'process {//}' \
 	:::: <(find . -type d -name 'fastest*') > resultSet
 
-parallel --keep-order  \
+parallel -j"${cores}" --keep-order  \
 	--rpl '{fmt} $Global::use{"File::Basename"} ||= eval "use File::Basename; 1;"; $_ = dirname($_);$_=sprintf("%-80s",$_)' \
 	--tagstring '{fmt}' \
 	'process2 {//}' \
 	:::: <(find . -type d -name 'fastest*') > resultSet2
+
+parallel -j"${cores}" --keep-order  \
+	' ([ {#} -eq 1 ]  && cat {} ) || tail -n1 {}' \
+	:::: <(find . -type f -name 'summary.csv') \
+	| sort -nk1 > all.csv
