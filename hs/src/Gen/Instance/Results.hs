@@ -11,8 +11,11 @@ import Gen.Instance.Data
 import Gen.Instance.RaceRunner          (conjureCompact, runSolve, script_lookup1)
 import Gen.IO.Toolchain                 (runCommand')
 import System.Exit                      (ExitCode (ExitSuccess))
+import Data.List(break)
+import Data.Map (Map)
 
 import qualified Data.Text as T
+import qualified Data.Map as M
 
 numSetsQuery, numModelsQuery, selectorQuery, compactQuery :: Query
 
@@ -20,7 +23,6 @@ numSetsQuery = "Select distinct count(*) From ParamQuality"
 numModelsQuery = "Select count(eprime) From Eprimes;"
 selectorQuery = [str|
     Select group_concat(D.eprimeId, ", ") as eprimesIds
-
         From ParamQuality P
         Join TimingsRecorded D on P.paramHash = D.paramHash
 
@@ -30,7 +32,7 @@ selectorQuery = [str|
         Order by P.quality;
   |]
 
-compactQuery = "Select eprimeId from Eprimes where isCompact = 1"
+compactQuery = "Select eprime, eprimeId from Eprimes where isCompact = 1"
 
 
 showResults :: (MonadIO m)
@@ -44,8 +46,7 @@ showResults outdir = do
     [Only numSets]    <- query_ conn numSetsQuery
     [Only numModels]  <- query_ conn numModelsQuery
     groups   :: [Only Text] <- query_ conn selectorQuery
-    compacts :: [Only Int]  <- query_ conn compactQuery
-
+    compacts :: [(Text,Int)]  <- query_ conn compactQuery
     return (numSets,numModels,groups,compacts)
 
   let ints :: [[Integer]] = [ mapMaybe (readMay . textToString) $ T.split (== ',') g
@@ -56,8 +57,14 @@ showResults outdir = do
                     ,("sets",  (ConstantAbstract $ AbsLitMSet sets ) )
                     ,("numModels", ConstantInt numModels)]
 
+
   liftIO $ writeFile (summary </> "meta" ) $ show $ vcat [
-        "Compact is " <+> hcat (punctuate ", " [ pretty num | (Only num) <- comp  ])
+        "Compact is " <+> hcat (punctuate ", " [ pretty num | (_,num) <- comp  ])
+      , ""
+      ]
+
+  liftIO $ writeFile (summary </> "meta2" ) $ show $ vcat [
+        "Compact is " <+> hcat (punctuate ", " [ pretty name | (name,_) <- comp  ])
       , ""
       ]
 
@@ -65,6 +72,7 @@ showResults outdir = do
     Just (Point [(_,ConstantAbstract (AbsLitSet []))]) -> do
       liftIO $ writeFile (summary </> "hittingSet" ) "NOTHING\n"
       liftIO $ writeFile (summary </> "resultSet" ) "NOTHING\n"
+      liftIO $ writeFile (summary </> "resultSet2" ) "NOTHING\n"
     Just (hset@(Point [(_,hval)])) -> do
       liftIO $ print . pretty $ hset
       liftIO $ writeFile (summary </> "hittingSet" ) (renderSized 10000 $  pretty hval)
@@ -72,14 +80,33 @@ showResults outdir = do
     _ -> do
       docError [nn  "hittingSet failed on" param]
 
+
 findResultingSet :: MonadIO m => FilePath -> FilePath -> Constant -> m ()
 findResultingSet db out hval = do
   script <- liftIO $ script_lookup1 "instances/results/gent_idea.py"
   runCommand' Nothing (script) [db,  (renderSized 10000 $  pretty hval) ]
     (Just (out </> "resultSet")) >>= \case
-      ExitSuccess ->  liftIO $ readFile (out </> "resultSet") >>= putStrLn
-      x           -> docError [ "findResultingSet failed with"  <+> (pretty . show $ x)
-                              , nn "on" hval]
+      ExitSuccess -> do
+        st <- liftIO $ readFile (out </> "resultSet")
+        liftIO $ putStrLn st
+        let (fLines,end) = break ( (==) 'h'  . head ) (lines st)
+        let fIds :: [[Int]] = [ fromJustNote "findResultingSet readIds"
+                              . readMay. tail . dropWhile (/= ' ') $ ids
+                              | ids <- fLines ]
+
+        mapping :: Map Int  String  <- liftIO $ liftM M.fromList
+               <$> withConnection db $ \conn -> do
+          query_ conn "Select eprimeId, eprime from Eprimes"
+        let errX = fromJustNote "Missing Id"
+        let mapped = [ [ errX $ f  `M.lookup` mapping | f <- ids ]  |  ids <- fIds ]
+        let res = [ (show $ length m) ++ " "  ++ "[" ++ (intercalate ", " m) ++ "]"  | m  <- mapped  ]
+
+        liftIO $ writeFile (out </> "resultSet2") $ unlines (res ++ end)
+
+
+      x -> docError [ "findResultingSet failed with"  <+> (pretty . show $ x)
+                    , nn "on" hval]
+
 
 
 
