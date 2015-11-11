@@ -93,7 +93,9 @@ runParamAndStoreQuality :: (Sampling a, MonadState (Method a) m, MonadIO m, Mona
 runParamAndStoreQuality point = do
   let h =pointHash point
   checkPrevious h >>= \case
-    Just _  -> return $ Right ()
+    Just x  -> return $ Left $ ErrDuplicatedPoint $ vcat [nn "pointHash"  h,
+                                                          nn "located at" x]
+
     Nothing -> do
       (Method MCommon{mOutputDir} _) <- get
       let fp = mOutputDir </> "_params" </> h <.> ".param"
