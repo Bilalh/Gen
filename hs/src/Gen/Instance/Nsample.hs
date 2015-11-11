@@ -6,7 +6,7 @@ import Gen.Instance.Data
 import Gen.Instance.Method
 import Gen.Instance.Point         (pointHash,Distance(..))
 import Gen.Instance.RaceRunner    (getPointQuailty)
-import Gen.Instance.SamplingError (SamplingErr (ErrDontCountIteration))
+import Gen.Instance.SamplingError (SamplingErr (ErrRejectedPoint))
 import Text.Printf                (printf)
 
 import qualified Data.Aeson as A
@@ -66,7 +66,7 @@ instance Sampling Nsample where
 
         accept_point >>= \case
           True ->  runPoint x
-          False -> return . Left . ErrDontCountIteration $ vcat
+          False -> return . Left . ErrRejectedPoint $ vcat
                      [n3 "goodness_x" goodness_x
                      ,n3 "goodness_x_prev" goodness_x_prev
                      ,nn "point" x

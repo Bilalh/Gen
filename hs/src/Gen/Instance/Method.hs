@@ -63,8 +63,11 @@ looper i j= do
       Right{} -> do
          logInfo2 $line ["no error on iteration " <+> pretty (i,j)]
          looper (i + 1) (j + 1)
-      Left (ErrDontCountIteration d) -> do
+      Left (ErrRejectedPoint d) -> do
          logInfo2 $line ["REJECTED Not counting iteration because of" <+> pretty d ]
+         looper i (j + 1)
+      Left (ErrDuplicatedPoint d) -> do
+         logInfo2 $line ["DUPLICATE Not counting iteration because of" <+> pretty d ]
          looper i (j + 1)
       Left (x) -> do
          docError ["Error because of ", pretty x]
@@ -102,21 +105,3 @@ storeDataPoint :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
                => Point -> m ()
 storeDataPoint point = modify $ \(Method c@MCommon{mPoints} x) ->
                          (Method c{mPoints=point:mPoints} x)
-
-
-
-class MonadState (Method a) m => Test a m where
-    doTest :: (MonadIO m,  MonadLog m, MonadSamplingFail m) => m a
-
-
--- tester :: forall a m .  (Test a m, MonadIO m, MonadLog m)
---        => Int -> Int -> m (Int,Int)
--- tester i j= do
---   (Method MCommon{mIterations} _) <- get
---   if i == mIterations then
---       return (i,j)
---   else do
---     x <- runErrT doTest
---     case x of
---       Right (c :: a) -> tester (i + 1) (j + 1)
---       Left x -> error "d"
