@@ -50,9 +50,7 @@ import qualified Gen.Essence.UIData      as EC
 import qualified Gen.Essence.Weightings  as Weights
 import qualified Gen.Generalise.Data     as E
 import qualified Gen.IO.Toolchain        as Toolchain
-import qualified Gen.IO.ToolchainRecheck as Recheck
 import qualified Gen.Reduce.Data         as R
-
 
 
 main :: IO ()
@@ -62,10 +60,10 @@ main = do
        args <- helpArg
        void $ withArgs [args] (cmdArgs ui)
     [x] | x `elem` [ "essence", "reduce", "link", "meta", "json", "generalise", "solve"
-                   , "weights" , "script-toolchain", "script-recheck"
+                   , "weights" , "script-toolchain", "script-removeDups"
                    , "instance-nsample", "instance-undirected", "instance-summary"
                    , "script-createDbHashes", "script-updateChoices"
-                   , "script-removeDups", "instance-allsols", "instance-noRacing"] -> do
+                   , "instance-allsols", "instance-noRacing"] -> do
        args <- helpArg
        void $ withArgs [x, args] (cmdArgs ui)
 
@@ -593,33 +591,6 @@ mainWithArgs u@Script_Toolchain{..} = do
     f Toolchain.Refine_All _       = error "--choices make no sense with --refine-all"
     f Toolchain.Refine_Solve_All _ = error "--choices make no sense with --refine-solve-all"
     f r _ = r
-
-mainWithArgs Script_ToolchainRecheck{..} = do
-  fileErr <- catMaybes <$> sequence
-            [
-              fileExists    "essence path" essence_path
-            , dirExistsMay "--bin-dir" binaries_directory
-            ]
-
-
-  case fileErr of
-    [] -> return ()
-    xs -> mapM putStrLn xs >> exitFailure
-
-  out <- giveOutputDirectory output_directory
-  cores <- giveCores ui
-
-  (code,_) <- Recheck.toolchainRecheck Recheck.RecheckData
-           {
-             Recheck.essencePath       = essence_path
-           , Recheck.outputDirectory   = out
-           , Recheck.cores             = cores
-           , Recheck.binariesDirectory = binaries_directory
-           , Recheck.oldConjure        = old_conjure
-           , Recheck.toolchainOutput   = toolchain_ouput
-           , Recheck.dryRun            = dry_run
-           }
-  exitWith code
 
 mainWithArgs Script_UpdateChoices{..} = do
 

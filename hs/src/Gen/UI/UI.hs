@@ -195,18 +195,6 @@ data UI
     , limit_time         :: Maybe Int
     , dry_run            :: Bool
     }
-  | Script_ToolchainRecheck
-    {
-      essence_path       :: FilePath
-    , _cores             :: Maybe Int
-    , output_directory   :: Maybe FilePath
-
-    , toolchain_ouput    :: ToolchainOutput
-    , binaries_directory :: Maybe FilePath
-    , old_conjure        :: Bool
-    , limit_time         :: Maybe Int
-    , dry_run            :: Bool
-    }
   | Script_UpdateChoices
     {
       choices_in_  :: FilePath
@@ -878,59 +866,6 @@ ui  = modes
      } &= explicit
        &= name "script-createDbHashes"
        &= help "Make a db.json using the hashes of spec.spec.json files. This can be given to `gen essence --db-dir` so that same spec is not generated again"
-
-
-  , Script_ToolchainRecheck
-     { essence_path       = def     &= typDir
-                                    &= argPos 0
-     , output_directory   = def     &= typDir
-                                    &= name "output-directory"
-                                    &= name "o"
-                                    &= groupname "Other"
-                                    &= explicit
-                                    &= help "Output directory default is %F_%H-%M_%s e.g. 2015-03-23_01-04_1427072681"
-     , _cores             = Nothing &= name "cores"
-                                    &= name "c"
-                                    &= groupname "Required"
-                                    &= explicit
-                                    &= help "Number of cores to use, required unless CORES is set"
-     , binaries_directory = Nothing &= name "bin-dir"
-                                    &= groupname "Other"
-                                    &= typDir
-                                    &= explicit
-                                    &= help "Directory to prepend the $PATH before running progams."
-     , old_conjure        = False   &= name "old-conjure"
-                                    &= groupname "Other"
-                                    &= explicit
-                                    &= help "Use old conjure"
-     , limit_time         = Nothing &= name "limit-time"
-                                    &= groupname "Other"
-                                    &= explicit
-                                    &= help "Time limit in seconds of CPU time of this program"
-     , dry_run            = False   &= name "dry-run"
-                                    &= groupname "Other"
-                                    &= explicit
-                                    &= help "Just output the command that would be executed"
-     , toolchain_ouput    = enum
-                            [
-                              ToolchainScreen_ &= name "show-toolchain-output"
-                                               &= explicit
-                                               &= groupname "Output"
-                                               &= help "Show toolchain output (default)"
-                            , ToolchainFile_   &= name "redirect-toolchain-output"
-                                               &= explicit
-                                               &= groupname "Output"
-                                               &= help "Redirect toolchain output to file"
-                            , ToolchainNull_   &= name "null-toolchain-output"
-                                               &= name "N"
-                                               &= explicit
-                                               &= groupname "Output"
-                                               &= help "Discard toolchain output"
-                            ]
-     } &= explicit
-       &= name "script-recheck"
-       &= help "Reruns the toolchain with previous used settings"
-
 
   , Script_RemoveDups
      {

@@ -138,7 +138,6 @@ Library
                      , Gen.IO.TermSize
                      , Gen.IO.Toolchain
                      , Gen.IO.ToolchainData
-                     , Gen.IO.ToolchainRecheck
                      , Gen.Reduce.Data
                      , Gen.Reduce.FormatResults
                      , Gen.Reduce.Inners
