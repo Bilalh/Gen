@@ -91,7 +91,7 @@ class TypeInt(Instance):
         if not isinstance(other_dom, self.__class__):
             raise ValueError("other dom must of %s" % self.__class__.__name__)
 
-        ## FIXME check if this calculation is want I want
+        ## FIX ME check if this calculation is want I want
         return sum(  ( t - o) ** 2 for (t, o) in zip( self.point, other_dom.point) )
 
     @classmethod
@@ -321,7 +321,7 @@ def pre_create_all_param_solutions_from_essence(generated_dir, givens_names, par
 
     essence = base_path / 'essence_param_find.essence'
     eprime = base_path / 'essence_param_find.eprime'
-    timeout = str(86400)  # FIXME choose better timeout
+    timeout = str(86400)  # FIX ME choose better timeout
 
     data_path = base_path / "all_sols_data"
     solutions_path = base_path / "all_sols"
@@ -398,7 +398,7 @@ def create_param_from_essence(specific_dir, generated_dir, givens):
 
     essence = gen_path / 'essence_param_find.essence'
     eprime = gen_path / 'essence_param_find.eprime'
-    timeout = str(300)  # FIXME choose better timeout
+    timeout = str(300)  # FIX ME choose better timeout
 
 
     # reuse previous data

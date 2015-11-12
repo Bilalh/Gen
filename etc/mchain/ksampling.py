@@ -102,7 +102,7 @@ class KSample(method.Method):
             return chain_lib.get_quailty(self.output_dir, name_hash)
 
         def avg_quality(rp):
-            # TODO can made more efficient
+            # TO DO can made more efficient
             influence_points = [ p for p in self.data_points
                 if self.shape.is_in_inside(self.settings.influence_radius, rp, p) ]
 

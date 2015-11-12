@@ -81,7 +81,7 @@ class CpuLimit(Limit):
 	@copydoc(Limit.continue_running)
 	def continue_running(self, method, count_iter):
 		if method.prev_timestamp:
-			# TODO Assumes only param is run on each iteration
+			# TO DO Assumes only param is run on each iteration
 			timefile = os.path.join(method.settings.output_dir, "stats-" + method.settings.mode,
 				method.prev_timestamp + ".total_solving_time")
 			with open(timefile) as f:

@@ -333,7 +333,7 @@ class Rel(Domain):
     def reconstruct_for_smac(self, selected_vals, kv):
         s_kv = sorted(kv, key=lambda k: (int(k[3]), k[2]) )
 
-        # FIXME it is allways 50 in current specs, should be got from n_courses
+        # FIX ME it is allways 50 in current specs, should be got from n_courses
         size = 50
         logger.info("Size ,, %s", size)
         assert len(s_kv) % 2 == 0
@@ -435,7 +435,7 @@ def get_relation_domain(data):
 
     inner_dom = [ domain_dispacher(dom['tag'], dom) for dom in doms_data ]
 
-    # FIXME relation attrs
+    # FIX ME relation attrs
     assert len(atts_names) == 0
     return Rel(inner_dom)
 
@@ -449,7 +449,7 @@ def get_tuple_domain(data):
 
 
 def get_typeInt_domain(data):
-    # FIXME how to specify more data
+    # FIX ME how to specify more data
     return TypeInt( (1, 5))
 
 

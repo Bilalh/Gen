@@ -98,7 +98,7 @@ class Method(metaclass=ABCMeta):
 
         self.extra_time = 0
         if self.settings.use_minion:
-            # TODO Should this be done before any script is run?
+            # TO DO Should this be done before any script is run?
             self.generated_dir = os.path.join(self.output_dir, "generated")
 
             if settings.generated_dir:
@@ -424,7 +424,7 @@ class Method(metaclass=ABCMeta):
 
 
 
-    # FIXME
+    # FI XME
     def do_radius_as_percentage(self, options):
         if options['radius_as_percentage']:
             raise NotImplementedError("only works for int")

@@ -59,7 +59,7 @@ class NSample(method.Method):
     def goodness(self, point):
 
         def avg_quality(rp):
-            # TODO can made more efficient
+            # TO DO can made more efficient
             influence_points = [ p for p in self.data_points
                 if self.shape.is_in_inside(self.settings.influence_radius, rp, p) ]
 
