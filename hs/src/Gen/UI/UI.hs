@@ -134,7 +134,6 @@ data UI
 
   | Instance_Summary
     { input_directory    :: FilePath
-    , mode               :: String
     , limit_time         :: Maybe Int
     , log_level          :: LogLevel
     }
@@ -714,11 +713,7 @@ ui  = modes
 
 
   , Instance_Summary
-     { mode             = def     &= name "mode"
-                                  &= name "m"
-                                  &= groupname "Required"
-                                  &= help "The suffix of the models directory"
-     , input_directory = def      &= typDir
+     { input_directory = def      &= typDir
                                   &= name "output-directory"
                                   &= name "o"
                                   &= groupname "Required"

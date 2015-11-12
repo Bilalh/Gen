@@ -10,7 +10,7 @@ parallel -j"${cores}" --keep-order \
 	--rpl '{fmt} $Global::use{"File::Basename"} ||= eval "use File::Basename; 1;"; $_ = dirname($_);$_=sprintf("%-80s",$_)' \
 	--tagstring '{fmt}' \
 	'cat {//}/summary/hittingSet; echo "" ' \
-	:::: <(find . -type d -name 'fastest*') > hittingSet
+	:::: <(find . -type d -name 'fastest*' | sort -n ) > hittingSet
 
 function process(){
 	base="$1"
@@ -46,13 +46,13 @@ parallel -j"${cores}" --keep-order  \
 	--rpl '{fmt} $Global::use{"File::Basename"} ||= eval "use File::Basename; 1;"; $_ = dirname($_);$_=sprintf("%-80s",$_)' \
 	--tagstring '{fmt}' \
 	'process {//}' \
-	:::: <(find . -type d -name 'fastest*') > resultSet
+	:::: <(find . -type d -name 'fastest*' | sort -n ) > resultSet
 
 parallel -j"${cores}" --keep-order  \
 	--rpl '{fmt} $Global::use{"File::Basename"} ||= eval "use File::Basename; 1;"; $_ = dirname($_);$_=sprintf("%-80s",$_)' \
 	--tagstring '{fmt}' \
 	'process2 {//}' \
-	:::: <(find . -type d -name 'fastest*') > resultSet2
+	:::: <(find . -type d -name 'fastest*' | sort -n) > resultSet2
 
 parallel -j"${cores}" --keep-order  \
 	' ([ {#} -eq 1 ]  && cat {} ) || tail -n1 {}' \

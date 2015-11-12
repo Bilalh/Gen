@@ -272,14 +272,12 @@ mainWithArgs Instance_AllSolutions{..} = do
 
 
 mainWithArgs Instance_Summary{..} = do
-  fileErr <- catMaybes <$> sequence
-          [ dirExists "-o/--output-directory" input_directory ]
+  fileErr <- catMaybes <$> sequence [
+               dirExists "-o/--output-directory" input_directory
+             , fileExists "Results.db missing" (input_directory </> "results.db")
+             ]
 
-  let errors = catMaybes
-        [ aerr "-m|--mode" (null mode)
-        ]
-
-  case errors ++ fileErr of
+  case fileErr of
     [] -> return ()
     xs -> mapM putStrLn xs >> exitFailure
 

@@ -2,4 +2,12 @@
 set -o nounset
 cores=${CORES:-"$(parallel --number-of-cores)"};
 
-parallel -j"${cores}" --line-buffer --tagstring '{/.}' "gen instance-summary -o {//} -m sample-64" :::: <(find . -type d -name 'fastest*')
+function process(){
+	out="$1"
+	[[ -n "${CACHE_SUMMARY:-}" && -d "${out}/summary" ]] || gen instance-summary -o "${out}"
+}
+export -f process
+
+parallel -j"${cores}" --line-buffer --tagstring '{/.}' \
+	'process {//}' \
+	:::: <(find . -type d -name 'fastest*')
