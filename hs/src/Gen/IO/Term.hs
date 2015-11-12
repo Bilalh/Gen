@@ -41,6 +41,6 @@ getHelpLength = do
   where
     getHelpLength' :: Int -> Int
     getHelpLength' len
-        | len > 120 = 120
+        | len > 121 = 121
         | len < 60  = 60
         | otherwise = len
