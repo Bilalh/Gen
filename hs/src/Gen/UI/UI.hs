@@ -125,6 +125,15 @@ data UI
     , given_dir          :: Maybe FilePath
     }
 
+  | Instance_NoRacing
+    { essence_path       :: FilePath
+    , iterations         :: Int
+    , output_directory   :: Maybe FilePath
+    , limit_time         :: Maybe Int
+    , log_level          :: LogLevel
+    , _seed              :: Maybe Int
+    }
+
   | Instance_AllSolutions
     { essence_path       :: FilePath
     , output_directory   :: Maybe FilePath
@@ -360,7 +369,6 @@ ui  = modes
      } &= explicit
        &= name "essence"
        &= help "Generates essence test cases"
-
 
 
   , Reduce
@@ -629,7 +637,6 @@ ui  = modes
      } &= name "instance-undirected"
        &= help "Generate discriminating instance for the given essence specification using a baseline method"
 
-
   , Instance_Nsample
      { essence_path     = def     &= typ "essence"
                                   &= argPos 0
@@ -689,6 +696,36 @@ ui  = modes
      } &= name "instance-nsample"
        &= help "Generate discriminating instance for the given essence specification using the nsample method"
 
+  , Instance_NoRacing
+     { essence_path     = def     &= typ "essence"
+                                  &= argPos 0
+     , iterations       = def     &= name "iterations"
+                                  &= name "i"
+                                  &= groupname "Required"
+                                  &= explicit
+                                  &= help "Number of races"
+     , output_directory = def     &= typDir
+                                  &= name "output-directory"
+                                  &= name "o"
+                                  &= groupname "Other"
+                                  &= explicit
+                                  &= help "Output directory default is %F_%H-%M_%s e.g. 2015-03-23_01-04_1427072681"
+     , limit_time       = Nothing &= name "limit-time"
+                                  &= explicit
+                                  &= help "Time limit in seconds of CPU time of this program"
+                                  &= groupname "Other"
+                                  &= explicit
+     , log_level       = LogDebug &= name "log-level"
+                                  &= groupname "Other"
+                                  &= explicit
+                                  &= help "Logging level, default LogDebug"
+     , _seed            = def     &= name "seed"
+                                  &= groupname "Other"
+                                  &= explicit
+                                  &= help "Random Seed to use"
+     } &= name "instance-noRacing"
+       &= help "Only Generate instances i.e. no racing. Results will be in the _params sub-directory of -o"
+
 
   , Instance_AllSolutions
      { essence_path     = def     &= typ "essence"
@@ -710,7 +747,6 @@ ui  = modes
                                   &= help "Logging level, default LogDebug"
      } &= name "instance-allsols"
        &= help "Generate the *script* and data required to create all solutions. This will usually requires TB(s) of space"
-
 
   , Instance_Summary
      { input_directory = def      &= typDir

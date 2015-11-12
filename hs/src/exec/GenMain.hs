@@ -1,4 +1,4 @@
-{-# LANGUAGE LambdaCase, RecordWildCards #-}
+{-# LANGUAGE LambdaCase, RecordWildCards, TemplateHaskell #-}
 {-# OPTIONS_GHC -fno-cse #-} -- stupid cmdargs?
 module Main where
 
@@ -16,9 +16,11 @@ import Gen.Generalise.Generalise   (generaliseMain)
 import Gen.Imports
 import Gen.Instance.AllSolutions   (createAllSolutionScript, readSolutionCounts)
 import Gen.Instance.Data
+import Gen.Instance.NoRacing       (NoRacing (..))
 import Gen.Instance.Nsample        (Nsample (..))
+import Gen.Instance.Point          (readPoint)
 import Gen.Instance.Results        (showResults)
-import Gen.Instance.UI             (makeProvider, runMethod)
+import Gen.Instance.UI             (makeProvider, runMethod,runMethod')
 import Gen.Instance.Undirected     (Undirected (..))
 import Gen.IO.Dups                 (deleteDups2, refineDups, solveDups)
 import Gen.IO.FindCompact          (findCompact)
@@ -39,10 +41,9 @@ import System.Directory            (getCurrentDirectory, makeAbsolute,
 import System.Environment          (lookupEnv, withArgs)
 import System.Exit                 (exitFailure, exitSuccess, exitWith)
 import System.FilePath             (replaceExtension, replaceFileName, takeBaseName,
-                                    takeExtensions, takeExtension)
+                                    takeExtension, takeExtensions)
 import System.Timeout              (timeout)
 import Text.Printf                 (printf)
-import Gen.Instance.Point(readPoint)
 
 import qualified Data.Set                as S
 import qualified Gen.Essence.UIData      as EC
@@ -64,7 +65,7 @@ main = do
                    , "weights" , "script-toolchain", "script-recheck"
                    , "instance-nsample", "instance-undirected", "instance-summary"
                    , "script-createDbHashes", "script-updateChoices"
-                   , "script-removeDups", "instance-allsols"] -> do
+                   , "script-removeDups", "instance-allsols", "instance-noRacing"] -> do
        args <- helpArg
        void $ withArgs [x, args] (cmdArgs ui)
 
@@ -218,7 +219,6 @@ mainWithArgs u@Essence{..} = do
   doMeta out no_csv binaries_directory
   generateEssence ws config
 
-
 mainWithArgs u@Instance_Undirected{..} = do
 
   cores  <- giveCores u
@@ -246,6 +246,51 @@ mainWithArgs u@Instance_Nsample{..} = do
 
   seed_  <- giveSeed _seed
   runMethod seed_ log_level (Method common ns)
+
+mainWithArgs Instance_NoRacing{..} = do
+  essence <- makeAbsolute essence_path
+  let info_path   = replaceFileName essence "info.json"
+  fileErr <- catMaybes <$> sequence
+    [
+      fileExists   "essence" essence
+    , fileExists   "info.json needs to be next to the essence" info_path
+    ]
+
+  let argErr = catMaybes
+        [ aerr "-i|--iterations >0" (iterations == 0)
+        ] ++ fileErr
+
+  let errors = argErr ++ fileErr
+  case errors of
+    [] -> return ()
+    xs -> mapM putStrLn xs >> exitFailure
+  out   <- giveOutputDirectory output_directory >>= makeAbsolute
+
+  i :: VarInfo <- readFromJSON info_path
+  putStrLn $ "VarInfo: " ++ (groom i)
+  p <- ignoreLogs $ makeProvider essence_path i
+  putStrLn $ "Provider: " ++ (groom p)
+
+  let   common          = MCommon{
+        mEssencePath    = essence_path
+      , mOutputDir      = out
+      , mModelTimeout   = -1
+      , mVarInfo        = i
+      , mPreGenerate    = Nothing
+      , mIterations     = iterations
+      , mMode           = ""
+      , mModelsDir      = ""
+      , mGivensProvider = p
+      , mPoints         = []
+      , mCores          = -1
+      , mCompactName    = Nothing
+      , mSubCpu         = 0
+      , mPointsGiven    = Nothing
+      }
+
+  seed_  <- giveSeed _seed
+  runMethod' False seed_ log_level (Method common NoRacing)
+
 
 mainWithArgs Instance_AllSolutions{..} = do
   essence <- makeAbsolute essence_path

@@ -120,6 +120,7 @@ Library
                      , Gen.Instance.BuildDependencyGraph
                      , Gen.Instance.Data
                      , Gen.Instance.Method
+                     , Gen.Instance.NoRacing
                      , Gen.Instance.Nsample
                      , Gen.Instance.Point
                      , Gen.Instance.RaceRunner

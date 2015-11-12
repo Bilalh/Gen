@@ -17,14 +17,22 @@ import Conjure.UI.TypeCheck
 
 import qualified Data.Set as S
 
--- The starting point for instance generation
+-- | The starting point for instance generation
 runMethod :: (Sampling a, ToJSON a, MonadIO m) => Int -> LogLevel -> Method a -> m ()
-runMethod seed lvl state= do
+runMethod = runMethod' True
+
+runMethod' :: (Sampling a, ToJSON a, MonadIO m)
+           => Bool -> Int -> LogLevel -> Method a -> m ()
+runMethod' doEprimes seed lvl state= do
   liftIO $ setStdGen (mkStdGen seed)
   runLoggerPipeIO lvl $
     void $ flip execStateT state $
-     createParamEssence >> initDB >> saveEprimes >> run
+     createParamEssence >> initDB >> doSaveEprimes doEprimes >> run
 
+doSaveEprimes :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
+              => Bool -> m ()
+doSaveEprimes False = return ()
+doSaveEprimes True  = saveEprimes
 
 findDependencies :: (MonadIO m, MonadLog m)
                  => FilePath -> FilePath
