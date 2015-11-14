@@ -9,7 +9,6 @@ import Gen.Instance.RaceRunner (createParamEssence1, runPadded, script_lookup,
                                 script_lookup1)
 import System.Directory        (copyFile)
 import System.FilePath         (takeBaseName)
-import System.IO               (readFile)
 import Text.Printf
 
 readSolutionCounts :: MonadIO m => FilePath -> m Solutions

@@ -24,6 +24,8 @@ type ParamHash = String
 newtype Point  = Point [(Name,Constant)]
  deriving (Eq, Show, Data, Typeable, Generic)
 
+instance Hashable Point
+
 instance Monoid Point where
   mempty                        = Point []
   mappend (Point xs) (Point ys) = Point $ xs ++ ys
