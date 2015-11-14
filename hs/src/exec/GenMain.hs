@@ -20,7 +20,7 @@ import Gen.Instance.NoRacing       (NoRacing (..))
 import Gen.Instance.Nsample        (Nsample (..))
 import Gen.Instance.Point          (readPoint)
 import Gen.Instance.Results        (showResults)
-import Gen.Instance.UI             (makeProvider, runMethod,runMethod')
+import Gen.Instance.UI             (makeProvider, runMethod, runMethod')
 import Gen.Instance.Undirected     (Undirected (..))
 import Gen.IO.Dups                 (deleteDups2, refineDups, solveDups)
 import Gen.IO.FindCompact          (findCompact)
@@ -31,6 +31,7 @@ import Gen.IO.Toolchain            (KindI (..), StatusI (..), ToolchainOutput (.
                                     doMeta, kindsList, statusesList)
 import Gen.Reduce.Data             (RState (..))
 import Gen.Reduce.FormatResults    (formatResults)
+import Gen.Reduce.Random           (runRndGen)
 import Gen.Reduce.Reduce           (reduceMain)
 import Gen.Solver.Solver           (SolverArgs (..), solverMain)
 import Gen.UI.UI
@@ -44,14 +45,13 @@ import System.FilePath             (replaceExtension, replaceFileName, takeBaseN
                                     takeExtension, takeExtensions)
 import System.Timeout              (timeout)
 import Text.Printf                 (printf)
-import Gen.Reduce.Random (runRndGen)
 
-import qualified Data.Set                as S
-import qualified Gen.Essence.UIData      as EC
-import qualified Gen.Essence.Weightings  as Weights
-import qualified Gen.Generalise.Data     as E
-import qualified Gen.IO.Toolchain        as Toolchain
-import qualified Gen.Reduce.Data         as R
+import qualified Data.Set               as S
+import qualified Gen.Essence.UIData     as EC
+import qualified Gen.Essence.Weightings as Weights
+import qualified Gen.Generalise.Data    as E
+import qualified Gen.IO.Toolchain       as Toolchain
+import qualified Gen.Reduce.Data        as R
 
 
 main :: IO ()

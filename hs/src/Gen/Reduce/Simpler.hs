@@ -1,21 +1,21 @@
-{-# LANGUAGE FlexibleInstances, KindSignatures, MultiParamTypeClasses,
-             TypeSynonymInstances, QuasiQuotes #-}
+{-# LANGUAGE FlexibleInstances, KindSignatures, MultiParamTypeClasses, QuasiQuotes,
+             TypeSynonymInstances #-}
 module Gen.Reduce.Simpler where
 
 import Conjure.Language.AbstractLiteral
 import Conjure.Language.Constant
+import Conjure.Language.Domain
 import Conjure.Language.Expression.Op
-import Gen.Imports
-import Gen.Reduce.Inners
-import Gen.Classify.Meta(maximum')
+import Conjure.Language.TypeOf
+import Gen.Classify.Meta                (maximum')
 import Gen.Helpers.SizeOf
 import Gen.Helpers.TypeOf
-import Conjure.Language.TypeOf
-import Conjure.Language.Domain
-import Gen.Reduce.Data(rrError,addLog)
+import Gen.Imports
+import Gen.Reduce.Data                  (addLog, rrError)
+import Gen.Reduce.Inners
 
 import qualified Data.Foldable as F
-import qualified Data.Text as T
+import qualified Data.Text     as T
 
 -- True if a1 is simpler then a2
 class (Pretty a, Eq a, Show a, Pretty b, Eq b, Show b

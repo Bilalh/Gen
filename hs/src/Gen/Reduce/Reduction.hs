@@ -1,5 +1,5 @@
-{-# LANGUAGE KindSignatures, MultiParamTypeClasses, PatternGuards,
-             QuasiQuotes, RankNTypes, TupleSections #-}
+{-# LANGUAGE KindSignatures, MultiParamTypeClasses, PatternGuards, QuasiQuotes,
+             RankNTypes, TupleSections #-}
 module Gen.Reduce.Reduction where
 
 import Conjure.Language.AbstractLiteral
@@ -16,8 +16,8 @@ import Gen.Helpers.TypeOf
 import Gen.Imports
 import Gen.Reduce.Data
 import Gen.Reduce.Inners
+import Gen.Reduce.Random
 import Gen.Reduce.Simpler
-import  Gen.Reduce.Random
 
 import qualified Data.Foldable                 as F
 import qualified Data.Generics.Uniplate.Zipper as Zipper

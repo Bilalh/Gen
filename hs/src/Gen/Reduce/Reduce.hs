@@ -1,4 +1,4 @@
-{-# LANGUAGE KindSignatures, TupleSections, Rank2Types #-}
+{-# LANGUAGE KindSignatures, Rank2Types, TupleSections #-}
 module Gen.Reduce.Reduce where
 
 import Conjure.Language.Domain
@@ -7,12 +7,12 @@ import Gen.IO.Formats
 import Gen.IO.RunResult
 import Gen.IO.ToolchainData
 import Gen.Reduce.Data
-import Gen.Reduce.QuanToComp       (quanToComp)
+import Gen.Reduce.QuanToComp    (quanToComp)
+import Gen.Reduce.Random
 import Gen.Reduce.Reduction
 import Gen.Reduce.Runner
 import Gen.Reduce.UnusedDomains
-import System.FilePath(takeExtension )
-import Gen.Reduce.Random
+import System.FilePath          (takeExtension)
 
 import qualified Data.Map as M
 

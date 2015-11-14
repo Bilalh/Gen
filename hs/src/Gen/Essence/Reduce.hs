@@ -7,11 +7,11 @@ import Gen.Imports
 import Gen.IO.Formats
 import Gen.IO.RunResult
 import Gen.IO.Toolchain         (doMeta)
-import Gen.Reduce.Data          (RState (..),RConfig(..))
+import Gen.Reduce.Data          (RConfig (..), RState (..))
 import Gen.Reduce.FormatResults (formatResults)
+import Gen.Reduce.Random
 import Gen.Reduce.Reduce        (reduceMain)
 import System.FilePath          (takeBaseName)
-import Gen.Reduce.Random
 
 import qualified Gen.Reduce.Data as R
 

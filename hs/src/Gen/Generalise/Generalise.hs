@@ -7,8 +7,8 @@ import Gen.Imports
 import Gen.IO.Formats
 import Gen.IO.RunResult
 import Gen.Reduce.Data       (RConfig (..), addLog)
-import Gen.Reduce.Reduction
 import Gen.Reduce.Random
+import Gen.Reduce.Reduction
 
 import Data.Generics.Uniplate.Zipper (Zipper, fromZipper, hole, replaceHole,
                                       zipperBi)
