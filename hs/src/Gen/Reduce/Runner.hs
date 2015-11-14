@@ -327,12 +327,12 @@ showrrError x = do
 
     f ErrData{..} = do
       RConfig{..} <- getRconfig
-      let b = (oErrKind_, oErrStatus_) == (kind, status)
-      out . hang ("? Has rrError: " <+> pretty b) 4 . vcat  $ [
+      let (sb,kb) = (statusEqual status oErrStatus_, kindsEqual kind oErrKind_)
+      out . hang ("? Has rrError: " <+> pretty (sb && kb)) 4 . vcat  $ [
           nn "kind:   "  kind  <+>
-             if kind /= oErrKind_ then "/=" <+> pretty oErrKind_ else ""
+            if not kb then "/=" <+> pretty oErrKind_ else ""
         , nn "status: " status <+>
-             if status /= oErrStatus_ then "/=" <+> pretty oErrStatus_ else ""
+            if not sb then "/=" <+> pretty oErrStatus_ else ""
         , nn "path:   " specDir
         ]
 
@@ -357,5 +357,9 @@ kindsEqual RefineCompact_ RefineRandom_ = True
 kindsEqual RefineRandom_  RefineAll_     = True
 kindsEqual RefineRandom_  RefineCompact_ = True
 
-
 kindsEqual a b = a == b
+
+statusEqual :: StatusI -> StatusI -> Bool
+statusEqual StatusAny_ _ = True
+statusEqual _ StatusAny_ = True
+statusEqual a b          =  a ==b
