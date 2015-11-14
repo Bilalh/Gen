@@ -74,13 +74,12 @@ reduceMain check rr = do
 
       return (state)
 
-
 noteMsg :: MonadIO m => Doc -> b -> m b
 noteMsg tx s = do
     noteFormat ("@" <+> tx) []
     return s
 
-
+-- | The reduction process
 doReductions :: Spec -> RRR (Timed Spec)
 doReductions start =
     return (Continue start)
@@ -90,8 +89,9 @@ doReductions start =
     -- >>= con "inlineGivens"         inlineGivens
     >>= con "removeConstraints"    removeConstraints
     >>= con "removeUnusedDomains"  removeUnusedDomains
-    >>= con "simplyDomains"        simplyDomains
+    >>= con "simplyFinds"          simplyFinds
     >>= con "simplyConstraints"    simplyConstraints
+    -- >>= con "simplyGivens"         simplyGivens
     >>= con "loopToFixed"          loopToFixed
     >>= con "eprimeAsSpec"         eprimeAsSpec
 
@@ -103,8 +103,10 @@ loopToFixed start = do
       >>= con "removeObjective"      removeObjective
       >>= con "removeConstraints"    removeConstraints
       >>= con "removeUnusedDomains"  removeUnusedDomains
-      >>= con "simplyDomains"        simplyDomains
+      >>= con "simplyFinds"          simplyFinds
       >>= con "simplyConstraints"    simplyConstraints
+      -- >>= con "simplyGivens"         simplyGivens
+      -- >>= con "inlineGivens"         inlineGivens
   case res of
     (NoTimeLeft end) -> return $ NoTimeLeft end
     (Continue cur)   -> do
@@ -137,6 +139,7 @@ removeObjective sp@(Spec ds es Just{}) =
       return $ Spec ds es Nothing
 
     f _ = return sp
+
 
 removeUnusedDomains :: Spec -> RRR (Timed Spec)
 removeUnusedDomains sp@(Spec ods es obj) = do
@@ -214,8 +217,8 @@ removeConstraints (Spec ds oes obj) = do
           g _ = process xs
 
 
-simplyDomains :: Spec -> RRR (Timed Spec)
-simplyDomains sp@(Spec ds es obj) = do
+simplyFinds :: Spec -> RRR (Timed Spec)
+simplyFinds sp@(Spec ds es obj) = do
   let org = [ (name,val) | (name, Findd val) <- M.toList ds ]
   domsToDo <- doDoms org
   liftIO $ putStrLn . show . prettyArr $ map prettyArr domsToDo
@@ -234,7 +237,7 @@ simplyDomains sp@(Spec ds es obj) = do
   toDoms vals = (M.fromList $ map (second Findd) vals) `M.union` givens
 
   doDoms :: [(Text,Domain () Expr)] -> RRR [[(Text,Domain () Expr)]]
-  doDoms [] = docError [ "No domains in reduce:simplyDomains" ]
+  doDoms [] = docError [ "No domains in reduce:simplyFinds" ]
   doDoms ((tx,x):xs) = do
     rx <- runReduce sp x >>= return . ensureElem x
     rs <- forM xs $ \(t,y) -> do
@@ -248,7 +251,7 @@ simplyDomains sp@(Spec ds es obj) = do
   process1 xs | (== []) xs = return . Continue $ []
 
   process1 xs | all (singleElem) xs = do
-    let fixed = map (headNote "process simplyDomains") xs
+    let fixed = map (headNote "process simplyFinds") xs
     let f (Just r) = do
             recordResult r
             return fixed
@@ -271,6 +274,7 @@ simplyDomains sp@(Spec ds es obj) = do
       g _ = removeNext xs >>= process1
 
     timedSpec (Spec (toDoms fixed) es obj) f g
+
 
 simplyConstraints :: Spec -> RRR (Timed Spec)
 simplyConstraints sp@(Spec _ [] _)    = return $ Continue $ sp
@@ -300,7 +304,7 @@ simplyConstraints sp@(Spec ds es obj) = do
   process1 xs | (== []) xs = return . Continue $ []
 
   process1 xs | all (singleElem) xs = do
-    let fixed = map (headNote "process simplyDomains") xs
+    let fixed = map (headNote "process simplyFinds") xs
     let f (Just r) = do
             recordResult r
             return fixed
@@ -323,6 +327,7 @@ simplyConstraints sp@(Spec ds es obj) = do
       g _ = removeNext xs >>= process1
 
     timedSpec (Spec ds fixed obj) f g
+
 
 -- | Try treating the eprime as a essence spec, and see if still has an error
 eprimeAsSpec :: Spec -> RRR (Timed Spec)
