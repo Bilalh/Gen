@@ -38,8 +38,8 @@ doSaveEprimes True  = saveEprimes
 findDependencies :: (MonadIO m, MonadLog m)
                  => FilePath -> FilePath
                  -> m (Either SamplingErr (VarInfo, Double))
-findDependencies outBase fp = do
-  model <-  liftIO $ ignoreLogs $ readModelFromFile fp
+findDependencies outBase specFp = do
+  model <-  liftIO $ ignoreLogs $ readModelFromFile specFp
               >>= runNameGen . typeCheckModel_StandAlone
               >>= runNameGen .  resolveNames
   buildDependencyGraph outBase model
@@ -69,17 +69,19 @@ makeProvider fp  VarInfo{..} = do
 
     return $ catMaybes vs
 
+_f1 :: IO (Either SamplingErr (VarInfo, Double))
+_f1 = do
+  createDirectoryIfMissing True _ex_out
+  runLoggerPipeIO LogDebug $ findDependencies _ex_out _ex_essence
 
 -- for examples
 _ex_info, _ex_essence, _ex_out, _ex_mode, _ex_dir, _ex_prob :: String
-_ex_prob    = "prob006-GR"
-_ex_mode    = "df"
+_ex_prob    = "prob013-PPP"
+_ex_mode    = "sample-64"
 _ex_out     = "/Users/bilalh/CS/gen/__"
 _ex_dir     = "/Users/bilalh/CS/essence-refinements/_current"
 _ex_info    = _ex_dir </> _ex_prob </> "info.json"
 _ex_essence = _ex_dir </> _ex_prob </> _ex_prob <.> ".essence"
-_ex_point  :: Point
-_ex_point   = Point [("n", ConstantInt 4)] -- GR
 
 -- Common settings
 _ex_common :: IO MCommon

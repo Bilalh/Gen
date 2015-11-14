@@ -44,11 +44,13 @@ import Shelly                                   (print_stderr, print_stdout,
                                                  runHandles, setenv,
                                                  transferFoldHandleLines)
 import System.Directory                         (copyFile)
+import System.Environment                       (lookupEnv)
 import System.Exit                              (ExitCode (..))
 import System.FilePath                          (takeBaseName, takeDirectory)
 import System.IO                                (hPutStr, hPutStrLn,
                                                  stderr, stdout)
 import System.IO.Temp                           (withSystemTempDirectory)
+
 
 import qualified Data.Set  as S
 import qualified Data.Text as T
@@ -501,6 +503,13 @@ runPadded :: String -> [(Text,Text)] -> Text -> [Text] -> IO ()
 runPadded ch env cmd args = do
   com <- script_lookup "instances/to_stdout.sh"
   let pad =  " " ++ ch ++ " "
+  discardOut <- lookupEnv "NULL_runPadded" >>= \case
+    Nothing      -> return False
+    Just ""      -> return False
+    Just "false" -> return False
+    Just _       -> return True
+
+
   sh  . print_stdout False . print_stderr False $ do
     mapM_ (\(a,b) ->  setenv a b) env
 
@@ -514,10 +523,12 @@ runPadded ch env cmd args = do
           --      transferFoldHandleLines "" (\_ b-> b) hout (printer stdout)
           -- void $ liftIO $ forkIO $ void $
           --      transferFoldHandleLines "" (\_ b-> b) herr (printer1 stderr)
-
-          void $ liftIO  $ transferFoldHandleLines "" (\_ b-> b) hout (printer pad stdout)
-          -- There should not be any stderr
-          void $ liftIO  $ transferFoldHandleLines "" (\_ b-> b) herr (printer1 stderr)
+          if discardOut then
+            return ()
+          else do
+            void $ liftIO  $ transferFoldHandleLines "" (\_ b-> b) hout (printer pad stdout)
+            -- There should not be any stderr
+            void $ liftIO  $ transferFoldHandleLines "" (\_ b-> b) herr (printer1 stderr)
 
           return ()
 

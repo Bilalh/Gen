@@ -39,6 +39,7 @@ import Gen.IO.RunResult               as X
 import Gen.IO.ToolchainData           as X
 import Gen.Reduce.Reduction           as X
 import Gen.Reduce.Simpler             as X
+import System.Environment             as X (lookupEnv, setEnv)
 
 import qualified Data.Map as M
 
