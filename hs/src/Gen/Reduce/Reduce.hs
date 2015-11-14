@@ -85,6 +85,7 @@ doReductions start =
     >>= con "tryRemoveConstraints" tryRemoveConstraints
     >>= con "removeObjective"      removeObjective
     >>= con "removeUnusedDomains"  removeUnusedDomains
+    -- >>= con "inlineGivens"         inlineGivens
     >>= con "removeConstraints"    removeConstraints
     >>= con "removeUnusedDomains"  removeUnusedDomains
     >>= con "simplyDomains"        simplyDomains
