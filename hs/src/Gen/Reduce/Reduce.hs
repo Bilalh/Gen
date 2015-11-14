@@ -9,6 +9,7 @@ import Gen.IO.ToolchainData
 import Gen.Reduce.Data
 import Gen.Reduce.QuanToComp    (quanToComp)
 import Gen.Reduce.Random
+import Gen.Instance.Point
 import Gen.Reduce.Reduction
 import Gen.Reduce.Runner
 import Gen.Reduce.UnusedDomains
@@ -19,6 +20,7 @@ import qualified Data.Map as M
 
 reduceMain :: (MonadIO m, MonadLog m, RndGen m) => Bool -> RState -> m RState
 reduceMain check rr = do
+  let startParam = param_ rr
   let base = (specDir_ . rconfig) rr
       fp   =  base </> "spec.spec.json"
 
@@ -49,7 +51,7 @@ reduceMain check rr = do
 
 
       noteFormat "FinalState" [pretty state]
-      noteFormat "Start" [pretty sp]
+      noteFormat "Start"  $ [pretty sp]  ++  maybeToList (pretty <$> startParam)
 
       end <- case sfin of
                (Continue x)   -> return $  Just x
@@ -66,7 +68,7 @@ reduceMain check rr = do
                               else
                                   Just x
 
-      noteFormat "Final" [pretty end2]
+      noteFormat "Final" $ [pretty end2] ++ maybeToList ( pretty <$> param_ state)
 
       return (state)
 
@@ -189,9 +191,12 @@ removeUnusedDomains :: Spec -> RRR (Timed Spec)
 removeUnusedDomains sp@(Spec ods es obj) = do
     let unusedNames = unusedDomains sp
 
-    process (choices ods unusedNames) >>= return . fmap (\x -> case x of
-          Just ds -> (Spec ds es obj)
-          Nothing -> (Spec ods es obj))
+    res <- process (choices ods unusedNames)
+    forM res $ \x -> case x of
+      Nothing -> return sp
+      Just ds -> do
+        modify $ \st -> st{param_ = removeNames unusedNames <$> (param_ st) }
+        return (Spec ds es obj)
 
     where
     choices :: Domains -> [Text] -> [Domains]
@@ -418,6 +423,7 @@ con tx f (Continue s) = do
 
     newSp <- f s
     noteFormat ("@" <+> tx <+> "End") [pretty newSp]
+
     endState <- get
     noteFormat ("@" <+> tx <+> "EndState") [pretty endState]
     liftIO $ putStrLn ""

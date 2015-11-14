@@ -8,7 +8,7 @@ import Conjure.Process.Enumerate
 import Conjure.UI.IO               (EssenceFileMode (PlainEssence),
                                     readModelFromFile, writeModel)
 import Crypto.Hash
-import Data.List                   (iterate, takeWhile)
+import Data.List                   (iterate, takeWhile )
 import Gen.Imports                 hiding (hash)
 import System.FilePath             (takeDirectory)
 
@@ -41,6 +41,8 @@ newtype Provider = Provider [(Name, Domain () Constant)]
 instance A.FromJSON Provider
 instance A.ToJSON Provider
 
+removeNames :: [Text] -> Point -> Point
+removeNames rm (Point xs)= Point $ [ x | x@(Name n,_) <- xs, n `notElem` rm ]
 
 pointName :: Point -> ParamName
 pointName (Point xs) = renderSized 100000 $ vcat [ pretty n <+> pretty c  | (n,c) <- xs ]
@@ -85,7 +87,7 @@ provideValues (Provider xs) = do
         modify $ \old -> (n,rnd) : old
   return $ Point vs
 
--- Uses enumerateDomain to provides all the values of the givens
+-- | Uses enumerateDomain to provides all the values of the givens
 provideAllValues :: (MonadIO m, MonadLog m) => Provider -> m [Point]
 provideAllValues (Provider xs) = do
   cs <- forM xs $ \(n,d) -> do
@@ -101,7 +103,7 @@ provideAllValues (Provider xs) = do
   --                 , nn "byName" (length byName)]
   return res
 
--- For simple true like ints and bools
+-- | For simple true like ints and bools
 domainRandomValue :: MonadIO m => Domain () Constant -> m Constant
 domainRandomValue (DomainInt [])              = error "Not int values"
 domainRandomValue (DomainInt [RangeSingle a]) = return a
@@ -165,14 +167,14 @@ instance Distance (AbstractLiteral Constant) where
 zipPad :: [a] -> [a] -> [(Maybe a, Maybe a)]
 zipPad [] [] = []
 zipPad xs ys = (next xs, next ys) : zipPad (rest xs) (rest ys)
+  where
+  next :: [a] -> Maybe a
+  next []    = Nothing
+  next (x:_) = Just x
 
-next :: [a] -> Maybe a
-next []    = Nothing
-next (x:_) = Just x
-
-rest ::  [a] -> [a]
-rest [] = []
-rest xs = tail xs
+  rest ::  [a] -> [a]
+  rest [] = []
+  rest zs = tail zs
 
 -- sqrt does not work on Integers
 -- https://wiki.haskell.org/Generic_number_type#squareRoot
