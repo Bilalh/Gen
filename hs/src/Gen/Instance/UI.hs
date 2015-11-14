@@ -72,7 +72,7 @@ makeProvider fp  VarInfo{..} = do
 _f1 :: IO (Either SamplingErr (VarInfo, Double))
 _f1 = do
   createDirectoryIfMissing True _ex_out
-  runLoggerPipeIO LogDebug $ findDependencies _ex_out _ex_essence
+  runLoggerPipeIO LogDebugVerbose $ findDependencies _ex_out _ex_essence
 
 -- for examples
 _ex_info, _ex_essence, _ex_out, _ex_mode, _ex_dir, _ex_prob :: String

@@ -22,6 +22,7 @@ buildDependencyGraph outBase model = do
              let refs = [ (n,name) | (Reference name _) <- universe (Domain dom)]
              tell refs
   let edges = nub2 state
+  logDebugVerbose2 $line (map pretty edges)
 
   let (l_n_i,l_i_n) = unzip $ zipWith (\(n,_) i -> ((n,i), (i,n)) )  vs [1:: Integer ..]
   let n_i = M.fromList l_n_i
@@ -33,7 +34,7 @@ buildDependencyGraph outBase model = do
                                                     , vcat . map  pretty $ edges
                                                     , pretty $line]
 
-  logDebugVerbose2 $line (map pretty numbed)
+  -- logDebugVerbose2 $line (map pretty numbed)
   let edgesSet = ConstantAbstract (AbsLitSet
        [ ConstantAbstract (AbsLitTuple [ ConstantInt (fromIntegral from)
                                        , ConstantInt (fromIntegral to)])

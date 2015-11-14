@@ -26,3 +26,12 @@ such that
 
 
 minimising max(range(ordering))
+
+$ example for PPP
+$ N 5
+
+$ (capacity, n_boats)     (4,2)
+$ (capacity, n_upper)     (4,1)
+$ (crew, n_boats)         (5,2)
+$ (crew, n_upper)         (5,1)
+
