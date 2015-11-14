@@ -99,7 +99,7 @@ runSpec spE =
   in runSpec2 refineWay spE
 
 
-runSpec2 :: (MonadDB m, MonadIO m, Applicative m, Functor m, MonadLog m, RndGen m, MonadR m)
+runSpec2 :: (MonadDB m, MonadIO m, MonadLog m, RndGen m, MonadR m)
         => (Maybe FilePath -> KindI -> RefineType)
         -> Spec
         -> m (Maybe ErrData, Int)
