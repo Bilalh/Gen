@@ -9,6 +9,8 @@ given Edges : set ( maxSize (N * (N-1)) / 2 ) of (num_nodes, num_nodes)
 
 $ The generation order indexed by the node id
 find ordering : function(total) num_nodes --> num_nodes
+find levels : function num_nodes --> set (maxSize N) of num_nodes
+
 find levelsNeeded : num_nodes
 
 find dependent: set (maxSize N) of num_nodes
@@ -22,16 +24,43 @@ such that
 	levelsNeeded = max(range(ordering)),
 	forAll (n,i) in ordering .
 		(i > 1  -> n in dependent) /\
-		( i <= 1 -> ! (n in dependent) )
+		( i <= 1 -> ! (n in dependent) ),
 
+	forAll i in range(ordering) .
+		levels(i) = preImage(ordering,i)
 
 minimising max(range(ordering))
 
-$ example for PPP
-$ N 5
 
+$ 1 n_upper    2 n_boats
+$ 3 n_periods  4 capacity
+$ 5 crew       6 ex1
+
+$ PPP
 $ (capacity, n_boats)     (4,2)
 $ (capacity, n_upper)     (4,1)
 $ (crew, n_boats)         (5,2)
 $ (crew, n_upper)         (5,1)
+
+$ solution: PPP
+$ dependent     {4, 5}
+$ levels        function(1 --> {1, 2, 3}, 2 --> {4, 5})
+$ levelsNeeded  2
+$ ordering      function(1 --> 1, 2 --> 1, 3 --> 1, 4 --> 2, 5 --> 2)
+
+$ Ordering 1
+$  (capacity, n_boats)  (4, 2),
+$  (capacity, n_upper)  (4, 1),
+$  (crew, n_boats)      (5, 2),
+$  (crew, n_upper)      (5, 1),
+$  (ex1, crew)          (6, 5),
+$  (ex1, n_boats)       (6, 2),
+$  (ex1, n_upper)       (6, 1)
+
+$ solution: Ordering 1
+$ dependent     {4, 5, 6}
+$ levels        function(1 --> {1, 2, 3}, 2 --> {4, 5}, 3 --> {6})
+$ levelsNeeded  3
+$ ordering      function(1 --> 1, 2 --> 1, 3 --> 1, 4 --> 2, 5 --> 2, 6 --> 3)
+
 
