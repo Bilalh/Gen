@@ -690,8 +690,7 @@ runReduce :: (RndGen m, MonadLog m, Reduce a (StateT EState (IdentityT m)) )
           => Spec -> a -> m [a]
 runReduce spe x = do
   addLog "runReduce" []
-  state <- (newEState spe)
-  (res,_) <- runIdentityT $ flip runStateT state $ do
+  (res,_) <- runIdentityT $ flip runStateT (newEState spe) $ do
                     reduce x
 
   addLog "endReduce" []
@@ -703,8 +702,7 @@ runSingle :: forall (m :: * -> *) a.
  => Spec -> a -> m [Expr]
 runSingle spe x = do
   addLog "runSingle" []
-  state <- (newEState spe)
-  (res,_) <- runIdentityT $ flip runStateT state $ do
+  (res,_) <- runIdentityT $ flip runStateT (newEState spe) $ do
                     single x
 
   addLog "endSingle" []
@@ -715,6 +713,11 @@ m2t f [a,b] = f (a,b)
 m2t _ x     = error . show . vcat $ ["m2t not two elements", pretty . show $ x ]
 
 
+isLitEmpty :: AbstractLiteral a -> Bool
+isLitEmpty (AbsLitMatrix _ [])  = True
+isLitEmpty (AbsLitPartition xs) = all null xs
+isLitEmpty (AbsLitRelation xs)  = all null xs
+isLitEmpty lit                  = null $ F.toList lit
 
 -- For ghci
 
@@ -733,8 +736,7 @@ __run1 :: forall t a (t1 :: * -> *).
          (t -> StateT EState Identity (t1 a)) -> t -> IO (t1 a)
 __run1 b f ee = do
   let spe   :: Spec   = $never
-      seed            = 323
-      state :: EState = newEStateWithSeed seed spe
+      state :: EState = newEState  spe
       (res, _)   = runIdentity $ flip runStateT state $ f ee
   if b then
       return ()
@@ -748,8 +750,7 @@ __depths :: forall c' c'1.
             (c'1 -> StateT EState Identity [c']) -> c'1 -> IO ()
 __depths f ee = do
   let spe   :: Spec   = $never
-      seed            = 32
-      state :: EState = newEStateWithSeed seed spe
+      state :: EState = newEState spe
       res             = runIdentity $ flip evalStateT state $ f ee
   putStrLn . show . pretty . vcat .  map pretty .  sort . map (depthOf &&& id) $  res
   putStrLn "---"
@@ -769,9 +770,3 @@ _replaceOpChildren_ex = replaceOpChildren
 
 -- instance Pretty [Literal] where
 --     pretty = prettyBrackets  . pretty . vcat . map pretty
-
-isLitEmpty :: AbstractLiteral a -> Bool
-isLitEmpty (AbsLitMatrix _ [])  = True
-isLitEmpty (AbsLitPartition xs) = all null xs
-isLitEmpty (AbsLitRelation xs)  = all null xs
-isLitEmpty lit                  = null $ F.toList lit

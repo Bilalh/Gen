@@ -54,7 +54,6 @@ reduceError EssenceConfig{..} ErrData{..}= do
                ,totalIsRealTime_     = totalIsRealTime
                ,resultsDB_dir        = db_dir
                }
-             ,rgen_                = R.mkrGen (seed_)
              ,resultsDB_           = db
              ,mostReducedChoices_  = Just choices
              ,timeLeft_            = total_time_may

@@ -34,7 +34,6 @@ data RConfig = RConfig
 
 data RState = RState
     { rconfig             :: RConfig
-    , rgen_               :: TFGen
     , mostReduced_        :: Maybe ErrData
     , mostReducedChoices_ :: Maybe FilePath
     , otherErrors_        :: [ErrData]
@@ -55,7 +54,6 @@ instance Pretty RState where
                 , nn "mostReducedChoices_ =" mostReducedChoices_
                 , nn "timeLeft_ = " timeLeft_
                 , nn "otherErrors_ =" (prettyArr otherErrors_)
-                , nn "rgen_ =" (show rgen_)
                 ])
 
 instance Default RConfig where
@@ -77,7 +75,6 @@ instance Default RConfig where
 instance Default RState where
     def =  RState{rconfig             = def
                  ,resultsDB_          = def
-                 ,rgen_               = error "need rgen_"
                  ,mostReduced_        = Nothing
                  ,otherErrors_        = []
                  ,mostReducedChoices_ = error "set mostReducedChoices_=oErrChoices_"
@@ -91,20 +88,13 @@ mkrGen = mkTFGen
 
 data EState = EState
   { spec_  :: Spec
-  , sgen_  :: TFGen
   }
 
-type ES a = StateT EState Identity a
 
-
-newEState :: RndGen m => Spec -> m EState
+newEState :: Spec ->EState
 newEState sp = do
-  newSeed <- chooseR (0 :: Int ,2^(24:: Int) )
-  return $ EState{spec_=sp,sgen_=mkrGen newSeed}
+  EState{spec_=sp}
 
-newEStateWithSeed :: Int -> Spec -> EState
-newEStateWithSeed seed sp = do
-  EState{spec_=sp,sgen_=mkrGen seed}
 
 
 

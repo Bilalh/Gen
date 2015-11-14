@@ -29,7 +29,7 @@ import Gen.IO.RunResult            (giveDb, writeDB_)
 import Gen.IO.Term
 import Gen.IO.Toolchain            (KindI (..), StatusI (..), ToolchainOutput (..),
                                     doMeta, kindsList, statusesList)
-import Gen.Reduce.Data             (RState (..), mkrGen)
+import Gen.Reduce.Data             (RState (..))
 import Gen.Reduce.FormatResults    (formatResults)
 import Gen.Reduce.Reduce           (reduceMain)
 import Gen.Solver.Solver           (SolverArgs (..), solverMain)
@@ -390,7 +390,6 @@ mainWithArgs u@Reduce{..} = do
                  ,R.toolchainOutput_   = toolchain_ouput
                  ,R.deletePassing_     = not keep_passing
                  }
-                ,rgen_                = mkrGen (seed_)
                 ,resultsDB_           = db
                 ,mostReducedChoices_  = error_choices
                 ,timeLeft_            = total_time_may
@@ -398,7 +397,7 @@ mainWithArgs u@Reduce{..} = do
 
   doMeta out no_csv binaries_directory
 
-  state <- runLoggerPipeIO log_level $ runRndGen 1 $ reduceMain (not no_check) args
+  state <- runLoggerPipeIO log_level $ runRndGen seed_ $ reduceMain (not no_check) args
   writeDB_ db_only_passing db_directory (resultsDB_  state)
   void $ formatResults delete_steps delete_others state
 
@@ -463,12 +462,11 @@ mainWithArgs Generalise{..} = do
                  }
                 ,E.resultsDB_          = db
                 ,E.choicesToUse_       = error_choices
-                ,E.rgen_               = mkrGen (seed_)
                 }
 
   doMeta out no_csv binaries_directory
 
-  state <-  runLoggerPipeIO log_level $ runRndGen 1 $ generaliseMain args
+  state <-  runLoggerPipeIO log_level $ runRndGen seed_ $ generaliseMain args
   writeDB_ False db_directory (E.resultsDB_  state)
 
 

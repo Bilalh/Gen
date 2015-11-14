@@ -4,7 +4,6 @@ module Gen.Generalise.Data where
 import Gen.Imports
 import Gen.Reduce.Data  hiding (RState (..))
 import Gen.IO.RunResult
-import System.Random.TF
 import Gen.Reduce.Random
 
 
@@ -14,11 +13,9 @@ type EEE a = forall m
   . (MonadIO m, MonadState GState m, RndGen m, MonadR m, MonadDB m, MonadLog m)
   => m a
 
-type EE a = StateT GState IO a
 
 data GState = GState
     { rconfig            :: RConfig
-    , rgen_              :: TFGen
     , choicesToUse_      :: Maybe FilePath
     , otherErrors_       :: [ErrData]
     , resultsDB_         :: ResultsDB
@@ -32,7 +29,6 @@ instance Pretty GState where
                 [ nn "rconfig "  rconfig
                 , nn "choicesToUse_ " choicesToUse_
                 , nn "otherErrors_ " (prettyArr otherErrors_)
-                , nn "rgen_ =" (show rgen_)
                 ])
 
 instance Default GState where
@@ -40,7 +36,6 @@ instance Default GState where
                  ,otherErrors_  = []
                  ,resultsDB_    = def
                  ,choicesToUse_ = error "set mostReducedChoices_=oErrChoices_"
-                 ,rgen_         = error "need rgen_"
                  }
 
 
