@@ -76,7 +76,7 @@ instance Translate (Text, GF) (FindOrGiven, Name, Domain () Expression)  where
 
     toConjure (t,(Givenn dom)) = do
       cdom <- toConjure dom
-      return (Find, Name t, cdom)
+      return (Given, Name t, cdom)
 
 instance Translate OObjective Objective where
     toConjure Maximisingg  = return Maximising

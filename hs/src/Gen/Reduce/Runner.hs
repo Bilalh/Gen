@@ -12,6 +12,7 @@ import Gen.Reduce.Data
 import Gen.Reduce.TypeCheck
 import GHC.Real              (floor)
 import Gen.Reduce.Random
+import Gen.Instance.Point
 
 import qualified Data.Map         as M
 import qualified Gen.IO.Toolchain as Toolchain
@@ -52,7 +53,7 @@ timedCompactSpec = timedSpec2 (runSpec2 refineWay)
     refineWay _        _              = Refine_Solve
 
 
-timedSpec2 :: (Spec -> RRR (Maybe ErrData, Int) )
+timedSpec2 :: (Spec -> Maybe Point ->  RRR (Maybe ErrData, Int) )
            -> Spec
            -> (Maybe ErrData -> RRR a)          -- No time left
            -> (Maybe ErrData -> RRR (Timed a))  -- Time left
@@ -61,7 +62,8 @@ timedSpec2 runner sp f g= do
     -- xdb <- getsDb
     -- liftIO $ putStrLn $ "%DB:" ++ groom xdb
     startTime <- liftIO $ round `fmap` getPOSIXTime
-    (res, cpuTimeUsed) <- runner sp
+    mp <- gets param_
+    (res, cpuTimeUsed) <- runner sp mp
     endTime <- liftIO $ round `fmap` getPOSIXTime
     let realTimeUsed = endTime - startTime
 
@@ -87,8 +89,9 @@ timedSpec2 runner sp f g= do
 -- Just means a similar error  still occured
 runSpec :: (MonadDB m, MonadIO m, Applicative m, Functor m, MonadLog m, RndGen m, MonadR m)
         => Spec
+        -> Maybe Point
         -> m (Maybe ErrData, Int)
-runSpec spE =
+runSpec spE mayP=
   let refineWay :: Maybe FilePath -> KindI -> RefineType
       refineWay Nothing  RefineCompact_ = Refine_All
       refineWay Nothing  RefineRandom_  = Refine_All
@@ -96,14 +99,15 @@ runSpec spE =
       refineWay (Just _) RefineRandom_  = Refine_Only
       refineWay (Just _) _              = Refine_Solve
       refineWay _        _              = Refine_Solve_All
-  in runSpec2 refineWay spE
+  in runSpec2 refineWay spE mayP
 
 
 runSpec2 :: (MonadDB m, MonadIO m, MonadLog m, RndGen m, MonadR m)
         => (Maybe FilePath -> KindI -> RefineType)
         -> Spec
+        -> Maybe Point
         -> m (Maybe ErrData, Int)
-runSpec2 refineWay spE = do
+runSpec2 refineWay spE mayP= do
   liftIO $ logSpec spE
 
   RConfig{..} <- getRconfig
@@ -141,6 +145,15 @@ runSpec2 refineWay spE = do
       essencePath <- writeModelDef path sp
       choices     <- getChoicesToUse
 
+      paramPath <- case mayP of
+        Nothing -> do
+          return Nothing
+        Just pa -> do
+          let loc = path </> "given.param"
+          writePoint pa loc
+          liftIO $ putStrLn $ "? Using Point at " ++ loc
+          return $ Just $ loc
+
 
       (stillErroed, timeTaken) <- if oErrKind_ == TypeCheck_ then do
         typeCheckWithResult path sp
@@ -148,7 +161,7 @@ runSpec2 refineWay spE = do
         (_, res)  <- toolchain Toolchain.ToolchainData{
                       Toolchain.essencePath       = essencePath
                     , Toolchain.toolchainTime     = specTime_
-                    , Toolchain.essenceParam      = Nothing
+                    , Toolchain.essenceParam      = paramPath
                     , Toolchain.refineType        = refineWay choices  oErrKind_
                     , Toolchain.cores             = cores_
                     , Toolchain.seed              = Just seed

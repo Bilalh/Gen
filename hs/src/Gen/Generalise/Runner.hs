@@ -8,4 +8,4 @@ import Gen.Reduce.Runner
 
 runSpec2 :: Spec -> EEE (Maybe ErrData)
 runSpec2 sp = do
-  fst <$> runSpec sp
+  fst <$> runSpec sp Nothing

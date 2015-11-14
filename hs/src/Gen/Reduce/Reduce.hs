@@ -29,7 +29,7 @@ reduceMain check rr = do
                  False -> return (True, rr)
                  True -> (flip runStateT) rr (return sp
                            >>= noteMsg "Checking if error still occurs"
-                           >>=  runSpec
+                           >>= (flip runSpec) (param_ rr)
                            >>= \case
                                   (Just ErrData{..}, _) -> do
                                     liftIO $ removeDirectoryRecursive (specDir)
@@ -69,7 +69,6 @@ reduceMain check rr = do
       noteFormat "Final" [pretty end2]
 
       return (state)
-
 
 
 noteMsg :: MonadIO m => Doc -> b -> m b

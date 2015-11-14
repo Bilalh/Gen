@@ -101,8 +101,6 @@ newEState sp = do
   EState{spec_=sp}
 
 
-
-
 data WithGen a = WithGen { withGen_gen :: TFGen
                          , withGen_val :: a
                          }

@@ -375,6 +375,10 @@ mainWithArgs u@Reduce{..} = do
   out   <- giveOutputDirectory output_directory
   cores <- giveCores u
 
+  mayParam <- doesFileExist (spec_directory </> "given.param") >>= \case
+    True  -> Just <$> readPoint  (spec_directory </> "given.param")
+    False -> return Nothing
+
   let args = def{rconfig=
                  R.RConfig
                  { oErrKind_            = error_kind
@@ -393,6 +397,7 @@ mainWithArgs u@Reduce{..} = do
                 ,resultsDB_           = db
                 ,mostReducedChoices_  = error_choices
                 ,timeLeft_            = total_time_may
+                ,param_               = mayParam
                 }
 
   doMeta out no_csv binaries_directory
