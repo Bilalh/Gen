@@ -127,7 +127,7 @@ reachableToType d oty@TypeBool = do
                 do
                 innerTy <- withDepth (d - 2) atype
                 container <- elements2 [TypeSet, TypeMSet ]
-                --TODO  could also allow the other way around?
+                --TO DO  could also allow the other way around?
                 customM innerTy [ element (container innerTy) **| useFunc Aelement ]
                     ++| True
 

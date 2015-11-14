@@ -1,3 +1,4 @@
+{-# LANGUAGE Rank2Types #-}
 module Gen.Generalise.Generalise where
 
 import Gen.Generalise.Data
@@ -8,6 +9,7 @@ import Gen.IO.Formats
 import Gen.IO.RunResult
 import Gen.Reduce.Data       (RConfig (..))
 import Gen.Reduce.Reduction
+import Gen.Reduce.Random
 
 import Data.Generics.Uniplate.Zipper (Zipper, fromZipper, hole, replaceHole,
                                       zipperBi)
@@ -15,12 +17,12 @@ import Data.Generics.Uniplate.Zipper (Zipper, fromZipper, hole, replaceHole,
 import qualified Data.Generics.Uniplate.Zipper as Zipper
 
 
-generaliseMain :: GState -> IO GState
+generaliseMain :: (MonadIO m, MonadLog m, RndGen m) =>  GState -> m GState
 generaliseMain ee = do
   let base = (specDir_ . rconfig) ee
       fp   =  base </> "spec.spec.json"
 
-  sp :: Spec <- readFromJSON fp
+  sp :: Spec <- liftIO $ readFromJSON fp
   noteFormat "Starting with" [pretty sp]
 
   (sfin,state) <- (flip runStateT) ee $
@@ -61,7 +63,7 @@ allContextsExcept z0 = concatMap subtreeOf (allSiblings z0)
             _      -> maybe [] allContextsExcept (Zipper.down z)
 
 
-generaliseConstraintsWithSingle :: Spec -> EE Spec
+generaliseConstraintsWithSingle :: Spec -> EEE Spec
 generaliseConstraintsWithSingle sp = do
   let (specZipper :: SpecZipper) = fromJustNote "generaliseCons" $ zipperBi sp
   forM_ (allContextsExcept specZipper) $ \ x -> do
@@ -79,7 +81,7 @@ generaliseConstraintsWithSingle sp = do
   return sp
 
 
-recordResult :: ErrData -> EE ()
+recordResult :: ErrData -> EEE ()
 recordResult r= do
   modify $ \st -> st{choicesToUse_ =Just (choices r) }
   return ()

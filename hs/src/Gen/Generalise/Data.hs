@@ -1,14 +1,18 @@
-{-# LANGUAGE DeriveDataTypeable, DeriveGeneric, KindSignatures #-}
+{-# LANGUAGE DeriveDataTypeable, DeriveGeneric, KindSignatures, Rank2Types #-}
 module Gen.Generalise.Data where
 
-import Gen.Helpers.Log
 import Gen.Imports
 import Gen.Reduce.Data  hiding (RState (..))
 import Gen.IO.RunResult
 import System.Random.TF
+import Gen.Reduce.Random
+
 
 import qualified Text.PrettyPrint    as Pr
 
+type EEE a = forall m
+  . (MonadIO m, MonadState GState m, RndGen m, MonadR m, MonadDB m, MonadLog m)
+  => m a
 
 type EE a = StateT GState IO a
 
@@ -16,7 +20,6 @@ data GState = GState
     { rconfig            :: RConfig
     , rgen_              :: TFGen
     , choicesToUse_      :: Maybe FilePath
-    , rlogs_             :: LogsTree
     , otherErrors_       :: [ErrData]
     , resultsDB_         :: ResultsDB
     } deriving (Show)
@@ -35,29 +38,10 @@ instance Pretty GState where
 instance Default GState where
     def =  GState{rconfig       = def
                  ,otherErrors_  = []
-                 ,rlogs_        = LSEmpty
                  ,resultsDB_    = def
                  ,choicesToUse_ = error "set mostReducedChoices_=oErrChoices_"
                  ,rgen_         = error "need rgen_"
                  }
-
-
-instance HasLogger (StateT GState IO)  where
-    getLog = gets rlogs_
-    putLog lg = modify $ \st -> st{ rlogs_=lg}
-
-instance HasGen (StateT GState IO) where
-  getGen = gets rgen_
-  putGen g = modify $ \st -> st{rgen_=g }
-
-
-instance (HasLogger (StateT EState (IdentityT (StateT GState IO)))) where
-    getLog = gets elogs_
-    putLog lg = modify $ \st -> st{ elogs_=lg}
-
-instance (HasGen (StateT EState (IdentityT (StateT GState IO)))) where
-  getGen   = gets sgen_
-  putGen g = modify $ \st -> st{sgen_=g }
 
 
 instance Monad m => MonadDB (StateT GState m) where

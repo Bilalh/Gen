@@ -142,6 +142,7 @@ Library
                      , Gen.Reduce.FormatResults
                      , Gen.Reduce.Inners
                      , Gen.Reduce.QuanToComp
+                     , Gen.Reduce.Random
                      , Gen.Reduce.Reduce
                      , Gen.Reduce.Reduction
                      , Gen.Reduce.Runner

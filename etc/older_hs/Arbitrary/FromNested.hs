@@ -31,13 +31,13 @@ nestedVarsOf ::Type -> GG (Maybe (GG Expr))
 -- nestedVarsOf  ty = return Nothing
 nestedVarsOf ty = gets beConstant_ >>= \case
     True  -> return Nothing
-    False -> nestedVarsOf' ty  -- TODO too strict?
+    False -> nestedVarsOf' ty  -- TO DO too strict?
 
 nestedVarsOf' ::Type -> GG (Maybe (GG Expr))
 nestedVarsOf' tyTo = do
     addLog "nestedVarsOf" []
 
-    -- FIXME are types enough?
+    -- FIX ME are types enough?
     doms     <- gets doms_
     quanVars <- gets newVars_
     let refs :: [Var] =  quanVars  ++ (map toVar . M.toList $ doms)
@@ -62,7 +62,7 @@ nestedVarsOf' tyTo = do
 
         toVar (ref, fg) = (Var ref (typeOfDom . domOfGF $ fg) )
 
---TODO Make sure to handle Tany
+--TO DO Make sure to handle Tany
 
 -- Returns the min number of steps to convert types
 typeReachable ::Type ->Type -> GG (Maybe Int)
@@ -97,7 +97,7 @@ typeReachable (TypeMatrix _ inner) to | inner == to = do
     return . Just $ 2
 
 
--- FIXME  need domain for function?
+-- FIX ME  need domain for function?
 --  f: function  int -> Bool
 --  want a bool
 --  we can do f(?int)
@@ -119,7 +119,7 @@ typeReachable _ _ = return Nothing
 exprFromRefTo :: Var ->Type -> GG Expr
 exprFromRefTo var@(Var ref tyFrom) tyTo = do
     addLog "exprFromRefTo" []
-    -- TODO inefficient
+    -- TO DO inefficient
     -- minSteps <- typeReachable tyTo tyFrom
 
     d <- gets depth_
@@ -148,7 +148,7 @@ nextt, nextt' ::
     Expr -> -- current  (starts as just the ref)
    Type -> -- current's Type
    Type -> -- Final Destination type
-    --TODO should be GG [ GG (Expr, Type) ] ?
+    --TO DO should be GG [ GG (Expr, Type) ] ?
     GG [ (Expr,Type) ] -- A list of possible transformations + their type
 
 nextt cur tyFrom tyTo  = gets depth_ >>= \d -> if

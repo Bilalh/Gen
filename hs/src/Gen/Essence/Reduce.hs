@@ -11,6 +11,7 @@ import Gen.Reduce.Data          (RState (..),RConfig(..))
 import Gen.Reduce.FormatResults (formatResults)
 import Gen.Reduce.Reduce        (reduceMain)
 import System.FilePath          (takeBaseName)
+import Gen.Reduce.Random
 
 import qualified Gen.Reduce.Data as R
 
@@ -61,7 +62,7 @@ reduceError EssenceConfig{..} ErrData{..}= do
 
   liftIO $ doMeta out no_csv binariesDirectory_
 
-  state <- liftIO $ reduceMain False args
+  state <- runLoggerPipeIO logLevel $ runRndGen 1 $ reduceMain False args
   writeDB_ False db_dir (resultsDB_  state)
   dir <- liftIO $ formatResults True False state >>= \case
          (Just x) -> return x

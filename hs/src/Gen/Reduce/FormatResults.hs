@@ -26,8 +26,6 @@ formatResults delete_steps delete_others RState{rconfig=RConfig{..},..} = do
       createDirectoryIfMissing True finalDir
       return $ Nothing
 
-  writeFile (finalDir </> "zreduce.logs") (renderSized 120 rlogs_)
-
   case otherErrors_ of
     []  -> return ()
     xs  -> mapM_ classify xs

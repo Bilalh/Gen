@@ -18,13 +18,14 @@ import Gen.Imports
 import Gen.Reduce.Data
 import Gen.Reduce.Inners
 import Gen.Reduce.Simpler
+import  Gen.Reduce.Random
 
 import qualified Data.Foldable                 as F
 import qualified Data.Generics.Uniplate.Zipper as Zipper
 import qualified Data.Traversable              as T
 
 
-class (HasGen m,  HasLogger m,  Simpler a a) => Reduce a m where
+class (RndGen m,  MonadLog m,  Simpler a a) => Reduce a m where
     reduce   :: a -> m [a]    -- list of smaller exprs
     single   :: a -> m [Expr] -- smallest literal e.g  [true, false] for  a /\ b
 
@@ -41,16 +42,16 @@ class (HasGen m,  HasLogger m,  Simpler a a) => Reduce a m where
 
     reduceChecks :: a -> [a] -> m [a]
     reduceChecks a rs = do
-      return $ filter (\x -> runIdentity $ simpler1 x a) rs
+      return $ filter (\x -> runIdentity $ ignoreLogs $  simpler1 x a) rs
 
 
 
-instance (HasGen m,  HasLogger m) =>  Reduce Type m where
+instance (RndGen m,  MonadLog m) =>  Reduce Type m where
     reduce _   = return []
     single _   = $(neverNote "Reduce Type m ~ single called ")
     subterms _ = return []
 
-instance (HasGen m,  HasLogger m) =>  Reduce Expr m where
+instance (RndGen m,  MonadLog m) =>  Reduce Expr m where
 
     reduce EEmptyGuard       = return []
     reduce EMetaVar{}        = return []
@@ -172,7 +173,7 @@ instance (HasGen m,  HasLogger m) =>  Reduce Expr m where
 
 -- Making Reduce (AbsLiteral c) is a lot of work
 -- so a basic version for Reduce (AbsLiteral Constant)
-instance (HasGen m,  HasLogger m) =>  Reduce Constant m where
+instance (RndGen m,  MonadLog m) =>  Reduce Constant m where
     single t = ttypeOf t >>= singleLitExpr
 
     subterms (ConstantAbstract AbsLitTuple{}) = return []
@@ -197,7 +198,7 @@ instance (HasGen m,  HasLogger m) =>  Reduce Constant m where
     mutate _ = return []
 
 
-instance (HasGen m,  HasLogger m) =>  Reduce (AbstractLiteral Expr) m where
+instance (RndGen m,  MonadLog m) =>  Reduce (AbstractLiteral Expr) m where
     single t   = ttypeOf t >>= singleLitExpr
 
     subterms AbsLitTuple{} = return []
@@ -288,7 +289,7 @@ mutate_2d wrap xs = do
     f (es,ei) = [ [ if xi == ei then e else x | (x,xi) <-ixs ]  | e <- es ]
 
 
-getReducedChildren :: (Monad m, Applicative m, HasGen m,  HasLogger m)
+getReducedChildren :: (Monad m, Applicative m, RndGen m,  MonadLog m)
                    => (z -> Expr) -> z -> m ([([Expr], Expr)])
 getReducedChildren zToExpr lit = do
   start <- withGen_new []
@@ -324,7 +325,7 @@ replaceChildren lit news = fst . flip runState news $ f1
       return x
 
 
-instance (HasGen m,  HasLogger m) => Reduce (Domain () Expr) m where
+instance (RndGen m,  MonadLog m) => Reduce (Domain () Expr) m where
   reduce li = do
     rLits <- getReducedChildren (EDom) li
     let lss = map (replaceChildren li) (transposeFill rLits)
@@ -416,7 +417,7 @@ unEDom b        = lineError $line [ "not an Domain" <+> pretty b]
 
 
 
-instance (HasGen m,  HasLogger m) =>  Reduce (Op Expr) m where
+instance (RndGen m,  MonadLog m) =>  Reduce (Op Expr) m where
 
     single o = ttypeOf o >>= singleLitExpr
 
@@ -471,12 +472,12 @@ subterms_op e subs =  do
   return allowed
 
 
-reduce_op :: forall (m :: * -> *). (HasGen m,  HasLogger m)
+reduce_op :: forall (m :: * -> *). (RndGen m,  MonadLog m)
           => Op Expr -> [Expr] -> m [Op Expr]
 reduce_op x subs = reduce_op2 (replaceOpChildren x) subs
 
 
-reduce_op2 :: forall (m :: * -> *). (HasGen m,  HasLogger m)
+reduce_op2 :: forall (m :: * -> *). (RndGen m,  MonadLog m)
            => ([Expr] -> Op Expr) -> [Expr] -> m [Op Expr]
 reduce_op2 f subs = do
   rs <- mapM reduceAdd subs
@@ -492,7 +493,7 @@ reduce_op2 f subs = do
       let res_ = [ f vs | vs <- sequence xrs
                 -- , or $ zipWith (\z1 z2 -> runIdentity $ simpler1 z1 z2) vs subs
                 ]
-      let res   = filter (\x -> runIdentity $ simpler1 x (f subs)  ) res_
+      let res   = filter (\x -> runIdentity $ ignoreLogs $  simpler1 x (f subs)  ) res_
       addLog "reduce_op2 rs" (map prettyArr rs)
       mapM_ (\xx -> addLog "reduce_op2 xrs" (map pretty xx)  )  xrs
 
@@ -506,7 +507,7 @@ reduce_op2 f subs = do
       return res
 
   where
-  giveVals :: (HasGen m, HasLogger m)
+  giveVals :: (RndGen m, MonadLog m)
            => t -> [t] -> m [t]
   giveVals defaul []  = return [defaul]
   giveVals defaul [x] = return [x,defaul]
@@ -521,7 +522,7 @@ reduce_op2 f subs = do
 
 
 infixl 1 -|
-(-|) :: (Simpler a e, HasGen m,  HasLogger m) =>
+(-|) :: (Simpler a e, RndGen m,  MonadLog m) =>
         (a -> (c,d) ) -> (m a, e) -> m (Maybe ((c,d)))
 f  -| (a,e) = do
    aa <-a
@@ -546,7 +547,7 @@ heads_tails (_:es) = [e | (e,i) <- zip es [0..], (i >= length es - 2) || (i < 2)
 
 
 -- | return the simplest literals, two at most
-singleLit :: (HasGen m, HasLogger m) =>Type -> m [Expr]
+singleLit :: (RndGen m, MonadLog m) =>Type -> m [Expr]
 singleLit TypeInt = do
   pure ConstantInt<*> chooseR (0, 5) >>= return . (\a ->  [ECon a ] )
 
@@ -648,7 +649,7 @@ singleLit l@(TypePartition x) = do
 singleLit TypeAny = rrError "singleLit of TypeAny" []
 singleLit ty   = rrError "singleLit~Error" [nn "ty" ty, nn "groomed" (groom ty) ]
 
-singleLitExpr :: (HasGen m, HasLogger m) =>Type -> m [Expr]
+singleLitExpr :: (RndGen m, MonadLog m) =>Type -> m [Expr]
 singleLitExpr ty = do
   addLog "singleLitExpr" [nn "ty" ty]
   singleLit $ ty
@@ -665,7 +666,7 @@ replaceOpChildren op news = fst . flip runState news $ f1 <$> T.mapM fff ch1
 
 
 reduceList :: forall (m :: * -> *)
-           .  (HasGen m, HasLogger m)
+           .  (RndGen m, MonadLog m)
            => [Expr] -> m [[Expr]]
 reduceList [] = return []
 reduceList as = do
@@ -685,31 +686,27 @@ reduceList as = do
       allSiblings z = z : maybe [] allSiblings (Zipper.right z)
 
 
-runReduce :: (HasGen m, HasLogger m, Reduce a (StateT EState (IdentityT m)) )
+runReduce :: (RndGen m, MonadLog m, Reduce a (StateT EState (IdentityT m)) )
           => Spec -> a -> m [a]
 runReduce spe x = do
   addLog "runReduce" []
   state <- (newEState spe)
-  olg <- getLog
-  (res,resState) <- runIdentityT $ flip runStateT state{elogs_=olg} $ do
+  (res,_) <- runIdentityT $ flip runStateT state $ do
                     reduce x
 
-  putLog (elogs_ resState)
   addLog "endReduce" []
   return res
 
 
 runSingle :: forall (m :: * -> *) a.
-    (Reduce a (StateT EState (IdentityT m)), HasGen m, HasLogger m)
+    (Reduce a (StateT EState (IdentityT m)), RndGen m, MonadLog m)
  => Spec -> a -> m [Expr]
 runSingle spe x = do
   addLog "runSingle" []
   state <- (newEState spe)
-  olg <- getLog
-  (res,resState) <- runIdentityT $ flip runStateT state{elogs_=olg} $ do
+  (res,_) <- runIdentityT $ flip runStateT state $ do
                     single x
 
-  putLog (elogs_ resState)
   addLog "endSingle" []
   return res
 
@@ -738,11 +735,11 @@ __run1 b f ee = do
   let spe   :: Spec   = $never
       seed            = 323
       state :: EState = newEStateWithSeed seed spe
-      (res, fstate)   = runIdentity $ flip runStateT state $ f ee
+      (res, _)   = runIdentity $ flip runStateT state $ f ee
   if b then
       return ()
   else
-      print . pretty $ (elogs_ fstate)
+      return ()
   return res
 
 

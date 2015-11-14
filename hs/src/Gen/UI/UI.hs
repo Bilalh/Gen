@@ -70,6 +70,7 @@ data UI
     , db_only_passing    :: Bool
     , from_essence       :: Bool
     , no_check           :: Bool
+    , log_level          :: LogLevel
     }
 
   | Generalise
@@ -94,6 +95,7 @@ data UI
     , no_csv             :: Bool
     , db_directory       :: Maybe FilePath
     , from_essence       :: Bool
+    , log_level          :: LogLevel
     }
 
   | Instance_Undirected
@@ -460,6 +462,10 @@ ui  = modes
                                      &= groupname "Other"
                                      &= explicit
                                      &= help "Don't check if the error still occurs by running the give specification"
+     , log_level          = LogDebug &= name "log-level"
+                                     &= groupname "Other"
+                                     &= explicit
+                                     &= help "Logging level, default LogDebug"
      , toolchain_ouput    = enum
                             [
                               ToolchainScreen_ &= name "show-toolchain-output"
@@ -550,6 +556,10 @@ ui  = modes
                                      &= groupname "Other"
                                      &= explicit
                                      &= help "Convert spec.essence to json (spec.spec.json), automatically for convenience"
+     , log_level         = LogDebug  &= name "log-level"
+                                     &= groupname "Other"
+                                     &= explicit
+                                     &= help "Logging level, default LogDebug"
      , toolchain_ouput    = enum
                             [
                               ToolchainScreen_ &= name "show-toolchain-output"

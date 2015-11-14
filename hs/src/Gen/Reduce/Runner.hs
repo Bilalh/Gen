@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveGeneric,
-             DeriveTraversable, ViewPatterns #-}
+             DeriveTraversable, ViewPatterns, Rank2Types #-}
 module Gen.Reduce.Runner where
 
 import Data.Time.Clock.POSIX (getPOSIXTime)
@@ -12,6 +12,7 @@ import Gen.IO.Toolchain      hiding (ToolchainData (..))
 import Gen.Reduce.Data
 import Gen.Reduce.TypeCheck
 import GHC.Real              (floor)
+import Gen.Reduce.Random
 
 import qualified Data.Map         as M
 import qualified Gen.IO.Toolchain as Toolchain
@@ -31,15 +32,15 @@ timedExtract (NoTimeLeft a) = a
 
 
 timedSpec :: Spec
-          -> (Maybe ErrData -> RR a)          -- No time left
-          -> (Maybe ErrData -> RR (Timed a))  -- Time left
-          -> RR (Timed a)
+          -> (Maybe ErrData -> RRR a)          -- No time left
+          -> (Maybe ErrData -> RRR (Timed a))  -- Time left
+          -> RRR (Timed a)
 timedSpec sp f g = timedSpec2 runSpec sp f g
 
 timedCompactSpec :: Spec
-                 -> (Maybe ErrData -> RR a)          -- No time left
-                 -> (Maybe ErrData -> RR (Timed a))  -- Time left
-                 -> RR (Timed a) -- True means a similar error  still occured
+                 -> (Maybe ErrData -> RRR a)          -- No time left
+                 -> (Maybe ErrData -> RRR (Timed a))  -- Time left
+                 -> RRR (Timed a) -- True means a similar error  still occured
 timedCompactSpec = timedSpec2 (runSpec2 refineWay)
 
   where
@@ -52,11 +53,11 @@ timedCompactSpec = timedSpec2 (runSpec2 refineWay)
     refineWay _        _              = Refine_Solve
 
 
-timedSpec2 :: (Spec -> RR (Maybe ErrData, Int) )
+timedSpec2 :: (Spec -> RRR (Maybe ErrData, Int) )
            -> Spec
-           -> (Maybe ErrData -> RR a)          -- No time left
-           -> (Maybe ErrData -> RR (Timed a))  -- Time left
-           -> RR (Timed a)
+           -> (Maybe ErrData -> RRR a)          -- No time left
+           -> (Maybe ErrData -> RRR (Timed a))  -- Time left
+           -> RRR (Timed a)
 timedSpec2 runner sp f g= do
     -- xdb <- getsDb
     -- liftIO $ putStrLn $ "%DB:" ++ groom xdb
@@ -85,7 +86,7 @@ timedSpec2 runner sp f g= do
 
 
 -- Just means a similar error  still occured
-runSpec :: (MonadDB m, MonadIO m, Applicative m, Functor m, HasLogger m, HasGen m, MonadR m)
+runSpec :: (MonadDB m, MonadIO m, Applicative m, Functor m, MonadLog m, RndGen m, MonadR m)
         => Spec
         -> m (Maybe ErrData, Int)
 runSpec spE =
@@ -99,7 +100,7 @@ runSpec spE =
   in runSpec2 refineWay spE
 
 
-runSpec2 :: (MonadDB m, MonadIO m, Applicative m, Functor m, HasLogger m, HasGen m, MonadR m)
+runSpec2 :: (MonadDB m, MonadIO m, Applicative m, Functor m, MonadLog m, RndGen m, MonadR m)
         => (Maybe FilePath -> KindI -> RefineType)
         -> Spec
         -> m (Maybe ErrData, Int)

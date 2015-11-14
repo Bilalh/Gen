@@ -54,7 +54,7 @@ quanInExpr  = withQuan $
                                 , "inTy" <+> pretty inType
                                 ]
 
-            -- FIXME Ensure with high prob that inName is actually used
+            -- FIX ME Ensure with high prob that inName is actually used
             quanType <- elements2 [ ForAll, Exists ]
             let quanTop = EQuan quanType (Var inName inType) over
 
@@ -92,7 +92,7 @@ quanOverExpr = withQuan $
                                   , "inTy" <+> pretty innerType
                                   ]
 
-            -- FIXME Ensure with high prob that inName is actually used
+            -- FIX ME Ensure with high prob that inName is actually used
             quanType <- elements2 [ ForAll, Exists ]
             let quanTop = EQuan quanType (Var inName innerType) (EDom dm)
 

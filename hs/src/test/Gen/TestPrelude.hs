@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 module Gen.TestPrelude ( module X, testCase,no,testProperty, NeedsType(..)) where
 
 import Gen.Imports
@@ -6,6 +7,7 @@ import Gen.Essence.Type ()
 import Test.Tasty       as X (TestTree, testGroup)
 import Test.Tasty.HUnit as X ((@?=),assertBool)
 import Text.PrettyPrint as X (braces)
+import Gen.Reduce.Random
 
 import qualified Test.Tasty.HUnit as H
 import qualified Test.Tasty.QuickCheck    as QC
@@ -40,3 +42,12 @@ instance NeedsType (Constant)
 instance NeedsType (Domain () a)
 instance NeedsType (AbstractLiteral a) where needsType _ = False
 instance NeedsType Type                where needsType _ = False
+
+-- FIXME update tests
+
+instance MonadLog Identity where
+    log _ _ = return ()
+
+instance RndGen Identity where
+    getGen = return $ newRGen 22
+    putGen _ = return ()

@@ -88,7 +88,7 @@ matrixLitOf innerType = do
       getInt (ECon (ConstantInt x)) = x
       getInt x = docError ["not matched getInt", pretty x]
 
--- FIXME from mappings should be distinct?
+-- FIX ME from mappings should be distinct?
 funcLitOf ::Type ->Type -> GG Expr
 funcLitOf fromType toType  = do
     depth_ <- gets depth_
@@ -129,7 +129,7 @@ relLitOf types = do
               xs -> return $ ELit $ AbsLitRelation xs
 
     where
-    -- FIXME CHECK depth
+    -- FIX ME CHECK depth
     mkParts tys = mapM exprOf tys
 
 

@@ -1,4 +1,4 @@
-{-# LANGUAGE KindSignatures, TupleSections #-}
+{-# LANGUAGE KindSignatures, TupleSections, Rank2Types #-}
 module Gen.Reduce.Reduce where
 
 import Conjure.Language.Domain
@@ -13,22 +13,23 @@ import Gen.Reduce.Reduction
 import Gen.Reduce.Runner
 import Gen.Reduce.UnusedDomains
 import System.FilePath(takeExtension )
+import Gen.Reduce.Random
 
 import qualified Data.Map as M
 
-reduceMain :: Bool -> RState -> IO RState
+reduceMain :: (MonadIO m, MonadLog m, RndGen m) => Bool -> RState -> m RState
 reduceMain check rr = do
   let base = (specDir_ . rconfig) rr
       fp   =  base </> "spec.spec.json"
 
-  sp_ <- readFromJSON fp
+  sp_ <- liftIO $ readFromJSON fp
   -- Remove quantification
-  sp <-  quanToComp sp_
+  sp <-  liftIO $ quanToComp sp_
   (errOccurs,_) <- case check of
                  False -> return (True, rr)
                  True -> (flip runStateT) rr (return sp
                            >>= noteMsg "Checking if error still occurs"
-                           >>= runSpec
+                           >>=  runSpec
                            >>= \case
                                   (Just ErrData{..}, _) -> do
                                     liftIO $ removeDirectoryRecursive (specDir)
@@ -38,10 +39,10 @@ reduceMain check rr = do
                        )
   case errOccurs of
     False -> do
-        putStrLn "Spec has no error with the given settings, not reducing"
+        liftIO $ putStrLn "Spec has no error with the given settings, not reducing"
         return rr
     True -> do
-      (sfin,state) <- (flip runStateT) rr $
+      (sfin,state) <-  (flip runStateT) rr $
           return sp
           >>= doReductions
           >>= \ret -> get >>= \g -> addLog "FinalState" [pretty g] >> return ret
@@ -56,7 +57,7 @@ reduceMain check rr = do
                   case mostReduced_ state of
                     Nothing -> return Nothing
                     Just (ErrData{..})  ->
-                        readFromJSON (specDir </> "spec.spec.json")
+                        liftIO $ readFromJSON (specDir </> "spec.spec.json")
 
       let end2 = case end of
                    Nothing -> Nothing
@@ -77,7 +78,7 @@ noteMsg tx s = do
     return s
 
 
-doReductions :: Spec -> RR (Timed Spec)
+doReductions :: Spec -> RRR (Timed Spec)
 doReductions start =
     return (Continue start)
     >>= con "tryRemoveConstraints" tryRemoveConstraints
@@ -91,7 +92,7 @@ doReductions start =
     >>= con "eprimeAsSpec"         eprimeAsSpec
 
 
-eprimeAsSpec :: Spec -> RR (Timed Spec)
+eprimeAsSpec :: Spec -> RRR (Timed Spec)
 eprimeAsSpec start = do
   config <- gets rconfig
   process config
@@ -112,12 +113,15 @@ eprimeAsSpec start = do
             readEprimeAsEssence ele >>= \case
               Nothing  -> return (Continue start)
               (Just x) -> do
-                eprimeSpec <- fromConjure x
-                -- curState <- get
-                -- noteFormat "eprimeAsSpec curState" [pretty curState]
+                may <- runMaybeT $  fromConjure x
+                case may of
+                  Nothing -> return (Continue start)
+                  (Just eprimeSpec) -> do
+                    -- curState <- get
+                    -- noteFormat "eprimeAsSpec curState" [pretty curState]
 
-                timedCompactSpec eprimeSpec f (g eprimeSpec)
-                -- docError [nn "res" res]
+                    timedCompactSpec eprimeSpec f (g eprimeSpec)
+                    -- docError [nn "res" res]
 
           -- TODO handle multiple eprimes
           _  -> do
@@ -140,7 +144,7 @@ eprimeAsSpec start = do
 
 
 
-loopToFixed :: Spec -> RR (Timed Spec)
+loopToFixed :: Spec -> RRR (Timed Spec)
 loopToFixed start = do
   noteFormat ("@" <+> "loopToFixed") []
   res <-  return (Continue start)
@@ -158,7 +162,7 @@ loopToFixed start = do
           loopToFixed cur
 
 
-tryRemoveConstraints :: Spec -> RR (Timed Spec)
+tryRemoveConstraints :: Spec -> RRR (Timed Spec)
 tryRemoveConstraints sp@(Spec _ [] _ )  = return . Continue $ sp
 tryRemoveConstraints sp@(Spec ds _ obj) = do
   timedSpec (Spec ds [] obj) f (  fmap Continue . f )
@@ -170,7 +174,7 @@ tryRemoveConstraints sp@(Spec ds _ obj) = do
 
     f _ = return sp
 
-removeObjective :: Spec -> RR (Timed Spec)
+removeObjective :: Spec -> RRR (Timed Spec)
 removeObjective sp@(Spec _ _ Nothing)  = return . Continue $ sp
 removeObjective sp@(Spec ds es Just{}) =
   timedSpec (Spec ds es Nothing ) f (fmap Continue . f)
@@ -182,7 +186,7 @@ removeObjective sp@(Spec ds es Just{}) =
 
     f _ = return sp
 
-removeUnusedDomains :: Spec -> RR (Timed Spec)
+removeUnusedDomains :: Spec -> RRR (Timed Spec)
 removeUnusedDomains sp@(Spec ods es obj) = do
     let unusedNames = unusedDomains sp
 
@@ -199,7 +203,7 @@ removeUnusedDomains sp@(Spec ods es obj) = do
             res = fmap (\wy -> M.filterWithKey (\k _ -> k `notElem` wy) ds ) ways
         in res
 
-    process :: [Domains]-> RR (Timed (Maybe Domains))
+    process :: [Domains]-> RRR (Timed (Maybe Domains))
     process []     = return $ Continue $ Nothing
     process (x:xs) = timedSpec (Spec y es obj) f g
         where
@@ -223,7 +227,7 @@ removeUnusedDomains sp@(Spec ods es obj) = do
     ensureADomain ds = ds
 
 
-removeConstraints :: Spec -> RR (Timed Spec)
+removeConstraints :: Spec -> RRR (Timed Spec)
 removeConstraints (Spec ds oes obj) = do
     let nubbed = nub2 oes
     process (choices nubbed) >>= return . fmap (\x -> case x of
@@ -237,7 +241,7 @@ removeConstraints (Spec ds oes obj) = do
         let ways = sortBy (comparing length) . (init . subsequences) $ ts
         in  ways
 
-    process :: [[Expr]] -> RR (Timed (Maybe [Expr]))
+    process :: [[Expr]] -> RRR (Timed (Maybe [Expr]))
     process []     = return $ Continue $ Nothing
     process (x:xs) = timedSpec (Spec ds x obj) f g
         where
@@ -255,7 +259,7 @@ removeConstraints (Spec ds oes obj) = do
           g _ = process xs
 
 
-simplyDomains :: Spec -> RR (Timed Spec)
+simplyDomains :: Spec -> RRR (Timed Spec)
 simplyDomains sp@(Spec ds es obj) = do
   let org = [ (name,val) | (name, Findd val) <- M.toList ds ]
   domsToDo <- doDoms org
@@ -274,7 +278,7 @@ simplyDomains sp@(Spec ds es obj) = do
   toDoms :: [(Text, Domain () Expr)] -> Domains
   toDoms vals = (M.fromList $ map (second Findd) vals) `M.union` givens
 
-  doDoms :: [(Text,Domain () Expr)] -> RR [[(Text,Domain () Expr)]]
+  doDoms :: [(Text,Domain () Expr)] -> RRR [[(Text,Domain () Expr)]]
   doDoms [] = docError [ "No domains in reduce:simplyDomains" ]
   doDoms ((tx,x):xs) = do
     rx <- runReduce sp x >>= return . ensureElem x
@@ -283,7 +287,7 @@ simplyDomains sp@(Spec ds es obj) = do
             pure $ map (t,) ys
     return $ map (tx,) rx : rs
 
-  process1 :: [[(Text,Domain () Expr)]] -> RR (Timed [(Text,Domain () Expr)])
+  process1 :: [[(Text,Domain () Expr)]] -> RRR (Timed [(Text,Domain () Expr)])
 
   process1 []              = return . Continue $ []
   process1 xs | (== []) xs = return . Continue $ []
@@ -313,7 +317,7 @@ simplyDomains sp@(Spec ds es obj) = do
 
     timedSpec (Spec (toDoms fixed) es obj) f g
 
-simplyConstraints :: Spec -> RR (Timed Spec)
+simplyConstraints :: Spec -> RRR (Timed Spec)
 simplyConstraints sp@(Spec _ [] _)    = return $ Continue $ sp
 simplyConstraints sp@(Spec ds es obj) = do
   choices <- doConstraints es
@@ -326,7 +330,7 @@ simplyConstraints sp@(Spec ds es obj) = do
 
   where
 
-  doConstraints :: [Expr] -> RR [[Expr]]
+  doConstraints :: [Expr] -> RRR [[Expr]]
   doConstraints [] = docError [ "No constraints in reduce:simplyConstraints" ]
   doConstraints (x:xs) = do
     rx <- runReduce sp x >>= return . ensureElem x
@@ -335,7 +339,7 @@ simplyConstraints sp@(Spec ds es obj) = do
             pure ys
     return $ rx : rs
 
-  process1 :: [[Expr]] -> RR (Timed [Expr])
+  process1 :: [[Expr]] -> RRR (Timed [Expr])
 
   process1 []              = return . Continue $ []
   process1 xs | (== []) xs = return . Continue $ []
@@ -367,7 +371,7 @@ simplyConstraints sp@(Spec ds es obj) = do
 
 
 --  | Fix the next Elem
-next :: [[x]] -> RR [x]
+next :: [[x]] -> RRR [x]
 next esR = return $ map pickFirst esR
 
   where
@@ -375,7 +379,7 @@ next esR = return $ map pickFirst esR
   pickFirst [x]   = x
   pickFirst (x:_) = x
 
-removeNext :: [[a]] -> RR [[a]]
+removeNext :: [[a]] -> RRR [[a]]
 removeNext []                     = rrError "removeNext empty" []
 removeNext xs | any null xs       = rrError "removeNext sub empty" []
 removeNext xs | all singleElem xs = return xs
@@ -394,7 +398,7 @@ singleElem [_] = True
 singleElem _   = False
 
 
-recordResult :: ErrData -> RR ()
+recordResult :: ErrData -> RRR ()
 recordResult err = do
   modify $ \st -> st{ mostReduced_=Just err
                     , mostReducedChoices_=Just (choices err) }
@@ -404,8 +408,8 @@ recordResult err = do
 -- |  Run the computation if there is time left
 con :: forall a . Pretty a
     => Doc
-    -> (a -> RR (Timed a))
-    -> Timed a -> RR (Timed a)
+    -> (a -> RRR (Timed a))
+    -> Timed a -> RRR (Timed a)
 con tx _ (NoTimeLeft s) = do
     noteFormat ("@" <+> tx <+> "Start/NoTimeLeft") []
     return $ NoTimeLeft s

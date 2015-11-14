@@ -21,10 +21,10 @@ import qualified Data.Text as T
 class (Pretty a, Eq a, Show a, Pretty b, Eq b, Show b
       )
     => Simpler a b where
-  simpler  :: (HasLogger m) => a -> b -> m Ordering
-  simpler1 :: (HasLogger m) => a -> b -> m Bool
+  simpler  :: (MonadLog m) => a -> b -> m Ordering
+  simpler1 :: (MonadLog m) => a -> b -> m Bool
 
-  simplerImp :: (HasLogger m) => a -> b -> m Ordering
+  simplerImp :: (MonadLog m) => a -> b -> m Ordering
 
   simpler a b = do
     -- addLog "simplerStart" [nn "a" a, nn "b" b]
@@ -291,7 +291,7 @@ instance (Simpler c Expr, Simpler Expr c, IntRange c, DepthOf c)
         c  -> c
 
 
-simplerImpError :: (Simpler a b, HasLogger m) => String -> a -> b -> m Ordering
+simplerImpError :: (Simpler a b, MonadLog m) => String -> a -> b -> m Ordering
 simplerImpError t a b = rrError ("simplerImp " ++ t)
                       [ nn "a" a
                       , nn  "b" b
@@ -301,7 +301,7 @@ simplerImpError t a b = rrError ("simplerImp " ++ t)
 
 
 
-negSimplerImp :: forall (m :: * -> *) a b. (Simpler a b, HasLogger m)
+negSimplerImp :: forall (m :: * -> *) a b. (Simpler a b, MonadLog m)
               => b -> a -> m Ordering
 negSimplerImp a b =  do
   oo <- simplerImp b a
