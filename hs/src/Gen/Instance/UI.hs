@@ -69,6 +69,8 @@ makeProvider fp  VarInfo{..} = do
 
     return $ catMaybes vs
 
+-- for ghci
+
 _f1 :: IO (Either SamplingErr (VarInfo, Double))
 _f1 = do
   createDirectoryIfMissing True _ex_out
@@ -76,10 +78,10 @@ _f1 = do
 
 -- for examples
 _ex_info, _ex_essence, _ex_out, _ex_mode, _ex_dir, _ex_prob :: String
--- _ex_prob    = "prob013-PPP"
--- _ex_dir     = "/Users/bilalh/CS/essence-refinements/_current"
-_ex_prob    = "ordering1"
-_ex_dir     = "/Users/bilalh/CS/essence-refinements/zz"
+_ex_prob    = "prob013-PPP"
+_ex_dir     = "/Users/bilalh/CS/essence-refinements/_current"
+-- _ex_prob    = "ordering1"
+-- _ex_dir     = "/Users/bilalh/CS/essence-refinements/zz"
 _ex_mode    = "sample-64"
 _ex_out     = "/Users/bilalh/CS/gen/__"
 _ex_info    = _ex_dir </> _ex_prob </> "info.json"
