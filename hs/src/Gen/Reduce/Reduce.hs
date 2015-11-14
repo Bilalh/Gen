@@ -61,14 +61,16 @@ reduceMain check rr = do
                     Just (ErrData{..})  ->
                         liftIO $ readFromJSON (specDir </> "spec.spec.json")
 
-      let end2 = case end of
-                   Nothing -> Nothing
-                   Just x  -> if hash x == hash sp  then
-                                  Nothing
-                              else
-                                  Just x
+      let endParam = param_ state
 
-      noteFormat "Final" $ [pretty end2] ++ maybeToList ( pretty <$> param_ state)
+      let end2 = case end of
+            Nothing -> Nothing
+            Just x  -> if hash x == hash sp && hash startParam == hash endParam then
+                          Nothing
+                       else
+                          Just x
+
+      noteFormat "Final" $ [pretty end2] ++ maybeToList ( pretty <$> endParam)
 
       return (state)
 
@@ -92,58 +94,6 @@ doReductions start =
     >>= con "simplyConstraints"    simplyConstraints
     >>= con "loopToFixed"          loopToFixed
     >>= con "eprimeAsSpec"         eprimeAsSpec
-
-
-eprimeAsSpec :: Spec -> RRR (Timed Spec)
-eprimeAsSpec start = do
-  config <- gets rconfig
-  process config
-
-  where
-  process RConfig{..} |  oErrKind_ `notElem` [Savilerow_]
-                      || oErrStatus_ `elem`  [ParseError_] =
-    return (Continue start)
-
-  process _ = do
-    gets mostReduced_ >>= \case
-      Nothing -> return (Continue start)
-      Just (ErrData{specDir}) -> do
-
-        files <- liftIO $  getDirectoryContents  specDir
-        case [ h | h <- files, takeExtension h == ".eprime" ] of
-          [ele] -> do
-            readEprimeAsEssence ele >>= \case
-              Nothing  -> return (Continue start)
-              (Just x) -> do
-                may <- runMaybeT $  fromConjure x
-                case may of
-                  Nothing -> return (Continue start)
-                  (Just eprimeSpec) -> do
-                    -- curState <- get
-                    -- noteFormat "eprimeAsSpec curState" [pretty curState]
-
-                    timedCompactSpec eprimeSpec f (g eprimeSpec)
-                    -- docError [nn "res" res]
-
-          -- TODO handle multiple eprimes
-          _  -> do
-            liftIO $ noteFormat "eprimeAsSpec NotDone" ["multiple eprimes not supported"]
-            return (Continue start)
-
-    where
-      f x = do -- No time to reduce the eprime
-        liftIO $ noteFormat "eprimeAsSpec noTimeLeft" [pretty x]
-        return $ start
-
-      g _ Nothing = do -- No Error occured, should not happen
-        liftIO $ noteFormat "eprimeAsSpec NoError" []
-        return $ Continue $ start
-
-      g sp (Just r) = do
-        liftIO $ noteFormat "eprimeAsSpec SameError" [pretty r]
-        recordResult r
-        loopToFixed sp
-
 
 
 loopToFixed :: Spec -> RRR (Timed Spec)
@@ -373,6 +323,58 @@ simplyConstraints sp@(Spec ds es obj) = do
       g _ = removeNext xs >>= process1
 
     timedSpec (Spec ds fixed obj) f g
+
+-- | Try treating the eprime as a essence spec, and see if still has an error
+eprimeAsSpec :: Spec -> RRR (Timed Spec)
+eprimeAsSpec start = do
+  config <- gets rconfig
+  process config
+
+  where
+  process RConfig{..} |  oErrKind_ `notElem` [Savilerow_]
+                      || oErrStatus_ `elem`  [ParseError_] =
+    return (Continue start)
+
+  process _ = do
+    gets mostReduced_ >>= \case
+      Nothing -> return (Continue start)
+      Just (ErrData{specDir}) -> do
+
+        files <- liftIO $  getDirectoryContents  specDir
+        case [ h | h <- files, takeExtension h == ".eprime" ] of
+          [ele] -> do
+            readEprimeAsEssence ele >>= \case
+              Nothing  -> return (Continue start)
+              (Just x) -> do
+                may <- runMaybeT $  fromConjure x
+                case may of
+                  Nothing -> return (Continue start)
+                  (Just eprimeSpec) -> do
+                    -- curState <- get
+                    -- noteFormat "eprimeAsSpec curState" [pretty curState]
+
+                    timedCompactSpec eprimeSpec f (g eprimeSpec)
+                    -- docError [nn "res" res]
+
+          -- TODO handle multiple eprimes
+          _  -> do
+            liftIO $ noteFormat "eprimeAsSpec NotDone" ["multiple eprimes not supported"]
+            return (Continue start)
+
+    where
+      f x = do -- No time to reduce the eprime
+        liftIO $ noteFormat "eprimeAsSpec noTimeLeft" [pretty x]
+        return $ start
+
+      g _ Nothing = do -- No Error occured, should not happen
+        liftIO $ noteFormat "eprimeAsSpec NoError" []
+        return $ Continue $ start
+
+      g sp (Just r) = do
+        liftIO $ noteFormat "eprimeAsSpec SameError" [pretty r]
+        recordResult r
+        loopToFixed sp
+
 
 
 --  | Fix the next Elem
