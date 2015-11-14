@@ -57,10 +57,12 @@ buildDependencyGraph outBase model = do
     True  -> do
       runSolve outBase ess eprime point >>= \case
         Right (solPoint@(Just (Point xs)), time) -> do
-          logInfo2 $line [nn "solution Point" solPoint]
+          logInfo2 $line ["solution Point", pretty solPoint]
           case (lookup "levelsNeeded" xs, lookup "dependent" xs) of
-            (Just l, Just (ConstantAbstract (AbsLitSet ds )))  -> if l > 2 then
-              return $ Left $ ErrFailedRunSolve (nn "LevelNeeded needs to <2" (solPoint))
+            (Just l, Just (ConstantAbstract (AbsLitSet ds )))  -> if l > 2 then do
+                let ns =  named ds
+                logInfo2 $line ("Dependent:" : map pretty ns)
+                return $ Left $ ErrFailedRunSolve (nn "LevelNeeded needs to <2" (solPoint))
               else do
                 let ns =  named ds
                 logInfo2 $line ("Dependent:" : map pretty ns)
