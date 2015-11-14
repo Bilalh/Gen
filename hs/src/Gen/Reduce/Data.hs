@@ -8,6 +8,7 @@ import System.Random.TF
 import Gen.Reduce.Random
 
 import qualified Text.PrettyPrint    as Pr
+import qualified Text.PrettyPrint as P
 
 type RRR a = forall m
   . (MonadIO m, MonadState RState m, RndGen m, MonadR m, MonadDB m, MonadLog m)
@@ -133,3 +134,12 @@ instance Monad m => MonadR (StateT RState m) where
   getChoicesToUse     = gets mostReducedChoices_
   processOtherError r = modify $ \st -> st{otherErrors_ =r : otherErrors_ st }
   processPassing    _ = return ()
+
+addLog :: MonadLog m => String -> [Doc] ->  m ()
+addLog t ds = logDebugVerbose $ hang (pretty t) 4 (vcat ds)
+
+rrError :: String -> [Doc] -> m a
+rrError title docs = do
+  error . show $ ( P.text $ padRight 15 ' ' title  )
+      P.$+$ (nest 4 $ vcat (docs ))
+      P.$+$ ""

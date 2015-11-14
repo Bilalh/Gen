@@ -11,7 +11,6 @@ import Data.Generics.Uniplate.Zipper    (Zipper, fromZipper, hole, replaceHole,
                                          zipperBi)
 import Data.List                        (splitAt)
 import Gen.AST.TH
-import Gen.Helpers.Log
 import Gen.Helpers.SizeOf
 import Gen.Helpers.TypeOf
 import Gen.Imports

@@ -2,7 +2,6 @@
 module Gen.Reduce.Reduce where
 
 import Conjure.Language.Domain
-import Gen.Helpers.Log
 import Gen.Imports
 import Gen.IO.Formats
 import Gen.IO.RunResult
@@ -16,6 +15,7 @@ import System.FilePath(takeExtension )
 import Gen.Reduce.Random
 
 import qualified Data.Map as M
+
 
 reduceMain :: (MonadIO m, MonadLog m, RndGen m) => Bool -> RState -> m RState
 reduceMain check rr = do

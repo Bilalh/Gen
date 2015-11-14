@@ -3,11 +3,10 @@ module Gen.Generalise.Generalise where
 
 import Gen.Generalise.Data
 import Gen.Generalise.Runner
-import Gen.Helpers.Log
 import Gen.Imports
 import Gen.IO.Formats
 import Gen.IO.RunResult
-import Gen.Reduce.Data       (RConfig (..))
+import Gen.Reduce.Data       (RConfig (..), addLog)
 import Gen.Reduce.Reduction
 import Gen.Reduce.Random
 

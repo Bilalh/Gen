@@ -8,11 +8,11 @@ import Conjure.Language.Expression.Op
 import Gen.Imports
 import Gen.Reduce.Inners
 import Gen.Classify.Meta(maximum')
-import Gen.Helpers.Log
 import Gen.Helpers.SizeOf
 import Gen.Helpers.TypeOf
 import Conjure.Language.TypeOf
 import Conjure.Language.Domain
+import Gen.Reduce.Data(rrError,addLog)
 
 import qualified Data.Foldable as F
 import qualified Data.Text as T

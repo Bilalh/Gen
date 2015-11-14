@@ -4,7 +4,6 @@ module Gen.Reduce.Runner where
 
 import Data.Time.Clock.POSIX (getPOSIXTime)
 import Gen.Classify.Meta     (mkMeta)
-import Gen.Helpers.Log
 import Gen.Imports
 import Gen.IO.Formats
 import Gen.IO.RunResult

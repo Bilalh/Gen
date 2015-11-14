@@ -110,7 +110,6 @@ Library
                      , Gen.Generalise.Runner
                      , Gen.Helpers.InlineLettings
                      , Gen.Helpers.LineError
-                     , Gen.Helpers.Log
                      , Gen.Helpers.Placeholders
                      , Gen.Helpers.SizeOf
                      , Gen.Helpers.Str
