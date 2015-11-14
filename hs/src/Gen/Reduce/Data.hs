@@ -1,7 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable, DeriveGeneric, KindSignatures, Rank2Types #-}
 module Gen.Reduce.Data where
 
-import Gen.Helpers.Log
 import Gen.Imports
 import Gen.IO.RunResult
 import Gen.IO.Toolchain          (KindI, StatusI, ToolchainOutput (..))

@@ -8,7 +8,7 @@ import qualified Text.PrettyPrint as P
 
 
 addLog :: MonadLog m => String -> [Doc] ->  m ()
-addLog t ds = logDebug $ hang (pretty t) 4 (vcat ds)
+addLog t ds = logDebugVerbose $ hang (pretty t) 4 (vcat ds)
 
 rrError :: String -> [Doc] -> m a
 rrError title docs = do
