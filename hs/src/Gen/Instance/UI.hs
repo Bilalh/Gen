@@ -3,17 +3,18 @@ module Gen.Instance.UI where
 import Conjure.Language
 import Conjure.Language.NameResolution   (resolveNames)
 import Conjure.UI.IO
+import Conjure.UI.TypeCheck
 import Gen.Imports
 import Gen.Instance.BuildDependencyGraph
 import Gen.Instance.Data
 import Gen.Instance.Method
+import Gen.Instance.Point
 import Gen.Instance.RaceRunner
+import Gen.Instance.SamplingError
 import Gen.IO.Formats
 import System.Directory                  (makeAbsolute)
 import System.FilePath                   (replaceFileName, takeBaseName)
 import System.Random                     (mkStdGen, setStdGen)
-import Gen.Instance.SamplingError
-import Conjure.UI.TypeCheck
 
 import qualified Data.Set as S
 

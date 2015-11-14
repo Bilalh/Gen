@@ -11,6 +11,7 @@ import Database.SQLite.Simple.FromRow   ()
 import Gen.Helpers.Str
 import Gen.Imports                      hiding (group)
 import Gen.Instance.Data
+import Gen.Instance.Point
 import Gen.Instance.RaceRunner          (conjureCompact, runSolve, script_lookup1)
 import Gen.IO.Formats                   (readFromJSON)
 import Gen.IO.Toolchain                 (runCommand')

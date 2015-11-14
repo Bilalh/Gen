@@ -3,8 +3,8 @@
 module Gen.Instance.Data where
 
 import Gen.Imports
-import Conjure.Language.Definition
 import Gen.Instance.SamplingError
+import Gen.Instance.Point
 
 import qualified Data.Aeson as A
 import qualified Data.Set   as S
@@ -65,26 +65,7 @@ instance A.FromJSON VarInfo
 instance A.ToJSON VarInfo
 
 
--- | Param Values
-newtype Point  = Point [(Name,Constant)]
- deriving (Eq, Show, Data, Typeable, Generic)
 
-instance Monoid Point where
-  mempty                        = Point []
-  mappend (Point xs) (Point ys) = Point $ xs ++ ys
-
-instance A.FromJSON Point
-instance A.ToJSON Point
-
-instance Pretty Point where
-    pretty (Point xs) = "Point:" <+>  (vcat . map pretty $ xs)
-
--- | Provides values for givens
-newtype Provider = Provider [(Name, Domain () Constant)]
-    deriving (Eq, Show, Data, Typeable, Generic)
-
-instance A.FromJSON Provider
-instance A.ToJSON Provider
 
 data RunMetadata = RunMetadata
     { rTimestampStart                :: Int

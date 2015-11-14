@@ -4,6 +4,7 @@ module Gen.Instance.BuildDependencyGraph where
 import Gen.Imports
 import Conjure.Language.Definition
 import Gen.Instance.Data
+import Gen.Instance.Point
 import Gen.Instance.RaceRunner (runSolve, script_lookup1,conjureCompact)
 import Gen.Instance.SamplingError
 

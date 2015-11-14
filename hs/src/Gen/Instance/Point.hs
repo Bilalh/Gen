@@ -1,24 +1,45 @@
-{-# LANGUAGE DeriveDataTypeable, DeriveGeneric #-}
+{-# LANGUAGE DeriveGeneric, DeriveDataTypeable #-}
 module Gen.Instance.Point where
 
 import Conjure.Language.Constant
-import Conjure.Language.Definition
 import Conjure.Language.Domain
+import Conjure.Language.Definition
 import Conjure.Process.Enumerate
 import Conjure.UI.IO               (EssenceFileMode (PlainEssence),
                                     readModelFromFile, writeModel)
 import Crypto.Hash
 import Data.List                   (iterate, takeWhile)
 import Gen.Imports                 hiding (hash)
-import Gen.Instance.Data
 import System.FilePath             (takeDirectory)
 
+import qualified Data.Aeson            as A
 import qualified Data.ByteString.Char8 as B
 import qualified Data.Set              as S
 
 type ParamFP   = FilePath
 type ParamName = String
 type ParamHash = String
+
+-- | Param Values
+newtype Point  = Point [(Name,Constant)]
+ deriving (Eq, Show, Data, Typeable, Generic)
+
+instance Monoid Point where
+  mempty                        = Point []
+  mappend (Point xs) (Point ys) = Point $ xs ++ ys
+
+instance A.FromJSON Point
+instance A.ToJSON Point
+
+instance Pretty Point where
+    pretty (Point xs) = "Point:" <+>  (vcat . map pretty $ xs)
+
+-- | Provides values for givens
+newtype Provider = Provider [(Name, Domain () Constant)]
+    deriving (Eq, Show, Data, Typeable, Generic)
+
+instance A.FromJSON Provider
+instance A.ToJSON Provider
 
 
 pointName :: Point -> ParamName

@@ -2,12 +2,13 @@
 module Gen.Reduce.Data where
 
 import Gen.Imports
+import Gen.Instance.Point
 import Gen.IO.RunResult
-import Gen.IO.Toolchain          (KindI, StatusI, ToolchainOutput (..))
-import System.Random.TF
+import Gen.IO.Toolchain   (KindI, StatusI, ToolchainOutput (..))
 import Gen.Reduce.Random
+import System.Random.TF
 
-import qualified Text.PrettyPrint    as Pr
+import qualified Text.PrettyPrint as Pr
 import qualified Text.PrettyPrint as P
 
 type RRR a = forall m
@@ -40,6 +41,7 @@ data RState = RState
     , otherErrors_        :: [ErrData]
     , timeLeft_           :: Maybe Int
     , resultsDB_          :: ResultsDB
+    , param_              :: Maybe Point
     } deriving (Show)
 
 
@@ -55,6 +57,7 @@ instance Pretty RState where
                 , nn "mostReducedChoices_ =" mostReducedChoices_
                 , nn "timeLeft_ = " timeLeft_
                 , nn "otherErrors_ =" (prettyArr otherErrors_)
+                , nn "param_ =" (pretty param_)
                 ])
 
 instance Default RConfig where
@@ -80,6 +83,7 @@ instance Default RState where
                  ,otherErrors_        = []
                  ,mostReducedChoices_ = error "set mostReducedChoices_=oErrChoices_"
                  ,timeLeft_           = Nothing
+                 ,param_              = Nothing
                  }
 
 
