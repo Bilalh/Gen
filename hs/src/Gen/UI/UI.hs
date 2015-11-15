@@ -701,7 +701,7 @@ ui  = modes
                                   &= name "i"
                                   &= groupname "Required"
                                   &= explicit
-                                  &= help "Number of races"
+                                  &= help "Number of instances to generate"
      , output_directory = def     &= typDir
                                   &= name "output-directory"
                                   &= name "o"
