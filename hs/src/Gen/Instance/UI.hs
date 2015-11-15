@@ -15,7 +15,9 @@ import Gen.IO.Formats
 import System.Directory                  (makeAbsolute)
 import System.FilePath                   (replaceFileName, takeBaseName,takeDirectory)
 import System.Random                     (mkStdGen, setStdGen)
-import System.Environment (setEnv)
+import System.Environment          (lookupEnv, setEnv,unsetEnv)
+import Gen.Essence.Log
+import Gen.Instance.NoRacing       (NoRacing (..))
 
 import qualified Data.Set as S
 
@@ -69,6 +71,54 @@ makeProvider fp  VarInfo{..} = do
       _ -> return Nothing
 
     return $ catMaybes vs
+
+instances_no_racing :: FilePath -> Int -> Int -> FilePath -> Int -> LogLevel -> IO ()
+instances_no_racing essence_path iterations param_gen_time out seed log_level= do
+  let info_path   = replaceFileName essence_path "info.json"
+
+  i :: VarInfo <- doesFileExist info_path >>= \case
+    True -> readFromJSON info_path
+    False -> do
+
+      e <- lookupEnv "NULL_runPadded" >>= \case
+        Just x  -> setEnv "NULL_runPadded" "true" >> return (Just x)
+        Nothing -> setEnv "NULL_runPadded" "true" >> return Nothing
+
+      res <- runLogT LogDebugVerbose (findDependencies out essence_path) >>= \case
+        (Right (vi,_),_) -> return vi
+        (Left err,lgs) -> docError $
+          "Error: could not find the dependencies automatically and no info.json exists next to the essence spec."
+          : nn "err"  err
+          : map pretty lgs
+      case e of
+        Nothing -> unsetEnv "NULL_runPadded"
+        Just x  -> setEnv "NULL_runPadded" x
+      return res
+
+  putStrLn $ "VarInfo: " ++ (groom i)
+  p <- ignoreLogs $ makeProvider essence_path i
+  putStrLn $ "Provider: " ++ (groom p)
+
+  let   common          = MCommon{
+        mEssencePath    = essence_path
+      , mOutputDir      = out
+      , mModelTimeout   = -1
+      , mVarInfo        = i
+      , mPreGenerate    = Nothing
+      , mIterations     = iterations
+      , mMode           = ""
+      , mModelsDir      = ""
+      , mGivensProvider = p
+      , mPoints         = []
+      , mCores          = -1
+      , mCompactName    = Nothing
+      , mSubCpu         = 0
+      , mPointsGiven    = Nothing
+      , mParamGenTime   = param_gen_time
+      }
+
+  runMethod' False seed log_level (Method common NoRacing)
+
 
 -- for ghci
 

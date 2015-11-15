@@ -16,11 +16,10 @@ import Gen.Generalise.Generalise   (generaliseMain)
 import Gen.Imports
 import Gen.Instance.AllSolutions   (createAllSolutionScript, readSolutionCounts)
 import Gen.Instance.Data
-import Gen.Instance.NoRacing       (NoRacing (..))
 import Gen.Instance.Nsample        (Nsample (..))
 import Gen.Instance.Point          (readPoint)
 import Gen.Instance.Results        (showResults)
-import Gen.Instance.UI             (makeProvider, runMethod, runMethod', findDependencies)
+import Gen.Instance.UI             (makeProvider, runMethod, instances_no_racing)
 import Gen.Instance.Undirected     (Undirected (..))
 import Gen.IO.Dups                 (deleteDups2, refineDups, solveDups)
 import Gen.IO.FindCompact          (findCompact)
@@ -39,13 +38,12 @@ import System.Console.CmdArgs      (cmdArgs)
 import System.CPUTime              (getCPUTime)
 import System.Directory            (getCurrentDirectory, makeAbsolute,
                                     setCurrentDirectory)
-import System.Environment          (lookupEnv, withArgs, setEnv,unsetEnv)
+import System.Environment          (lookupEnv, withArgs)
 import System.Exit                 (exitFailure, exitSuccess, exitWith)
 import System.FilePath             (replaceExtension, replaceFileName, takeBaseName,
                                     takeExtension, takeExtensions)
 import System.Timeout              (timeout)
 import Text.Printf                 (printf)
-import Gen.Essence.Log
 
 import qualified Data.Set               as S
 import qualified Gen.Essence.UIData     as EC
@@ -249,11 +247,9 @@ mainWithArgs u@Instance_Nsample{..} = do
 
 mainWithArgs Instance_NoRacing{..} = do
   essence <- makeAbsolute essence_path
-  let info_path   = replaceFileName essence "info.json"
   fileErr <- catMaybes <$> sequence
     [
       fileExists   "essence" essence
-    -- , fileExists   "info.json needs to be next to the essence" info_path
     ]
 
   let argErr = catMaybes
@@ -267,49 +263,8 @@ mainWithArgs Instance_NoRacing{..} = do
   out   <- giveOutputDirectory output_directory >>= makeAbsolute
   createDirectoryIfMissing True out
 
-  i :: VarInfo <- doesFileExist info_path >>= \case
-    True -> readFromJSON info_path
-    False -> do
-
-      e <- lookupEnv "NULL_runPadded" >>= \case
-        Just x  -> setEnv "NULL_runPadded" "true" >> return (Just x)
-        Nothing -> setEnv "NULL_runPadded" "true" >> return Nothing
-
-      res <- runLogT LogDebugVerbose (findDependencies out essence) >>= \case
-        (Right (vi,_),_) -> return vi
-        (Left err,lgs) -> docError $
-          "Error: could not find the dependencies automatically and no info.json exists next to the essence spec."
-          : nn "err"  err
-          : map pretty lgs
-      case e of
-        Nothing -> unsetEnv "NULL_runPadded"
-        Just x  -> setEnv "NULL_runPadded" x
-      return res
-
-  putStrLn $ "VarInfo: " ++ (groom i)
-  p <- ignoreLogs $ makeProvider essence_path i
-  putStrLn $ "Provider: " ++ (groom p)
-
-  let   common          = MCommon{
-        mEssencePath    = essence_path
-      , mOutputDir      = out
-      , mModelTimeout   = -1
-      , mVarInfo        = i
-      , mPreGenerate    = Nothing
-      , mIterations     = iterations
-      , mMode           = ""
-      , mModelsDir      = ""
-      , mGivensProvider = p
-      , mPoints         = []
-      , mCores          = -1
-      , mCompactName    = Nothing
-      , mSubCpu         = 0
-      , mPointsGiven    = Nothing
-      , mParamGenTime   = param_gen_time
-      }
-
   seed_  <- giveSeed _seed
-  runMethod' False seed_ log_level (Method common NoRacing)
+  instances_no_racing essence_path iterations param_gen_time out seed_ log_level
 
 
 mainWithArgs Instance_AllSolutions{..} = do
