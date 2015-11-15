@@ -47,10 +47,14 @@ def do_args():
     if not args.outdir.exists():
         args.outdir.mkdir(parents=True)
     if not args.param:
-        args.param = args.outdir / "empty.param"
-        with args.param.open("w") as f:
-            f.write("language Essence 1.3")
-            f.write("\n$This file is empty")
+        given_param = Path(args.essence).with_name("given.param")
+        if given_param.exists():
+            args.param = given_param
+        else:
+            args.param = args.outdir / "empty.param"
+            with args.param.open("w") as f:
+                f.write("language Essence 1.3")
+                f.write("\n$This file is empty")
 
     else:
         args.param = Path(args.param)
