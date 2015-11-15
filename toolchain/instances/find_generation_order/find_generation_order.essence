@@ -13,23 +13,19 @@ find levels : function num_nodes --> set (maxSize N) of num_nodes
 
 find levelsNeeded : num_nodes
 
-find dependent: set (maxSize N) of num_nodes
-
-
 such that
 	$ Nodes that are depend on other nodes are placed first
 	forAll (fro,to) in Edges .
 		ordering(to) < ordering(fro),
 
 	levelsNeeded = max(range(ordering)),
-	forAll (n,i) in ordering .
-		(i > 1  -> n in dependent) /\
-		( i <= 1 -> ! (n in dependent) ),
+	levelsNeeded = max(defined(levels)),
 
 	forAll i in range(ordering) .
 		levels(i) = preImage(ordering,i)
 
-minimising max(range(ordering))
+$ We want the nodes in the lastest group possible
+minimising max(range(ordering)) * 1000 - sum([ i * |j| | (i,j) <- levels  ])
 
 
 $ 1 n_upper    2 n_boats
@@ -43,10 +39,10 @@ $ (crew, n_boats)         (5,2)
 $ (crew, n_upper)         (5,1)
 
 $ solution: PPP
-$ dependent     {4, 5}
-$ levels        function(1 --> {1, 2, 3}, 2 --> {4, 5})
+$ levels        function(1 --> {1, 2}, 2 --> {3, 4, 5})
 $ levelsNeeded  2
-$ ordering      function(1 --> 1, 2 --> 1, 3 --> 1, 4 --> 2, 5 --> 2)
+$ ordering      function(1 --> 1, 2 --> 1, 3 --> 2, 4 --> 2, 5 --> 2)
+$ VarInfo {givens = fromList ["n_boats","n_upper"]}
 
 $ Ordering 1
 $  (capacity, n_boats)  (4, 2),
@@ -58,9 +54,8 @@ $  (ex1, n_boats)       (6, 2),
 $  (ex1, n_upper)       (6, 1)
 
 $ solution: Ordering 1
-$ dependent     {4, 5, 6}
-$ levels        function(1 --> {1, 2, 3}, 2 --> {4, 5}, 3 --> {6})
+$ levels        function(1 --> {1, 2}, 2 --> {5}, 3 --> {3, 4, 6}))
 $ levelsNeeded  3
-$ ordering      function(1 --> 1, 2 --> 1, 3 --> 1, 4 --> 2, 5 --> 2, 6 --> 3)
+$ ordering      function(1 --> 1, 2 --> 1, 3 --> 3, 4 --> 3, 5 --> 2, 6 --> 3)
 
 
