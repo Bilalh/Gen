@@ -13,8 +13,9 @@ import Gen.Instance.RaceRunner
 import Gen.Instance.SamplingError
 import Gen.IO.Formats
 import System.Directory                  (makeAbsolute)
-import System.FilePath                   (replaceFileName, takeBaseName)
+import System.FilePath                   (replaceFileName, takeBaseName,takeDirectory)
 import System.Random                     (mkStdGen, setStdGen)
+import System.Environment (setEnv)
 
 import qualified Data.Set as S
 
@@ -71,17 +72,36 @@ makeProvider fp  VarInfo{..} = do
 
 -- for ghci
 
+compare_to_manual_info :: IO ()
+compare_to_manual_info = do
+  let baseOut = "/Users/bilalh/CS/gen/__/compare"
+  createDirectoryIfMissing True baseOut >> removeDirectoryRecursive baseOut
+
+  files <- allFilesWithSuffix "info.json" "/Users/bilalh/CS/essence-refinements/_current"
+  setEnv "NULL_runPadded" "true"
+  forM_ files $ \info_fp -> do
+    let dir = takeDirectory info_fp
+    let ess = dir </> takeBaseName dir <.> ".essence"
+    let out = baseOut </> takeBaseName dir
+    createDirectoryIfMissing True out
+    when ( "prob" `isPrefixOf` (takeBaseName dir) ) $ do
+      print info_fp
+      manual :: VarInfo <-  readFromJSON info_fp
+      print manual
+      res <- runLoggerPipeIO LogNone $ findDependencies out ess
+      print res
+      putStrLn "\n"
+
 _f1 :: IO (Either SamplingErr (VarInfo, Double))
 _f1 = do
   createDirectoryIfMissing True _ex_out
   runLoggerPipeIO LogDebugVerbose $ findDependencies _ex_out _ex_essence
 
--- for examples
 _ex_info, _ex_essence, _ex_out, _ex_mode, _ex_dir, _ex_prob :: String
--- _ex_prob    = "prob013-PPP"
--- _ex_dir     = "/Users/bilalh/CS/essence-refinements/_current"
-_ex_prob    = "ordering1"
-_ex_dir     = "/Users/bilalh/CS/essence-refinements/zz"
+_ex_prob    = "prob030-BACP"
+_ex_dir     = "/Users/bilalh/CS/essence-refinements/_current"
+-- _ex_prob    = "ordering1"
+-- _ex_dir     = "/Users/bilalh/CS/essence-refinements/zz"
 _ex_mode    = "sample-64"
 _ex_out     = "/Users/bilalh/CS/gen/__"
 _ex_info    = _ex_dir </> _ex_prob </> "info.json"
