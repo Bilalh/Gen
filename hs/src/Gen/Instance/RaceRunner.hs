@@ -401,7 +401,7 @@ sampleParamFromMinion :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadL
                       => m (Either SamplingErr Point)
 sampleParamFromMinion = do
 
-  (Method MCommon{mOutputDir, mGivensProvider} _) <- get
+  (Method MCommon{mOutputDir, mGivensProvider, mParamGenTime} _) <- get
 
   givens <- provideValues mGivensProvider
   let phash = pointHash givens
@@ -411,7 +411,6 @@ sampleParamFromMinion = do
   let paramFp    = (out </> phash) <.> ".param"
   let solutionFp = out </> ("essence_param_find"  ++ "-" ++ phash  <.> ".solution" )
 
-  let timeout    = 300 :: Int
   seed :: Int <- liftIO $ randomRIO (1,2147483647)
 
   liftIO $ createDirectoryIfMissing True out
@@ -420,8 +419,8 @@ sampleParamFromMinion = do
   let args = map stringToText [ (mOutputDir </> "essence_param_find.essence")
              , (mOutputDir </> "essence_param_find.eprime")
              , paramFp
-             , show timeout -- used
-             , show timeout
+             , show mParamGenTime -- Not a bug
+             , show mParamGenTime
              , show seed
              ]
 

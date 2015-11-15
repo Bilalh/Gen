@@ -80,4 +80,5 @@ data Instance_Common = Instance_Common
     , log_level           :: LogLevel
     , pre_solutions       :: Maybe FilePath
     , given_dir           :: Maybe FilePath
+    , param_gen_time      :: Int
     } deriving (Show, Data, Typeable, Eq)

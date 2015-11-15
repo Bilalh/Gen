@@ -129,6 +129,7 @@ _ex_common = do
       , mSubCpu  = 0
       , mModelsDir
       , mPointsGiven = Nothing
+      , mParamGenTime = 300
       }
 
   return common

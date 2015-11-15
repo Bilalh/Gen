@@ -305,6 +305,7 @@ mainWithArgs Instance_NoRacing{..} = do
       , mCompactName    = Nothing
       , mSubCpu         = 0
       , mPointsGiven    = Nothing
+      , mParamGenTime   = param_gen_time
       }
 
   seed_  <- giveSeed _seed
@@ -753,6 +754,7 @@ instanceCommon cores Instance_Common{..} = do
       , mCompactName    = compactFirst
       , mSubCpu         = 0
       , mPointsGiven    = mPointsGiven
+      , mParamGenTime   = param_gen_time
       }
 
   return common
@@ -943,5 +945,5 @@ _instanceDebug = do
   let ec = Instance_Undirected{essence_path = "/Users/bilalh/CS/essence-refinements/_current/prob028-BIBD/prob028-BIBD.essence",
                     per_model_time = 30, iterations = 1, mode = "df-every-givens-all",
                     _cores = Nothing, output_directory = Nothing, limit_time = Nothing,
-                    log_level = LogDebug, _seed = Nothing, pre_solutions = Nothing, given_dir=Nothing}
+                    log_level = LogDebug, _seed = Nothing, pre_solutions = Nothing, given_dir=Nothing, param_gen_time   = 300}
   limiter (limit_time ec) (mainWithArgs ec)

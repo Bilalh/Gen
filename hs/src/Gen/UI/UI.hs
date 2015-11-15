@@ -110,6 +110,7 @@ data UI
     , _seed              :: Maybe Int
     , pre_solutions      :: Maybe FilePath
     , given_dir          :: Maybe FilePath
+    , param_gen_time     :: Int
     }
 
   | Instance_Nsample
@@ -125,6 +126,7 @@ data UI
     , influence_radius   :: Int
     , pre_solutions      :: Maybe FilePath
     , given_dir          :: Maybe FilePath
+    , param_gen_time     :: Int
     }
 
   | Instance_NoRacing
@@ -134,6 +136,7 @@ data UI
     , limit_time         :: Maybe Int
     , log_level          :: LogLevel
     , _seed              :: Maybe Int
+    , param_gen_time     :: Int
     }
 
   | Instance_AllSolutions
@@ -632,6 +635,11 @@ ui  = modes
                                   &= groupname "Other"
                                   &= explicit
                                   &= help "Instead of generating params, act like the .param files in the given dir were the generated specs, the number of .param files much mathc the value give to -i"
+    , param_gen_time    = 300     &= name "param-generation-time"
+                                  &= name "g"
+                                  &= groupname "Other"
+                                  &= explicit
+                                  &= help "Maximum time given to generate each instance, default 300 seconds"
      } &= name "instance-undirected"
        &= help "Generate discriminating instance for the given essence specification using a baseline method"
 
@@ -691,6 +699,11 @@ ui  = modes
                                   &= groupname "Other"
                                   &= explicit
                                   &= help "Instead of generating params, act like the .param files in the given dir were the generated specs, the number of .param files much mathc the value give to -i"
+    , param_gen_time    = 300     &= name "param-generation-time"
+                                  &= name "g"
+                                  &= groupname "Other"
+                                  &= explicit
+                                  &= help "Maximum time given to generate each instance, default 300 seconds"
      } &= name "instance-nsample"
        &= help "Generate discriminating instance for the given essence specification using the nsample method"
 
@@ -721,6 +734,11 @@ ui  = modes
                                   &= groupname "Other"
                                   &= explicit
                                   &= help "Random Seed to use"
+    , param_gen_time    = 300     &= name "param-generation-time"
+                                  &= name "g"
+                                  &= groupname "Other"
+                                  &= explicit
+                                  &= help "Maximum time given to generate each instance, default 300 seconds"
      } &= name "instance-noRacing"
        &= help "Only Generate instances i.e. no racing. Results will be in the _params sub-directory of -o"
 

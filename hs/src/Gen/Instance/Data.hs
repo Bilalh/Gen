@@ -35,7 +35,8 @@ data MCommon = MCommon
   , mCores          :: Int              -- | Number of cores to use
   , mCompactName    :: Maybe EprimeName -- | Ordering with compact first
   , mPreGenerate    :: Maybe (FilePath,Solutions) -- | Generate all solution once and pick from them
-  -- above fields do not change
+  -- above fields do not chang
+  , mParamGenTime   :: Int              -- | Time for minion to genrate a param
   , mPoints         :: [Point]          -- | Instances that have been run, newest first
   , mSubCpu         :: Double           -- | Other sub-processes
   , mPointsGiven    :: Maybe [Point]    -- | Uses these point for generation
