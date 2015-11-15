@@ -160,7 +160,6 @@ Library
                      , cmdargs
                      , containers
                      , directory
-                     , dlist
                      , filepath
                      , groom
                      , hashable
