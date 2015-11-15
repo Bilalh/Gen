@@ -177,7 +177,6 @@ Library
                      , unordered-containers
                      , safe
                      , neat-interpolation
-                     , pureMD5
                      , temporary
                      , sqlite-simple
                      , shelly

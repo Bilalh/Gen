@@ -1,8 +1,8 @@
 {-# LANGUAGE TupleSections, DeriveGeneric #-}
 module Gen.IO.FindCompact(findCompact) where
 
-import Gen.Imports hiding (hash)
 import Crypto.Hash
+import Gen.Imports hiding (hash)
 
 import qualified Data.ByteString.Char8 as C
 

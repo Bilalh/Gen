@@ -2,22 +2,22 @@
 module Gen.IO.Dups( solveDups,refineDups
                   , deleteDups, deleteDups2, Dup(..)) where
 
-import Gen.Imports
-import Data.Digest.Pure.MD5
-import System.FilePath(replaceExtension)
-import Data.Map(Map)
+import Crypto.Hash
+import Data.Map           (Map)
+import Gen.Imports hiding (hash)
+import System.FilePath    (replaceExtension)
 
 import qualified Data.ByteString.Char8 as C
 import qualified Data.Map as M
 
 
 data DirData = SolveData {
-      spec    :: MD5Digest
-    , eprimes :: [(MD5Digest,MD5Digest)] -- eprime, error
+      spec    :: Digest MD5
+    , eprimes :: [(Digest MD5, Digest MD5)] -- eprime, error
     }
     | RefineData {
-      spec    :: MD5Digest
-    , refines :: [MD5Digest] -- refinements errors
+      spec    :: Digest MD5
+    , refines :: [Digest MD5] -- refinements errors
     } deriving (Show,Eq,Generic,Ord)
 
 data Dup = SolveDup{
@@ -83,7 +83,7 @@ solveDups dirs = do
       else
           return . Just $ SolveData{spec=spec_hash, eprimes=zip h_eps h_os}
 
-con :: MonadIO m => FilePath -> (MD5Digest -> m (Maybe a)) -> m (Maybe a)
+con :: MonadIO m => FilePath -> (Digest MD5 -> m (Maybe a)) -> m (Maybe a)
 con fp func = hashIfExists fp >>= \case
               Nothing   -> return Nothing
               Just hasher  -> func hasher
@@ -104,13 +104,13 @@ processMap d done ((dir,x):xs) = f done where
     processMap d ms1 xs
 
 
-hashIfExists :: MonadIO m => FilePath -> m (Maybe MD5Digest)
+hashIfExists :: MonadIO m => FilePath -> m (Maybe (Digest MD5))
 hashIfExists fp =
   liftIO $ doesFileExist fp >>= \case
     False -> return Nothing
     True  -> Just <$> hashFileStrict fp
 
-hashFileStrict :: FilePath -> IO MD5Digest
+hashFileStrict :: FilePath -> IO (Digest MD5)
 hashFileStrict fp = do
  content <- C.readFile fp
  let slns = C.concat $ [ x | x <- C.lines content
@@ -145,4 +145,4 @@ hashFileStrict fp = do
                         , not $ "maxresident)" `C.isInfixOf` x
                         , not $ "pagefaults " `C.isInfixOf` x
                         ]
- return $ hash' slns
+ return $ hash slns
