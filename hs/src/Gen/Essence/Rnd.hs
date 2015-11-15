@@ -44,6 +44,7 @@ oneof3 [] = nnError "oneof3 used with empty list" []
 oneof3 gs = choose3 (0,length gs - 1) >>=   (gs `at`)
 
 elements3 :: [a] -> GenSt a
+elements3 [] = nnError "elements3 used with empty list" []
 elements3 as  = lift . lift $ elements as
 
 vectorOf3 :: Int -> GenSt a -> GenSt [a]
