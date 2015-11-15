@@ -1,8 +1,8 @@
 {-# LANGUAGE TupleSections, DeriveGeneric #-}
 module Gen.IO.FindCompact(findCompact) where
 
-import Gen.Imports
-import Data.Digest.Pure.MD5
+import Gen.Imports hiding (hash)
+import Crypto.Hash
 
 import qualified Data.ByteString.Char8 as C
 
@@ -17,10 +17,10 @@ findCompact compactFP dir = do
     [x] -> return (Just x)
     _   -> error "Multiple Models match compact"
 
-hashFileStrict :: MonadIO m => FilePath -> m MD5Digest
+hashFileStrict :: MonadIO m => FilePath -> m (Digest MD5)
 hashFileStrict fp = liftIO $ do
   content <- C.readFile fp
   let slns = C.concat $ [ x | x <- C.lines content
                         -- eprime choices
                         , not $ "$"   `C.isPrefixOf` x]
-  return $ hash' slns
+  return $ hash slns
