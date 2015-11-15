@@ -62,7 +62,7 @@ mkRanges _ 1 rs _ | rs /= 1 = do
   error . show $ ("mkRanges invaild" :: String, 1 :: Integer, rs)
 
 mkRanges ub ns rs used | ns >=2= do
-  single :: Bool <- elements3 [True,False]
+  single :: Bool <- elements3 $line [True,False]
   if single then do
     i <- chooseUnused ub used
     rest <- mkRanges ub (ns - 1) (rs - 1) (S.union (S.singleton i )  used)

@@ -36,7 +36,7 @@ instance (Generate a, WrapVar a, TTypeOf a)
   give GNone = do
     logDepthCon $line GNone
     ds <- gets doms_
-    (ky,kind) <- elements3 [(K_Maximisingg, Maximisingg), (K_Minimisingg, Minimisingg)]
+    (ky,kind) <- elements3 $line [(K_Maximisingg, Maximisingg), (K_Minimisingg, Minimisingg)]
     e :: a <- withKey ky $ give (GType TypeInt)
 
     -- Checks if a decision variable is referenced
@@ -52,7 +52,7 @@ instance (Generate a, WrapVar a, TTypeOf a)
             ]
           tys = [ (name,ty) | (name,ty) <- pairs,  allow ty]
 
-      (name,ty) <- elements3 tys
+      (name,ty) <- elements3 $line tys
       let var = wrapVar $ Var name ty
 
       let (e_new,replaced) = replaceExpr e var

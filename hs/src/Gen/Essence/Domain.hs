@@ -45,7 +45,7 @@ instance (Generate a, GenInfo a, EvalToInt a) => Generate (Domain () a) where
 
 
     give1 ty@(GType (TypeRelation t@[a,b])) | a ==b = do
-     elements3 [True, False] >>= \case
+     elements3 $line [True, False] >>= \case
        False -> DomainRelation <$> pure () <*> dgive GNone <*> mapM (dgive <$> GType) t
        True -> do
          dom <- dgive (GType a)
@@ -85,7 +85,7 @@ instance (Generate a, GenInfo a, EvalToInt a) => Generate (SetAttr a) where
 instance (Generate a, GenInfo a, EvalToInt a) => Generate (MSetAttr a) where
   give GNone = do
     logDepthCon $line GNone
-    (a,b) <- elements3 [ (GNone,GMsetAtrr), (GMsetAtrr,GNone)  ]
+    (a,b) <- elements3 $line [ (GNone,GMsetAtrr), (GMsetAtrr,GNone)  ]
     withKey K_MSetAttr $  MSetAttr <$> give a <*> give b
 
   give t             = giveUnmatched "Generate (SetAttr a)" t
@@ -264,7 +264,7 @@ instance (Generate a, GenInfo a, EvalToInt a) => Generate (PartitionAttr a) wher
   give GNone = withKey K_PartitionAttr $ do
       s1 <- give GNone
       s2 <- give GNone
-      b  <- elements3 [True,False]
+      b  <- elements3 $line [True,False]
       return def{isRegular=b, partsNum = s1, partsSize=s2 }
 
   give t             = giveUnmatched "Generate (PartitionAttr a)" t
