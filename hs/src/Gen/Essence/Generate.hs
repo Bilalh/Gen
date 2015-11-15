@@ -21,6 +21,9 @@ import Gen.IO.Toolchain                hiding (DirError (..), ToolchainData (..)
 import GHC.Real                        (floor)
 import System.Directory                (copyFile, renameDirectory)
 import Test.QuickCheck                 (Gen, generate)
+import Gen.Instance.UI                 (instances_no_racing)
+import System.IO.Temp                  (withSystemTempDirectory)
+import Gen.Instance.Data               (RunMetadata(rCPUTime))
 
 import qualified Data.Map                as M
 import qualified Data.Set                as S
@@ -135,56 +138,84 @@ doCommon ec@EC.EssenceConfig{..} refineType = do
               Toolchain.copyMetaToSpecDir outputDirectory_ dir
               gets cWeighting >>= \c -> liftIO $ writeToJSON (dir </> "weighting.json") c
 
-              runSeed <- liftIO $  (randomRIO (1,2147483647) :: IO Int)
+              runSeed   <- liftIO $  (randomRIO (1,2147483647) :: IO Int)
+              paramSeed <- liftIO $  (randomRIO (1,2147483647) :: IO Int)
+
+
               essencePath <- writeModelDef dir model
               startTime <- liftIO $ round `fmap` getPOSIXTime
-              (_, result) <- toolchain Toolchain.ToolchainData{
-                          Toolchain.essencePath       = essencePath
-                        , Toolchain.outputDirectory   = dir
-                        , Toolchain.toolchainTime     = perSpecTime_
-                        , Toolchain.essenceParam      = Nothing
-                        , Toolchain.refineType        = refineType
-                        , Toolchain.cores             = cores_
-                        , Toolchain.seed              = Just runSeed
-                        , Toolchain.binariesDirectory = binariesDirectory_
-                        , Toolchain.oldConjure        = oldConjure_
-                        , Toolchain.toolchainOutput   = toolchainOutput_
-                        , Toolchain.choicesPath       = Nothing
-                        , Toolchain.dryRun            = False
-                        }
-              endTime <- liftIO $  round `fmap` getPOSIXTime
-              let realTime = endTime - startTime
 
-              (runTime,rdata) <- liftIO $  classifyError ec errdir out uname result
-              mapM_ (\x -> storeInDB sp (OurError x)) rdata
-              writeDB False
+              (givenResult, givenCPU) <- case hasGivens model of
+                False -> return $ (Right $ Nothing, 0)
+                True -> do
+                  liftIO $ withSystemTempDirectory "gen-instance" $ \tmp -> do
+                    instances_no_racing essencePath 1 10 tmp paramSeed logLevel
+                    m ::  RunMetadata <- liftIO $ readFromJSON (tmp </> "metadata.json")
+                    let givenTime = rCPUTime m
 
-              case rdata of
-                [] ->  do
-                  storeInDB sp (Passing $ truncate runTime)
-                  liftIO $ putStrLn $ "> Passing: " ++ (show $ hash sp)
+                    allFilesWithSuffix ".param" (tmp </> "_params") >>= \case
+                       [x] -> do
+                         copyFile x (dir </> "given.param")
+                         return $ (Right $ Just (dir </> "given.param"), givenTime)
+                       _   -> do
+                         return $ (Left $"failed to generate the param", givenTime)
+              case givenResult of
+                Left err -> do
+                  liftIO $ putStrLn $ "WARNING: " ++ err
+                  endTime <- liftIO $  round `fmap` getPOSIXTime
+                  let realTime = endTime - startTime
+                  case totalIsRealTime of
+                    False -> process (timeLeft - (floor givenCPU)) (nextElem mayGiven)
+                    True  -> process (timeLeft - realTime) (nextElem mayGiven)
 
-                _  -> do
-                  liftIO $ putStrLn $ "> Erred: "  ++ (show $ hash sp)
-                  case (reduceAsWell_) of
-                    (Nothing) -> return ()
-                    (Just{})  -> do
-                      liftIO $ putStrLn $ "> Reducing: " ++ (show $ hash sp)
-                      res <- reduceErrors ec rdata
-                      liftIO $ putStrLn $ "> Reduced: " ++ (show $ hash sp)
-                      liftIO $ putStrLn $ "!l rdata: " ++ (show $ length rdata)
-                      liftIO $ putStrLn $ "! rdata: " ++ (show $ vcat $ map pretty rdata)
-                      liftIO $ putStrLn $ "!l errData: " ++ (show $ length res)
-                      liftIO $ putStrLn $ "! errData: " ++ (show $ vcat $ map pretty res)
-                      mapM_ adjust res
+                Right paramPath -> do
+                  (_, result) <- toolchain Toolchain.ToolchainData{
+                              Toolchain.essencePath       = essencePath
+                            , Toolchain.outputDirectory   = dir
+                            , Toolchain.toolchainTime     = perSpecTime_
+                            , Toolchain.essenceParam      = paramPath
+                            , Toolchain.refineType        = refineType
+                            , Toolchain.cores             = cores_
+                            , Toolchain.seed              = Just runSeed
+                            , Toolchain.binariesDirectory = binariesDirectory_
+                            , Toolchain.oldConjure        = oldConjure_
+                            , Toolchain.toolchainOutput   = toolchainOutput_
+                            , Toolchain.choicesPath       = Nothing
+                            , Toolchain.dryRun            = False
+                            }
+                  endTime <- liftIO $  round `fmap` getPOSIXTime
+                  let realTime = endTime - startTime
 
-              writeDB False
+                  (runTime,rdata) <- liftIO $  classifyError ec errdir out uname result
+                  mapM_ (\x -> storeInDB sp (OurError x)) rdata
+                  writeDB False
 
-              liftIO $ putStrLn $ "> Processed: " ++ (show $ hash sp)
-              liftIO $ putStrLn $ ""
-              case totalIsRealTime of
-                False -> process (timeLeft - (floor runTime)) (nextElem mayGiven)
-                True  -> process (timeLeft - realTime) (nextElem mayGiven)
+                  case rdata of
+                    [] ->  do
+                      storeInDB sp (Passing $ truncate runTime)
+                      liftIO $ putStrLn $ "> Passing: " ++ (show $ hash sp)
+
+                    _  -> do
+                      liftIO $ putStrLn $ "> Erred: "  ++ (show $ hash sp)
+                      case (reduceAsWell_) of
+                        (Nothing) -> return ()
+                        (Just{})  -> do
+                          liftIO $ putStrLn $ "> Reducing: " ++ (show $ hash sp)
+                          res <- reduceErrors ec rdata
+                          liftIO $ putStrLn $ "> Reduced: " ++ (show $ hash sp)
+                          liftIO $ putStrLn $ "!l rdata: " ++ (show $ length rdata)
+                          liftIO $ putStrLn $ "! rdata: " ++ (show $ vcat $ map pretty rdata)
+                          liftIO $ putStrLn $ "!l errData: " ++ (show $ length res)
+                          liftIO $ putStrLn $ "! errData: " ++ (show $ vcat $ map pretty res)
+                          mapM_ adjust res
+
+                  writeDB False
+
+                  liftIO $ putStrLn $ "> Processed: " ++ (show $ hash sp)
+                  liftIO $ putStrLn $ ""
+                  case totalIsRealTime of
+                    False -> process (timeLeft - (floor (runTime+givenCPU))) (nextElem mayGiven)
+                    True  -> process (timeLeft - realTime) (nextElem mayGiven)
 
 
 classifyError :: EssenceConfig -> Directory -> Directory
@@ -506,3 +537,12 @@ genToUse EC.EssenceConfig{genType_=EC.SecondGen,logLevel} dom_depth expr_depth =
   where
   f :: (Spec,[(LogLevel,Doc)]) -> (Spec,Doc)
   f (sp,logs) = (sp, vcat [ msg | (lvl, msg) <- logs , lvl <= logLevel ])
+
+hasGivens :: Model -> Bool
+hasGivens model =
+  any  f (mStatements model)
+
+  where
+    f (Declaration (FindOrGiven Given _ _)) = True
+    f _                                     = False
+
