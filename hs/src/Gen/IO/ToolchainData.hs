@@ -91,40 +91,41 @@ instance ToJSON   DirError  where toJSON     = genericToJSON dirErrorJSONOptions
 
 -- For reading json from toolchain.py
 data StatusI =
-      Success_
-    | Timeout_
-    | ErrorUnknown_
-    | NumberToLarge_
-    | HeapSpace_
-    | CannotEvaluate_
-    | ValueNotInDom_
-    | ParseError_
-    | TypeChecking_
-    | VarDuplicated_
-    | NegativeExponent_
-    | DivideByZero_
-    | ConjureNA_
-    | ConjureInvalid_
-    | JavaException_
-    | NotAHomoType_
-    | ForgetRepr_
-    | NotRefined_
-    | UnknownLexeme_
-    | RuleApplication_
-    | TypeError_
-    | EnumerateDomain_
-    | ParseErrorUndefined_
-    | ConjureUserError_
-    | ConjureShouldNeverHappen_
-    | NotAConstant_
-    | EmptyHandling_
-    | RefineUnreferencedVar_
-    | DomainUnion_
-    | OutOfBoundsIndexing_
-    | CategoryChecking_
-    | LogFollowing_
-    | ConjureOtherUserError_
-    | StatusAny_
+    Success_
+  | StatusAny_
+  | Timeout_
+  | ErrorUnknown_
+  | NumberToLarge_
+  | HeapSpace_
+  | CannotEvaluate_
+  | ValueNotInDom_
+  | ParseError_
+  | TypeChecking_
+  | VarDuplicated_
+  | NegativeExponent_
+  | DivideByZero_
+  | ConjureNA_
+  | ConjureInvalid_
+  | JavaException_
+  | NotAHomoType_
+  | ForgetRepr_
+  | NotRefined_
+  | UnknownLexeme_
+  | RuleApplication_
+  | TypeError_
+  | EnumerateDomain_
+  | ParseErrorUndefined_
+  | ConjureUserError_
+  | ConjureShouldNeverHappen_
+  | NotAConstant_
+  | EmptyHandling_
+  | RefineUnreferencedVar_
+  | DomainUnion_
+  | OutOfBoundsIndexing_
+  | CategoryChecking_
+  | LogFollowing_
+  | ConjureOtherUserError_
+  | JvmMemory_
     deriving (Show, Eq, Enum, Generic, Typeable, Data, Read, Ord)
 
 instance Hashable StatusI
