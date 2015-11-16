@@ -126,6 +126,7 @@ data StatusI =
   | LogFollowing_
   | ConjureOtherUserError_
   | JvmMemory_
+  | WhereFalseNeqTrue_
     deriving (Show, Eq, Enum, Generic, Typeable, Data, Read, Ord)
 
 instance Hashable StatusI

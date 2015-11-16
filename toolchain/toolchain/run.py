@@ -57,6 +57,7 @@ class Status(Enum):
     logFollowing             = 33,
     conjureOtherUserError    = 34,
     jvmMemory                = 35
+    whereFalseNeqTrue        = 36
 
 
 def run_refine_essence(*, op, commands, random, cores, extra_env):
@@ -370,6 +371,9 @@ def classify_error(*, kind, output, returncode):
             return Status.typeChecking
         if 'declared more than once.' in output:
             return Status.varDuplicated
+        if  'ERROR: In statement: where false'  in output \
+        and 'ERROR: Does not evaluate to true.' in output:
+            return Status.whereFalseNeqTrue
         if 'Exception in thread' in output:
             return Status.javaException
         if 'Savile Row timed out' in output:
