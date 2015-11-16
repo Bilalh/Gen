@@ -11,6 +11,7 @@ data SamplingErr = ErrRejectedPoint Doc
                  | ErrDB Doc
                  | ErrNoValuesLeft Doc
                  | ErrFailedToGenerateParam Doc
+                 | ErrGeneratedParamEmpty Doc
                  | ErrFailedRunSolve Doc
                  | ErrRace Doc
                  | ErrRaceSrInit Doc
@@ -26,10 +27,11 @@ instance  Pretty SamplingErr  where
   pretty (ErrDB d)                    = hang "ErrDB" 4 d
   pretty (ErrNoValuesLeft d)          = hang "ErrNoValuesLeft" 4 d
   pretty (ErrFailedToGenerateParam d) = hang "ErrFailedToGenerateParam" 4 d
+  pretty (ErrGeneratedParamEmpty d)   = hang "ErrGeneratedParamEmpty" 4 d
   pretty (ErrFailedRunSolve d)        = hang "ErrFailedRunSolve" 4 d
   pretty (ErrRace d)                  = hang "ErrRace" 4 d
   pretty (ErrRaceSrInit d)            = hang "ErrRaceSrInit" 4 d
   pretty (ErrGather d)                = hang "ErrGather" 4 d
   pretty (ErrFail d)                  = hang "ErrFail" 4 d
   pretty (ErrAllSolutions d)          = hang "ErrAllSolutions" 4 d
-  -- pretty x                            = hang "noPretty" 4 (pretty $ groom x)
+  -- pretty x                         = hang "noPretty" 4 (pretty $ groom x)

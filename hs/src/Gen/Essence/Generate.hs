@@ -29,7 +29,7 @@ import qualified Data.Map                as M
 import qualified Data.Set                as S
 import qualified Gen.Essence.UIData      as EC
 import qualified Gen.IO.Toolchain        as Toolchain
-
+import qualified Control.Exception as Exc
 
 generateEssence :: KeyMap -> EssenceConfig -> IO ()
 generateEssence km ec@EC.EssenceConfig{..} = do
@@ -149,16 +149,23 @@ doCommon ec@EC.EssenceConfig{..} refineType = do
                 False -> return $ (Right $ Nothing, 0)
                 True -> do
                   liftIO $ withSystemTempDirectory "gen-instance" $ \tmp -> do
-                    instances_no_racing essencePath 1 10 tmp paramSeed logLevel
-                    m ::  RunMetadata <- liftIO $ readFromJSON (tmp </> "metadata.json")
-                    let givenTime = rCPUTime m
+                    b <- Exc.catch (
+                      instances_no_racing essencePath 1 10 tmp paramSeed logLevel >> return True)
+                        (\ (_ :: Exc.SomeException) -> return False )
+                    if not b then
+                      -- FIXME get real cpu time
+                      return $ (Left "Some instance gen error", 1)
+                    else do
+                      m ::  RunMetadata <- liftIO $ readFromJSON (tmp </> "metadata.json")
+                      let givenTime = rCPUTime m
 
-                    allFilesWithSuffix ".param" (tmp </> "_params") >>= \case
-                       [x] -> do
-                         copyFile x (dir </> "given.param")
-                         return $ (Right $ Just (dir </> "given.param"), givenTime)
-                       _   -> do
-                         return $ (Left $"failed to generate the param", givenTime)
+                      allFilesWithSuffix ".param" (tmp </> "_params") >>= \case
+                         [x] -> do
+                           copyFile x (dir </> "given.param")
+                           return $ (Right $ Just (dir </> "given.param"), givenTime)
+                         _   -> do
+                           return $ (Left $"failed to generate the param", givenTime)
+
               case givenResult of
                 Left err -> do
                   liftIO $ putStrLn $ "WARNING: " ++ err

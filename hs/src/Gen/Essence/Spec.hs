@@ -25,7 +25,7 @@ instance Generate Spec where
     i_d <- choose3 domsCount
     i_g <- choose3 givenCount
     i_e <- choose3 exprCount
-    -- let (i_d, i_e) = (1 :: Integer, 1 :: Integer)
+    -- let (i_d, i_e, i_g) = (1 :: Integer, 1 :: Integer, 1 :: Integer)
 
     logDebug2 $line [ nn "i_d" i_d , nn "i_g" i_g, nn "i_e" i_e
                    ]
@@ -43,7 +43,7 @@ instance Generate Spec where
     let gmappings  = M.fromList gwithNames
     let vars = mappings `M.union` gmappings
 
-    modify $ \st -> st{doms_=mappings}
+    modify $ \st -> st{doms_=vars}
 
     exprs <- withKey K_SExprs $ mapM (\_ ->  withKey K_Expr $ give $ GType TypeBool ) [0..i_e]
     Spec vars exprs <$> (withKey K_SObj $ give GNone)

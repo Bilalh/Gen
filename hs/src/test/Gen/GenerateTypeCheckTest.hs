@@ -34,7 +34,7 @@ instance (Pretty a, Show a) => Show (Limited a)   where
 instance (Generate a) => Arbitrary (Limited a) where
   arbitrary = sized $ \s -> do
     expr <- choose (0,  (max 1 (min s 4)) )
-    dom  <- choose (0,  (max 1 (min s 3)) )
+    dom  <- choose (1,  (max 1 (min s 3)) )
     Limited <$> runGenerateNullLogs (GDomainDepth dom) def{depth=expr}
 
 

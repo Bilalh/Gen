@@ -38,7 +38,7 @@ import System.Console.CmdArgs      (cmdArgs)
 import System.CPUTime              (getCPUTime)
 import System.Directory            (getCurrentDirectory, makeAbsolute,
                                     setCurrentDirectory)
-import System.Environment          (lookupEnv, withArgs)
+import System.Environment          (lookupEnv, withArgs, setEnv)
 import System.Exit                 (exitFailure, exitSuccess, exitWith)
 import System.FilePath             (replaceExtension, replaceFileName, takeBaseName,
                                     takeExtension, takeExtensions)
@@ -186,6 +186,8 @@ mainWithArgs u@Essence{..} = do
             when ( (KindAny_,StatusAny_) `S.member` vals ) $
                  error "Error (--delete_immediately/-X): Specifying (KindAny_,StatusAny_) would delete every generated specification."
             return vals
+
+  nullParamGen toolchain_ouput
 
   let config = EC.EssenceConfig
                { outputDirectory_ = out
@@ -355,6 +357,8 @@ mainWithArgs u@Reduce{..} = do
     True  -> Just <$> readPoint  (spec_directory </> "given.param")
     False -> return Nothing
 
+  nullParamGen toolchain_ouput
+
   let args = def{rconfig=
                  R.RConfig
                  { oErrKind_            = error_kind
@@ -425,6 +429,7 @@ mainWithArgs Generalise{..} = do
   out   <- giveOutputDirectory output_directory
   cores <- giveCores ui
 
+  nullParamGen toolchain_ouput
   let args :: E.GState =
              def{E.rconfig=
                  R.RConfig
@@ -548,6 +553,7 @@ mainWithArgs u@Script_Toolchain{..} = do
   out <- giveOutputDirectory output_directory
   cores <- giveCores u
 
+  nullParamGen toolchain_ouput
   (code,_) <- Toolchain.toolchain Toolchain.ToolchainData
            {
              Toolchain.essencePath       = essence_path
@@ -805,6 +811,13 @@ giveCores u = do
         Nothing -> error $ "-c/--cores is required unless CORES is set"
         Just i  -> return i
 
+-- discard the output of instance gen if we want to discard the toolchains output
+nullParamGen :: ToolchainOutput ->  IO ()
+nullParamGen tc =
+  if tc == ToolchainNull_ then
+    setEnv "NULL_runPadded" "true"
+  else
+    return ()
 
 _essenceDebug :: IO ()
 _essenceDebug = do

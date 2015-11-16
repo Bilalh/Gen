@@ -437,7 +437,12 @@ sampleParamFromMinion = do
              (vcat [nn "givens" givens, nn "ts" now, nn "hash" phash ])
     True  -> do
       finds <- readPoint solutionFp
-      return $ Right $ finds `mappend` givens
+      if finds == Point [] then
+        return $ Left $ ErrGeneratedParamEmpty
+                     (vcat [ nn "givens" givens, nn "ts" now, nn "hash" phash
+                           , nn  "solutionFp" solutionFp])
+      else
+        return $ Right $ finds `mappend` givens
 
 runSolve  :: (MonadIO m)
           => FilePath -> FilePath -> FilePath -> Point
