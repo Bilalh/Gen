@@ -22,9 +22,11 @@ instance Generate Spec where
     let givenCount = (0, min ((dom_depth+1)*2) 3)
 
     let exprCount = (0, min ((depth+1)*2) 7)
-    i_d <- choose3 domsCount
-    i_g <- choose3 givenCount
-    i_e <- choose3 exprCount
+    i_d  <- choose3 domsCount
+    i_g' <- choose3 givenCount
+    -- only produce a given <25% of the time
+    i_g  <- elements3 $line [0, 0, 0, i_g']
+    i_e  <- choose3 exprCount
     -- let (i_d, i_e, i_g) = (1 :: Integer, 1 :: Integer, 1 :: Integer)
 
     logDebug2 $line [ nn "i_d" i_d , nn "i_g" i_g, nn "i_e" i_e

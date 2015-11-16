@@ -149,9 +149,11 @@ doCommon ec@EC.EssenceConfig{..} refineType = do
                 False -> return $ (Right $ Nothing, 0)
                 True -> do
                   liftIO $ withSystemTempDirectory "gen-instance" $ \tmp -> do
+                    -- FIXME Using Exc.SomeException catch all errors which might not be want we want
                     b <- Exc.catch (
                       instances_no_racing essencePath 1 10 tmp paramSeed logLevel >> return True)
                         (\ (_ :: Exc.SomeException) -> return False )
+
                     if not b then
                       -- FIXME get real cpu time
                       return $ (Left "Some instance gen error", 1)
