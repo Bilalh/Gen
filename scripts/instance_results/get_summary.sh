@@ -56,5 +56,5 @@ parallel -j"${cores}" --keep-order  \
 
 parallel -j"${cores}" --keep-order  \
 	' ([ {#} -eq 1 ]  && cat {} ) || tail -n1 {}' \
-	:::: <(find . -type f -name 'summary.csv') \
+	:::: <(find . -type f -name 'summary.csv' \( -not -path '*/r/*' \)) \
 	| sort -nk1 > all.csv
