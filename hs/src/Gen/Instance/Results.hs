@@ -2,7 +2,7 @@
 module Gen.Instance.Results where
 
 import Conjure.Language.Definition
-import Data.Csv                         hiding (Only)
+import Data.Csv                         (FromNamedRecord,ToNamedRecord,DefaultOrdered,decodeByName,encodeDefaultOrderedByName)
 import Data.List                        (break)
 import Data.Map                         (Map)
 import Database.SQLite.Simple
@@ -24,9 +24,10 @@ import qualified Data.Vector              as V
 import qualified Gen.Instance.SettingsIn  as IN
 import qualified Gen.Instance.SettingsOut as OUT
 import qualified Gen.Instance.Versions    as S
+import qualified Gen.Instance.ModelRow    as MR
+import qualified Gen.Instance.ModelInfo   as MI
 
-
-numSetsQuery, numModelsQuery, selectorQuery, compactQuery :: Query
+numSetsQuery, numModelsQuery, selectorQuery, compactQuery, modelsQuery :: Query
 
 numSetsQuery = "Select distinct count(*) From ParamQuality"
 numModelsQuery = "Select count(eprime) From Eprimes;"
@@ -43,6 +44,19 @@ selectorQuery = [str|
 
 compactQuery = "Select eprime, eprimeId from Eprimes where isCompact = 1"
 
+modelsQuery = [str|
+  Select
+   PQ.ordering as ParamId, eprimeId, eprime, nullif(SavileRow, -1) as SavileRow,
+   nullif(Minion, -1) as Minion, nullif(TotalTime, -1) as TotalTime,
+   nullif(MinionNodes, -1) as MinionNodes, nullif(MinionTimeout, -1) as MinionTimeout,
+   nullif(MinionSolutionsFound, -1) as MinionSolutionsFound, MinionSatisfiable,
+   IsOptimum, isDominated, solutionValue, minimising,
+   PQ.quality as ParamQuality, TD.paramHash as PatamHash
+  From TimingsDomination TD
+  Join paramQuality PQ
+  ON   TD.paramHash = PQ.paramHash
+  |]
+
 
 showResults :: (MonadIO m)
             => FilePath ->m ()
@@ -51,12 +65,13 @@ showResults outdir = do
   let summary = outdir </> "summary"
   liftIO $ createDirectoryIfMissing True summary
 
-  (numSets,numModels,groups,comp) <- liftIO $ withConnection db $ \conn -> do
+  (numSets,numModels,groups,comp,mrows) <- liftIO $ withConnection db $ \conn -> do
     [Only numSets]    <- query_ conn numSetsQuery
     [Only numModels]  <- query_ conn numModelsQuery
     groups   :: [Only Text] <- query_ conn selectorQuery
     compacts :: [(Text,Int)]  <- query_ conn compactQuery
-    return (numSets,numModels,groups,compacts)
+    mrows :: [ MR.ModelRow ] <- query_ conn modelsQuery
+    return (numSets,numModels,groups,compacts,mrows)
 
   let ints :: [[Integer]] = [ mapMaybe (readMay . textToString) $ T.split (== ',') g
                             | Only g <- groups ]
@@ -92,6 +107,8 @@ showResults outdir = do
 
   meta ::  RunMetadata <- liftIO $ readFromJSON (outdir </> "metadata.json")
   vs <- liftIO $ V.toList <$> decodeCSV (outdir </> "settings.csv")
+  vv <- liftIO $ V.toList <$> decodeCSV (outdir </> "version-run.csv")
+  let hostType = S.host_type $ vv `at` 0
 
   let fracs_size = pa $ map ( show . length ) fracs
   let fracs_str  = pa $ map ( pa . map show ) fracs
@@ -103,18 +120,21 @@ showResults outdir = do
                         _     -> 0
         _          ->  0
 
+  let vs_head  = headNote "setting.csv should have one row" vs
 
+  let vs2_head = processSettings meta (length fracs)
+              fracs_size fracs_str compact_str compactWon hOrder hostType vs_head
+  liftIO $ encodeCSV (summary </> "summary.csv") [vs2_head]
 
-  let vs2 = map (processSettings meta (length fracs)
-                                 fracs_size fracs_str compact_str compactWon hOrder) vs
-  liftIO $ encodeCSV (summary </> "summary.csv") vs2
+  let minfos = map (processModelsInfo meta vs_head  ) mrows
+  liftIO $ encodeCSV (summary </> "models.csv") minfos
 
   return ()
 
   where
     pa m =  "[" ++ (intercalate ", " m) ++ "]"
 
-    processSettings meta numFracs fracs_size fracs_str compact_str compactWon hOrder lin =
+    processSettings meta numFracs fracs_size fracs_str compact_str compactWon hOrder hostType lin  =
       let ho = fromMaybe (rIterationsDone meta) hOrder
           (he, clas) =
             case splitOn "@" (IN.essence_name lin) of
@@ -122,7 +142,17 @@ showResults outdir = do
               _         -> (Nothing, IN.essence_name lin)
 
 
-      in  inToOut meta lin clas he numFracs fracs_size fracs_str compact_str compactWon ho
+      in  inToOut meta lin clas he numFracs fracs_size fracs_str compact_str compactWon ho hostType
+
+    processModelsInfo meta lin mrow  =
+      let (he, clas) =
+            case splitOn "@" (IN.essence_name lin) of
+              [h,c] -> (Just h,c)
+              _         -> (Nothing, IN.essence_name lin)
+
+
+      in minToOut meta lin mrow clas he
+
 
 findResultingSet :: MonadIO m => FilePath -> FilePath -> Constant -> m ([[Int]], Maybe Int)
 findResultingSet db out hval = do
@@ -186,13 +216,18 @@ encodeCSV fp cs = do
 
 
 inToOut :: RunMetadata -> IN.CSV_IN
-        -> String -> Maybe String -> Int -> String -> String -> String -> Int -> Int
+        -> String -> Maybe String -> Int -> String -> String -> String -> Int -> Int -> String
         -> OUT.CSV_OUT
 inToOut RunMetadata{..} IN.CSV_IN{..}
         essenceClass heuristic numFractures fracturesSize fractures compact compactWon
-        highestOrderingNeeded
+        highestOrderingNeeded hostType
       = OUT.CSV_OUT{..}
 
+minToOut :: RunMetadata -> IN.CSV_IN -> MR.ModelRow
+        -> String -> Maybe String
+        -> MI.ModelInfo
+minToOut RunMetadata{..} IN.CSV_IN{..} MR.ModelRow{..} essenceClass heuristic
+      =  MI.ModelInfo{..}
 
 _ex1, _ex2 :: IO ()
 _ex1 = showResults "/Users/bilalh/Desktop/Results/sampling_no_large/babbage/results/sdf@prob034-warehouse/nsample/sample-64_rndsols%1%16035"

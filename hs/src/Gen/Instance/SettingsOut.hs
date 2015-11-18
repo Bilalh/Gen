@@ -37,6 +37,7 @@ data CSV_OUT = CSV_OUT
   , rOurCPUTime                    :: !Double
   , rIterationsDone                :: !Int
   , rIterationsDoneIncludingFailed :: !Int
+  , hostType                       :: !String
   } deriving (Generic, Show, Eq)
 
 instance FromNamedRecord CSV_OUT

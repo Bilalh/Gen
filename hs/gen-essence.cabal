@@ -119,6 +119,8 @@ Library
                      , Gen.Instance.BuildDependencyGraph
                      , Gen.Instance.Data
                      , Gen.Instance.Method
+                     , Gen.Instance.ModelInfo
+                     , Gen.Instance.ModelRow
                      , Gen.Instance.NoRacing
                      , Gen.Instance.Nsample
                      , Gen.Instance.Point
