@@ -30,3 +30,6 @@ Group by P.paramHash
 Order by P.quality
 	;
 
+UPDATE Metadata
+SET    minimising=NULL
+WHERE  minimising='NULL';
