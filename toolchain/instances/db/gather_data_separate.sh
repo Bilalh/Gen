@@ -58,7 +58,7 @@ fi
 export minimising
 
 echo "INSERT OR REPLACE into Metadata('essence', 'mode', 'minimising')
-			  Values('${Essence_base}', '${USE_MODE}', '${minimising}');" \
+			  Values('${Essence_base}', '${USE_MODE}', ${minimising});" \
 	|  sqlite3 ${REPOSITORY_BASE}/results.db
 
 
