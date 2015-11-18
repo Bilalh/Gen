@@ -23,6 +23,7 @@ import qualified Data.Text                as T
 import qualified Data.Vector              as V
 import qualified Gen.Instance.SettingsIn  as IN
 import qualified Gen.Instance.SettingsOut as OUT
+import qualified Gen.Instance.Versions    as S
 
 
 numSetsQuery, numModelsQuery, selectorQuery, compactQuery :: Query
@@ -170,16 +171,19 @@ hittingSet out point = do
         Right (res, _) -> return res
 
 
-decodeCSV ::FilePath -> IO (V.Vector IN.CSV_IN)
+decodeCSV :: FromNamedRecord a => FilePath -> IO (V.Vector a)
 decodeCSV fp = do
     csvData <- BL.readFile fp
     case decodeByName csvData of
         Left err -> error  err
-        Right (_, v) -> V.forM v $ \(p :: IN.CSV_IN) -> return p
+        Right (_, v) -> V.forM v $ \(p :: a) -> return p
 
-encodeCSV :: FilePath -> [OUT.CSV_OUT] -> IO ()
+
+encodeCSV :: (ToNamedRecord a, DefaultOrdered a) => FilePath -> [a] -> IO ()
 encodeCSV fp cs = do
   BL.writeFile fp $ encodeDefaultOrderedByName cs
+
+
 
 inToOut :: RunMetadata -> IN.CSV_IN
         -> String -> Maybe String -> Int -> String -> String -> String -> Int -> Int
