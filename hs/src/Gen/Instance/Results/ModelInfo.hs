@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable, DeriveGeneric, QuasiQuotes #-}
-module Gen.Instance.ModelInfo where
+module Gen.Instance.Results.ModelInfo where
 
 import Gen.Imports
 import Data.Csv hiding (Only)

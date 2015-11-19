@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable, DeriveGeneric, QuasiQuotes #-}
-module Gen.Instance.ModeMeta where
+module Gen.Instance.Results.ModeMeta where
 
 import Gen.Imports
 

@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable, DeriveGeneric, QuasiQuotes #-}
-module Gen.Instance.ModelRow where
+module Gen.Instance.Results.ModelRow where
 
 import Gen.Imports
 import Database.SQLite.Simple

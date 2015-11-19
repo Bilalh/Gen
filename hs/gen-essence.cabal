@@ -119,20 +119,20 @@ Library
                      , Gen.Instance.BuildDependencyGraph
                      , Gen.Instance.Data
                      , Gen.Instance.Method
-                     , Gen.Instance.ModelInfo
-                     , Gen.Instance.ModelRow
-                     , Gen.Instance.ModeMeta
                      , Gen.Instance.NoRacing
                      , Gen.Instance.Nsample
                      , Gen.Instance.Point
                      , Gen.Instance.RaceRunner
-                     , Gen.Instance.Results
+                     , Gen.Instance.Results.ModelInfo
+                     , Gen.Instance.Results.ModelRow
+                     , Gen.Instance.Results.ModeMeta
+                     , Gen.Instance.Results.Results
+                     , Gen.Instance.Results.SettingsIn
+                     , Gen.Instance.Results.SettingsOut
+                     , Gen.Instance.Results.Versions
                      , Gen.Instance.SamplingError
-                     , Gen.Instance.SettingsIn
-                     , Gen.Instance.SettingsOut
                      , Gen.Instance.UI
                      , Gen.Instance.Undirected
-                     , Gen.Instance.Versions
                      , Gen.IO.Dups
                      , Gen.IO.FindCompact
                      , Gen.IO.Formats

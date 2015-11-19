@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable, DeriveGeneric, QuasiQuotes #-}
-module Gen.Instance.Results where
+module Gen.Instance.Results.Results where
 
 import Conjure.Language.Definition
 import Data.Csv                         (DefaultOrdered, FromNamedRecord,
@@ -13,7 +13,7 @@ import Database.SQLite.Simple.FromRow   ()
 import Gen.Helpers.Str
 import Gen.Imports                      hiding (group)
 import Gen.Instance.Data
-import Gen.Instance.ModeMeta
+import Gen.Instance.Results.ModeMeta
 import Gen.Instance.Point
 import Gen.Instance.RaceRunner          (conjureCompact, runSolve, script_lookup1)
 import Gen.IO.Formats                   (readFromJSON, readFromJSONMay)
@@ -28,11 +28,11 @@ import qualified Data.Map                 as M
 import qualified Data.Set                 as Set
 import qualified Data.Text                as T
 import qualified Data.Vector              as V
-import qualified Gen.Instance.ModelInfo   as MI
-import qualified Gen.Instance.ModelRow    as MR
-import qualified Gen.Instance.SettingsIn  as IN
-import qualified Gen.Instance.SettingsOut as OUT
-import qualified Gen.Instance.Versions    as S
+import qualified Gen.Instance.Results.ModelInfo   as MI
+import qualified Gen.Instance.Results.ModelRow    as MR
+import qualified Gen.Instance.Results.SettingsIn  as IN
+import qualified Gen.Instance.Results.SettingsOut as OUT
+import qualified Gen.Instance.Results.Versions    as S
 
 numSetsQuery, numModelsQuery, selectorQuery, compactQuery, modelsQuery :: Query
 

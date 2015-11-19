@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable, DeriveGeneric, QuasiQuotes #-}
-module Gen.Instance.Versions where
+module Gen.Instance.Results.Versions where
 
 import Data.Csv         hiding (Only)
 import Data.Time        (formatTime)

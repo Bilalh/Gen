@@ -2,48 +2,48 @@
 {-# OPTIONS_GHC -fno-cse #-} -- stupid cmdargs?
 module Main where
 
-import Data.Time                   (formatTime, getCurrentTime)
-import Data.Time.Format            (defaultTimeLocale)
-import Gen.Classify.AddMeta        (metaMain)
-import Gen.Classify.AddMeta        (addMeta)
-import Gen.Classify.AddSpecE       (addSpecJson, specEMain)
-import Gen.Classify.CreateDbHashes (createDbHashesMain)
-import Gen.Classify.Sorter         (getRecursiveContents, sorterMain)
-import Gen.Classify.UpdateChoices  (updateChoices)
-import Gen.Essence.Generate        (generateEssence)
+import Data.Time                    (formatTime, getCurrentTime)
+import Data.Time.Format             (defaultTimeLocale)
+import Gen.Classify.AddMeta         (metaMain)
+import Gen.Classify.AddMeta         (addMeta)
+import Gen.Classify.AddSpecE        (addSpecJson, specEMain)
+import Gen.Classify.CreateDbHashes  (createDbHashesMain)
+import Gen.Classify.Sorter          (getRecursiveContents, sorterMain)
+import Gen.Classify.UpdateChoices   (updateChoices)
+import Gen.Essence.Generate         (generateEssence)
 import Gen.Essence.UIData
-import Gen.Generalise.Generalise   (generaliseMain)
+import Gen.Generalise.Generalise    (generaliseMain)
 import Gen.Imports
-import Gen.Instance.AllSolutions   (createAllSolutionScript, readSolutionCounts)
+import Gen.Instance.AllSolutions    (createAllSolutionScript, readSolutionCounts)
 import Gen.Instance.Data
-import Gen.Instance.Nsample        (Nsample (..))
-import Gen.Instance.Point          (readPoint)
-import Gen.Instance.Results        (showResults)
-import Gen.Instance.UI             (makeProvider, runMethod, instances_no_racing)
-import Gen.Instance.Undirected     (Undirected (..))
-import Gen.IO.Dups                 (deleteDups2, refineDups, solveDups)
-import Gen.IO.FindCompact          (findCompact)
-import Gen.IO.Formats              (readFromJSON)
-import Gen.IO.RunResult            (giveDb, writeDB_)
+import Gen.Instance.Nsample         (Nsample (..))
+import Gen.Instance.Point           (readPoint)
+import Gen.Instance.Results.Results (showResults)
+import Gen.Instance.UI              (instances_no_racing, makeProvider, runMethod)
+import Gen.Instance.Undirected      (Undirected (..))
+import Gen.IO.Dups                  (deleteDups2, refineDups, solveDups)
+import Gen.IO.FindCompact           (findCompact)
+import Gen.IO.Formats               (readFromJSON)
+import Gen.IO.RunResult             (giveDb, writeDB_)
 import Gen.IO.Term
-import Gen.IO.Toolchain            (KindI (..), StatusI (..), ToolchainOutput (..),
-                                    doMeta, kindsList, statusesList)
-import Gen.Reduce.Data             (RState (..))
-import Gen.Reduce.FormatResults    (formatResults)
-import Gen.Reduce.Random           (runRndGen)
-import Gen.Reduce.Reduce           (reduceMain)
-import Gen.Solver.Solver           (SolverArgs (..), solverMain)
+import Gen.IO.Toolchain             (KindI (..), StatusI (..), ToolchainOutput (..),
+                                     doMeta, kindsList, statusesList)
+import Gen.Reduce.Data              (RState (..))
+import Gen.Reduce.FormatResults     (formatResults)
+import Gen.Reduce.Random            (runRndGen)
+import Gen.Reduce.Reduce            (reduceMain)
+import Gen.Solver.Solver            (SolverArgs (..), solverMain)
 import Gen.UI.UI
-import System.Console.CmdArgs      (cmdArgs)
-import System.CPUTime              (getCPUTime)
-import System.Directory            (getCurrentDirectory, makeAbsolute,
-                                    setCurrentDirectory)
-import System.Environment          (lookupEnv, withArgs, setEnv)
-import System.Exit                 (exitFailure, exitSuccess, exitWith)
-import System.FilePath             (replaceExtension, replaceFileName, takeBaseName,
-                                    takeExtension, takeExtensions)
-import System.Timeout              (timeout)
-import Text.Printf                 (printf)
+import System.Console.CmdArgs       (cmdArgs)
+import System.CPUTime               (getCPUTime)
+import System.Directory             (getCurrentDirectory, makeAbsolute,
+                                     setCurrentDirectory)
+import System.Environment           (lookupEnv, setEnv, withArgs)
+import System.Exit                  (exitFailure, exitSuccess, exitWith)
+import System.FilePath              (replaceExtension, replaceFileName, takeBaseName,
+                                     takeExtension, takeExtensions)
+import System.Timeout               (timeout)
+import Text.Printf                  (printf)
 
 import qualified Data.Set               as S
 import qualified Gen.Essence.UIData     as EC
