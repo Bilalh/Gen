@@ -2,7 +2,9 @@
 module Gen.Instance.Results where
 
 import Conjure.Language.Definition
-import Data.Csv                         (FromNamedRecord,ToNamedRecord,DefaultOrdered,decodeByName,encodeDefaultOrderedByName)
+import Data.Csv                         (DefaultOrdered, FromNamedRecord,
+                                         ToNamedRecord, decodeByName,
+                                         encodeDefaultOrderedByName)
 import Data.List                        (break)
 import Data.Map                         (Map)
 import Database.SQLite.Simple
@@ -11,22 +13,26 @@ import Database.SQLite.Simple.FromRow   ()
 import Gen.Helpers.Str
 import Gen.Imports                      hiding (group)
 import Gen.Instance.Data
+import Gen.Instance.ModeMeta
 import Gen.Instance.Point
 import Gen.Instance.RaceRunner          (conjureCompact, runSolve, script_lookup1)
-import Gen.IO.Formats                   (readFromJSON)
+import Gen.IO.Formats                   (readFromJSON, readFromJSONMay)
 import Gen.IO.Toolchain                 (runCommand')
+import System.Directory                 (getHomeDirectory)
 import System.Exit                      (ExitCode (ExitSuccess))
+import System.FilePath                  (takeDirectory)
 
 import qualified Data.ByteString.Lazy     as BL
-import qualified Data.Map                 as M
 import qualified Data.IntSet              as I
+import qualified Data.Map                 as M
+import qualified Data.Set                 as Set
 import qualified Data.Text                as T
 import qualified Data.Vector              as V
+import qualified Gen.Instance.ModelInfo   as MI
+import qualified Gen.Instance.ModelRow    as MR
 import qualified Gen.Instance.SettingsIn  as IN
 import qualified Gen.Instance.SettingsOut as OUT
 import qualified Gen.Instance.Versions    as S
-import qualified Gen.Instance.ModelRow    as MR
-import qualified Gen.Instance.ModelInfo   as MI
 
 numSetsQuery, numModelsQuery, selectorQuery, compactQuery, modelsQuery :: Query
 
@@ -131,14 +137,22 @@ showResults outdir = do
                      (\is ix -> zip is (repeat ix)) fracs [0 :: Int ..]
   let compactIds = I.fromList $ map snd comp
 
+  essenceDir <- liftIO $ takeDirectory <$> getFullPath (IN.essence vs_head)
+  let modeMeta =  IN.essence_name vs_head ++ "_" ++ IN.mode vs_head <.> ".json"
+  noChanNames <- readFromJSONMay (essenceDir </> modeMeta) >>= \case
+                 Just ModeMeta{..} -> return $ Set.map dropExtension  no_chan
+                 Nothing           -> return Set.empty
+
+
 
   let minfos = map (processModelsInfo meta vs_head winnerIds compactIds compactWon
-                     (length fracs) fracs_size  ) mrows
+                     (length fracs) fracs_size noChanNames ) mrows
   liftIO $ encodeCSV (summary </> "models.csv") minfos
 
   return ()
 
   where
+
     pa m =  "[" ++ (intercalate ", " m) ++ "]"
 
     processSettings meta numFracs fracs_size fracs_str
@@ -154,7 +168,7 @@ showResults outdir = do
            compact_str compactWon ho hostType
 
     processModelsInfo meta lin winnerIds compactIds compactWon
-                      numFracs fracs_size
+                      numFracs fracs_size noChanNames
                       mrow  =
       let (he, clas) =
             case splitOn "@" (IN.essence_name lin) of
@@ -165,11 +179,12 @@ showResults outdir = do
                            x@Just{} -> (x,1)
                            _        -> (Nothing, 0)
 
-      in minToOut meta lin mrow clas he win (mem compactIds) compactWon
-           numFracs fracs_size fracId
+      in minToOut meta lin mrow clas he win inCompact compactWon
+           numFracs fracs_size fracId inNoChan
 
-      where mem s = fromEnum $ (MR.eprimeId mrow) `I.member` s
-
+      where
+        inCompact = fromEnum $ ( MR.eprimeId mrow) `I.member` compactIds
+        inNoChan  = fromEnum $ ( MR.eprime mrow) `Set.member` noChanNames
 
 findResultingSet :: MonadIO m => FilePath -> FilePath -> Constant -> m ([[Int]], Maybe Int)
 findResultingSet db out hval = do
@@ -239,12 +254,20 @@ inToOut RunMetadata{..} IN.CSV_IN{..}
 
 minToOut :: RunMetadata -> IN.CSV_IN -> MR.ModelRow
          -> String -> Maybe String -> Int -> Int
-         -> Int -> Int -> String -> Maybe Int
+         -> Int -> Int -> String -> Maybe Int -> Int
          -> MI.ModelInfo
 minToOut RunMetadata{..} IN.CSV_IN{..} MR.ModelRow{..}
          essenceClass heuristic isWinner isCompact compactWon
-         numFractures fracturesSize fracId
+         numFractures fracturesSize fracId isNoChan
       =  MI.ModelInfo{..}
+
+getFullPath :: FilePath -> IO FilePath
+getFullPath s = do
+    homeDir <- getHomeDirectory
+    return $ case s of
+        "~"             -> homeDir
+        ('~' : '/' : t) -> homeDir </> t
+        _               -> s
 
 _ex1, _ex2 :: IO ()
 _ex1 = showResults "/Users/bilalh/Desktop/Results/sampling_no_large/babbage/results/sdf@prob034-warehouse/nsample/sample-64_rndsols%1%16035"

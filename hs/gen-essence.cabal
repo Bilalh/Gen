@@ -121,6 +121,7 @@ Library
                      , Gen.Instance.Method
                      , Gen.Instance.ModelInfo
                      , Gen.Instance.ModelRow
+                     , Gen.Instance.ModeMeta
                      , Gen.Instance.NoRacing
                      , Gen.Instance.Nsample
                      , Gen.Instance.Point

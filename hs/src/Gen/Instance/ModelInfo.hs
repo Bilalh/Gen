@@ -6,8 +6,8 @@ import Data.Csv hiding (Only)
 
 data ModelInfo = ModelInfo
   { essenceClass         :: !String
-  , heuristic            :: !(Maybe String)
   , kind                 :: !String
+  , heuristic            :: !(Maybe String)
   , run_no               :: !Int
   , paramId              :: !(Int)
   , eprimeId             :: !(Int)
@@ -25,6 +25,7 @@ data ModelInfo = ModelInfo
   , minimising           :: !(Maybe Int)
   , isWinner             :: !(Int)
   , isCompact            :: !(Int)
+  , isNoChan             :: !(Int)
   , fracId               :: !(Maybe Int)
   , numFractures         :: !Int
   , fracturesSize        :: !String
