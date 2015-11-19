@@ -19,6 +19,7 @@ import System.Exit                      (ExitCode (ExitSuccess))
 
 import qualified Data.ByteString.Lazy     as BL
 import qualified Data.Map                 as M
+import qualified Data.IntSet              as I
 import qualified Data.Text                as T
 import qualified Data.Vector              as V
 import qualified Gen.Instance.SettingsIn  as IN
@@ -122,11 +123,17 @@ showResults outdir = do
 
   let vs_head  = headNote "setting.csv should have one row" vs
 
-  let vs2_head = processSettings meta (length fracs)
-              fracs_size fracs_str compact_str compactWon hOrder hostType vs_head
+  let vs2_head = processSettings meta (length fracs) fracs_size fracs_str
+                   compact_str compactWon hOrder hostType vs_head
   liftIO $ encodeCSV (summary </> "summary.csv") [vs2_head]
 
-  let minfos = map (processModelsInfo meta vs_head  ) mrows
+  let winnerIds  = M.fromList $ concat $ zipWith
+                     (\is ix -> zip is (repeat ix)) fracs [0 :: Int ..]
+  let compactIds = I.fromList $ map snd comp
+
+
+  let minfos = map (processModelsInfo meta vs_head winnerIds compactIds compactWon
+                     (length fracs) fracs_size  ) mrows
   liftIO $ encodeCSV (summary </> "models.csv") minfos
 
   return ()
@@ -134,7 +141,8 @@ showResults outdir = do
   where
     pa m =  "[" ++ (intercalate ", " m) ++ "]"
 
-    processSettings meta numFracs fracs_size fracs_str compact_str compactWon hOrder hostType lin  =
+    processSettings meta numFracs fracs_size fracs_str
+                    compact_str compactWon hOrder hostType lin =
       let ho = fromMaybe (rIterationsDone meta) hOrder
           (he, clas) =
             case splitOn "@" (IN.essence_name lin) of
@@ -142,16 +150,25 @@ showResults outdir = do
               _         -> (Nothing, IN.essence_name lin)
 
 
-      in  inToOut meta lin clas he numFracs fracs_size fracs_str compact_str compactWon ho hostType
+      in inToOut meta lin clas he numFracs fracs_size fracs_str
+           compact_str compactWon ho hostType
 
-    processModelsInfo meta lin mrow  =
+    processModelsInfo meta lin winnerIds compactIds compactWon
+                      numFracs fracs_size
+                      mrow  =
       let (he, clas) =
             case splitOn "@" (IN.essence_name lin) of
               [h,c] -> (Just h,c)
               _         -> (Nothing, IN.essence_name lin)
 
+          (fracId,win) = case MR.eprimeId mrow `M.lookup` winnerIds of
+                           x@Just{} -> (x,1)
+                           _        -> (Nothing, 0)
 
-      in minToOut meta lin mrow clas he
+      in minToOut meta lin mrow clas he win (mem compactIds) compactWon
+           numFracs fracs_size fracId
+
+      where mem s = fromEnum $ (MR.eprimeId mrow) `I.member` s
 
 
 findResultingSet :: MonadIO m => FilePath -> FilePath -> Constant -> m ([[Int]], Maybe Int)
@@ -185,8 +202,6 @@ findResultingSet db out hval = do
                     , nn "on" hval]
 
 
-
-
 hittingSet :: MonadIO m => FilePath -> Point -> m (Maybe Point)
 hittingSet out point = do
   liftIO $ createDirectoryIfMissing True (out </> "_run_solve")
@@ -208,15 +223,14 @@ decodeCSV fp = do
         Left err -> error  err
         Right (_, v) -> V.forM v $ \(p :: a) -> return p
 
-
 encodeCSV :: (ToNamedRecord a, DefaultOrdered a) => FilePath -> [a] -> IO ()
 encodeCSV fp cs = do
   BL.writeFile fp $ encodeDefaultOrderedByName cs
 
 
-
 inToOut :: RunMetadata -> IN.CSV_IN
-        -> String -> Maybe String -> Int -> String -> String -> String -> Int -> Int -> String
+        -> String -> Maybe String -> Int -> String -> String -> String
+        -> Int -> Int -> String
         -> OUT.CSV_OUT
 inToOut RunMetadata{..} IN.CSV_IN{..}
         essenceClass heuristic numFractures fracturesSize fractures compact compactWon
@@ -224,9 +238,12 @@ inToOut RunMetadata{..} IN.CSV_IN{..}
       = OUT.CSV_OUT{..}
 
 minToOut :: RunMetadata -> IN.CSV_IN -> MR.ModelRow
-        -> String -> Maybe String
-        -> MI.ModelInfo
-minToOut RunMetadata{..} IN.CSV_IN{..} MR.ModelRow{..} essenceClass heuristic
+         -> String -> Maybe String -> Int -> Int
+         -> Int -> Int -> String -> Maybe Int
+         -> MI.ModelInfo
+minToOut RunMetadata{..} IN.CSV_IN{..} MR.ModelRow{..}
+         essenceClass heuristic isWinner isCompact compactWon
+         numFractures fracturesSize fracId
       =  MI.ModelInfo{..}
 
 _ex1, _ex2 :: IO ()

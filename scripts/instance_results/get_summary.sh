@@ -48,6 +48,7 @@ parallel -j"${cores}" --keep-order  \
 	'process {//}' \
 	:::: <(find . -type d -name 'fastest*' | sort -n ) > resultSet
 
+# shellcheck disable=SC2016
 parallel -j"${cores}" --keep-order  \
 	--rpl '{fmt} $Global::use{"File::Basename"} ||= eval "use File::Basename; 1;"; $_ = dirname($_);$_=sprintf("%-80s",$_)' \
 	--tagstring '{fmt}' \
@@ -58,3 +59,9 @@ parallel -j"${cores}" --keep-order  \
 	' ([ {#} -eq 1 ]  && cat {} ) || tail -n1 {}' \
 	:::: <(find . -type f -name 'summary.csv' \( -not -path '*/r/*' \)) \
 	| sort -nk1 > all.csv
+
+parallel -j"${cores}" --keep-order  \
+	' ([ {#} -eq 1 ]  && cat {} ) || sed 1d {}' \
+	:::: <(find . -type f -name 'models.csv' \( -not -path '*/r/*' \)) \
+	| sort -nk1 > all_models.csv
+

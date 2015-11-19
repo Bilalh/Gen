@@ -8,6 +8,7 @@ data ModelInfo = ModelInfo
   { essenceClass         :: !String
   , heuristic            :: !(Maybe String)
   , kind                 :: !String
+  , run_no               :: !Int
   , paramId              :: !(Int)
   , eprimeId             :: !(Int)
   , eprime               :: !(String)
@@ -22,11 +23,16 @@ data ModelInfo = ModelInfo
   , isDominated          :: !(Int)
   , solutionValue        :: !(Int)
   , minimising           :: !(Maybe Int)
+  , isWinner             :: !(Int)
+  , isCompact            :: !(Int)
+  , fracId               :: !(Maybe Int)
+  , numFractures         :: !Int
+  , fracturesSize        :: !String
+  , compactWon           :: !Int
   , paramQuality         :: !(Double)
   , mode                 :: !String
   , group                :: !Int
   , seq                  :: !Int
-  , run_no               :: !Int
   , essence_name         :: !String
   , iterations           :: !Int
   , per_model_time_given :: !Int
