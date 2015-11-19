@@ -63,5 +63,5 @@ parallel -j"${cores}" --keep-order  \
 parallel -j"${cores}" --keep-order  \
 	' ([ {#} -eq 1 ]  && cat {} ) || sed 1d {}' \
 	:::: <(find . -type f -name 'models.csv' \( -not -path '*/r/*' \)) \
-	| sort -nk1 > all_models.csv
+	| sort -n -k1,1 -k7,7  -k2,2 -k3,3 -k4,4 > all_models.csv
 
