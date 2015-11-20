@@ -4,7 +4,7 @@ cores=${CORES:-"$(parallel --number-of-cores)"};
 
 function process(){
 	out="$1"
-	[[ -n "${CACHE_SUMMARY:-}" && -d "${out}/summary" ]] || gen instance-summary -o "${out}"
+	[[ -z "${NO_CACHE:-}" && -d "${out}/summary" ]] || gen instance-summary -o "${out}"
 }
 export -f process
 
