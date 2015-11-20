@@ -1,12 +1,13 @@
 {-# LANGUAGE DeriveDataTypeable, DeriveGeneric, QuasiQuotes #-}
 module Gen.Instance.Results.ModelInfo where
 
+import Data.Csv    hiding (Only)
 import Gen.Imports
-import Data.Csv hiding (Only)
 
 data ModelInfo = ModelInfo
   { essenceClass         :: !String
-  , kind                 :: !String
+  , kindClass            :: !String
+  , isGiven              :: !Int
   , heuristic            :: !(Maybe String)
   , run_no               :: !Int
   , paramId              :: !(Int)
@@ -31,8 +32,11 @@ data ModelInfo = ModelInfo
   , fracturesSize        :: !String
   , compactWon           :: !Int
   , paramQuality         :: !(Double)
+  , kind                 :: !String
   , mode                 :: !String
   , group                :: !Int
+  , givenGroup           :: !(Maybe Int)
+  , givenOverGroup       :: !(Maybe Int)
   , seq                  :: !Int
   , essence_name         :: !String
   , iterations           :: !Int

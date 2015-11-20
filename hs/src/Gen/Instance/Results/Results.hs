@@ -163,9 +163,13 @@ showResults outdir = do
               [h,c] -> (Just h,c)
               _         -> (Nothing, IN.essence_name lin)
 
+          (kindClass, isGiven) =
+              let t = T.pack $ IN.kind lin
+              in (T.unpack .  T.replace "~given" "" $ t
+                 , fromEnum $  "~given" `T.isInfixOf` t )
 
       in inToOut meta lin clas he numFracs fracs_size fracs_str
-           compact_str compactWon ho hostType
+           compact_str compactWon ho hostType kindClass isGiven
 
     processModelsInfo meta lin winnerIds compactIds compactWon
                       numFracs fracs_size noChanNames
@@ -178,9 +182,13 @@ showResults outdir = do
           (fracId,win) = case MR.eprimeId mrow `M.lookup` winnerIds of
                            x@Just{} -> (x,1)
                            _        -> (Nothing, 0)
+          (kindClass, isGiven) =
+              let t = T.pack $ IN.kind lin
+              in (T.unpack .  T.replace "~given" "" $ t
+                 , fromEnum $  "~given" `T.isInfixOf` t )
 
       in minToOut meta lin mrow clas he win inCompact compactWon
-           numFracs fracs_size fracId inNoChan
+           numFracs fracs_size fracId inNoChan  kindClass isGiven
 
       where
         inCompact = fromEnum $ ( MR.eprimeId mrow) `I.member` compactIds
@@ -245,21 +253,23 @@ encodeCSV fp cs = do
 
 inToOut :: RunMetadata -> IN.CSV_IN
         -> String -> Maybe String -> Int -> String -> String -> String
-        -> Int -> Int -> String
+        -> Int -> Int -> String -> String -> Int
         -> OUT.CSV_OUT
 inToOut RunMetadata{..} IN.CSV_IN{..}
         essenceClass heuristic numFractures fracturesSize fractures compact compactWon
-        highestOrderingNeeded hostType
+        highestOrderingNeeded hostType kindClass isGiven
       = OUT.CSV_OUT{..}
+ where (givenGroup, givenOverGroup) = (Nothing, Nothing)
 
 minToOut :: RunMetadata -> IN.CSV_IN -> MR.ModelRow
          -> String -> Maybe String -> Int -> Int
-         -> Int -> Int -> String -> Maybe Int -> Int
+         -> Int -> Int -> String -> Maybe Int -> Int -> String -> Int
          -> MI.ModelInfo
 minToOut RunMetadata{..} IN.CSV_IN{..} MR.ModelRow{..}
          essenceClass heuristic isWinner isCompact compactWon
-         numFractures fracturesSize fracId isNoChan
+         numFractures fracturesSize fracId isNoChan kindClass isGiven
       =  MI.ModelInfo{..}
+ where (givenGroup, givenOverGroup) = (Nothing, Nothing)
 
 getFullPath :: FilePath -> IO FilePath
 getFullPath s = do

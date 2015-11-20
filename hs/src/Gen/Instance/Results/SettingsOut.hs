@@ -20,6 +20,10 @@ data CSV_OUT = CSV_OUT
   , essence                        :: !String
   , output_dir                     :: !String
   , essenceClass                   :: !String
+  , kindClass                      :: !String
+  , isGiven                        :: !Int
+  , givenGroup                     :: !(Maybe Int)
+  , givenOverGroup                 :: !(Maybe Int)
   , heuristic                      :: !(Maybe String)
   , numFractures                   :: !Int
   , fracturesSize                  :: !String
