@@ -22,8 +22,8 @@ data CSV_OUT = CSV_OUT
   , essenceClass                   :: !String
   , kindClass                      :: !String
   , isGiven                        :: !Int
-  , givenGroup                     :: !(Maybe Int)
-  , givenOverGroup                 :: !(Maybe Int)
+  , givenRunGroup                  :: !(Maybe Int)
+  , paramGroup                     :: !(Maybe Int)
   , heuristic                      :: !(Maybe String)
   , numFractures                   :: !Int
   , fracturesSize                  :: !String
@@ -42,6 +42,7 @@ data CSV_OUT = CSV_OUT
   , rIterationsDone                :: !Int
   , rIterationsDoneIncludingFailed :: !Int
   , hostType                       :: !String
+  , paramsUsedHash                 :: !String
   } deriving (Generic, Show, Eq)
 
 instance FromNamedRecord CSV_OUT

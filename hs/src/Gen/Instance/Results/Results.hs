@@ -23,6 +23,7 @@ import System.Exit                      (ExitCode (ExitSuccess))
 import System.FilePath                  (takeDirectory)
 
 import qualified Data.ByteString.Lazy     as BL
+import qualified Data.ByteString.Char8 as C
 import qualified Data.IntSet              as I
 import qualified Data.Map                 as M
 import qualified Data.Set                 as Set
@@ -33,8 +34,10 @@ import qualified Gen.Instance.Results.ModelRow    as MR
 import qualified Gen.Instance.Results.SettingsIn  as IN
 import qualified Gen.Instance.Results.SettingsOut as OUT
 import qualified Gen.Instance.Results.Versions    as S
+import qualified Crypto.Hash as Crypto
 
-numSetsQuery, numModelsQuery, selectorQuery, compactQuery, modelsQuery :: Query
+numSetsQuery, numModelsQuery, selectorQuery, compactQuery :: Query
+modelsQuery, paramsQuery :: Query
 
 numSetsQuery = "Select distinct count(*) From ParamQuality"
 numModelsQuery = "Select count(eprime) From Eprimes;"
@@ -64,6 +67,11 @@ modelsQuery = [str|
   ON   TD.paramHash = PQ.paramHash
   |]
 
+paramsQuery = [str|
+  Select   paramHash
+  From     ParamQuality
+  Order by paramHash asc
+  |]
 
 showResults :: (MonadIO m)
             => FilePath ->m ()
@@ -72,13 +80,15 @@ showResults outdir = do
   let summary = outdir </> "summary"
   liftIO $ createDirectoryIfMissing True summary
 
-  (numSets,numModels,groups,comp,mrows) <- liftIO $ withConnection db $ \conn -> do
-    [Only numSets]    <- query_ conn numSetsQuery
-    [Only numModels]  <- query_ conn numModelsQuery
-    groups   :: [Only Text] <- query_ conn selectorQuery
-    compacts :: [(Text,Int)]  <- query_ conn compactQuery
-    mrows :: [ MR.ModelRow ] <- query_ conn modelsQuery
-    return (numSets,numModels,groups,compacts,mrows)
+  (numSets,numModels,groups,comp,mrows,bps) <- liftIO $ withConnection db $ \conn -> do
+    [Only numSets]   <- query_ conn numSetsQuery
+    [Only numModels] <- query_ conn numModelsQuery
+
+    groups   :: [Only Text]           <- query_ conn selectorQuery
+    compacts :: [(Text,Int)]          <- query_ conn compactQuery
+    mrows    :: [ MR.ModelRow ]       <- query_ conn modelsQuery
+    bps      :: [ Only String ]       <- query_ conn paramsQuery
+    return (numSets,numModels,groups,compacts,mrows,bps)
 
   let ints :: [[Integer]] = [ mapMaybe (readMay . textToString) $ T.split (== ',') g
                             | Only g <- groups ]
@@ -88,6 +98,10 @@ showResults outdir = do
                     ,("sets",  (ConstantAbstract $ AbsLitMSet sets ) )
                     ,("numModels", ConstantInt numModels)]
 
+
+  let paramsUsedS = intercalate "-" [ p | Only p <- bps ]
+      paramsUsedHash :: Crypto.Digest Crypto.SHA512 = Crypto.hash $ C.pack $ paramsUsedS
+      paramUsedHashString = show paramsUsedHash
 
   liftIO $ writeFile (summary </> "meta" ) $ show $ vcat [
         "Compact is " <+> hcat (punctuate ", " [ pretty num | (_,num) <- comp  ])
@@ -130,8 +144,9 @@ showResults outdir = do
   let vs_head  = headNote "setting.csv should have one row" vs
 
   let vs2_head = processSettings meta (length fracs) fracs_size fracs_str
-                   compact_str compactWon hOrder hostType vs_head
+                   compact_str compactWon hOrder hostType paramUsedHashString vs_head
   liftIO $ encodeCSV (summary </> "summary.csv") [vs2_head]
+
 
   let winnerIds  = M.fromList $ concat $ zipWith
                      (\is ix -> zip is (repeat ix)) fracs [0 :: Int ..]
@@ -156,7 +171,7 @@ showResults outdir = do
     pa m =  "[" ++ (intercalate ", " m) ++ "]"
 
     processSettings meta numFracs fracs_size fracs_str
-                    compact_str compactWon hOrder hostType lin =
+                    compact_str compactWon hOrder hostType ph lin =
       let ho = fromMaybe (rIterationsDone meta) hOrder
           (he, clas) =
             case splitOn "@" (IN.essence_name lin) of
@@ -169,11 +184,11 @@ showResults outdir = do
                  , fromEnum $  "~given" `T.isInfixOf` t )
 
       in inToOut meta lin clas he numFracs fracs_size fracs_str
-           compact_str compactWon ho hostType kindClass isGiven
+           compact_str compactWon ho hostType kindClass isGiven ph
 
     processModelsInfo meta lin winnerIds compactIds compactWon
                       numFracs fracs_size noChanNames
-                      mrow  =
+                      mrow =
       let (he, clas) =
             case splitOn "@" (IN.essence_name lin) of
               [h,c] -> (Just h,c)
@@ -253,13 +268,13 @@ encodeCSV fp cs = do
 
 inToOut :: RunMetadata -> IN.CSV_IN
         -> String -> Maybe String -> Int -> String -> String -> String
-        -> Int -> Int -> String -> String -> Int
+        -> Int -> Int -> String -> String -> Int -> String
         -> OUT.CSV_OUT
 inToOut RunMetadata{..} IN.CSV_IN{..}
         essenceClass heuristic numFractures fracturesSize fractures compact compactWon
-        highestOrderingNeeded hostType kindClass isGiven
+        highestOrderingNeeded hostType kindClass isGiven paramsUsedHash
       = OUT.CSV_OUT{..}
- where (givenGroup, givenOverGroup) = (Nothing, Nothing)
+ where (givenRunGroup, paramGroup) = (Nothing, Nothing)
 
 minToOut :: RunMetadata -> IN.CSV_IN -> MR.ModelRow
          -> String -> Maybe String -> Int -> Int
@@ -269,7 +284,7 @@ minToOut RunMetadata{..} IN.CSV_IN{..} MR.ModelRow{..}
          essenceClass heuristic isWinner isCompact compactWon
          numFractures fracturesSize fracId isNoChan kindClass isGiven
       =  MI.ModelInfo{..}
- where (givenGroup, givenOverGroup) = (Nothing, Nothing)
+ where (givenRunGroup, paramGroup) = (Nothing, Nothing)
 
 getFullPath :: FilePath -> IO FilePath
 getFullPath s = do

@@ -35,8 +35,8 @@ data ModelInfo = ModelInfo
   , kind                 :: !String
   , mode                 :: !String
   , group                :: !Int
-  , givenGroup           :: !(Maybe Int)
-  , givenOverGroup       :: !(Maybe Int)
+  , givenRunGroup        :: !(Maybe Int)
+  , paramGroup           :: !(Maybe Int)
   , seq                  :: !Int
   , essence_name         :: !String
   , iterations           :: !Int
