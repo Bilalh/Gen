@@ -8,6 +8,6 @@ function process(){
 }
 export -f process
 
-parallel -j"${cores}" --line-buffer --tagstring '{/.}' \
+parallel -j"${cores}" --line-buffer --tagstring '{#} {/.}' \
 	'process {//}' \
 	:::: <(find . -type d -name 'fastest*')
