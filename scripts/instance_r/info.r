@@ -23,13 +23,6 @@ info=ddply(all, c("essenceClass", "kind", "heuristic", "mode","group"), summaris
            )
 
 
-
-# given_groups <- rep(NA, length(all$index))
-# u <-  unique(all$output_dir2)
-# for (i in (1:length(u) )  ){
-# }
-
-# finished=info[info$runs==3,]
-# # View(finished)
-# write.csv(finished, file="summary.csv")
-#
+finished=info[info$runs==3,]
+# View(finished)
+write.csv(finished, file="summary.csv")
