@@ -4,12 +4,14 @@ if(length(new.packages)) install.packages(new.packages, repos="http://cran.rstud
 
 library(plyr)
 
+base <- "/Users/bilalh/Desktop/Results/sampling_no_large/"
+
 # Cache the data for quick loading
 # Delete all_models.csv.bin to refresh the data
 if (file.exists("all_models.csv.bin")) {
   load("all_models.csv.bin")
 }else{
-  models <- read.csv("../all_models.csv")
+  models <- read.csv(file.path(base,"all_models.csv"))
 
   pnames <- unique(models$essenceClass)
   var_names <- gsub("-","_", pnames)
@@ -40,7 +42,7 @@ win.times <- ddply(win, c("essenceClass", "kind", "heuristic", "mode", "eprime",
       avgRunTime_marked=mean(totalTimeMarked),
       minRunTime=min(totalTime, na.rm = TRUE),
       maxRunTime=max(totalTime, na.rm = TRUE),
-      avgNodes_noNa=mean(minionNodes, na.rm=TRUE),
+      avgNodes_noNa=mean(minionNodes, na.rm=TRUE)
 )
 
 head(win.times)

@@ -3,7 +3,9 @@ new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"
 if(length(new.packages)) install.packages(new.packages, repos="http://cran.rstudio.com/")
 
 library(plyr)
-all <- read.csv("../all.csv")
+
+base <- "/Users/bilalh/Desktop/Results/sampling_no_large/"
+all <- read.csv(file.path(base, "all.csv"))
 
 info=ddply(all, c("essenceClass", "kind", "heuristic", "mode","group"), summarise,
            runs=length(run_no),
