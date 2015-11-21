@@ -98,3 +98,4 @@ for row in rows:
 
 tmpPath = csvfile.with_suffix(".tmp.csv")
 write_csv(tmpPath, headers=fieldnames, rows=rows)
+tmpPath.replace(csvfile)
