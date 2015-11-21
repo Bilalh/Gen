@@ -4,7 +4,7 @@ if(length(new.packages)) install.packages(new.packages, repos="http://cran.rstud
 
 library(plyr)
 
-base <- "/Users/bilalh/Desktop/Results/sampling_no_large/"
+base <- path.expand("~/Desktop/Results/sampling_no_large/")
 all <- read.csv(file.path(base, "all.csv"))
 
 info=ddply(all, c("essenceClass", "kind", "heuristic", "mode","group"), summarise,
