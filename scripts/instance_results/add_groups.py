@@ -17,8 +17,15 @@ logger = logging.getLogger(__name__)
 def setup():
   """ args and logging """
   parser = argparse.ArgumentParser(description="Add the given group ideas")
+  parser.add_argument("--all",
+                      default="all.csv",
+                      metavar="CSV",
+                      help="default: %(default)s")
+  parser.add_argument("--all_models",
+                      default="all_models.csv",
+                      metavar="CSV",
+                      help="default: %(default)s")
   args = parser.parse_args()
-  args.csv = "all.csv"
 
   logger_level = logging.INFO
   logger_format = '%(name)s:%(lineno)d:%(funcName)s: %(message)s'
@@ -59,9 +66,10 @@ def write_csv(csvfile, *, headers, rows):
 
 
 args = setup()
-csvfile = Path(args.csv)
-(rows, fieldnames) = read_csv(csvfile)
+csvfile = Path(args.all)
+allModels_csv = Path(args.all_models)
 
+(rows, fieldnames) = read_csv(csvfile)
 run_fields = ["essenceClass", "mode", "iterations", "per_model_time_given",
               "use_all_solutions", "influence_radius", "num_models", "race_time_given",
               "paramsUsedHash"]
@@ -85,17 +93,52 @@ for row in rows:
 param_groups = dict(itertools.chain(*[[(seq, base_group[k]) for seq in vs] for k, vs in
                                       givens.items() if k in base_group]))
 
+# str(seq) -> seq
+# to make process the large all_models.csv faster
+# and defaultdict is not written in older versions of py3
+givenRunGroupMap = {}
+strParamGroup = {}
+
 for row in rows:
   try:
     row['paramGroup'] = param_groups[row['seq']]
+    strParamGroup[str(row['seq'])] = row['paramGroup']
   except KeyError:
     pass
   if row['isGiven'] == 1:
     try:
       row['givenRunGroup'] = base_group_hashes[hash_row(row, compare=run_fields)]
+      givenRunGroupMap[str(row['seq'])] = row['givenRunGroup']
     except KeyError:
       pass
 
 tmpPath = csvfile.with_suffix(".tmp.csv")
+if tmpPath.exists():
+  tmpPath.unlink()
+
 write_csv(tmpPath, headers=fieldnames, rows=rows)
 tmpPath.replace(csvfile)
+
+# Stream all_models.csv since it so large
+tmpPath2 = allModels_csv.with_suffix(".tmp.csv")
+if tmpPath2.exists():
+  tmpPath2.unlink()
+
+with allModels_csv.open('r') as fin:
+  with tmpPath2.open('w') as fout:
+    r = csv.DictReader(fin)
+    w = csv.DictWriter(fout, r.fieldnames)
+    w.writeheader()
+    for row in r:
+      try:
+        row['paramGroup'] = strParamGroup[row['seq']]
+      except KeyError:
+        pass
+      try:
+        row['givenRunGroup'] = givenRunGroupMap[row['seq']]
+      except KeyError:
+        pass
+
+      w.writerow(row)
+
+tmpPath2.replace(allModels_csv)
