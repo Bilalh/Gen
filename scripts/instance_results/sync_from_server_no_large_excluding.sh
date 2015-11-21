@@ -21,6 +21,9 @@ esac
 
 pushd "${server}"
 set -x
-rsync -avh --links --progress --compress --stats "${server}":sampling/ ./ --exclude="results_*" --exclude="*%${num}*"
+rsync -avh --links --progress --compress --stats "${server}":sampling/ ./  \
+	--exclude="results_*"        \
+	--exclude="*%${num}*"        \
+	--exclude-from=../synced.txt
 set +x
 popd
