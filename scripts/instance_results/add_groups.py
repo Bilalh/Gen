@@ -81,8 +81,6 @@ base_group_hashes = {
              compare=run_fields): row['seq']
     for row in rows if row['isGiven'] == 0
 }
-# for (k, v) in base_group_hashes.items():
-#   pprint((v, k))
 
 givens = defaultdict(set)
 for row in rows:
@@ -92,6 +90,11 @@ for row in rows:
 # seq -> paramsUsedHash of base_group if it exists
 param_groups = dict(itertools.chain(*[[(seq, base_group[k]) for seq in vs] for k, vs in
                                       givens.items() if k in base_group]))
+
+param_groups.update({v: v for v in param_groups.values()})
+
+# Only add the givenRunGroup if acually have a group of runs
+base_givenRunGroup_ids = set()
 
 # str(seq) -> seq
 # to make process the large all_models.csv faster
@@ -109,8 +112,14 @@ for row in rows:
     try:
       row['givenRunGroup'] = base_group_hashes[hash_row(row, compare=run_fields)]
       givenRunGroupMap[str(row['seq'])] = row['givenRunGroup']
+      givenRunGroupMap[str(row['givenRunGroup'])] = row['givenRunGroup']
+      base_givenRunGroup_ids.add(row['givenRunGroup'])
     except KeyError:
       pass
+
+for row in rows:
+  if row['seq'] in base_givenRunGroup_ids:
+    row['givenRunGroup'] = row['seq']
 
 tmpPath = csvfile.with_suffix(".tmp.csv")
 if tmpPath.exists():
