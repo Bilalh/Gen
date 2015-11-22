@@ -25,6 +25,7 @@ import Gen.IO.Dups                  (deleteDups2, refineDups, solveDups)
 import Gen.IO.FindCompact           (findCompact)
 import Gen.IO.Formats               (readFromJSON)
 import Gen.IO.RunResult             (giveDb, writeDB_)
+import Gen.IO.SmacProcess           (smacProcess)
 import Gen.IO.Term
 import Gen.IO.Toolchain             (KindI (..), StatusI (..), ToolchainOutput (..),
                                      doMeta, kindsList, statusesList)
@@ -63,7 +64,7 @@ main = do
                    , "weights" , "script-toolchain", "script-removeDups"
                    , "instance-nsample", "instance-undirected", "instance-summary"
                    , "script-createDbHashes", "script-updateChoices"
-                   , "instance-allsols", "instance-noRacing"] -> do
+                   , "instance-allsols", "instance-noRacing", "script-smac-process"] -> do
        args <- helpArg
        void $ withArgs [x, args] (cmdArgs ui)
 
@@ -623,6 +624,20 @@ mainWithArgs Script_RemoveDups{..} = do
   putStrLn "Result"
   putStrLn $ show $ map pretty  dups
   deleteDups2 dups
+
+mainWithArgs Script_SMAC{..} = do
+
+  errors <- return []
+
+  case errors of
+    [] -> return ()
+    xs -> mapM putStrLn xs >> exitFailure
+
+  runLoggerPipeIO log_level $
+    smacProcess
+      s_output_directory s_eprime s_instance_specific s_cutoff_time
+      s_cutoff_length s_seed s_param_arr
+
 
 
 instanceCommon :: Int -> Instance_Common -> IO MCommon

@@ -137,6 +137,7 @@ Library
                      , Gen.IO.FindCompact
                      , Gen.IO.Formats
                      , Gen.IO.RunResult
+                     , Gen.IO.SmacProcess
                      , Gen.IO.Term
                      , Gen.IO.TermSize
                      , Gen.IO.Toolchain

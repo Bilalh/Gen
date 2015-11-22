@@ -217,6 +217,18 @@ data UI
     , dups_kind  :: DupKind
     , limit_time :: Maybe Int
     }
+  | Script_SMAC
+    {
+       s_output_directory  :: FilePath
+    ,  s_eprime            :: String
+    ,  s_instance_specific :: String
+    ,  s_cutoff_time       :: Double
+    ,  s_cutoff_length     :: Double
+    ,  s_seed              :: Int
+    ,  s_param_arr         :: [String]
+    ,  limit_time          :: Maybe Int
+    ,  log_level           :: LogLevel
+    }
   deriving (Show, Data, Typeable)
 
 
@@ -1015,6 +1027,34 @@ ui  = modes
        &= help "Run the toolchain on an essence spec"
 
 
+  , Script_SMAC
+     { s_output_directory   = def      &= typ "output_directory"
+                                       &= argPos 0
+     ,  s_eprime            = def      &= typ "eprime"
+                                       &= argPos 1
+     ,  s_instance_specific = def      &= typ "instance_specific"
+                                       &= argPos 2
+     ,  s_cutoff_time       = def      &= typ "cutoff_time"
+                                       &= argPos 3
+     ,  s_cutoff_length     = def      &= typ "cutoff_length"
+                                       &= argPos 4
+     ,  s_seed              = def      &= typ "seed"
+                                       &= argPos 5
+     ,  s_param_arr         = def      &= typ "param_arr"
+                                       &= args
+     , limit_time           = Nothing  &= name "limit-time"
+                                       &= explicit
+                                       &= help "Time limit in seconds of CPU time of this program"
+                                       &= groupname "Other"
+                                       &= explicit
+     , log_level            = LogDebug &= name "log-level"
+                                       &= groupname "Other"
+                                       &= explicit
+                                       &= help "Logging level, default LogDebug"
+     } &= name "script-smac-process"
+       &= help "wrapper script for the SMAC param tunner "
+
+
   , Script_UpdateChoices
      {
        choices_in_  = def     &= typ "IN-JSON"
@@ -1030,7 +1070,6 @@ ui  = modes
        &= name "script-updateChoices"
        &= help "Convert AnsweredRepr to AnsweredReprStored from IN to OUT"
 
-
   ] &= program "gen"
-    &= summary (unlines ["Gen 0.9",  "Git version: " ++ autoVersion])
+    &= summary (unlines ["Gen 0.9.1",  "Git version: " ++ autoVersion])
     &= helpArg [name "h"]
