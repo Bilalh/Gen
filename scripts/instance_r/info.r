@@ -26,3 +26,5 @@ info=ddply(all, c("essenceClass", "kind", "heuristic", "mode","group"), summaris
 finished=info[info$runs==3,]
 # View(finished)
 write.csv(finished, file="summary.csv")
+
+View(all)

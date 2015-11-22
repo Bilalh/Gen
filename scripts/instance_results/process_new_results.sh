@@ -8,4 +8,5 @@ set -x
   && "${OUR}/get_summary.sh"   \
   && "${OUR}/add_groups.py"    \
   && "${OUR}/make_excluded.sh"
+  && ( [ -f r/all_models.csv.bin ] && rm r/all_models.csv.bin ) || return 0
 set +x

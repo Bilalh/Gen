@@ -1,3 +1,5 @@
+# Run models.r to generate the cached results
+
 list.of.packages <- c("plyr")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages, repos="http://cran.rstudio.com/")
@@ -24,20 +26,21 @@ if (file.exists("all_models.csv.bin")) {
 # Make each class it's own data frame
 # list2env(parts, envir = .GlobalEnv)
 
+
+# examples
+
 # The problem to look at
-prob<-parts$prob034_warehouse
+p<-parts$prob034_warehouse
 
-win <- prob[ prob$isWinner ==1
-           & prob$paramQuality < 1
-           & (prob$kind == "undirected~given"
-             | prob$kind == "undirected")
-           , ]
-(win.names <- unique(win$eprime))
+ex <- p[ p$isWinner ==1
+       & p$paramQuality < 1
+       , ]
+(unique(ex$eprime))
 
-win$totalTimeMarked <- win$totalTime
-win$totalTimeMarked[is.na(win$totalTimeMarked)] <- 600
+ex$totalTimeMarked <- ex$totalTime
+ex$totalTimeMarked[is.na(ex$totalTimeMarked)] <- 600
 
-win.times <- ddply(win, c("essenceClass", "kind", "heuristic", "mode", "eprime", "run_no"), summarise,
+ex.times <- ddply(ex, c("essenceClass", "kind", "heuristic", "mode", "eprime", "run_no"), summarise,
       avgRunTime_noNa=mean(totalTime, na.rm=TRUE),
       avgRunTime_marked=mean(totalTimeMarked),
       minRunTime=min(totalTime, na.rm = TRUE),
@@ -45,7 +48,7 @@ win.times <- ddply(win, c("essenceClass", "kind", "heuristic", "mode", "eprime",
       avgNodes_noNa=mean(minionNodes, na.rm=TRUE)
 )
 
-head(win.times)
-# View(win.times)
+head(ex.times)
+# View(ex.times)
 
 

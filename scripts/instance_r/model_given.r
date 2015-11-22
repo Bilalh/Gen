@@ -29,3 +29,4 @@ win.times <- ddply(win, c("essenceClass", "kind", "heuristic", "mode", "eprime",
                    maxRunTime=max(totalTime, na.rm = TRUE),
                    avgNodes_noNa=mean(minionNodes, na.rm=TRUE)
 )
+
