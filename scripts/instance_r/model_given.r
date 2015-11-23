@@ -9,8 +9,8 @@ library(plyr)
 library(ggplot2)
 library(scales)
 
-# prob <- parts$prob034_warehouse
-prob <- models
+prob <- parts$prob034_warehouse
+# prob <- models
 
 
 
@@ -25,7 +25,7 @@ win <- mult[ mult$isWinner ==1
 win$totalTimeMarked <- win$totalTime
 win$totalTimeMarked[is.na(win$totalTimeMarked)] <- 600
 
-win.avgtimes <- ddply(win, c("essenceClass", "kind", "heuristic", "mode", "eprime", "run_no", "givenRunGroup"), summarise,
+win.avgtimes <- ddply(win, c("essenceClass", "kind", "heuristic", "mode", "eprimeUID", "run_no", "givenRunGroup"), summarise,
                    avgRunTime_noNa=mean(totalTime, na.rm=TRUE),
                    avgRunTime_marked=mean(totalTimeMarked),
                    minRunTime=min(totalTime, na.rm = TRUE),
@@ -34,20 +34,20 @@ win.avgtimes <- ddply(win, c("essenceClass", "kind", "heuristic", "mode", "eprim
 )
 
 
-win.paramTimes <- ddply(win, c("essenceClass", "kind", "heuristic", "mode", "eprime", "paramHash", "run_no", "givenRunGroup"), summarise,
+win.paramTimes <- ddply(win, c("essenceClass", "kind", "heuristic", "mode", "eprimeUID", "paramUID", "run_no", "givenRunGroup"), summarise,
                    runTime=totalTime,
                    runTime_marked=totalTimeMarked,
                    nodes=minionNodes
 )
 
 
-yy <- ggplot( data=win.paramTimes, aes( x=paramHash, y=nodes, color=heuristic) )
-yy <- yy + facet_grid(eprime ~ .)
-yy <- yy + geom_point(shape=1)
-# yy <- yy + geom_point(shape=1, position=position_jitter(width=0.1,height=0.01))
+yy <- ggplot( data=win.paramTimes, aes( x=paramUID, y=nodes, color=heuristic) )
+yy <- yy + facet_grid(. ~ eprimeUID )
+# yy <- yy + geom_point(shape=1)
+yy <- yy + geom_point(shape=1, position=position_jitter(width=0.1,height=0.01))
 # yy <- yy + xlab("Model")
 # yy <- yy + ylab("CPU Time")
-yy <- yy + scale_y_log10()
+# yy <- yy + scale_y_log10()
 yy
 
 

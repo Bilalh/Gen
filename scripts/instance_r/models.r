@@ -19,11 +19,11 @@ if (file.exists("all_models.csv.bin")) {
   models <- merge(merge(models_,p_id, by.x = "paramHash", by.y = "paramHash"), e_id, by.x="eprime", by.y="eprime"  )
 
 
-  pnames <- unique(models$essenceClass)
-  var_names <- gsub("-","_", pnames)
-
   parts <- split( models , models$essenceClass )
+  pnames <- names(parts)
+  var_names <- gsub("-","_", pnames)
   names(parts) <- var_names
+
   save(models, parts, file="all_models.csv.bin", compress=FALSE)
 }
 
