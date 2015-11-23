@@ -13,7 +13,11 @@ base <- path.expand("~/Desktop/Results/sampling_no_large/")
 if (file.exists("all_models.csv.bin")) {
   load("all_models.csv.bin")
 }else{
-  models <- read.csv(file.path(base,"all_models.csv"))
+  models_ <- read.csv(file.path(base,"all_models.csv"))
+  p_id <- data.frame(paramHash= unique(models_$paramHash), paramUID = seq(length(unique(models_$paramHash))) )
+  e_id <- data.frame(eprime= unique(models_$eprime), eprimeUID = seq(length(unique(models_$eprime))) )
+  models <- merge(merge(models_,p_id, by.x = "paramHash", by.y = "paramHash"), e_id, by.x="eprime", by.y="eprime"  )
+
 
   pnames <- unique(models$essenceClass)
   var_names <- gsub("-","_", pnames)

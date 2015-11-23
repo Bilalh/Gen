@@ -9,8 +9,10 @@ library(plyr)
 library(ggplot2)
 library(scales)
 
-prob <- parts$prob034_warehouse
-# prob <- models
+# prob <- parts$prob034_warehouse
+prob <- models
+
+
 
 # We have run the params on multiple heuristics
 mult <- prob[  ! is.na(prob$givenRunGroup)  , ]
@@ -34,9 +36,18 @@ win.avgtimes <- ddply(win, c("essenceClass", "kind", "heuristic", "mode", "eprim
 
 win.paramTimes <- ddply(win, c("essenceClass", "kind", "heuristic", "mode", "eprime", "paramHash", "run_no", "givenRunGroup"), summarise,
                    runTime=totalTime,
-                   # runTime_marked=totalTimeMarked,
+                   runTime_marked=totalTimeMarked,
                    nodes=minionNodes
 )
 
+
+yy <- ggplot( data=win.paramTimes, aes( x=paramHash, y=nodes, color=heuristic) )
+yy <- yy + facet_grid(eprime ~ .)
+yy <- yy + geom_point(shape=1)
+# yy <- yy + geom_point(shape=1, position=position_jitter(width=0.1,height=0.01))
+# yy <- yy + xlab("Model")
+# yy <- yy + ylab("CPU Time")
+yy <- yy + scale_y_log10()
+yy
 
 
