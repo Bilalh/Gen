@@ -24,7 +24,7 @@ data CSV_OUT = CSV_OUT
   , isGiven                        :: !Int
   , givenRunGroup                  :: !(Maybe Int)
   , paramGroup                     :: !(Maybe Int)
-  , heuristic                      :: !(Maybe String)
+  , heuristic                      :: !String
   , numFractures                   :: !Int
   , fracturesSize                  :: !String
   , fractures                      :: !String

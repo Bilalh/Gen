@@ -175,8 +175,8 @@ showResults outdir = do
       let ho = fromMaybe (rIterationsDone meta) hOrder
           (he, clas) =
             case splitOn "@" (IN.essence_name lin) of
-              [h,c] -> (Just h,c)
-              _         -> (Nothing, IN.essence_name lin)
+              [h,c] -> (h,c)
+              _     -> ("static", IN.essence_name lin)
 
           (kindClass, isGiven) =
               let t = T.pack $ IN.kind lin
@@ -191,8 +191,8 @@ showResults outdir = do
                       mrow =
       let (he, clas) =
             case splitOn "@" (IN.essence_name lin) of
-              [h,c] -> (Just h,c)
-              _         -> (Nothing, IN.essence_name lin)
+              [h,c] -> (h,c)
+              _     -> ("static", IN.essence_name lin)
 
           (fracId,win) = case MR.eprimeId mrow `M.lookup` winnerIds of
                            x@Just{} -> (x,1)
@@ -267,17 +267,17 @@ encodeCSV fp cs = do
 
 
 inToOut :: RunMetadata -> IN.CSV_IN
-        -> String -> Maybe String -> Int -> String -> String -> String
+        -> String -> String -> Int -> String -> String -> String
         -> Int -> Int -> String -> String -> Int -> String
         -> OUT.CSV_OUT
-inToOut RunMetadata{..} IN.CSV_IN{..}
+inToOut RunMetadata{..} x@IN.CSV_IN{..}
         essenceClass heuristic numFractures fracturesSize fractures compact compactWon
         highestOrderingNeeded hostType kindClass isGiven paramsUsedHash
       = OUT.CSV_OUT{..}
  where (givenRunGroup, paramGroup) = (Nothing, Nothing)
 
 minToOut :: RunMetadata -> IN.CSV_IN -> MR.ModelRow
-         -> String -> Maybe String -> Int -> Int
+         -> String -> String -> Int -> Int
          -> Int -> Int -> String -> Maybe Int -> Int -> String -> Int
          -> MI.ModelInfo
 minToOut RunMetadata{..} IN.CSV_IN{..} MR.ModelRow{..}

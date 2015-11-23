@@ -8,7 +8,7 @@ data ModelInfo = ModelInfo
   { essenceClass         :: !String
   , kindClass            :: !String
   , isGiven              :: !Int
-  , heuristic            :: !(Maybe String)
+  , heuristic            :: !String
   , run_no               :: !Int
   , paramId              :: !(Int)
   , eprimeId             :: !(Int)

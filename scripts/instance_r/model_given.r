@@ -9,7 +9,8 @@ library(plyr)
 library(ggplot2)
 library(scales)
 
-prob = parts$prob034_warehouse
+prob <- parts$prob034_warehouse
+# prob <- models
 
 # We have run the params on multiple heuristics
 mult <- prob[  ! is.na(prob$givenRunGroup)  , ]
@@ -22,11 +23,20 @@ win <- mult[ mult$isWinner ==1
 win$totalTimeMarked <- win$totalTime
 win$totalTimeMarked[is.na(win$totalTimeMarked)] <- 600
 
-win.times <- ddply(win, c("essenceClass", "kind", "heuristic", "mode", "eprime", "run_no", "givenRunGroup"), summarise,
+win.avgtimes <- ddply(win, c("essenceClass", "kind", "heuristic", "mode", "eprime", "run_no", "givenRunGroup"), summarise,
                    avgRunTime_noNa=mean(totalTime, na.rm=TRUE),
                    avgRunTime_marked=mean(totalTimeMarked),
                    minRunTime=min(totalTime, na.rm = TRUE),
                    maxRunTime=max(totalTime, na.rm = TRUE),
                    avgNodes_noNa=mean(minionNodes, na.rm=TRUE)
 )
+
+
+win.paramTimes <- ddply(win, c("essenceClass", "kind", "heuristic", "mode", "eprime", "paramHash", "run_no", "givenRunGroup"), summarise,
+                   runTime=totalTime,
+                   # runTime_marked=totalTimeMarked,
+                   nodes=minionNodes
+)
+
+
 
