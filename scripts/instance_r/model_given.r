@@ -1,6 +1,3 @@
-# Run models.r to generate the cached results
-load("all_models.csv.bin")
-
 list.of.packages <- c("plyr", "ggplot2")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages, repos="http://cran.rstudio.com/")
@@ -9,10 +6,17 @@ library(plyr)
 library(ggplot2)
 library(scales)
 
+
 if(! exists("prob")){
-  prob <- parts$prob034_warehouse
+
+  # Run models.r to generate the cached results
+  load("all_models.csv.bin")
+
+  prob <- parts$prob013_PPP
   prob.title <- "Warehouse"
+
 }
+
 
 prob$paramUID <- as.factor(prob$paramUID)
 prob$eprimeUID <- as.factor(prob$eprimeUID)
@@ -21,9 +25,14 @@ prob$eprimeUID <- as.factor(prob$eprimeUID)
 # We have run the params on multiple heuristics
 mult <- prob[  ! is.na(prob$givenRunGroup)  , ]
 
-
 # Only looking at the winning models
 mult.win <- mult[ mult$isWinner ==1, ]
+
+if (length(mult.win$essenceClass) == 0 ){
+  stop("mult.win length 0")
+}
+
+
 
 # quantiles
 quan.quality <-quantile(prob$paramQuality, c(0.1, 0.2, 0.5, 0.75, 1))
