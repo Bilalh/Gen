@@ -12,7 +12,7 @@ if(! exists("prob")){
   # Run models.r to generate the cached results
   load("all_models.csv.bin")
 
-  prob <- parts$prob013_PPP
+  prob <- parts$prob034_warehouse
   prob.title <- "Warehouse"
 
 }
@@ -23,7 +23,7 @@ prob$eprimeUID <- as.factor(prob$eprimeUID)
 
 
 # We have run the params on multiple heuristics
-mult <- prob[  ! is.na(prob$givenRunGroup)  , ]
+mult <- prob[ ( ! is.na(prob$givenRunGroup) ),    ]
 
 # Only looking at the winning models
 mult.win <- mult[ mult$isWinner ==1, ]
@@ -70,7 +70,7 @@ win.paramTimes <- ddply(win, c(
 
 
 
-graph.by_class_model_param <- function(name){
+graph.by_class_model_param <- function(){
 
   df <- ddply(win, c(
         "essenceClass", "kind", "heuristic", "mode", "eprimeUID", "paramUID", "run_no", "givenRunGroup"
@@ -88,11 +88,11 @@ graph.by_class_model_param <- function(name){
   yy <- yy + scale_y_log10()
   yy <- yy + theme(legend.position="top")
   yy <- yy +  theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))
-  yy <- yy + ggtitle(paste(name, " winning models grouped by model #"))
+  yy <- yy + ggtitle(paste(prob.title, ": ", "winning models grouped by model #", sep=""))
   yy
 }
 
-graph.by_class_param_min <- function(name){
+graph.by_class_param_min <- function(){
 
   df <- ddply(win, c(
     "essenceClass", "kind", "heuristic", "mode",  "paramUID", "givenRunGroup"
@@ -102,7 +102,6 @@ graph.by_class_param_min <- function(name){
   nodes = min(minionNodes,na.rm = TRUE)
   )
 
-
   yy <- ggplot( data=df, aes( x=paramUID, y=nodes, color=heuristic) )
   yy <- yy + geom_point(shape=1, size=I(3))
   # yy <- yy + geom_point(shape=1, position=position_jitter(width=0.1,height=0.01))
@@ -111,21 +110,78 @@ graph.by_class_param_min <- function(name){
   yy <- yy + theme(legend.position="top")
   # yy <- yy + theme(axis.text.x= element_text(angle=45, hjust = 1.3, vjust = 1.2))
   yy <- yy +  theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))
-  yy <- yy + ggtitle(paste(name, ": ", "min nodes over all fractures", sep=""))
+  yy <- yy + ggtitle(paste(prob.title, ": ", "min nodes over all fractures", sep=""))
+  yy
+}
+
+graph.by_class_model_param_time <- function(){
+
+  df <- ddply(win, c(
+    "essenceClass", "kind", "heuristic", "mode", "eprimeUID", "paramUID", "run_no", "givenRunGroup"
+  ), summarise,
+  runTime = totalTime,
+  runTime_marked = totalTimeMarked,
+  nodes = minionNodes
+  )
+
+  yy <- ggplot( data=df, aes( x=paramUID, y=runTime_marked, color=heuristic) )
+  yy <- yy + facet_grid( eprimeUID ~ . )
+  yy <- yy + geom_point(shape=1, size=I(3))
+  # yy <- yy + geom_point(shape=1, position=position_jitter(width=0.1,height=0.01))
+  yy <- yy + xlab("Param #")
+  yy <- yy + ylab("CPU Time")
+  yy <- yy + scale_y_log10()
+  yy <- yy + theme(legend.position="top")
+  yy <- yy +  theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))
+  yy <- yy + ggtitle(paste(prob.title, ": ", "winning models grouped by model #", sep=""))
+  yy
+}
+
+graph.by_class_param_min_time <- function(){
+
+  df <- ddply(win, c(
+    "essenceClass", "kind", "heuristic", "mode",  "paramUID", "givenRunGroup"
+  ), summarise,
+  runTime = min(totalTime,na.rm = TRUE),
+  runTime_marked = min(totalTimeMarked),
+  nodes = min(minionNodes,na.rm = TRUE)
+  )
+
+  yy <- ggplot( data=df, aes( x=paramUID, y=runTime_marked, color=heuristic) )
+  yy <- yy + geom_point(shape=1, size=I(3))
+  # yy <- yy + geom_point(shape=1, position=position_jitter(width=0.1,height=0.01))
+  yy <- yy + xlab("Param #")
+  yy <- yy + ylab("CPU Time")
+  yy <- yy + scale_y_log10()
+  yy <- yy + theme(legend.position="top")
+  # yy <- yy + theme(axis.text.x= element_text(angle=45, hjust = 1.3, vjust = 1.2))
+  yy <- yy +  theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))
+  yy <- yy + ggtitle(paste(prob.title, ": ", "min cputime over all fractures", sep=""))
   yy
 }
 
 graph.base <- file.path("plots", "givens")
-if (! dir.exists(graph.base) ){
-  dir.create(graph.base,recursive = TRUE)
+
+
+if (! dir.exists( file.path("plots", "givens", "nodes") ) ){
+  dir.create( file.path("plots", "givens", "nodes") ,recursive = TRUE)
 }
+
+if (! dir.exists( file.path("plots", "givens", "time") ) ){
+  dir.create( file.path("plots", "givens", "time") ,recursive = TRUE)
+}
+
 graph.save <- function(name,func){
   ggsave(file.path(graph.base, paste(name,"pdf",sep=".")), func, width = 15, height = 10)
-
 }
+
 
 # graph.by_class_model_param(prob.title)
 # graph.by_class_param_min(prob.title)
 
-graph.save(paste(prob.title, "param_model", sep="-"), graph.by_class_model_param(prob.title))
-graph.save(paste(prob.title, "param_min",  sep="-"), graph.by_class_param_min(prob.title))
+graph.save(paste("nodes/", prob.title, "~param_model", sep=""), graph.by_class_model_param() )
+graph.save(paste("nodes/", prob.title, "~param_min",  sep=""), graph.by_class_param_min())
+
+graph.save(paste("time/", prob.title, "~param_model", sep=""), graph.by_class_model_param_time())
+graph.save(paste("time/", prob.title, "~param_min",  sep=""), graph.by_class_param_min_time())
+
