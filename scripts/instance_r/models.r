@@ -18,6 +18,8 @@ if (file.exists("all_models.csv.bin")) {
   e_id <- data.frame(eprime= unique(models_$eprime), eprimeUID = seq(length(unique(models_$eprime))) )
   models <- merge(merge(models_,p_id, by.x = "paramHash", by.y = "paramHash"), e_id, by.x="eprime", by.y="eprime"  )
 
+  models$paramUID <- as.factor(models$paramUID)
+  models$eprimeUID <- as.factor(models$eprimeUID)
 
   parts <- split( models , models$essenceClass )
   pnames <- names(parts)

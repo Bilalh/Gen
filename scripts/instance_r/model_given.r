@@ -18,9 +18,6 @@ if(! exists("prob")){
 }
 
 
-prob$paramUID <- as.factor(prob$paramUID)
-prob$eprimeUID <- as.factor(prob$eprimeUID)
-
 
 # We have run the params on multiple heuristics
 mult <- prob[ ( ! is.na(prob$givenRunGroup) ),    ]
