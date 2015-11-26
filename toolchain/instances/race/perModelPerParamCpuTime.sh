@@ -58,10 +58,11 @@ CPUTIMEOUT_ARR=("${OUR}/../../cputimeout/cputimeout")
 CPUTIMEOUT_ARR+=(--timeout-file "$TIMEOUT5_FILE" --interval 1 -f -k1 --preserve-status)
 CPUTIMEOUT="${CPUTIMEOUT_ARR[*]}"
 
-if [ -z "${MINION_BINARY}" ]; then
+if [ -z "${MINION_BINARY:-}" ]; then
 	MINION_BINARY=minion
 fi
 
+echo "MINION_BINARY is ${MINION_BINARY}"
 
 
 PREVIOUS_USED=0

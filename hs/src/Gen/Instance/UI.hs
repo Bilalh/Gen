@@ -4,20 +4,22 @@ import Conjure.Language
 import Conjure.Language.NameResolution   (resolveNames)
 import Conjure.UI.IO
 import Conjure.UI.TypeCheck
+import Gen.Essence.Log
 import Gen.Imports
 import Gen.Instance.BuildDependencyGraph
 import Gen.Instance.Data
 import Gen.Instance.Method
+import Gen.Instance.NoRacing             (NoRacing (..))
 import Gen.Instance.Point
 import Gen.Instance.RaceRunner
 import Gen.Instance.SamplingError
 import Gen.IO.Formats
+import Shelly                            (which)
 import System.Directory                  (makeAbsolute)
-import System.FilePath                   (replaceFileName, takeBaseName,takeDirectory)
+import System.Environment                (lookupEnv, setEnv, unsetEnv)
+import System.FilePath                   (replaceFileName, takeBaseName,
+                                          takeDirectory)
 import System.Random                     (mkStdGen, setStdGen)
-import System.Environment          (lookupEnv, setEnv,unsetEnv)
-import Gen.Essence.Log
-import Gen.Instance.NoRacing       (NoRacing (..))
 
 import qualified Data.Set as S
 
@@ -31,7 +33,7 @@ runMethod' doEprimes seed lvl state= do
   liftIO $ setStdGen (mkStdGen seed)
   runLoggerPipeIO lvl $
     void $ flip execStateT state $
-     createParamEssence >> initDB >> doSaveEprimes doEprimes >> run
+    handleWDEG >> createParamEssence >> initDB >> doSaveEprimes doEprimes >> run
 
 doSaveEprimes :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
               => Bool -> m ()
@@ -71,6 +73,27 @@ makeProvider fp  VarInfo{..} = do
       _ -> return Nothing
 
     return $ catMaybes vs
+
+handleWDEG :: (MonadState (Method a) m, MonadIO m, MonadLog m )
+           => m ()
+handleWDEG = do
+  (Method MCommon{mEssencePath} _) <- get
+
+  model <-  liftIO $ ignoreLogs $ readModelFromFile mEssencePath
+  as <- forM (mStatements model) $ \st -> case st of
+         (SearchHeuristic x) -> return $ Just $ x
+         _ -> return Nothing
+  case catMaybes as of
+    []        -> return ()
+    [x] -> when (x `elem` ["wdeg", "domoverwdeg"]) $ liftIO $ do
+                  sh  $ do
+                   which "minion-wdeg" >>= \case
+                         Just{}  -> return ()
+                         Nothing -> error "minion-wdeg is in the the path"
+                  setEnv "MINION_BINARY" "minion-wdeg"
+
+    xs  -> lineError $line $ "Got multiple heuristics " :map pretty xs
+
 
 instances_no_racing :: FilePath -> Int -> Int -> FilePath -> Int -> LogLevel -> IO ()
 instances_no_racing essence_path iterations param_gen_time out seed log_level= do
