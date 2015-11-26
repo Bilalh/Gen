@@ -89,7 +89,7 @@ handleWDEG = do
                   sh  $ do
                    which "minion-wdeg" >>= \case
                          Just{}  -> return ()
-                         Nothing -> error "minion-wdeg is in the the path"
+                         Nothing -> error "minion-wdeg need to be in the the path"
                   setEnv "MINION_BINARY" "minion-wdeg"
 
     xs  -> lineError $line $ "Got multiple heuristics " :map pretty xs
