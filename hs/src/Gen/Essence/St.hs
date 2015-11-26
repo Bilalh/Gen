@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveGeneric,
+{-# LANGUAGE DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveGeneric,
              DeriveTraversable, GeneralizedNewtypeDeriving #-}
 module Gen.Essence.St
   ( module X
