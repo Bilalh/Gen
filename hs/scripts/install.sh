@@ -37,6 +37,9 @@ echo "BIN_DIR         : ${BIN_DIR}"
 echo "CONJURE_LIB     : ${CONJURE_LIB}"
 echo "BUILD_TESTS     : ${BUILD_TESTS}"
 echo "RUN_TESTS       : ${RUN_TESTS}"
+echo
+echo "DEFINE_getAllFilesWithSuffix : ${DEFINE_getAllFilesWithSuffix:-}"
+echo
 
 if [ "$LLVM" = "llvm-on" ]; then
     LLVM='--ghc-options="-fllvm"'
@@ -73,7 +76,15 @@ if (cabal --version | grep 1.20 ); then
     profiling="--disable-library-profiling"
 else
     profiling="--disable-library-profiling --disable-profiling"
+
 fi
+
+if [ -n "${DEFINE_getAllFilesWithSuffix:-}" ]; then
+    defs='--ghc-options="-DDEFINE_getAllFilesWithSuffix"'
+else
+    defs=''
+fi
+
 
 cabal install           \
     --only-dependencies \
@@ -83,9 +94,9 @@ cabal install           \
 
 cabal configure         \
     ${profiling}	\
-    ${TESTS} ${LLVM} ${OPTIMISATION} --bindir="${BIN_DIR}"
+    ${defs} ${TESTS} ${LLVM} ${OPTIMISATION} --bindir="${BIN_DIR}"
 
-cabal build -j"${USE_CORES}" "$@"
+cabal build -j"${USE_CORES}" ${defs}
 cabal copy                                  # install in ${BIN_DIR}
 
 if [ "$RUN_TESTS" = "yes" ]; then

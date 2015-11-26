@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 module Gen.Imports
     ( module X
     , docError
@@ -20,6 +21,9 @@ module Gen.Imports
     , logWarn2
     , logDebug2
     , logDebugVerbose2
+#ifdef DEFINE_getAllFilesWithSuffix
+    , getAllFilesWithSuffix
+#endif
     ) where
 
 import Conjure.Language.AbstractLiteral as X (AbstractLiteral)
@@ -43,6 +47,11 @@ import Text.Groom                       as X (groom)
 import qualified Data.Map.Strict  as M
 import qualified Data.Set         as S
 import qualified Text.PrettyPrint as Pr
+
+#ifdef DEFINE_getAllFilesWithSuffix
+getAllFilesWithSuffix :: String -> FilePath -> IO [FilePath]
+getAllFilesWithSuffix = allFilesWithSuffix
+#endif
 
 type Depth     = Int
 type Hash      = Int
