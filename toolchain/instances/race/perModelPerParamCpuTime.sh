@@ -58,6 +58,10 @@ CPUTIMEOUT_ARR=("${OUR}/../../cputimeout/cputimeout")
 CPUTIMEOUT_ARR+=(--timeout-file "$TIMEOUT5_FILE" --interval 1 -f -k1 --preserve-status)
 CPUTIMEOUT="${CPUTIMEOUT_ARR[*]}"
 
+if [ -z "${MINION_BINARY}" ]; then
+	MINION_BINARY=minion
+fi
+
 
 
 PREVIOUS_USED=0
@@ -224,7 +228,8 @@ date +'StartMINION %a %d %b %Y %k:%M:%S %z%nStartMINION(timestamp) %s' >&2
 
 mcmd=("${CPUTIMEOUT_ARR[@]}")
 mcmd+=(--write-time "$MINION_TIME" --previous-used "$PREVIOUS_USED" "$TOTAL_TIMEOUT")
-mcmd+=(minion "$MINION" -noprintsols -preprocess SACBounds )
+mcmd+=("$MINION_BINARY")
+mcmd+=("$MINION" -noprintsols -preprocess SACBounds )
 mcmd+=(-tableout "$MINION_TABLE" -solsout "$MINION_SOLUTION")
 mcmd+=(-cpulimit ${minion_cpu})
 
