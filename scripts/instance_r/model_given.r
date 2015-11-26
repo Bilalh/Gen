@@ -12,8 +12,8 @@ if(! exists("prob")){
   # Run models.r to generate the cached results
   load("all_models.csv.bin")
 
-  prob <- parts$prob034_warehouse
-  prob.title <- "Warehouse"
+  prob <- parts$prob133_knapsack
+  prob.title <- "TEST"
 
 }
 
@@ -40,7 +40,7 @@ quan.selected <- 1
 
 pq<-ddply(mult.win, c("paramUID"), summarise,  paramQuality=min(paramQuality, na.rm=TRUE) )
 
-top_params <-  unique(pq[pq $paramQuality <=quan.selected ,  c("paramUID", "paramQuality")])
+top_params <-  unique(pq[pq $paramQuality <quan.selected ,  c("paramUID", "paramQuality")])
 top_params.sorted <- top_params[order(top_params$paramQuality,top_params$paramUID),]
 top_params.selected <- head(top_params.sorted,64)$paramUID
 win <-  mult.win[  mult.win$paramUID %in% top_params.selected, ]
