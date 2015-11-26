@@ -8,8 +8,10 @@ import Gen.Instance.Point
 import Gen.Instance.RaceRunner (createParamEssence1, runPadded, script_lookup,
                                 script_lookup1)
 import System.Directory        (copyFile)
+import System.IO               (readFile)
 import System.FilePath         (takeBaseName)
 import Text.Printf
+
 
 readSolutionCounts :: MonadIO m => FilePath -> m Solutions
 readSolutionCounts fp = do

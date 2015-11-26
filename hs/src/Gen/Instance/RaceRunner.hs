@@ -48,7 +48,7 @@ import System.Environment                       (lookupEnv)
 import System.Exit                              (ExitCode (..))
 import System.FilePath                          (takeBaseName, takeDirectory)
 import System.IO                                (hPutStr, hPutStrLn,
-                                                 stderr, stdout)
+                                                 stderr, stdout,readFile)
 import System.IO.Temp                           (withSystemTempDirectory)
 
 

@@ -20,6 +20,7 @@ import Gen.IO.Formats                   (readFromJSON, readFromJSONMay)
 import Gen.IO.Toolchain                 (runCommand')
 import System.Directory                 (getHomeDirectory)
 import System.Exit                      (ExitCode (ExitSuccess))
+import System.IO                        (readFile)
 import System.FilePath                  (takeDirectory)
 
 import qualified Data.ByteString.Lazy     as BL
