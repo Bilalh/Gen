@@ -99,34 +99,70 @@ fi
 
 echo "${name},hg,${version},${version_date},${rest_line}" >> "${base}/${csv_name}"
 
-#Minion
 name=minion
+if ( which "${name}" &> /dev/null ); then
 
-version="$(minion | grep 'HG version:' | egrep -o '"\w+' | egrep -o '\w+')"
+	version="$("${name}" | grep 'HG version:' | egrep -o '"\w+' | egrep -o '\w+')"
 
-set +o errexit
-# Stupid hg only added date functions recently
-#version_date_="$(hg log --template "{date(date, '%F_%s')}\n" --cwd "$(dirname "$(which minion)")" -r"${version}" 2>&1)"
-version_date_="$(hg log --template "{date}\n" --cwd "$(dirname "$(which minion)")" -r"${version}" 2>&1)"
+	set +o errexit
+	# Stupid hg only added date functions recently
+	#version_date_="$(hg log --template "{date(date, '%F_%s')}\n" --cwd "$(dirname "$(which "${name}")")" -r"${version}" 2>&1)"
+	version_date_="$(hg log --template "{date}\n" --cwd "$(dirname "$(which "${name}")")" -r"${version}" 2>&1)"
 
-if [[ $? -eq 0  ]]; then
-	if ( echo "_${version_date_}" | egrep -q "^_[0-9]+\.[0-9]+"  ); then
-		version_date_="${version_date_:0:10}"
-		if (sw_vers &>/dev/null); then
-			version_date="$(date -jf '%s' "${version_date_}" '+%F_%s')"
+	if [[ $? -eq 0  ]]; then
+		if ( echo "_${version_date_}" | egrep -q "^_[0-9]+\.[0-9]+"  ); then
+			version_date_="${version_date_:0:10}"
+			if (sw_vers &>/dev/null); then
+				version_date="$(date -jf '%s' "${version_date_}" '+%F_%s')"
+			else
+				version_date="$(date --date="@${version_date_}" '+%F_%s')"
+			fi
 		else
-			version_date="$(date --date="@${version_date_}" '+%F_%s')"
+			version_date=""
 		fi
 	else
 		version_date=""
 	fi
-else
-	version_date=""
+
+	echo "${name},hg,${version},${version_date},${rest_line}" >> "${base}/${csv_name}"
+
+	set -o errexit
+
 fi
 
-echo "${name},hg,${version},${version_date},${rest_line}" >> "${base}/${csv_name}"
 
-set -o errexit
+name=minion-wdeg
+if ( which "${name}" &> /dev/null ); then
+
+	version="$("${name}" | grep 'HG version:' | egrep -o '"\w+' | egrep -o '\w+')"
+
+	set +o errexit
+	# Stupid hg only added date functions recently
+	#version_date_="$(hg log --template "{date(date, '%F_%s')}\n" --cwd "$(dirname "$(which "${name}")")" -r"${version}" 2>&1)"
+	version_date_="$(hg log --template "{date}\n" --cwd "$(dirname "$(which "${name}")")" -r"${version}" 2>&1)"
+
+	if [[ $? -eq 0  ]]; then
+		if ( echo "_${version_date_}" | egrep -q "^_[0-9]+\.[0-9]+"  ); then
+			version_date_="${version_date_:0:10}"
+			if (sw_vers &>/dev/null); then
+				version_date="$(date -jf '%s' "${version_date_}" '+%F_%s')"
+			else
+				version_date="$(date --date="@${version_date_}" '+%F_%s')"
+			fi
+		else
+			version_date=""
+		fi
+	else
+		version_date=""
+	fi
+
+	echo "${name},hg,${version},${version_date},${rest_line}" >> "${base}/${csv_name}"
+
+	set -o errexit
+
+fi
+
+
 
 #gen
 if ( which gen &> /dev/null ); then
@@ -143,4 +179,3 @@ if ( which gen &> /dev/null ); then
 
 	echo "${name},git,${version},${version_date},${rest_line}" >> "${base}/${csv_name}"
 fi
-
