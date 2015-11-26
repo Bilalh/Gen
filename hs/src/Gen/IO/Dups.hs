@@ -50,11 +50,11 @@ refineDups dirs = do
   where
   makeData :: (MonadIO m) => Directory -> m (Maybe DirData)
   makeData dir = do
-    invaild <- liftIO $ allFilesWithSuffix "solve_eprime.json" dir
+    invaild <- liftIO $ getAllFilesWithSuffix "solve_eprime.json" dir
     when (not $ null invaild) $ docError ["This is not a refinement error:", pretty dir]
 
     con (dir </> "spec.essence") $ \spec_hash -> do
-      os <- liftIO $ allFilesWithSuffix ".refine-output" dir
+      os <- liftIO $ getAllFilesWithSuffix ".refine-output" dir
       h_os <- mapM hashIfExists os >>= return . catMaybes
       if length os /= length h_os  then
           return Nothing
@@ -70,11 +70,11 @@ solveDups dirs = do
   where
   makeData :: (MonadIO m) => Directory -> m (Maybe DirData)
   makeData dir = do
-    invaild <- liftIO $ allFilesWithSuffix "solve_eprime.json" dir
+    invaild <- liftIO $ getAllFilesWithSuffix "solve_eprime.json" dir
     when (null invaild) $ docError ["This is not a solving error:", pretty dir]
 
     con (dir </> "spec.essence") $ \spec_hash -> do
-      eps <- liftIO $ allFilesWithSuffix ".eprime" dir
+      eps <- liftIO $ getAllFilesWithSuffix ".eprime" dir
       h_eps <- mapM hashIfExists eps >>= return . catMaybes
       h_os  <- mapM (hashIfExists . (flip replaceExtension) ".output") eps
                >>= return . catMaybes

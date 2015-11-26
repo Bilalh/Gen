@@ -161,7 +161,7 @@ doCommon ec@EC.EssenceConfig{..} refineType = do
                       m ::  RunMetadata <- liftIO $ readFromJSON (tmp </> "metadata.json")
                       let givenTime = rCPUTime m
 
-                      allFilesWithSuffix ".param" (tmp </> "_params") >>= \case
+                      getAllFilesWithSuffix ".param" (tmp </> "_params") >>= \case
                          [x] -> do
                            copyFile x (dir </> "given.param")
                            return $ (Right $ Just (dir </> "given.param"), givenTime)

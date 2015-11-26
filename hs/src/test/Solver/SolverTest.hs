@@ -24,7 +24,7 @@ doSpec :: (MonadFail m, MonadIO m, MonadUserError m)
 doSpec fp = do
   model <- readModelFromFile fp
   solMay <- liftIO $ solveSpec model
-  possibleFps  <- liftIO $ allFilesWithSuffix ".solution" (takeDirectory fp)
+  possibleFps  <- liftIO $ getAllFilesWithSuffix ".solution" (takeDirectory fp)
   let parts = testGroup (takeDirectory fp)
         [
           testCase (pretty $ takeFileName $  fp) $
@@ -60,4 +60,4 @@ checkSpec (Just s) xs = do
 
 
 testSpecs :: IO [FilePath]
-testSpecs = allFilesWithSuffix ".essence" "tests"
+testSpecs = getAllFilesWithSuffix ".essence" "tests"

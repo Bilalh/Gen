@@ -678,7 +678,7 @@ instanceCommon cores Instance_Common{..} = do
       return Nothing
     (path:_)  -> do
       print . pretty $ "checking for compact in: " <+> pretty path
-      cs <- allFilesWithSuffix ".eprime" path
+      cs <- getAllFilesWithSuffix ".eprime" path
       catMaybes <$> mapM ((flip findCompact) models_path) cs  >>= \case
         []   -> return Nothing
         [x]  -> do

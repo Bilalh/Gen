@@ -120,7 +120,7 @@ saveEprimes= do
                 Nothing -> (\_ -> Nothing)
                 Just c  -> (\x ->  if x == c then Just True else Just False )
 
-  eprimes <- liftIO $ sort <$> allFilesWithSuffix ".eprime" mModelsDir
+  eprimes <- liftIO $ sort <$> getAllFilesWithSuffix ".eprime" mModelsDir
   void $ liftIO $ withConnection (mOutputDir </> "results.db") $ \conn ->
     withTransaction conn $ forM (eprimes) $ \(ep) -> do
       execute conn saveEprimesQuery (takeBaseName ep,  check (takeBaseName ep)  )
@@ -222,7 +222,7 @@ racesTotalCpuTime :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m
 racesTotalCpuTime = do
   (Method MCommon{mOutputDir, mMode} _) <- get
   let statsDir = mOutputDir </> ("stats_" ++ mMode)
-  fps <- liftIO $ allFilesWithSuffix ".total_solving_time" statsDir
+  fps <- liftIO $ getAllFilesWithSuffix ".total_solving_time" statsDir
   times :: [Maybe Double] <- liftIO  $  forM fps $ \fp -> do
              st <- readFile fp
              return $ readMay st
@@ -236,7 +236,7 @@ paramGenCpuTime = do
               True  -> return (mOutputDir </> "all_sols")
               False -> return (mOutputDir </> "_param_gen")
 
-  fps <- liftIO $ allFilesWithSuffix "total.time" statsDir
+  fps <- liftIO $ getAllFilesWithSuffix "total.time" statsDir
   times :: [Maybe Double] <- liftIO  $  forM fps $ readCpuTime
   return . sum . catMaybes $ times
 

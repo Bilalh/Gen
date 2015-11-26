@@ -9,7 +9,7 @@ import qualified Data.ByteString.Char8 as C
 type Dir = FilePath
 findCompact :: MonadIO m => FilePath -> Dir -> m (Maybe FilePath)
 findCompact compactFP dir = do
-  to_check <- liftIO $ allFilesWithSuffix ".eprime" dir
+  to_check <- liftIO $ getAllFilesWithSuffix ".eprime" dir
   compact_hash <- hashFileStrict compactFP
   hashes <- mapM hashFileStrict to_check
   case [  path | (h,path) <- zip hashes to_check, h == compact_hash ] of

@@ -127,7 +127,7 @@ compare_to_manual_info = do
   let baseOut = "/Users/bilalh/CS/gen/__/compare"
   createDirectoryIfMissing True baseOut >> removeDirectoryRecursive baseOut
 
-  files <- allFilesWithSuffix "info.json" "/Users/bilalh/CS/essence-refinements/_current"
+  files <- getAllFilesWithSuffix "info.json" "/Users/bilalh/CS/essence-refinements/_current"
   setEnv "NULL_runPadded" "true"
   forM_ files $ \info_fp -> do
     let dir = takeDirectory info_fp
