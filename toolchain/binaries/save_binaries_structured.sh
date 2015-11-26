@@ -55,6 +55,11 @@ else
 fi
 export host_type
 
+if ( which "minion" &> /dev/null || which "minion-wdeg" &> /dev/null ); then
+	echo "At lest one of minion and minion-wdeg needed to be in the path"
+fi
+
+
 set -o errexit
 now="${DATE_VAL:-"$(date +'%F_%s')"}"
 
@@ -298,49 +303,60 @@ store_latest "${name}" "${host_type}" "${version_date}" "${newDstDir}"
 
 
 #Minion
-name=minion
-cbase="${base}/versions/${name}/"
-mkdir -p "${cbase}"
+
+function minion_save(){
+	name="$1"
+	cbase="${base}/versions/${name}/"
+	mkdir -p "${cbase}"
 
 
 
-binPath="$(which ${name})"
-version="$(minion | grep 'HG version:' | egrep -o '"\w+' | egrep -o '\w+')"
+	binPath="$(which ${name})"
+	version="$(${name} | grep 'HG version:' | egrep -o '"\w+' | egrep -o '\w+')"
 
-# Stupid hg only added date functions recently
-#version_date_="$(hg log --template "{date(date, '%F_%s')}\n" --cwd "$(dirname "$(which minion)")" -r"${version}" 2>&1)"
-version_date_="$(hg log --template "{date}\n" --cwd "$(dirname "$(which minion)")" -r"${version}" 2>&1)"
+	# Stupid hg only added date functions recently
+	#version_date_="$(hg log --template "{date(date, '%F_%s')}\n" --cwd "$(dirname "$(which ${name})")" -r"${version}" 2>&1)"
+	version_date_="$(hg log --template "{date}\n" --cwd "$(dirname "$(which ${name})")" -r"${version}" 2>&1)"
 
-if [[ $? -eq 0  ]]; then
-	if ( echo "_${version_date_}" | egrep -q "^_[0-9]+\.[0-9]+"  ); then
-		version_date_="${version_date_:0:10}"
-		if (sw_vers &>/dev/null); then
-			version_date="$(date -jf '%s' "${version_date_}" '+%F_%s')"
+	if [[ $? -eq 0  ]]; then
+		if ( echo "_${version_date_}" | egrep -q "^_[0-9]+\.[0-9]+"  ); then
+			version_date_="${version_date_:0:10}"
+			if (sw_vers &>/dev/null); then
+				version_date="$(date -jf '%s' "${version_date_}" '+%F_%s')"
+			else
+				version_date="$(date --date="@${version_date_}" '+%F_%s')"
+			fi
 		else
-			version_date="$(date --date="@${version_date_}" '+%F_%s')"
+			version_date=""
 		fi
 	else
 		version_date=""
 	fi
-else
-	version_date=""
+
+
+	newDstDir="${cbase}/hash/${version}/${host_type}"
+	mkdir -p "${newDstDir}"
+
+	cp "${binPath}" "${newDstDir}/${name}"
+
+	pushd "${newDstDir}"
+	ln -fs "../../../../../${tbase_}" date
+	echo  "../../../../../${tbase_}" >> dates
+	popd
+
+	pushd "${tbase}"
+	echo "${name},hg,${version},${version_date},${rest_line}" >> data.csv
+	ln -sf "../../../versions/${name}/hash/${version}/${host_type}/${name}" "${name}"
+	popd
+}
+
+if ( which "minion" &> /dev/null ); then
+	minion_save minion
 fi
 
-
-newDstDir="${cbase}/hash/${version}/${host_type}"
-mkdir -p "${newDstDir}"
-
-cp "${binPath}" "${newDstDir}/${name}"
-
-pushd "${newDstDir}"
-ln -fs "../../../../../${tbase_}" date
-echo  "../../../../../${tbase_}" >> dates
-popd
-
-pushd "${tbase}"
-echo "${name},hg,${version},${version_date},${rest_line}" >> data.csv
-ln -sf "../../../versions/${name}/hash/${version}/${host_type}/${name}" "${name}"
-popd
+if ( which "minion-wdeg" &> /dev/null ); then
+	minion_save minion-wdeg
+fi
 
 
 #gen etc..
