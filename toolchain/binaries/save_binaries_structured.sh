@@ -55,10 +55,10 @@ else
 fi
 export host_type
 
-if ( which "minion" &> /dev/null || which "minion-wdeg" &> /dev/null ); then
-	echo "At lest one of minion and minion-wdeg needed to be in the path"
+if ( ! (which "minion" &> /dev/null || which "minion-wdeg" &> /dev/null) ); then
+	printf "\e[01;31m At lest one of minion and minion-wdeg needs to be in the path \e[0m\n"
+	exit 1
 fi
-
 
 set -o errexit
 now="${DATE_VAL:-"$(date +'%F_%s')"}"
