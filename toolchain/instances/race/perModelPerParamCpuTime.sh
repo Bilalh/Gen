@@ -148,6 +148,9 @@ scmd=("${CPUTIMEOUT_ARR[@]}")
 scmd+=(--write-time "${SAVILEROW_TIME}" --previous-used "$PREVIOUS_USED" "$TOTAL_TIMEOUT")
 scmd+=(java -XX:ParallelGCThreads=1 -Xmx${JAVA_MEMORY:-4G} -server -ea -jar "$sr_dir/savilerow.jar")
 scmd+=(-in-eprime "$EPRIME" -in-param "$EPRIME_PARAM" -out-minion "$MINION")
+if [ -n "${MINION_BINARY:-}" ]; then
+	scmd+=(-minion-bin "${MINION_BINARY}")
+fi
 
 echo "${scmd[@]}"
 echo "${scmd[@]}" >&2
@@ -179,7 +182,7 @@ if (( RESULTOF_SAVILEROW != 0 )) ; then
 			exit 1
 		elif ( grep -qc 'Sub-process exited with error code:124' "${SR_OUTPUT}"); then
 			echo "savilerow's sub-process was killed with code 124"
-			echo "savilerow's sub-process was killed with code 127" >&2
+			echo "savilerow's sub-process was killed with code 124" >&2
 			exit 1
 		elif ( grep -qc 'Error occurred during initialization of VM' "${SR_OUTPUT}"); then
 			if ( grep -qc 'java.lang.OutOfMemoryError: unable to create new native thread' "${SR_OUTPUT}"); then
