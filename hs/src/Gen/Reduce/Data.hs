@@ -32,6 +32,7 @@ data RConfig = RConfig
     , resultsDB_dir       :: Maybe FilePath
 
     , totalIsRealTime_    :: Bool
+    , alwaysCompact_      :: Bool
     } deriving Show
 
 data RState = RState
@@ -74,6 +75,7 @@ instance Default RConfig where
           ,deletePassing_      = False
           ,resultsDB_dir       = Nothing
           ,totalIsRealTime_    = False
+          ,alwaysCompact_      = False
           }
 
 instance Default RState where

@@ -53,6 +53,7 @@ reduceError EssenceConfig{..} ErrData{..}= do
                ,R.deletePassing_     = deletePassing_
                ,totalIsRealTime_     = totalIsRealTime
                ,resultsDB_dir        = db_dir
+               ,alwaysCompact_       = False
                }
              ,resultsDB_           = db
              ,mostReducedChoices_  = Just choices

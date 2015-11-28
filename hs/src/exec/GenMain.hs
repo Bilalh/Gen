@@ -372,6 +372,7 @@ mainWithArgs u@Reduce{..} = do
                  ,R.binariesDirectory_ = binaries_directory
                  ,R.toolchainOutput_   = toolchain_ouput
                  ,R.deletePassing_     = not keep_passing
+                 ,alwaysCompact_       = always_compact
                  }
                 ,resultsDB_           = db
                 ,mostReducedChoices_  = error_choices
@@ -444,6 +445,7 @@ mainWithArgs Generalise{..} = do
                  ,R.binariesDirectory_ = binaries_directory
                  ,R.toolchainOutput_   = toolchain_ouput
                  ,R.deletePassing_     = not keep_passing
+                 ,alwaysCompact_       = False
                  }
                 ,E.resultsDB_          = db
                 ,E.choicesToUse_       = error_choices
@@ -912,7 +914,8 @@ _reduceDebug = do
        Reduce{per_spec_time = 30
       , from_essence = True
       , spec_directory = "/Users/bilalh/tmp/SR/2015-11-27_19-21_1448652093/"
-      , error_choices = Just "/Users/bilalh/tmp/SR/2015-11-27_19-21_1448652093/model000000.eprime"
+      , error_choices = Nothing
+      , always_compact=True
       , error_kind = Savilerow_, error_status = ParseError_
       , list_kinds = False,
         list_statuses = False, total_time_may = Nothing,

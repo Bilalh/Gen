@@ -35,7 +35,12 @@ timedSpec :: Spec
           -> (Maybe ErrData -> RRR a)          -- No time left
           -> (Maybe ErrData -> RRR (Timed a))  -- Time left
           -> RRR (Timed a)
-timedSpec sp f g = timedSpec2 runSpec sp f g
+timedSpec sp f g = do
+  RState{rconfig=RConfig{alwaysCompact_}} <- get
+  if alwaysCompact_ then
+      timedCompactSpec sp f g
+  else
+      timedSpec2 runSpec sp f g
 
 timedCompactSpec :: Spec
                  -> (Maybe ErrData -> RRR a)          -- No time left
@@ -100,6 +105,7 @@ runSpec spE mayP=
       refineWay (Just _) _              = Refine_Solve
       refineWay _        _              = Refine_Solve_All
   in runSpec2 refineWay spE mayP
+
 
 
 runSpec2 :: (MonadDB m, MonadIO m, MonadLog m, RndGen m, MonadR m)

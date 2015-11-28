@@ -63,6 +63,7 @@ data UI
     , toolchain_ouput    :: ToolchainOutput
     , binaries_directory :: Maybe FilePath
     , limit_time         :: Maybe Int
+    , always_compact     :: Bool
 
     , no_csv             :: Bool
     , db_directory       :: Maybe FilePath
@@ -396,6 +397,10 @@ ui  = modes
                                      &= groupname "Reduction"
                                      &= explicit
                                      &= help "Just list the statuses then exit"
+     , always_compact    = False     &= name "always-compact"
+                                     &= groupname "Reduction"
+                                     &= explicit
+                                     &= help "Use compact if no choices are specified, cores should be set to 1 in this case. Also useful for specs that take a long time to produce multiple models"
      , list_kinds       = False      &= name "list-kinds"
                                      &= groupname "Reduction"
                                      &= explicit

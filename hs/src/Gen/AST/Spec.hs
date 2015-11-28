@@ -164,7 +164,7 @@ instance PrettyWithQuan Spec where
           f Maximisingg = "maximising"
           f Minimisingg = "minimising"
 
-      prettyDomains x = vcat $ map f $ sortBy (comparing (fst . snd  ) ) $ M.toList doms
+      prettyDomains x = vcat $ map f $ sortBy (comparing (fst . snd  ) ) $ M.toList x
         where
           f (name,(_,Givenn dom)) =  "given" <+> pretty name <+> ":" <+> pretty dom
           f (name,(_,Findd dom))  =  "find"  <+> pretty name <+> ":" <+> pretty dom

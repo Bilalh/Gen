@@ -24,15 +24,14 @@ parser.add_argument('-bin_dir', dest='bin_dir', help='--bin-dir')
 parser.add_argument('-c', dest='cores', help='cores to use, default 1', type=int)
 parser.add_argument('--passing_db', help='for gen reduce --db-passing-in')
 parser.add_argument('--temp_db', help='for gen reduce --db-passing-in', required=True)
+parser.add_argument('--always_compact',  action='store_true', help="Always use compact if no choices are given" )
 
 args = parser.parse_args()
 
 essence = Path(args.essence)
 essence_dir = essence.parent
 
-cmd_str = """
-     gen reduce {essence_dir} -o '{output}' -p {spec_time}  --kind {kind} --status {status} --delete-steps --delete-others -N  --db-dir '{db_dir}'
-"""
+cmd_str = "gen reduce {essence_dir} -o '{output}' -p {spec_time}  --kind {kind} --status {status} --delete-steps --delete-others -N  --db-dir '{db_dir}'"
 
 if args.passing_db:
     cmd_str += " --db-passing-in '{}'".format(args.passing_db)
@@ -40,7 +39,12 @@ if args.passing_db:
 if args.total_time is not None:
     cmd_str += " --total-time '{}'".format(args.total_time)
 
+if args.always_compact:
+    cmd_str += " --always-compact"
+
+
 logger.warn("args %s", args)
+logger.warn("cmd_str %s", cmd_str)
 
 
 def process(status, kind, refinement, name, vals, refine_times, cmd_str, is_last):
@@ -65,7 +69,8 @@ def process(status, kind, refinement, name, vals, refine_times, cmd_str, is_last
                     choices = essence_dir / new_name
             out_dir = Path(args.output) / "{}_r-.{}@{}".format(
                 essence_dir.name, choices.stem.replace('.choices-new', '.choices'), ts)
-            cmd_str += " --choices {}".format(choices)
+            if not args.always_compact:
+                cmd_str += " --choices {}".format(choices)
         else:
             out_dir = Path(args.output) / ("all_" + ts)
 
@@ -78,8 +83,9 @@ def process(status, kind, refinement, name, vals, refine_times, cmd_str, is_last
         eprime = (essence_dir / name).with_suffix('.eprime')
         eprime_to_choices.main(eprime, update=True)
 
-        cmd_str += " --choices {}".format(
-            (essence_dir / name).with_suffix('.choices-eprime.json'))
+        if not args.always_compact:
+            cmd_str += " --choices {}".format(
+                (essence_dir / name).with_suffix('.choices-eprime.json'))
 
         out_dir = Path(args.output) / "{}_r-.{}.choices@{}".format(essence_dir.name, name,
                                                                    ts)
@@ -102,9 +108,9 @@ def process(status, kind, refinement, name, vals, refine_times, cmd_str, is_last
         cmd_str += " --cores {}".format(args.cores)
 
     cmd_arr = shlex.split(cmd_str)
-    print("running {}".format(cmd_str))
+    print("running {}".format(cmd_arr))
     try:
-        subprocess.check_call(cmd_arr)
+        subprocess.check_call(cmd_arr, universal_newlines=True, bufsize=1)
     except subprocess.CalledProcessError as e:
         print("error for {} - {} ".format(args.essence, name))
         sys.exit(e.returncode)
