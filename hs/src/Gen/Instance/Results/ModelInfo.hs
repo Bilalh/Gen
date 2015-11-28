@@ -5,7 +5,8 @@ import Data.Csv    hiding (Only)
 import Gen.Imports
 
 data ModelInfo = ModelInfo
-  { essenceClass         :: !String
+  { refineGroup          :: !(String)
+  , essenceClass         :: !String
   , kindClass            :: !String
   , isGiven              :: !Int
   , heuristic            :: !String

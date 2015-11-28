@@ -168,6 +168,9 @@ showResults outdir = do
   return ()
 
   where
+    refineGroup x = case takeWhile (/='/')  (splitOn "essence-refinements/" x `at` 1) of
+                      "_current" -> "2015-11-06_symlink "
+                      xs         ->  xs
 
     pa m =  "[" ++ (intercalate ", " m) ++ "]"
 
@@ -185,7 +188,7 @@ showResults outdir = do
                  , fromEnum $  "~given" `T.isInfixOf` t )
 
       in inToOut meta lin clas he numFracs fracs_size fracs_str
-           compact_str compactWon ho hostType kindClass isGiven ph
+           compact_str compactWon ho hostType kindClass isGiven ph (refineGroup $ IN.essence lin)
 
     processModelsInfo meta lin winnerIds compactIds compactWon
                       numFracs fracs_size noChanNames
@@ -204,7 +207,7 @@ showResults outdir = do
                  , fromEnum $  "~given" `T.isInfixOf` t )
 
       in minToOut meta lin mrow clas he win inCompact compactWon
-           numFracs fracs_size fracId inNoChan  kindClass isGiven
+           numFracs fracs_size fracId inNoChan  kindClass isGiven (refineGroup $ IN.essence lin)
 
       where
         inCompact = fromEnum $ ( MR.eprimeId mrow) `I.member` compactIds
@@ -269,21 +272,21 @@ encodeCSV fp cs = do
 
 inToOut :: RunMetadata -> IN.CSV_IN
         -> String -> String -> Int -> String -> String -> String
-        -> Int -> Int -> String -> String -> Int -> String
+        -> Int -> Int -> String -> String -> Int -> String -> String
         -> OUT.CSV_OUT
 inToOut RunMetadata{..} IN.CSV_IN{..}
         essenceClass heuristic numFractures fracturesSize fractures compact compactWon
-        highestOrderingNeeded hostType kindClass isGiven paramsUsedHash
+        highestOrderingNeeded hostType kindClass isGiven paramsUsedHash refineGroup
       = OUT.CSV_OUT{..}
  where (givenRunGroup, paramGroup) = (Nothing, Nothing)
 
 minToOut :: RunMetadata -> IN.CSV_IN -> MR.ModelRow
-         -> String -> String -> Int -> Int
-         -> Int -> Int -> String -> Maybe Int -> Int -> String -> Int
+         -> String -> String -> Int -> Int -> Int -> Int
+         -> String -> Maybe Int -> Int -> String -> Int -> String
          -> MI.ModelInfo
 minToOut RunMetadata{..} IN.CSV_IN{..} MR.ModelRow{..}
          essenceClass heuristic isWinner isCompact compactWon
-         numFractures fracturesSize fracId isNoChan kindClass isGiven
+         numFractures fracturesSize fracId isNoChan kindClass isGiven refineGroup
       =  MI.ModelInfo{..}
  where (givenRunGroup, paramGroup) = (Nothing, Nothing)
 
