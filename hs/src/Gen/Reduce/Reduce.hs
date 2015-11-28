@@ -31,7 +31,7 @@ reduceMain check rr = do
                  False -> return (True, rr)
                  True -> (flip runStateT) rr (return sp
                            >>= noteMsg "Checking if error still occurs"
-                           >>= (flip runSpec) (param_ rr)
+                           >>=  (flip checkForError) (param_ rr)
                            >>= \case
                                   (Just ErrData{..}, _) -> do
                                     liftIO $ removeDirectoryRecursive (specDir)

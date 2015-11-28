@@ -42,20 +42,12 @@ timedSpec sp f g = do
   else
       timedSpec2 runSpec sp f g
 
+
 timedCompactSpec :: Spec
                  -> (Maybe ErrData -> RRR a)          -- No time left
                  -> (Maybe ErrData -> RRR (Timed a))  -- Time left
                  -> RRR (Timed a) -- True means a similar error  still occured
-timedCompactSpec = timedSpec2 (runSpec2 refineWay)
-
-  where
-    refineWay :: Maybe FilePath -> KindI -> RefineType
-    refineWay Nothing  RefineCompact_ = Refine_Only
-    refineWay Nothing  RefineRandom_  = Refine_Only
-    refineWay (Just _) RefineCompact_ = Refine_Only
-    refineWay (Just _) RefineRandom_  = Refine_Only
-    refineWay (Just _) _              = Refine_Solve
-    refineWay _        _              = Refine_Solve
+timedCompactSpec = timedSpec2 runSpecCompact
 
 
 timedSpec2 :: (Spec -> Maybe Point ->  RRR (Maybe ErrData, Int) )
@@ -89,6 +81,13 @@ timedSpec2 runner sp f g= do
 
     get >>= \RState{timeLeft_,rconfig=RConfig{specTime_}} -> process timeLeft_ specTime_
 
+checkForError :: Spec -> Maybe Point -> RRR (Maybe ErrData, Int)
+checkForError sp po = do
+  RState{rconfig=RConfig{alwaysCompact_}} <- get
+  if alwaysCompact_ then
+      runSpecCompact sp po
+  else
+      runSpec sp po
 
 
 -- Just means a similar error  still occured
@@ -104,6 +103,21 @@ runSpec spE mayP=
       refineWay (Just _) RefineRandom_  = Refine_Only
       refineWay (Just _) _              = Refine_Solve
       refineWay _        _              = Refine_Solve_All
+  in runSpec2 refineWay spE mayP
+
+-- Just means a similar error  still occured
+runSpecCompact :: (MonadDB m, MonadIO m, Applicative m, Functor m, MonadLog m, RndGen m, MonadR m)
+               => Spec
+               -> Maybe Point
+               -> m (Maybe ErrData, Int)
+runSpecCompact spE mayP=
+  let refineWay :: Maybe FilePath -> KindI -> RefineType
+      refineWay Nothing  RefineCompact_ = Refine_Only
+      refineWay Nothing  RefineRandom_  = Refine_Only
+      refineWay (Just _) RefineCompact_ = Refine_Only
+      refineWay (Just _) RefineRandom_  = Refine_Only
+      refineWay (Just _) _              = Refine_Solve
+      refineWay _        _              = Refine_Solve
   in runSpec2 refineWay spE mayP
 
 
