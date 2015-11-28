@@ -14,7 +14,6 @@ import Conjure.Language.Domain
 import Conjure.Language.Expression.Op
 import Conjure.Language.TypeOf
 import Data.Data
-import Data.Generics.Uniplate.Data    (childrenBi)
 import Gen.Essence.Data.Key
 import Gen.Helpers.TypeOf
 import Gen.Imports
@@ -80,7 +79,8 @@ instance GetKey Spec where
 
   keyTree d@(Spec doms exprs obj) =
     KTree (defWeight d) (getKey d) $
-      [ KTree (defWeight d) K_SDoms (map (KTree (defWeight d) K_Domain . (: []) . keyTree . domOfGF) $ M.elems doms )
+      [ KTree (defWeight d) K_SDoms (map (KTree (defWeight d) K_Domain . (: []) . keyTree . domOfGF)
+                                             $ map snd $ M.elems doms )
       , KTree (defWeight d) K_SExprs (map (KTree (defWeight d) K_Expr . (: []) . keyTree) exprs)
       ] ++ maybeToList (fmap (KTree (defWeight d) K_SObj  . (: []) . keyTree) obj)
 

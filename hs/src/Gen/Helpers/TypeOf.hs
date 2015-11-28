@@ -23,6 +23,7 @@ instance TTypeOf Var  where
 instance TTypeOf GF  where
   ttypeOf = return . typeOfDom . domOfGF
 
+
 instance (TTypeOf a, Pretty a, Show a, TypeOf a) => TTypeOf (Domain () a)  where
   ttypeOf = return . typeOfDom
 

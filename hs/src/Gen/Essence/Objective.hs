@@ -47,7 +47,7 @@ instance (Generate a, WrapVar a, TTypeOf a)
       return $ (kind, e)
     else do
       -- Try to replace a sub-expression with a decision variable reference
-      let pairs =  [  (name, runIdentity $ ttypeOf (domOfGF d) )
+      let pairs =  [  (name, runIdentity $ ttypeOf (domOfGF $ snd d) )
                    |  (name, d)  <- M.toList ds ]
           tys = [ (name,ty) | (name,ty) <- pairs,  allow ty]
 
@@ -76,7 +76,7 @@ instance (Generate a, WrapVar a, TTypeOf a)
 
     where
     f _  True  = return True
-    f gf False = do
+    f (_,gf) False = do
        allow <$> ttypeOf gf
 
 

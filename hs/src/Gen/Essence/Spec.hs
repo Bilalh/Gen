@@ -34,14 +34,14 @@ instance Generate Spec where
 
     doms <- withKey K_SDoms $ mapM
             (\_ -> withKey K_Domain . withDepth dom_depth $ give GNone) [1..i_d]
-    let withNames =  zipWith (\d i -> (name i , Findd d)) doms [1 :: Int ..]
+    let withNames =  zipWith (\d i -> (name i , (i,Findd d))) doms [1 :: Int ..]
     let mappings  = M.fromList withNames
 
     let gdepth = if dom_depth > 2 then 2 else dom_depth
 
     givens <- withKey K_SDoms $ mapM
             (\_ -> withKey K_Domain . withDepth gdepth $ give GNone) [1..i_g]
-    let gwithNames =  zipWith (\d i -> (gname i , Givenn d)) givens [1 :: Int ..]
+    let gwithNames =  zipWith (\d i -> (gname i , (i, Givenn d) )) givens [1 :: Int ..]
     let gmappings  = M.fromList gwithNames
     let vars = mappings `M.union` gmappings
 

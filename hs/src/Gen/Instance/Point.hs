@@ -1,14 +1,15 @@
-{-# LANGUAGE DeriveGeneric, DeriveDataTypeable #-}
+{-# LANGUAGE DeriveDataTypeable, DeriveGeneric #-}
 module Gen.Instance.Point where
 
 import Conjure.Language.Constant
-import Conjure.Language.Domain
 import Conjure.Language.Definition
+import Conjure.Language.Domain
+import Conjure.Language.Pretty     (prettyList)
 import Conjure.Process.Enumerate
 import Conjure.UI.IO               (EssenceFileMode (PlainEssence),
                                     readModelFromFile, writeModel)
 import Crypto.Hash
-import Data.List                   (iterate, takeWhile )
+import Data.List                   (iterate)
 import Gen.Imports                 hiding (hash)
 import System.FilePath             (takeDirectory)
 
@@ -195,3 +196,19 @@ squareRoot n =
    where
      (^!) :: Num a => a -> Int -> a
      (^!) x m = x^m
+
+giveParam :: FilePath -> IO (Maybe Point)
+giveParam spec_directory = do
+  mayParam <- doesFileExist (spec_directory </> "given.param") >>= \case
+    True  -> Just <$> readPoint  (spec_directory </> "given.param")
+    False -> return Nothing
+
+  essenceM <- readModelFromFile (spec_directory </> "spec.essence")
+  let givens = [ nm | Declaration (FindOrGiven Given nm _) <- mStatements essenceM ]
+  when (not (null givens) &&  mayParam == Nothing ) $
+      docError
+          [ "The problem specification is parameterised, but no *.param files are given."
+          , "Parameters:" <+> prettyList id "," givens
+          ]
+
+  return mayParam

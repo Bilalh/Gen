@@ -165,7 +165,7 @@ removeUnusedDomains sp@(Spec ods es obj) = do
     process []     = return $ Continue $ Nothing
     process (x:xs) = timedSpec (Spec y es obj) f g
         where
-          y = ensureADomain x
+          y = ensureAFind x
 
           f (Just r) = do
             recordResult r
@@ -178,11 +178,6 @@ removeUnusedDomains sp@(Spec ods es obj) = do
             return . Continue . Just $ y
 
           g _ = process xs
-
-
-    ensureADomain :: Domains -> Domains
-    ensureADomain ds | M.null ds = M.insert ("unused") (Findd DomainBool) ds
-    ensureADomain ds = ds
 
 
 removeConstraints :: Spec -> RRR (Timed Spec)
@@ -219,7 +214,7 @@ removeConstraints (Spec ds oes obj) = do
 
 simplyFinds :: Spec -> RRR (Timed Spec)
 simplyFinds sp@(Spec ds es obj) = do
-  let org = [ (name,val) | (name, Findd val) <- M.toList ds ]
+  let org = [ ((name,ix),val) | (name, (ix, Findd val)) <- M.toList ds ]
   domsToDo <- doDoms org
   liftIO $ putStrLn . show . prettyArr $ map prettyArr domsToDo
   fin <- process1 [ dd |  dd <- domsToDo, dd /= org]
@@ -231,12 +226,12 @@ simplyFinds sp@(Spec ds es obj) = do
 
   where
   givens = M.filter isGiven ds where
-    isGiven Givenn{} = True
-    isGiven _        = False
-  toDoms :: [(Text, Domain () Expr)] -> Domains
-  toDoms vals = (M.fromList $ map (second Findd) vals) `M.union` givens
 
-  doDoms :: [(Text,Domain () Expr)] -> RRR [[(Text,Domain () Expr)]]
+  toDoms :: [((Text,Int), Domain () Expr)] -> Domains
+  toDoms vals =ensureAFind $  (M.fromList $ map trans vals) `M.union` givens
+  trans ((te,ix),dom) = (te, (ix, Findd dom))
+
+  doDoms :: [( (Text,Int), Domain () Expr)] -> RRR [[((Text,Int),Domain () Expr)]]
   doDoms [] = docError [ "No domains in reduce:simplyFinds" ]
   doDoms ((tx,x):xs) = do
     rx <- runReduce sp x >>= return . ensureElem x
@@ -245,7 +240,7 @@ simplyFinds sp@(Spec ds es obj) = do
             pure $ map (t,) ys
     return $ map (tx,) rx : rs
 
-  process1 :: [[(Text,Domain () Expr)]] -> RRR (Timed [(Text,Domain () Expr)])
+  process1 :: [[((Text,Int),Domain () Expr)]] -> RRR (Timed [((Text,Int),Domain () Expr)])
 
   process1 []              = return . Continue $ []
   process1 xs | (== []) xs = return . Continue $ []
@@ -381,6 +376,21 @@ eprimeAsSpec start = do
         loopToFixed sp
 
 
+ensureAFind :: Domains -> Domains
+ensureAFind ds | M.null ds = M.insert ("unused") (1, Findd DomainBool) ds
+ensureAFind ds =case  any isFind (M.elems ds) of
+                    True  -> ds
+                    False -> M.insert ("unused") (1, Findd DomainBool) ds
+
+isGiven :: (Int,GF) -> Bool
+isGiven (_, Givenn{}) = True
+isGiven _             = False
+
+
+isFind :: (Int,GF) -> Bool
+isFind (_, Findd{})  = True
+isFind _             = False
+
 
 --  | Fix the next Elem
 next :: [[x]] -> RRR [x]
@@ -415,6 +425,8 @@ recordResult err = do
   modify $ \st -> st{ mostReduced_=Just err
                     , mostReducedChoices_=Just (choices err) }
   return ()
+
+
 
 
 -- |  Run the computation if there is time left

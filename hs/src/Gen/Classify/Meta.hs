@@ -45,7 +45,7 @@ instance Hashable SpecMeta
 
 mkMeta :: (Monad m, Applicative m) => Spec ->  m SpecMeta
 mkMeta sp@(Spec ds cs obj) = do
-  let doms              = map (domOfGF . snd) .  M.toList $ ds
+  let doms              = map (domOfGF . snd . snd ) .  M.toList $ ds
       constraint_depth_ = maximum' 0 (depthOf obj : map depthOf cs)
       dom_depth_        = maximum' 0 $ (map depthOf) doms
       constraint_count_ = length cs

@@ -143,7 +143,7 @@ instance Generate (EGen, Var) where
 instance Generate Var where
   give (GType ty) = do
     ds <- gets doms_
-    let ks = M.toList . M.filter (== ty) . M.map (typeOfDom . domOfGF) $ ds
+    let ks = M.toList . M.filter (== ty) . M.map (typeOfDom . domOfGF . snd) $ ds
     let choices =  map (return . uncurry Var) ks
     oneof3 choices
 
@@ -155,7 +155,7 @@ instance Generate Var where
 
     where
     f _  True  = return True
-    f gf False = do
+    f (_,gf) False = do
        b <- ttypeOf gf
        return $ b == ty
 

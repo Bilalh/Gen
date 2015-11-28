@@ -17,7 +17,7 @@ import Gen.Imports
 import Gen.Instance.AllSolutions    (createAllSolutionScript, readSolutionCounts)
 import Gen.Instance.Data
 import Gen.Instance.Nsample         (Nsample (..))
-import Gen.Instance.Point           (readPoint)
+import Gen.Instance.Point           (giveParam, readPoint)
 import Gen.Instance.Results.Results (showResults)
 import Gen.Instance.UI              (instances_no_racing, makeProvider, runMethod)
 import Gen.Instance.Undirected      (Undirected (..))
@@ -354,9 +354,7 @@ mainWithArgs u@Reduce{..} = do
   out   <- giveOutputDirectory output_directory
   cores <- giveCores u
 
-  mayParam <- doesFileExist (spec_directory </> "given.param") >>= \case
-    True  -> Just <$> readPoint  (spec_directory </> "given.param")
-    False -> return Nothing
+  mayParam <- giveParam spec_directory
 
   nullParamGen toolchain_ouput
 
@@ -911,16 +909,19 @@ _reduceDebug = do
     setCurrentDirectory "__/reduceDebug"
 
   let ec =
-       Reduce{per_spec_time = 30, spec_directory = "/Users/bilalh/Desktop/Results/_notable/_new/with_crash/res/base/2015-05-26_02-08_1432602516/_errors/RefineCompact_/RuleApplication_/1432602517_54_r-.model000000.choices/1432602529_2039",
-              error_kind = RefineCompact_, error_status = RuleApplication_,
-              error_choices = Just "/Users/bilalh/Desktop/Results/_notable/_new/with_crash/res/base/2015-05-26_02-08_1432602516/_errors/RefineCompact_/RuleApplication_/1432602517_54_r-.model000000.choices/1432602529_2039/follow.choices.json", list_kinds = False,
-              list_statuses = False, total_time_may = Nothing,
-              total_is_cpu_time = False, output_directory = Nothing,
-              _cores = Just 1, _seed = Nothing, keep_passing = False,
-              delete_steps = True, delete_others = False, toolchain_ouput = ToolchainNull_,
-              binaries_directory = Nothing, limit_time = Nothing, no_csv = False,
-              db_directory = Just "db", db_passing_in = Nothing,
-              db_only_passing = False, from_essence = False,no_check=True, log_level=LogDebug}
+       Reduce{per_spec_time = 30
+      , from_essence = True
+      , spec_directory = "/Users/bilalh/tmp/SR/2015-11-27_19-21_1448652093/"
+      , error_choices = Just "/Users/bilalh/tmp/SR/2015-11-27_19-21_1448652093/model000000.eprime"
+      , error_kind = Savilerow_, error_status = ParseError_
+      , list_kinds = False,
+        list_statuses = False, total_time_may = Nothing,
+        total_is_cpu_time = False, output_directory = Nothing,
+        _cores = Just 2, _seed = Nothing, keep_passing = False,
+        delete_steps = True, delete_others = False, toolchain_ouput = ToolchainNull_,
+        binaries_directory = Nothing, limit_time = Nothing, no_csv = False,
+        db_directory = Nothing, db_passing_in = Nothing,
+        db_only_passing = False,no_check=False, log_level=LogDebug}
   limiter (limit_time ec) (mainWithArgs ec)
 
 _instanceDebug :: IO ()

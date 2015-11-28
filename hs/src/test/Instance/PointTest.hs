@@ -3,7 +3,6 @@ module Instance.PointTest ( tests ) where
 
 import Conjure.Language.Definition
 import Gen.Imports
-import Gen.Instance.Data
 import Gen.Instance.Point
 import Gen.TestPrelude
 import Instance.PointTestData

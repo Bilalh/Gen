@@ -17,7 +17,7 @@ import qualified Data.Map as M
 data Spec = Spec Domains [Expr] (Maybe (OObjective, Expr) )
     deriving(Show, Generic, Typeable, Eq, Data, Ord)
 
-instance Hashable  (Map Text GF) where
+instance Hashable  (Map Text (Int, GF)) where
     hashWithSalt salt m = hashWithSalt salt (M.toList m)
 
 instance Serialize Spec
@@ -34,7 +34,7 @@ instance Hashable  GF
 instance ToJSON    GF where toJSON = genericToJSON jsonOptions
 instance FromJSON  GF where parseJSON = genericParseJSON jsonOptions
 
-type Domains = Map Text GF
+type Domains = Map Text (Int,GF)
 
 
 data OObjective = Maximisingg
@@ -103,7 +103,12 @@ instance Translate (Maybe (OObjective,Expr)) (Maybe Statement) where
 
 fromModel :: MonadFail m => Model -> m Spec
 fromModel Model{mStatements} = do
-  doms <- mapM fromConjure (mapMaybe getDoms mStatements)
+  doms ::  [(Text, (Int, GF))] <- (flip evalStateT) 0 $ forM (mapMaybe getDoms mStatements) $ \cc -> do
+            (t,gf) ::  (Text, GF) <- fromConjure cc
+            modify (+1)
+            i <- get
+            return $ (t, (i :: Int, gf))
+
   cs :: [Expr] <- mapM fromConjure . concat .  mapMaybe getCs $ mStatements
   obj :: (Maybe (OObjective,Expr)) <- fromConjure . atMostOne .  mapMaybe getObj $ mStatements
   return $ Spec (M.fromList doms) cs obj
@@ -125,7 +130,8 @@ fromModel Model{mStatements} = do
 
 toModel :: MonadFail m => Spec -> m Model
 toModel (Spec doms exprs obj) = do
-    tuples   <- mapM toConjure (M.toList doms)
+    let ds =   sortBy (comparing (fst . snd  ) ) $ M.toList doms
+    tuples   <- mapM toConjure [ (t,gf) | (t,(_,gf)) <- ds]
     let cdoms = map toDom tuples
     cexprs <- mapM toConjure exprs
     cObj <- toConjure obj
@@ -158,7 +164,7 @@ instance PrettyWithQuan Spec where
           f Maximisingg = "maximising"
           f Minimisingg = "minimising"
 
-      prettyDomains x = vcat $ map f $ M.toList x
+      prettyDomains x = vcat $ map f $ sortBy (comparing (fst . snd  ) ) $ M.toList doms
         where
-          f (name,Givenn dom) =  "given" <+> pretty name <+> ":" <+> pretty dom
-          f (name,Findd dom)  =  "find"  <+> pretty name <+> ":" <+> pretty dom
+          f (name,(_,Givenn dom)) =  "given" <+> pretty name <+> ":" <+> pretty dom
+          f (name,(_,Findd dom))  =  "find"  <+> pretty name <+> ":" <+> pretty dom

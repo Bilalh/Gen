@@ -1,4 +1,9 @@
 {-# LANGUAGE DeriveDataTypeable, DeriveGeneric, QuasiQuotes #-}
+{-# OPTIONS_GHC -fno-warn-unused-imports #-}
+{-# OPTIONS_GHC -fno-warn-unused-binds #-}
+{-# OPTIONS_GHC -fno-warn-unused-do-bind #-}
+{-# OPTIONS_GHC -fno-warn-unused-matches #-}
+{-# OPTIONS_GHC -fno-warn-type-defaults #-}
 module Gen.IO.SmacProcess where
 
 import Conjure.Language.Definition

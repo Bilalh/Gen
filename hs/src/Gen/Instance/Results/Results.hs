@@ -271,7 +271,7 @@ inToOut :: RunMetadata -> IN.CSV_IN
         -> String -> String -> Int -> String -> String -> String
         -> Int -> Int -> String -> String -> Int -> String
         -> OUT.CSV_OUT
-inToOut RunMetadata{..} x@IN.CSV_IN{..}
+inToOut RunMetadata{..} IN.CSV_IN{..}
         essenceClass heuristic numFractures fracturesSize fractures compact compactWon
         highestOrderingNeeded hostType kindClass isGiven paramsUsedHash
       = OUT.CSV_OUT{..}
