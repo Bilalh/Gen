@@ -8,15 +8,27 @@ library(scales)
 
 
 if(! exists("prob")){
-
   # Run models.r to generate the cached results
   load("all_models.csv.bin")
 
-  prob <- parts$prob133_knapsack
+  # prob <- models[ models$essenceClass == "prob034-warehouse", ]
+  prob <- parts$prob034_warehouse
   prob.title <- "TEST"
 
 }
 
+
+prob$heuristicRefine  = paste(prob$heuristic, mapvalues(
+  prob$refineGroup, from = c("2015-11-06_symlink"), to = c("2015-11-06")
+), sep = "~")
+
+
+
+# Separate different  refinements  by heuristic/date
+heuristicSort <- "heuristicRefine"
+
+# Group different refinements together
+# heuristicSort <- "heuristic"
 
 
 # We have run the params on multiple heuristics
@@ -49,7 +61,7 @@ win <-  mult.win[  mult.win$paramUID %in% top_params.selected, ]
 win$totalTimeMarked <- win$totalTime
 win$totalTimeMarked[is.na(win$totalTimeMarked)] <- 600
 
-win.avgtimes <- ddply(win, c("essenceClass", "kind", "heuristic", "mode", "eprimeUID", "run_no", "givenRunGroup"), summarise,
+win.avgtimes <- ddply(win, c("essenceClass", "kind", heuristicSort, "mode", "eprimeUID", "run_no", "givenRunGroup"), summarise,
                    avgRunTime_noNa=mean(totalTime, na.rm=TRUE),
                    avgRunTime_marked=mean(totalTimeMarked),
                    minRunTime=min(totalTime, na.rm = TRUE),
@@ -58,7 +70,7 @@ win.avgtimes <- ddply(win, c("essenceClass", "kind", "heuristic", "mode", "eprim
 )
 
 win.paramTimes <- ddply(win, c(
-    "essenceClass", "kind", "heuristic", "mode", "eprimeUID", "paramUID", "run_no", "givenRunGroup"
+    "essenceClass", "kind", heuristicSort, "mode", "eprimeUID", "paramUID", "run_no", "givenRunGroup"
   ), summarise,
   runTime = totalTime,
   runTime_marked = totalTimeMarked,
@@ -70,14 +82,14 @@ win.paramTimes <- ddply(win, c(
 graph.by_class_model_param <- function(){
 
   df <- ddply(win, c(
-        "essenceClass", "kind", "heuristic", "mode", "eprimeUID", "paramUID", "run_no", "givenRunGroup"
+        "essenceClass", "kind", heuristicSort, "mode", "eprimeUID", "paramUID", "run_no", "givenRunGroup"
       ), summarise,
       runTime = totalTime,
       runTime_marked = totalTimeMarked,
       nodes = minionNodes
     )
 
-  yy <- ggplot( data=df, aes( x=paramUID, y=nodes, color=heuristic) )
+  yy <- ggplot( data=df, aes( x=paramUID, y=nodes, color=heuristicRefine) )
   yy <- yy + facet_grid( eprimeUID ~ . )
   yy <- yy + geom_point(shape=1, size=I(3))
   # yy <- yy + geom_point(shape=1, position=position_jitter(width=0.1,height=0.01))
@@ -92,14 +104,14 @@ graph.by_class_model_param <- function(){
 graph.by_class_param_min <- function(){
 
   df <- ddply(win, c(
-    "essenceClass", "kind", "heuristic", "mode",  "paramUID", "givenRunGroup"
+    "essenceClass", "kind", heuristicSort, "mode",  "paramUID", "givenRunGroup"
   ), summarise,
   runTime = min(totalTime,na.rm = TRUE),
   runTime_marked = min(totalTimeMarked),
   nodes = min(minionNodes,na.rm = TRUE)
   )
 
-  yy <- ggplot( data=df, aes( x=paramUID, y=nodes, color=heuristic) )
+  yy <- ggplot( data=df, aes( x=paramUID, y=nodes, color=heuristicRefine) )
   yy <- yy + geom_point(shape=1, size=I(3))
   # yy <- yy + geom_point(shape=1, position=position_jitter(width=0.1,height=0.01))
   yy <- yy + xlab("Param #")
@@ -114,14 +126,14 @@ graph.by_class_param_min <- function(){
 graph.by_class_model_param_time <- function(){
 
   df <- ddply(win, c(
-    "essenceClass", "kind", "heuristic", "mode", "eprimeUID", "paramUID", "run_no", "givenRunGroup"
+    "essenceClass", "kind", heuristicSort, "mode", "eprimeUID", "paramUID", "run_no", "givenRunGroup"
   ), summarise,
   runTime = totalTime,
   runTime_marked = totalTimeMarked,
   nodes = minionNodes
   )
 
-  yy <- ggplot( data=df, aes( x=paramUID, y=runTime_marked, color=heuristic) )
+  yy <- ggplot( data=df, aes( x=paramUID, y=runTime_marked, color=heuristicRefine) )
   yy <- yy + facet_grid( eprimeUID ~ . )
   yy <- yy + geom_point(shape=1, size=I(3))
   # yy <- yy + geom_point(shape=1, position=position_jitter(width=0.1,height=0.01))
@@ -137,14 +149,14 @@ graph.by_class_model_param_time <- function(){
 graph.by_class_param_min_time <- function(){
 
   df <- ddply(win, c(
-    "essenceClass", "kind", "heuristic", "mode",  "paramUID", "givenRunGroup"
+    "essenceClass", "kind", heuristicSort, "mode",  "paramUID", "givenRunGroup"
   ), summarise,
   runTime = min(totalTime,na.rm = TRUE),
   runTime_marked = min(totalTimeMarked),
   nodes = min(minionNodes,na.rm = TRUE)
   )
 
-  yy <- ggplot( data=df, aes( x=paramUID, y=runTime_marked, color=heuristic) )
+  yy <- ggplot( data=df, aes( x=paramUID, y=runTime_marked, color=heuristicRefine) )
   yy <- yy + geom_point(shape=1, size=I(3))
   # yy <- yy + geom_point(shape=1, position=position_jitter(width=0.1,height=0.01))
   yy <- yy + xlab("Param #")
