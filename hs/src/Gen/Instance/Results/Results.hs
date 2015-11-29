@@ -169,7 +169,7 @@ showResults outdir = do
 
   where
     refineGroup x = case takeWhile (/='/')  (splitOn "essence-refinements/" x `at` 1) of
-                      "_current" -> "2015-11-06_symlink "
+                      "_current" -> "2015-11-06_symlink"
                       xs         ->  xs
 
     pa m =  "[" ++ (intercalate ", " m) ++ "]"
