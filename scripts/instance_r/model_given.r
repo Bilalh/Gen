@@ -1,3 +1,5 @@
+# The plots, run model_given_par.r
+
 list.of.packages <- c("plyr", "ggplot2")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages, repos="http://cran.rstudio.com/")
@@ -24,11 +26,14 @@ prob$heuristicRefine  = paste(prob$heuristic, mapvalues(
 
 
 
-# Separate different  refinements  by heuristic/date
+# # Group different refinements together
+# heuristicSort <- "heuristic"
+
+# # Separate different  refinements  by heuristic/date
 heuristicSort <- "heuristicRefine"
 
-# Group different refinements together
-# heuristicSort <- "heuristic"
+
+
 
 
 # We have run the params on multiple heuristics
@@ -89,9 +94,9 @@ graph.by_class_model_param <- function(){
       nodes = minionNodes
     )
 
-  yy <- ggplot( data=df, aes( x=paramUID, y=nodes, color=heuristicRefine) )
+  yy <- ggplot( data=df, aes( x=paramUID, y=nodes) )
   yy <- yy + facet_grid( eprimeUID ~ . )
-  yy <- yy + geom_point(shape=1, size=I(3))
+  yy <- yy + geom_point(shape=1, size=I(3), aes_string(color=heuristicSort) )
   # yy <- yy + geom_point(shape=1, position=position_jitter(width=0.1,height=0.01))
   yy <- yy + xlab("Param #")
   yy <- yy + scale_y_log10()
@@ -111,8 +116,8 @@ graph.by_class_param_min <- function(){
   nodes = min(minionNodes,na.rm = TRUE)
   )
 
-  yy <- ggplot( data=df, aes( x=paramUID, y=nodes, color=heuristicRefine) )
-  yy <- yy + geom_point(shape=1, size=I(3))
+  yy <- ggplot( data=df, aes( x=paramUID, y=nodes, ) )
+  yy <- yy + geom_point(shape=1, size=I(3), aes_string(color=heuristicSort) )
   # yy <- yy + geom_point(shape=1, position=position_jitter(width=0.1,height=0.01))
   yy <- yy + xlab("Param #")
   yy <- yy + scale_y_log10()
@@ -133,9 +138,9 @@ graph.by_class_model_param_time <- function(){
   nodes = minionNodes
   )
 
-  yy <- ggplot( data=df, aes( x=paramUID, y=runTime_marked, color=heuristicRefine) )
+  yy <- ggplot( data=df, aes( x=paramUID, y=runTime_marked) )
   yy <- yy + facet_grid( eprimeUID ~ . )
-  yy <- yy + geom_point(shape=1, size=I(3))
+  yy <- yy + geom_point(shape=1, size=I(3), aes_string(color=heuristicSort) )
   # yy <- yy + geom_point(shape=1, position=position_jitter(width=0.1,height=0.01))
   yy <- yy + xlab("Param #")
   yy <- yy + ylab("CPU Time")
@@ -156,8 +161,8 @@ graph.by_class_param_min_time <- function(){
   nodes = min(minionNodes,na.rm = TRUE)
   )
 
-  yy <- ggplot( data=df, aes( x=paramUID, y=runTime_marked, color=heuristicRefine) )
-  yy <- yy + geom_point(shape=1, size=I(3))
+  yy <- ggplot( data=df, aes( x=paramUID, y=runTime_marked ))
+  yy <- yy + geom_point(shape=1, size=I(3), aes_string(color=heuristicSort)  )
   # yy <- yy + geom_point(shape=1, position=position_jitter(width=0.1,height=0.01))
   yy <- yy + xlab("Param #")
   yy <- yy + ylab("CPU Time")

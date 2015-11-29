@@ -1,3 +1,5 @@
+# The plots
+
 list.of.packages <- c("plyr", "ggplot2")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages, repos="http://cran.rstudio.com/")
