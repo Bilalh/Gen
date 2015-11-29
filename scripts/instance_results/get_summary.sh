@@ -41,6 +41,16 @@ function process2(){
 }
 export -f process2
 
+# http://unix.stackexchange.com/questions/11856/sort-but-keep-header-line-at-the-top
+# print the header (the first line of input)
+# and then run the specified command on the body (the rest of the input)
+# use it in a pipeline, e.g. ps | body grep somepattern
+body() {
+    IFS= read -r header
+    printf '%s\n' "$header"
+    "$@"
+}
+
 # shellcheck disable=SC2016
 parallel -j"${cores}" --keep-order  \
 	--rpl '{fmt} $Global::use{"File::Basename"} ||= eval "use File::Basename; 1;"; $_ = dirname($_);$_=sprintf("%-80s",$_)' \
@@ -58,10 +68,10 @@ parallel -j"${cores}" --keep-order  \
 parallel -j"${cores}" --keep-order  \
 	' ([ {#} -eq 1 ]  && cat {} ) || tail -n1 {}' \
 	:::: <(find . -type f -name 'summary.csv' \( -not -path '*/r/*' \)) \
-	| sort -nk1 > all.csv
+	| LC_ALL=C body sort -nk1 > all.csv
 
 parallel -j"${cores}" --keep-order  \
 	' ([ {#} -eq 1 ]  && cat {} ) || sed 1d {}' \
 	:::: <(find . -type f -name 'models.csv' \( -not -path '*/r/*' \)) \
-	| sort -n -k1,1 -k7,7  -k2,2 -k3,3 -k4,4 > all_models.csv
+	| LC_ALL=C body sort -n -k2,2 -k8,8  -k3,3 -k4,4 -k5,5 -k1,1 > all_models.csv
 
