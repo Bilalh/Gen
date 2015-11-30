@@ -67,10 +67,9 @@ s_initState :: IN.CSV_IN -> Method Undirected
 s_initState = $notDone
 
 
--- Can we just use run?
-s_run :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m, ToJSON a)
-      => m ()
-s_run = do
+s_runMethod :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m, ToJSON a)
+            => m ()
+s_runMethod = do
   $notDone
 
 -- | This needs to be the last line
