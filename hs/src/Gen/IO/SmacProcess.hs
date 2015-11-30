@@ -29,6 +29,7 @@ import System.Exit                      (ExitCode (ExitSuccess))
 import System.FilePath                  (takeDirectory)
 import Text.Printf
 import Gen.Instance.Undirected
+import System.IO(hPutStrLn,stderr)
 
 import qualified Data.Map                        as M
 import qualified Data.Set                        as Set
@@ -44,11 +45,12 @@ smacProcess s_output_directory s_eprime s_instance_specific
   vs <- liftIO $ V.toList <$> decodeCSV (s_output_directory </> "settings.csv")
   let x@IN.CSV_IN{..} = headNote "setting.csv should have one row" vs
 
-  liftIO $ print "smacProcess"
+  out "smacProcess"
+  out $ groom s_param_arr
 
   endOurCPU <- liftIO $ getCPUTime
   let rOurCPUTime = fromIntegral (endOurCPU - startOurCPU) / ((10 :: Double) ^ (12 :: Int))
-  liftIO $ groomPrint x
+  out $ groom x
 
   runtime <- liftIO $ randomRIO (1,5)
   quality <- liftIO $ randomRIO  (20,90 :: Int)
@@ -77,3 +79,6 @@ outputResult :: MonadIO m => String -> Double -> Int -> Int -> Int -> m ()
 outputResult result_kind runtime runlength quality seed = do
   liftIO $ printf "Final Result for ParamILS: %s, %f, %d, %d, %d\n"
           result_kind runtime runlength quality seed
+
+out :: MonadIO m => String -> m ()
+out s = liftIO $ hPutStrLn stderr s

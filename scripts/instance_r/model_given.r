@@ -14,7 +14,7 @@ if(! exists("prob")){
   load("all_models.csv.bin")
 
   # prob <- models[ models$essenceClass == "prob034-warehouse", ]
-  prob <- parts$prob034_warehouse
+  prob <- parts$prob013_PPP
   prob.title <- "TEST"
 
 }
@@ -54,7 +54,6 @@ quan.quality <-quantile(prob$paramQuality, c(0.1, 0.2, 0.5, 0.75, 1))
 quan.selected <- 1
 
 # Only keep top n params
-
 pq<-ddply(mult.win, c("paramUID"), summarise,  paramQuality=min(paramQuality, na.rm=TRUE) )
 
 top_params <-  unique(pq[pq $paramQuality <quan.selected ,  c("paramUID", "paramQuality")])
