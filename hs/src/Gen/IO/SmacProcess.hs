@@ -20,12 +20,15 @@ import Gen.Imports                      hiding (group)
 import Gen.Instance.Data
 import Gen.Instance.Point
 import Gen.Instance.Results.Results
+import Gen.Instance.Method
+import Gen.Instance.UI
 import Gen.IO.Formats                   (readFromJSON, readFromJSONMay)
 import System.CPUTime                   (getCPUTime)
 import System.Directory                 (getHomeDirectory)
 import System.Exit                      (ExitCode (ExitSuccess))
 import System.FilePath                  (takeDirectory)
 import Text.Printf
+import Gen.Instance.Undirected
 
 import qualified Data.Map                        as M
 import qualified Data.Set                        as Set
@@ -52,6 +55,25 @@ smacProcess s_output_directory s_eprime s_instance_specific
 
   outputResult "SAT" runtime 0 quality s_seed
 
+-- TODO sum with prev RunMetadata
+
+-- | Load the state from disk if it exists otherwise init it.
+s_loadState :: MonadIO m => IN.CSV_IN  -> m (Method Undirected)
+s_loadState dat = liftIO $ doesFileExist "state.json" >>= \case
+  False -> return $ s_initState dat
+  True  -> readFromJSON "state.json"
+
+s_initState :: IN.CSV_IN -> Method Undirected
+s_initState = $notDone
+
+
+-- Can we just use run?
+s_run :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m, ToJSON a)
+      => m ()
+s_run = do
+  $notDone
+
+-- | This needs to be the last line
 outputResult :: MonadIO m => String -> Double -> Int -> Int -> Int -> m ()
 outputResult result_kind runtime runlength quality seed = do
   liftIO $ printf "Final Result for ParamILS: %s, %f, %d, %d, %d\n"
