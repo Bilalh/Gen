@@ -19,24 +19,40 @@ import Gen.Helpers.Str
 import Gen.Imports                      hiding (group)
 import Gen.Instance.Data
 import Gen.Instance.Point
+import Gen.Instance.Results.Results
 import Gen.IO.Formats                   (readFromJSON, readFromJSONMay)
+import System.CPUTime                   (getCPUTime)
 import System.Directory                 (getHomeDirectory)
 import System.Exit                      (ExitCode (ExitSuccess))
 import System.FilePath                  (takeDirectory)
-import  Gen.Instance.Results.Results
+import Text.Printf
 
-import qualified Data.Vector              as V
-import qualified Data.Map                 as M
-import qualified Data.Set                 as Set
-import qualified Data.Text                as T
-import qualified Gen.Instance.Results.SettingsIn  as IN
+import qualified Data.Map                        as M
+import qualified Data.Set                        as Set
+import qualified Data.Text                       as T
+import qualified Data.Vector                     as V
+import qualified Gen.Instance.Results.SettingsIn as IN
 
 
 smacProcess s_output_directory s_eprime s_instance_specific
   s_cutoff_time s_cutoff_length s_seed s_param_arr = do
+  startOurCPU <- liftIO $  getCPUTime
 
   vs <- liftIO $ V.toList <$> decodeCSV (s_output_directory </> "settings.csv")
   let x@IN.CSV_IN{..} = headNote "setting.csv should have one row" vs
 
   liftIO $ print "smacProcess"
+
+  endOurCPU <- liftIO $ getCPUTime
+  let rOurCPUTime = fromIntegral (endOurCPU - startOurCPU) / ((10 :: Double) ^ (12 :: Int))
   liftIO $ groomPrint x
+
+  runtime <- liftIO $ randomRIO (1,5)
+  quality <- liftIO $ randomRIO  (20,90 :: Int)
+
+  outputResult "SAT" runtime 0 quality s_seed
+
+outputResult :: MonadIO m => String -> Double -> Int -> Int -> Int -> m ()
+outputResult result_kind runtime runlength quality seed = do
+  liftIO $ printf "Final Result for ParamILS: %s, %f, %d, %d, %d\n"
+          result_kind runtime runlength quality seed
