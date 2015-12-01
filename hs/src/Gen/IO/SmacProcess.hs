@@ -25,7 +25,6 @@ import Gen.Instance.RaceRunner          (initDB)
 import Gen.Instance.Results.Results
 import Gen.Instance.UI
 import Gen.Instance.UI
-import Gen.Instance.Undirected
 import Gen.IO.FindCompact
 import Gen.IO.Formats                   (allGivensOfEssence, getFullPath,
                                          readFromJSON, readFromJSONMay)
@@ -45,8 +44,11 @@ import qualified Data.Set                        as Set
 import qualified Data.Text                       as T
 import qualified Data.Vector                     as V
 import qualified Gen.Instance.Results.SettingsIn as IN
+import qualified Data.Aeson as A
 
 
+smacProcess :: (MonadIO m, MonadLog m) => forall t t1 t2 t3 .
+               FilePath -> t -> t1 -> t2 -> t3 -> Int -> [String] -> m ()
 smacProcess s_output_directory s_eprime s_instance_specific
   s_cutoff_time s_cutoff_length s_seed s_param_arr = do
   liftIO $ setStdGen (mkStdGen s_seed)
@@ -69,7 +71,9 @@ smacProcess s_output_directory s_eprime s_instance_specific
   point <- parseParamArray s_param_arr givens
   out $line $ show $ pretty $ point
 
-  startState <- s_loadState x
+  startState <- loadState x point
+
+  s_runMethod startState
 
   endOurCPU <- liftIO $ getCPUTime
   let rOurCPUTime = fromIntegral (endOurCPU - startOurCPU) / ((10 :: Double) ^ (12 :: Int))
@@ -104,14 +108,25 @@ parseParamArray arr givens = do
 
   parseSmacValues (name,DomainInt{},[(_,i)]) = (Name name, ConstantInt i)
 
--- | Load the state from disk if it exists otherwise init it.
-s_loadState :: MonadIO m => IN.CSV_IN  -> m (Bool, Method Undirected)
-s_loadState dat = liftIO $ doesFileExist "state.json" >>= \case
-  False -> (\x -> (True, x))  <$> s_initState dat
-  True  -> (\x -> (False, x)) <$> readFromJSON "state.json"
 
-s_initState :: MonadIO m => IN.CSV_IN -> m (Method Undirected)
-s_initState IN.CSV_IN{..} = do
+s_runMethod :: ( MonadIO m, MonadLog m)
+            => (Bool, Method Smac) ->  m ()
+s_runMethod (initValues, state) = do
+  void $ flip execStateT state $ do
+    when initValues $ initDB >> doSaveEprimes True
+    handleWDEG >> run
+
+
+-- | Load the state from disk if it exists otherwise init it.
+loadState :: MonadIO m => IN.CSV_IN -> Point -> m (Bool, Method Smac)
+loadState dat point = liftIO $ doesFileExist "state.json" >>= \case
+  False -> (\x -> (True, x))  <$> initState dat point
+  True  -> do
+    (Method common Smac{}) <- readFromJSON "state.json"
+    return $ (False, Method common (Smac point))
+
+initState :: MonadIO m => IN.CSV_IN -> Point -> m (Method Smac)
+initState IN.CSV_IN{..} point = do
   essenceA <- liftIO $ getFullPath essence
   let info_path   = replaceFileName essenceA "info.json"
       models_path = replaceFileName essenceA (takeBaseName essenceA ++ "_" ++ mode)
@@ -121,14 +136,15 @@ s_initState IN.CSV_IN{..} = do
 
   i <- liftIO $ readFromJSON info_path
   p <- ignoreLogs $ makeProvider essenceA i
+  out <- liftIO $ makeAbsolute "."
 
   let common          = MCommon{
-        mEssencePath    = essence
-      , mOutputDir      = "."
+        mEssencePath    = essenceA
+      , mOutputDir      = out
       , mModelTimeout   = per_model_time_given
       , mVarInfo        = i
       , mPreGenerate    = Nothing
-      , mIterations     = iterations
+      , mIterations     = 1
       , mMode           = mode
       , mModelsDir      = models_path
       , mGivensProvider = p
@@ -140,15 +156,25 @@ s_initState IN.CSV_IN{..} = do
       , mParamGenTime   = 300
       }
 
-  return $ Method common Undirected
+  return $ Method common (Smac point)
 
+{- Use the parsed point to run 1 race  -}
 
-s_runMethod :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m, ToJSON a)
-            => (Bool, Method Undirected) ->  m ()
-s_runMethod (initValues, state) = do
-  void $ flip execStateT state $ do
-    when initValues $ initDB >> doSaveEprimes True
-    handleWDEG >> run
+data Smac = Smac Point
+  deriving (Eq, Show, Data, Typeable, Generic)
+
+instance A.FromJSON Smac
+instance A.ToJSON Smac
+
+instance Sampling Smac where
+  doIteration = do
+    Method _ (Smac picked) <- get
+    runParamAndStoreQuality picked >>= \case
+      Left err -> return $ Left err
+      Right{}  -> do
+        storeDataPoint picked
+        return $ Right ()
+
 
 -- | This needs to be the last line
 outputResult :: MonadIO m => String -> Double -> Int -> Int -> Int -> m ()
