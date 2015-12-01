@@ -68,10 +68,10 @@ smacProcess s_output_directory s_eprime s_instance_specific
 -- TODO sum with prev RunMetadata
 
 -- | Load the state from disk if it exists otherwise init it.
-s_loadState :: MonadIO m => IN.CSV_IN  -> m (Method Undirected)
+s_loadState :: MonadIO m => IN.CSV_IN  -> m (Bool, Method Undirected)
 s_loadState dat = liftIO $ doesFileExist "state.json" >>= \case
-  False -> s_initState dat
-  True  -> readFromJSON "state.json"
+  False -> (\x -> (True, x))  <$> s_initState dat
+  True  -> (\x -> (False, x)) <$> readFromJSON "state.json"
 
 s_initState :: MonadIO m => IN.CSV_IN -> m (Method Undirected)
 s_initState IN.CSV_IN{..} = do
@@ -107,8 +107,8 @@ s_initState IN.CSV_IN{..} = do
 
 
 s_runMethod :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m, ToJSON a)
-            => Bool -> Method Undirected ->  m ()
-s_runMethod initValues state = do
+            => (Bool, Method Undirected) ->  m ()
+s_runMethod (initValues, state) = do
   void $ flip execStateT state $ do
     when initValues $ initDB >> doSaveEprimes True
     handleWDEG >> run

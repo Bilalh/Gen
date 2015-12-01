@@ -934,3 +934,28 @@ _instanceDebug = do
                     _cores = Nothing, output_directory = Nothing, limit_time = Nothing,
                     log_level = LogDebug, _seed = Nothing, pre_solutions = Nothing, given_dir=Nothing, param_gen_time   = 300}
   limiter (limit_time ec) (mainWithArgs ec)
+
+
+_smacProcessDebug :: IO ()
+_smacProcessDebug = do
+  let dir = "/Users/bilalh/aaa/results/prob055-efpa/smac/sample-64_rndsols%1%10000/"
+  doesDirectoryExist dir  >>= \case
+    True  -> do
+      ys <- getDirectoryContents dir
+      forM_ ys $ \fp -> do
+        when (fp `notElem` [".", "..", "settings.csv"]) $
+          doesDirectoryExist fp >>= \case
+              True  -> removeDirectoryRecursive fp
+              False -> removeFileIfExists fp
+    False -> return ()
+
+  createDirectoryIfMissing True dir
+  setCurrentDirectory "/Users/bilalh/aaa/results/prob055-efpa/smac/sample-64_rndsols%1%10000/"
+  let ec = Script_SMAC{s_output_directory = ".", s_eprime = "empty",
+            s_instance_specific = "0", s_cutoff_time = 64.0,
+            s_cutoff_length = 2.147483647e9, s_seed = -1,
+            s_param_arr =
+              ["-numCodeWords", "50", "-dist", "50", "-lam", "50", "-numChars",
+               "50"],
+            limit_time = Nothing, log_level = LogDebug}
+  limiter (limit_time ec) (mainWithArgs ec)
