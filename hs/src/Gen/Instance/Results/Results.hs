@@ -16,9 +16,8 @@ import Gen.Instance.Data
 import Gen.Instance.Results.ModeMeta
 import Gen.Instance.Point
 import Gen.Instance.RaceRunner          (conjureCompact, runSolve, script_lookup1)
-import Gen.IO.Formats                   (readFromJSON, readFromJSONMay)
+import Gen.IO.Formats                   (readFromJSON, readFromJSONMay,getFullPath)
 import Gen.IO.Toolchain                 (runCommand')
-import System.Directory                 (getHomeDirectory)
 import System.Exit                      (ExitCode (ExitSuccess))
 import System.IO                        (readFile)
 import System.FilePath                  (takeDirectory)
@@ -290,13 +289,6 @@ minToOut RunMetadata{..} IN.CSV_IN{..} MR.ModelRow{..}
       =  MI.ModelInfo{..}
  where (givenRunGroup, paramGroup) = (Nothing, Nothing)
 
-getFullPath :: FilePath -> IO FilePath
-getFullPath s = do
-    homeDir <- getHomeDirectory
-    return $ case s of
-        "~"             -> homeDir
-        ('~' : '/' : t) -> homeDir </> t
-        _               -> s
 
 _ex1, _ex2 :: IO ()
 _ex1 = showResults "/Users/bilalh/Desktop/Results/sampling_no_large/babbage/results/sdf@prob034-warehouse/nsample/sample-64_rndsols%1%16035"

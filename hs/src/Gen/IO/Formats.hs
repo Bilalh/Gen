@@ -12,13 +12,14 @@ import Data.Time                       (formatTime, getCurrentTime)
 import Data.Time.Format                (defaultTimeLocale)
 import Gen.Imports
 import System.Directory                (copyFile)
+import System.Directory                (getHomeDirectory)
 import System.Posix                    (getFileStatus)
 import System.Posix.Files              (fileSize)
 
+import qualified Control.Exception    as Exc
 import qualified Data.Aeson           as A
 import qualified Data.ByteString.Lazy as L
 import qualified Data.Text            as T
-import qualified Control.Exception    as Exc
 import qualified System.Exit          as Exc
 
 
@@ -117,3 +118,20 @@ readModel2 preprocess (fp, con) =
   case runLexerAndParser parseModel fp (preprocess con) of
     Left  e -> fail e
     Right x -> return x
+
+
+allGivensOfEssence :: FilePath -> IO [(Text,Domain () Expression)]
+allGivensOfEssence fp = do
+  essenceM <- readModelFromFile fp
+  let givens = [ (nm, dom) | Declaration (FindOrGiven Given (Name nm) dom)
+                          <- mStatements essenceM ]
+  return givens
+
+
+getFullPath :: FilePath -> IO FilePath
+getFullPath s = do
+    homeDir <- getHomeDirectory
+    return $ case s of
+        "~"             -> homeDir
+        ('~' : '/' : t) -> homeDir </> t
+        _               -> s

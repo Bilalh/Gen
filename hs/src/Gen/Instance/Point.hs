@@ -212,10 +212,3 @@ giveParam spec_directory = do
           ]
 
   return mayParam
-
-allGivensOfEssence :: FilePath -> IO [(Text,Domain () Expression)]
-allGivensOfEssence fp = do
-  essenceM <- readModelFromFile fp
-  let givens = [ (nm, dom) | Declaration (FindOrGiven Given (Name nm) dom)
-                          <- mStatements essenceM ]
-  return givens

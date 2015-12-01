@@ -950,7 +950,7 @@ _smacProcessDebug = do
     False -> return ()
 
   createDirectoryIfMissing True dir
-  setCurrentDirectory "/Users/bilalh/aaa/results/prob055-efpa/smac/sample-64_rndsols%1%10000/"
+  setCurrentDirectory dir
   let ec = Script_SMAC{s_output_directory = ".", s_eprime = "empty",
             s_instance_specific = "0", s_cutoff_time = 64.0,
             s_cutoff_length = 2.147483647e9, s_seed = -1,
