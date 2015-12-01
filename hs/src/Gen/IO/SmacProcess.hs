@@ -71,19 +71,26 @@ smacProcess s_output_directory s_eprime s_instance_specific
   point <- parseParamArray s_param_arr givens
   out $line $ show $ pretty $ point
 
+  -- TODO get prev RunMetadata
   startState <- loadState x point
 
   s_runMethod startState
 
+  -- Read quality from db
+
   endOurCPU <- liftIO $ getCPUTime
   let rOurCPUTime = fromIntegral (endOurCPU - startOurCPU) / ((10 :: Double) ^ (12 :: Int))
+
+
+  -- Update CPU Time and rewrite RunMetadata
+  -- get SAT/Unsat
+
 
   runtime <- liftIO $ randomRIO (1,5)
   quality <- liftIO $ randomRIO  (20,90 :: Int)
 
   outputResult "SAT" runtime 0 quality s_seed
 
--- TODO sum with prev RunMetadata
 
 parseParamArray :: MonadIO m => [String] -> [(Text,Domain () Expression)]
                 -> m  Point
@@ -106,9 +113,11 @@ parseParamArray arr givens = do
   process (x:y:zs) = (T.pack $ tail x, fromJustNote "must be an Int" $ readMay y)
                    : process zs
 
+  -- Parse the encoded values back to essence
   parseSmacValues (name,DomainInt{},[(_,i)]) = (Name name, ConstantInt i)
 
 
+-- | like run method but with some parts omitted
 s_runMethod :: ( MonadIO m, MonadLog m)
             => (Bool, Method Smac) ->  m ()
 s_runMethod (initValues, state) = do
