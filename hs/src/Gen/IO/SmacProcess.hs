@@ -81,4 +81,4 @@ outputResult result_kind runtime runlength quality seed = do
           result_kind runtime runlength quality seed
 
 out :: MonadIO m => String -> m ()
-out s = liftIO $ hPutStrLn stderr s
+out s = liftIO $ hPutStrLn stderr $ unlines [ '»' : ' ' : xs | xs <- lines s ]
