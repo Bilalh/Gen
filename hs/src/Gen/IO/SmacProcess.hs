@@ -3,52 +3,37 @@ module Gen.IO.SmacProcess where
 
 import Conjure.Language.Definition
 import Conjure.Language.Domain
-import Data.Csv                         (DefaultOrdered, FromNamedRecord,
-                                         ToNamedRecord, decodeByName,
-                                         encodeDefaultOrderedByName)
-import Data.List                        (break)
-import Data.Map                         (Map)
-import Database.SQLite.Simple
-import Database.SQLite.Simple.FromField ()
-import Database.SQLite.Simple.FromRow   ()
-import Gen.Helpers.Str
-import Gen.Imports                      hiding (group)
+import Gen.Imports                  hiding (group)
 import Gen.Instance.Data
 import Gen.Instance.Method
 import Gen.Instance.Point
-import Gen.Instance.RaceRunner          (RaceTotals (..), getPointQuailty, initDB,
-                                         parseRaceResult, raceCpuTime)
+import Gen.Instance.RaceRunner      (RaceTotals (..), getPointQuailty, initDB,
+                                     parseRaceResult, raceCpuTime)
 import Gen.Instance.Results.Results
 import Gen.Instance.SamplingError
 import Gen.Instance.UI
-import Gen.Instance.UI
 import Gen.IO.FindCompact
-import Gen.IO.Formats                   (allGivensOfEssence, getFullPath,
-                                         readFromJSON, readFromJSONMay, timestamp,
-                                         writeToJSON)
-import System.CPUTime                   (getCPUTime)
-import System.Directory                 (getHomeDirectory)
-import System.Directory                 (makeAbsolute)
-import System.Environment               (lookupEnv)
-import System.Exit                      (ExitCode (ExitSuccess))
-import System.FilePath                  (takeDirectory)
-import System.FilePath.Posix            (replaceFileName, takeBaseName)
-import System.IO                        (hPutStrLn, stderr)
-import System.Random                    (mkStdGen, setStdGen)
+import Gen.IO.Formats               (allGivensOfEssence, getFullPath, readFromJSON,
+                                     readFromJSONMay, timestamp, writeToJSON)
+import System.CPUTime               (getCPUTime)
+import System.Directory             (makeAbsolute)
+import System.Environment           (lookupEnv)
+import System.FilePath.Posix        (replaceFileName, takeBaseName)
+import System.IO                    (hPutStrLn, stderr)
+import System.Random                (mkStdGen, setStdGen)
 import Text.Printf
 
 import qualified Data.Aeson                      as A
-import qualified Data.Map                        as M
-import qualified Data.Set                        as Set
 import qualified Data.Text                       as T
 import qualified Data.Vector                     as V
 import qualified Gen.Instance.Results.SettingsIn as IN
 
 
-smacProcess :: (MonadIO m, MonadLog m) => forall t t1 t2 t3 .
-               FilePath -> t -> t1 -> t2 -> t3 -> Int -> [String] -> m ()
-smacProcess s_output_directory s_eprime s_instance_specific
-  s_cutoff_time s_cutoff_length s_seed s_param_arr = do
+smacProcess :: (MonadIO m, MonadLog m)
+            => FilePath -> String -> String -> Double -> Int -> Int -> [String]
+            -> m ()
+smacProcess s_output_directory _s_eprime _s_instance_specific
+  s_cutoff_time _s_cutoff_length s_seed s_param_arr = do
   liftIO $ setStdGen (mkStdGen s_seed)
   startOurCPU <- liftIO $  getCPUTime
   rTimestampStart <- timestamp
@@ -56,9 +41,18 @@ smacProcess s_output_directory s_eprime s_instance_specific
   vs <- liftIO $ V.toList <$> decodeCSV (s_output_directory </> "settings.csv")
   let x@IN.CSV_IN{..} = headNote "setting.csv should have one row" vs
 
-  out $line "smacProcess"
-  out $line $ groom s_param_arr
+  let modelTime :: Int = min 1 $ truncate $ s_cutoff_time
+                           / ((fromIntegral num_models) :: Double)
+
+  out $line $ show . vcat $  [ nn "cutoff_time" s_cutoff_time
+                             , nn "per_model_time_given" per_model_time_given
+                             , nn "race_time_given" race_time_given
+                             , nn "# models" num_models
+                             , nn "Calculated modelTime" modelTime
+                             ]
+
   out $line $ groom x
+  out $line $ groom s_param_arr
 
 
   essenceA <- liftIO $ getFullPath essence
@@ -70,7 +64,7 @@ smacProcess s_output_directory s_eprime s_instance_specific
   point <- parseParamArray s_param_arr givens
   out $line $ show $ pretty $ point
 
-  prevState <- loadState x point
+  prevState <- loadState x point modelTime
   prevMeta  <- loadRunMetaData
 
   (Method _ thisSmac) <- s_runMethod prevState
@@ -167,15 +161,16 @@ combineMeta (Just prev) rd tsStart tsEnd cpuTime =
   }
 
 -- | Load the state from disk if it exists otherwise init it.
-loadState :: MonadIO m => IN.CSV_IN -> Point -> m (Bool, Method Smac)
-loadState dat point = liftIO $ doesFileExist "state.json" >>= \case
-  False -> (\x -> (True, x))  <$> initState dat point
+loadState :: MonadIO m => IN.CSV_IN -> Point -> Int -> m (Bool, Method Smac)
+loadState dat point given = liftIO $ doesFileExist "state.json" >>= \case
+  False -> (\x -> (True, x))  <$> initState dat point given
   True  -> do
     (Method common Smac{}) <- readFromJSON "state.json"
-    return $ (False, Method common (smacInit point))
+    return $ (False, Method common{mModelTimeout=given} (smacInit point))
 
-initState :: MonadIO m => IN.CSV_IN -> Point -> m (Method Smac)
-initState IN.CSV_IN{..} point = do
+
+initState :: MonadIO m => IN.CSV_IN -> Point -> Int -> m (Method Smac)
+initState IN.CSV_IN{..} point  mModelTimeout = do
   essenceA <- liftIO $ getFullPath essence
   let info_path   = replaceFileName essenceA "info.json"
       models_path = replaceFileName essenceA (takeBaseName essenceA ++ "_" ++ mode)
@@ -187,10 +182,10 @@ initState IN.CSV_IN{..} point = do
   p <- ignoreLogs $ makeProvider essenceA i
   outDir <- liftIO $ makeAbsolute "."
 
-  let common          = MCommon{
+  let common            = MCommon{
         mEssencePath    = essenceA
       , mOutputDir      = outDir
-      , mModelTimeout   = per_model_time_given
+      , mModelTimeout
       , mVarInfo        = i
       , mPreGenerate    = Nothing
       , mIterations     = 1
@@ -198,11 +193,11 @@ initState IN.CSV_IN{..} point = do
       , mModelsDir      = models_path
       , mGivensProvider = p
       , mPoints         = []
-      , mCores          = 4
+      , mCores          = fromJustNote "CORES must be an int" $ readMay cores
       , mCompactName    = compactFirst
       , mSubCpu         = 0
       , mPointsGiven    = Nothing
-      , mParamGenTime   = 300
+      , mParamGenTime   = 300 -- Unused
       }
 
   return $ Method common (smacInit point)

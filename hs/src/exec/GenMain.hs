@@ -953,7 +953,7 @@ _smacProcessDebug = do
   setCurrentDirectory dir
   let ec = Script_SMAC{s_output_directory = ".", s_eprime = "empty",
             s_instance_specific = "0", s_cutoff_time = 64.0,
-            s_cutoff_length = 2.147483647e9, s_seed = -1,
+            s_cutoff_length = 2147483647, s_seed = -1,
             s_param_arr =
               ["-numCodeWords", "'50'", "-dist", "'50'", "-lam", "'50'", "-numChars",
                "'50'"],

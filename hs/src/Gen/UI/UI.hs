@@ -224,7 +224,7 @@ data UI
     ,  s_eprime            :: String
     ,  s_instance_specific :: String
     ,  s_cutoff_time       :: Double
-    ,  s_cutoff_length     :: Double
+    ,  s_cutoff_length     :: Int
     ,  s_seed              :: Int
     ,  s_param_arr         :: [String]
     ,  limit_time          :: Maybe Int
