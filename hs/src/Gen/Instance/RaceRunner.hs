@@ -9,6 +9,7 @@ module Gen.Instance.RaceRunner(
   , getModelOrdering
   , checkPrevious
   , racesTotalCpuTime
+  , raceCpuTime
   , saveEprimes
   , initDB
   , getPointQuailty
@@ -58,7 +59,7 @@ import qualified Data.Text as T
 
 
 runRace :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
-        => ParamFP -> m (Either SamplingErr (Quality, RaceTotals))
+        => ParamFP -> m (Either SamplingErr (Quality, RaceTotals, TimeStamp))
 runRace paramFP = do
   getModelOrdering >>= \case
     Left x -> return $ Left x
@@ -93,7 +94,7 @@ runRace paramFP = do
           timeTaken <- readParamRaceCpuTime ts
           saveQualityToDb paramName paramHash quality timeTaken
 
-          return $ Right (quality,totals)
+          return $ Right (quality,totals,ts)
 
 
 initDB :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
@@ -231,6 +232,16 @@ racesTotalCpuTime = do
              st <- readFile fp
              return $ readMay st
   return . sum . catMaybes $ times
+
+
+raceCpuTime :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
+            => TimeStamp -> m (Maybe Double)
+raceCpuTime ts = do
+  (Method MCommon{mOutputDir, mMode} _) <- get
+  let statsDir = mOutputDir </> ("stats_" ++ mMode)
+  let fp = statsDir </> show ts <.> ".total_solving_time"
+  readCpuTime fp
+
 
 paramGenCpuTime :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
                 => m Double

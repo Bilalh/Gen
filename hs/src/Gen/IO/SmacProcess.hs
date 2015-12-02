@@ -1,9 +1,4 @@
 {-# LANGUAGE DeriveDataTypeable, DeriveGeneric, QuasiQuotes #-}
-{-# OPTIONS_GHC -fno-warn-unused-imports #-}
-{-# OPTIONS_GHC -fno-warn-unused-binds #-}
-{-# OPTIONS_GHC -fno-warn-unused-do-bind #-}
-{-# OPTIONS_GHC -fno-warn-unused-matches #-}
-{-# OPTIONS_GHC -fno-warn-type-defaults #-}
 module Gen.IO.SmacProcess where
 
 import Conjure.Language.Definition
@@ -21,13 +16,16 @@ import Gen.Imports                      hiding (group)
 import Gen.Instance.Data
 import Gen.Instance.Method
 import Gen.Instance.Point
-import Gen.Instance.RaceRunner          (initDB, getPointQuailty,RaceTotals(..))
+import Gen.Instance.RaceRunner          (RaceTotals (..), getPointQuailty, initDB,
+                                         parseRaceResult, raceCpuTime)
 import Gen.Instance.Results.Results
+import Gen.Instance.SamplingError
 import Gen.Instance.UI
 import Gen.Instance.UI
 import Gen.IO.FindCompact
 import Gen.IO.Formats                   (allGivensOfEssence, getFullPath,
-                                         readFromJSON, readFromJSONMay, timestamp,writeToJSON)
+                                         readFromJSON, readFromJSONMay, timestamp,
+                                         writeToJSON)
 import System.CPUTime                   (getCPUTime)
 import System.Directory                 (getHomeDirectory)
 import System.Directory                 (makeAbsolute)
@@ -39,12 +37,12 @@ import System.IO                        (hPutStrLn, stderr)
 import System.Random                    (mkStdGen, setStdGen)
 import Text.Printf
 
+import qualified Data.Aeson                      as A
 import qualified Data.Map                        as M
 import qualified Data.Set                        as Set
 import qualified Data.Text                       as T
 import qualified Data.Vector                     as V
 import qualified Gen.Instance.Results.SettingsIn as IN
-import qualified Data.Aeson as A
 
 
 smacProcess :: (MonadIO m, MonadLog m) => forall t t1 t2 t3 .
@@ -77,7 +75,7 @@ smacProcess s_output_directory s_eprime s_instance_specific
 
   (Method _ thisSmac) <- s_runMethod prevState
   out $line $ groom thisSmac
-  let (thisQuality, thisTotals) = fromJustNote "Must have a result" $ sResult thisSmac
+  let (thisQuality, thisTotals, raceTime) = fromJustNote "Needa a result" $ sResult thisSmac
 
   endOurCPU <- liftIO $ getCPUTime
   let rOurCPUTime = fromIntegral (endOurCPU - startOurCPU) / ((10 :: Double) ^ (12 :: Int))
@@ -98,7 +96,7 @@ smacProcess s_output_directory s_eprime s_instance_specific
                    else
                        "UNSAT"
 
-  let runtime = rCPUTime thisMeta
+  let runtime = rOurCPUTime  + raceTime
   outputResult resultType runtime 0  (truncate smacQuality) s_seed
 
 
@@ -160,8 +158,8 @@ combineMeta (Just prev) rd tsStart tsEnd cpuTime =
   , rTimestampEnd                  = max (rTimestampEnd rd) tsEnd
   , rRealTime                      = rRealTime prev + rRealTime rd
   , rCPUTime                       = rCPUTime prev + rCPUTime rd + (cpuTime -  rOurCPUTime rd)
-  , rRacesCPUTime                  = rRacesCPUTime prev + rRacesCPUTime rd
-  , rParamGenCPUTime               = rParamGenCPUTime prev + rParamGenCPUTime rd
+  , rRacesCPUTime                  = rRacesCPUTime rd
+  , rParamGenCPUTime               = rParamGenCPUTime rd
   , rSubCPUTime                    = rSubCPUTime prev + rSubCPUTime rd
   , rOurCPUTime                    = rOurCPUTime prev + cpuTime
   , rIterationsDone                = rIterationsDone prev + rIterationsDone rd
@@ -225,14 +223,14 @@ out l s = liftIO $ hPutStrLn stderr $ unlines $ ('»' : ' ' : l)
 
 {- Use the parsed point to run 1 race  -}
 
---FIXME handle duplicates, it goes into an inf loop at the moment
 --FIXME need to use validate solution
 
 data Smac = Smac{
       sPoint   :: Point
-    , sResult  :: Maybe (Quality, RaceTotals)
+    , sResult  :: Maybe (Quality, RaceTotals, Double)
     }
   deriving (Eq, Show, Data, Typeable, Generic)
+
 
 smacInit :: Point -> Smac
 smacInit p = Smac{sPoint=p, sResult=Nothing}
@@ -244,8 +242,19 @@ instance Sampling Smac where
   doIteration = do
     (Method _ Smac{..}) <- get
     runParamAndStoreQuality sPoint >>= \case
+      Left (ErrDuplicatedPoint _ ts) -> do
+        let h = pointHash sPoint
+        totals  <- parseRaceResult h ts
+        quality <- getPointQuailty h
+        modify $ \(Method common st) ->
+          (Method common st{sResult = Just (quality, totals, 0) })
+        return $ Right ()
+
       Left err -> return $ Left err
-      Right res  -> do
+
+      Right (quality, totals, ts)  -> do
         storeDataPoint sPoint
-        modify $ \(Method common st) -> (Method common st{sResult = Just res})
+        raceTime <- fromJustNote "Must have cpuTime" <$> raceCpuTime ts
+        modify $ \(Method common st) ->
+            (Method common st{sResult = Just (quality, totals, raceTime)})
         return $ Right ()

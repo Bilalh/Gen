@@ -66,7 +66,7 @@ looper i j= do
       Left (ErrRejectedPoint d) -> do
          logInfo2 $line ["REJECTED Not counting iteration because of" <+> pretty d ]
          looper i (j + 1)
-      Left (ErrDuplicatedPoint d) -> do
+      Left (ErrDuplicatedPoint d _) -> do
          logInfo2 $line ["DUPLICATE Not counting iteration because of" <+> pretty d ]
          looper i (j + 1)
       Left (x) -> do
@@ -89,12 +89,12 @@ randomPoint = do
           sampleParamFromMinion
 
 runParamAndStoreQuality :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
-                        => Point -> m (Either SamplingErr (Quality, RaceTotals) )
+                        => Point -> m (Either SamplingErr (Quality, RaceTotals, TimeStamp) )
 runParamAndStoreQuality point = do
   let h =pointHash point
   checkPrevious h >>= \case
-    Just x  -> return $ Left $ ErrDuplicatedPoint $ vcat [nn "pointHash"  h,
-                                                          nn "located at" x]
+    Just ts -> return $ Left $ ErrDuplicatedPoint (vcat [nn "pointHash"  h,
+                                                         nn "located at" ts]) ts
 
     Nothing -> do
       (Method MCommon{mOutputDir} _) <- get

@@ -6,7 +6,7 @@ import Conjure.Language.Pretty
 import Gen.Imports             hiding (fail)
 
 data SamplingErr = ErrRejectedPoint Doc
-                 | ErrDuplicatedPoint Doc
+                 | ErrDuplicatedPoint Doc Int
                  | ErrCompact Doc
                  | ErrDB Doc
                  | ErrNoValuesLeft Doc
@@ -22,7 +22,7 @@ data SamplingErr = ErrRejectedPoint Doc
 
 instance  Pretty SamplingErr  where
   pretty (ErrRejectedPoint d)         = hang "ErrRejectedPoint" 4 d
-  pretty (ErrDuplicatedPoint d)       = hang "ErrDuplicatedPoint" 4 d
+  pretty (ErrDuplicatedPoint d _)     = hang "ErrDuplicatedPoint" 4 d
   pretty (ErrCompact d)               = hang "ErrCompact" 4 d
   pretty (ErrDB d)                    = hang "ErrDB" 4 d
   pretty (ErrNoValuesLeft d)          = hang "ErrNoValuesLeft" 4 d
