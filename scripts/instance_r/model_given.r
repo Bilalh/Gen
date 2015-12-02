@@ -14,7 +14,7 @@ if(! exists("prob")){
   load("all_models.csv.bin")
 
   # prob <- models[ models$essenceClass == "prob034-warehouse", ]
-  prob <- parts$prob013_PPP
+  prob <- parts$prob038_steel
   prob.title <- "TEST"
 
 }
@@ -38,6 +38,7 @@ heuristicSort <- "heuristicRefine"
 
 # We have run the params on multiple heuristics
 mult <- prob[ ( ! is.na(prob$givenRunGroup) ),    ]
+# mult <- prob
 
 # Only looking at the winning models
 mult.win <- mult[ mult$isWinner ==1, ]
