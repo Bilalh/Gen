@@ -56,7 +56,7 @@ parallel -j"${NUM_JOBS}" --tagstring "{/.}" "$Params" ::: ../_params/*
 parallel -j"${NUM_JOBS}" --tagstring "{/.}" "$Stats" ::: ../_params/*
 
 parallel -j2 --tagstring "{/.}" "$Minions" ::: ../_params/*
-parallel -j"${NUM_JOBS}" --tagstring "{/.}" "$Remove" ::: ../_params/*
+parallel -j1 --tagstring "{/.}" "$Remove" ::: ../_params/*
 
 popd
 
