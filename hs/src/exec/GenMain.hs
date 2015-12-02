@@ -955,7 +955,7 @@ _smacProcessDebug = do
             s_instance_specific = "0", s_cutoff_time = 64.0,
             s_cutoff_length = 2.147483647e9, s_seed = -1,
             s_param_arr =
-              ["-numCodeWords", "50", "-dist", "50", "-lam", "50", "-numChars",
-               "50"],
+              ["-numCodeWords", "'50'", "-dist", "'50'", "-lam", "'50'", "-numChars",
+               "'50'"],
             limit_time = Nothing, log_level = LogDebug}
   limiter (limit_time ec) (mainWithArgs ec)

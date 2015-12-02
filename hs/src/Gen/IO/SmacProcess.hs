@@ -121,7 +121,7 @@ parseParamArray arr givens = do
   process :: [String] -> [(Text,Integer)]
   process []       = []
   process [x]      = error $ "single element" ++ show x
-  process (x:y:zs) = (T.pack $ tail x, fromJustNote "must be an Int" $ readMay y)
+  process (x:y:zs) = (T.pack $ tail x, fromJustNote "must be an Int" $ readMay ((init . tail) y))
                    : process zs
 
   -- Parse the encoded values back to essence
