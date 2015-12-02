@@ -21,13 +21,13 @@ import Gen.Imports                      hiding (group)
 import Gen.Instance.Data
 import Gen.Instance.Method
 import Gen.Instance.Point
-import Gen.Instance.RaceRunner          (initDB)
+import Gen.Instance.RaceRunner          (initDB, getPointQuailty)
 import Gen.Instance.Results.Results
 import Gen.Instance.UI
 import Gen.Instance.UI
 import Gen.IO.FindCompact
 import Gen.IO.Formats                   (allGivensOfEssence, getFullPath,
-                                         readFromJSON, readFromJSONMay)
+                                         readFromJSON, readFromJSONMay, timestamp,writeToJSON)
 import System.CPUTime                   (getCPUTime)
 import System.Directory                 (getHomeDirectory)
 import System.Directory                 (makeAbsolute)
@@ -53,6 +53,7 @@ smacProcess s_output_directory s_eprime s_instance_specific
   s_cutoff_time s_cutoff_length s_seed s_param_arr = do
   liftIO $ setStdGen (mkStdGen s_seed)
   startOurCPU <- liftIO $  getCPUTime
+  rTimestampStart <- timestamp
 
   vs <- liftIO $ V.toList <$> decodeCSV (s_output_directory </> "settings.csv")
   let x@IN.CSV_IN{..} = headNote "setting.csv should have one row" vs
@@ -71,25 +72,40 @@ smacProcess s_output_directory s_eprime s_instance_specific
   point <- parseParamArray s_param_arr givens
   out $line $ show $ pretty $ point
 
-  -- TODO get prev RunMetadata
-  startState <- loadState x point
+  prevState <- loadState x point
+  prevMeta  <- loadRunMetaData
 
-  s_runMethod startState
+  s_runMethod prevState
 
   -- Read quality from db
 
   endOurCPU <- liftIO $ getCPUTime
   let rOurCPUTime = fromIntegral (endOurCPU - startOurCPU) / ((10 :: Double) ^ (12 :: Int))
+  rTimestampEnd <- timestamp
+
+  thisMeta <- fromJustNote "RunMetaData must be created" <$> loadRunMetaData
+  out $line $ groom thisMeta
+
+  let newMeta =  combineMeta prevMeta thisMeta rTimestampStart rTimestampEnd rOurCPUTime
+  writeRunMetaData newMeta
+  out $line $ groom newMeta
 
 
-  -- Update CPU Time and rewrite RunMetadata
-  -- get SAT/Unsat
+  ourQuality <- evalStateT (getPointQuailty (pointHash point)) (snd prevState)
+  let smacQuality = ourQuality * 100
 
+  -- TODO get resultType
+  resultType <- return "SAT"
+  -- def result_type(count, minionTimeout, minionSatisfiable, minionSolutionsFound, isOptimum, isDominated):
+  --         if count == minionTimeout:
+  --                 return "TIMEOUT"
+  --         else:
+  --                 return "SAT"
 
-  runtime <- liftIO $ randomRIO (1,5)
+  let runtime = rCPUTime thisMeta
   quality <- liftIO $ randomRIO  (20,90 :: Int)
 
-  outputResult "SAT" runtime 0 quality s_seed
+  outputResult resultType runtime 0  (truncate smacQuality) s_seed
 
 
 parseParamArray :: MonadIO m => [String] -> [(Text,Domain () Expression)]
@@ -125,6 +141,36 @@ s_runMethod (initValues, state) = do
     when initValues $ initDB >> doSaveEprimes True
     handleWDEG >> run
 
+-- | Load RunMetadata if it exists
+loadRunMetaData :: MonadIO m => m (Maybe RunMetadata)
+loadRunMetaData = readFromJSONMay "metadata.json"
+
+writeRunMetaData :: MonadIO m => RunMetadata -> m ()
+writeRunMetaData rd = liftIO $ writeToJSON "metadata.json" rd
+
+combineMeta :: Maybe RunMetadata -> RunMetadata -> Int -> Int -> Double
+            -> RunMetadata
+combineMeta Nothing rd  tsStart tsEnd cpuTime =
+  rd{
+    rTimestampStart = min (rTimestampStart rd) tsStart
+  , rTimestampEnd   = max (rTimestampEnd rd) tsEnd
+  , rOurCPUTime     = cpuTime
+  , rCPUTime        = rCPUTime rd + (cpuTime -  rOurCPUTime rd)
+  }
+
+combineMeta (Just prev) rd tsStart tsEnd cpuTime =
+  RunMetadata
+  { rTimestampStart                = min (rTimestampStart prev) tsStart
+  , rTimestampEnd                  = max (rTimestampEnd rd) tsEnd
+  , rRealTime                      = rRealTime prev + rRealTime rd
+  , rCPUTime                       = rCPUTime prev + rCPUTime rd + (cpuTime -  rOurCPUTime rd)
+  , rRacesCPUTime                  = rRacesCPUTime prev + rRacesCPUTime rd
+  , rParamGenCPUTime               = rParamGenCPUTime prev + rParamGenCPUTime rd
+  , rSubCPUTime                    = rSubCPUTime prev + rSubCPUTime rd
+  , rOurCPUTime                    = rOurCPUTime prev + cpuTime
+  , rIterationsDone                = rIterationsDone prev + rIterationsDone rd
+  , rIterationsDoneIncludingFailed = rIterationsDoneIncludingFailed prev + rIterationsDoneIncludingFailed rd
+  }
 
 -- | Load the state from disk if it exists otherwise init it.
 loadState :: MonadIO m => IN.CSV_IN -> Point -> m (Bool, Method Smac)
@@ -145,11 +191,11 @@ initState IN.CSV_IN{..} point = do
 
   i <- liftIO $ readFromJSON info_path
   p <- ignoreLogs $ makeProvider essenceA i
-  out <- liftIO $ makeAbsolute "."
+  outDir <- liftIO $ makeAbsolute "."
 
   let common          = MCommon{
         mEssencePath    = essenceA
-      , mOutputDir      = out
+      , mOutputDir      = outDir
       , mModelTimeout   = per_model_time_given
       , mVarInfo        = i
       , mPreGenerate    = Nothing
@@ -167,7 +213,23 @@ initState IN.CSV_IN{..} point = do
 
   return $ Method common (Smac point)
 
+-- | This needs to be the last line
+outputResult :: MonadIO m => String -> Double -> Int -> Int -> Int -> m ()
+outputResult result_kind runtime runlength quality seed = do
+  let s = printf "Final Result for ParamILS: %s, %f, %d, %d, %d\nresult_kind runtime runlength quality seed\n"
+          result_kind runtime runlength quality seed
+  out $line s
+  liftIO $ printf "Final Result for ParamILS: %s, %f, %d, %d, %d\n"
+          result_kind runtime runlength quality seed
+
+-- | Allows us to see the output in the logs
+out :: MonadIO m => String -> String -> m ()
+out l s = liftIO $ hPutStrLn stderr $ unlines $ ('»' : ' ' : l)
+        : [ '»' : ' ' : xs | xs <- lines s ]
+
 {- Use the parsed point to run 1 race  -}
+
+--FIXME handle duplicates, it goes into an inf loop at the moment
 
 data Smac = Smac Point
   deriving (Eq, Show, Data, Typeable, Generic)
@@ -183,15 +245,3 @@ instance Sampling Smac where
       Right{}  -> do
         storeDataPoint picked
         return $ Right ()
-
-
--- | This needs to be the last line
-outputResult :: MonadIO m => String -> Double -> Int -> Int -> Int -> m ()
-outputResult result_kind runtime runlength quality seed = do
-  liftIO $ printf "Final Result for ParamILS: %s, %f, %d, %d, %d\n"
-          result_kind runtime runlength quality seed
-
--- | Allows us to see the output in the logs
-out :: MonadIO m => String -> String -> m ()
-out l s = liftIO $ hPutStrLn stderr $ unlines $ ('»' : ' ' : l)
-        : [ '»' : ' ' : xs | xs <- lines s ]
