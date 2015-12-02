@@ -944,9 +944,9 @@ _smacProcessDebug = do
       ys <- getDirectoryContents dir
       forM_ ys $ \fp -> do
         when (fp `notElem` [".", "..", "settings.csv"]) $
-          doesDirectoryExist fp >>= \case
-              True  -> removeDirectoryRecursive fp
-              False -> removeFileIfExists fp
+          doesDirectoryExist (dir </> fp) >>= \case
+              True  -> removeDirectoryRecursive (dir </>  fp)
+              False -> removeFile (dir </> fp)
     False -> return ()
 
   createDirectoryIfMissing True dir

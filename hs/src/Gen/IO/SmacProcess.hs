@@ -21,7 +21,7 @@ import Gen.Imports                      hiding (group)
 import Gen.Instance.Data
 import Gen.Instance.Method
 import Gen.Instance.Point
-import Gen.Instance.RaceRunner          (initDB, getPointQuailty)
+import Gen.Instance.RaceRunner          (initDB, getPointQuailty,RaceTotals(..))
 import Gen.Instance.Results.Results
 import Gen.Instance.UI
 import Gen.Instance.UI
@@ -75,36 +75,30 @@ smacProcess s_output_directory s_eprime s_instance_specific
   prevState <- loadState x point
   prevMeta  <- loadRunMetaData
 
-  s_runMethod prevState
-
-  -- Read quality from db
+  (Method _ thisSmac) <- s_runMethod prevState
+  out $line $ groom thisSmac
+  let (thisQuality, thisTotals) = fromJustNote "Must have a result" $ sResult thisSmac
 
   endOurCPU <- liftIO $ getCPUTime
   let rOurCPUTime = fromIntegral (endOurCPU - startOurCPU) / ((10 :: Double) ^ (12 :: Int))
   rTimestampEnd <- timestamp
 
   thisMeta <- fromJustNote "RunMetaData must be created" <$> loadRunMetaData
-  out $line $ groom thisMeta
+  out ($line ++ " this RunMetaData") $ groom thisMeta
 
   let newMeta =  combineMeta prevMeta thisMeta rTimestampStart rTimestampEnd rOurCPUTime
   writeRunMetaData newMeta
-  out $line $ groom newMeta
+  out ($line ++ " combined RunMetaData") $ groom newMeta
 
-
-  ourQuality <- evalStateT (getPointQuailty (pointHash point)) (snd prevState)
-  let smacQuality = ourQuality * 100
-
-  -- TODO get resultType
-  resultType <- return "SAT"
-  -- def result_type(count, minionTimeout, minionSatisfiable, minionSolutionsFound, isOptimum, isDominated):
-  --         if count == minionTimeout:
-  --                 return "TIMEOUT"
-  --         else:
-  --                 return "SAT"
+  let smacQuality = thisQuality * 100
+  let resultType = if tCount thisTotals == tMinionTimeout thisTotals then
+                       "TIMEOUT"
+                   else if tMinionSatisfiable thisTotals > 0  then
+                       "SAT"
+                   else
+                       "UNSAT"
 
   let runtime = rCPUTime thisMeta
-  quality <- liftIO $ randomRIO  (20,90 :: Int)
-
   outputResult resultType runtime 0  (truncate smacQuality) s_seed
 
 
@@ -113,8 +107,9 @@ parseParamArray :: MonadIO m => [String] -> [(Text,Domain () Expression)]
 parseParamArray arr givens = do
   let tuples = process arr
   out $line $  groom tuples
+  -- Strip the prefix off the encoded
   let grouped = map (\(name,dom) -> (name,dom,
-                                     [ (t,v)  | (t,v) <- tuples, name `T.isPrefixOf` t ]
+                                     [ (T.stripPrefix name t,v)  | (t,v) <- tuples, name `T.isPrefixOf` t ]
                                     ) ) givens
   out $line $ groom grouped
   let vs = sort $ map parseSmacValues grouped
@@ -133,11 +128,12 @@ parseParamArray arr givens = do
   parseSmacValues (name,DomainInt{},[(_,i)]) = (Name name, ConstantInt i)
 
 
+
 -- | like run method but with some parts omitted
 s_runMethod :: ( MonadIO m, MonadLog m)
-            => (Bool, Method Smac) ->  m ()
+            => (Bool, Method Smac) ->  m (Method Smac)
 s_runMethod (initValues, state) = do
-  void $ flip execStateT state $ do
+  flip execStateT state $ do
     when initValues $ initDB >> doSaveEprimes True
     handleWDEG >> run
 
@@ -178,7 +174,7 @@ loadState dat point = liftIO $ doesFileExist "state.json" >>= \case
   False -> (\x -> (True, x))  <$> initState dat point
   True  -> do
     (Method common Smac{}) <- readFromJSON "state.json"
-    return $ (False, Method common (Smac point))
+    return $ (False, Method common (smacInit point))
 
 initState :: MonadIO m => IN.CSV_IN -> Point -> m (Method Smac)
 initState IN.CSV_IN{..} point = do
@@ -211,7 +207,7 @@ initState IN.CSV_IN{..} point = do
       , mParamGenTime   = 300
       }
 
-  return $ Method common (Smac point)
+  return $ Method common (smacInit point)
 
 -- | This needs to be the last line
 outputResult :: MonadIO m => String -> Double -> Int -> Int -> Int -> m ()
@@ -230,18 +226,26 @@ out l s = liftIO $ hPutStrLn stderr $ unlines $ ('»' : ' ' : l)
 {- Use the parsed point to run 1 race  -}
 
 --FIXME handle duplicates, it goes into an inf loop at the moment
+--FIXME need to use validate solution
 
-data Smac = Smac Point
+data Smac = Smac{
+      sPoint   :: Point
+    , sResult  :: Maybe (Quality, RaceTotals)
+    }
   deriving (Eq, Show, Data, Typeable, Generic)
+
+smacInit :: Point -> Smac
+smacInit p = Smac{sPoint=p, sResult=Nothing}
 
 instance A.FromJSON Smac
 instance A.ToJSON Smac
 
 instance Sampling Smac where
   doIteration = do
-    Method _ (Smac picked) <- get
-    runParamAndStoreQuality picked >>= \case
+    (Method _ Smac{..}) <- get
+    runParamAndStoreQuality sPoint >>= \case
       Left err -> return $ Left err
-      Right{}  -> do
-        storeDataPoint picked
+      Right res  -> do
+        storeDataPoint sPoint
+        modify $ \(Method common st) -> (Method common st{sResult = Just res})
         return $ Right ()

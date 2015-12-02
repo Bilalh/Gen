@@ -51,14 +51,14 @@ import System.IO                                (hPutStr, hPutStrLn,
                                                  stderr, stdout,readFile)
 import System.IO.Temp                           (withSystemTempDirectory)
 
-
+import qualified Data.Aeson as A
 import qualified Data.Set  as S
 import qualified Data.Text as T
 
 
 
 runRace :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
-        => ParamFP -> m (Either SamplingErr Quality)
+        => ParamFP -> m (Either SamplingErr (Quality, RaceTotals))
 runRace paramFP = do
   getModelOrdering >>= \case
     Left x -> return $ Left x
@@ -93,7 +93,7 @@ runRace paramFP = do
           timeTaken <- readParamRaceCpuTime ts
           saveQualityToDb paramName paramHash quality timeTaken
 
-          return $ Right quality
+          return $ Right (quality,totals)
 
 
 initDB :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
@@ -211,6 +211,10 @@ data RaceTotals = RaceTotals
     , tIsOptimum            :: Int
     , tIsDominated          :: Int
     } deriving (Eq, Show, Data, Typeable, Generic)
+
+instance A.FromJSON RaceTotals
+instance A.ToJSON RaceTotals
+
 instance Pretty RaceTotals where pretty = pretty . groom
 
 instance FromRow RaceTotals where
