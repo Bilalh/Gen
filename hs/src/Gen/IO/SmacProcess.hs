@@ -8,7 +8,7 @@ import Gen.Instance.Data
 import Gen.Instance.Method
 import Gen.Instance.Point
 import Gen.Instance.RaceRunner      (RaceTotals (..), getPointQuailty, initDB,
-                                     parseRaceResult, raceCpuTime)
+                                     parseRaceResult, raceCpuTime,createParamEssence)
 import Gen.Instance.Results.Results
 import Gen.Instance.SamplingError
 import Gen.Instance.UI
@@ -52,7 +52,7 @@ smacProcess s_output_directory _s_eprime _s_instance_specific
                              ]
 
   out $line $ groom x
-  out $line $ groom s_param_arr
+  -- out $line $ groom s_param_arr
 
 
   essenceA <- liftIO $ getFullPath essence
@@ -98,13 +98,13 @@ parseParamArray :: MonadIO m => [String] -> [(Text,Domain () Expression)]
                 -> m  Point
 parseParamArray arr givens = do
   let tuples = process arr
-  out $line $  groom tuples
+  -- out $line $  groom tuples
   -- Strip the prefix off the encoded
   let grouped = map (\(name,dom) -> (name,dom,
-                                     [ (T.stripPrefix name t,v)  | (t,v) <- tuples, name `T.isPrefixOf` t ]
-                                    ) ) givens
+                     [ (T.stripPrefix name t,v)  | (t,v) <- tuples, name `T.isPrefixOf` t ]
+                    ) ) givens
   out $line $ groom grouped
-  let vs = sort $ map parseSmacValues grouped
+  let vs = map parseSmacValues grouped
 
   return $ Point vs
 
@@ -126,7 +126,7 @@ s_runMethod :: ( MonadIO m, MonadLog m)
             => (Bool, Method Smac) ->  m (Method Smac)
 s_runMethod (initValues, state) = do
   flip execStateT state $ do
-    when initValues $ initDB >> doSaveEprimes True
+    when initValues $ createParamEssence >> initDB >> doSaveEprimes True
     handleWDEG >> run
 
 -- | Load RunMetadata if it exists

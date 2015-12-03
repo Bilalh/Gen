@@ -10,11 +10,13 @@ import Conjure.UI.TypeCheck            (typeCheckModel)
 import Conjure.UserError
 import Data.Time                       (formatTime, getCurrentTime)
 import Data.Time.Format                (defaultTimeLocale)
+import Gen.Helpers.InlineLettings      (inlineLettings)
 import Gen.Imports
 import System.Directory                (copyFile)
 import System.Directory                (getHomeDirectory)
 import System.Posix                    (getFileStatus)
 import System.Posix.Files              (fileSize)
+import Conjure.Process.LettingsForComplexInDoms
 
 import qualified Control.Exception    as Exc
 import qualified Data.Aeson           as A
@@ -122,7 +124,7 @@ readModel2 preprocess (fp, con) =
 
 allGivensOfEssence :: FilePath -> IO [(Text,Domain () Expression)]
 allGivensOfEssence fp = do
-  essenceM <- readModelFromFile fp
+  essenceM <- readModelFromFile fp >>= inlineLettingDomainsForDecls
   let givens = [ (nm, dom) | Declaration (FindOrGiven Given (Name nm) dom)
                           <- mStatements essenceM ]
   return givens
