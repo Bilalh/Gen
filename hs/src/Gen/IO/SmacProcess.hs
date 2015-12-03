@@ -13,6 +13,7 @@ import Gen.Instance.RaceRunner      (RaceTotals (..), createParamEssence,
                                      raceCpuTime)
 import Gen.Instance.Results.Results
 import Gen.Instance.SamplingError
+import Conjure.Process.Enumerate(enumerateDomain)
 import Gen.Instance.UI
 import Gen.IO.FindCompact
 import Gen.IO.Formats               (allGivensOfEssence, getFullPath, readFromJSON,
@@ -140,6 +141,19 @@ parseParamArray arr givens = do
                      DomainInt{}) , vs) = do
     let tuples = genericTake upper [ (parse "%FT%" t  , ConstantInt v) | (t,v) <- vs ]
     return $ (Name name, ConstantAbstract $ AbsLitFunction tuples)
+
+  parseSmacValues (name,
+    (DomainFunction _ (FunctionAttr SizeAttr_None PartialityAttr_Total JectivityAttr_None)
+      tu@(DomainTuple [DomainInt [RangeBounded (ConstantInt 1) (ConstantInt size1)]
+                      ,DomainInt [RangeBounded (ConstantInt 1) (ConstantInt size2)]] )
+       DomainInt{}) , vs) = do
+    let size   = size1 * size2
+    let vals   = genericTake size
+                 [ (ConstantInt v) | (t,v) <- vs, "%FT_TV%" `T.isInfixOf` t ]
+    allTuples <- liftIO $ enumerateDomain tu
+    let tuples = zip allTuples vals
+    return $ (Name name, ConstantAbstract $ AbsLitFunction tuples)
+
 
   parseSmacValues (name,dom,vs) = do
     lineError $line ["unhandled", nn "name" name, nn "dom" dom, nn "vs" (groom vs) ]

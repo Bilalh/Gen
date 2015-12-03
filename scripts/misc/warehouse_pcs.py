@@ -22,7 +22,4 @@ for e in ["capacity", "opencost"]:
 	print()
 
 for i in range(1, (args.n_warehouses * args.n_stores) + 1 ):
-	print("cost%FT_T{}%{:03d}  [{}, {}] [{}]i".format(1, i, 1, args.n_upper, args.n_stores // 2))
-	print("cost%FT_T{}%{:03d}  [{}, {}] [{}]i".format(2, i, 1, args.n_upper, args.n_warehouses // 2))
 	print("cost%FT_T{}%{:03d}  [{}, {}] [{}]i".format("V", i, 1, args.n_upper, args.n_upper // 2))
-	print()
