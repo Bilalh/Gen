@@ -36,8 +36,7 @@ smacProcess :: (MonadIO m, MonadLog m)
             => FilePath -> String -> String -> Double -> Int -> Int -> [String]
             -> m ()
 smacProcess s_output_directory _s_eprime _s_instance_specific
-  s_cutoff_time _s_cutoff_length s_seed s_param_arr = do
-  liftIO $ setStdGen (mkStdGen s_seed)
+  s_cutoff_time _s_cutoff_length _s_seed s_param_arr = do
   startOurCPU <- liftIO $  getCPUTime
   rTimestampStart <- timestamp
 
@@ -94,7 +93,7 @@ smacProcess s_output_directory _s_eprime _s_instance_specific
                        "UNSAT"
 
   let runtime = rOurCPUTime  + raceTime
-  outputResult resultType runtime 0  (truncate smacQuality) s_seed
+  outputResult resultType runtime 0  (truncate smacQuality) _s_seed
 
 
 parseParamArray :: MonadIO m => [String] -> [(Text,Domain () Expression)]
