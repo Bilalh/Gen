@@ -44,7 +44,7 @@ smacProcess s_output_directory _s_eprime _s_instance_specific
   vs <- liftIO $ V.toList <$> decodeCSV (s_output_directory </> "settings.csv")
   let x@IN.CSV_IN{..} = headNote "setting.csv should have one row" vs
 
-  let modelTime :: Int = min 1 $ truncate $ s_cutoff_time
+  let modelTime :: Int = max 1 $ truncate $ s_cutoff_time
                            / ((fromIntegral num_models) :: Double)
 
   out $line $ show . vcat $  [ nn "cutoff_time" s_cutoff_time
@@ -135,6 +135,7 @@ parseParamArray arr givens = do
    modify $ \st -> (Name name, Constant $ ConstantInt i) : st
    return (Name name, ConstantInt i)
 
+  -- Basily Function1D
   parseSmacValues (name,
     (DomainFunction _ (FunctionAttr SizeAttr_None PartialityAttr_Total JectivityAttr_None)
                     (DomainInt [RangeBounded (ConstantInt 1) (ConstantInt upper)])
@@ -142,7 +143,7 @@ parseParamArray arr givens = do
     let tuples = genericTake upper [ (parse "%FT%" t  , ConstantInt v) | (t,v) <- vs ]
     return $ (Name name, ConstantAbstract $ AbsLitFunction tuples)
 
-  -- Decoding would work for any function (total) tuple -> int
+  -- Decoding would work for any function (total) _ -> int
   parseSmacValues (name,
     (DomainFunction _ (FunctionAttr SizeAttr_None PartialityAttr_Total JectivityAttr_None)
       tu@(DomainTuple [DomainInt [RangeBounded (ConstantInt 1) (ConstantInt size1)]
