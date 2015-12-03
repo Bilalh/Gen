@@ -7,7 +7,7 @@ library(plyr)
 base <- path.expand("~/Desktop/Results/sampling_no_large/")
 all <- read.csv(file.path(base, "all.csv"))
 
-info=ddply(all, c("essenceClass", "kind", "heuristic", "mode","group"), summarise,
+info=ddply(all, c("essenceClass", "kind", "heuristic", "mode","group", "essence"), summarise,
            runs=length(run_no),
            highestOrderingMean=mean(highestOrderingNeeded),
            highestOrderingNeeded=toString(highestOrderingNeeded),
