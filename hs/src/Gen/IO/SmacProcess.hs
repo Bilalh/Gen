@@ -3,12 +3,14 @@ module Gen.IO.SmacProcess where
 
 import Conjure.Language.Definition
 import Conjure.Language.Domain
+import Conjure.Language.Instantiate (instantiateDomain)
 import Gen.Imports                  hiding (group)
 import Gen.Instance.Data
 import Gen.Instance.Method
 import Gen.Instance.Point
-import Gen.Instance.RaceRunner      (RaceTotals (..), getPointQuailty, initDB,
-                                     parseRaceResult, raceCpuTime,createParamEssence)
+import Gen.Instance.RaceRunner      (RaceTotals (..), createParamEssence,
+                                     getPointQuailty, initDB, parseRaceResult,
+                                     raceCpuTime)
 import Gen.Instance.Results.Results
 import Gen.Instance.SamplingError
 import Gen.Instance.UI
@@ -101,10 +103,16 @@ parseParamArray arr givens = do
   -- out $line $  groom tuples
   -- Strip the prefix off the encoded
   let grouped = map (\(name,dom) -> (name,dom,
-                     [ (T.stripPrefix name t,v)  | (t,v) <- tuples, name `T.isPrefixOf` t ]
+                     sort [ (fromJustNote $line $ T.stripPrefix name t,v)
+                          | (t,v) <- tuples, name `T.isPrefixOf` t ]
                     ) ) givens
   out $line $ groom grouped
-  let vs = map parseSmacValues grouped
+  vs <- flip evalStateT [] $ forM grouped $ \g -> do
+                             g'@(name,dom,_) <- instantiatePrev g
+                             out $line $ show (nn ("Working on" <+> pretty name) dom)
+                             res <- parseSmacValues g'
+                             out $line $ show (nn ("Result on" <+> pretty name) res)
+                             return res
 
   return $ Point vs
 
@@ -116,9 +124,28 @@ parseParamArray arr givens = do
   process (x:y:zs) = (T.pack $ tail x, fromJustNote "must be an Int" $ readMay ((init . tail) y))
                    : process zs
 
-  -- Parse the encoded values back to essence
-  parseSmacValues (name,DomainInt{},[(_,i)]) = (Name name, ConstantInt i)
+  instantiatePrev (name, d1, vs) = do
+     prev <- get
+     d2 <- liftIO $ instantiateDomain prev d1
+     return (name, d2, vs)
 
+  -- Parse the encoded values back to essence
+  parseSmacValues (name,DomainInt{},[(_,i)]) = do
+   modify $ \st -> (Name name, Constant $ ConstantInt i) : st
+   return (Name name, ConstantInt i)
+
+  parseSmacValues (name,
+    (DomainFunction _ (FunctionAttr SizeAttr_None PartialityAttr_Total JectivityAttr_None)
+                    (DomainInt [RangeBounded (ConstantInt 1) (ConstantInt upper)])
+                     DomainInt{}) , vs) = do
+    let tuples = genericTake upper [ (parse "%FT%" t  , ConstantInt v) | (t,v) <- vs ]
+    return $ (Name name, ConstantAbstract $ AbsLitFunction tuples)
+
+  parseSmacValues (name,dom,vs) = do
+    lineError $line ["unhandled", nn "name" name, nn "dom" dom, nn "vs" (groom vs) ]
+
+  parse kind t =  fromJustNote ("Failed parsing " ++ show t) $ ConstantInt
+              <$> (T.stripPrefix kind t >>= return . T.unpack >>= readMay)
 
 
 -- | like run method but with some parts omitted
@@ -216,9 +243,9 @@ out :: MonadIO m => String -> String -> m ()
 out l s = liftIO $ hPutStrLn stderr $ unlines $ ('»' : ' ' : l)
         : [ '»' : ' ' : xs | xs <- lines s ]
 
-{- Use the parsed point to run 1 race  -}
 
---FIXME need to use validate solution
+{- Use the parsed point to run 1 race  -}
+--FIXME need to use validate solution?
 
 data Smac = Smac{
       sPoint   :: Point
