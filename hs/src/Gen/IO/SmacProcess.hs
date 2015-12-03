@@ -142,6 +142,7 @@ parseParamArray arr givens = do
     let tuples = genericTake upper [ (parse "%FT%" t  , ConstantInt v) | (t,v) <- vs ]
     return $ (Name name, ConstantAbstract $ AbsLitFunction tuples)
 
+  -- Decoding would work for any function (total) tuple -> int
   parseSmacValues (name,
     (DomainFunction _ (FunctionAttr SizeAttr_None PartialityAttr_Total JectivityAttr_None)
       tu@(DomainTuple [DomainInt [RangeBounded (ConstantInt 1) (ConstantInt size1)]
