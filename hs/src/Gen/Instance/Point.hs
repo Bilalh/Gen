@@ -35,7 +35,8 @@ instance A.FromJSON Point
 instance A.ToJSON Point
 
 instance Pretty Point where
-    pretty (Point xs) =  (vcat . map pretty $ xs)
+    pretty (Point []) = "⟪⟫"
+    pretty (Point xs) =  "⟪" <+> (vcat . map pretty $ xs) <+> "⟫"
 
 -- | Provides values for givens
 newtype Provider = Provider [(Name, Domain () Constant)]

@@ -51,7 +51,7 @@ reduceMain check rr = do
 
 
       noteFormat "FinalState" [pretty state]
-      noteFormat "Start"  $ [pretty sp]  ++  maybeToList (pretty <$> startParam)
+      noteFormat "Start"  $ [pretty sp, maybe "" (("param" <+>) . pretty) startParam]
 
       end <- case sfin of
                (Continue x)   -> return $  Just x
@@ -63,14 +63,14 @@ reduceMain check rr = do
 
       let endParam = param_ state
 
-      let end2 = case end of
-            Nothing -> Nothing
+      let end2 :: Doc = case end of
+            Nothing -> "Nothing"
             Just x  -> if hash x == hash sp && hash startParam == hash endParam then
-                          Nothing
+                         "Nothing"
                        else
-                          Just x
+                          pretty x $$ maybe "" (("param" <+>) . pretty) endParam
 
-      noteFormat "Final" $ [pretty end2] ++ maybeToList ( pretty <$> endParam)
+      noteFormat "Final" $ [end2]
 
       return (state)
 
@@ -83,17 +83,17 @@ noteMsg tx s = do
 doReductions :: Spec -> RRR (Timed Spec)
 doReductions start =
     return (Continue start)
-    >>= con "tryRemoveConstraints" tryRemoveConstraints
-    >>= con "removeObjective"      removeObjective
+    -- >>= con "tryRemoveConstraints" tryRemoveConstraints
+    -- >>= con "removeObjective"      removeObjective
     >>= con "removeUnusedDomains"  removeUnusedDomains
-    -- >>= con "inlineGivens"         inlineGivens
-    >>= con "removeConstraints"    removeConstraints
-    >>= con "removeUnusedDomains"  removeUnusedDomains
-    >>= con "simplyFinds"          simplyFinds
-    >>= con "simplyConstraints"    simplyConstraints
-    -- >>= con "simplyGivens"         simplyGivens
-    >>= con "loopToFixed"          loopToFixed
-    >>= con "eprimeAsSpec"         eprimeAsSpec
+    -- -- >>= con "inlineGivens"         inlineGivens
+    -- >>= con "removeConstraints"    removeConstraints
+    -- >>= con "removeUnusedDomains"  removeUnusedDomains
+    -- >>= con "simplyFinds"          simplyFinds
+    -- >>= con "simplyConstraints"    simplyConstraints
+    -- -- >>= con "simplyGivens"         simplyGivens
+    -- >>= con "loopToFixed"          loopToFixed
+    -- >>= con "eprimeAsSpec"         eprimeAsSpec
 
 
 loopToFixed :: Spec -> RRR (Timed Spec)
