@@ -17,7 +17,7 @@ import Gen.Imports
 import Gen.Instance.AllSolutions    (createAllSolutionScript, readSolutionCounts)
 import Gen.Instance.Data
 import Gen.Instance.Nsample         (Nsample (..))
-import Gen.Instance.Point           (giveParam, readPoint)
+import Gen.Instance.Point           (readPoint)
 import Gen.Instance.Results.Results (showResults)
 import Gen.Instance.UI              (instances_no_racing, makeProvider, runMethod)
 import Gen.Instance.Undirected      (Undirected (..))
@@ -709,7 +709,7 @@ instanceCommon cores Instance_Common{..} = do
       else do
         ps <- mapM readPoint fps
         putStrLn . show . vcat $ [ nn "length given points" (length ps)
-                                 , "first 5 points" <+> (vcat $ map pretty . take 5 $ ps)
+                                 , "first 3 points" <+> (vcat $ map pretty . take 3 $ ps)
                                  ]
         return $ Just ps
 
