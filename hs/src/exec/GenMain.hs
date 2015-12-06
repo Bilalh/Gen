@@ -354,7 +354,6 @@ mainWithArgs u@Reduce{..} = do
   out   <- giveOutputDirectory output_directory
   cores <- giveCores u
 
-  mayParam <- giveParam spec_directory
 
   nullParamGen toolchain_ouput
 
@@ -377,7 +376,6 @@ mainWithArgs u@Reduce{..} = do
                 ,resultsDB_           = db
                 ,mostReducedChoices_  = error_choices
                 ,timeLeft_            = total_time_may
-                ,param_               = mayParam
                 }
 
   doMeta out no_csv binaries_directory

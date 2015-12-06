@@ -31,19 +31,19 @@ timedExtract (Continue a)   = a
 timedExtract (NoTimeLeft a) = a
 
 
-timedSpec :: Spec
+timedSpec :: Spec -> Maybe Point
           -> (Maybe ErrData -> RRR a)          -- No time left
           -> (Maybe ErrData -> RRR (Timed a))  -- Time left
           -> RRR (Timed a)
-timedSpec sp f g = do
+timedSpec sp mp f g = do
   RState{rconfig=RConfig{alwaysCompact_}} <- get
   if alwaysCompact_ then
-      timedCompactSpec sp f g
+      timedCompactSpec sp mp f g
   else
-      timedSpec2 runSpec sp f g
+      timedSpec2 runSpec sp mp f g
 
 
-timedCompactSpec :: Spec
+timedCompactSpec :: Spec -> Maybe Point
                  -> (Maybe ErrData -> RRR a)          -- No time left
                  -> (Maybe ErrData -> RRR (Timed a))  -- Time left
                  -> RRR (Timed a) -- True means a similar error  still occured
@@ -51,15 +51,14 @@ timedCompactSpec = timedSpec2 runSpecCompact
 
 
 timedSpec2 :: (Spec -> Maybe Point ->  RRR (Maybe ErrData, Int) )
-           -> Spec
+           -> Spec -> Maybe Point
            -> (Maybe ErrData -> RRR a)          -- No time left
            -> (Maybe ErrData -> RRR (Timed a))  -- Time left
            -> RRR (Timed a)
-timedSpec2 runner sp f g= do
+timedSpec2 runner sp mp f g= do
     -- xdb <- getsDb
     -- liftIO $ putStrLn $ "%DB:" ++ groom xdb
     startTime <- liftIO $ round `fmap` getPOSIXTime
-    mp <- gets param_
     (res, cpuTimeUsed) <- runner sp mp
     endTime <- liftIO $ round `fmap` getPOSIXTime
     let realTimeUsed = endTime - startTime
@@ -128,7 +127,7 @@ runSpec2 :: (MonadDB m, MonadIO m, MonadLog m, RndGen m, MonadR m)
         -> Maybe Point
         -> m (Maybe ErrData, Int)
 runSpec2 refineWay spE mayP= do
-  liftIO $ logSpec spE
+  liftIO $ logSpec spE mayP
 
   RConfig{..} <- getRconfig
 

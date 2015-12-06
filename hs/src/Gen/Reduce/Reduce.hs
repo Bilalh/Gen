@@ -20,9 +20,10 @@ import qualified Data.Map as M
 
 reduceMain :: (MonadIO m, MonadLog m, RndGen m) => Bool -> RState -> m RState
 reduceMain check rr = do
-  let startParam = param_ rr
   let base = (specDir_ . rconfig) rr
       fp   =  base </> "spec.spec.json"
+
+  startParam <- liftIO $ giveParam base
 
   sp_ <- liftIO $ readFromJSON fp
   -- Remove quantification
@@ -31,7 +32,7 @@ reduceMain check rr = do
                  False -> return (True, rr)
                  True -> (flip runStateT) rr (return sp
                            >>= noteMsg "Checking if error still occurs"
-                           >>=  (flip checkForError) (param_ rr)
+                           >>=  (flip checkForError) (startParam)
                            >>= \case
                                   (Just ErrData{..}, _) -> do
                                     liftIO $ removeDirectoryRecursive (specDir)
@@ -45,7 +46,7 @@ reduceMain check rr = do
         return rr
     True -> do
       (sfin,state) <-  (flip runStateT) rr $
-          return sp
+          return (sp, startParam)
           >>= doReductions
           >>= \ret -> get >>= \g -> addLog "FinalState" [pretty g] >> return ret
 
@@ -53,22 +54,22 @@ reduceMain check rr = do
       noteFormat "FinalState" [pretty state]
       noteFormat "Start"  $ [pretty sp, maybe "" (("param" <+>) . pretty) startParam]
 
-      end <- case sfin of
+      end :: Maybe (Spec, Maybe Point)  <- case sfin of
                (Continue x)   -> return $  Just x
-               NoTimeLeft{} -> do
+               NoTimeLeft{}   -> do
                   case mostReduced_ state of
                     Nothing -> return Nothing
-                    Just (ErrData{..})  ->
-                        liftIO $ readFromJSON (specDir </> "spec.spec.json")
-
-      let endParam = param_ state
+                    Just (ErrData{..})  -> do
+                       nsp <- liftIO $ readFromJSON  (specDir </> "spec.spec.json")
+                       nmp <- liftIO $ readPointMay  (specDir </> "given.param")
+                       return $ Just (nsp, nmp)
 
       let end2 :: Doc = case end of
             Nothing -> "Nothing"
-            Just x  -> if hash x == hash sp && hash startParam == hash endParam then
+            Just (nsp,nmp) -> if hash nsp == hash sp && hash startParam == hash nmp then
                          "Nothing"
                        else
-                          pretty x $$ maybe "" (("param" <+>) . pretty) endParam
+                          pretty nsp $$ maybe "" (("param" <+>) . pretty) nmp
 
       noteFormat "Final" $ [end2]
 
@@ -80,23 +81,23 @@ noteMsg tx s = do
     return s
 
 -- | The reduction process
-doReductions :: Spec -> RRR (Timed Spec)
+doReductions :: (Spec, Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
 doReductions start =
     return (Continue start)
-    -- >>= con "tryRemoveConstraints" tryRemoveConstraints
-    -- >>= con "removeObjective"      removeObjective
+    >>= con "tryRemoveConstraints" tryRemoveConstraints
+    >>= con "removeObjective"      removeObjective
     >>= con "removeUnusedDomains"  removeUnusedDomains
-    -- -- >>= con "inlineGivens"         inlineGivens
-    -- >>= con "removeConstraints"    removeConstraints
-    -- >>= con "removeUnusedDomains"  removeUnusedDomains
-    -- >>= con "simplyFinds"          simplyFinds
-    -- >>= con "simplyConstraints"    simplyConstraints
-    -- -- >>= con "simplyGivens"         simplyGivens
-    -- >>= con "loopToFixed"          loopToFixed
-    -- >>= con "eprimeAsSpec"         eprimeAsSpec
+    -- >>= con "inlineGivens"         inlineGivens
+    >>= con "removeConstraints"    removeConstraints
+    >>= con "removeUnusedDomains"  removeUnusedDomains
+    >>= con "simplyFinds"          simplyFinds
+    >>= con "simplyConstraints"    simplyConstraints
+    -- >>= con "simplyGivens"         simplyGivens
+    >>= con "loopToFixed"          loopToFixed
+    >>= con "eprimeAsSpec"         eprimeAsSpec
 
 
-loopToFixed :: Spec -> RRR (Timed Spec)
+loopToFixed :: (Spec,  Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
 loopToFixed start = do
   noteFormat ("@" <+> "loopToFixed") []
   res <-  return (Continue start)
@@ -116,41 +117,41 @@ loopToFixed start = do
           loopToFixed cur
 
 
-tryRemoveConstraints :: Spec -> RRR (Timed Spec)
-tryRemoveConstraints sp@(Spec _ [] _ )  = return . Continue $ sp
-tryRemoveConstraints sp@(Spec ds _ obj) = do
-  timedSpec (Spec ds [] obj) f (  fmap Continue . f )
+tryRemoveConstraints :: (Spec,  Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
+tryRemoveConstraints d@(Spec _ [] _ ,_)  = return . Continue $ d
+tryRemoveConstraints d@(Spec ds _ obj, mp) = do
+  timedSpec (Spec ds [] obj) mp f (fmap Continue . f)
 
   where
     f (Just r) = do
       recordResult r
-      return $ Spec ds [] obj
+      return $ (Spec ds [] obj, mp)
 
-    f _ = return sp
+    f _ = return d
 
-removeObjective :: Spec -> RRR (Timed Spec)
-removeObjective sp@(Spec _ _ Nothing)  = return . Continue $ sp
-removeObjective sp@(Spec ds es Just{}) =
-  timedSpec (Spec ds es Nothing ) f (fmap Continue . f)
+removeObjective :: (Spec,  Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
+removeObjective d@(Spec _ _ Nothing,_)  = return . Continue $ d
+removeObjective d@(Spec ds es Just{}, mp) =
+  timedSpec (Spec ds es Nothing ) mp f (fmap Continue . f)
 
   where
     f (Just r) = do
       recordResult r
-      return $ Spec ds es Nothing
+      return $ (Spec ds es Nothing, mp)
 
-    f _ = return sp
+    f _ = return d
 
 
-removeUnusedDomains :: Spec -> RRR (Timed Spec)
-removeUnusedDomains sp@(Spec ods es obj) = do
+-- FIXME Careful here the param (namely the givens) may need to be changed as
+removeUnusedDomains :: (Spec,  Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
+removeUnusedDomains d@(sp@(Spec ods es obj), mp) = do
     let unusedNames = unusedDomains sp
 
     res <- process (choices ods unusedNames)
     forM res $ \x -> case x of
-      Nothing -> return sp
-      Just ds -> do
-        modify $ \st -> st{param_ = removeNames unusedNames <$> (param_ st) }
-        return (Spec ds es obj)
+      Nothing -> return d
+      Just (ds,nmp) -> do
+        return (Spec ds es obj, nmp)
 
     where
     choices :: Domains -> [Text] -> [Domains]
@@ -161,31 +162,32 @@ removeUnusedDomains sp@(Spec ods es obj) = do
             res = fmap (\wy -> M.filterWithKey (\k _ -> k `notElem` wy) ds ) ways
         in res
 
-    process :: [Domains]-> RRR (Timed (Maybe Domains))
+    process :: [Domains]-> RRR (Timed (Maybe (Domains, Maybe Point)))
     process []     = return $ Continue $ Nothing
-    process (x:xs) = timedSpec (Spec y es obj) f g
+    process (x:xs) = timedSpec (Spec y es obj) p f g
         where
           y = ensureAFind x
+          p = coordinateGivens y mp
 
           f (Just r) = do
             recordResult r
-            return $ Just y
+            return $ Just (y, p)
 
-          f _  =  return $ Just y
+          f _  =  return $ Just (y,p)
 
           g (Just r) = do
             recordResult r
-            return . Continue . Just $ y
+            return . Continue . Just $ (y,p)
 
           g _ = process xs
 
 
-removeConstraints :: Spec -> RRR (Timed Spec)
-removeConstraints (Spec ds oes obj) = do
+removeConstraints :: (Spec,  Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
+removeConstraints (Spec ds oes obj,mp) = do
     let nubbed = nub2 oes
     process (choices nubbed) >>= return . fmap (\x -> case x of
-        Just es -> Spec ds es obj
-        Nothing -> Spec ds nubbed obj )
+        Just es -> (Spec ds es obj, mp)
+        Nothing -> (Spec ds nubbed obj, mp) )
 
     where
 
@@ -196,7 +198,7 @@ removeConstraints (Spec ds oes obj) = do
 
     process :: [[Expr]] -> RRR (Timed (Maybe [Expr]))
     process []     = return $ Continue $ Nothing
-    process (x:xs) = timedSpec (Spec ds x obj) f g
+    process (x:xs) = timedSpec (Spec ds x obj) mp f g
         where
 
           f (Just r) = do
@@ -212,17 +214,17 @@ removeConstraints (Spec ds oes obj) = do
           g _ = process xs
 
 
-simplyFinds :: Spec -> RRR (Timed Spec)
-simplyFinds sp@(Spec ds es obj) = do
+simplyFinds :: (Spec,  Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
+simplyFinds d@(sp@(Spec ds es obj), mp) = do
   let org = [ ((name,ix),val) | (name, (ix, Findd val)) <- M.toList ds ]
   domsToDo <- doDoms org
   liftIO $ putStrLn . show . prettyArr $ map prettyArr domsToDo
   fin <- process1 [ dd |  dd <- domsToDo, dd /= org]
 
   if (timedExtract fin) == [] then
-      return $ Continue sp
+      return $ Continue d
   else
-      return $ fmap (const $ Spec (toDoms $ timedExtract fin) es obj) fin
+      return $ flip fmap fin $ \x -> ( Spec (toDoms x) es obj  , mp)
 
   where
   givens = M.filter isGiven ds where
@@ -251,7 +253,7 @@ simplyFinds sp@(Spec ds es obj) = do
             recordResult r
             return fixed
         f _ = return []
-    timedSpec (Spec (toDoms fixed) es obj) f (fmap Continue . f)
+    timedSpec (Spec (toDoms fixed) es obj) mp f (fmap Continue . f)
 
   process1 xs = do
     fixed <- next xs
@@ -268,19 +270,20 @@ simplyFinds sp@(Spec ds es obj) = do
 
       g _ = removeNext xs >>= process1
 
-    timedSpec (Spec (toDoms fixed) es obj) f g
+    timedSpec (Spec (toDoms fixed) es obj) mp f g
 
 
-simplyConstraints :: Spec -> RRR (Timed Spec)
-simplyConstraints sp@(Spec _ [] _)    = return $ Continue $ sp
-simplyConstraints sp@(Spec ds es obj) = do
+simplyConstraints :: (Spec,  Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
+simplyConstraints d@(Spec _ [] _, _)    = return $ Continue $ d
+simplyConstraints d@(sp@(Spec ds es obj), mp) = do
   choices <- doConstraints es
   fin     <- process1 choices
 
   if (timedExtract fin) == [] then
-      return $ Continue sp
+      return $ Continue d
   else
-      return $ fmap (const $ Spec ds (timedExtract fin) obj) fin
+      -- return $ fmap (const $ Spec ds (timedExtract fin) obj) fin
+      return $ flip fmap fin $ \x -> ( Spec ds x obj  , mp)
 
   where
 
@@ -304,7 +307,7 @@ simplyConstraints sp@(Spec ds es obj) = do
             recordResult r
             return fixed
         f _ = return []
-    timedSpec (Spec ds fixed obj) f (fmap Continue . f)
+    timedSpec (Spec ds fixed obj) mp f (fmap Continue . f)
 
   process1 xs = do
     fixed <- next xs
@@ -321,12 +324,12 @@ simplyConstraints sp@(Spec ds es obj) = do
 
       g _ = removeNext xs >>= process1
 
-    timedSpec (Spec ds fixed obj) f g
+    timedSpec (Spec ds fixed obj) mp f g
 
 
 -- | Try treating the eprime as a essence spec, and see if still has an error
-eprimeAsSpec :: Spec -> RRR (Timed Spec)
-eprimeAsSpec start = do
+eprimeAsSpec :: (Spec,  Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
+eprimeAsSpec start@(_,mp) = do
   config <- gets rconfig
   process config
 
@@ -352,9 +355,13 @@ eprimeAsSpec start = do
                   (Just eprimeSpec) -> do
                     -- curState <- get
                     -- noteFormat "eprimeAsSpec curState" [pretty curState]
-
-                    timedCompactSpec eprimeSpec f (g eprimeSpec)
-                    -- docError [nn "res" res]
+                    case mp of
+                      Just{} -> do
+                        liftIO $ noteFormat "eprimeAsSpec NotDone"
+                                   ["eprimeAsSpec not supported with a .param"]
+                        return (Continue start)
+                      Nothing -> do
+                        timedCompactSpec eprimeSpec Nothing f (g (eprimeSpec, Nothing))
 
           -- TODO handle multiple eprimes
           _  -> do
@@ -370,10 +377,10 @@ eprimeAsSpec start = do
         liftIO $ noteFormat "eprimeAsSpec NoError" []
         return $ Continue $ start
 
-      g sp (Just r) = do
+      g sp_p (Just r) = do
         liftIO $ noteFormat "eprimeAsSpec SameError" [pretty r]
         recordResult r
-        loopToFixed sp
+        loopToFixed sp_p
 
 
 ensureAFind :: Domains -> Domains
@@ -386,13 +393,21 @@ isGiven :: (Int,GF) -> Bool
 isGiven (_, Givenn{}) = True
 isGiven _             = False
 
-
 isFind :: (Int,GF) -> Bool
 isFind (_, Findd{})  = True
 isFind _             = False
 
+coordinateGivens :: Domains -> Maybe Point -> Maybe Point
+coordinateGivens _ Nothing = Nothing
+coordinateGivens ds (Just p) =
+    let keep = M.filter isGiven ds
+    in Just $ onlyNames (M.keysSet keep) p
 
---  | Fix the next Elem
+
+
+-- List functions
+
+-- | Fix the next Elem
 next :: [[x]] -> RRR [x]
 next esR = return $ map pickFirst esR
 
@@ -430,22 +445,26 @@ recordResult err = do
 
 
 -- |  Run the computation if there is time left
-con :: forall a . Pretty a
-    => Doc
-    -> (a -> RRR (Timed a))
-    -> Timed a -> RRR (Timed a)
+con :: Doc
+    -> ( (Spec, Maybe Point) -> RRR (Timed (Spec, Maybe Point) ))
+    -> Timed (Spec, Maybe Point) -> RRR (Timed (Spec, Maybe Point))
 con tx _ (NoTimeLeft s) = do
     noteFormat ("@" <+> tx <+> "Start/NoTimeLeft") []
     return $ NoTimeLeft s
 
-con tx f (Continue s) = do
+con tx f (Continue d) = do
     noteFormat ("@" <+> tx <+> "Start") []
 
-    newSp <- f s
-    noteFormat ("@" <+> tx <+> "End") [pretty newSp]
-
+    (newRes) <- f d
     endState <- get
+    noteFormat ("@" <+> tx <+> "End") (prettyTimedResult newRes)
     noteFormat ("@" <+> tx <+> "EndState") [pretty endState]
     liftIO $ putStrLn ""
 
-    return newSp
+    return newRes
+
+prettyTimedResult :: Timed (Spec, Maybe Point) -> [Doc]
+prettyTimedResult t =
+  let (sp,mp ) = timedExtract t
+  in [ pretty sp
+     , maybe "" (("param" <+>) . pretty) (mp)]

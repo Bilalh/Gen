@@ -34,9 +34,10 @@ import System.Environment(getExecutablePath)
 
 import qualified Data.Map as M
 
-logSpec :: MonadIO m => Spec -> m ()
-logSpec sp = do
-  liftIO $ putStrLn . renderSmall . nest 4 . vcat $ ["Processing", pretty sp]
+logSpec :: Pretty a => MonadIO m => Spec -> Maybe a -> m ()
+logSpec sp mayP = do
+  liftIO $ putStrLn . renderSmall . nest 4 . vcat $
+             ["Processing", pretty sp, maybe "" (("Param" <+>) . pretty) mayP]
 
 writeModelDef :: MonadIO m => FilePath -> Model -> m FilePath
 writeModelDef dir spec = do

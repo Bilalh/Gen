@@ -45,8 +45,6 @@ newtype Provider = Provider [(Name, Domain () Constant)]
 instance A.FromJSON Provider
 instance A.ToJSON Provider
 
-removeNames :: [Text] -> Point -> Point
-removeNames rm (Point xs)= Point $ [ x | x@(Name n,_) <- xs, n `notElem` rm ]
 
 pointName :: Point -> ParamName
 pointName (Point xs) = renderSized 100000 $ vcat [ pretty n <+> pretty c  | (n,c) <- xs ]
@@ -57,6 +55,12 @@ pointHash px =
         dgt  = hash (B.pack name) :: Digest SHA512
     in show $ dgt
 
+
+removeNames :: [Text] -> Point -> Point
+removeNames rm (Point xs)= Point $ [ x | x@(Name n,_) <- xs, n `notElem` rm ]
+
+onlyNames :: Set Text -> Point -> Point
+onlyNames keep (Point xs) = Point $ [ x | x@(Name n,_) <- xs, n `S.member` keep ]
 
 readPoint :: MonadIO m => ParamFP -> m Point
 readPoint fp = do
@@ -71,6 +75,13 @@ readPoint fp = do
             Nothing -> error "Not a constant"
 
   return $ Point cons
+
+
+readPointMay :: (MonadIO m)  => FilePath -> m (Maybe Point)
+readPointMay fp = do
+  liftIO $ doesFileExist fp >>= \case
+    False -> return Nothing
+    True  -> Just <$> readPoint fp
 
 
 writePoint :: MonadIO m => Point  -> FilePath -> m ()
