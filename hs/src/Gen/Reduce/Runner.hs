@@ -52,8 +52,8 @@ timedCompactSpec = timedSpec2 runSpecCompact
 
 timedSpec2 :: (Spec -> Maybe Point ->  RRR (Maybe ErrData, Int) )
            -> Spec -> Maybe Point
-           -> (Maybe ErrData -> RRR a)          -- No time left
-           -> (Maybe ErrData -> RRR (Timed a))  -- Time left
+           -> (Maybe ErrData -> RRR a)          -- No time left (f)
+           -> (Maybe ErrData -> RRR (Timed a))  -- Time left    (g)
            -> RRR (Timed a)
 timedSpec2 runner sp mp f g= do
     -- xdb <- getsDb

@@ -14,9 +14,9 @@ import Gen.Reduce.Reduction
 import Gen.Reduce.Runner
 import Gen.Reduce.UnusedDomains
 import System.FilePath          (takeExtension)
+import Conjure.Language.Name
 
 import qualified Data.Map as M
-
 
 reduceMain :: (MonadIO m, MonadLog m, RndGen m) => Bool -> RState -> m RState
 reduceMain check rr = do
@@ -87,8 +87,8 @@ doReductions start =
     >>= con "tryRemoveConstraints" tryRemoveConstraints
     >>= con "removeObjective"      removeObjective
     >>= con "removeUnusedDomains"  removeUnusedDomains
-    -- >>= con "inlineGivens"         inlineGivens
     >>= con "removeConstraints"    removeConstraints
+    >>= con "inlineGivens"         inlineGivens
     >>= con "removeUnusedDomains"  removeUnusedDomains
     >>= con "simplyFinds"          simplyFinds
     >>= con "simplyConstraints"    simplyConstraints
@@ -107,7 +107,7 @@ loopToFixed start = do
       >>= con "simplyFinds"          simplyFinds
       >>= con "simplyConstraints"    simplyConstraints
       -- >>= con "simplyGivens"         simplyGivens
-      -- >>= con "inlineGivens"         inlineGivens
+      >>= con "inlineGivens"         inlineGivens
   case res of
     (NoTimeLeft end) -> return $ NoTimeLeft end
     (Continue cur)   -> do
@@ -129,6 +129,7 @@ tryRemoveConstraints d@(Spec ds _ obj, mp) = do
 
     f _ = return d
 
+
 removeObjective :: (Spec,  Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
 removeObjective d@(Spec _ _ Nothing,_)  = return . Continue $ d
 removeObjective d@(Spec ds es Just{}, mp) =
@@ -141,8 +142,6 @@ removeObjective d@(Spec ds es Just{}, mp) =
 
     f _ = return d
 
-
--- FIXME Careful here the param (namely the givens) may need to be changed as
 removeUnusedDomains :: (Spec,  Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
 removeUnusedDomains d@(sp@(Spec ods es obj), mp) = do
     let unusedNames = unusedDomains sp
@@ -173,13 +172,63 @@ removeUnusedDomains d@(sp@(Spec ods es obj), mp) = do
             recordResult r
             return $ Just (y, p)
 
-          f _  =  return $ Just (y,p)
+          f _  =  return $ Nothing
 
           g (Just r) = do
             recordResult r
             return . Continue . Just $ (y,p)
 
           g _ = process xs
+
+inlineGivens :: (Spec,  Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
+inlineGivens d@(_, Nothing) = return $ Continue $ d
+inlineGivens d@((Spec ods es obj), Just (Point ops) ) = do
+  res <- process givenSeq
+  forM res $ \x -> case x of
+    Nothing -> return d
+    Just (fsp, fp) -> return (fsp, Just fp)
+
+  where
+  -- list of points in decressing length  [(a,_),(b,_),(c,)],  [(a,_),(b,_)]
+  givenSeq = reverse . tail . sortBy (comparing length) . subsequences $ ops
+
+  process :: [[(Name,Constant)]] -> RRR (Timed (Maybe (Spec, Point)))
+  process []     = return $ Continue $ Nothing
+  process (x:xs) = timedSpec theSpec (Just np) f g
+    where
+
+    theSpec = (Spec nds nes nobj)
+
+    givens_rm = M.fromList $ x
+
+    np   = Point [ (n,c) | (n,c) <- ops, n `M.notMember` givens_rm ]
+    nds0  = M.filterWithKey (\k _ ->  (Name k) `M.notMember` givens_rm  ) ods
+
+    nds  = M.map (second (transformGF) ) nds0
+    nes  = map (transform inline) es
+    nobj = fmap (second (transform inline) ) obj
+
+    transformGF (Givenn v) = Givenn $ unEDom $ transform inline (EDom v)
+    transformGF (Findd v)  = Findd  $ unEDom $ transform inline (EDom v)
+
+    inline :: Expr -> Expr
+    inline expr@(EVar (Var a _)) = case (Name a) `M.lookup` givens_rm of
+                                     Nothing  -> expr
+                                     Just c -> ECon c
+    inline expr = expr
+
+
+    f (Just r) = do
+      recordResult r
+      return $ Just (theSpec, np)
+
+    f Nothing  =  return Nothing
+
+    g (Just r) = do
+      recordResult r
+      return . Continue . Just $ (theSpec,np)
+
+    g Nothing = process xs
 
 
 removeConstraints :: (Spec,  Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
@@ -205,13 +254,13 @@ removeConstraints (Spec ds oes obj,mp) = do
             recordResult r
             return $ Just x
 
-          f _  = return $ Just x
+          f Nothing  = return Nothing
 
           g (Just r) = do
             recordResult r
             return . Continue . Just $ x
 
-          g _ = process xs
+          g Nothing = process xs
 
 
 simplyFinds :: (Spec,  Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
