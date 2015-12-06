@@ -13,8 +13,9 @@ if(! exists("prob")){
   # Run models.r to generate the cached results
   load("all_models.csv.bin")
 
-  # prob <- models[ models$essenceClass == "prob034-warehouse", ]
-  prob <- parts$prob038_steel
+  # prob <- models[ models$essenceClass == "prob013-PPP", ]
+  prob <- parts$prob013_PPP
+
   prob.title <- "TEST"
 
 }
@@ -96,8 +97,8 @@ graph.by_class_model_param <- function(){
 
   yy <- ggplot( data=df, aes( x=paramUID, y=nodes) )
   yy <- yy + facet_grid( eprimeUID ~ . )
-  yy <- yy + geom_point(shape=1, size=I(3), aes_string(color=heuristicSort) )
-  # yy <- yy + geom_point(shape=1, position=position_jitter(width=0.1,height=0.01))
+  # yy <- yy + geom_point(shape=1, size=I(3), aes_string(color=heuristicSort) )
+  yy <- yy + geom_point(shape=1, size=I(3), aes_string(color=heuristicSort),  position=position_jitter(width=0.2) )
   yy <- yy + xlab("Param #")
   yy <- yy + scale_y_log10()
   yy <- yy + theme(legend.position="top")
@@ -117,8 +118,8 @@ graph.by_class_param_min <- function(){
   )
 
   yy <- ggplot( data=df, aes( x=paramUID, y=nodes, ) )
-  yy <- yy + geom_point(shape=1, size=I(3), aes_string(color=heuristicSort) )
-  # yy <- yy + geom_point(shape=1, position=position_jitter(width=0.1,height=0.01))
+  # yy <- yy + geom_point(shape=1, size=I(3), aes_string(color=heuristicSort) )
+  yy <- yy + geom_point(shape=1, size=I(3), aes_string(color=heuristicSort),  position=position_jitter(width=0.2) )
   yy <- yy + xlab("Param #")
   yy <- yy + scale_y_log10()
   yy <- yy + theme(legend.position="top")
@@ -140,8 +141,8 @@ graph.by_class_model_param_time <- function(){
 
   yy <- ggplot( data=df, aes( x=paramUID, y=runTime_marked) )
   yy <- yy + facet_grid( eprimeUID ~ . )
-  yy <- yy + geom_point(shape=1, size=I(3), aes_string(color=heuristicSort) )
-  # yy <- yy + geom_point(shape=1, position=position_jitter(width=0.1,height=0.01))
+  # yy <- yy + geom_point(shape=1, size=I(3), aes_string(color=heuristicSort) )
+  yy <- yy + geom_point(shape=1, size=I(3), aes_string(color=heuristicSort),  position=position_jitter(width=0.2) )
   yy <- yy + xlab("Param #")
   yy <- yy + ylab("CPU Time")
   yy <- yy + scale_y_log10()
@@ -162,8 +163,8 @@ graph.by_class_param_min_time <- function(){
   )
 
   yy <- ggplot( data=df, aes( x=paramUID, y=runTime_marked ))
-  yy <- yy + geom_point(shape=1, size=I(3), aes_string(color=heuristicSort)  )
-  # yy <- yy + geom_point(shape=1, position=position_jitter(width=0.1,height=0.01))
+  # yy <- yy + geom_point(shape=1, size=I(3), aes_string(color=heuristicSort)  )
+  yy <- yy + geom_point(shape=1, size=I(3), aes_string(color=heuristicSort),  position=position_jitter(width=0.2) )
   yy <- yy + xlab("Param #")
   yy <- yy + ylab("CPU Time")
   yy <- yy + scale_y_log10()

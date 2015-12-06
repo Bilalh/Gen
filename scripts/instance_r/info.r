@@ -24,7 +24,10 @@ info=ddply(all, c("essenceClass", "kind", "heuristic", "mode","group", "essence"
 
 
 finished=info[info$runs==3,]
-# View(finished)
 write.csv(finished, file="summary.csv")
 
-View(all)
+# View(finished)
+# View(all)
+selected <- all[ all$essenceClass=="prob013-PPP" &  all$kindClass=="undirected" & all$mode=="sample-64" , ]
+# View(selected)
+
