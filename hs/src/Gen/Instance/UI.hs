@@ -146,6 +146,17 @@ instances_no_racing essence_path iterations param_gen_time out seed log_level= d
 
 -- for ghci
 
+build_dependencies_of_csplib_essence :: IO ()
+build_dependencies_of_csplib_essence = do
+  let baseOut = "/Users/bilalh/Downloads/Essence/"
+  files <- getAllFilesWithSuffix ".essence" baseOut
+  setEnv "NULL_runPadded" "true"
+  forM_ files $ \essence_fp -> do
+    res <- runLoggerPipeIO LogNone $ findDependencies (takeDirectory essence_fp) essence_fp
+    print res
+    putStrLn "\n"
+
+
 compare_to_manual_info :: IO ()
 compare_to_manual_info = do
   let baseOut = "/Users/bilalh/CS/gen/__/compare"

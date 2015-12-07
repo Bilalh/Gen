@@ -7,6 +7,8 @@ import Gen.Instance.Data
 import Gen.Instance.Point
 import Gen.Instance.RaceRunner (runSolve, script_lookup1,conjureCompact)
 import Gen.Instance.SamplingError
+import Gen.Helpers.InlineLettings
+import Conjure.Language.NameResolution (resolveNames)
 
 import qualified Data.Map as M
 import qualified Data.Set   as S
@@ -16,7 +18,9 @@ type Edge = (Name, Name)
 buildDependencyGraph :: (MonadLog m, MonadIO m)
                      => FilePath -> Model
                      -> m (Either SamplingErr (VarInfo, Double))
-buildDependencyGraph outBase model = do
+buildDependencyGraph outBase modelStart = do
+  modelNamed <- liftIO $ ignoreLogs . runNameGen $ resolveNames modelStart
+  let model = inlineLettings modelNamed
   vs <- core model
   state :: [Edge] <- execWriterT $ forM vs $ \(n,dom) -> do
              let refs = [ (n,name) | (Reference name _) <- universe (Domain dom)]
@@ -30,8 +34,11 @@ buildDependencyGraph outBase model = do
 
   let numbedMay = map (\(fro,to) -> (fro `M.lookup` n_i, to `M.lookup` n_i)) edges
   let numbed = [ (a,b) |  (Just a, Just b) <- numbedMay ]
-  unless (length numbed == length edges) $ docError [ "Edges not converted"
-                                                    , vcat . map  pretty $ edges
+  unless (length numbed == length edges) $ docError [ "Edges not converted, length numbed /= length edges"
+                                                    , "edges"  <+>  (vcat . map  pretty $ edges)
+                                                    , "numbed" <+>  (vcat . map  pretty $ numbed)
+                                                    , "state"  <+> (vcat . map  pretty $ state)
+                                                    , "vs"  <+>(vcat . map  pretty $ vs)
                                                     , pretty $line]
 
   -- logDebugVerbose2 $line (map pretty numbed)
