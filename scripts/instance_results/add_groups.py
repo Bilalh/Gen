@@ -5,6 +5,7 @@ import csv
 import shutil
 import sys, os
 import itertools
+import json
 
 from pathlib import Path
 from pprint import pprint, pformat
@@ -57,17 +58,17 @@ def read_csv(csvfile):
     return (rows, r.fieldnames)
 
 
-def write_csv(csvfile, *, headers, rows):
-  with csvfile.open('w') as f:
-    w = csv.DictWriter(f, headers)
-    w.writeheader()
-    for d in rows:
-      w.writerow(d)
-
-
 args = setup()
 csvfile = Path(args.all)
 allModels_csv = Path(args.all_models)
+
+ignore_json=Path("ignore.json")
+if ignore_json.exists():
+  ignore = json.load(ignore_json.open("r"))
+  ignore_str = {str(i) for i in ignore}
+else:
+  ignore = {}
+  ignore_str = {}
 
 (rows, fieldnames) = read_csv(csvfile)
 run_fields = ["essenceClass", "mode", "iterations", "per_model_time_given",
@@ -125,7 +126,13 @@ tmpPath = csvfile.with_suffix(".tmp.csv")
 if tmpPath.exists():
   tmpPath.unlink()
 
-write_csv(tmpPath, headers=fieldnames, rows=rows)
+with tmpPath.open('w') as f:
+  w = csv.DictWriter(f, fieldnames)
+  w.writeheader()
+  for d in rows:
+    if d["seq"] not in ignore:
+      w.writerow(d)
+
 tmpPath.replace(csvfile)
 
 # Stream all_models.csv since it so large
@@ -139,6 +146,9 @@ with allModels_csv.open('r') as fin:
     w = csv.DictWriter(fout, r.fieldnames)
     w.writeheader()
     for row in r:
+      if row['seq'] in ignore_str:
+        continue
+
       try:
         row['paramGroup'] = strParamGroup[row['seq']]
       except KeyError:
