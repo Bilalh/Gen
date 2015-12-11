@@ -10,4 +10,6 @@ set -x
   && "${OUR}/make_excluded.sh" \
   && "${OUR}/check_for_missing.sh" \
   && ( [ -f r/all_models.csv.bin ] && rm r/all_models.csv.bin )
+code=$?
 set +x
+exit $code
