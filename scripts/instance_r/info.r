@@ -28,6 +28,12 @@ write.csv(finished, file="summary.csv")
 
 # View(finished)
 # View(all)
-selected <- all[ all$essenceClass=="prob013-PPP" &  all$kindClass=="undirected" & all$mode=="sample-64" , ]
+names.essence <- unique(all$essenceClass)
+selected.ppp  <- all[ all$essenceClass=="prob013-PPP"       &  all$kindClass=="undirected" & all$mode=="sample-64" , ]
+selected.wh   <- all[ all$essenceClass=="prob034-warehouse" &  all$kindClass=="undirected" & all$mode=="sample-64" , ]
+selected.bacp <- all[ all$essenceClass=="prob030-BACP"      &  all$kindClass=="undirected" & all$mode=="sample-64" , ]
+selected.efpa <- all[ all$essenceClass=="prob055-efpa"      &  all$kindClass=="undirected" & all$mode=="sample-64" , ]
+selected.sgp <- all[ all$essenceClass=="prob010-SGP"        &  all$kindClass=="undirected" , ]
+
 # View(selected)
 

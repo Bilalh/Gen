@@ -14,11 +14,12 @@ if(! exists("prob")){
   load("all_models.csv.bin")
 
   # prob <- models[ models$essenceClass == "prob013-PPP", ]
-  prob <- parts$prob013_PPP
+  prob <- parts$prob034_warehouse
 
   prob.title <- "TEST"
 
 }
+
 
 
 prob$heuristicRefine  = paste(prob$heuristic, mapvalues(
@@ -34,12 +35,17 @@ prob$heuristicRefine  = paste(prob$heuristic, mapvalues(
 heuristicSort <- "heuristicRefine"
 
 
+if (unique(prob$essenceClass) %in% c("prob010-SGP", "prob024-langford")){
+  # Since we only have one set of runs at the moment
+  mult <- prob
+  mult$givenRunGroup <- prob$seq
+  mult$paramGroup <-prob$seq
+  mult <- mult [ mult$refineGroup == "2015-11-27", ]
+}else{
+  # We have run the params on multiple heuristics
+  mult <- prob[ ( ! is.na(prob$givenRunGroup) ),    ]
+}
 
-
-
-# We have run the params on multiple heuristics
-mult <- prob[ ( ! is.na(prob$givenRunGroup) ),    ]
-# mult <- prob
 
 # Only looking at the winning models
 mult.win <- mult[ mult$isWinner ==1, ]
@@ -147,7 +153,7 @@ graph.by_class_model_param_time <- function(){
   yy <- yy + ylab("CPU Time")
   yy <- yy + scale_y_log10()
   yy <- yy + theme(legend.position="top")
-  yy <- yy +  theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))
+  yy <- yy +theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))
   yy <- yy + ggtitle(paste(prob.title, ": ", "winning models grouped by model #", sep=""))
   yy
 }
@@ -172,6 +178,8 @@ graph.by_class_param_min_time <- function(){
   # yy <- yy + theme(axis.text.x= element_text(angle=45, hjust = 1.3, vjust = 1.2))
   yy <- yy +  theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))
   yy <- yy + ggtitle(paste(prob.title, ": ", "min cputime over all fractures", sep=""))
+  yy <- yy + geom_hline(yintercept=600, linetype="dashed", color = "red", size=0.5)
+  yy <- yy + geom_text(aes( 5, 650, label = "Timeout"), size = 5,family="Times" , face="italic" , parse = TRUE)
   yy
 }
 
@@ -194,9 +202,10 @@ graph.save <- function(name,func){
 # graph.by_class_model_param(prob.title)
 # graph.by_class_param_min(prob.title)
 
-graph.save(paste("nodes/", prob.title, "~param_model", sep=""), graph.by_class_model_param() )
-graph.save(paste("nodes/", prob.title, "~param_min",  sep=""), graph.by_class_param_min())
-
 graph.save(paste("time/", prob.title, "~param_model", sep=""), graph.by_class_model_param_time())
 graph.save(paste("time/", prob.title, "~param_min",  sep=""), graph.by_class_param_min_time())
 
+
+
+graph.save(paste("nodes/", prob.title, "~param_model", sep=""), graph.by_class_model_param() )
+graph.save(paste("nodes/", prob.title, "~param_min",  sep=""), graph.by_class_param_min())
