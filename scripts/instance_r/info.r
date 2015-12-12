@@ -7,12 +7,13 @@ library(plyr)
 base <- path.expand("~/Desktop/Results/sampling_no_large/")
 all <- read.csv(file.path(base, "all.csv"))
 
-info=ddply(all, c("essenceClass", "kind", "heuristic", "mode","group", "essence"), summarise,
+info=ddply(all, c("essenceClass", "kind", "heuristic", "mode","group", "refineGroup" ), summarise,
            runs=length(run_no),
            highestOrderingMean=mean(highestOrderingNeeded),
            highestOrderingNeeded=toString(highestOrderingNeeded),
            compactWon=toString(compactWon),
            numFractures=toString(numFractures),
+           fracturesSize=toString(fracturesSize),
            # rIterationsDone=mean(rIterationsDone),
            rIterationsDoneIncludingFailed=toString(rIterationsDoneIncludingFailed),
            hostType=toString(hostType),
