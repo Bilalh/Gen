@@ -44,6 +44,7 @@ if (unique(prob$essenceClass) %in% c("prob010-SGP", "prob024-langford")){
 }else{
   # We have run the params on multiple heuristics
   mult <- prob[ ( ! is.na(prob$givenRunGroup) ),    ]
+  mult <- mult [ mult$mode == "sample-64", ]
 }
 
 
