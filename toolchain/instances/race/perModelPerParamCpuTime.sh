@@ -152,6 +152,19 @@ if [ -n "${MINION_BINARY:-}" ]; then
 	scmd+=(-minion-bin "${MINION_BINARY}")
 fi
 
+echo "SAVILEROW_EXTRA_ARGS: ${SAVILEROW_EXTRA_ARGS:-}"
+echo "SOLVER_EXTRA_ARGS:    ${SOLVER_EXTRA_ARGS:-}"
+
+if [ -n "${SAVILEROW_EXTRA_ARGS:-}" ]; then
+	scmd+=(${SAVILEROW_EXTRA_ARGS})
+fi
+
+
+if [ -n "${SOLVER_EXTRA_ARGS:-}" ]; then
+	scmd+=(-solver-options "${SOLVER_EXTRA_ARGS}")
+fi
+
+
 echo "${scmd[@]}"
 echo "${scmd[@]}" >&2
 
