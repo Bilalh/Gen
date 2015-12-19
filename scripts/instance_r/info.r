@@ -21,8 +21,10 @@ info=ddply(all, c("essenceClass", "kind", "heuristic", "mode","num_models", "per
            rRealTime=mean(rRealTime),
            fCPUTime=mean(rCPUTime)/3600,
            fRealTime=mean(rRealTime)/3600,
+           influence_radius=toString(influence_radius),
            compact=toString(compact),
-           fractures=toString(fractures)
+           fractures=toString(fractures),
+           end=""
            )
 
 
@@ -42,7 +44,9 @@ info.ppp  <- info[ info$essenceClass=="prob013-PPP" , ]
 info.wh   <- info[ info$essenceClass=="prob034-warehouse" , ]
 info.sgp  <- info[ info$essenceClass=="prob010-SGP" , ]
 
-info2 <- info[ info$refineGroup!="2015-11-06_symlink" , ]
+info2 <- info[ ! info$refineGroup  %in%  c("2015-11-06_symlink", "2015-11-25") , ]
 
 # View(selected)
 
+View(info)
+View(info2)

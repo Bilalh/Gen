@@ -21,12 +21,17 @@ if (file.exists("all_models.csv.bin")) {
   models$paramUID <- as.factor(models$paramUID)
   models$eprimeUID <- as.factor(models$eprimeUID)
 
+  models2 <- models[ ! models$refineGroup  %in%  c("2015-11-06_symlink", "2015-11-25") , ]
+
   parts <- split( models , models$essenceClass )
   pnames <- names(parts)
   var_names <- gsub("-","_", pnames)
   names(parts) <- var_names
 
-  save(models, parts, file="all_models.csv.bin", compress=FALSE)
+  parts2 <- split( models2 , models2$essenceClass )
+  names(parts2) <- var_names
+
+  save(models, parts, models2, parts2, file="all_models.csv.bin", compress=FALSE)
 }
 
 # Make each class it's own data frame
