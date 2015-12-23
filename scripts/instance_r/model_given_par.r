@@ -12,9 +12,9 @@ library(scales)
 # Run models.r to generate the cached results
 load("all_models.csv.bin")
 
-u<-unique( models$essenceClass )
+u<-unique( models2$essenceClass )
 for(name in u) {
-  prob <- models[ models$essenceClass == name, ]
+  prob <- models2[ models2$essenceClass == name, ]
   prob.title <- name
   print(prob.title)
 

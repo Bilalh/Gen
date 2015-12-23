@@ -7,7 +7,7 @@ library(plyr)
 base <- path.expand("~/Desktop/Results/sampling_no_large/")
 all <- read.csv(file.path(base, "all.csv"))
 
-info=ddply(all, c("essenceClass", "kind", "heuristic", "mode","num_models", "per_model_time_given", "group", "refineGroup" ), summarise,
+info=ddply(all, c("essenceClass", "kindClass", "heuristic", "mode","num_models", "per_model_time_given", "group", "refineGroup" ), summarise,
            runs=length(run_no),
            highestOrderingMean=mean(highestOrderingNeeded),
            highestOrderingNeeded=toString(highestOrderingNeeded),
@@ -17,6 +17,7 @@ info=ddply(all, c("essenceClass", "kind", "heuristic", "mode","num_models", "per
            rIterationsDoneIncludingFailed=toString(rIterationsDoneIncludingFailed),
            hostType=toString(hostType),
            seq=toString(seq),
+           kind =toString(kind),
            rCPUTime=mean(rCPUTime),
            rRealTime=mean(rRealTime),
            fCPUTime=mean(rCPUTime)/3600,
@@ -31,22 +32,22 @@ info=ddply(all, c("essenceClass", "kind", "heuristic", "mode","num_models", "per
 finished=info[info$runs==3,]
 write.csv(finished, file="summary.csv")
 
-# View(finished)
-# View(all)
-names.essence <- unique(all$essenceClass)
-selected.ppp  <- all[ all$essenceClass=="prob013-PPP"       &  all$kindClass=="undirected" & all$mode=="sample-64" , ]
-selected.wh   <- all[ all$essenceClass=="prob034-warehouse" &  all$kindClass=="undirected" & all$mode=="sample-64" , ]
-selected.bacp <- all[ all$essenceClass=="prob030-BACP"      &  all$kindClass=="undirected" & all$mode=="sample-64" , ]
-selected.efpa <- all[ all$essenceClass=="prob055-efpa"      &  all$kindClass=="undirected" & all$mode=="sample-64" , ]
-selected.sgp  <- all[ all$essenceClass=="prob010-SGP"       &  all$kindClass=="undirected" , ]
 
-info.ppp  <- info[ info$essenceClass=="prob013-PPP" , ]
-info.wh   <- info[ info$essenceClass=="prob034-warehouse" , ]
-info.sgp  <- info[ info$essenceClass=="prob010-SGP" , ]
+names.essence <- unique(all$essenceClass)
+# selected.ppp  <- all[ all$essenceClass=="prob013-PPP"       &  all$kindClass=="undirected" & all$mode=="sample-64" , ]
+# selected.wh   <- all[ all$essenceClass=="prob034-warehouse" &  all$kindClass=="undirected" & all$mode=="sample-64" , ]
+# selected.bacp <- all[ all$essenceClass=="prob030-BACP"      &  all$kindClass=="undirected" & all$mode=="sample-64" , ]
+# selected.efpa <- all[ all$essenceClass=="prob055-efpa"      &  all$kindClass=="undirected" & all$mode=="sample-64" , ]
+# selected.sgp  <- all[ all$essenceClass=="prob010-SGP"       &  all$kindClass=="undirected" , ]
+#
+# info.ppp  <- info[ info$essenceClass=="prob013-PPP" , ]
+# info.wh   <- info[ info$essenceClass=="prob034-warehouse" , ]
+# info.sgp  <- info[ info$essenceClass=="prob010-SGP" , ]
 
 info2 <- info[ ! info$refineGroup  %in%  c("2015-11-06_symlink", "2015-11-25") , ]
+info3 <- info2[ ! info2$group %in% c(16044, 14016, 12017, 12019, 12020, 12018, 16045), ]
 
-# View(selected)
 
-View(info)
-View(info2)
+# View(info)
+# View(info2)
+View(info3)

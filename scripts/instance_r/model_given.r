@@ -14,7 +14,7 @@ if(! exists("prob")){
   load("all_models.csv.bin")
 
   # prob <- models[ models$essenceClass == "prob013-PPP", ]
-  prob <- parts$prob034_warehouse
+  prob <- parts2$prob013_PPP
 
   prob.title <- "TEST"
 
@@ -29,21 +29,19 @@ prob$heuristicRefine  = paste(prob$heuristic, mapvalues(
 
 
 # # Group different refinements together
-# heuristicSort <- "heuristic"
+heuristicSort <- "heuristic"
 
 # # Separate different  refinements  by heuristic/date
-heuristicSort <- "heuristicRefine"
+# heuristicSort <- "heuristicRefine"
 
 
-if (unique(prob$essenceClass) %in% c("prob010-SGP", "prob024-langford")){
+if (unique(prob$essenceClass) %in% c("prob010-SGP")){
   # Since we only have one set of runs at the moment
   mult <- prob
-  mult$givenRunGroup <- prob$seq
-  mult$paramGroup <-prob$seq
-  mult <- mult [ mult$refineGroup == "2015-11-27", ]
 }else{
   # We have run the params on multiple heuristics
-  mult <- prob[ ( ! is.na(prob$givenRunGroup) ),    ]
+  # mult <- prob[ ( ! is.na(prob$givenRunGroup) ),    ]
+  mult <- prob
   mult <- mult [ mult$mode == "sample-64", ]
 }
 
