@@ -14,9 +14,9 @@ if(! exists("prob")){
   load("all_models.csv.bin")
 
   # prob <- models[ models$essenceClass == "prob013-PPP", ]
-  prob <- parts2$prob013_PPP
+  prob <- parts2$prob034_warehouse
 
-  prob.title <- "TEST"
+  prob.title <- paste("TEST", prob$essenceClass[1], sep="-")
 
 }
 
@@ -92,7 +92,7 @@ win.paramTimes <- ddply(win, c(
 
 graph.by_class_model_param <- function(){
 
-  df <- ddply(win, c(
+  df <- ddply(win[ win$minionTimeout == 0,  ], c(
         "essenceClass", "kind", heuristicSort, "mode", "eprimeUID", "paramUID", "run_no", "givenRunGroup"
       ), summarise,
       runTime = totalTime,
@@ -136,15 +136,16 @@ graph.by_class_param_min <- function(){
 
 graph.by_class_model_param_time <- function(){
 
-  df <- ddply(win, c(
+  df <- ddply(win[ win$minionTimeout == 0,  ], c(
     "essenceClass", "kind", heuristicSort, "mode", "eprimeUID", "paramUID", "run_no", "givenRunGroup"
   ), summarise,
   runTime = totalTime,
   runTime_marked = totalTimeMarked,
   nodes = minionNodes
+
   )
 
-  yy <- ggplot( data=df, aes( x=paramUID, y=runTime_marked) )
+  yy <- ggplot( data=df, aes( x=paramUID, y=runTime) )
   yy <- yy + facet_grid( eprimeUID ~ . )
   # yy <- yy + geom_point(shape=1, size=I(3), aes_string(color=heuristicSort) )
   yy <- yy + geom_point(shape=1, size=I(3), aes_string(color=heuristicSort),  position=position_jitter(width=0.2) )
@@ -208,3 +209,13 @@ graph.save(paste("time/", prob.title, "~param_min",  sep=""), graph.by_class_par
 
 graph.save(paste("nodes/", prob.title, "~param_model", sep=""), graph.by_class_model_param() )
 graph.save(paste("nodes/", prob.title, "~param_min",  sep=""), graph.by_class_param_min())
+
+
+
+df <- ddply(win, c(
+  "essenceClass", "kind", heuristicSort, "mode",  "paramUID", "givenRunGroup"
+), summarise,
+runTime = min(totalTime,na.rm = TRUE),
+runTime_marked = min(totalTimeMarked),
+nodes = min(minionNodes,na.rm = TRUE)
+)
