@@ -7,6 +7,11 @@ library(plyr)
 base <- path.expand("~/Desktop/Results/sampling_no_large/")
 all <- read.csv(file.path(base, "all.csv"))
 
+server.babbage <- read.csv(file.path(base, "babbage",  "experiment.csv"))
+server.eno <- read.csv(file.path(base, "eno",  "experiment.csv"))
+server.ferry <- read.csv(file.path(base, "ferry",  "experiment.csv"))
+
+
 info=ddply(all, c("essenceClass", "kindClass", "heuristic", "mode","num_models", "per_model_time_given", "group", "refineGroup" ), summarise,
            runs=length(run_no),
            highestOrderingMean=mean(highestOrderingNeeded),
