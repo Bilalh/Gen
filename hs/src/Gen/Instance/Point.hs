@@ -158,7 +158,6 @@ instance Distance (AbstractLiteral Constant) where
        squareRoot $ sum [ distanceSq a b  |  (Just a, Just b) <- zipPad c d  ]
   -- distance (AbsLitRecord c)          (AbsLitRecord d)         = _x
   -- distance (AbsLitVariant c1 c2 c3)  (AbsLitVariant d1 d2 d3) = _x
-  -- distance (AbsLitMatrix c1 c2)      (AbsLitMatrix d1 d2)     = _x
   distance (AbsLitSet c)             (AbsLitSet d)            =
       let sc  = S.fromList c
           sd  = S.fromList d
@@ -168,6 +167,10 @@ instance Distance (AbstractLiteral Constant) where
   distance (AbsLitFunction c)        (AbsLitFunction d)       =
        squareRoot $ sum [ distanceSq v1 v2 | (Just (_,v1), Just (_,v2))
                             <- zipPad (sort c) (sort d)]
+  distance (AbsLitMatrix _ c2)       (AbsLitMatrix _ d2)      =
+       squareRoot $ sum [ distanceSq v1 v2 | (v1,  v2) <- zip c2 d2]
+
+
   -- distance (AbsLitSequence c)        (AbsLitSequence d)       = _x
   distance (AbsLitRelation c)        (AbsLitRelation d)       =
       distance (AbsLitSet $ map (ConstantAbstract .AbsLitTuple ) c)
