@@ -701,7 +701,7 @@ instanceCommon cores Instance_Common{..} = do
     Nothing -> return $ Nothing
     Just x  -> do
       fps <- filesWithSuffix x ".param"
-      if length fps /= iterations then
+      if length fps < iterations then
           docError [ "Length mismatch"
                    , nn "iterations" iterations
                    , nn "given_dir"  (length fps)
