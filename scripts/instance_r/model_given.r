@@ -13,8 +13,7 @@ if(! exists("prob")){
   # Run models.r to generate the cached results
   load("all_models.csv.bin")
 
-  # prob <- models[ models$essenceClass == "prob013-PPP", ]
-  prob <- parts2$prob034_warehouse
+  prob <- parts2$`prob010_SGP^25`
 
   prob.title <- paste("TEST", prob$essenceClass[1], sep="-")
 
@@ -35,7 +34,7 @@ heuristicSort <- "heuristic"
 # heuristicSort <- "heuristicRefine"
 
 
-if (unique(prob$essenceClass) %in% c("prob010-SGP")){
+if (unique(prob$essenceClass) %in% c("prob010-SGP", "prob010-SGP^25", "prob010-SGP^50")){
   # Since we only have one set of runs at the moment
   mult <- prob
 }else{
