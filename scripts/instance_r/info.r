@@ -34,25 +34,19 @@ info=ddply(all, c("essenceClass", "kindClass", "heuristic", "mode","num_models",
            )
 
 
-finished=info[info$runs==3,]
-write.csv(finished, file="summary.csv")
-
-
 names.essence <- unique(all$essenceClass)
-# selected.ppp  <- all[ all$essenceClass=="prob013-PPP"       &  all$kindClass=="undirected" & all$mode=="sample-64" , ]
-# selected.wh   <- all[ all$essenceClass=="prob034-warehouse" &  all$kindClass=="undirected" & all$mode=="sample-64" , ]
-# selected.bacp <- all[ all$essenceClass=="prob030-BACP"      &  all$kindClass=="undirected" & all$mode=="sample-64" , ]
-# selected.efpa <- all[ all$essenceClass=="prob055-efpa"      &  all$kindClass=="undirected" & all$mode=="sample-64" , ]
-# selected.sgp  <- all[ all$essenceClass=="prob010-SGP"       &  all$kindClass=="undirected" , ]
-#
-# info.ppp  <- info[ info$essenceClass=="prob013-PPP" , ]
-# info.wh   <- info[ info$essenceClass=="prob034-warehouse" , ]
-# info.sgp  <- info[ info$essenceClass=="prob010-SGP" , ]
 
 info2 <- info[ ! info$refineGroup  %in%  c("2015-11-06_symlink", "2015-11-25") , ]
 info3 <- info2[ ! info2$group %in% c(16044, 14016, 12017, 12019, 12020, 12018, 16045), ]
 
+info3.t <- info3[c("essenceClass", "kindClass", "heuristic", "num_models", "runs", "fracturesSize", "numFractures",  "highestOrderingNeeded", "compactWon")]
+info3.th <- split( info3.t , info3.t$heuristic)
 
-# View(info)
-# View(info2)
+
+info3.h <- split( info3 , info3$heuristic)
+info3.c <- split( info3 , info3$essenceClass)
+info3.k <- split( info3 , info3$kind)
+
+
 View(info3)
+View(info3.th$static)
