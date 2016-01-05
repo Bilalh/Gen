@@ -13,7 +13,7 @@ if(! exists("prob")){
   # Run models.r to generate the cached results
   load("all_models.csv.bin")
 
-  prob <- parts2$`prob010_SGP^25`
+  prob <- parts2$prob048_meb
 
   prob.title <- paste("TEST", prob$essenceClass[1], sep="-")
 
@@ -25,6 +25,8 @@ prob$heuristicRefine  = paste(prob$heuristic, mapvalues(
   prob$refineGroup, from = c("2015-11-06_symlink"), to = c("2015-11-06")
 ), sep = "~")
 
+
+prob <- prob[ prob$heuristic %in% c("static"), ]
 
 
 # # Group different refinements together
