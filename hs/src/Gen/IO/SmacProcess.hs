@@ -75,22 +75,40 @@ smacProcess s_output_directory _s_eprime _s_instance_specific
                     (s_output_directory </> "essence_param_find.essence")
   isValid <- validatePoint vaildateSpec (mGivensProvider comm) point
 
-  if isValid then
+  if isValid then do
+    out $line $ show $ "Point valid" <+> pretty point
     runParam startOurCPU rTimestampStart _s_seed prevState prevMeta
   else do
     out $line $ show $ "Point invaild" <+> pretty point
     endOurCPU <- liftIO $ getCPUTime
     let ourCPUTime = fromIntegral (endOurCPU - startOurCPU) / ((10 :: Double) ^ (12 :: Int))
     rTimestampEnd <- timestamp
+    let ourTime = (rTimestampEnd - rTimestampStart)
 
-    thisMeta <- fromJustNote "RunMetaData must be created" <$> loadRunMetaData
-    out ($line ++ " this RunMetaData") $ groom thisMeta
+    thisMetaMay <- loadRunMetaData
+    let newMeta = case thisMetaMay of
+          Nothing -> RunMetadata{ rTimestampStart
+          , rTimestampEnd
+          , rRealTime                      = ourTime
+          , rCPUTime                       = ourCPUTime
+          , rRacesCPUTime                  = 0
+          , rParamGenCPUTime               = 0
+          , rSubCPUTime                    = 0
+          , rOurCPUTime                    = ourCPUTime
+          , rIterationsDone                = 0
+          , rIterationsDoneIncludingFailed = 1
+          }
 
-    writeRunMetaData thisMeta{ rTimestampEnd
-      , rRealTime   =  rRealTime thisMeta   + (rTimestampEnd - rTimestampStart)
-      , rOurCPUTime =  rOurCPUTime thisMeta + ourCPUTime
-      , rCPUTime    =  rCPUTime thisMeta    + ourCPUTime
-      , rIterationsDoneIncludingFailed = rIterationsDoneIncludingFailed thisMeta + 1}
+          (Just thisMeta) -> thisMeta{ rTimestampEnd
+          , rRealTime   =  rRealTime thisMeta   + ourTime
+          , rOurCPUTime =  rOurCPUTime thisMeta + ourCPUTime
+          , rCPUTime    =  rCPUTime thisMeta    + ourCPUTime
+          , rIterationsDoneIncludingFailed =
+            rIterationsDoneIncludingFailed thisMeta + 1}
+
+    out ($line ++ " this RunMetaData") $ groom newMeta
+
+    writeRunMetaData newMeta
 
 
     let smacQuality = 500
