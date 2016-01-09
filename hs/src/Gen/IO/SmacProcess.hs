@@ -68,7 +68,12 @@ smacProcess s_output_directory _s_eprime _s_instance_specific
   point <- parseParamArray s_param_arr givens
   out $line $ show $ pretty $ point
 
-  prevState@(_, Method comm _) <- loadState x point modelTime
+  (needsInit, preInitState@(Method comm _)) <- loadState x point modelTime
+  prevState <- if needsInit then
+    s_runInit preInitState
+  else
+      return preInitState
+
   prevMeta <- loadRunMetaData
 
   vaildateSpec <- liftIO $ readModelFromFile
@@ -134,7 +139,7 @@ validatePoint vaildateSpec (Provider ps) (Point parts) = do
 
 -- | When a param that passed validate param
 runParam :: (MonadIO m, MonadLog m)
-         => Integer -> Int -> Int -> (Bool, Method Smac) -> Maybe RunMetadata
+         => Integer -> Int -> Int -> Method Smac -> Maybe RunMetadata
          -> m ()
 runParam startOurCPU rTimestampStart _s_seed prevState prevMeta  = do
   (Method _ thisSmac) <- s_runMethod prevState
@@ -229,12 +234,19 @@ parseParamArray arr givens = do
               <$> (T.stripPrefix kind t >>= return . T.unpack >>= readMay)
 
 
+s_runInit ::( MonadIO m, MonadLog m)
+            => Method Smac
+            ->  m (Method Smac)
+s_runInit state = do
+  flip execStateT state $
+    createParamEssence >> initDB >> doSaveEprimes True
+
 -- | like run method but with some parts omitted
 s_runMethod :: ( MonadIO m, MonadLog m)
-            => (Bool, Method Smac) ->  m (Method Smac)
-s_runMethod (initValues, state) = do
-  flip execStateT state $ do
-    when initValues $ createParamEssence >> initDB >> doSaveEprimes True
+            => Method Smac
+            -> m (Method Smac)
+s_runMethod state = do
+  flip execStateT state $
     handleWDEG >> run
 
 -- | Load RunMetadata if it exists
