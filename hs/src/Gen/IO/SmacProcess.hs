@@ -25,9 +25,7 @@ import System.Directory             (makeAbsolute)
 import System.Environment           (lookupEnv)
 import System.FilePath.Posix        (replaceFileName, takeBaseName)
 import System.IO                    (hPutStrLn, stderr)
-import System.Random                (mkStdGen, setStdGen)
 import Text.Printf
-import Conjure.UserError ( runUserErrorT )
 import Conjure.Process.Enumerate (EnumerateDomain)
 
 import qualified Data.Aeson                      as A
@@ -73,20 +71,22 @@ smacProcess s_output_directory _s_eprime _s_instance_specific
   prevState@(_, Method comm _) <- loadState x point modelTime
   prevMeta <- loadRunMetaData
 
-  isValid <- validatePoint s_output_directory (mGivensProvider comm) point
+  vaildateSpec <- liftIO $ readModelFromFile
+                    (s_output_directory </> "essence_param_find.essence")
+  isValid <- validatePoint vaildateSpec (mGivensProvider comm) point
 
   if isValid then
       runParam startOurCPU rTimestampStart _s_seed prevState prevMeta
   else
       docError $ [ nn "invalid" point ]
 
+
 -- | Validate the point with respect with essence specification
-validatePoint :: (MonadIO m, MonadLog m,  EnumerateDomain m)
-              => FilePath -> Provider -> Point
+validatePoint :: (MonadLog m,  EnumerateDomain m)
+              => Model -> Provider -> Point
               -> m Bool
-validatePoint outDir (Provider ps) (Point parts) = do
+validatePoint vaildateSpec (Provider ps) (Point parts) = do
   let (givensP, findsP) = partition ( \(n, _) -> isJust  $ n `lookup` ps ) parts
-  vaildateSpec <- liftIO $ readModelFromFile (outDir </> "essence_param_find.essence")
   let givens =  pointToModel (Point givensP)
   let finds  =  pointToModel (Point findsP)
 
@@ -104,7 +104,7 @@ runParam :: (MonadIO m, MonadLog m)
 runParam startOurCPU rTimestampStart _s_seed prevState prevMeta  = do
   (Method _ thisSmac) <- s_runMethod prevState
   out $line $ groom thisSmac
-  let (thisQuality, thisTotals, raceTime) = fromJustNote "Needa a result" $ sResult thisSmac
+  let (thisQuality, thisTotals, raceTime) = fromJustNote "Need a result" $ sResult thisSmac
 
   endOurCPU <- liftIO $ getCPUTime
   let rOurCPUTime = fromIntegral (endOurCPU - startOurCPU) / ((10 :: Double) ^ (12 :: Int))
