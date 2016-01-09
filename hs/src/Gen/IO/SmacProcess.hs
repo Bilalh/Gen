@@ -76,9 +76,26 @@ smacProcess s_output_directory _s_eprime _s_instance_specific
   isValid <- validatePoint vaildateSpec (mGivensProvider comm) point
 
   if isValid then
-      runParam startOurCPU rTimestampStart _s_seed prevState prevMeta
-  else
-      docError $ [ nn "invalid" point ]
+    runParam startOurCPU rTimestampStart _s_seed prevState prevMeta
+  else do
+    out $line $ show $ "Point invaild" <+> pretty point
+    endOurCPU <- liftIO $ getCPUTime
+    let ourCPUTime = fromIntegral (endOurCPU - startOurCPU) / ((10 :: Double) ^ (12 :: Int))
+    rTimestampEnd <- timestamp
+
+    thisMeta <- fromJustNote "RunMetaData must be created" <$> loadRunMetaData
+    out ($line ++ " this RunMetaData") $ groom thisMeta
+
+    writeRunMetaData thisMeta{ rTimestampEnd
+      , rRealTime   =  rRealTime thisMeta   + (rTimestampEnd - rTimestampStart)
+      , rOurCPUTime =  rOurCPUTime thisMeta + ourCPUTime
+      , rCPUTime    =  rCPUTime thisMeta    + ourCPUTime
+      , rIterationsDoneIncludingFailed = rIterationsDoneIncludingFailed thisMeta + 1}
+
+
+    let smacQuality = 500
+    let resultType  = "SAT"
+    outputResult resultType ourCPUTime 0 smacQuality _s_seed
 
 
 -- | Validate the point with respect with essence specification
