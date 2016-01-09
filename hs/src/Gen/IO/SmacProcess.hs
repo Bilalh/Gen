@@ -81,10 +81,10 @@ smacProcess s_output_directory _s_eprime _s_instance_specific
   isValid <- validatePoint vaildateSpec (mGivensProvider comm) point
 
   if isValid then do
-    out $line $ show $ "Point valid" <+> pretty point
+    out $line $ "Point valid"
     runParam startOurCPU rTimestampStart _s_seed prevState prevMeta
   else do
-    out $line $ show $ "Point invaild" <+> pretty point
+    out $line $ "Point invaild"
     endOurCPU <- liftIO $ getCPUTime
     let ourCPUTime = fromIntegral (endOurCPU - startOurCPU) / ((10 :: Double) ^ (12 :: Int))
     rTimestampEnd <- timestamp
