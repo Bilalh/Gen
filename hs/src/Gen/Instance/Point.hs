@@ -92,6 +92,12 @@ writePoint (Point ps) fp = do
   liftIO $ createDirectoryIfMissing True (takeDirectory fp)
   liftIO $ writeModel PlainEssence (Just fp) m
 
+pointToModel :: Point -> Model
+pointToModel (Point ps) =
+  let sts = [ Declaration (Letting (label) (Constant con))
+            |  (label,con) <- ps ]
+      m :: Model = def{mStatements=sts}
+  in  m
 
 -- Give a value for each domain using the previous values for future domains references
 provideValues :: MonadIO m => Provider -> m Point

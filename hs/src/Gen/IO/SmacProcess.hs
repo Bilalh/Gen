@@ -4,6 +4,9 @@ module Gen.IO.SmacProcess where
 import Conjure.Language.Definition
 import Conjure.Language.Domain
 import Conjure.Language.Instantiate (instantiateDomain)
+import Conjure.Process.Enumerate    (enumerateDomain)
+import Conjure.UI.IO                (readModelFromFile)
+import Conjure.UI.ValidateSolution  (validateSolution)
 import Gen.Imports                  hiding (group)
 import Gen.Instance.Data
 import Gen.Instance.Method
@@ -13,7 +16,6 @@ import Gen.Instance.RaceRunner      (RaceTotals (..), createParamEssence,
                                      raceCpuTime)
 import Gen.Instance.Results.Results
 import Gen.Instance.SamplingError
-import Conjure.Process.Enumerate(enumerateDomain)
 import Gen.Instance.UI
 import Gen.IO.FindCompact
 import Gen.IO.Formats               (allGivensOfEssence, getFullPath, readFromJSON,
@@ -25,6 +27,8 @@ import System.FilePath.Posix        (replaceFileName, takeBaseName)
 import System.IO                    (hPutStrLn, stderr)
 import System.Random                (mkStdGen, setStdGen)
 import Text.Printf
+import Conjure.UserError ( runUserErrorT )
+import Conjure.Process.Enumerate (EnumerateDomain)
 
 import qualified Data.Aeson                      as A
 import qualified Data.Text                       as T
@@ -32,7 +36,7 @@ import qualified Data.Vector                     as V
 import qualified Gen.Instance.Results.SettingsIn as IN
 
 
-smacProcess :: (MonadIO m, MonadLog m)
+smacProcess :: (MonadIO m, MonadLog m, EnumerateDomain m)
             => FilePath -> String -> String -> Double -> Int -> Int -> [String]
             -> m ()
 smacProcess s_output_directory _s_eprime _s_instance_specific
@@ -66,9 +70,38 @@ smacProcess s_output_directory _s_eprime _s_instance_specific
   point <- parseParamArray s_param_arr givens
   out $line $ show $ pretty $ point
 
-  prevState <- loadState x point modelTime
-  prevMeta  <- loadRunMetaData
+  prevState@(_, Method comm _) <- loadState x point modelTime
+  prevMeta <- loadRunMetaData
 
+  isValid <- validatePoint s_output_directory (mGivensProvider comm) point
+
+  if isValid then
+      runParam startOurCPU rTimestampStart _s_seed prevState prevMeta
+  else
+      docError $ [ nn "invalid" point ]
+
+-- | Validate the point with respect with essence specification
+validatePoint :: (MonadIO m, MonadLog m,  EnumerateDomain m)
+              => FilePath -> Provider -> Point
+              -> m Bool
+validatePoint outDir (Provider ps) (Point parts) = do
+  let (givensP, findsP) = partition ( \(n, _) -> isJust  $ n `lookup` ps ) parts
+  vaildateSpec <- liftIO $ readModelFromFile (outDir </> "essence_param_find.essence")
+  let givens =  pointToModel (Point givensP)
+  let finds  =  pointToModel (Point findsP)
+
+  x <- runExceptT $ ignoreLogs $ runNameGen $
+         validateSolution vaildateSpec givens finds
+  case x of
+    Left{}  -> return False
+    Right{} -> return True
+
+
+-- | When a param that passed validate param
+runParam :: (MonadIO m, MonadLog m)
+         => Integer -> Int -> Int -> (Bool, Method Smac) -> Maybe RunMetadata
+         -> m ()
+runParam startOurCPU rTimestampStart _s_seed prevState prevMeta  = do
   (Method _ thisSmac) <- s_runMethod prevState
   out $line $ groom thisSmac
   let (thisQuality, thisTotals, raceTime) = fromJustNote "Needa a result" $ sResult thisSmac
@@ -87,15 +120,13 @@ smacProcess s_output_directory _s_eprime _s_instance_specific
   let smacQuality = thisQuality * 100
   let resultType = if tCount thisTotals == tMinionTimeout thisTotals then
                        "TIMEOUT"
-                   else if tMinionSatisfiable thisTotals > 0  then
-                       "SAT"
                    else
-                       "UNSAT"
+                       "SAT"
 
   let runtime = rOurCPUTime  + raceTime
   outputResult resultType runtime 0  (truncate smacQuality) _s_seed
 
-
+-- | Parse the arguments
 parseParamArray :: MonadIO m => [String] -> [(Text,Domain () Expression)]
                 -> m  Point
 parseParamArray arr givens = do
@@ -180,27 +211,34 @@ writeRunMetaData rd = liftIO $ writeToJSON "metadata.json" rd
 
 combineMeta :: Maybe RunMetadata -> RunMetadata -> Int -> Int -> Double
             -> RunMetadata
-combineMeta Nothing rd  tsStart tsEnd cpuTime =
+combineMeta Nothing rd  tsStart tsEnd thisOurCPUTime =
   rd{
     rTimestampStart = min (rTimestampStart rd) tsStart
   , rTimestampEnd   = max (rTimestampEnd rd) tsEnd
-  , rOurCPUTime     = cpuTime
-  , rCPUTime        = rCPUTime rd + (cpuTime -  rOurCPUTime rd)
+  , rOurCPUTime     = thisOurCPUTime
+  , rCPUTime        = rCPUTime rd + (thisOurCPUTime -  rOurCPUTime rd)
   }
 
-combineMeta (Just prev) rd tsStart tsEnd cpuTime =
-  RunMetadata
-  { rTimestampStart                = min (rTimestampStart prev) tsStart
-  , rTimestampEnd                  = max (rTimestampEnd rd) tsEnd
-  , rRealTime                      = rRealTime prev + rRealTime rd
-  , rCPUTime                       = rCPUTime prev + rCPUTime rd + (cpuTime -  rOurCPUTime rd)
-  , rRacesCPUTime                  = rRacesCPUTime rd
-  , rParamGenCPUTime               = rParamGenCPUTime rd
-  , rSubCPUTime                    = rSubCPUTime prev + rSubCPUTime rd
-  , rOurCPUTime                    = rOurCPUTime prev + cpuTime
-  , rIterationsDone                = rIterationsDone prev + rIterationsDone rd
-  , rIterationsDoneIncludingFailed = rIterationsDoneIncludingFailed prev + rIterationsDoneIncludingFailed rd
-  }
+combineMeta (Just prev) rd tsStart tsEnd thisOurCPUTime =
+  let xRacesCPUTime    = rRacesCPUTime rd
+      xParamGenCPUTime = rParamGenCPUTime rd
+      xSubCPUTime      = rSubCPUTime rd
+      xOurCPUTime      = rOurCPUTime prev + thisOurCPUTime
+      xCPUTime         = xRacesCPUTime + xParamGenCPUTime +  xOurCPUTime  + xSubCPUTime
+  in
+      RunMetadata
+      { rTimestampStart                = min (rTimestampStart prev) tsStart
+      , rTimestampEnd                  = max (rTimestampEnd rd) tsEnd
+      , rRealTime                      = rRealTime prev + rRealTime rd
+      , rIterationsDone                = rIterationsDone prev + rIterationsDone rd
+      , rIterationsDoneIncludingFailed = rIterationsDoneIncludingFailed prev + rIterationsDoneIncludingFailed rd
+
+      , rRacesCPUTime    = xRacesCPUTime
+      , rParamGenCPUTime = xParamGenCPUTime
+      , rSubCPUTime      = xSubCPUTime
+      , rOurCPUTime      = xOurCPUTime
+      , rCPUTime         = xCPUTime
+      }
 
 -- | Load the state from disk if it exists otherwise init it.
 loadState :: MonadIO m => IN.CSV_IN -> Point -> Int -> m (Bool, Method Smac)
