@@ -8,7 +8,7 @@ function process(){
 	base="$2"
 	id="${base##*%}"
 
-	if ( grep -q "^\*${id}\*$" synced.txt ); then
+	if ( grep -q "^\*%${id}\*$" synced.txt ); then
 		return 0
 	else
 		sqlite3 "${db}" <"${OUR}/fix_ParamsData.sql"
