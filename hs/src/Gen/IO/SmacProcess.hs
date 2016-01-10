@@ -111,7 +111,8 @@ smacProcess s_output_directory _s_eprime _s_instance_specific
           , rIterationsDoneIncludingFailed =
             rIterationsDoneIncludingFailed thisMeta + 1}
 
-    out ($line ++ " this RunMetaData") $ groom newMeta
+    out ($line ++ " prev RunMetaData") $ groom thisMetaMay
+    out ($line ++ " new RunMetaData") $ groom newMeta
 
     writeRunMetaData newMeta
 
