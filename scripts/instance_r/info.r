@@ -53,6 +53,7 @@ info3.h <- split( info3 , info3$heuristic)
 info3.c <- split( info3 , info3$essenceClass)
 info3.k <- split( info3 , info3$kind)
 
+times <- ddply( info3, c("essenceClass", "heuristic"), summarise, time = as.integer(max(rCPUTime)) )
 
 View(info3)
-# View(info3.th$sdf)
+View(info3.t)
