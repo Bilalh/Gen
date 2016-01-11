@@ -236,15 +236,15 @@ parseParamArray arr givens = do
     return $ (Name name, ConstantAbstract $ AbsLitFunction tuples)
 
 
-  -- for the  Problem Diagnosis problem
+  -- for the Problem Diagnosis problem
   parseSmacValues (name, DomainFunction ()
     (FunctionAttr SizeAttr_None PartialityAttr_Total JectivityAttr_None)
-    (DomainInt [RangeBounded (ConstantInt 1) (ConstantInt 3)])
+    (DomainInt [RangeBounded (ConstantInt 1) (ConstantInt lim)])
     (DomainFunction ()
        (FunctionAttr SizeAttr_None PartialityAttr_Partial JectivityAttr_None)
        (DomainMatrix (DomainInt [RangeBounded (ConstantInt 1) (ConstantInt 2)]) DomainBool)
        DomainBool), vs) = do
-    let vals =  [ (parse "%enumerated%" t, v ) | (t,v) <- vs ]
+    let vals =  genericTake lim [ (parse "%enumerated%" t, v ) | (t,v) <- vs ]
     let mappings = [(from, gateFunc_rangeEnumerated `at` (fromInteger toIx))
                    | (from, toIx) <- vals]
 
@@ -252,12 +252,13 @@ parseParamArray arr givens = do
 
   parseSmacValues (name, DomainFunction ()
     (FunctionAttr SizeAttr_None PartialityAttr_Total JectivityAttr_None)
-    (DomainInt [RangeBounded (ConstantInt 1) (ConstantInt 3)])
+    (DomainInt [RangeBounded (ConstantInt 1) (ConstantInt lim1)])
     (DomainMatrix
-    matIndexer@(DomainInt [RangeBounded (ConstantInt 1) (ConstantInt matNum)])
-    (DomainInt [RangeBounded (ConstantInt (-1)) (ConstantInt 3)])) , vs) = do
+    matIndexer@(DomainInt [RangeBounded (ConstantInt 1) (ConstantInt 2)])
+    (DomainInt [RangeBounded (ConstantInt (-1)) (ConstantInt lim2)])) , vs)
+      | lim1 == lim2  = do
 
-    let mappings = [ (ConstantInt i, doRange i )  | i <- [1..matNum]  ]
+    let mappings = [ (ConstantInt i, doRange i )  | i <- [1..lim1]  ]
     return $ (Name name, ConstantAbstract $ AbsLitFunction mappings)
 
     where
@@ -281,6 +282,7 @@ parseParamArray arr givens = do
                  `T.isInfixOf` t ]
 
       in Just (ConstantInt i, ConstantBool $ intToBool val)
+  -- for the Problem Diagnosis problem
 
   parseSmacValues (name,dom,vs) = do
     lineError $line ["unhandled", nn "name" name, nn "dom" dom, nn "vs" (groom vs) ]
