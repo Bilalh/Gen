@@ -13,8 +13,13 @@ for e in ["numGates"]:
 print()
 print()
 
-gateInpts_mid = args.numGates - ((args.numGates + 1) // 2)
+for i in range(1, args.numGates + 1):
+  print("{}%enumerated%{:02d} [{}, {}] [{}]i".format("gateFuncs", i, 0, 80, 80 // 2))
 
+print()
+print()
+
+gateInpts_mid = args.numGates - ((args.numGates + 1) // 2)
 for i in range(1, args.numGates + 1):
   for j in range(1, 2 + 1):
     print("{}%FT_int_matrix%{:02d}%{:03d}  [{}, {}] [{}]i".format(
@@ -24,20 +29,6 @@ for i in range(1, args.numGates + 1):
 print()
 print()
 
-print("{}%FT_int_bool%count  [{}, {}] [{}]i".format("finalOutputs", 0, 3, 1))
 for i in range(1, args.numGates + 1):
-  print("{}%F_int_bool%{:02d}  [{}, {}] [{}]i".format("finalOutputs", i, 0, 1, 0))
-
-print()
-print()
-
-for i in range(1, args.numGates + 1):
-  print("{}%FT_int_complex_bool%{:02d}%count  [{}, {}] [{}]i".format(
-      "gateFuncs", i, 0, 81, 81 // 2))
-  for j in range(1, 81 + 1):
-    print("{}%FT_int_complex_bool%{:02d}%{:03d}  [{}, {}] [{}]i".format(
-        "gateFuncs", i, j, 0, 1, 0))
-  print()
-
-print()
-print()
+  print("{}%P_int_bool%{:02d}  [{}, {}] [{}]i".format("finalOutputs", i, 0, 1, 0))
+  print("{}%P_int_bool%{:02d}%picked  [{}, {}] [{}]i".format("finalOutputs", i, 0, 1, 0))
