@@ -5,6 +5,7 @@ import Conjure.Language.Definition
 import Conjure.Language.Domain
 import Conjure.Language.Instantiate (instantiateDomain)
 import Conjure.Process.Enumerate    (enumerateDomain)
+import Conjure.Process.Enumerate    (EnumerateDomain)
 import Conjure.UI.IO                (readModelFromFile)
 import Conjure.UI.ValidateSolution  (validateSolution)
 import Gen.Imports                  hiding (group)
@@ -20,13 +21,14 @@ import Gen.Instance.UI
 import Gen.IO.FindCompact
 import Gen.IO.Formats               (allGivensOfEssence, getFullPath, readFromJSON,
                                      readFromJSONMay, timestamp, writeToJSON)
+import Gen.IO.SmacValues
 import System.CPUTime               (getCPUTime)
 import System.Directory             (makeAbsolute)
 import System.Environment           (lookupEnv)
 import System.FilePath.Posix        (replaceFileName, takeBaseName)
 import System.IO                    (hPutStrLn, stderr)
 import Text.Printf
-import Conjure.Process.Enumerate (EnumerateDomain)
+import Conjure.Language.Name
 
 import qualified Data.Aeson                      as A
 import qualified Data.Text                       as T
@@ -202,9 +204,15 @@ parseParamArray arr givens = do
      return (name, d2, vs)
 
   -- Parse the encoded values back to essence
+
+  -- Assumes the input is sorted
+
+  parseSmacValues :: (MonadState [(Name,Expression)] m, MonadIO m)
+                  => (Text, Domain () Constant, [(Text, Integer)])
+                  -> m (Conjure.Language.Name.Name, Constant)
   parseSmacValues (name,DomainInt{},[(_,i)]) = do
-   modify $ \st -> (Name name, Constant $ ConstantInt i) : st
-   return (Name name, ConstantInt i)
+    modify $ \st -> (Name name, Constant $ ConstantInt i) : st
+    return (Name name, ConstantInt i)
 
   -- Basily Function1D
   parseSmacValues (name,
@@ -228,10 +236,65 @@ parseParamArray arr givens = do
     return $ (Name name, ConstantAbstract $ AbsLitFunction tuples)
 
 
+  -- for the  Problem Diagnosis problem
+  parseSmacValues (name, DomainFunction ()
+    (FunctionAttr SizeAttr_None PartialityAttr_Total JectivityAttr_None)
+    (DomainInt [RangeBounded (ConstantInt 1) (ConstantInt 3)])
+    (DomainFunction ()
+       (FunctionAttr SizeAttr_None PartialityAttr_Partial JectivityAttr_None)
+       (DomainMatrix (DomainInt [RangeBounded (ConstantInt 1) (ConstantInt 2)]) DomainBool)
+       DomainBool), vs) = do
+    let vals =  [ (parse "%enumerated%" t, v ) | (t,v) <- vs ]
+    let mappings = [(from, gateFunc_rangeEnumerated `at` (fromInteger toIx))
+                   | (from, toIx) <- vals]
+
+    return $ (Name name, ConstantAbstract $ AbsLitFunction mappings)
+
+  parseSmacValues (name, DomainFunction ()
+    (FunctionAttr SizeAttr_None PartialityAttr_Total JectivityAttr_None)
+    (DomainInt [RangeBounded (ConstantInt 1) (ConstantInt 3)])
+    (DomainMatrix
+    matIndexer@(DomainInt [RangeBounded (ConstantInt 1) (ConstantInt matNum)])
+    (DomainInt [RangeBounded (ConstantInt (-1)) (ConstantInt 3)])) , vs) = do
+
+    let mappings = [ (ConstantInt i, doRange i )  | i <- [1..matNum]  ]
+    return $ (Name name, ConstantAbstract $ AbsLitFunction mappings)
+
+    where
+    doRange i =
+      let pre =  (T.pack $ "%FT_int_matrix%" ++ (zeroPad 2 (fromInteger i)) ++ "%" )
+          vals = [ (parse pre t, v) | (t,v) <- vs, pre `T.isPrefixOf` t  ]
+      in ConstantAbstract $ AbsLitMatrix matIndexer (map (ConstantInt . snd) vals)
+
+  parseSmacValues (name, DomainFunction ()
+    (FunctionAttr SizeAttr_None PartialityAttr_Partial JectivityAttr_None)
+    (DomainInt [RangeBounded (ConstantInt 1) (ConstantInt bound)])
+    DomainBool , vs) = do
+
+    let mappings = mapMaybe doRange [1..bound]
+    return $ (Name name, ConstantAbstract $ AbsLitFunction mappings)
+
+    where
+    doRange i =
+      let val = headNote $line [v | (t,v) <- vs
+            ,(T.pack $ "%P_int_bool%" ++ (zeroPad 2 (fromInteger i)) ++ "%" )
+                 `T.isInfixOf` t ]
+
+      in Just (ConstantInt i, ConstantBool $ intToBool val)
+
   parseSmacValues (name,dom,vs) = do
     lineError $line ["unhandled", nn "name" name, nn "dom" dom, nn "vs" (groom vs) ]
 
-  parse kind t =  fromJustNote ("Failed parsing " ++ show t) $ ConstantInt
+
+  intToBool 0 = False
+  intToBool 1 = True
+  intToBool x = error $ "intToBool not a bool" ++ show x
+
+  parse :: Text -> Text -> Constant
+  parse kind t = ConstantInt $  parseVal kind t
+
+  parseVal :: forall a . Read a => Text -> Text -> a
+  parseVal kind t =  fromJustNote ("Failed parsing Int" ++ show t) $ id
               <$> (T.stripPrefix kind t >>= return . T.unpack >>= readMay)
 
 
@@ -346,7 +409,6 @@ out l s = liftIO $ hPutStrLn stderr $ unlines $ ('»' : ' ' : l)
 
 
 {- Use the parsed point to run 1 race  -}
---FIXME need to use validate solution?
 
 data Smac = Smac{
       sPoint   :: Point
@@ -381,3 +443,7 @@ instance Sampling Smac where
         modify $ \(Method common st) ->
             (Method common st{sResult = Just (quality, totals, raceTime)})
         return $ Right ()
+
+zeroPad :: Int -> Int ->  String
+zeroPad p n = replicate (p - length sn) '0'  ++ sn
+ where sn = show n
