@@ -43,7 +43,11 @@ info=ddply(all, c("essenceClass", "kindClass", "heuristic", "mode","num_models",
 names.essence <- unique(all$essenceClass)
 
 info2 <- info[ ! info$refineGroup  %in%  c("2015-11-06_symlink", "2015-11-25") , ]
+# Ingored
 info3 <- info2[ ! info2$group %in% c(16044, 14016, 12017, 12019, 12020, 12018, 16045, 14023, 14024, 14011), ]
+info3 <- info3[ ! info3$essenceClass %in% c("prob055-efpa", "prob028-BIBD", "prob038-steel^2", "prob038-steel^3",
+                                            "prob010-SGP^50", "prob006-GR"), ]
+
 
 info3.t <- info3[c("essenceClass", "kindClass", "heuristic", "num_models", "runs", "fracturesSize", "numFractures",  "highestOrderingNeeded", "highestOrderingMean", "compactWon", "pointsRejected")]
 info3.th <- split( info3.t , info3.t$heuristic)
@@ -53,7 +57,7 @@ info3.h <- split( info3 , info3$heuristic)
 info3.c <- split( info3 , info3$essenceClass)
 info3.k <- split( info3 , info3$kind)
 
-times <- ddply( info3, c("essenceClass", "heuristic"), summarise,
+times <- ddply( info3[info3$runs == 3,], c("essenceClass", "heuristic"), summarise,
                 cpu  = as.integer(max(rCPUTime)),
                 fcpu  = as.integer(max(rCPUTime)/3600),
                 real  = as.integer(max(rRealTime)),

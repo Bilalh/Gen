@@ -26,8 +26,8 @@ if (file.exists("all_models.csv.bin")) {
   var_names <- gsub("-","_", pnames)
   names(parts) <- var_names
 
-  models2 <- models[ ! models$refineGroup  %in%  c("2015-11-06_symlink", "2015-11-25") , ]
-  models2 <- models2[ ! models2$group %in% c(16044, 14016, 12017, 12019, 12020, 12018, 16045), ]
+  models2 <- models[ ! models$refineGroup  %in%  c("2015-11-25") , ]
+  models2 <- models2[ ! models2$group %in% c(16044, 14016, 12017, 12019, 12020, 12018, 16045, 14023, 14024, 14011), ]
 
   parts2 <- split( models2 , models2$essenceClass )
   pnames2 <- names(parts2)
