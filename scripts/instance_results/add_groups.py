@@ -62,7 +62,7 @@ args = setup()
 csvfile = Path(args.all)
 allModels_csv = Path(args.all_models)
 
-ignore_json=Path("ignore.json")
+ignore_json = Path("ignore.json")
 if ignore_json.exists():
   ignore = json.load(ignore_json.open("r"))
   ignore_str = {str(i) for i in ignore}
@@ -71,9 +71,44 @@ else:
   ignore_str = {}
 
 (rows, fieldnames) = read_csv(csvfile)
+if 'group2' not in fieldnames:
+  fieldnames.append('group2')
+
 run_fields = ["essenceClass", "mode", "iterations", "per_model_time_given",
               "use_all_solutions", "influence_radius", "num_models", "race_time_given",
               "paramsUsedHash"]
+
+group2_fields = ["essence", 'essence_name', "mode", "iterations", "kindClass",
+                 "per_model_time_given", "use_all_solutions", "influence_radius",
+                 "num_models", "race_time_given"]
+
+group2_id = 1
+
+# groups2 compares on kindClass instead of kind
+groups2 = {}
+strSeqGroup2 = {}
+
+for row in rows:
+  try:
+    id = row['group2']
+    strSeqGroup2[str(row['seq'])] = id
+    group2_id = max(group2_id, id)
+    hr = hash_row(row, compare=group2_fields)
+    groups2[hr] = id
+  except KeyError as e:
+    pass
+
+for row in rows:
+  hr = hash_row(row, compare=group2_fields)
+  try:
+    id = groups2[hr]
+  except KeyError:
+    id = group2_id
+    group2_id += 1
+    groups2[hr] = id
+
+  strSeqGroup2[str(row['seq'])] = id
+  row['group2'] = id
 
 # The seq where the param was generated
 base_group = {row['paramsUsedHash']: row['seq'] for row in rows if row['isGiven'] == 0}
@@ -99,7 +134,7 @@ base_givenRunGroup_ids = set()
 
 # str(seq) -> seq
 # to make process the large all_models.csv faster
-# and defaultdict is not written in older versions of py3
+# and defaultdict is not written in C in older versions of py3
 givenRunGroupMap = {}
 strParamGroup = {}
 
@@ -143,7 +178,11 @@ if tmpPath2.exists():
 with allModels_csv.open('r') as fin:
   with tmpPath2.open('w') as fout:
     r = csv.DictReader(fin)
-    w = csv.DictWriter(fout, r.fieldnames)
+    names = r.fieldnames
+    if 'group2' not in names:
+      names.append('group2')
+
+    w = csv.DictWriter(fout, r.fieldnames + ["group2"])
     w.writeheader()
     for row in r:
       if row['seq'] in ignore_str:
@@ -157,6 +196,14 @@ with allModels_csv.open('r') as fin:
         row['givenRunGroup'] = givenRunGroupMap[row['seq']]
       except KeyError:
         pass
+      try:
+        row['group2'] = strSeqGroup2[row['seq']]
+      except KeyError:
+        pprint("group2 not found for seq {} ".format(row['seq']), stream=sys.stderr)
+        pprint(row['seq'])
+        pprint(strSeqGroup2)
+        pprint(row)
+        raise
 
       w.writerow(row)
 

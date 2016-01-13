@@ -17,6 +17,7 @@ server.ferry <- read.csv(file.path(base, "ferry",  "experiment.csv"))
 
 
 info=ddply(all, c("essenceClass", "kindClass", "heuristic", "mode","num_models", "per_model_time_given", "group", "refineGroup" ), summarise,
+           group2=toString(group2),
            runs=length(run_no),
            highestOrderingMean=mean(highestOrderingNeeded),
            highestOrderingNeeded=toString(highestOrderingNeeded),
@@ -28,6 +29,7 @@ info=ddply(all, c("essenceClass", "kindClass", "heuristic", "mode","num_models",
            hostType=toString(hostType),
            seq=toString(seq),
            kind =toString(kind),
+           paramGroup=toString(paramGroup),
            tCPUTime=sum(rCPUTime),
            rCPUTime=mean(rCPUTime),
            rRealTime=mean(rRealTime),
@@ -57,7 +59,7 @@ info3.h <- split( info3 , info3$heuristic)
 info3.c <- split( info3 , info3$essenceClass)
 info3.k <- split( info3 , info3$kind)
 
-times <- ddply( info3[info3$runs == 3,], c("essenceClass", "heuristic"), summarise,
+times <- ddply( info3[info3$runs == 3 & info3$kindClass != "smac", ], c("essenceClass", "heuristic"), summarise,
                 cpu  = as.integer(max(rCPUTime)),
                 fcpu  = as.integer(max(rCPUTime)/3600),
                 real  = as.integer(max(rRealTime)),
