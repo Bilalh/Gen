@@ -235,6 +235,23 @@ parseParamArray arr givens = do
     let tuples = zip allTuples vals
     return $ (Name name, ConstantAbstract $ AbsLitFunction tuples)
 
+  --Used in prob048-meb
+  parseSmacValues (name,DomainMatrix
+    ix1@(DomainInt [RangeBounded (ConstantInt 1) (ConstantInt lim1)])
+    (DomainMatrix
+      ix2@(DomainInt [RangeBounded (ConstantInt 1) (ConstantInt lim2)])
+      (DomainInt [RangeBounded (ConstantInt _) (ConstantInt _)])) , vs) = do
+    let matrixes = [  doRange i   | i <- [1..lim1]  ]
+    return $ (Name name, ConstantAbstract $ AbsLitMatrix ix1 matrixes)
+
+    where
+    doRange i =
+      let pre  = (T.pack $ "%matrix2d%" ++ (zeroPad 2 (fromInteger i)) ++ "%" )
+          vals = genericTake lim2
+                 [ (parse pre t, v) | (t,v) <- vs, pre `T.isPrefixOf` t ]
+      in ConstantAbstract $ AbsLitMatrix ix2 (map (ConstantInt . snd) vals)
+
+
 
   -- for the Problem Diagnosis problem
   parseSmacValues (name, DomainFunction ()
