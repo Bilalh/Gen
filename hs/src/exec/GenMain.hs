@@ -44,6 +44,7 @@ import System.Exit                  (exitFailure, exitSuccess, exitWith)
 import System.FilePath              (replaceExtension, replaceFileName, takeBaseName,
                                      takeExtension, takeExtensions)
 import System.Timeout               (timeout)
+import System.IO                    (hPutStrLn, stderr)
 import Text.Printf                  (printf)
 
 import qualified Data.Set               as S
@@ -623,7 +624,9 @@ mainWithArgs Script_RemoveDups{..} = do
   putStrLn $ show $ map pretty  dups
   deleteDups2 dups
 
-mainWithArgs Script_SMAC{..} = do
+mainWithArgs u@Script_SMAC{..} = do
+  -- Has to be on stderr to be seen
+  liftIO $ hPutStrLn stderr . show . vcat $ ["Command line options: ", pretty (groom u)]
 
   errors <- return []
 
@@ -958,3 +961,40 @@ _smac1 = _smacProcessDebug dir ec
                      s_param_arr =
                      ["-numCodeWords", "'50'", "-dist", "'50'", "-lam", "'50'",
                       "-numChars", "'50'"],  limit_time = Nothing, log_level = LogDebug}
+
+
+_smac3 :: IO ()
+_smac3 = _smacProcessDebug dir ec
+  where
+    dir = "/Users/bilalh/_rehearsal/results/prob039-rehearsal/smac/AAA_rndsols%1%10000/"
+    ec = Script_SMAC{s_output_directory = ".", s_eprime = "empty",
+                     s_instance_specific = "0", s_cutoff_time = 64.0,
+                     s_cutoff_length = 2147483647, s_seed = -1,
+                     limit_time = Nothing, log_level = LogDebug,
+                     s_param_arr =
+                         ["-plays_in%rel%005%2", "'2'", "-plays_in%rel%006", "'0'",
+                          "-plays_in%rel%007", "'0'", "-plays_in%rel%007%1", "'2'",
+                           "-plays_in%rel%003%2", "'2'", "-plays_in%rel%004", "'0'",
+                           "-plays_in%rel%005", "'0'", "-plays_in%rel%005%1", "'2'",
+                           "-plays_in%rel%001%2", "'2'", "-plays_in%rel%003%1", "'2'",
+                           "-plays_in%rel%008", "'0'", "-plays_in%rel%001%1", "'2'",
+                           "-plays_in%rel%009", "'0'", "-plays_in%rel%002", "'0'",
+                           "-plays_in%rel%009%2", "'2'", "-plays_in%rel%003", "'0'",
+                           "-plays_in%rel%007%2", "'2'", "-plays_in%rel%001", "'0'",
+                           "-plays_in%rel%009%1", "'2'", "-plays_in%rel%010%1", "'2'",
+                           "-plays_in%rel%016%2", "'2'", "-plays_in%rel%014%2", "'2'",
+                           "-plays_in%rel%016%1", "'2'", "-plays_in%rel%012%2", "'2'",
+                           "-plays_in%rel%014%1", "'2'", "-plays_in%rel%010%2", "'2'",
+                           "-plays_in%rel%012%1", "'2'", "-plays_in%rel%006%1", "'2'",
+                           "-plays_in%rel%006%2", "'2'", "-plays_in%rel%004%1", "'2'",
+                           "-plays_in%rel%004%2", "'2'", "-plays_in%rel%002%1", "'2'",
+                           "-plays_in%rel%002%2", "'2'", "-plays_in%rel%008%1", "'2'",
+                           "-plays_in%rel%008%2", "'2'", "-n_players", "'2'", "-n_pieces",
+                           "'2'", "-plays_in%rel%015", "'0'", "-plays_in%rel%015%1", "'2'",
+                           "-plays_in%rel%015%2", "'2'", "-plays_in%rel%016", "'0'",
+                           "-plays_in%rel%013%1", "'2'", "-plays_in%rel%013%2", "'2'",
+                           "-plays_in%rel%011%1", "'2'", "-plays_in%rel%011%2", "'2'",
+                           "-plays_in%rel%010", "'0'", "-plays_in%rel%013", "'0'",
+                           "-plays_in%rel%014", "'0'", "-plays_in%rel%011", "'0'",
+                           "-plays_in%rel%012", "'0'"]
+                     }
