@@ -3,8 +3,10 @@
 import argparse
 
 parser = argparse.ArgumentParser(prog='Rehearsal_pcs')
-# args = parser.parse_args()
-args = argparse.Namespace(n_pieces=4, n_players=4)
+parser.add_argument("n_pieces", type=int)
+parser.add_argument("n_players", type=int)
+args = parser.parse_args()
+# args = argparse.Namespace(n_pieces=4, n_players=4)
 
 #  Note need to use linux for n_pieces|n_players > ~40
 
