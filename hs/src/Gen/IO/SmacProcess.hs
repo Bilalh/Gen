@@ -4,6 +4,7 @@ module Gen.IO.SmacProcess where
 import Conjure.Language.Definition
 import Conjure.Language.Domain
 import Conjure.Language.Instantiate (instantiateDomain)
+import Conjure.Language.Name
 import Conjure.Process.Enumerate    (enumerateDomain)
 import Conjure.Process.Enumerate    (EnumerateDomain)
 import Conjure.UI.IO                (readModelFromFile)
@@ -28,9 +29,9 @@ import System.Environment           (lookupEnv)
 import System.FilePath.Posix        (replaceFileName, takeBaseName)
 import System.IO                    (hPutStrLn, stderr)
 import Text.Printf
-import Conjure.Language.Name
 
 import qualified Data.Aeson                      as A
+import qualified Data.Set                        as S
 import qualified Data.Text                       as T
 import qualified Data.Vector                     as V
 import qualified Gen.Instance.Results.SettingsIn as IN
@@ -264,6 +265,26 @@ parseParamArray arr givens = do
                    | (from, toIx) <- vals]
 
     return $ (Name name, ConstantAbstract $ AbsLitFunction mappings)
+
+  parseSmacValues (name, DomainRelation ()
+    (RelationAttr SizeAttr_None (BinaryRelationAttrs (barrs)))
+    [DomainInt [RangeBounded (ConstantInt 1) (ConstantInt lim1)],
+     DomainInt [RangeBounded (ConstantInt 1) (ConstantInt lim2)]] , vs)
+     | S.null barrs  = do
+    let tuples = mapMaybe doRange [1..(lim1 * lim2) ]
+    out $line (groom tuples)
+    return $ (Name name, ConstantAbstract $ AbsLitRelation tuples)
+
+    where
+    doRange i =
+       let pre =  (T.pack $ "%rel%" ++ (zeroPad 3 (fromInteger i)) )
+       in case [ v | (t,v) <- vs, pre == t  ] of
+            [0] -> Nothing
+            [1] -> Just [ ConstantInt v | (t,v) <- vs
+                        , (T.concat [pre, "%"]) `T.isPrefixOf` t  ]
+            val -> error $ $line ++ "parseSmacValues binRel: " ++ show val
+
+
 
   parseSmacValues (name, DomainFunction ()
     (FunctionAttr SizeAttr_None PartialityAttr_Total JectivityAttr_None)
