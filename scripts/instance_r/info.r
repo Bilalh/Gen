@@ -68,3 +68,6 @@ times <- ddply( info3[info3$runs == 3 & info3$kindClass != "smac", ], c("essence
 
 View(info3)
 View(info3.t)
+View(info3.th$sdf)
+View(info3.th$wdeg)
+View(info3.th$static)
