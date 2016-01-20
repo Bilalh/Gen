@@ -1,7 +1,0 @@
-language Essence 1.3
-
-find c : bool
-
-such that
-
-c =  false  \/  true /\ false /\ false

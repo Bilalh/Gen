@@ -48,7 +48,7 @@ info2 <- info[ ! info$refineGroup  %in%  c("2015-11-06_symlink", "2015-11-25") ,
 # Ingored
 info3 <- info2[ ! info2$group %in% c(16044, 14016, 12017, 12019, 12020, 12018, 16045, 14023, 14024, 14011), ]
 info3 <- info3[ ! info3$essenceClass %in% c("prob055-efpa", "prob028-BIBD", "prob038-steel^2", "prob038-steel^3",
-                                            "prob010-SGP^50", "prob006-GR"), ]
+                                            "prob006-GR"), ]
 
 
 info3.t <- info3[c("essenceClass", "kindClass", "heuristic", "num_models", "runs", "fracturesSize", "numFractures",  "highestOrderingNeeded", "highestOrderingMean", "compactWon", "pointsRejected")]
