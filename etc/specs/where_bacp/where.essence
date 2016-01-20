@@ -1,0 +1,20 @@
+language Essence 1.3
+
+given n_courses: int(1..100)
+
+letting Course be domain int(1..n_courses)
+given prereq : relation of (Course * Course)
+
+$ find paths: matrix indexed by [Course, Course] of bool
+
+letting paths0 be [[  prereq(i,j)   | j : Course ]  | i :Course  ]
+letting paths be  [[ paths[i,j] \/  or([ paths0[i,k] /\ paths0[k,j] | k : Course])
+					 | j : Course ]
+				  | i :Course  ]
+
+
+where
+	! or([ or( [ paths[i,j] /\ paths[j,i] | j : Course ] ) | i : Course])
+
+such that
+	prereq(1,2)

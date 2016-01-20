@@ -1,0 +1,22 @@
+language Essence 1.3
+
+given n_courses: int(1..100)
+
+letting Course be domain int(1..n_courses)
+given prereq : relation of (Course * Course)
+
+find paths: matrix indexed by [Course, Course] of bool
+
+find looped : bool
+
+such that
+	forAll i,j: Course .
+		prereq(i,j) -> paths[i,j],
+
+	forAll i,j: Course .
+		forAll k : Course .
+			paths[i,k] /\ paths[k,j] -> paths[i,j],
+
+	looped = or([ or( [ paths[i,j] /\ paths[j,i] | j : Course ] )
+	            | i : Course])
+
