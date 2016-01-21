@@ -5,6 +5,7 @@ module Gen.Instance.Data where
 import Gen.Imports
 import Gen.Instance.SamplingError
 import Gen.Instance.Point
+import Conjure.Language.Definition(Name)
 
 import qualified Data.Aeson as A
 import qualified Data.Set   as S
@@ -23,6 +24,8 @@ instance A.FromJSON a => A.FromJSON (Method a)
 instance A.ToJSON a   => A.ToJSON   (Method a)
 
 type EprimeName = String
+type GivenName   = Name
+
 data MCommon = MCommon
   { mEssencePath    :: FilePath
   , mOutputDir      :: FilePath         -- | Where to put the results.
@@ -32,6 +35,7 @@ data MCommon = MCommon
   , mMode           :: String           -- | the directory suffix
   , mModelsDir      :: FilePath         -- | The models directory e.g. prob006-GR_df
   , mGivensProvider :: Provider         -- | Generating the given
+  , mGivenNames     :: Set GivenName    -- | Names of all Givens
   , mCores          :: Int              -- | Number of cores to use
   , mCompactName    :: Maybe EprimeName -- | Ordering with compact first
   , mPreGenerate    :: Maybe (FilePath,Solutions) -- | Generate all solution once and pick from them
@@ -40,6 +44,8 @@ data MCommon = MCommon
   , mPoints         :: [Point]          -- | Instances that have been run, newest first
   , mSubCpu         :: Double           -- | Other sub-processes
   , mPointsGiven    :: Maybe [Point]    -- | Uses these point for generation
+
+  , mCustomParamEssence :: Maybe FilePath -- | Allows a custom essence to be used
   } deriving (Eq, Show, Data, Typeable, Generic)
 
 

@@ -100,44 +100,47 @@ data UI
     }
 
   | Instance_Undirected
-    { essence_path       :: FilePath
-    , per_model_time     :: Int
-    , iterations         :: Int
-    , mode               :: String
-    , _cores             :: Maybe Int
-    , output_directory   :: Maybe FilePath
-    , limit_time         :: Maybe Int
-    , log_level          :: LogLevel
-    , _seed              :: Maybe Int
-    , pre_solutions      :: Maybe FilePath
-    , given_dir          :: Maybe FilePath
-    , param_gen_time     :: Int
+    { essence_path         :: FilePath
+    , per_model_time       :: Int
+    , iterations           :: Int
+    , mode                 :: String
+    , _cores               :: Maybe Int
+    , output_directory     :: Maybe FilePath
+    , limit_time           :: Maybe Int
+    , log_level            :: LogLevel
+    , _seed                :: Maybe Int
+    , pre_solutions        :: Maybe FilePath
+    , given_dir            :: Maybe FilePath
+    , param_gen_time       :: Int
+    , custom_param_essence :: Maybe FilePath
     }
 
   | Instance_Nsample
-    { essence_path       :: FilePath
-    , per_model_time     :: Int
-    , iterations         :: Int
-    , mode               :: String
-    , _cores             :: Maybe Int
-    , output_directory   :: Maybe FilePath
-    , limit_time         :: Maybe Int
-    , log_level          :: LogLevel
-    , _seed              :: Maybe Int
-    , influence_radius   :: Int
-    , pre_solutions      :: Maybe FilePath
-    , given_dir          :: Maybe FilePath
-    , param_gen_time     :: Int
+    { essence_path         :: FilePath
+    , per_model_time       :: Int
+    , iterations           :: Int
+    , mode                 :: String
+    , _cores               :: Maybe Int
+    , output_directory     :: Maybe FilePath
+    , limit_time           :: Maybe Int
+    , log_level            :: LogLevel
+    , _seed                :: Maybe Int
+    , influence_radius     :: Int
+    , pre_solutions        :: Maybe FilePath
+    , given_dir            :: Maybe FilePath
+    , param_gen_time       :: Int
+    , custom_param_essence :: Maybe FilePath
     }
 
   | Instance_NoRacing
-    { essence_path       :: FilePath
-    , iterations         :: Int
-    , output_directory   :: Maybe FilePath
-    , limit_time         :: Maybe Int
-    , log_level          :: LogLevel
-    , _seed              :: Maybe Int
-    , param_gen_time     :: Int
+    { essence_path         :: FilePath
+    , iterations           :: Int
+    , output_directory     :: Maybe FilePath
+    , limit_time           :: Maybe Int
+    , log_level            :: LogLevel
+    , _seed                :: Maybe Int
+    , param_gen_time       :: Int
+    , custom_param_essence :: Maybe FilePath
     }
 
   | Instance_AllSolutions
@@ -657,6 +660,13 @@ ui  = modes
                                   &= groupname "Other"
                                   &= explicit
                                   &= help "Maximum time given to generate each instance, default 300 seconds"
+    , custom_param_essence = def  &= typFile
+                                  &= name "custom-param-essence"
+                                  &= groupname "Other"
+                                  &= explicit
+                                  &= help "Use a custom param essence when sampling. Useful for adding extra constraint on the instance generated. The essence should only be addictions to the generated essence_param_find.essence"
+
+
      } &= name "instance-undirected"
        &= help "Generate discriminating instance for the given essence specification using a baseline method"
 
@@ -721,6 +731,12 @@ ui  = modes
                                   &= groupname "Other"
                                   &= explicit
                                   &= help "Maximum time given to generate each instance, default 300 seconds"
+    , custom_param_essence = def  &= typFile
+                                  &= name "custom-param-essence"
+                                  &= groupname "Other"
+                                  &= explicit
+                                  &= help "Use a custom param essence when sampling. Useful for adding extra constraint on the instance generated. The essence should only be addictions to the generated essence_param_find.essence"
+
      } &= name "instance-nsample"
        &= help "Generate discriminating instance for the given essence specification using the nsample method"
 
@@ -756,6 +772,12 @@ ui  = modes
                                   &= groupname "Other"
                                   &= explicit
                                   &= help "Maximum time given to generate each instance, default 300 seconds"
+    , custom_param_essence = def  &= typFile
+                                  &= name "custom-param-essence"
+                                  &= groupname "Other"
+                                  &= explicit
+                                  &= help "Use a custom param essence when sampling. Useful for adding extra constraint on the instance generated. The essence should only be addictions to the generated essence_param_find.essence"
+
      } &= name "instance-noRacing"
        &= help "Only Generate instances i.e. no racing. Results will be in the _params sub-directory of -o"
 

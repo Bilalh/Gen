@@ -91,7 +91,7 @@ createAllSolutionScript :: (MonadIO m, MonadLog m)
                         => Provider -> VarInfo -> FilePath -> FilePath
                         -> m ()
 createAllSolutionScript provider info essence out = do
-  createParamEssence1 essence info out
+  createParamEssence1 essence info out Nothing
 
   let param_dir =  out </> "_params"
   liftIO $ createDirectoryIfMissing True param_dir

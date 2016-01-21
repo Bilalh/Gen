@@ -1,0 +1,6 @@
+language Essence 1.3
+
+letting n_credits be 16
+letting n_courses be 16
+letting n_periods be 14
+

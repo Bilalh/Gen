@@ -62,6 +62,9 @@ removeNames rm (Point xs)= Point $ [ x | x@(Name n,_) <- xs, n `notElem` rm ]
 onlyNames :: Set Text -> Point -> Point
 onlyNames keep (Point xs) = Point $ [ x | x@(Name n,_) <- xs, n `S.member` keep ]
 
+onlyNames2 :: Set Name -> Point -> Point
+onlyNames2 keep (Point xs) = Point $ [ x | x@(n,_) <- xs, n `S.member` keep ]
+
 readPoint :: MonadIO m => ParamFP -> m Point
 readPoint fp = do
   Model{mStatements=sts} <- liftIO $ readModelFromFile fp

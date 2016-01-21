@@ -5,16 +5,26 @@ given n_courses: int(1..100)
 letting Course be domain int(1..n_courses)
 given prereq : relation of (Course * Course)
 
-$ find paths: matrix indexed by [Course, Course] of bool
-
-letting paths0 be [[  prereq(i,j)   | j : Course ]  | i :Course  ]
-letting paths be  [[ paths[i,j] \/  or([ paths0[i,k] /\ paths0[k,j] | k : Course])
-					 | j : Course ]
-				  | i :Course  ]
-
-
 where
-	! or([ or( [ paths[i,j] /\ paths[j,i] | j : Course ] ) | i : Course])
+forAll (i,j) in prereq .     $ i is directly connected to j
+                             $ there cannot be a path from j to i
+   !(
+    $ an immediate connection from j to i
+    ((j,i) in prereq)
 
-such that
-	prereq(1,2)
+    \/
+
+    $ a path where number of nodes is between 1 and (n-2)
+    (exists path : sequence (minSize 1, maxSize n_courses-2, injective) of Course .
+
+        $ j is connected to the first node in `path`
+           (j, path(1)) in prereq
+
+        $ the last node in `path` is connected to i
+        /\ (path(|path|), i) in prereq
+
+        $ and adjacent nodes in `path` are connected
+        /\ and([ (path(x), path(x+1)) in prereq | x : int(1..|path|-1)]))
+    )
+
+find b : int(0)

@@ -1,0 +1,27 @@
+language ESSENCE 1.2.0
+
+given n_periods: int(1..20)
+find maxl: int(1..20)
+find minl: int(1..20)
+given n_courses: int(1..20)
+find maxc: int(1..20)
+find minc: int(1..20)
+given n_credits: int(1..20)
+find prereq: relation of (int(1..n_courses) * int(1..n_courses))
+find credits: function (total) int(1..n_courses) --> int(1..n_credits)
+
+
+find paths: matrix indexed by [int(1..20), int(1..20)] of bool
+
+such that
+
+	forAll i,j: int(1..20) .
+		prereq(i,j) -> paths[i,j],
+
+	forAll i,j: int(1..20) .
+		forAll k : int(1..20) .
+			paths[i,k] /\ paths[k,j] -> paths[i,j],
+
+	! or([ or( [ paths[i,j] /\ paths[j,i] | j : int(1..20) ] )
+	            | i : int(1..20)])
+

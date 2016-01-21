@@ -51,7 +51,8 @@ findDependencies outBase specFp = do
   buildDependencyGraph outBase model
 
 -- | Make the value provider for the givens
-makeProvider :: (MonadIO m, MonadLog m) => FilePath -> VarInfo ->  m Provider
+makeProvider :: (MonadIO m, MonadLog m)
+             => FilePath -> VarInfo ->  m (Provider, Set GivenName)
 makeProvider fp  VarInfo{..} = do
   model <-  liftIO $ ignoreLogs $ readModelFromFile fp
                >>= runNameGen . typeCheckModel_StandAlone
@@ -62,7 +63,9 @@ makeProvider fp  VarInfo{..} = do
   cons <- liftIO $ forM vs $ \(n,expr) -> do
           v <- mapM e2c expr
           return (n, v)
-  return $ Provider cons
+  let findsNames  = S.fromList $ [ nm | Declaration (FindOrGiven Given nm@Name{} _)
+                                      <- mStatements model ]
+  return $ (Provider cons, findsNames)
 
   where
   core m = do
@@ -96,8 +99,10 @@ handleWDEG = do
     xs  -> lineError $line $ "Got multiple heuristics " :map pretty xs
 
 
-instances_no_racing :: FilePath -> Int -> Int -> FilePath -> Int -> LogLevel -> IO ()
-instances_no_racing essence_path iterations param_gen_time out seed log_level= do
+instances_no_racing :: FilePath -> Int -> Int -> FilePath -> Maybe FilePath
+                    -> Int -> LogLevel -> IO ()
+instances_no_racing essence_path iterations param_gen_time out customParamEssence
+                    seed log_level= do
   let info_path   = replaceFileName essence_path "info.json"
 
   i :: VarInfo <- doesFileExist info_path >>= \case
@@ -120,25 +125,27 @@ instances_no_racing essence_path iterations param_gen_time out seed log_level= d
       return res
 
   putStrLn $ "VarInfo: " ++ (groom i)
-  p <- ignoreLogs $ makeProvider essence_path i
+  (p,pnames) <- ignoreLogs $ makeProvider essence_path i
   putStrLn $ "Provider: " ++ (groom p)
 
-  let   common          = MCommon{
-        mEssencePath    = essence_path
-      , mOutputDir      = out
-      , mModelTimeout   = -1
-      , mVarInfo        = i
-      , mPreGenerate    = Nothing
-      , mIterations     = iterations
-      , mMode           = ""
-      , mModelsDir      = ""
-      , mGivensProvider = p
-      , mPoints         = []
-      , mCores          = -1
-      , mCompactName    = Nothing
-      , mSubCpu         = 0
-      , mPointsGiven    = Nothing
-      , mParamGenTime   = param_gen_time
+  let   common              = MCommon{
+        mEssencePath        = essence_path
+      , mOutputDir          = out
+      , mModelTimeout       = -1
+      , mVarInfo            = i
+      , mPreGenerate        = Nothing
+      , mIterations         = iterations
+      , mMode               = ""
+      , mModelsDir          = ""
+      , mGivensProvider     = p
+      , mGivenNames         = pnames
+      , mPoints             = []
+      , mCores              = -1
+      , mCompactName        = Nothing
+      , mSubCpu             = 0
+      , mPointsGiven        = Nothing
+      , mParamGenTime       = param_gen_time
+      , mCustomParamEssence = customParamEssence
       }
 
   runMethod' False seed log_level (Method common NoRacing)
@@ -197,7 +204,7 @@ _ex_common :: IO MCommon
 _ex_common = do
   i :: VarInfo <- readFromJSON _ex_info
   ess <- makeAbsolute _ex_essence
-  p <- ignoreLogs $ makeProvider _ex_essence i
+  (p, pnames) <- ignoreLogs $ makeProvider _ex_essence i
   let mModelsDir = replaceFileName ess (takeBaseName  _ex_essence ++ "_" ++ _ex_out)
   let common            = MCommon{
         mEssencePath    = _ex_essence
@@ -208,6 +215,7 @@ _ex_common = do
       , mIterations     = 3
       , mMode           = _ex_mode
       , mGivensProvider = p
+      , mGivenNames     = pnames
       , mPoints         = []
       , mCores          = 2
       , mCompactName    = Nothing
@@ -215,6 +223,7 @@ _ex_common = do
       , mModelsDir
       , mPointsGiven = Nothing
       , mParamGenTime = 300
+      , mCustomParamEssence = Nothing
       }
 
   return common

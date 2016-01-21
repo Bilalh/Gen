@@ -409,25 +409,27 @@ initState IN.CSV_IN{..} point  mModelTimeout = do
   cores        <- liftIO $ fromJustNote "CORES must be set" <$> lookupEnv "CORES"
 
   i <- liftIO $ readFromJSON info_path
-  p <- ignoreLogs $ makeProvider essenceA i
+  (p,pnames) <- ignoreLogs $ makeProvider essenceA i
   outDir <- liftIO $ makeAbsolute "."
 
-  let common            = MCommon{
-        mEssencePath    = essenceA
-      , mOutputDir      = outDir
+  let common                = MCommon{
+        mEssencePath        = essenceA
+      , mOutputDir          = outDir
       , mModelTimeout
-      , mVarInfo        = i
-      , mPreGenerate    = Nothing
-      , mIterations     = 1
-      , mMode           = mode
-      , mModelsDir      = models_path
-      , mGivensProvider = p
-      , mPoints         = []
-      , mCores          = fromJustNote "CORES must be an int" $ readMay cores
-      , mCompactName    = compactFirst
-      , mSubCpu         = 0
-      , mPointsGiven    = Nothing
-      , mParamGenTime   = 300 -- Unused
+      , mVarInfo            = i
+      , mPreGenerate        = Nothing
+      , mIterations         = 1
+      , mMode               = mode
+      , mModelsDir          = models_path
+      , mGivensProvider     = p
+      , mGivenNames         = pnames
+      , mPoints             = []
+      , mCores              = fromJustNote "CORES must be an int" $ readMay cores
+      , mCompactName        = compactFirst
+      , mSubCpu             = 0
+      , mPointsGiven        = Nothing
+      , mParamGenTime       = 300 -- Unused
+      , mCustomParamEssence = Nothing
       }
 
   return $ Method common (smacInit point)

@@ -268,7 +268,8 @@ mainWithArgs Instance_NoRacing{..} = do
   createDirectoryIfMissing True out
 
   seed_  <- giveSeed _seed
-  instances_no_racing essence_path iterations param_gen_time out seed_ log_level
+  instances_no_racing essence_path iterations param_gen_time out
+                      custom_param_essence seed_ log_level
 
 
 mainWithArgs Instance_AllSolutions{..} = do
@@ -289,7 +290,7 @@ mainWithArgs Instance_AllSolutions{..} = do
             Nothing -> return $ "allsols@" ++ takeBaseName essence_path
 
   i :: VarInfo <- readFromJSON info_path
-  p <- ignoreLogs $ makeProvider essence_path i
+  (p,_) <- ignoreLogs $ makeProvider essence_path i
 
   runLoggerPipeIO log_level $
     createAllSolutionScript p i essence out
@@ -653,6 +654,7 @@ instanceCommon cores Instance_Common{..} = do
     , dirExists    "Model dir missing" models_path
     , dirExistsMay "--generated-solutions" pre_solutions
     , dirExistsMay "--given" given_dir
+    , fileExistsMay "--custom-param-essence" custom_param_essence
     ]
 
   let argErr = catMaybes
@@ -697,7 +699,7 @@ instanceCommon cores Instance_Common{..} = do
 
   i :: VarInfo <- readFromJSON info_path
   putStrLn $ "VarInfo: " ++ (groom i)
-  p <- ignoreLogs $ makeProvider essence_path i
+  (p,pnames) <- ignoreLogs $ makeProvider essence_path i
   putStrLn $ "Provider: " ++ (groom p)
 
   mPointsGiven <- case given_dir of
@@ -716,22 +718,24 @@ instanceCommon cores Instance_Common{..} = do
                                  ]
         return $ Just ps
 
-  let   common          = MCommon{
-        mEssencePath    = essence
-      , mOutputDir      = out
-      , mModelTimeout   = per_model_time
-      , mVarInfo        = i
-      , mPreGenerate    = pre
-      , mIterations     = iterations
-      , mMode           = mode
-      , mModelsDir      = models_path
-      , mGivensProvider = p
-      , mPoints         = []
-      , mCores          = cores
-      , mCompactName    = compactFirst
-      , mSubCpu         = 0
-      , mPointsGiven    = mPointsGiven
-      , mParamGenTime   = param_gen_time
+  let   common              = MCommon{
+        mEssencePath        = essence
+      , mOutputDir          = out
+      , mModelTimeout       = per_model_time
+      , mVarInfo            = i
+      , mPreGenerate        = pre
+      , mIterations         = iterations
+      , mMode               = mode
+      , mModelsDir          = models_path
+      , mGivensProvider     = p
+      , mGivenNames         = pnames
+      , mPoints             = []
+      , mCores              = cores
+      , mCompactName        = compactFirst
+      , mSubCpu             = 0
+      , mPointsGiven        = mPointsGiven
+      , mParamGenTime       = param_gen_time
+      , mCustomParamEssence = custom_param_essence
       }
 
   return common
@@ -931,7 +935,8 @@ _instanceDebug = do
   let ec = Instance_Undirected{essence_path = "/Users/bilalh/CS/essence-refinements/_current/prob028-BIBD/prob028-BIBD.essence",
                     per_model_time = 30, iterations = 1, mode = "df-every-givens-all",
                     _cores = Nothing, output_directory = Nothing, limit_time = Nothing,
-                    log_level = LogDebug, _seed = Nothing, pre_solutions = Nothing, given_dir=Nothing, param_gen_time   = 300}
+                    log_level = LogDebug, _seed = Nothing, pre_solutions = Nothing
+                   , given_dir=Nothing, param_gen_time = 300, custom_param_essence=Nothing}
   limiter (limit_time ec) (mainWithArgs ec)
 
 

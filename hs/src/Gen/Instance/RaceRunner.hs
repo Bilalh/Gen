@@ -339,24 +339,32 @@ createParamEssence :: (MonadState (Method a) m, MonadIO m, MonadLog m )
                    => m ()
 createParamEssence = do
   (Method MCommon{mEssencePath,mVarInfo, mOutputDir} _) <- get
-  createParamEssence1 mEssencePath mVarInfo mOutputDir
+  (Method MCommon{mCustomParamEssence} _) <- get
+  createParamEssence1 mEssencePath mVarInfo mOutputDir mCustomParamEssence
 
 createParamEssence1 :: (MonadIO m, MonadLog m )
-                   => FilePath -> VarInfo -> FilePath -> m ()
-createParamEssence1 mEssencePath mVarInfo mOutputDir = do
+                    => FilePath -> VarInfo -> FilePath -> (Maybe FilePath)
+                    -> m ()
+createParamEssence1 mEssencePath mVarInfo mOutputDir customParamEssence = do
+
   let specFp   = (mOutputDir </> "essence_param_find.essence")
   let eprimeFp = (mOutputDir </> "essence_param_find.eprime")
+  let paramEssenceFp = mOutputDir </> "essence_param_find.essence"
   liftIO $ createDirectoryIfMissing True mOutputDir
+
 
 
   liftIO $ doesFileExist specFp >>= \case
     True  -> return ()
     False -> do
-      model     <- liftIO $ ignoreLogs $ readModelFromFile mEssencePath
-                     >>= runNameGen . typeCheckModel_StandAlone
-                     >>= runNameGen . resolveNames
-      paramSpec <- liftIO $ createParamSpecification model mVarInfo
-      writeModel PlainEssence (Just $ mOutputDir </> "essence_param_find.essence") paramSpec
+      case customParamEssence of
+        Just(fp) -> copyFile fp paramEssenceFp
+        Nothing  -> do
+          model     <- liftIO $ ignoreLogs $ readModelFromFile mEssencePath
+                         >>= runNameGen . typeCheckModel_StandAlone
+                         >>= runNameGen . resolveNames
+          paramSpec <- liftIO $ createParamSpecification model mVarInfo
+          writeModel PlainEssence (Just $ paramEssenceFp) paramSpec
 
   liftIO $ doesFileExist eprimeFp >>= \case
     True  -> return ()
@@ -416,7 +424,7 @@ sampleParamFromMinion :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadL
                       => m (Either SamplingErr Point)
 sampleParamFromMinion = do
 
-  (Method MCommon{mOutputDir, mGivensProvider, mParamGenTime} _) <- get
+  (Method MCommon{mOutputDir, mGivensProvider, mParamGenTime, mGivenNames} _) <- get
 
   givens <- provideValues mGivensProvider
   let phash = pointHash givens
@@ -451,7 +459,9 @@ sampleParamFromMinion = do
     False -> return $ Left $ ErrFailedToGenerateParam
              (vcat [nn "givens" givens, nn "ts" now, nn "hash" phash ])
     True  -> do
-      finds <- readPoint solutionFp
+      finds_ <- readPoint solutionFp
+      let finds = onlyNames2 mGivenNames finds_
+
       if finds == Point [] then
         return $ Left $ ErrGeneratedParamEmpty
                      (vcat [ nn "givens" givens, nn "ts" now, nn "hash" phash
