@@ -329,7 +329,7 @@ mainWithArgs u@Reduce{..} = do
             , dirExistsMay "--bin-dir" binaries_directory
             , case from_essence of
                 True -> return Nothing
-                False -> fileExists "spec.spec.json is required unless --from-essence is specifed" (spec_directory </> "spec.spec.json")
+                False -> fileExists "spec.spec.json is required unless --from-essence is specified" (spec_directory </> "spec.spec.json")
             ]
 
 
