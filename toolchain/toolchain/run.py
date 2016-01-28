@@ -117,7 +117,7 @@ def run_refine(extra_env, commands, kwargs, i):
                                      extra_env=extra_env,
                                      vals=vals)
 
-    dic = res.__dict__
+    dic = res._asdict()
     dic.update(vals=vals)
     return ((eprime.stem, dic), (" ".join(cmd_arr), output))
 
@@ -151,7 +151,7 @@ def run_refine_essence_with_choices(*, op, commands, extra_env):
     with (op.outdir / "follow.refine-output").open("w") as f:
         f.write(output0)
 
-    dic = res.__dict__
+    dic = res._asdict()
     dic.update(vals=mapping)
 
     eprimes = [ep.name for ep in op.outdir.glob('*.eprime')]
@@ -189,7 +189,7 @@ def run_refine_all_essence(*, op, commands, extra_env):
     with (op.outdir / "all.refine-output").open("w") as f:
         f.write(output0)
 
-    dic = res.__dict__
+    dic = res._asdict()
     dic.update(vals=mapping)
     eprimes = [ep.name for ep in op.outdir.glob('*.eprime')]
     return (dict(eprime_names=eprimes,
@@ -300,7 +300,7 @@ def run_solve(extra_env, op, commands, limit, eprime):
                                          extra_env=extra_env,
                                          vals=vals)
 
-        dres = res.__dict__
+        dres = res._asdict()
         dres['vals'] = vals
 
         results.append(dres)
