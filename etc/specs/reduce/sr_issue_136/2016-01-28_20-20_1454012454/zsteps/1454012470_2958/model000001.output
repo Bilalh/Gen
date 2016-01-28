@@ -1,0 +1,18 @@
+###conjureNew refine-param --eprime 2016-01-28_20-20_1454012454/1454012470_2958/model000001.eprime --essence-param 2016-01-28_20-20_1454012454/1454012470_2958/given.param --eprime-param 2016-01-28_20-20_1454012454/1454012470_2958/model000001.eprime-param
+
+###savilerow2.sh -mode Normal -in-eprime 2016-01-28_20-20_1454012454/1454012470_2958/model000001.eprime -in-param 2016-01-28_20-20_1454012454/1454012470_2958/model000001.eprime-param -out-minion 2016-01-28_20-20_1454012454/1454012470_2958/model000001.minion -out-solution 2016-01-28_20-20_1454012454/1454012470_2958/model000001.eprime-solution -out-info 2016-01-28_20-20_1454012454/1454012470_2958/model000001.eprime.info -run-solver -timelimit 30000 -solver-options -timelimit 30
++++ which savilerow
+++ dirname /Users/bilalh/CS/savilerow/savilerow
++ export SR_DIR=/Users/bilalh/CS/savilerow
++ SR_DIR=/Users/bilalh/CS/savilerow
++ '[' -f /Users/bilalh/CS/savilerow/savilerow2.sh ']'
++ java -ea -XX:ParallelGCThreads=1 -Xmx16G -jar /Users/bilalh/CS/savilerow/savilerow.jar -mode Normal -in-eprime 2016-01-28_20-20_1454012454/1454012470_2958/model000001.eprime -in-param 2016-01-28_20-20_1454012454/1454012470_2958/model000001.eprime-param -out-minion 2016-01-28_20-20_1454012454/1454012470_2958/model000001.minion -out-solution 2016-01-28_20-20_1454012454/1454012470_2958/model000001.eprime-solution -out-info 2016-01-28_20-20_1454012454/1454012470_2958/model000001.eprime.info -run-solver -timelimit 30000 -solver-options '-timelimit 30'
+Created output file for domain filtering 2016-01-28_20-20_1454012454/1454012470_2958/model000001.minion
+Sub-process exited with error code:1 and error message:
+[Error in input!, Undefined name: 'q5', Error occurred on line 14, Parser gave up around:, w-inintervalset(q5,[1,2])**EOF**, -----------------^]
+Created output file 2016-01-28_20-20_1454012454/1454012470_2958/model000001.minion
+Sub-process exited with error code:1 and error message:
+[Error in input!, Undefined name: 'q5', Error occurred on line 14, Parser gave up around:, w-inintervalset(q5,[1,2])**EOF**, -----------------^]
+Could not run Minion: java.io.FileNotFoundException: .MINIONSOLS1454012471774194308697 (No such file or directory)
++ code=1
++ set +x

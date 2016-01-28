@@ -1,0 +1,48 @@
+{
+ "consistent_": true,
+ "data_": {
+  "model000000": {
+   "cmd": [
+    "conjureNew",
+    "2016-01-28_20-20_1454012454/1454012465_6602/spec.essence",
+    "-q",
+    "f",
+    "-a",
+    "c",
+    "--output-directory",
+    "2016-01-28_20-20_1454012454/1454012465_6602",
+    "--numbering-start",
+    "0",
+    "--limit-time",
+    "30",
+    "--seed",
+    "7020161",
+    "--log-choices",
+    "--log-level=logfollow"
+   ],
+   "cpu_time": 0.37,
+   "finished": true,
+   "kind_": "RefineCompact_",
+   "rcode": 0,
+   "real_time": 0.39235,
+   "status_": "Success_",
+   "timeout": 30,
+   "vals": {
+    "choices_json": "2016-01-28_20-20_1454012454/1454012465_6602/model000000.choices.json",
+    "eprime": "2016-01-28_20-20_1454012454/1454012465_6602/model000000.eprime",
+    "essence": "2016-01-28_20-20_1454012454/1454012465_6602/spec.essence",
+    "index": 0,
+    "itimeout": 30,
+    "outdir": "2016-01-28_20-20_1454012454/1454012465_6602",
+    "saved_choices": null,
+    "seed": 7020161,
+    "seed_base": 7020161
+   }
+  }
+ },
+ "essence_": "2016-01-28_20-20_1454012454/1454012465_6602/spec.essence",
+ "given_time_": 30,
+ "outdir_": "2016-01-28_20-20_1454012454/1454012465_6602",
+ "successful_": true,
+ "time_taken_": 0.784666
+}

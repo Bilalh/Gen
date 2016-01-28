@@ -1,0 +1,49 @@
+{
+ "consistent_": true,
+ "data_": {
+  "choices_made": "2016-01-28_20-20_1454012454/1454012474_7089/follow.choices.json",
+  "cmd_used": {
+   "cmd": [
+    "conjureNew",
+    "2016-01-28_20-20_1454012454/1454012474_7089/spec.essence",
+    "-q",
+    "f",
+    "-a",
+    "l",
+    "--output-directory",
+    "2016-01-28_20-20_1454012454/1454012474_7089",
+    "--limit-time",
+    "30",
+    "--seed",
+    "14795527",
+    "--log-choices",
+    "--log-level=logfollow",
+    "--choices",
+    "2016-01-28_20-20_1454012454/1454012470_2958/model000001.eprime"
+   ],
+   "cpu_time": 0.41000000000000003,
+   "finished": true,
+   "kind_": "RefineRandom_",
+   "rcode": 0,
+   "real_time": 0.424868,
+   "status_": "Success_",
+   "timeout": 30,
+   "vals": {
+    "choices_json": "2016-01-28_20-20_1454012454/1454012474_7089/follow.choices.json",
+    "essence": "2016-01-28_20-20_1454012454/1454012474_7089/spec.essence",
+    "itimeout": 30,
+    "outdir": "2016-01-28_20-20_1454012454/1454012474_7089",
+    "saved_choices": "2016-01-28_20-20_1454012454/1454012470_2958/model000001.eprime",
+    "seed": 14795527
+   }
+  },
+  "eprime_names": [
+   "model000001.eprime"
+  ]
+ },
+ "essence_": "2016-01-28_20-20_1454012454/1454012474_7089/spec.essence",
+ "given_time_": 30,
+ "outdir_": "2016-01-28_20-20_1454012454/1454012474_7089",
+ "successful_": true,
+ "time_taken_": 0.424868
+}

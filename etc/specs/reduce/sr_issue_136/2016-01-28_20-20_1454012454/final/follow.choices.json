@@ -1,0 +1,9 @@
+[  {"AnsweredRule":{"aRuleName_":"full-evaluate","qAscendants_":[-6063011324520225001,6080344445753618,3845717806168055208,6366050135257625579,7731103451724809613],"qHole_":-2564272038521503663}}
+,  {"AnsweredRule":{"aRuleName_":"matrix-indexing-identical","qAscendants_":[6080344445753618,3845717806168055208,6366050135257625579,7731103451724809613],"qHole_":-6063011324520225001}}
+,  {"AnsweredRule":{"aRuleName_":"choose-repr-for-comprehension","qAscendants_":[-8472453086140714707],"qHole_":5116719911480970737}}
+,  {"AnsweredRule":{"aRuleName_":"choose-repr-for-comprehension","qAscendants_":[-8472453086140714707],"qHole_":5116719911480970737}}
+,  {"AnsweredRule":{"aRuleName_":"choose-repr-for-comprehension","qAscendants_":[-8472453086140714707],"qHole_":5116719911480970737}}
+,  {"AnsweredReprStored":{"aDomStored_":"int(1..10)","aRuleName_":"choose-repr","qAscendants_":[-8472453086140714707,5116719911480970737],"qHole_":-3893957756438813323}}
+,  {"AnsweredReprStored":{"aDomStored_":"bool","aRuleName_":"choose-repr","qAscendants_":[755381127070242511],"qHole_":8585363081558793410}}
+,  {"AnsweredRule":{"aRuleName_":"true-is-noop","qAscendants_":[],"qHole_":755381127070242511}}
+]

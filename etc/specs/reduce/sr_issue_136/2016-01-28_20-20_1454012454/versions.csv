@@ -1,0 +1,6 @@
+name,scm,hash,ver_date,uname,whoami,host_type,hostname
+conjureNew,hg,db4e1c43617a,2015-12-08_1449570714,Darwin,bilalh,bh_laptop,b.home
+savilerow,hg,829c5071db41,2015-11-27_1448640114,Darwin,bilalh,bh_laptop,b.home
+minion,hg,34260a77a5fc,2015-02-19_1424357070,Darwin,bilalh,bh_laptop,b.home
+minion-wdeg,hg,34260a77a5fc,2015-02-19_1424357070,Darwin,bilalh,bh_laptop,b.home
+gen,git,bfcce4a650da01d086aaf3089cf5587fd4876f56,2016-01-20_1453290382,Darwin,bilalh,bh_laptop,b.home

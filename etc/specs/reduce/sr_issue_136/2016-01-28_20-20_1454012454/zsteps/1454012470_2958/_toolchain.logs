@@ -1,0 +1,132 @@
+2016-01-28 20:21:10,723⦙WARNING   ⦙__main__  ⦙117 ⦙<module>                                          ⦙ args Namespace(bin_dir=None, choices=PosixPath('2016-01-28_20-20_1454012454/1454012465_6602/model000000.eprime'), essence=PosixPath('2016-01-28_20-20_1454012454/1454012470_2958/spec.essence'), exit_if_not_enough_time=False, new_conjure=True, num_cores=2, outdir=PosixPath('2016-01-28_20-20_1454012454/1454012470_2958'), param=PosixPath('2016-01-28_20-20_1454012454/1454012470_2958/given.param'), reduce_time=None, refine_all=False, refine_only=False, seed=16270182, timeout=30)
+2016-01-28 20:21:10,724⦙INFO      ⦙__main__  ⦙118 ⦙<module>                                          ⦙ @@sha1_spec.essence:23b1feda36f1879812dbfa24e87edcd76eab3f34
+2016-01-28 20:21:10,724⦙WARNING   ⦙root      ⦙130 ⦙<module>                                          ⦙ LD_LIBRARY_PATH unset
+2016-01-28 20:21:10,724⦙WARNING   ⦙__main__  ⦙132 ⦙<module>                                          ⦙ new PATH=/Users/bilalh/CS/gen/toolchain:/Users/bilalh/bin:/Users/bilalh/.cabal/bin:/Users/bilalh/.tools/ghc/7.10.2/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/X11/bin:/Library/TeX/texbin:/Users/bilalh/Projects/media2/.cabal-sandbox/bin:/Users/bilalh/.pscripts:/Users/bilalh/.Utilities/Applescript-Utilities:/Users/bilalh/.Utilities/Bash-Scripts:/Users/bilalh/.Utilities/Finder-Utilities:/Users/bilalh/.Utilities/MKV-Utilities:/Users/bilalh/.Utilities/Scripts:/Users/bilalh/.Utilities/Web-Utilities:/Users/bilalh/.Utilities/iBooks:/Users/bilalh/CS/_zsmall/bibtex_sente:/Users/bilalh/CS/minion/build:/Users/bilalh/CS/savilerow:/Users/bilalh/Projects/Shell-Tunes/extra:/Users/bilalh/binEnd
+2016-01-28 20:21:10,725⦙WARNING   ⦙root      ⦙478 ⦙run_with_timeout                                  ⦙ Running conjureNew 2016-01-28_20-20_1454012454/1454012470_2958/spec.essence -q f -a l --output-directory 2016-01-28_20-20_1454012454/1454012470_2958 --limit-time 30 --seed 7506004 --log-choices --log-level=logfollow --choices 2016-01-28_20-20_1454012454/1454012465_6602/model000000.eprime
+2016-01-28 20:21:11,142⦙INFO      ⦙__main__  ⦙233 ⦙<module>                                          ⦙ essence_refine: {'choices_made': PosixPath('2016-01-28_20-20_1454012454/1454012470_2958/follow.choices.json'),
+ 'cmd_used': OrderedDict([('rcode', 0),
+                          ('cpu_time', 0.4),
+                          ('real_time', 0.415078),
+                          ('timeout', 30),
+                          ('finished', True),
+                          ('cmd',
+                           ['conjureNew',
+                            '2016-01-28_20-20_1454012454/1454012470_2958/spec.essence',
+                            '-q',
+                            'f',
+                            '-a',
+                            'l',
+                            '--output-directory',
+                            '2016-01-28_20-20_1454012454/1454012470_2958',
+                            '--limit-time',
+                            '30',
+                            '--seed',
+                            '7506004',
+                            '--log-choices',
+                            '--log-level=logfollow',
+                            '--choices',
+                            '2016-01-28_20-20_1454012454/1454012465_6602/model000000.eprime']),
+                          ('status_', <Status.success: (0,)>),
+                          ('kind_', <K.refineRandom: (2,)>),
+                          ('vals',
+                           {'choices_json': PosixPath('2016-01-28_20-20_1454012454/1454012470_2958/follow.choices.json'),
+                            'essence': PosixPath('2016-01-28_20-20_1454012454/1454012470_2958/spec.essence'),
+                            'itimeout': 30,
+                            'outdir': PosixPath('2016-01-28_20-20_1454012454/1454012470_2958'),
+                            'saved_choices': PosixPath('2016-01-28_20-20_1454012454/1454012465_6602/model000000.eprime'),
+                            'seed': 7506004})]),
+ 'eprime_names': ['model000001.eprime']}
+2016-01-28 20:21:11,143⦙WARNING   ⦙__main__  ⦙255 ⦙<module>                                          ⦙ running [PosixPath('2016-01-28_20-20_1454012454/1454012470_2958/model000001.eprime')]
+2016-01-28 20:21:11,163⦙WARNING   ⦙root      ⦙478 ⦙run_with_timeout                                  ⦙ Running conjureNew refine-param --eprime 2016-01-28_20-20_1454012454/1454012470_2958/model000001.eprime --essence-param 2016-01-28_20-20_1454012454/1454012470_2958/given.param --eprime-param 2016-01-28_20-20_1454012454/1454012470_2958/model000001.eprime-param
+2016-01-28 20:21:11,644⦙WARNING   ⦙root      ⦙478 ⦙run_with_timeout                                  ⦙ Running savilerow2.sh -mode Normal -in-eprime 2016-01-28_20-20_1454012454/1454012470_2958/model000001.eprime -in-param 2016-01-28_20-20_1454012454/1454012470_2958/model000001.eprime-param -out-minion 2016-01-28_20-20_1454012454/1454012470_2958/model000001.minion -out-solution 2016-01-28_20-20_1454012454/1454012470_2958/model000001.eprime-solution -out-info 2016-01-28_20-20_1454012454/1454012470_2958/model000001.eprime.info -run-solver -timelimit 30000 -solver-options -timelimit 30
+2016-01-28 20:21:11,905⦙WARNING   ⦙toolchain.run⦙323 ⦙run_solve                                         ⦙ ###ERROR Status.errorUnknown for cmd 
+savilerow2.sh -mode Normal -in-eprime 2016-01-28_20-20_1454012454/1454012470_2958/model000001.eprime -in-param 2016-01-28_20-20_1454012454/1454012470_2958/model000001.eprime-param -out-minion 2016-01-28_20-20_1454012454/1454012470_2958/model000001.minion -out-solution 2016-01-28_20-20_1454012454/1454012470_2958/model000001.eprime-solution -out-info 2016-01-28_20-20_1454012454/1454012470_2958/model000001.eprime.info -run-solver -timelimit 30000 -solver-options -timelimit 30
+ 	+++ which savilerow
+ 	++ dirname /Users/bilalh/CS/savilerow/savilerow
+ 	+ export SR_DIR=/Users/bilalh/CS/savilerow
+ 	+ SR_DIR=/Users/bilalh/CS/savilerow
+ 	+ '[' -f /Users/bilalh/CS/savilerow/savilerow2.sh ']'
+ 	+ java -ea -XX:ParallelGCThreads=1 -Xmx16G -jar /Users/bilalh/CS/savilerow/savilerow.jar -mode Normal -in-eprime 2016-01-28_20-20_1454012454/1454012470_2958/model000001.eprime -in-param 2016-01-28_20-20_1454012454/1454012470_2958/model000001.eprime-param -out-minion 2016-01-28_20-20_1454012454/1454012470_2958/model000001.minion -out-solution 2016-01-28_20-20_1454012454/1454012470_2958/model000001.eprime-solution -out-info 2016-01-28_20-20_1454012454/1454012470_2958/model000001.eprime.info -run-solver -timelimit 30000 -solver-options '-timelimit 30'
+ 	Created output file for domain filtering 2016-01-28_20-20_1454012454/1454012470_2958/model000001.minion
+ 	Sub-process exited with error code:1 and error message:
+ 	[Error in input!, Undefined name: 'q5', Error occurred on line 14, Parser gave up around:, w-inintervalset(q5,[1,2])**EOF**, -----------------^]
+ 	Created output file 2016-01-28_20-20_1454012454/1454012470_2958/model000001.minion
+ 	Sub-process exited with error code:1 and error message:
+ 	[Error in input!, Undefined name: 'q5', Error occurred on line 14, Parser gave up around:, w-inintervalset(q5,[1,2])**EOF**, -----------------^]
+ 	Could not run Minion: java.io.FileNotFoundException: .MINIONSOLS1454012471774194308697 (No such file or directory)
+ 	+ code=1
+ 	+ set +x
+
+2016-01-28 20:21:11,911⦙INFO      ⦙__main__  ⦙272 ⦙<module>                                          ⦙ solve_results: {'model000001': {'all_finished': False,
+                 'erroed': 1,
+                 'last_kind': <K.savilerow: (4,)>,
+                 'last_status': <Status.errorUnknown: (3,)>,
+                 'results': [OrderedDict([('rcode', 0),
+                                          ('cpu_time', 0.33),
+                                          ('real_time', 0.345234),
+                                          ('timeout', 29.582780838012695),
+                                          ('finished', True),
+                                          ('cmd',
+                                           ['conjureNew',
+                                            'refine-param',
+                                            '--eprime',
+                                            '2016-01-28_20-20_1454012454/1454012470_2958/model000001.eprime',
+                                            '--essence-param',
+                                            '2016-01-28_20-20_1454012454/1454012470_2958/given.param',
+                                            '--eprime-param',
+                                            '2016-01-28_20-20_1454012454/1454012470_2958/model000001.eprime-param']),
+                                          ('status_', <Status.success: (0,)>),
+                                          ('kind_', <K.refineParam: (3,)>),
+                                          ('vals',
+                                           {'eprime': PosixPath('2016-01-28_20-20_1454012454/1454012470_2958/model000001.eprime'),
+                                            'eprime_info': PosixPath('2016-01-28_20-20_1454012454/1454012470_2958/model000001.eprime.info'),
+                                            'eprime_param': PosixPath('2016-01-28_20-20_1454012454/1454012470_2958/model000001.eprime-param'),
+                                            'eprime_solution': PosixPath('2016-01-28_20-20_1454012454/1454012470_2958/model000001.eprime-solution'),
+                                            'essence': PosixPath('2016-01-28_20-20_1454012454/1454012470_2958/spec.essence'),
+                                            'essence_param': PosixPath('2016-01-28_20-20_1454012454/1454012470_2958/given.param'),
+                                            'essence_solution': PosixPath('2016-01-28_20-20_1454012454/1454012470_2958/model000001.solution'),
+                                            'itimeout': 30,
+                                            'minion': PosixPath('2016-01-28_20-20_1454012454/1454012470_2958/model000001.minion'),
+                                            'mstimeout': 30000})]),
+                             OrderedDict([('rcode', 1),
+                                          ('cpu_time', 0.33999999999999997),
+                                          ('real_time', 0.260605),
+                                          ('timeout', 29.252780838012697),
+                                          ('finished', False),
+                                          ('cmd',
+                                           ['savilerow2.sh',
+                                            '-mode',
+                                            'Normal',
+                                            '-in-eprime',
+                                            '2016-01-28_20-20_1454012454/1454012470_2958/model000001.eprime',
+                                            '-in-param',
+                                            '2016-01-28_20-20_1454012454/1454012470_2958/model000001.eprime-param',
+                                            '-out-minion',
+                                            '2016-01-28_20-20_1454012454/1454012470_2958/model000001.minion',
+                                            '-out-solution',
+                                            '2016-01-28_20-20_1454012454/1454012470_2958/model000001.eprime-solution',
+                                            '-out-info',
+                                            '2016-01-28_20-20_1454012454/1454012470_2958/model000001.eprime.info',
+                                            '-run-solver',
+                                            '-timelimit',
+                                            '30000',
+                                            '-solver-options',
+                                            '-timelimit 30']),
+                                          ('status_',
+                                           <Status.errorUnknown: (3,)>),
+                                          ('kind_', <K.savilerow: (4,)>),
+                                          ('vals',
+                                           {'eprime': PosixPath('2016-01-28_20-20_1454012454/1454012470_2958/model000001.eprime'),
+                                            'eprime_info': PosixPath('2016-01-28_20-20_1454012454/1454012470_2958/model000001.eprime.info'),
+                                            'eprime_param': PosixPath('2016-01-28_20-20_1454012454/1454012470_2958/model000001.eprime-param'),
+                                            'eprime_solution': PosixPath('2016-01-28_20-20_1454012454/1454012470_2958/model000001.eprime-solution'),
+                                            'essence': PosixPath('2016-01-28_20-20_1454012454/1454012470_2958/spec.essence'),
+                                            'essence_param': PosixPath('2016-01-28_20-20_1454012454/1454012470_2958/given.param'),
+                                            'essence_solution': PosixPath('2016-01-28_20-20_1454012454/1454012470_2958/model000001.solution'),
+                                            'itimeout': 30,
+                                            'minion': PosixPath('2016-01-28_20-20_1454012454/1454012470_2958/model000001.minion'),
+                                            'mstimeout': 30000})])],
+                 'solving_finished': False,
+                 'total_cpu_time': 0.6699999999999999,
+                 'total_real_time': 0.605839}}
+2016-01-28 20:21:11,911⦙INFO      ⦙__main__  ⦙84  ⦙remove_solve_dups                                 ⦙ hash 2785b1a9dd3e7949299375d67574d60975981106 is model000001

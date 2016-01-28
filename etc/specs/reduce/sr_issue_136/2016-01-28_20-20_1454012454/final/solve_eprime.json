@@ -1,0 +1,93 @@
+{
+ "consistent_": true,
+ "data_": {
+  "model000001": {
+   "all_finished": false,
+   "erroed": 1,
+   "last_kind": "Savilerow_",
+   "last_status": "ErrorUnknown_",
+   "results": [
+    {
+     "cmd": [
+      "conjureNew",
+      "refine-param",
+      "--eprime",
+      "2016-01-28_20-20_1454012454/1454012474_7089/model000001.eprime",
+      "--essence-param",
+      "2016-01-28_20-20_1454012454/1454012474_7089/given.param",
+      "--eprime-param",
+      "2016-01-28_20-20_1454012454/1454012474_7089/model000001.eprime-param"
+     ],
+     "cpu_time": 0.34,
+     "finished": true,
+     "kind_": "RefineParam_",
+     "rcode": 0,
+     "real_time": 0.360416,
+     "status_": "Success_",
+     "timeout": 29.57263708114624,
+     "vals": {
+      "eprime": "2016-01-28_20-20_1454012454/1454012474_7089/model000001.eprime",
+      "eprime_info": "2016-01-28_20-20_1454012454/1454012474_7089/model000001.eprime.info",
+      "eprime_param": "2016-01-28_20-20_1454012454/1454012474_7089/model000001.eprime-param",
+      "eprime_solution": "2016-01-28_20-20_1454012454/1454012474_7089/model000001.eprime-solution",
+      "essence": "2016-01-28_20-20_1454012454/1454012474_7089/spec.essence",
+      "essence_param": "2016-01-28_20-20_1454012454/1454012474_7089/given.param",
+      "essence_solution": "2016-01-28_20-20_1454012454/1454012474_7089/model000001.solution",
+      "itimeout": 30,
+      "minion": "2016-01-28_20-20_1454012454/1454012474_7089/model000001.minion",
+      "mstimeout": 30000
+     }
+    },
+    {
+     "cmd": [
+      "savilerow2.sh",
+      "-mode",
+      "Normal",
+      "-in-eprime",
+      "2016-01-28_20-20_1454012454/1454012474_7089/model000001.eprime",
+      "-in-param",
+      "2016-01-28_20-20_1454012454/1454012474_7089/model000001.eprime-param",
+      "-out-minion",
+      "2016-01-28_20-20_1454012454/1454012474_7089/model000001.minion",
+      "-out-solution",
+      "2016-01-28_20-20_1454012454/1454012474_7089/model000001.eprime-solution",
+      "-out-info",
+      "2016-01-28_20-20_1454012454/1454012474_7089/model000001.eprime.info",
+      "-run-solver",
+      "-timelimit",
+      "30000",
+      "-solver-options",
+      "-timelimit 30"
+     ],
+     "cpu_time": 0.35,
+     "finished": false,
+     "kind_": "Savilerow_",
+     "rcode": 1,
+     "real_time": 0.264481,
+     "status_": "ErrorUnknown_",
+     "timeout": 29.23263708114624,
+     "vals": {
+      "eprime": "2016-01-28_20-20_1454012454/1454012474_7089/model000001.eprime",
+      "eprime_info": "2016-01-28_20-20_1454012454/1454012474_7089/model000001.eprime.info",
+      "eprime_param": "2016-01-28_20-20_1454012454/1454012474_7089/model000001.eprime-param",
+      "eprime_solution": "2016-01-28_20-20_1454012454/1454012474_7089/model000001.eprime-solution",
+      "essence": "2016-01-28_20-20_1454012454/1454012474_7089/spec.essence",
+      "essence_param": "2016-01-28_20-20_1454012454/1454012474_7089/given.param",
+      "essence_solution": "2016-01-28_20-20_1454012454/1454012474_7089/model000001.solution",
+      "itimeout": 30,
+      "minion": "2016-01-28_20-20_1454012454/1454012474_7089/model000001.minion",
+      "mstimeout": 30000
+     }
+    }
+   ],
+   "solving_finished": false,
+   "total_cpu_time": 0.69,
+   "total_real_time": 0.624897
+  }
+ },
+ "essence_": "2016-01-28_20-20_1454012454/1454012474_7089/spec.essence",
+ "given_time_": 30,
+ "outdir_": "2016-01-28_20-20_1454012454/1454012474_7089",
+ "successful_": false,
+ "time_taken_": 0.624897
+}

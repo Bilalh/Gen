@@ -1,0 +1,2 @@
+###conjureNew 2016-01-28_20-20_1454012454/1454012470_2958/spec.essence -q f -a l --output-directory 2016-01-28_20-20_1454012454/1454012470_2958 --limit-time 30 --seed 7506004 --log-choices --log-level=logfollow --choices 2016-01-28_20-20_1454012454/1454012465_6602/model000000.eprime
+Running with a timelimit of 30 seconds.

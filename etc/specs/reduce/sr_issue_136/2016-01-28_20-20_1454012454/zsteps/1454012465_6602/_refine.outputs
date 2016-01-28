@@ -1,0 +1,5 @@
+###conjureNew 2016-01-28_20-20_1454012454/1454012465_6602/spec.essence -q f -a c --output-directory 2016-01-28_20-20_1454012454/1454012465_6602 --numbering-start 0 --limit-time 30 --seed 7020161 --log-choices --log-level=logfollow
+Running with a timelimit of 30 seconds.
+
+###conjureNew 2016-01-28_20-20_1454012454/1454012465_6602/spec.essence -q f -a r --output-directory 2016-01-28_20-20_1454012454/1454012465_6602 --numbering-start 1 --limit-time 30 --seed 7020162 --log-choices --log-level=logfollow
+Running with a timelimit of 30 seconds.
