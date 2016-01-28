@@ -4,3 +4,22 @@ param  from gen instance-noRacing
 
 Wanted.essence made by inlining  quadifers  in list comp
 
+
+
+spec -> spec.essence
+param -> given.param
+
+
+gen instance-noRacing spec.essence -i1
+# Need to allow where statements on the given int
+
+
+
+gen reduce --always-compact --kind=Savilerow_ -p30 --from-essence .
+
+
+# checking
+
+conjure solve spec.essence given.param
+
+savilerow conjure-output/model000001.eprime conjure-output/model000001-given.eprime-param
