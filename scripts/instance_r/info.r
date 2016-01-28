@@ -48,16 +48,16 @@ info2 <- info[ ! info$refineGroup  %in%  c("2015-11-06_symlink", "2015-11-25") ,
 # Ingored
 info3 <- info2[ ! info2$group %in% c(16044, 14016, 12017, 12019, 12020, 12018, 16045, 14023, 14024, 14011), ]
 info3 <- info3[ ! info3$essenceClass %in% c("prob055-efpa", "prob028-BIBD", "prob038-steel^2", "prob038-steel^3",
-                                            "prob006-GR"), ]
+                                            "prob006-GR", "prob010-SGP"), ]
 
 
 info3.t <- info3[c("essenceClass", "kindClass", "heuristic", "num_models", "runs", "fracturesSize", "numFractures",  "highestOrderingNeeded", "highestOrderingMean", "compactWon", "pointsRejected")]
 info3.th <- split( info3.t , info3.t$heuristic)
 
 
-info3.h <- split( info3 , info3$heuristic)
-info3.c <- split( info3 , info3$essenceClass)
-info3.k <- split( info3 , info3$kind)
+# info3.h <- split( info3 , info3$heuristic)
+# info3.c <- split( info3 , info3$essenceClass)
+# info3.k <- split( info3 , info3$kind)
 
 times <- ddply( info3[info3$runs == 3 & info3$kindClass != "smac", ], c("essenceClass", "heuristic"), summarise,
                 cpu  = as.integer(max(rCPUTime)),
@@ -71,3 +71,7 @@ View(info3.t)
 View(info3.th$sdf)
 View(info3.th$wdeg)
 View(info3.th$static)
+
+info3.hours = sum(info3$tCPUTime) / 3600
+info3.years = info3.hours / 24 / 365
+
