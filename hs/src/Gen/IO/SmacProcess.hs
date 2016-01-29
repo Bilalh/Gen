@@ -87,7 +87,7 @@ smacProcess s_output_directory _s_eprime _s_instance_specific
     out $line $ "Point valid"
     runParam startOurCPU rTimestampStart _s_seed prevState prevMeta
   else do
-    out $line $ "Point invaild"
+    out $line $ "Point invalid"
     endOurCPU <- liftIO $ getCPUTime
     let ourCPUTime = fromIntegral (endOurCPU - startOurCPU) / ((10 :: Double) ^ (12 :: Int))
     rTimestampEnd <- timestamp
@@ -115,7 +115,7 @@ smacProcess s_output_directory _s_eprime _s_instance_specific
             rIterationsDoneIncludingFailed thisMeta + 1}
 
     out ($line ++ " prev RunMetaData") $ groom thisMetaMay
-    out ($line ++ " new RunMetaData") $ groom newMeta
+    out ($line ++ " new  RunMetaData") $ groom newMeta
 
     writeRunMetaData newMeta
 
@@ -208,7 +208,8 @@ parseParamArray arr givens = do
 
   -- Assumes the input is sorted
 
-  parseSmacValues :: (MonadState [(Name,Expression)] m, MonadIO m)
+  parseSmacValues :: forall m
+                   . (MonadState [(Name,Expression)] m, MonadIO m)
                   => (Text, Domain () Constant, [(Text, Integer)])
                   -> m (Conjure.Language.Name.Name, Constant)
   parseSmacValues (name,DomainInt{},[(_,i)]) = do
@@ -266,22 +267,36 @@ parseParamArray arr givens = do
 
     return $ (Name name, ConstantAbstract $ AbsLitFunction mappings)
 
-  parseSmacValues (name, DomainRelation ()
+  parseSmacValues (name, dom@(DomainRelation ()
     (RelationAttr SizeAttr_None (BinaryRelationAttrs (barrs)))
     [DomainInt [RangeBounded (ConstantInt 1) (ConstantInt lim1)],
-     DomainInt [RangeBounded (ConstantInt 1) (ConstantInt lim2)]] , vs)
+     DomainInt [RangeBounded (ConstantInt 1) (ConstantInt lim2)]]) , vs)
      | S.null barrs  = do
-    let tuples = mapMaybe doRange [1..(lim1 * lim2) ]
+    tuples <- mapM doRange [1..(lim1 * lim2) ] >>= return . catMaybes
     out $line (groom tuples)
     return $ (Name name, ConstantAbstract $ AbsLitRelation tuples)
 
     where
+    doRange :: Integer -> m (Maybe [Constant])
     doRange i =
        let pre =  (T.pack $ "%rel%" ++ (zeroPad 3 (fromInteger i)) )
        in case [ v | (t,v) <- vs, pre == t  ] of
-            [0] -> Nothing
-            [1] -> Just [ ConstantInt v | (t,v) <- vs
-                        , (T.concat [pre, "%"]) `T.isPrefixOf` t  ]
+            [0] -> return $ Nothing
+            [1] -> case [ ConstantInt v | (t,v) <- vs
+                        , (T.concat [pre, "%"]) `T.isPrefixOf` t  ] of
+                     res@[x1,x2] ->
+                       if  x1 <= ConstantInt lim1 && x2 <= ConstantInt lim2 then
+                         return $ Just res
+                      else do
+                        out $line $ show . vcat $ [ "Discarded tuple since it out of range "
+                              <+> pretty x1 <+> pretty x2,
+                             nn "dom" dom
+                            ]
+                        return $ Nothing
+
+                     wrong       -> error $ $line ++
+                      "parseSmacValues binRel wrong number of elements: " ++ show wrong
+
             val -> error $ $line ++ "parseSmacValues binRel: " ++ show val
 
 
@@ -321,7 +336,7 @@ parseParamArray arr givens = do
   -- for the Problem Diagnosis problem
 
   parseSmacValues (name,dom,vs) = do
-    lineError $line ["unhandled", nn "name" name, nn "dom" dom
+    lineError $line ["unhanded", nn "name" name, nn "dom" dom
                     , nn "dom" (groom dom),   nn "vs" (groom vs) ]
 
 
