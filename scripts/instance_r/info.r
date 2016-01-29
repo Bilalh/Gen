@@ -30,6 +30,7 @@ info=ddply(all, c("essenceClass", "kindClass", "heuristic", "mode","num_models",
            seq=toString(seq),
            kind =toString(kind),
            paramGroup=toString(paramGroup),
+           tRealTime=sum(rRealTime),
            tCPUTime=sum(rCPUTime),
            rCPUTime=mean(rCPUTime),
            rRealTime=mean(rRealTime),
@@ -72,6 +73,10 @@ View(info3.th$sdf)
 View(info3.th$wdeg)
 View(info3.th$static)
 
-info3.hours = sum(info3$tCPUTime) / 3600
-info3.years = info3.hours / 24 / 365
+info3.cpu.hours = sum(info3$tCPUTime) / 3600
+info3.cpu.days  = info3.cpu.hours / 24
+info3.cpu.years = info3.cpu.hours / 24 / 365
+
+info3.real.hours = sum(info3$tRealTime) / 3600
+info3.real.days = info3.real.hours / 24
 
