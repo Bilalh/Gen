@@ -915,19 +915,18 @@ _reduceDebug = do
     createDirectoryIfMissing True "__/reduceDebug"
     setCurrentDirectory "__/reduceDebug"
 
-  let ec = Reduce{per_spec_time = 3,
-           spec_directory = "/Users/bilalh/805~final", error_kind = KindAny_,
-           error_status = StatusAny_,
-           error_choices = Just "/Users/bilalh/805~final/follow.choices.json",
-           list_kinds = False, list_statuses = False,
-           total_time_may = Nothing, total_is_cpu_time = False,
-           output_directory = Nothing, _cores = Nothing, _seed = Nothing,
-           keep_passing = False, delete_steps = False, delete_others = False,
-           toolchain_ouput = ToolchainScreen_, binaries_directory = Nothing,
-           limit_time = Nothing, always_compact = False, no_csv = False,
-           db_directory = Nothing, db_passing_in = Nothing,
-           db_only_passing = False, from_essence = True, no_check = False,
-           log_level = LogDebug}
+  let ec = Reduce{per_spec_time = 30,
+       spec_directory = "/Users/bilalh/CS/Thesis/data/reduction_examples/parametrised_from_user",
+       error_kind = Savilerow_, error_status = StatusAny_,
+       error_choices = Nothing, list_kinds = False, list_statuses = False,
+       total_time_may = Nothing, total_is_cpu_time = False,
+       output_directory = Nothing, _cores = Nothing, _seed = Nothing,
+       keep_passing = False, delete_steps = False, delete_others = False,
+       toolchain_ouput = ToolchainNull_, binaries_directory = Nothing,
+       limit_time = Nothing, always_compact = True, no_csv = False,
+       db_directory = Just "db", db_passing_in = Nothing,
+       db_only_passing = False, from_essence = True, no_check = False,
+       log_level = LogDebug}
   limiter (limit_time ec) (mainWithArgs ec)
 
 _instanceDebug :: IO ()
