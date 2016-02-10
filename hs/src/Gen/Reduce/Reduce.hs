@@ -106,8 +106,9 @@ loopToFixed start = do
       >>= con "removeUnusedDomains"  removeUnusedDomains
       >>= con "simplyFinds"          simplyFinds
       >>= con "simplyConstraints"    simplyConstraints
-      -- >>= con "simplyGivens"         simplyGivens
       >>= con "inlineGivens"         inlineGivens
+      -- >>= con "simplyGivens"         simplyGivens
+
   case res of
     (NoTimeLeft end) -> return $ NoTimeLeft end
     (Continue cur)   -> do

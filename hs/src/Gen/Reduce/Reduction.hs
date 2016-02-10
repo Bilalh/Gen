@@ -40,6 +40,7 @@ class (RndGen m,  MonadLog m,  Simpler a a) => Reduce a m where
     mutate  _ = return []
 
     reduceChecks :: a -> [a] -> m [a]
+    -- reduceChecks _ rs = return rs
     reduceChecks a rs = do
       return $ filter (\x -> runIdentity $ ignoreLogs $  simpler1 x a) rs
 
@@ -86,6 +87,15 @@ instance (RndGen m,  MonadLog m) =>  Reduce Expr m where
       a4 <- mutate e
       reduceChecks x $ a1 ++ a3 ++ (map ELit a2) ++ a4
 
+    reduce x@(EOp e@MkOpAnd{}) = do
+      a1 <- single e
+      a2 <- reduce e
+      a3 <- subterms e
+      res <- reduceChecks x $ a1 ++ a3 ++ (map EOp a2)
+
+      -- lineError $line [prettyArr res]
+      return res
+
     reduce x@(EOp e) = do
       a1 <- single e
       a2 <- reduce e
@@ -107,6 +117,16 @@ instance (RndGen m,  MonadLog m) =>  Reduce Expr m where
                           else [EComp i gens cs | cs <- [] : r_cons ]
                        |  i <- r_inner  ]
 
+      r_gens  <- mapM reduce gens
+
+      let r_gens2 = zip r_gens gens
+          r_gens3 = transposeFill r_gens2
+
+
+      let gens2 = [ EComp inner g cons |  g <- r_gens3  ]
+      -- error . show $ prettyArr gens2
+
+
       addLog  $line [ ]
       addLog "reduce EComp" [pretty e]
       addLog "single" (map pretty sin)
@@ -120,7 +140,9 @@ instance (RndGen m,  MonadLog m) =>  Reduce Expr m where
                        , nn "single"  (length sin)
                        , nn "subterms"  (length subs)
                        ]
-      reduceChecks e  $ sin ++ subs ++ res
+      x <- reduceChecks e  $ sin ++ gens2 ++ subs ++ res
+      -- error . show . prettyArr $ x
+      return x
 
 
     single EEmptyGuard  = return []
@@ -168,6 +190,20 @@ instance (RndGen m,  MonadLog m) =>  Reduce Expr m where
     subterms (EComp inners gens cons) = do
       let l_cs = [] : reduceLength cons
       return $ [ EComp inners gens c | c <- l_cs ]
+
+
+instance (RndGen m,  MonadLog m) =>  Reduce EGen m where
+  single   _  = lineError $line ["Single called from Reduce EGen m when it should not be"]
+  subterms _  = return []
+
+  reduce (GenDom pat dom)  = do
+    r_dom <- reduce dom
+    return [ GenDom pat r | r <- r_dom ]
+
+  reduce (GenIn pat dom)  = do
+    r_dom <- reduce dom
+    return [ GenIn pat r | r <- r_dom ]
+
 
 
 -- Making Reduce (AbsLiteral c) is a lot of work
@@ -442,13 +478,25 @@ instance (RndGen m,  MonadLog m) =>  Reduce (Op Expr) m where
     reduce e@[opp| &a /\ &b |] = reduce_op2 (m2t  $ \(c,d) ->  [opp| &c /\ &d |]) [a,b] >>= reduceChecks e
     reduce e@[opp| &a \/ &b |] = reduce_op2 (m2t  $ \(c,d) ->  [opp| &c \/ &d |]) [a,b] >>= reduceChecks e
 
+    -- reduce e@MkOpAnd{} = do
+    --   let subs = F.toList e
+    --   res <- reduce_op e subs
+    --   chs <- reduceChecks e res
+    --   addLog "op" [ pretty  e]
+    --   addLog "subs" (map pretty subs)
+    --   addLog "op_res"  (map pretty res)
+    --   addLog "op_chs"  (map pretty chs)
+    --   addLog "lengths" [ nn "res" (length res)
+    --                    , nn "subs" (length subs)
+    --                    , nn "chs"  (length chs)]
+    --   lineError $line [prettyArr chs]
+
     reduce e = do
       let subs = F.toList e
       res <- reduce_op e subs
       chs <- reduceChecks e res
-      addLog $line [  ]
       addLog "op" [ pretty  e]
-      addLog "op_subs" (map pretty subs)
+      addLog "subs" (map pretty subs)
       addLog "op_res"  (map pretty res)
       addLog "op_chs"  (map pretty chs)
       addLog "lengths" [ nn "res" (length res)
@@ -473,6 +521,10 @@ subterms_op e subs =  do
 
 reduce_op :: forall (m :: * -> *). (RndGen m,  MonadLog m)
           => Op Expr -> [Expr] -> m [Op Expr]
+-- reduce_op x@MkOpAnd{} subs = do
+--   res <- reduce_op2 (replaceOpChildren x) subs
+--   lineError $line [prettyArr res]
+
 reduce_op x subs = reduce_op2 (replaceOpChildren x) subs
 
 
@@ -503,7 +555,7 @@ reduce_op2 f subs = do
              , nn "rs"   (length rs)
              , nn "xrs"   (length xrs)
              ]
-      return res
+      return res_
 
   where
   giveVals :: (RndGen m, MonadLog m)
@@ -520,17 +572,9 @@ reduce_op2 f subs = do
     return $ re ++ [e]
 
 
-infixl 1 -|
-(-|) :: (Simpler a e, RndGen m,  MonadLog m) =>
-        (a -> (c,d) ) -> (m a, e) -> m (Maybe ((c,d)))
-f  -| (a,e) = do
-   aa <-a
-   simpler1 aa e >>= \case
-     True  -> return $ Just (f aa)
-     False -> return Nothing
 
-
--- | Return the two shortest & two longest sub sequence of the elements
+-- | Return the  sub sequence of the elements
+-- was Return the two shortest & two longest sub sequence of the elements
 reduceLength :: Eq a =>  [a] -> [[a]]
 -- reduceLength xs =  heads_tails . init $ inits xs
 reduceLength xs = filter (/=[]) $ init $ inits xs
@@ -664,24 +708,24 @@ replaceOpChildren op news = fst . flip runState news $ f1 <$> T.mapM fff ch1
        return x
 
 
-reduceList :: forall (m :: * -> *)
-           .  (RndGen m, MonadLog m)
-           => [Expr] -> m [[Expr]]
+reduceList :: forall (m :: * -> *) a
+           .  (RndGen m, MonadLog m, Reduce a m, Data a)
+           => [a] -> m [[a]]
 reduceList [] = return []
 reduceList as = do
-  let lzip = case zipperBi as of
-           Nothing -> docError [pretty $line, pretty $ groom as   ]
-           Just lz -> lz
-  vs <- forM (allSiblings lzip) $ \ x -> do
-    let cur = hole x
-    rs <- reduce cur
-    let ls = map (flip replaceHole x) rs
-    return $ map fromZipper ls
+  case zipperBi as of
+    Nothing -> return []
+    Just lzip -> do
+      vs <- forM (allSiblings lzip) $ \ x -> do
+        let cur = hole x
+        rs <- reduce cur
+        let ls = map (flip replaceHole x) rs
+        return $ map fromZipper ls
 
-  return . concat $ vs
+      return . concat $ vs
 
     where
-      allSiblings :: Zipper [Expr] Expr -> [Zipper [Expr] Expr]
+      allSiblings :: Zipper [a] Expr -> [Zipper [a] Expr]
       allSiblings z = z : maybe [] allSiblings (Zipper.right z)
 
 

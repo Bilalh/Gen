@@ -75,11 +75,16 @@ instance Simpler Expr Expr where
           let c1Depth = maximum' 0 $ map depthOf cs1
           let c2Depth = maximum' 0 $ map depthOf cs2
 
+          let g1Depth = maximum' 0 $ map depthOf g1
+          let g2Depth = maximum' 0 $ map depthOf g2
+
           case compare (length cs1) (length cs2) of
             EQ -> case compare (length g1) (length g2) of
                EQ -> case compare (depthOf i1) (depthOf i2) of
-                 EQ -> return $ compare c1Depth c2Depth
-
+                 EQ -> case compare g1Depth g2Depth  of
+                   EQ -> case compare c1Depth c2Depth of
+                     o  -> return o
+                   o  -> return o
                  o  -> return o
                o  -> return o
             o  -> return o
@@ -89,6 +94,13 @@ instance Simpler Expr Expr where
     simplerImp a b@EComp{} = return $ compare (depthOf a) (depthOf b)
     simplerImp a b = simplerImpError "Expr" a b
 
+instance Simpler EGen EGen where
+    simplerImp (GenDom _ x2) (GenDom _ y2) = simplerImp x2 y2
+    simplerImp (GenIn _ x2)  (GenIn _ y2)  = simplerImp x2 y2
+
+    -- TODO could this ever happen?
+    simplerImp GenIn{} GenDom{}  = return EQ
+    simplerImp GenDom{} GenIn{}  = return EQ
 
 
 instance Simpler Type Type where
@@ -192,6 +204,8 @@ compareSameDomain (DomainTuple a)             (DomainTuple b)  =
   else if lb > la then GT
   else EQ
 
+-- compareSameDomain x@DomainInt{} y@DomainInt{} = docError $ map pretty [x,y]
+
 compareSameDomain _ _ = EQ
 
 -- FIXME hackly way of counting the number of attrs
@@ -204,8 +218,9 @@ attrCount a = case T.split (==',') $  stringToText $ show $  pretty a of
 instance Simpler (Op Expr) (Op Expr) where
     simplerImp a b | [ELit la@AbsLitMatrix{}] <- F.toList a
                    , [ELit lb@AbsLitMatrix{}] <- F.toList b = simpler la lb
-    simplerImp a b | [la@EComp{} ] <- F.toList a
-                   , [lb@EComp{} ] <- F.toList b = simpler la lb
+    -- simplerImp a b | [la@EComp{} ] <- F.toList a
+                   -- , [lb@EComp{} ] <- F.toList b = simpler la lb
+
     simplerImp a b = case compare (depthOf a) (depthOf b) of
                        EQ -> do
                          let x1 = F.toList a
