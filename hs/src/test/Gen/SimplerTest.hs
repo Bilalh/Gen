@@ -150,6 +150,74 @@ tests = testGroup "simpler"
       ]
 
 
+
+  ,testGroup_lt_gt "CompSR136_lt_gt" $ do
+     let m1   = Single "m1"
+     let q5   = Single "q5"
+     let t1   = Single "t1"
+
+     let _m1   = EVar $ Var "m1" (TypeInt)
+     let _q5   = EVar $ Var "q5" (TypeInt)
+
+
+     [
+      ( [essencee| and([true]) |]
+      , [essencee| and([true
+                 | &m1 : int(1..3)]) |]
+      ),
+
+      ( [essencee| and([true
+                 | &m1 : int(1..3)]) |]
+      , [essencee| and([true
+                 | &m1 : int(1..3)
+                 , &q5 : int(1..4)]) |]
+      ),
+
+      ( [essencee| and([true
+                 | &m1 : int(1..3)
+                 , &q5 : int(1..4)
+                 , &t1 : int(0..[3; int(1..1)][&_q5])]) |]
+      , [essencee| and([true
+                 | &m1 : int(1..3)
+                 , &q5 : int(1..4)
+                 , &t1 : int(0..[[5, 5; int(1..2)], [5, 5; int(1..2)],
+                                [5, 5; int(1..2)]; int(1..3)][&_m1, &_q5]
+                               - 1)]) |]
+      ),
+
+      ( [essencee| and([true
+                 | &m1 : int(1..3) ]) |]
+      , [essencee| and([true
+                 | &m1 : int(1..3)
+                 , &q5 : int(1..4)
+                 , &t1 : int(0..[[5, 5; int(1..2)], [5, 5; int(1..2)],
+                                [5, 5; int(1..2)]; int(1..3)][&_m1, &_q5]
+                               - 1)]) |]
+      )
+
+      ]
+
+  ,testGroup "CompSR136_eq" $ do
+     let m1   = Single "m1"
+     let q5   = Single "q5"
+     let t1   = Single "t1"
+
+     let _m1   = EVar $ Var "m1" (TypeInt)
+     let _q5   = EVar $ Var "q5" (TypeInt)
+
+     [
+         eq_same [essencee| and([true
+                 | &m1 : int(1..3)
+                 , &q5 : int(1..4)
+                 , &t1 : int(0..[3; int(1..1)][&_q5])]) |]
+       , eq_same [essencee| and([true
+                 | &m1 : int(1..3)
+                 , &q5 : int(1..4)
+                 , &t1 : int(0..[[5, 5; int(1..2)], [5, 5; int(1..2)],
+                                [5, 5; int(1..2)]; int(1..3)][&_m1, &_q5]
+                               - 1)]) |]
+       ]
+
   ,testGroup "QC"
   [
     qc_tests "Type"     (Proxy :: Proxy Type)
