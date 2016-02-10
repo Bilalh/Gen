@@ -151,7 +151,7 @@ tests = testGroup "simpler"
 
 
 
-  ,testGroup_lt_gt "CompSR136_lt_gt" $ do
+  ,testGroup_lt_gt "CompSR136_" $ do
      let m1   = Single "m1"
      let q5   = Single "q5"
      let t1   = Single "t1"

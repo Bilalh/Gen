@@ -9,7 +9,7 @@ import Conjure.Language.Definition
 
 depthTest :: DepthOf a
           => Doc -> Integer -> a -> TestTree
-depthTest name expected ty = testCase (name <+> braces (pretty expected)) $
+depthTest name expected ty = testCase ( pretty expected <+> "⇒" <+> name) $
                                depthOf ty @?= expected
 
 
@@ -43,7 +43,7 @@ tests = testGroup "depthOf"
    ,de 1 $ [domainn| matrix indexed by [int(1..3)] of bool |]
    ,de 2 $ [domainn| function int --> set of bool |]
    ,de 2 $ [domainn| partition from set of bool |]
-   ,de 2 $ [domainn| function (total, injective) int(1..4*|{4,2}| ) --> bool |]
+   ,de 4 $ [domainn| function (total, injective) int(1..4*|{4,2}| ) --> bool |]
    ]
 
    ,testGroup "type_gen"
@@ -125,5 +125,47 @@ tests = testGroup "depthOf"
        let b = EVar (Var "l1" $ TypeSet TypeInt)
        [essencee|[ &b | &a : set of int(1..5, 0)] |]
    ]
+
+
+
+  ,testGroup "CompSR136_Depth" $ do
+     let m1   = Single "m1"
+     let q5   = Single "q5"
+     let t1   = Single "t1"
+
+     let _m1   = EVar $ Var "m1" (TypeInt)
+     let _q5   = EVar $ Var "q5" (TypeInt)
+
+
+     [ -- FIXME update
+        de 0 [domainn| int(1..4) |]
+      , de 1 [domainn| int(1..4+1) |]
+      , de 2 [domainn| int(1..4+1*3) |]
+
+      , te 2 [essencee| [1,2][0] |]
+      , de 2 [domainn| int(1..[1,2][0])  |]
+
+      , te 2 [essencee| and([true]) |]
+      , te 2 [essencee| and([true
+                      | &m1 : int(1..3)]) |]
+
+      , te 2 [essencee| and([true
+                      | &m1 : int(1..3)
+                      , &q5 : int(1..4)]) |]
+
+      , te 4 [essencee| and([true
+                 | &m1 : int(1..3)
+                 , &q5 : int(1..4)
+                 , &t1 : int(0..[3; int(1..1)][&_q5])]) |]
+      , te 7 [essencee| and([true
+                 | &m1 : int(1..3)
+                 , &q5 : int(1..4)
+                 , &t1 : int(0..[[5, 5; int(1..2)], [5, 5; int(1..2)],
+                                [5, 5; int(1..2)]; int(1..3)][&_m1, &_q5]
+                               - 1)])|]
+
+      ]
+
+
 
   ]
