@@ -138,6 +138,9 @@ instance Monad m => MonadR (StateT RState m) where
 addLog :: MonadLog m => String -> [Doc] ->  m ()
 addLog t ds = logDebugVerbose $ hang (pretty t) 4 (vcat ds)
 
+addLog2 :: MonadLog m => String -> [Doc] ->  m ()
+addLog2 t ds = logInfo $ hang (pretty t) 4 (vcat ds)
+
 rrError :: String -> [Doc] -> m a
 rrError title docs = do
   error . show $ ( P.text $ padRight 15 ' ' title  )
