@@ -67,8 +67,9 @@ Run the toolchain on a spec for 4 seconds with 4 cores (compact + 3 randoms):
 
 
 `gen reduce` Examples
+--------
 
-Using https://bitbucket.org/stacs_cp/savilerow/issues/136/sr-generates-invalid-minion as a example
+Using https://bitbucket.org/stacs_cp/savilerow/issues/136/sr-generates-invalid-minion as an example
 
 Put two files named `spec.essence` and `given.param` in a directory.  Run
 
