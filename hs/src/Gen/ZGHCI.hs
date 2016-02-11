@@ -10,6 +10,7 @@
 module Gen.ZGHCI(module X
   , d_boolrel, d_bool_func_set
   , aSpec, aExpr, aType, aDom, aBinRel, aIntRanged
+  , the_comp, the_comp_gens
   ) where
 
 import Conjure.Language.Definition    as X
@@ -97,3 +98,45 @@ w_bool_func_set = [(K_TypeAny, 0), (K_TypeBool, 100), (K_TypeEnum, 0),
 d_bool_func_set = (pretty :: Domain () Expr -> Doc  ) <$>
    runGenerate2 LogNone (  withKey K_Domain $ give con  ) def{depth=2, weighting=KeyMap $ M.fromList w_bool_func_set}
   where con = GType (TypeSet (TypeSet TypeBool))
+
+the_comp = EComp (ECon (ConstantBool True))
+              [GenDom (Single (Name "m1"))
+                 (DomainInt
+                    [RangeBounded (ECon (ConstantInt 1)) (ECon (ConstantInt 3))]),
+               GenDom (Single (Name "q5"))
+                 (DomainInt
+                    [RangeBounded (ECon (ConstantInt 1)) (ECon (ConstantInt 2))]),
+               GenDom (Single (Name "t1"))
+                 (DomainInt
+                    [RangeBounded (ECon (ConstantInt 0))
+                       (EOp
+                          (MkOpIndexing
+                             (OpIndexing
+                                (ELit
+                                   (AbsLitMatrix
+                                      (DomainInt
+                                         [RangeBounded (ECon (ConstantInt 1))
+                                            (ECon (ConstantInt 1))])
+                                      [ECon (ConstantInt 4)]))
+                                (EVar (Var "q5" TypeInt)))))])]
+              []
+
+the_comp_gens = [GenDom (Single (Name "m1"))
+                 (DomainInt
+                    [RangeBounded (ECon (ConstantInt 1)) (ECon (ConstantInt 3))]),
+               GenDom (Single (Name "q5"))
+                 (DomainInt
+                    [RangeBounded (ECon (ConstantInt 1)) (ECon (ConstantInt 2))]),
+               GenDom (Single (Name "t1"))
+                 (DomainInt
+                    [RangeBounded (ECon (ConstantInt 0))
+                       (EOp
+                          (MkOpIndexing
+                             (OpIndexing
+                                (ELit
+                                   (AbsLitMatrix
+                                      (DomainInt
+                                         [RangeBounded (ECon (ConstantInt 1))
+                                            (ECon (ConstantInt 1))])
+                                      [ECon (ConstantInt 4)]))
+                                (EVar (Var "q5" TypeInt)))))])]
