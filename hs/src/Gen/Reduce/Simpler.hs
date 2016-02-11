@@ -90,8 +90,14 @@ instance Simpler Expr Expr where
             o  -> return o
         o  -> return o
 
+    simplerImp a@EComp{} b@(ELit AbsLitMatrix{}) =
+      case compare (depthOf a) (depthOf b) of
+        EQ -> return GT
+        o  -> return o
+
     simplerImp a@EComp{} b = return $ compare (depthOf a) (depthOf b)
-    simplerImp a b@EComp{} = return $ compare (depthOf a) (depthOf b)
+    simplerImp a b@EComp{} = negSimplerImp a b
+
     simplerImp a b = simplerImpError "Expr" a b
 
 instance Simpler EGen EGen where

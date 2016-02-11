@@ -137,7 +137,7 @@ tests = testGroup "depthOf"
      let _q5   = EVar $ Var "q5" (TypeInt)
 
 
-     [ -- FIXME update
+     [
         de 0 [domainn| int(1..4) |]
       , de 1 [domainn| int(1..4+1) |]
       , de 2 [domainn| int(1..4+1*3) |]
