@@ -47,7 +47,9 @@ unusedGenerators (EComp inners gens cons)  =
 
     genUnused used (GenDom (Single (Name n)) _) | not $ n `S.member` used = Just n
     genUnused used (GenIn (Single (Name n)) _)  | not $ n `S.member` used = Just n
-    genUnused _    x                            = Nothing
+    genUnused _   _                            = Nothing
+
+unusedGenerators _ = []
 
 -- Always keep atlest one gen
 usedGeneratorsChoices :: [EGen] -> [Text] -> [[EGen]]
@@ -60,4 +62,5 @@ usedGeneratorsChoices ds ts =
 
   where
     keepUsed wy(GenDom (Single (Name n)) _) = n  `notElem` wy
-    keepUsed wy (GenIn (Single (Name n)) _)  = n  `notElem` wy
+    keepUsed wy (GenIn (Single (Name n)) _) = n  `notElem` wy
+    keepUsed _ _ = True
