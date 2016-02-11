@@ -67,6 +67,13 @@ times <- ddply( info3[info3$runs == 3 & info3$kindClass != "smac", ], c("essence
                 freal = as.integer(max(rRealTime)/3600)
               )
 
+times.with_smac <- ddply( info3[info3$runs == 3, ], c("essenceClass", "heuristic"), summarise,
+                cpu  = as.integer(max(rCPUTime)),
+                fcpu  = as.integer(max(rCPUTime)/3600),
+                real  = as.integer(max(rRealTime)),
+                freal = as.integer(max(rRealTime)/3600)
+)
+
 View(info3)
 View(info3.t)
 View(info3.th$sdf)
