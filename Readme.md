@@ -66,8 +66,51 @@ Run the toolchain on a spec for 4 seconds with 4 cores (compact + 3 randoms):
 	gen script-toolchain spec.essence -t40 -c4
 
 
-`gen instance` Example
-----------------------
+`gen reduce` Examples
+
+Using https://bitbucket.org/stacs_cp/savilerow/issues/136/sr-generates-invalid-minion as a example
+
+Put two files named `spec.essence` and `given.param` in a directory.  Run
+
+    gen reduce  -p30 --from-essence . --always-compact        # Don't have choices
+    gen reduce  -p30 --from-essence . --choices [eprime|json] # Have choices
+
+the Kind of error can specified e.g.
+
+    gen reduce -p30 --from-essence --always-compact --kind=Savilerow_
+
+Full list of kinds from
+
+    gen reduce --list-kinds
+    gen reduce --list-statuses
+
+This reduction this
+
+    language Essence 1.3
+
+    given module_EnumSize: int
+    given fin4: int
+    given fin5: int
+    given fin6: int
+    given var2: matrix indexed by [int(1..module_EnumSize), int(1..fin4)] of int(fin5..fin6)
+    find b : bool
+    such that b = and([true | m1 : int(1..module_EnumSize)
+                            , q5 : int(1..fin4)
+                            , t1 : int(0..var2[m1, q5] - 1)
+                            ])
+
+to
+
+    language Essence 1.3
+
+    find unused: bool
+    such that and([true | q5 : int(1..2), t1 : int(0..[2; int(1..1)][q5])])
+
+
+
+
+`gen instance` Help
+-----------------------
 
 Only the required options are shown see the `--help` for more info
 
@@ -114,7 +157,7 @@ Only the required options are shown see the `--help` for more info
     Required:
       -o    --output-directory=DIR  Output directory
 
-`gen reduce` Examples
+`gen reduce` Help
 -------------------
 
 Only some options are shown see the `--help` for more info
@@ -129,6 +172,7 @@ Only some options are shown see the `--help` for more info
     --from-essence               Convert spec.essence to json
                                  (spec.spec.json), automatically for
                                  convenience
+
 
 
 
