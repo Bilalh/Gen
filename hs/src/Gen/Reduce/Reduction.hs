@@ -18,6 +18,7 @@ import Gen.Reduce.Data
 import Gen.Reduce.Inners
 import Gen.Reduce.Random
 import Gen.Reduce.Simpler
+import Gen.Reduce.UnusedDomains
 
 import qualified Data.Foldable                 as F
 import qualified Data.Generics.Uniplate.Zipper as Zipper
@@ -117,13 +118,14 @@ instance (RndGen m,  MonadLog m) =>  Reduce Expr m where
                           else [EComp i gens cs | cs <- [] : r_cons ]
                        |  i <- r_inner  ]
 
-      r_gens  <- mapM reduce gens
+      let unusedNames  = unusedGenerators e
+      let onlyUsedGens_ = usedGeneratorsChoices gens unusedNames
+      let onlyUsedGens = [ EComp inner g cons |  g <- onlyUsedGens_  ]
 
+      r_gens     <- mapM reduce gens
       let r_gens2 = zip r_gens gens
           r_gens3 = transposeFill r_gens2
-
-
-      let gens2 = [ EComp inner g cons |  g <- r_gens3  ]
+      let gens2   = [ EComp inner g cons |  g <- r_gens3  ]
       -- error . show $ prettyArr gens2
 
 
@@ -140,7 +142,8 @@ instance (RndGen m,  MonadLog m) =>  Reduce Expr m where
                        , nn "single"  (length sin)
                        , nn "subterms"  (length subs)
                        ]
-      x <- reduceChecks e  $ sin ++ gens2 ++ subs ++ res
+
+      x <- reduceChecks e  $ sin ++ onlyUsedGens ++ gens2 ++ subs ++ res
       -- error . show . prettyArr $ x
       return x
 
