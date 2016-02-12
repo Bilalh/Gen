@@ -8,7 +8,7 @@
 -- To saving typing imports and storing temp defs
 -- Usage:  make ghci    import Gen.ZGHCI
 module Gen.ZGHCI(module X
-  , d_boolrel, d_bool_func_set
+  , d_boolrel, d_bool_func_set, d_func_size, d_func_size2, d_func_size3
   , aSpec, aExpr, aType, aDom, aBinRel, aIntRanged
   , the_comp, the_comp_gens
   ) where
@@ -98,6 +98,38 @@ w_bool_func_set = [(K_TypeAny, 0), (K_TypeBool, 100), (K_TypeEnum, 0),
 d_bool_func_set = (pretty :: Domain () Expr -> Doc  ) <$>
    runGenerate2 LogNone (  withKey K_Domain $ give con  ) def{depth=2, weighting=KeyMap $ M.fromList w_bool_func_set}
   where con = GType (TypeSet (TypeSet TypeBool))
+
+
+w_func_size= [(K_TypeAny, 0), (K_TypeBool, 100), (K_TypeEnum, 0),
+             (K_TypeFunction, 100), (K_TypeInt, 100), (K_TypeList, 0),
+             (K_TypeMSet, 0), (K_TypeMatrix, 0), (K_TypePartition, 0),
+             (K_TypeRecord, 0), (K_TypeRelation, 0), (K_TypeSequence, 0),
+             (K_TypeSet, 0), (K_TypeTuple, 0), (K_TypeUnnamed, 0)
+             ] ++ [ (k,0) |
+               k <- [ K_JectivityAttr_Bijective,K_JectivityAttr_Injective
+                    , K_JectivityAttr_Surjective, K_PartialityAttr_Total
+                    , K_OpFactorial
+                    ]]
+
+-- Try to generate a function given a depth of 3 which actually has a depth of 4.
+d_func_size = (pretty :: (Integer, Domain () Expr) -> Doc ) . (depthOf &&& id) <$>
+   runGenerate2 LogNone (  withKey K_Domain $ give con  ) def{depth=3, weighting=KeyMap $ M.fromList w_func_size}
+  where con = GType (TypeFunction TypeBool TypeBool)
+
+d_func_size2 = do
+   (res:: Domain () Expr ,lgs) <- runGenerate LogDebug ( withKey K_Domain $ give con )
+     def{depth=givenDepth, weighting=KeyMap $ M.fromList w_func_size}
+   if depthOf res > fromIntegral givenDepth then do
+     return $ Just (res, lgs, res)
+   else
+     return Nothing
+
+  where con = GType (TypeFunction TypeBool TypeBool)
+        givenDepth = 3
+
+d_func_size3 = mapM (const d_func_size2) [1..1000] >>= return . take 1 . catMaybes >>= return . map pretty
+--
+
 
 the_comp = EComp (ECon (ConstantBool True))
               [GenDom (Single (Name "m1"))
