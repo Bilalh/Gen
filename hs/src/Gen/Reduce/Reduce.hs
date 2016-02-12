@@ -85,14 +85,6 @@ doReductions :: (Spec, Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
 doReductions start =
     return (Continue start)
     >>= con "tryRemoveConstraints" tryRemoveConstraints
-    >>= con "removeObjective"      removeObjective
-    >>= con "removeUnusedDomains"  removeUnusedDomains
-    >>= con "removeConstraints"    removeConstraints
-    >>= con "inlineGivens"         inlineGivens
-    >>= con "removeUnusedDomains"  removeUnusedDomains
-    >>= con "simplyFinds"          simplyFinds
-    >>= con "simplyConstraints"    simplyConstraints
-    -- >>= con "simplyGivens"         simplyGivens
     >>= con "loopToFixed"          loopToFixed
     >>= con "eprimeAsSpec"         eprimeAsSpec
 
@@ -102,11 +94,11 @@ loopToFixed start = do
   noteFormat ("@" <+> "loopToFixed") []
   res <-  return (Continue start)
       >>= con "removeObjective"      removeObjective
-      >>= con "removeConstraints"    removeConstraints
       >>= con "removeUnusedDomains"  removeUnusedDomains
+      >>= con "removeConstraints"    removeConstraints
+      >>= con "inlineGivens"         inlineGivens
       >>= con "simplyFinds"          simplyFinds
       >>= con "simplyConstraints"    simplyConstraints
-      >>= con "inlineGivens"         inlineGivens
       -- >>= con "simplyGivens"         simplyGivens
 
   case res of
