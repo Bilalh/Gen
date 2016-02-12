@@ -64,23 +64,24 @@ instance  (EvalToInt a, Generate a, GenInfo a) => Generate (IntAsc a) where
                          (wrapConstant . ConstantInt $ b)
 
       else withWeights [(K_EVar, 0), (K_LVar,0)] $ do
-           a0 :: a <- give (GType TypeInt)
-           b0 :: a <- give (GType TypeInt)
+           a0 :: a <- dgive (GType TypeInt)
+           b0 :: a <- dgive (GType TypeInt)
            a  <- ensureGTE0 a0
            b  <- ensureGTE0 b0
            ae <- evalToInt a
            be <- evalToInt b
 
+           let (ma,mb) = if ae < be then (a,b) else (b,a)
            logDebug2 $line [ nn "depth" d
                           , nn "a0" a0
                           , nn "b0" b0
                           , nn "a"  a
                           , nn "b"  b
-                          , nn "ae" ae
-                          , nn "be" be
+                          , nn "eval a" ae
+                          , nn "eval b" be
+                          , nn "IntAsc" (IntAsc ma mb)
                           ]
 
-           let (ma,mb) = if ae < be then (a,b) else (b,a)
            return $ IntAsc ma mb
 
 
