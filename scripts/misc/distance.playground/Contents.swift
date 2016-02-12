@@ -61,3 +61,23 @@ let s_inside = ( (scp_1 - scp_2) ^^ 2  * 3  )
 sqrt(s_inside)
 
 
+
+// need 90
+
+// warehouse
+let n_upper = 60.0
+let n_stores = 60.0
+let n_warehouses = 60.0
+
+let capacity = sqrt(n_warehouses * (n_upper - 1)^^2)
+let opencost = sqrt(n_warehouses * (n_upper - 1)^^2)
+let cost     = sqrt(n_warehouses * n_stores * (n_upper - 1)^^2)
+
+
+let w_inside =  (  (n_upper - 1)^^2 + (n_stores-1)^^2  + (n_warehouses)^^2
+    +  (capacity - 0.0)^^2 + (opencost - 0.0)^^2 + (cost - 0.0)^^2 )
+sqrt(w_inside)
+
+
+
+
