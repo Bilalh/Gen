@@ -7,7 +7,7 @@ import Gen.IO.Formats
 import Gen.IO.RunResult
 import Gen.IO.ToolchainData
 import Gen.Reduce.Data
-import Gen.Reduce.QuanToComp    (quanToComp)
+import Gen.Reduce.Transform   (deEnum)
 import Gen.Reduce.Random
 import Gen.Instance.Point
 import Gen.Reduce.Reduction
@@ -23,11 +23,17 @@ reduceMain check rr = do
   let base = (specDir_ . rconfig) rr
       fp   =  base </> "spec.spec.json"
 
-  startParam <- liftIO $ giveParam base
 
   sp_ <- liftIO $ readFromJSON fp
-  -- Remove quantification
-  sp <-  liftIO $ quanToComp sp_
+
+  -- Remove quantification and enums
+  let paramFp_ = base </> "given.param"
+  paramFp <- liftIO $ doesFileExist paramFp_  >>= \case
+    False -> return Nothing
+    True  -> return (Just paramFp_)
+
+  (sp,startParam) <-  liftIO $ deEnum sp_ paramFp
+
   (errOccurs,_) <- case check of
                  False -> return (True, rr)
                  True -> (flip runStateT) rr (return sp

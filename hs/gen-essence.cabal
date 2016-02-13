@@ -146,12 +146,12 @@ Library
                      , Gen.Reduce.Data
                      , Gen.Reduce.FormatResults
                      , Gen.Reduce.Inners
-                     , Gen.Reduce.QuanToComp
                      , Gen.Reduce.Random
                      , Gen.Reduce.Reduce
                      , Gen.Reduce.Reduction
                      , Gen.Reduce.Runner
                      , Gen.Reduce.Simpler
+                     , Gen.Reduce.Transform
                      , Gen.Reduce.TypeCheck
                      , Gen.Reduce.UnusedDomains
                      , Gen.Solver.Solver
