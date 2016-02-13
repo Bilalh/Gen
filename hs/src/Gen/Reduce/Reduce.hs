@@ -33,6 +33,9 @@ reduceMain check rr = do
     True  -> return (Just paramFp_)
 
   (sp,startParam) <-  liftIO $ deEnum sp_ paramFp
+  liftIO $ checkForParamIfNeeded sp startParam
+  -- noteFormat "Starting with" [pretty sp, pretty startParam]
+
 
   (errOccurs,_) <- case check of
                  False -> return (True, rr)
