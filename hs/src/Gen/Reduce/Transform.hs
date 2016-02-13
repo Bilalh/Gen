@@ -7,6 +7,9 @@ import Gen.Imports
 import Conjure.Process.Enums
 import Conjure.UI.IO
 import Gen.Instance.Point
+import Conjure.Language.DomainSizeOf
+
+import qualified Data.Text as T
 
 quanToComp ::  (MonadFail m, MonadUserError m, MonadIO m) => Spec -> m Spec
 quanToComp = fromTo
@@ -31,4 +34,19 @@ deEnum sp paramFp = do
     Just fp -> do
       param <- readModelFromFile fp
       fixed  <- ignoreLogs $  removeEnumsFromParam named param
-      return (namedSpec, Just (modelToPoint fixed))
+      let (Point xs) = modelToPoint fixed
+
+      let enums_sizes = [ nm | Declaration (FindOrGiven Given nm@(Name t) _)
+                            <- mStatements named
+                             , "_EnumSize" `T.isSuffixOf` t ]
+      let point = Point (map (forEnums enums_sizes) xs)
+
+      return (namedSpec, Just point)
+
+  where
+    forEnums :: [Name] -> (Name,Constant) -> (Name,Constant)
+    forEnums sizes a@(n,DomainInConstant dom) | n `mappend` "_EnumSize" `elem` sizes =
+      case domainSizeOf dom of
+        Just val -> (n `mappend` "_EnumSize", ConstantInt val)
+        Nothing  -> lineError $line [nn "deEnum:forEnums failed on " a ]
+    forEnums _ x = x
