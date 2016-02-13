@@ -11,10 +11,12 @@ import Gen.Helpers.InlineLettings
 import Gen.Imports
 import Gen.IO.Formats
 import System.FilePath                 (takeExtension)
+import Conjure.Process.Enums
 
 import qualified Control.Exception    as Exc
 import qualified Data.Aeson           as A
 import qualified Data.ByteString.Lazy as L
+
 
 
 specEMain :: Bool -> Bool ->  [FilePath] -> IO ()
@@ -43,37 +45,40 @@ addSpecJsons verbose printSpecs = ffind >=>
 
 addSpecJson :: Bool -> FilePath -> IO ()
 addSpecJson printSpecs fp = do
-  spec <- readModelFromFile fp
-  start <- ignoreLogs . runNameGen $ resolveNames spec >>= return . removeTrueConstraints
+  model <- readModelFromFile fp
+  no_enums <- ignoreLogs $ removeEnumsFromModel model
+  start <- ignoreLogs . runNameGen $ resolveNames no_enums >>= return . removeTrueConstraints
 
   case (ignoreLogs . runNameGen . typeCheckModel) start of
     Left x ->  error . show . vcat $
                 [ "model failed type checking"
                 , pretty fp
                 , pretty x
+                , "start"
                 , pretty start
+                , "start"
                 , pretty . groom $ start
                 ]
 
     Right{} -> do
-      let inlined = inlineParamAndLettings start Nothing
+      let inlined = inlineLettings start
       let specE  = fromModel inlined
 
       case specE of
         Left r -> error . show . vcat $ ["Error for " <+> (pretty fp)
-                                        , "spec"  <+> pretty spec
+                                        , "model"  <+> pretty model
                                         , "msg"   <+> (pretty r)
-                                        , "groom" <+> (pretty . groom $ spec)
+                                        , "groom" <+> (pretty . groom $ model)
                                         , "--"  ]
         Right r -> do
            if printSpecs then
                putStrLn . show . vcat $ [
                               "Original"
-                            , pretty spec
+                            , pretty model
                             , "Converted"
                             , pretty r
                             ,  "Original AST"
-                            , pretty . groom $ spec
+                            , pretty . groom $ model
                             , "Converted AST"
                             , pretty . groom $ inlined
                             , pretty . groom $ r
@@ -94,11 +99,6 @@ removeTrueConstraints m =
 
      g (Op (MkOpTrue _)) = False
      g _ = True
-
-
-inlineParamAndLettings :: Model -> Maybe Model -> Model
-inlineParamAndLettings spec Nothing = inlineLettings spec
-inlineParamAndLettings _ (Just _) = $notDone
 
 
 compareSpecs :: Spec -> Model -> IO Bool
