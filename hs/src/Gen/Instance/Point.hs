@@ -16,6 +16,7 @@ import System.FilePath             (takeDirectory)
 import qualified Data.Aeson            as A
 import qualified Data.ByteString.Char8 as B
 import qualified Data.Set              as S
+import qualified Data.Map              as M
 
 type ParamFP   = FilePath
 type ParamName = String
@@ -27,16 +28,17 @@ newtype Point  = Point [(Name,Constant)]
 
 instance Hashable Point
 
-instance Monoid Point where
-  mempty                        = Point []
-  mappend (Point xs) (Point ys) = Point $ xs ++ ys
-
 instance A.FromJSON Point
 instance A.ToJSON Point
 
 instance Pretty Point where
     pretty (Point []) = "⟪⟫"
     pretty (Point xs) =  "⟪" <+> (vcat . map pretty $ xs) <+> "⟫"
+
+instance Monoid Point where
+  mempty                        = Point []
+  mappend (Point xs) (Point ys) = Point $ xs ++ ys
+
 
 -- | Provides values for givens
 newtype Provider = Provider [(Name, Domain () Constant)]
@@ -65,27 +67,16 @@ onlyNames keep (Point xs) = Point $ [ x | x@(Name n,_) <- xs, n `S.member` keep 
 onlyNames2 :: Set Name -> Point -> Point
 onlyNames2 keep (Point xs) = Point $ [ x | x@(n,_) <- xs, n `S.member` keep ]
 
+
 readPoint :: MonadIO m => ParamFP -> m Point
 readPoint fp = do
-  Model{mStatements=sts} <- liftIO $ readModelFromFile fp
-  let exprs = concatMap (\st ->
-            [ (label,lit) | Declaration (Letting (label) (lit))
-                          <- universe st]) sts
+  liftIO $ readModelFromFile fp >>= return . modelToPoint
 
-  let cons = (flip map) exprs $ \(n,expr) ->
-          case e2c expr of
-            Just x -> (n,x)
-            Nothing -> error "Not a constant"
-
-  return $ Point cons
-
-
-readPointMay :: (MonadIO m)  => FilePath -> m (Maybe Point)
+readPointMay :: MonadIO m  => FilePath -> m (Maybe Point)
 readPointMay fp = do
   liftIO $ doesFileExist fp >>= \case
     False -> return Nothing
     True  -> Just <$> readPoint fp
-
 
 writePoint :: MonadIO m => Point  -> FilePath -> m ()
 writePoint (Point ps) fp = do
@@ -95,12 +86,41 @@ writePoint (Point ps) fp = do
   liftIO $ createDirectoryIfMissing True (takeDirectory fp)
   liftIO $ writeModel PlainEssence (Just fp) m
 
+
 pointToModel :: Point -> Model
 pointToModel (Point ps) =
   let sts = [ Declaration (Letting (label) (Constant con))
             |  (label,con) <- ps ]
       m :: Model = def{mStatements=sts}
   in  m
+
+modelToPoint :: Model -> Point
+modelToPoint Model{mStatements=sts} = do
+  let exprs = concatMap (\st ->
+            [ (label,lit) | Declaration (Letting (label) (lit))
+                          <- universe st]) sts
+
+  let process (n,(Domain dom)) =
+        case mapM e2c dom of
+          Just x -> (n,DomainInConstant x)
+          Nothing -> lineError $line ["Not a constant (Domain)"
+                                     , nn "n" n
+                                     , nn "dom" dom
+                                     , nn "dom" (groom dom)
+                                     , nn "exprs" (prettyArr exprs)
+                                     ]
+      process (n,expr) =
+        case e2c expr of
+          Just x -> (n,x)
+          Nothing -> lineError $line ["Not a constant"
+                                     , nn "n" n
+                                     , nn "expr" expr
+                                     , nn "expr" (groom expr)
+                                     , nn "exprs" (prettyArr exprs)
+                                     ]
+
+  Point $  map process exprs
+
 
 -- Give a value for each domain using the previous values for future domains references
 provideValues :: MonadIO m => Provider -> m Point
@@ -236,3 +256,17 @@ giveParam spec_directory = do
           ]
 
   return mayParam
+
+checkForParamIfNeeded :: Spec -> Maybe Point -> IO ()
+checkForParamIfNeeded (Spec (doms) _ _)  mayParam = do
+  let givens = M.filter isGiven doms
+  when (not (M.null givens) &&  mayParam == Nothing ) $
+      docError
+          [ "The problem specification is parameterised, but no *.param files are given."
+          , "Parameters:" <+> prettyList id "," (map (second snd) $ M.toList givens)
+          ]
+
+  where
+  isGiven :: (Int,GF) -> Bool
+  isGiven (_, Givenn{}) = True
+  isGiven _             = False
