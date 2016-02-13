@@ -8,7 +8,6 @@ import Conjure.Process.Enums
 import Conjure.UI.IO
 import Gen.Instance.Point
 
-
 quanToComp ::  (MonadFail m, MonadUserError m, MonadIO m) => Spec -> m Spec
 quanToComp = fromTo
 
@@ -22,8 +21,8 @@ deEnum ::  (MonadFail m, MonadUserError m, MonadIO m)
        => Spec -> Maybe ParamFP -> m (Spec, Maybe Point)
 deEnum sp paramFp = do
   m :: Model <- toConjure sp
-  no_enums <- ignoreLogs $ removeEnumsFromModel m
 
+  no_enums  <- ignoreLogs $ removeEnumsFromModel m
   named     <- ignoreLogs . runNameGen $  resolveNames no_enums
   namedSpec <- fromConjure named
 
