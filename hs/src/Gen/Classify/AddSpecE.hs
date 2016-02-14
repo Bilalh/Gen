@@ -2,8 +2,6 @@
 module Gen.Classify.AddSpecE(specEMain, addSpecJson, compareSpecs) where
 
 import Conjure.Language.Definition
-import Conjure.Language.Expression.Op  (Op (MkOpTrue))
-import Conjure.Language.NameResolution (resolveNames)
 import Conjure.UI.IO                   (readModelFromFile)
 import Conjure.UI.TypeCheck            (typeCheckModel)
 import Gen.Classify.Sorter             (getRecursiveContents)
@@ -11,7 +9,7 @@ import Gen.Helpers.InlineLettings
 import Gen.Imports
 import Gen.IO.Formats
 import System.FilePath                 (takeExtension)
-import Conjure.Process.Enums
+import Conjure.UI.TypeCheck(typeCheckModel_StandAlone)
 
 import qualified Control.Exception    as Exc
 import qualified Data.Aeson           as A
@@ -46,9 +44,8 @@ addSpecJsons verbose printSpecs = ffind >=>
 addSpecJson :: Bool -> FilePath -> IO ()
 addSpecJson printSpecs fp = do
   model <- readModelFromFile fp
-  no_enums <- ignoreLogs $ removeEnumsFromModel model
-  start <- ignoreLogs . runNameGen $ resolveNames no_enums >>= return . removeTrueConstraints
-
+  -- Not sure why I can't just do case (ignoreLogs . runNameGen . typeCheckModel_StandAlone)
+  start <- ignoreLogs . runNameGen $ typeCheckModel_StandAlone model
   case (ignoreLogs . runNameGen . typeCheckModel) start of
     Left x ->  error . show . vcat $
                 [ "model failed type checking"
@@ -86,20 +83,6 @@ addSpecJson printSpecs fp = do
            else
                return ()
            L.writeFile (replaceExtensions fp ".spec.json" ) (A.encode r)
-
-
-removeTrueConstraints :: Model -> Model
-removeTrueConstraints m =
-   let flitered = map f (mStatements m)
-   in m{mStatements=flitered}
-
-   where
-     f (SuchThat es) = SuchThat $ filter g es
-     f s =s
-
-     g (Op (MkOpTrue _)) = False
-     g _ = True
-
 
 compareSpecs :: Spec -> Model -> IO Bool
 compareSpecs specE  m1  = do
