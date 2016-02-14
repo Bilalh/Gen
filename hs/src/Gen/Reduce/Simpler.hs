@@ -78,17 +78,32 @@ instance Simpler Expr Expr where
           let g1Depth = maximum' 0 $ map depthOf g1
           let g2Depth = maximum' 0 $ map depthOf g2
 
+          -- TODO refactor?
           case compare (length cs1) (length cs2) of
             EQ -> case compare (length g1) (length g2) of
-               EQ -> case compare (depthOf i1) (depthOf i2) of
-                 EQ -> case compare g1Depth g2Depth  of
-                   EQ -> case compare c1Depth c2Depth of
-                     o  -> return o
-                   o  -> return o
-                 o  -> return o
-               o  -> return o
+              EQ -> case compare (depthOf i1) (depthOf i2) of
+                EQ -> case compare g1Depth g2Depth  of
+                  EQ -> case compare c1Depth c2Depth of
+                    EQ -> simplerParts g1 g2 >>= \case
+                      EQ -> simplerParts cs1 cs2 >>= \case
+                        o -> return o
+                      o -> return o
+                    o  -> return o
+                  o  -> return o
+                o  -> return o
+              o  -> return o
             o  -> return o
         o  -> return o
+
+        where
+          simplerParts aa bb = do
+            os <- zipWithM simpler aa bb
+            let la = length (filter (== LT) os)
+            let lb = length (filter (== GT) os)
+            let res = if      la > lb then LT
+                      else if lb > la then GT
+                      else EQ
+            return res
 
     simplerImp a@EComp{} b@(ELit AbsLitMatrix{}) =
       case compare (depthOf a) (depthOf b) of

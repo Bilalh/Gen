@@ -218,7 +218,7 @@ tests = testGroup "simpler"
                                - 1)]) |]
        ]
 
-  ,testGroup_lt_gt "CompSR136_Original" $ do
+  ,testGroup_lt_gt "CompSR136_Original_" $ do
      let b1    = Single "b1"
      let b2    = Single "b2"
      let t1    = Single "t1"
@@ -226,13 +226,28 @@ tests = testGroup "simpler"
      let b2_  = EVar $ Var "b2" (TypeInt)
 
      [
+      ( [essencee| and([true |&t1 : int(0..&b2_)])    |]
+      , [essencee| and([true |&t1 : int(0..&b2_-1)])  |]
+      )
+      ,
+      ( [essencee| and([true |&b2 <- [1], &t1 : int(0..&b2_)])    |]
+      , [essencee| and([true |&b2 <- [1], &t1 : int(0..&b2_-1*2)])  |]
+      )
+      ,
+      ( [essencee| and([true |&b2 <- [1], &t1 : int(0..&b2_-1)])    |]
+      , [essencee| and([true |&b2 <- [1], &t1 : int(0..&b2_-1*2)])  |]
+      )
+      ,
+      ( [essencee| and([true |&b2 <- [1], &t1 : int(0..&b2_)])    |]
+      , [essencee| and([true |&b2 <- [1], &t1 : int(0..&b2_-1)])  |]
+      )
+      ,
       ( [essencee| and([true |(&b1, &b2) <- [(1,2)], &t1 : int(0..&b2_)])    |]
       , [essencee| and([true |(&b1, &b2) <- [(1,2)], &t1 : int(0..&b2_-1)])  |]
       )
-
       ]
 
-  ,testGroup "CompSR136~Original_" $ do
+  ,testGroup "CompSR136~Original_eq" $ do
      let b1    = Single "b1"
      let b2    = Single "b2"
      let t1    = Single "t1"

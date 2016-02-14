@@ -166,6 +166,19 @@ tests = testGroup "depthOf"
 
       ]
 
+  ,testGroup "CompSR136~Original_Depth" $ do
+     let b2  = Single "b2"
+     let t1  = Single "t1"
+     let b2_ = EVar $ Var "b2" (TypeInt)
+
+     [
+        te 2 [essencee| and([true |             &t1 : int(0..&b2_)])     |]
+      , te 3 [essencee| and([true | &b2 <- [1], &t1 : int(0..&b2_)])     |]
+      , te 3 [essencee| and([true |             &t1 : int(0..&b2_-1)])   |]
+      , te 3 [essencee| and([true | &b2 <- [1], &t1 : int(0..&b2_-1)])   |]
+      , te 4 [essencee| and([true | &b2 <- [1], &t1 : int(0..&b2_-1*2)]) |]
+
+      ]
 
 
   ]
