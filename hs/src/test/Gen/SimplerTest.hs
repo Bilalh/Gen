@@ -218,6 +218,32 @@ tests = testGroup "simpler"
                                - 1)]) |]
        ]
 
+  ,testGroup_lt_gt "CompSR136_Original" $ do
+     let b1    = Single "b1"
+     let b2    = Single "b2"
+     let t1    = Single "t1"
+
+     let b2_  = EVar $ Var "b2" (TypeInt)
+
+     [
+      ( [essencee| and([true |(&b1, &b2) <- [(1,2)], &t1 : int(0..&b2_)])    |]
+      , [essencee| and([true |(&b1, &b2) <- [(1,2)], &t1 : int(0..&b2_-1)])  |]
+      )
+
+      ]
+
+  ,testGroup "CompSR136~Original_" $ do
+     let b1    = Single "b1"
+     let b2    = Single "b2"
+     let t1    = Single "t1"
+
+     let b2_  = EVar $ Var "b2" (TypeInt)
+
+     map eq_same [
+        [essencee| and([true |(&b1, &b2) <- [(1,2)], &t1 : int(0..&b2_)])    |]
+      , [essencee| and([true |(&b1, &b2) <- [(1,2)], &t1 : int(0..&b2_-1)])  |]
+      ]
+
   ,testGroup "QC"
   [
     qc_tests "Type"     (Proxy :: Proxy Type)
@@ -227,7 +253,6 @@ tests = testGroup "simpler"
   ]
 
   ]
-
 
 
 st :: (Simpler a b) => Ordering -> a -> b -> TestTree
