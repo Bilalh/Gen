@@ -32,7 +32,7 @@ unusedGenerators (EComp inners gens cons)  =
 
       used = S.union inExprs inDoms
 
-      unused = mapMaybe (genUnused used) gens
+      unused = concatMap (genUnused used) gens
 
   in unused
 
@@ -45,9 +45,15 @@ unusedGenerators (EComp inners gens cons)  =
     exprOfEGen (GenDom _ dom)  = (EDom dom)
     exprOfEGen (GenIn  _ expr) = expr
 
-    genUnused used (GenDom (Single (Name n)) _) | not $ n `S.member` used = Just n
-    genUnused used (GenIn (Single (Name n)) _)  | not $ n `S.member` used = Just n
-    genUnused _   _                            = Nothing
+    genUnused :: S.HashSet Text -> EGen -> [Text]
+    genUnused used (GenDom (Single (Name n)) _) | not $ n `S.member` used = [n]
+    genUnused used (GenIn (Single (Name n)) _)  | not $ n `S.member` used = [n]
+
+    genUnused used (GenDom pat _) =
+      [ n | (Single (Name n)) <- universe pat,  not $ n `S.member` used ]
+
+    genUnused used (GenIn pat _) =
+      [ n | (Single (Name n)) <- universe pat,  not $ n `S.member` used ]
 
 unusedGenerators _ = []
 
@@ -61,6 +67,11 @@ usedGeneratorsChoices ds ts =
     in res
 
   where
-    keepUsed wy(GenDom (Single (Name n)) _) = n  `notElem` wy
+    keepUsed wy (GenDom (Single (Name n)) _) = n  `notElem` wy
     keepUsed wy (GenIn (Single (Name n)) _) = n  `notElem` wy
-    keepUsed _ _ = True
+
+    keepUsed wy (GenDom pat _) =
+      or [ True | (Single (Name n)) <- universe pat, n `notElem` wy ]
+
+    keepUsed wy (GenIn pat _) =
+      or [ True | (Single (Name n)) <- universe pat, n `notElem` wy ]
