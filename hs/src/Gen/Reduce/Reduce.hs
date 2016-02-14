@@ -416,10 +416,21 @@ eprimeAsSpec start@(_,mp) = do
                     -- noteFormat "eprimeAsSpec curState" [pretty curState]
                     case mp of
                       Just{} -> do
-                        liftIO $ noteFormat "eprimeAsSpec NotDone"
-                                   ["eprimeAsSpec not supported with a .param"]
-                        return (Continue start)
+                        let paramPath = specDir </> ele ++ "-param"
+                        mayEParam <- readPointMay paramPath
+                        case mayEParam of
+                          Nothing -> do
+                            liftIO $ noteFormat "eprimeAsSpec"
+                              [nn "no readable param for " ele]
+                            return (Continue start)
+                          eParam@Just{} ->do
+                            liftIO $ noteFormat "eprimeAsSpec"
+                              [nn "Trying" ele, nn "with" (ele ++ "-param")]
+                            timedCompactSpec eprimeSpec eParam f (g (eprimeSpec, eParam))
+
                       Nothing -> do
+                        liftIO $ noteFormat "eprimeAsSpec"
+                          [nn "Trying "  ele]
                         timedCompactSpec eprimeSpec Nothing f (g (eprimeSpec, Nothing))
 
           -- TODO handle multiple eprimes
@@ -432,7 +443,7 @@ eprimeAsSpec start@(_,mp) = do
         liftIO $ noteFormat "eprimeAsSpec noTimeLeft" [pretty x]
         return $ start
 
-      g _ Nothing = do -- No Error occured, should not happen
+      g _ Nothing = do -- No Error occured, should not happen?
         liftIO $ noteFormat "eprimeAsSpec NoError" []
         return $ Continue $ start
 

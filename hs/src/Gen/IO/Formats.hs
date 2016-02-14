@@ -81,7 +81,7 @@ readEprimeAsSpec fp = do
   case model of
     Nothing -> return Nothing
     Just x  ->  case fromConjure x of
-        Left err  -> return Nothing
+        Left{}    -> return Nothing
         (Right y) -> return $ Just y
 
 readEprimeAsEssence :: MonadIO m => FilePath -> m (Maybe Model)
@@ -103,8 +103,8 @@ readEprimeAsEssence fp= do
   handler1 :: Exc.ExitCode -> IO (Maybe Model)
   handler1 _ = return Nothing
 
-  handler2 :: Exc.IOException -> IO (Maybe Model)
-  handler2 _ = return Nothing
+  -- handler2 :: Exc.IOException -> IO (Maybe Model)
+  -- handler2 _ = return Nothing
 
   handler3 :: Exc.ErrorCall -> IO (Maybe Model)
   handler3 _ = return Nothing
