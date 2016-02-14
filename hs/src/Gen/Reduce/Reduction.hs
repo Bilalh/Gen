@@ -668,6 +668,14 @@ singleLit (TypeTuple x) = do
   picked <- mapM oneofR lits
   return [ELit $ AbsLitTuple picked]
 
+singleLit (TypeRecord xs) = do
+  lits <- forM xs $ \(n,ty) -> do
+    possible <- singleLit ty
+    picked <- oneofR possible
+    return (n,picked)
+
+  return [ELit $ AbsLitRecord lits]
+
 singleLit l@(TypeRelation x) = do
   ty <- ttypeOf l
   let empty = ETyped ty  (ELit $ AbsLitRelation [])
