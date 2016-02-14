@@ -391,18 +391,26 @@ eprimeAsSpec start@(_,mp) = do
 
   process _ = do
     gets mostReduced_ >>= \case
-      Nothing -> return (Continue start)
+      Nothing -> do
+        liftIO $ noteFormat "eprimeAsSpec" ["no mostReduced"]
+        return (Continue start)
       Just (ErrData{specDir}) -> do
 
         files <- liftIO $  getDirectoryContents  specDir
         case [ h | h <- files, takeExtension h == ".eprime" ] of
           [ele] -> do
             readEprimeAsEssence ele >>= \case
-              Nothing  -> return (Continue start)
+              Nothing  -> do
+                liftIO $ noteFormat "eprimeAsSpec readEprimeAsEssence"
+                         ["readEprimeAsEssence erred"]
+                return (Continue start)
               (Just x) -> do
                 may <- runMaybeT $  fromConjure x
                 case may of
-                  Nothing -> return (Continue start)
+                  Nothing -> do
+                    liftIO $ noteFormat "eprimeAsSpec fromConjure"
+                             ["fromConjure erred"]
+                    return (Continue start)
                   (Just eprimeSpec) -> do
                     -- curState <- get
                     -- noteFormat "eprimeAsSpec curState" [pretty curState]
