@@ -446,6 +446,7 @@ instance (RndGen m,  MonadLog m) => Reduce (Domain () Expr) m where
   mutate (DomainRelation r _ x3)    = return [EDom $ DomainRelation r def x3 ]
   mutate (DomainPartition r _ x3)   = return [EDom $ DomainPartition r def x3 ]
 
+  -- TODO have to make sure thet the mset attr would be vaild
   -- mutate (DomainMSet r x2 x3)        = _f
   mutate _ = return []
 
@@ -650,6 +651,15 @@ singleLit l@(TypeFunction x1 x2) = do
   as <- singleLit x1
   bs <- singleLit x2
   let mu = AbsLitFunction (zip as bs)
+
+  return [ ELit mu, empty]
+
+singleLit l@(TypeSequence x2) = do
+  ty <- ttypeOf l
+  let empty = ETyped ty $ (ELit $ AbsLitSequence [])
+
+  bs <- singleLit x2
+  let mu = AbsLitSequence (bs)
 
   return [ ELit mu, empty]
 
