@@ -399,17 +399,17 @@ eprimeAsSpec start@(_,mp) = do
         files <- liftIO $  getDirectoryContents  specDir
         case [ h | h <- files, takeExtension h == ".eprime" ] of
           [ele] -> do
-            readEprimeAsEssence ele >>= \case
+            readEprimeAsEssence (specDir </> ele) >>= \case
               Nothing  -> do
                 liftIO $ noteFormat "eprimeAsSpec readEprimeAsEssence"
-                         ["readEprimeAsEssence erred"]
+                         ["readEprimeAsEssence erred", nn "eprime" ele]
                 return (Continue start)
               (Just x) -> do
                 may <- runMaybeT $  fromConjure x
                 case may of
                   Nothing -> do
                     liftIO $ noteFormat "eprimeAsSpec fromConjure"
-                             ["fromConjure erred"]
+                             ["fromConjure erred", nn "val" x]
                     return (Continue start)
                   (Just eprimeSpec) -> do
                     -- curState <- get

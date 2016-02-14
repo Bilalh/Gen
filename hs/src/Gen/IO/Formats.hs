@@ -10,7 +10,6 @@ import Conjure.UI.TypeCheck            (typeCheckModel)
 import Conjure.UserError
 import Data.Time                       (formatTime, getCurrentTime)
 import Data.Time.Format                (defaultTimeLocale)
-import Gen.Helpers.InlineLettings      (inlineLettings)
 import Gen.Imports
 import System.Directory                (copyFile)
 import System.Directory                (getHomeDirectory)
@@ -82,7 +81,7 @@ readEprimeAsSpec fp = do
   case model of
     Nothing -> return Nothing
     Just x  ->  case fromConjure x of
-        Left{}    -> return Nothing
+        Left err  -> return Nothing
         (Right y) -> return $ Just y
 
 readEprimeAsEssence :: MonadIO m => FilePath -> m (Maybe Model)
@@ -97,7 +96,7 @@ readEprimeAsEssence fp= do
   where
 
   handlers = [ Exc.Handler handler1  -- MonadUserError
-             , Exc.Handler handler2  -- File access
+             -- , Exc.Handler handler2  -- File access
              , Exc.Handler handler3  -- MonadFail
              ]
 
