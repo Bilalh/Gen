@@ -801,7 +801,7 @@ ui  = modes
                                   &= explicit
                                   &= help "Logging level, default LogDebug"
      } &= name "instance-allsols"
-       &= help "Generate the *script* and data required to create all solutions. This will usually requires TB(s) of space"
+       &= help "Generate the *script* and data required to create all solutions. This will usually requires TB(s)"
 
   , Instance_Summary
      { input_directory = def      &= typDir
@@ -1095,7 +1095,7 @@ ui  = modes
 
      } &= explicit
        &= name "script-updateChoices"
-       &= help "Convert AnsweredRepr to AnsweredReprStored from IN to OUT"
+       &= help "Convert AnsweredRepr to AnsweredReprStored"
 
   ] &= program "gen"
     &= summary (unlines ["Gen 0.9.1",  "Git version: " ++ autoVersion])
