@@ -174,7 +174,7 @@ raceResultsQuery = [str|
   |]
 
 parseRaceResult :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
-                => ParamHash -> TimeStamp -> m RaceTotals
+                => PointHash -> TimeStamp -> m RaceTotals
 parseRaceResult paramHash ts =do
   (Method MCommon{mEssencePath, mOutputDir, mModelTimeout, mMode} _) <- get
 
@@ -291,7 +291,7 @@ saveQuery = [str|
 
 
 saveQualityToDb :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m)
-                =>  ParamName -> ParamHash -> Quality -> Double ->  m ()
+                =>  PointName -> PointHash -> Quality -> Double ->  m ()
 saveQualityToDb paramName paramHash quality cputime = do
   (Method MCommon{mOutputDir} _) <- get
   void $ liftIO $ withConnection (mOutputDir </> "results.db") $ \conn -> do
@@ -302,7 +302,7 @@ checkPreviousQuery :: Query
 checkPreviousQuery = "SELECT timestamp FROM Timeouts WHERE paramHash = ?"
 
 checkPrevious :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
-              => ParamHash -> m (Maybe TimeStamp)
+              => PointHash -> m (Maybe TimeStamp)
 checkPrevious paramHash =do
   (Method MCommon{mOutputDir} _) <- get
   liftIO $ doesFileExist (mOutputDir </> "results.db") >>= \case
@@ -319,7 +319,7 @@ getPointQuery :: Query
 getPointQuery = "SELECT quality FROM ParamQuality WHERE paramHash = ?"
 
 getPointQuailty :: (Sampling a, MonadState (Method a) m, MonadIO m, MonadLog m )
-                => ParamHash -> m Quality
+                => PointHash -> m Quality
 getPointQuailty paramHash = do
   (Method MCommon{mOutputDir} _) <- get
   logDebugVerbose2 $line ["before opening db", nn "for hash" paramHash ]

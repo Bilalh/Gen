@@ -19,8 +19,8 @@ import qualified Data.Set              as S
 import qualified Data.Map              as M
 
 type ParamFP   = FilePath
-type ParamName = String
-type ParamHash = String
+type PointName = String
+type PointHash = String
 
 -- | Param Values
 newtype Point  = Point [(Name,Constant)]
@@ -48,10 +48,10 @@ instance A.FromJSON Provider
 instance A.ToJSON Provider
 
 
-pointName :: Point -> ParamName
+pointName :: Point -> PointName
 pointName (Point xs) = renderSized 100000 $ vcat [ pretty n <+> pretty c  | (n,c) <- xs ]
 
-pointHash :: Point -> ParamHash
+pointHash :: Point -> PointHash
 pointHash px =
     let name = pointName px
         dgt  = hash (B.pack name) :: Digest SHA512

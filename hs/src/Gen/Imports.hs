@@ -12,7 +12,8 @@ module Gen.Imports
     , groomPrint
     , nnError
     , Depth
-    , Hash
+    , SpecHash
+    , ParamHash
     , Time
     , Directory
     , Weight
@@ -54,7 +55,8 @@ getAllFilesWithSuffix = allFilesWithSuffix
 #endif
 
 type Depth     = Int
-type Hash      = Int
+type SpecHash  = Int
+type ParamHash = Int
 type Time      = Int
 type Weight    = Int
 type Directory = FilePath

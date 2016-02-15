@@ -52,8 +52,8 @@ data RunResult =
 
 
 data ResultsDB = ResultsDB{
-      resultsPassing :: Mapped Hash Time
-    , resultsErrors  :: Mapped (Hash, KindI, StatusI) RunResult
+      resultsPassing :: Mapped SpecHash Time
+    , resultsErrors  :: Mapped (SpecHash, KindI, StatusI) RunResult
     , resultsSkipped :: I.IntSet
     }
   deriving (Eq, Show, Data, Typeable, Generic)

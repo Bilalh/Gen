@@ -42,22 +42,22 @@ createDbHashesMain dir out = do
 
 
   where
-  catch1, catch2 :: FilePath -> IO (Maybe Hash) -> IO (Maybe Hash)
+  catch1, catch2 :: FilePath -> IO (Maybe SpecHash) -> IO (Maybe SpecHash)
   catch1 fp f = Exc.catch f (handler "  FAILED(.spec.json): " fp)
   catch2 fp f = Exc.catch f (handler "  FAILED(spec.essence): " fp)
 
-  handler :: String -> FilePath -> Exc.SomeException -> IO (Maybe Hash)
+  handler :: String -> FilePath -> Exc.SomeException -> IO (Maybe SpecHash)
   handler prefix f _ = do
     putStrLn $ prefix ++ f
     return Nothing
 
 
-readSpecHash :: FilePath -> IO (Maybe Hash)
+readSpecHash :: FilePath -> IO (Maybe SpecHash)
 readSpecHash fp = do
   sp :: Spec <- readFromJSON fp
   return $ Just $ hash sp
 
-readModelHash :: FilePath -> IO (Maybe Hash)
+readModelHash :: FilePath -> IO (Maybe SpecHash)
 readModelHash fp = do
   let model = takeDirectory fp </> "spec.essence"
   doesFileExist model >>= \case
