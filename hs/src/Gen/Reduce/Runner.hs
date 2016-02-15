@@ -131,7 +131,7 @@ runSpec2 refineWay spE mayP= do
 
   RConfig{..} <- getRconfig
 
-  checkDB oErrKind_ oErrStatus_ spE >>= \case
+  checkDB oErrKind_ oErrStatus_ spE mayP >>= \case
     Just StoredError{} -> rrError "StoredResult in runSpec" []
     Just rr@Passing{} -> do
       liftIO $ putStrLn "? Using Cached data"
@@ -303,7 +303,7 @@ runSpec2 refineWay spE mayP= do
         stillErroed <- liftIO $ sameError res
         return (stillErroed, timeTaken)
 
-      storeInDB spE (snd stillErroed)
+      storeInDB spE mayP (snd stillErroed)
 
       case (snd stillErroed) of
         (OurError ed) -> do

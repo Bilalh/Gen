@@ -3,13 +3,14 @@ module Gen.IO.RunResult where
 
 import Data.HashMap.Strict  (HashMap)
 import Gen.Imports
+import Gen.Instance.Point
 import Gen.IO.Formats       (copyDirectory, readFromJSONMay, writeToJSON)
 import Gen.IO.Toolchain     (KindI, StatusI)
 import Gen.IO.ToolchainData (KindI (..), StatusI (..))
 import System.FilePath      (replaceDirectory, takeBaseName)
 
 import qualified Data.HashMap.Strict as H
-import qualified Data.IntSet as I
+import qualified Data.IntSet         as I
 
 
 -- | Results of running a spec for caching
@@ -52,9 +53,10 @@ data RunResult =
 
 
 data ResultsDB = ResultsDB{
-      resultsPassing :: Mapped SpecHash Time
-    , resultsErrors  :: Mapped (SpecHash, KindI, StatusI) RunResult
-    , resultsSkipped :: I.IntSet
+      resultsPassing :: Mapped (SpecHash,ParamHash) Time
+    , resultsErrors  :: Mapped (SpecHash, ParamHash, KindI, StatusI) RunResult
+    , resultsSpecs   :: I.IntSet -- | Hashes of specs that have be run for generation
+    , resultsSkipped :: I.IntSet -- | Hashes of the specs or params to give
     }
   deriving (Eq, Show, Data, Typeable, Generic)
 
@@ -65,6 +67,7 @@ newtype Mapped a b = Mapped (HashMap a b)
 instance Default ResultsDB where
     def = ResultsDB{resultsPassing = def
                    ,resultsErrors  = def
+                   ,resultsSpecs   = def
                    ,resultsSkipped = def
                    }
 
@@ -108,45 +111,54 @@ viewResultTime (Passing t)     = t
 
 
 -- | Cache the Spec
-storeInDB :: (MonadDB m, MonadIO m) => Spec -> RunResult  -> m ()
-storeInDB sp r = do
-  let newHash = hash sp
+storeInDB :: (MonadDB m, MonadIO m) => Spec -> Maybe Point -> RunResult  -> m ()
+storeInDB sp mayPoint r = do
+  let specHash  = hash sp
+  let paramHash = hash mayPoint
   ndb <- getsDb >>= \db -> case (r,db) of
-    (Passing t, ResultsDB{resultsPassing=Mapped m} ) ->
-      return $ db{resultsPassing = Mapped $ H.insertWith max newHash t m}
+    (Passing t, ResultsDB{resultsPassing=Mapped m, resultsSpecs} ) ->
+      return $ db{resultsPassing = Mapped $ H.insertWith max (specHash, paramHash) t m
+                 ,resultsSpecs   = specHash `I.insert` resultsSpecs }
 
-    (e@(OurError ErrData{..}), ResultsDB{resultsErrors=Mapped m}) -> return $
-      db{resultsErrors = Mapped $ doError kind status newHash m e }
+    (e@(OurError ErrData{..}), ResultsDB{resultsErrors=Mapped m, resultsSpecs})-> return $
+      db{resultsErrors = Mapped $ doError kind status specHash paramHash m e
+        ,resultsSpecs  = specHash `I.insert` resultsSpecs }
 
-    (e@(StoredError ErrData{..}), ResultsDB{resultsErrors=Mapped m}) -> return $
-      db{resultsErrors = Mapped $ doError kind status newHash m e}
+    (e@(StoredError ErrData{..}), ResultsDB{resultsErrors=Mapped m,resultsSpecs})->return$
+      db{resultsErrors = Mapped $ doError kind status specHash paramHash m e
+        ,resultsSpecs = specHash `I.insert` resultsSpecs }
 
   putsDb ndb
 
   where
     -- Store extra version to account for any types
-    doError kind status newHash m e =
-      H.insertWith comp (newHash,kind,status) e
-      $ H.insertWith comp (newHash,KindAny_,status) e
-      $ H.insertWith comp (newHash,kind,StatusAny_) e
-      $ H.insertWith comp (newHash,KindAny_,StatusAny_) e
+    doError kind status specHash paramHash m e =
+        H.insertWith comp (specHash, paramHash, kind,     status ) e
+      $ H.insertWith comp (specHash, paramHash, KindAny_, status ) e
+      $ H.insertWith comp (specHash, paramHash, kind,     StatusAny_) e
+      $ H.insertWith comp (specHash, paramHash, KindAny_, StatusAny_) e
       $ m
+
 
     comp e1@(viewResultTime -> t1) e2@(viewResultTime -> t2) = if t1 > t2 then e1 else e2
 
-inDB :: (MonadDB m) => Spec -> m Bool
-inDB sp = do
-  let newHash = hash sp
+inDB :: (MonadDB m) => Spec -> Maybe Point -> m Bool
+inDB sp mayPoint = do
+  let specHash  = hash sp
+  let paramHash = hash mayPoint
   getsDb >>= \ResultsDB{resultsPassing = Mapped m1, resultsErrors = Mapped m2
                        , resultsSkipped} -> do
-   case newHash `H.lookup` m1 of
+   case (specHash, paramHash) `H.lookup` m1 of
      Just{}  -> return True
-     Nothing -> case any (\(h,_,_) -> h == newHash ) $  H.keys m2 of
-                  True  -> return True
-                  False -> do
-                    useS <- useSkipped
-                    return $ useS && newHash `I.member` resultsSkipped
+     Nothing ->
+       case any (\(hs,hp,_,_) -> (hs,hp) == (specHash,paramHash)) $  H.keys m2 of
+         True  -> return True
+         False -> checkWithSkipped specHash paramHash resultsSkipped
 
+specInDB :: (MonadDB m) => Spec -> m Bool
+specInDB sp =
+  getsDb >>= \ResultsDB{resultsSpecs} ->
+    return $ hash sp `I.member` resultsSpecs
 
 
 -- | Check if the spec's hash is contained, return the result if it is
@@ -154,23 +166,27 @@ checkDB :: (MonadDB m, MonadIO m)
         => KindI
         -> StatusI
         -> Spec
+        -> Maybe Point
         -> m (Maybe RunResult)
-checkDB kind status newE= do
-  let newHash = hash newE
+checkDB kind status sp mayPoint= do
+  let specHash  = hash sp
+  let paramHash = hash mayPoint
+
   getsDb >>= \ResultsDB{resultsPassing = Mapped m1, resultsErrors = Mapped m2
                        , resultsSkipped } -> do
-    useS <- useSkipped
-    let c1 = newHash `H.lookup` m1
-    let c2 = case c1 of
+
+    shouldBeSkipped <- checkWithSkipped specHash paramHash resultsSkipped
+
+    let c2 = case (specHash,paramHash) `H.lookup` m1  of
              c@Just{} -> c
-             Nothing  -> case useS && newHash `I.member` resultsSkipped of
+             Nothing  -> case shouldBeSkipped of
                True  -> Just 0
                False -> Nothing
 
     case c2  of
       Just i -> return . Just . Passing $ i
       Nothing -> do
-        case (newHash, kind, status) `H.lookup` m2 of
+        case (specHash,paramHash, kind, status) `H.lookup` m2 of
           Nothing -> return Nothing
           Just Passing{} -> $(neverNote "Error Db contains passing")
           Just r@OurError{}  -> return (Just r)
@@ -195,7 +211,13 @@ checkDB kind status newE= do
                 liftIO $ copyDirectory (db_dir </> specDir)  outDir
                 return $ Just err
 
-
+-- | Return true if we should skip the spec or param
+checkWithSkipped :: MonadDB m => I.Key -> I.Key -> I.IntSet -> m Bool
+checkWithSkipped specHash paramHash resultsSkipped = do
+   useS <- useSkipped
+   return $ useS && (  specHash  `I.member` resultsSkipped
+                    || paramHash `I.member` resultsSkipped
+                    )
 
 
 -- | Save the DB if given a filepath
@@ -210,12 +232,14 @@ writeDB onlyPassing = do
 writeDB_ :: MonadIO m => Bool -> Maybe FilePath -> ResultsDB -> m ()
 writeDB_ _ Nothing  _    = return ()
 writeDB_ onlyPassing (Just dir)
-    ResultsDB{resultsPassing = Mapped m1, resultsErrors = Mapped m2,resultsSkipped } = do
+    ResultsDB{resultsPassing = Mapped m1, resultsErrors = Mapped m2
+             ,resultsSpecs, resultsSkipped } = do
   liftIO $ createDirectoryIfMissing True dir
 
   nm2 <- liftIO $ H.traverseWithKey f (if onlyPassing then H.empty else m2)
   liftIO $ writeToJSON (dir </> "db.json")
-           (ResultsDB{resultsPassing=Mapped m1,resultsErrors=Mapped nm2,resultsSkipped})
+           (ResultsDB{resultsPassing=Mapped m1,resultsErrors=Mapped nm2
+                     ,resultsSpecs, resultsSkipped})
 
   where
     f _ (OurError (ErrData{..})) = do
@@ -227,7 +251,7 @@ writeDB_ onlyPassing (Just dir)
 
     f _ x = return x
 
--- | Return a db instance based on the give filepaths
+-- | Return a db instance based on the given filepaths
 giveDb ::  Maybe Directory -> Maybe FilePath -> IO ResultsDB
 giveDb dir passing = do
   r@ResultsDB{resultsPassing=Mapped m2}  <- getData $  (</> "db.json") <$> dir

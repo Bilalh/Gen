@@ -15,21 +15,22 @@ import Gen.Essence.Spec                ()
 import Gen.Essence.St
 import Gen.Essence.UIData              (EssenceConfig)
 import Gen.Imports
+import Gen.Instance.Data               (RunMetadata (rCPUTime))
+import Gen.Instance.Point
+import Gen.Instance.UI                 (instances_no_racing)
 import Gen.IO.Formats
 import Gen.IO.RunResult
 import Gen.IO.Toolchain                hiding (DirError (..), ToolchainData (..))
 import GHC.Real                        (floor)
 import System.Directory                (copyFile, renameDirectory)
-import Test.QuickCheck                 (Gen, generate)
-import Gen.Instance.UI                 (instances_no_racing)
 import System.IO.Temp                  (withSystemTempDirectory)
-import Gen.Instance.Data               (RunMetadata(rCPUTime))
+import Test.QuickCheck                 (Gen, generate)
 
-import qualified Data.Map                as M
-import qualified Data.Set                as S
-import qualified Gen.Essence.UIData      as EC
-import qualified Gen.IO.Toolchain        as Toolchain
-import qualified Control.Exception as Exc
+import qualified Control.Exception  as Exc
+import qualified Data.Map           as M
+import qualified Data.Set           as S
+import qualified Gen.Essence.UIData as EC
+import qualified Gen.IO.Toolchain   as Toolchain
 
 generateEssence :: KeyMap -> EssenceConfig -> IO ()
 generateEssence km ec@EC.EssenceConfig{..} = do
@@ -102,7 +103,7 @@ doCommon ec@EC.EssenceConfig{..} refineType = do
       gen <-  genToUse ec dom_size expr_size
       (sp,logs) <- generateWrap mayGiven $ gen
 
-      inDB sp >>= \case
+      specInDB sp >>= \case
         True -> do
           liftIO $ putStrLn $ "Not running spec with hash, already tested " ++ (show $ hash sp)
           process (timeLeft) (nextElem mayGiven)
@@ -149,7 +150,7 @@ doCommon ec@EC.EssenceConfig{..} refineType = do
                 False -> return $ (Right $ Nothing, 0)
                 True -> do
                   liftIO $ withSystemTempDirectory "gen-instance" $ \tmp -> do
-                    -- FIXME Using Exc.SomeException catch all errors which might not be want we want
+                    -- FIXME Using Exc.SomeException catches all errors which might not be want we want
                     b <- Exc.catch (
                       instances_no_racing essencePath 1 10 tmp Nothing paramSeed logLevel >> return True)
                         (\ (_ :: Exc.SomeException) -> return False )
@@ -161,6 +162,7 @@ doCommon ec@EC.EssenceConfig{..} refineType = do
                       m ::  RunMetadata <- liftIO $ readFromJSON (tmp </> "metadata.json")
                       let givenTime = rCPUTime m
 
+                      -- FIXME could just the list the dir
                       getAllFilesWithSuffix ".param" (tmp </> "_params") >>= \case
                          [x] -> do
                            copyFile x (dir </> "given.param")
@@ -178,6 +180,10 @@ doCommon ec@EC.EssenceConfig{..} refineType = do
                     True  -> process (timeLeft - realTime) (nextElem mayGiven)
 
                 Right paramPath -> do
+                  mayPoint <- case paramPath of
+                                Nothing -> return Nothing
+                                Just x  -> Just <$> readPoint x
+
                   (_, result) <- toolchain Toolchain.ToolchainData{
                               Toolchain.essencePath       = essencePath
                             , Toolchain.outputDirectory   = dir
@@ -196,12 +202,12 @@ doCommon ec@EC.EssenceConfig{..} refineType = do
                   let realTime = endTime - startTime
 
                   (runTime,rdata) <- liftIO $  classifyError ec errdir out uname result
-                  mapM_ (\x -> storeInDB sp (OurError x)) rdata
+                  mapM_ (\x -> storeInDB sp mayPoint (OurError x)) rdata
                   writeDB False
 
                   case rdata of
                     [] ->  do
-                      storeInDB sp (Passing $ truncate runTime)
+                      storeInDB sp mayPoint (Passing $ truncate runTime)
                       liftIO $ putStrLn $ "> Passing: " ++ (show $ hash sp)
 
                     _  -> do

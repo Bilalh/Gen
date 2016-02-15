@@ -31,7 +31,7 @@ createDbHashesMain dir out = do
     readFromJSON cur >>= \case
       Nothing -> return []
       Just (ResultsDB{resultsSkipped=rs, resultsErrors=Mapped re}) -> do
-        return $[ I.fromList . map fst3 . H.keys $ re , rs ]
+        return $ [ I.fromList . map fst4 . H.keys $ re , rs ]
 
   groomPrint $ olds
 
@@ -86,3 +86,6 @@ ffind path = do
   where
     p fp = do
       return $ (takeExtensions $ fp)  == ".spec.json"
+
+fst4 :: (a,b,c,d) -> a
+fst4 (a,_,_,_) =  a

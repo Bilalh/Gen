@@ -72,7 +72,7 @@ readPoint :: MonadIO m => ParamFP -> m Point
 readPoint fp = do
   liftIO $ readModelFromFile fp >>= return . modelToPoint
 
-readPointMay :: MonadIO m  => FilePath -> m (Maybe Point)
+readPointMay :: MonadIO m  => ParamFP -> m (Maybe Point)
 readPointMay fp = do
   liftIO $ doesFileExist fp >>= \case
     False -> return Nothing
