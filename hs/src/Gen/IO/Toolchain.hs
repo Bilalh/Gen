@@ -36,7 +36,7 @@ import qualified Data.Map as M
 
 logSpec :: Pretty a => MonadIO m => Spec -> Maybe a -> m ()
 logSpec sp mayP = do
-  liftIO $ putStrLn . renderSmall . nest 4 . vcat $
+  liftIO $ putStrLn . renderOneLine . nest 4 . vcat $
              ["Processing", pretty sp, maybe "" (("Param" <+>) . pretty) mayP]
 
 writeModelDef :: MonadIO m => FilePath -> Model -> m FilePath
