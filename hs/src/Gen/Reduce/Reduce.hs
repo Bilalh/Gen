@@ -75,7 +75,8 @@ reduceMain check rr = do
 
       let end2 :: Doc = case end of
             Nothing -> "Nothing"
-            Just (nsp,nmp) -> if hash nsp == hash sp && hash startParam == hash nmp then
+            Just (nsp,nmp) -> if hashDoc nsp == hashDoc sp
+                              && hashDoc startParam == hashDoc nmp then
                          "Nothing"
                        else
                           pretty nsp $$ maybe "" (("param" <+>) . pretty) nmp
