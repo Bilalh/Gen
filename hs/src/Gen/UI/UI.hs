@@ -212,8 +212,9 @@ data UI
     }
   | Script_CreateDBHashes
     {
-      directory    :: FilePath
-    , limit_time   :: Maybe Int
+      directory        :: FilePath
+    , output_directory :: Maybe FilePath
+    , limit_time       :: Maybe Int
     }
   | Script_RemoveDups
     {
@@ -886,8 +887,8 @@ ui  = modes
                                 &= explicit
                                 &= help "Time limit in seconds of CPU time of this program"
      } &= explicit
-       &= name "solve"
-       &= help "Solve a .essence file, and write the first solution to file if there is one"
+       &= name "backtrack"
+       &= help "Solve an .essence at the *essence* level, slow"
 
 
   , Weights
@@ -919,20 +920,26 @@ ui  = modes
                                 &= help "Time limit in seconds of CPU time of this program"
      } &= explicit
        &= name "weights"
-       &= help "Create weighting file for use with gen essence --weightings"
+       &= help "Create a weighting file for use with gen essence --weightings"
 
 
   , Script_CreateDBHashes
      {
-       directory  = def     &= typDir
-                            &= argPos 0
-     , limit_time = Nothing &= name "limit-time"
-                            &= explicit
-                            &= help "Time limit in seconds of CPU time of this program"
+       directory        = def &= typDir
+                              &= argPos 0
+     , output_directory = def &= typDir
+                              &= name "output-directory"
+                              &= name "o"
+                              &= explicit
+                              &= help "Output directory default is db"
+
+     , limit_time = Nothing   &= name "limit-time"
+                              &= explicit
+                              &= help "Time limit in seconds of CPU time of this program"
 
      } &= explicit
        &= name "script-createDbHashes"
-       &= help "Make a db.json using the hashes of spec.spec.json files. This can be given to `gen essence --db-dir` so that same spec is not generated again"
+       &= help "Makes a db.json using the hashes of .essence files recursively in -o. This will merged with any .json db in -o.  This can be given to `gen essence --db-dir` so that the given specs/params not generated again"
 
   , Script_RemoveDups
      {

@@ -43,8 +43,8 @@ import System.Environment           (lookupEnv, setEnv, withArgs)
 import System.Exit                  (exitFailure, exitSuccess, exitWith)
 import System.FilePath              (replaceExtension, replaceFileName, takeBaseName,
                                      takeExtension, takeExtensions)
-import System.Timeout               (timeout)
 import System.IO                    (hPutStrLn, stderr)
+import System.Timeout               (timeout)
 import Text.Printf                  (printf)
 
 import qualified Data.Set               as S
@@ -599,15 +599,17 @@ mainWithArgs Script_CreateDBHashes{..} = do
 
   errors <- catMaybes <$> sequence
             [
-              dirExists "First argument " directory
+              dirExists    "First argument"        directory
             ]
 
   case errors of
     [] -> return ()
     xs -> mapM putStrLn xs >> exitFailure
 
+  let out  = fromMaybe (directory </> "db") output_directory
 
-  createDbHashesMain directory (directory </> "hashes")
+  createDirectoryIfMissing True out
+  createDbHashesMain directory  out
 
 
 mainWithArgs Script_RemoveDups{..} = do
