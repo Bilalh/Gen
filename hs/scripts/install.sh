@@ -38,8 +38,6 @@ echo "CONJURE_LIB     : ${CONJURE_LIB}"
 echo "BUILD_TESTS     : ${BUILD_TESTS}"
 echo "RUN_TESTS       : ${RUN_TESTS}"
 echo
-echo "DEFINE_getAllFilesWithSuffix : ${DEFINE_getAllFilesWithSuffix:-}"
-echo
 
 if [ "$LLVM" = "llvm-on" ]; then
     LLVM='--ghc-options="-fllvm"'
@@ -79,12 +77,8 @@ else
 
 fi
 
-if [ -n "${DEFINE_getAllFilesWithSuffix:-}" ]; then
-    defs='--ghc-options="-DDEFINE_getAllFilesWithSuffix"'
-else
-    defs=''
-fi
-
+# defs='--ghc-options="-DDEFINE_getAllFilesWithSuffix"'
+defs=''
 
 cabal install           \
     --only-dependencies \
