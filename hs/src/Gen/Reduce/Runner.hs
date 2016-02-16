@@ -1,18 +1,18 @@
 {-# LANGUAGE DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveGeneric,
-             DeriveTraversable, ViewPatterns, Rank2Types #-}
+             DeriveTraversable, Rank2Types #-}
 module Gen.Reduce.Runner where
 
 import Data.Time.Clock.POSIX (getPOSIXTime)
 import Gen.Classify.Meta     (mkMeta)
 import Gen.Imports
+import Gen.Instance.Point
 import Gen.IO.Formats
 import Gen.IO.RunResult
 import Gen.IO.Toolchain      hiding (ToolchainData (..))
 import Gen.Reduce.Data
+import Gen.Reduce.Random
 import Gen.Reduce.TypeCheck
 import GHC.Real              (floor)
-import Gen.Reduce.Random
-import Gen.Instance.Point
 
 import qualified Data.Map         as M
 import qualified Gen.IO.Toolchain as Toolchain
