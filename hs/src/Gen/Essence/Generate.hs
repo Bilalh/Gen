@@ -102,13 +102,14 @@ doCommon ec@EC.EssenceConfig{..} refineType = do
       expr_size <- liftIO $ (randomRIO (0, expressionDepth_) :: IO Int)
       gen <-  genToUse ec dom_size expr_size
       (sp,logs) <- generateWrap mayGiven $ gen
+      let specHash = hashDoc sp
 
       specInDB sp >>= \case
         True -> do
-          liftIO $ putStrLn $ "Not running spec with hash, already tested " ++ (show $ hash sp)
+          liftIO $ putStrLn $ "Not running spec with hash, already tested " ++ (show $ specHash)
           process (timeLeft) (nextElem mayGiven)
         False -> do
-          liftIO $ putStrLn $ "> Processing: " ++ (show $ hash sp)
+          liftIO $ putStrLn $ "> Processing: " ++ (show $ specHash)
 
           let model :: Model = toConjureNote "Generate toConjure" sp
           case typeCheck model  of
@@ -208,16 +209,16 @@ doCommon ec@EC.EssenceConfig{..} refineType = do
                   case rdata of
                     [] ->  do
                       storeInDB sp mayPoint (Passing $ truncate runTime)
-                      liftIO $ putStrLn $ "> Passing: " ++ (show $ hash sp)
+                      liftIO $ putStrLn $ "> Passing: " ++ (show $ specHash)
 
                     _  -> do
-                      liftIO $ putStrLn $ "> Erred: "  ++ (show $ hash sp)
+                      liftIO $ putStrLn $ "> Erred: "  ++ (show $ specHash)
                       case (reduceAsWell_) of
                         (Nothing) -> return ()
                         (Just{})  -> do
-                          liftIO $ putStrLn $ "> Reducing: " ++ (show $ hash sp)
+                          liftIO $ putStrLn $ "> Reducing: " ++ (show $ specHash)
                           res <- reduceErrors ec rdata
-                          liftIO $ putStrLn $ "> Reduced: " ++ (show $ hash sp)
+                          liftIO $ putStrLn $ "> Reduced: " ++ (show $ specHash)
                           liftIO $ putStrLn $ "!l rdata: " ++ (show $ length rdata)
                           liftIO $ putStrLn $ "! rdata: " ++ (show $ vcat $ map pretty rdata)
                           liftIO $ putStrLn $ "!l errData: " ++ (show $ length res)
@@ -226,7 +227,7 @@ doCommon ec@EC.EssenceConfig{..} refineType = do
 
                   writeDB False
 
-                  liftIO $ putStrLn $ "> Processed: " ++ (show $ hash sp)
+                  liftIO $ putStrLn $ "> Processed: " ++ (show $ specHash)
                   liftIO $ putStrLn $ ""
                   case totalIsRealTime of
                     False -> process (timeLeft - (floor (runTime+givenCPU))) (nextElem mayGiven)
@@ -433,7 +434,6 @@ doTypeCheck ec@EC.EssenceConfig{..}= do
       (sp,logs) <- liftIO $  generate $ gen
       let model :: Model = toConjureNote "Generate toConjure" sp
 
-
       let (res :: Either Doc Model) =  typeCheck  model
       handleResult logs sp model res
       case res of
@@ -442,6 +442,7 @@ doTypeCheck ec@EC.EssenceConfig{..}= do
 
 
     handleResult logs sp model (Left d) = do
+      let specHash = hashDoc sp
       when ( toolchainOutput_  /= ToolchainNull_ ) $ liftIO $ do
         putStrLn . show . pretty $ model
         putStrLn . show $ d
@@ -464,9 +465,9 @@ doTypeCheck ec@EC.EssenceConfig{..}= do
                              ,choices=dir </> "model000000.choices.json"
                              ,timeTaken = 1 -- FIXME put actual time
                              }
-          liftIO $ putStrLn $ "> Reducing: " ++ (show $ hash sp)
+          liftIO $ putStrLn $ "> Reducing: " ++ (show $ specHash)
           res <- reduceError ec rdata
-          liftIO $ putStrLn $ "> Reduced: " ++ (show $ hash sp)
+          liftIO $ putStrLn $ "> Reduced: " ++ (show $ specHash)
           adjust res
 
 
