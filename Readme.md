@@ -3,10 +3,9 @@ Building
 
 Requirements
 
-	ghc 7.10+ to compile  (may work on 7.8)
+	ghc 7.10+ to compile
 	Python 3.4+ to run (`./scripts/misc/install_python3.4.sh` can install python 3.4 locally as ~/bin/python3 )
 	Compatible Conjure, Savilerow & Minion to run
-
 
 Firstly
 
@@ -26,66 +25,34 @@ Usage
 
 	gen <subcommand>
 
-Command completion (e.g. add to .bash_profile, .bashrc or .zshrc as appropriate):
+Command completion for gen (add to .bash_profile, .bashrc or .zshrc as appropriate):
 
 	  source <repo_path>/hs/scripts/_gen.sh
 
-
-`gen essence` Examples
---------
-
-Add `-N` to hide the output of the toolchain since it generally not useful, It is still written to file.
-
-Add `-d` to specific the domain depth & `-e` to specific the expression depth.
-
-Add `-w <JSON-FILE>` to specific the weights in below format, anything not specified defaults to 100.
-
-	{"TypeSet":30
-	,"TypeInt":53
-    }
-
-Use `gen weights` to output example weightings files.
-
-
-Run for 15 minutes with 60 seconds for the toolchain, 4 cores:
-
-	gen essence  -p60 -t900 -c4
-
-Run for 15 minutes with 30 seconds for the refinement, 4 cores:
-
-	gen essence  -p30 -t900 -c4  --mode=refine
-
-Run with 30 seconds for the toolchain on 4 cores using a directory (including sub-directories) of essence files:
-
-	gen json -d <essence-dir>
-	gen essence --given <essence-dir> -p30 -c4
-
-
-Run the toolchain on a spec for 4 seconds with 4 cores (compact + 3 randoms):
-
-	gen script-toolchain spec.essence -t40 -c4
-
-
-`gen reduce` Examples
+`gen reduce`
 --------
 
 Using https://bitbucket.org/stacs_cp/savilerow/issues/136/sr-generates-invalid-minion as an example
 
-Put two files named `spec.essence` and `given.param` in a directory.  Run
+Put a file named `spec.essence` in a directory. Add the param as `given.param` if required.
+
+Basic usage (. being the directory with spec.essence), using 30 seconds to each reduction on 1 core.
 
     gen reduce  -p30 --from-essence . --always-compact        # Don't have choices
     gen reduce  -p30 --from-essence . --choices [eprime|json] # Have choices
 
-the Kind of error can specified e.g.
+You usually want `-N` to hide output of running each specification since it generally not useful,
+
+the `kind` of error can specified e.g.
 
     gen reduce -p30 --from-essence --always-compact --kind=Savilerow_
 
-Full list of kinds from
+Full list of kinds can be found from:
 
     gen reduce --list-kinds
     gen reduce --list-statuses
 
-This reduction this
+This reduces this specification
 
     language Essence 1.3
 
@@ -100,7 +67,7 @@ This reduction this
                             , t1 : int(0..var2[m1, q5] - 1)
                             ])
 
-to
+to this much smaller one.
 
     language Essence 1.3
 
@@ -110,10 +77,56 @@ to
 
 
 
+`gen essence`
+--------
+
+
+Run for 15 minutes with 60 seconds for the toolchain on 4 cores:
+
+	gen essence -p60 -t900 -c4
+
+
+
+Add `-N` to hide the output of the toolchain since it generally not useful, It is still written to file.
+
+Add `-d` to specific the domain depth & `-e` to specific the expression depth.
+
+Add `-w <JSON-FILE>` to specific the weights in below format, anything not specified defaults to 100.
+
+	{"TypeSet":30
+	,"TypeInt":53
+    }
+
+Use `gen weights` to output example weightings files.
+
+### More examples
+
+Run for 15 minutes with 30 seconds for the refinement, 4 cores:
+
+	gen essence  -p30 -t900 -c4  --mode=refine
+
+Run with 30 seconds for the toolchain on 4 cores using a directory (including sub-directories) of essence files:
+
+	gen json -d <essence-dir>
+	gen essence --given <essence-dir> -p30 -c4
+
+
+
 `gen instance` Help
 -----------------------
 
-Only the required options are shown see the `--help` for more info
+Only the required options are shown see  `--help` for more info
+
+    gen instance-undirected [OPTIONS] essence
+      Generate discriminating instance for the given essence specification using a
+      baseline method
+
+    Required:
+      -p    --per-model-time=INT         Time per model
+      -i    --iterations=INT             Number of races
+      -m    --mode=ITEM                  The suffix of the models directory
+      -c    --cores=INT                  Number of cores to use, required unless
+                                         CORES is set
 
     gen instance-nsample [OPTIONS] essence
       Generate discriminating instance for the given essence specification using
@@ -128,17 +141,6 @@ Only the required options are shown see the `--help` for more info
       -f    --influence_radius=INT       Number of races
 
 
-    gen instance-undirected [OPTIONS] essence
-      Generate discriminating instance for the given essence specification using a
-      baseline method
-
-    Required:
-      -p    --per-model-time=INT         Time per model
-      -i    --iterations=INT             Number of races
-      -m    --mode=ITEM                  The suffix of the models directory
-      -c    --cores=INT                  Number of cores to use, required unless
-                                         CORES is set
-
     gen instance-noRacing [OPTIONS] essence
       Only Generate instances i.e. no racing. Results will be in the _params
       sub-directory of -o
@@ -147,32 +149,11 @@ Only the required options are shown see the `--help` for more info
       -i    --iterations=INT             Number of instances to generate
 
 
-    gen instance-allsols [OPTIONS] essence
-      Generate the *script* and data required to create all solutions. This will
-      usually requires TB(s) of space
-
-
     gen instance-summary [OPTIONS]
       Generate a summary of the results, placed in the summary sub-directory.
 
     Required:
       -o    --output-directory=DIR  Output directory
-
-`gen reduce` Help
--------------------
-
-Only some options are shown see the `--help` for more info
-
-    gen reduce [OPTIONS] SPEC-DIR
-      Reduces a .spec.json file
-
-    Required:
-      -p    --per-spec-time=INT          Time per Spec
-
-    Other:
-    --from-essence               Convert spec.essence to json
-                                 (spec.spec.json), automatically for
-                                 convenience
 
 
 
