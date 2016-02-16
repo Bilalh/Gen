@@ -1,4 +1,5 @@
-{-# LANGUAGE DeriveDataTypeable, DeriveGeneric, ViewPatterns #-}
+{-# LANGUAGE DeriveDataTypeable, DeriveGeneric, GeneralizedNewtypeDeriving,
+             ViewPatterns #-}
 module Gen.IO.RunResult where
 
 import Data.HashMap.Strict  (HashMap)
@@ -51,18 +52,20 @@ data RunResult =
     | Passing Time
     deriving (Eq, Show, Data, Typeable, Generic)
 
+instance Pretty RunResult where
+    pretty = pretty . groom
+
+instance FromJSON RunResult
+instance ToJSON   RunResult
+
 
 data ResultsDB = ResultsDB{
       resultsPassing :: Mapped (SpecHash,ParamHash) Time
     , resultsErrors  :: Mapped (SpecHash, ParamHash, KindI, StatusI) RunResult
-    , resultsSpecs   :: I.IntSet -- | Hashes of specs that have be run for generation
-    , resultsSkipped :: I.IntSet -- | Hashes of the specs or params to give
+    , resultsSpecs   :: I.IntSet -- | Hashes of specs that have be run
+    , resultsSkipped :: I.IntSet -- | Hashes of the specs or params to skip
     }
   deriving (Eq, Show, Data, Typeable, Generic)
-
-newtype Mapped a b = Mapped (HashMap a b)
-    deriving (Eq, Show, Data, Typeable, Generic)
-
 
 instance Default ResultsDB where
     def = ResultsDB{resultsPassing = def
@@ -74,12 +77,18 @@ instance Default ResultsDB where
 instance FromJSON ResultsDB
 instance ToJSON ResultsDB
 
+instance Monoid ResultsDB  where
+    mempty = def
 
-instance Pretty RunResult where
-    pretty = pretty . groom
+    mappend a b =
+      ResultsDB{resultsPassing = resultsPassing a `mappend` resultsPassing b
+               ,resultsErrors  = resultsErrors a  `mappend` resultsErrors b
+               ,resultsSpecs   = resultsSpecs a   `mappend` resultsSpecs b
+               ,resultsSkipped = resultsSkipped a `mappend` resultsSkipped b
+               }
 
-instance FromJSON RunResult
-instance ToJSON   RunResult
+newtype Mapped a b = Mapped (HashMap a b)
+    deriving (Eq, Show, Data, Typeable, Generic, Monoid)
 
 instance Default (Mapped a b) where
     def = Mapped $ H.empty
@@ -113,8 +122,8 @@ viewResultTime (Passing t)     = t
 -- | Cache the Spec
 storeInDB :: (MonadDB m, MonadIO m) => Spec -> Maybe Point -> RunResult  -> m ()
 storeInDB sp mayPoint r = do
-  let specHash  = hash sp
-  let paramHash = hash mayPoint
+  let specHash  = hashDoc sp
+  let paramHash = hashDoc mayPoint
   ndb <- getsDb >>= \db -> case (r,db) of
     (Passing t, ResultsDB{resultsPassing=Mapped m, resultsSpecs} ) ->
       return $ db{resultsPassing = Mapped $ H.insertWith max (specHash, paramHash) t m
@@ -144,8 +153,8 @@ storeInDB sp mayPoint r = do
 
 inDB :: (MonadDB m) => Spec -> Maybe Point -> m Bool
 inDB sp mayPoint = do
-  let specHash  = hash sp
-  let paramHash = hash mayPoint
+  let specHash  = hashDoc sp
+  let paramHash = hashDoc mayPoint
   getsDb >>= \ResultsDB{resultsPassing = Mapped m1, resultsErrors = Mapped m2
                        , resultsSkipped} -> do
    case (specHash, paramHash) `H.lookup` m1 of
@@ -158,7 +167,7 @@ inDB sp mayPoint = do
 specInDB :: (MonadDB m) => Spec -> m Bool
 specInDB sp =
   getsDb >>= \ResultsDB{resultsSpecs} ->
-    return $ hash sp `I.member` resultsSpecs
+    return $ hashDoc sp `I.member` resultsSpecs
 
 
 -- | Check if the spec's hash is contained, return the result if it is
@@ -169,8 +178,8 @@ checkDB :: (MonadDB m, MonadIO m)
         -> Maybe Point
         -> m (Maybe RunResult)
 checkDB kind status sp mayPoint= do
-  let specHash  = hash sp
-  let paramHash = hash mayPoint
+  let specHash  = hashDoc sp
+  let paramHash = hashDoc mayPoint
 
   getsDb >>= \ResultsDB{resultsPassing = Mapped m1, resultsErrors = Mapped m2
                        , resultsSkipped } -> do
