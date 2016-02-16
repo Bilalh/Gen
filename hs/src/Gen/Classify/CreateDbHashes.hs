@@ -1,49 +1,34 @@
 module Gen.Classify.CreateDbHashes(createDbHashesMain) where
 
+import Conjure.UI.IO       (readModelFromFile)
 import Gen.Classify.Sorter (getRecursiveContents)
 import Gen.Imports
 import Gen.IO.Formats
 import Gen.IO.RunResult
-import System.FilePath     (takeExtensions, takeDirectory)
+import System.FilePath     (takeExtensions)
 
-import qualified Control.Exception   as Exc
-import qualified Data.IntSet as I
-import qualified Data.HashMap.Strict as H
+import qualified Control.Exception as Exc
+import qualified Data.IntSet       as I
 
 
 createDbHashesMain :: FilePath -> FilePath -> IO ()
 createDbHashesMain dir out = do
   fps <- ffind dir
-  hashesMay <- (flip concatMapM) fps $ (\fp -> do
-    a <- catch1 fp $ readSpecHash  fp
-    b <- catch2 fp $ readModelHash fp
-    return [a,b]
+  hashesMay <- (flip mapM) fps $ (\fp ->
+      catch2 fp $ readModelHash fp
     )
 
   let hashes = catMaybes hashesMay
   let skipping = I.fromList $ hashes
 
-  let dbDef :: ResultsDB = def
-
+  let newDb :: ResultsDB = def{resultsSkipped=skipping, resultsSpecs=skipping}
   fdbs <- findDBs out
-  groomPrint $ fdbs
-  olds <- forM fdbs $ \cur -> do
-    readFromJSON cur >>= \case
-      Nothing -> return []
-      Just (ResultsDB{resultsSkipped=rs, resultsErrors=Mapped re}) -> do
-        return $ [ I.fromList . map fst4 . H.keys $ re , rs ]
-
-  groomPrint $ olds
-
-  let db = dbDef{resultsSkipped= I.unions $ skipping : concat olds }
-
-
-  writeDB_ False (Just out) db
-
+  currentDbs :: [ResultsDB] <-  catMaybes <$> mapM (readFromJSON) fdbs
+  let merged = mconcat $ newDb : currentDbs
+  writeDB_ False (Just out) merged
 
   where
-  catch1, catch2 :: FilePath -> IO (Maybe SpecHash) -> IO (Maybe SpecHash)
-  catch1 fp f = Exc.catch f (handler "  FAILED(.spec.json): " fp)
+  catch2 :: FilePath -> IO (Maybe SpecHash) -> IO (Maybe SpecHash)
   catch2 fp f = Exc.catch f (handler "  FAILED(spec.essence): " fp)
 
   handler :: String -> FilePath -> Exc.SomeException -> IO (Maybe SpecHash)
@@ -52,19 +37,13 @@ createDbHashesMain dir out = do
     return Nothing
 
 
-readSpecHash :: FilePath -> IO (Maybe SpecHash)
-readSpecHash fp = do
-  sp :: Spec <- readFromJSON fp
-  return $ Just $ hash sp
-
 readModelHash :: FilePath -> IO (Maybe SpecHash)
 readModelHash fp = do
-  let model = takeDirectory fp </> "spec.essence"
-  doesFileExist model >>= \case
+  doesFileExist fp >>= \case
     False -> return Nothing
     True  -> do
-      sp <- readSpecFromEssence model
-      return $ Just $ hash sp
+      model <- readModelFromFile fp
+      return $ Just $ hashDoc model
 
 
 findDBs :: FilePath -> IO [FilePath]
@@ -77,15 +56,11 @@ findDBs path = do
       return $ (takeExtensions $ fp)  == ".json"
 
 
-
 ffind :: FilePath -> IO [FilePath]
 ffind path = do
   names <- getRecursiveContents path
-  filterM p $ names
+  return $ filter p $ names
 
   where
-    p fp = do
-      return $ (takeExtensions $ fp)  == ".spec.json"
-
-fst4 :: (a,b,c,d) -> a
-fst4 (a,_,_,_) =  a
+    p fp =  (takeExtensions $ fp)  == ".essence"
+         || (takeExtensions $ fp)  == ".param"
