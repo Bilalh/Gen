@@ -1,21 +1,20 @@
 module Gen.IO.Formats where
 
-
 import Conjure.Language.Definition
 import Conjure.Language.NameResolution
 import Conjure.Language.Parser
 import Conjure.Language.Pretty
-import Conjure.UI.IO                   (readModelFromFile)
-import Conjure.UI.TypeCheck            (typeCheckModel)
-import Conjure.UserError
-import Data.Time                       (formatTime, getCurrentTime)
-import Data.Time.Format                (defaultTimeLocale)
-import Gen.Imports
-import System.Directory                (copyFile)
-import System.Directory                (getHomeDirectory)
-import System.Posix                    (getFileStatus)
-import System.Posix.Files              (fileSize)
 import Conjure.Process.LettingsForComplexInDoms
+import Conjure.UI.IO                            (readModelFromFile)
+import Conjure.UI.TypeCheck                     (typeCheckModel)
+import Conjure.UserError
+import Data.Time                                (formatTime, getCurrentTime)
+import Data.Time.Format                         (defaultTimeLocale)
+import Gen.Imports
+import System.Directory                         (copyFile, getHomeDirectory)
+import System.FilePath                          (takeExtensions)
+import System.Posix                             (getFileStatus)
+import System.Posix.Files                       (fileSize)
 
 import qualified Control.Exception    as Exc
 import qualified Data.Aeson           as A
@@ -59,6 +58,8 @@ writeToJSON fp r = do
 replaceExtensions :: FilePath -> FilePath -> FilePath
 replaceExtensions x y = dropExtensions x <.> y
 
+filesWithExtension :: String -> FilePath -> IO [FilePath]
+filesWithExtension suffix fp = filter ((==) suffix . takeExtensions) <$> getAllFiles fp
 
 copyDirectory :: FilePath -> FilePath -> IO ()
 copyDirectory from to = do

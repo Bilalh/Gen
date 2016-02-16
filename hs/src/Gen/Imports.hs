@@ -49,7 +49,7 @@ import qualified Data.Set              as S
 
 type Depth     = Int
 type SpecHash  = Int
-type ParamHash = Int
+type ParamHash = SpecHash
 type Time      = Int
 type Weight    = Int
 type Directory = FilePath

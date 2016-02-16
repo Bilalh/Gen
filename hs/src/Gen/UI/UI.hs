@@ -214,6 +214,9 @@ data UI
     {
       directory        :: FilePath
     , output_directory :: Maybe FilePath
+    , delete_passing   :: Bool
+    , delete_errors    :: Bool
+    , delete_skipped   :: Bool
     , limit_time       :: Maybe Int
     }
   | Script_RemoveDups
@@ -887,7 +890,7 @@ ui  = modes
                                 &= explicit
                                 &= help "Time limit in seconds of CPU time of this program"
      } &= explicit
-       &= name "backtrack"
+       &= name "search"
        &= help "Solve an .essence at the *essence* level, slow"
 
 
@@ -925,21 +928,32 @@ ui  = modes
 
   , Script_CreateDBHashes
      {
-       directory        = def &= typDir
-                              &= argPos 0
-     , output_directory = def &= typDir
-                              &= name "output-directory"
-                              &= name "o"
-                              &= explicit
-                              &= help "Output directory default is db"
-
-     , limit_time = Nothing   &= name "limit-time"
-                              &= explicit
-                              &= help "Time limit in seconds of CPU time of this program"
+       directory        = def     &= typDir
+                                  &= argPos 0
+     , output_directory = def     &= typDir
+                                  &= name "output-directory"
+                                  &= name "o"
+                                  &= explicit
+                                  &= help "Output directory default is db"
+     , delete_passing   = False   &= name "delete-passing"
+                                  &= groupname "Filters"
+                                  &= explicit
+                                  &= help "Delete theresultsPassing entry from the resulting db"
+     , delete_errors    = False   &= name "delete-errors"
+                                  &= groupname "Filters"
+                                  &= explicit
+                                  &= help "Delete the resultsErrors entry from the resulting db"
+     , delete_skipped   = False   &= name "delete-skipped"
+                                  &= groupname "Filters"
+                                  &= explicit
+                                  &= help "Delete resultsSkipped entry from the resulting db"
+     , limit_time       = Nothing &= name "limit-time"
+                                  &= explicit
+                                  &= help "Time limit in seconds of CPU time of this program"
 
      } &= explicit
-       &= name "script-createDbHashes"
-       &= help "Makes a db.json using the hashes of .essence files recursively in -o. This will merged with any .json db in -o.  This can be given to `gen essence --db-dir` so that the given specs/params not generated again"
+       &= name "db"
+       &= help "Makes a db.json using the hashes of .essence files recursively. This will merged with any .json dbs in -o.  This can be given to `gen essence --db-dir` so that the given specs/params not generated again"
 
   , Script_RemoveDups
      {

@@ -1,7 +1,7 @@
-{-# LANGUAGE DeriveDataTypeable, DeriveGeneric, GeneralizedNewtypeDeriving,
-             ViewPatterns #-}
+{-# LANGUAGE DeriveDataTypeable, DeriveGeneric, ViewPatterns #-}
 module Gen.IO.RunResult where
 
+import Data.Coerce(coerce)
 import Data.HashMap.Strict  (HashMap)
 import Gen.Imports
 import Gen.Instance.Point
@@ -88,10 +88,15 @@ instance Monoid ResultsDB  where
                }
 
 newtype Mapped a b = Mapped (HashMap a b)
-    deriving (Eq, Show, Data, Typeable, Generic, Monoid)
+    deriving (Eq, Show, Data, Typeable, Generic)
 
 instance Default (Mapped a b) where
     def = Mapped $ H.empty
+
+instance (Eq a, Hashable a) => Monoid (Mapped a b) where
+    mempty  = def
+    mappend (Mapped a) (Mapped b) = Mapped (H.union a b)
+    mconcat xs = Mapped $ H.unions (coerce xs :: [HashMap a b])
 
 instance (ToJSON a, ToJSON b, Hashable a, Eq a)
     => ToJSON (Mapped a b) where
@@ -274,3 +279,10 @@ giveDb dir passing = do
         readFromJSONMay fp >>= \case
                   Nothing  -> return $ def
                   (Just x) -> return x
+
+
+passingSpecHashes :: Mapped (SpecHash,ParamHash) Time -> [SpecHash]
+passingSpecHashes (Mapped m) = map fst . H.keys $ m
+
+errorSpecHashes :: Mapped (SpecHash, ParamHash, KindI, StatusI) RunResult -> [SpecHash]
+errorSpecHashes (Mapped m) = map fst4 . H.keys $ m

@@ -61,11 +61,11 @@ main = do
     [] -> do
        args <- helpArg
        void $ withArgs [args] (cmdArgs ui)
-    [x] | x `elem` [ "essence", "reduce", "link", "meta", "json", "generalise", "solve"
+    [x] | x `elem` [ "essence", "reduce", "link", "meta", "json", "generalise", "search"
                    , "weights" , "script-toolchain", "script-removeDups"
                    , "instance-nsample", "instance-undirected", "instance-summary"
-                   , "script-createDbHashes", "script-updateChoices"
-                   , "instance-allsols", "instance-noRacing", "script-smac-process"] -> do
+                   , "db", "script-updateChoices", "script-smac-process"
+                   , "instance-allsols", "instance-noRacing"] -> do
        args <- helpArg
        void $ withArgs [x, args] (cmdArgs ui)
 
@@ -609,7 +609,7 @@ mainWithArgs Script_CreateDBHashes{..} = do
   let out  = fromMaybe (directory </> "db") output_directory
 
   createDirectoryIfMissing True out
-  createDbHashesMain directory  out
+  createDbHashesMain delete_passing delete_errors delete_skipped  directory out
 
 
 mainWithArgs Script_RemoveDups{..} = do
