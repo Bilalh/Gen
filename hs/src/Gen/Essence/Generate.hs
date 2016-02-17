@@ -199,13 +199,12 @@ doCommon ec@EC.EssenceConfig{..} refineType = do
                             , Toolchain.choicesPath       = Nothing
                             , Toolchain.dryRun            = False
                             }
-                  endTime <- liftIO $  round `fmap` getPOSIXTime
-                  let realTime = endTime - startTime
 
                   (runTime,rdata) <- liftIO $  classifyError ec errdir out uname result
                   mapM_ (\x -> storeInDB sp mayPoint (OurError x)) rdata
                   writeDB False
 
+                  -- FIXME --total-is-cpu-time should take account of reduction cpu time
                   case rdata of
                     [] ->  do
                       storeInDB sp mayPoint (Passing $ truncate runTime)
@@ -229,6 +228,9 @@ doCommon ec@EC.EssenceConfig{..} refineType = do
 
                   liftIO $ putStrLn $ "> Processed: " ++ (show $ specHash)
                   liftIO $ putStrLn $ ""
+
+                  endTime <- liftIO $  round `fmap` getPOSIXTime
+                  let realTime = endTime - startTime
                   case totalIsRealTime of
                     False -> process (timeLeft - (floor (runTime+givenCPU))) (nextElem mayGiven)
                     True  -> process (timeLeft - realTime) (nextElem mayGiven)
