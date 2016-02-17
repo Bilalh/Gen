@@ -42,7 +42,7 @@ import System.Directory             (getCurrentDirectory, makeAbsolute,
 import System.Environment           (lookupEnv, setEnv, withArgs)
 import System.Exit                  (exitFailure, exitSuccess, exitWith)
 import System.FilePath              (replaceExtension, replaceFileName, takeBaseName,
-                                     takeExtension, takeExtensions)
+                                     takeExtension, takeExtensions, takeDirectory)
 import System.IO                    (hPutStrLn, stderr)
 import System.Timeout               (timeout)
 import Text.Printf                  (printf)
@@ -620,9 +620,13 @@ mainWithArgs Script_RemoveDups{..} = do
     [] -> return ()
     xs -> mapM putStrLn xs >> exitFailure
 
+  dirs <- map takeDirectory <$> concatMapM (getAllFilesWithSuffix ".essence")  dups_
+  putStrLn $ "dirs:"
+  putStrLn $ groom dirs
+
   dups <- case dups_kind of
-    DupRefine -> refineDups dups_
-    DupSolve  -> solveDups  dups_
+    DupRefine -> refineDups dirs
+    DupSolve  -> solveDups  dirs
   putStrLn "Result"
   putStrLn $ show $ map pretty  dups
   deleteDups2 dups

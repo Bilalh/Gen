@@ -957,12 +957,8 @@ ui  = modes
 
   , Script_RemoveDups
      {
-       dups_       = def    &= typDir
-                            &= explicit
-                            &= name "d"
-                            &= name "dup"
-                            &= groupname "Required"
-                            &= help "Directories to check"
+       dups_       = []     &= typDir
+                            &= args
      , dups_kind  = enum [
                   DupRefine &= name "refine"
                             &= explicit

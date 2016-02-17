@@ -41,9 +41,9 @@ Basic usage (. being the directory with spec.essence), using 30 seconds to each 
     gen reduce  -p30 --from-essence . --always-compact        # Don't have choices
     gen reduce  -p30 --from-essence . --choices [eprime|json] # Have choices
 
-You usually want `-N` to hide output of running each specification since it generally not useful,
+Add `-N` to hide output of running each specification since it generally not useful,
 
-the `kind` of error can specified e.g.
+The `kind` of error can specified e.g.
 
     gen reduce -p30 --from-essence --always-compact --kind=Savilerow_
 
