@@ -85,7 +85,6 @@ doSolve ec  = doCommon ec Refine_Solve
 doCommon :: (Applicative m, MonadIO m, MonadState Carry m, MonadDB m)
          => EssenceConfig -> RefineType -> m ()
 doCommon ec@EC.EssenceConfig{..} refineType = do
-
   process totalTime_ givenSpecs_
 
     where
@@ -98,6 +97,8 @@ doCommon ec@EC.EssenceConfig{..} refineType = do
     process _ (Just [])  = return ()
 
     process timeLeft mayGiven  = do
+      liftIO $ putStrLn $  "& Generation " ++  (show (max timeLeft 0) ) ++ " seconds left"
+
       dom_size  <- liftIO $ (randomRIO (0, domainDepth_)     :: IO Int)
       expr_size <- liftIO $ (randomRIO (0, expressionDepth_) :: IO Int)
       gen <-  genToUse ec dom_size expr_size
