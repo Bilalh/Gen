@@ -61,7 +61,7 @@ createDbHashesMain no_add
   --                          , nn "merged" (groom x)
   --                          , nn "res" (groom res)]
 
-  writeDB_ False (Just out) res
+  writeDb_ False (Just out) res
 
   where
   iff bool val = if bool     then val else def

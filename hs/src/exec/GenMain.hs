@@ -24,7 +24,7 @@ import Gen.Instance.Undirected      (Undirected (..))
 import Gen.IO.Dups                  (deleteDups2, refineDups, solveDups)
 import Gen.IO.FindCompact           (findCompact)
 import Gen.IO.Formats               (readFromJSON)
-import Gen.IO.RunResult             (giveDb, writeDB_)
+import Gen.IO.RunResult             (giveDb, writeDb_)
 import Gen.IO.SmacProcess           (smacProcess)
 import Gen.IO.Term
 import Gen.IO.Toolchain             (KindI (..), StatusI (..), ToolchainOutput (..),
@@ -383,7 +383,7 @@ mainWithArgs u@Reduce{..} = do
   doMeta out no_csv binaries_directory
 
   state <- runLoggerPipeIO log_level $ runRndGen seed_ $ reduceMain (not no_check) args
-  writeDB_ db_only_passing db_directory (resultsDB_  state)
+  writeDb_ db_only_passing db_directory (resultsDB_  state)
   void $ formatResults delete_steps delete_others state
 
 mainWithArgs Generalise{..} = do
@@ -454,7 +454,7 @@ mainWithArgs Generalise{..} = do
   doMeta out no_csv binaries_directory
 
   state <-  runLoggerPipeIO log_level $ runRndGen seed_ $ generaliseMain args
-  writeDB_ False db_directory (E.resultsDB_  state)
+  writeDb_ False db_directory (E.resultsDB_  state)
 
 
 
@@ -606,7 +606,7 @@ mainWithArgs Script_CreateDBHashes{..} = do
     [] -> return ()
     xs -> mapM putStrLn xs >> exitFailure
 
-  let out  = fromMaybe (directory </> "db") output_directory
+  let out  = fromMaybe ("db") output_directory
 
   createDirectoryIfMissing True out
   createDbHashesMain no_add

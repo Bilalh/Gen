@@ -63,11 +63,16 @@ reduceError EssenceConfig{..} ErrData{..}= do
   liftIO $ doMeta out no_csv binariesDirectory_
 
   state <- runLoggerPipeIO logLevel $ runRndGen 1 $ reduceMain False args
-  writeDB_ False db_dir (resultsDB_  state)
   dir <- liftIO $ formatResults True False state >>= \case
          (Just x) -> return x
          Nothing  -> return specDir
 
+
+  liftIO $ writeToJSON (outputDirectory_ </> "a.json") (R.resultsDB_  state)
+
+  newDb <- missingToSkipped  (R.resultsDB_  state)
+  putsDb newDb
+  writeDb False
   sp <- liftIO $ readFromJSON (dir </> "spec.spec.json")
 
   return $ ReduceResult sp

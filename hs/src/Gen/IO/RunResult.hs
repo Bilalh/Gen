@@ -188,16 +188,14 @@ checkDB kind status sp mayPoint= do
   let specHash  = hashDoc sp
   let paramHash = hashDoc mayPoint
 
-  getsDb >>= \ResultsDB{ rPassing = Mapped m1, rErrors = Mapped m2
-                       , rSpecsSkipped, rParamsSkipped } -> do
+  getsDb >>= \ResultsDB{ rPassing = Mapped m1, rErrors = Mapped m2 } -> do
 
-    shouldBeSkipped <- checkWithSkipped specHash paramHash rSpecsSkipped rParamsSkipped
-
+    -- shouldBeSkipped <- checkWithSkipped specHash paramHash rSpecsSkipped rParamsSkipped
     let c2 = case (specHash,paramHash) `H.lookup` m1  of
              c@Just{} -> c
-             Nothing  -> case shouldBeSkipped of
-               True  -> Just 0
-               False -> Nothing
+             Nothing  -> Nothing
+               -- considering skipped as passing would be weird
+               -- And we don't have the info to say if it was
 
     case c2  of
       Just i -> return . Just . Passing $ i
@@ -235,19 +233,37 @@ checkWithSkipped specHash paramHash rParamsSkipped rSpecsSkipped = do
                     && paramHash `I.member` rParamsSkipped
                     )
 
+missingToSkipped :: MonadIO m => ResultsDB -> m ResultsDB
+missingToSkipped x@ResultsDB{rErrors=Mapped es} = do
+  (missing,specHashes, paramHashes) <- (unzip3 .catMaybes) <$>
+    mapM findMissing (H.toList es)
+
+  return x{ rErrors        = Mapped (es `H.difference` (H.fromList missing))
+          , rSpecs         = rSpecs x I.\\ (I.fromList specHashes)
+          , rSpecsSkipped  = rSpecsSkipped x `I.union ` (I.fromList specHashes)
+          , rParamsSkipped = rParamsSkipped x `I.union ` (I.fromList paramHashes)
+          }
+
+  where
+    findMissing y@((sph,ph,_,_), viewResultError -> Just ErrData{..}) = do
+      liftIO $ doesDirectoryExist specDir >>= \case
+        False -> return $ Just (y,sph, ph)
+        True  -> return Nothing
+
+    findMissing _ = return Nothing
 
 -- | Save the DB if given a filepath
-writeDB :: (MonadDB m, MonadIO m) => Bool -> m ()
-writeDB onlyPassing = do
+writeDb :: (MonadDB m, MonadIO m) => Bool -> m ()
+writeDb onlyPassing = do
   db  <- getsDb
   out <- getDbDirectory
-  writeDB_ onlyPassing out db
+  writeDb_ onlyPassing out db
 
 
 -- | Save the DB if given a filepath
-writeDB_ :: MonadIO m => Bool -> Maybe FilePath -> ResultsDB -> m ()
-writeDB_ _ Nothing  _    = return ()
-writeDB_ onlyPassing (Just dir)
+writeDb_ :: MonadIO m => Bool -> Maybe FilePath -> ResultsDB -> m ()
+writeDb_ _ Nothing  _    = return ()
+writeDb_ onlyPassing (Just dir)
     ResultsDB{ rPassing = Mapped m1, rErrors = Mapped m2
              , rSpecs, rSpecsSkipped, rParamsSkipped} = do
   liftIO $ createDirectoryIfMissing True dir

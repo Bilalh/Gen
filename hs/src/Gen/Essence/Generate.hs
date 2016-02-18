@@ -203,7 +203,7 @@ doCommon ec@EC.EssenceConfig{..} refineType = do
 
                   (runTime,rdata) <- liftIO $  classifyError ec errdir out uname result
                   mapM_ (\x -> storeInDB sp mayPoint (OurError x)) rdata
-                  writeDB False
+                  writeDb False
 
                   -- FIXME --total-is-cpu-time should take account of reduction cpu time
                   case rdata of
@@ -225,7 +225,7 @@ doCommon ec@EC.EssenceConfig{..} refineType = do
                           liftIO $ putStrLn $ "! errData: " ++ (show $ vcat $ map pretty res)
                           mapM_ adjust res
 
-                  writeDB False
+                  writeDb False
 
                   liftIO $ putStrLn $ "> Processed: " ++ (show $ specHash)
                   liftIO $ putStrLn $ ""
