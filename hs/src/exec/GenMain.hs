@@ -201,7 +201,7 @@ mainWithArgs u@Essence{..} = do
             return vals
 
   putStrLn "(Status,Kind) tuples to discard immediately"
-  print $ renderSized 79 $ vcat $ map pretty (S.toList notUseful)
+  putStrLn $ renderSized 79 $ vcat $ map pretty (S.toList notUseful)
 
   nullParamGen toolchain_ouput
 
