@@ -24,31 +24,28 @@ createDbHashesMain no_add
     else do
       specHashes  <- filesWithExtension ".essence" dir >>= hashesMay
       paramHashes <- filesWithExtension ".param" dir   >>= hashesMay
-      let curSpecs   = I.fromList (catMaybes specHashes)
-      let curParams  = I.fromList (catMaybes paramHashes)
-      return def{rSpecs=curSpecs, rSpecSkipped=curSpecs, rParamSkipped=curParams}
+      return def{ rSpecsSkipped  = I.fromList (catMaybes specHashes)
+                , rParamsSkipped = I.fromList (catMaybes paramHashes)}
 
   fdbs <- findDBs out
   currentDbs :: [ResultsDB] <- catMaybes <$> mapM (readFromJSON) fdbs
   let ResultsDB{..} = mconcat $ newDb : currentDbs
 
-  let (rSpecSkipped1, rParamSkipped1) = bimap
-       (\x -> rSpecSkipped  `I.union` (iff errors_to_skipped (I.fromList x)) )
-       (\x -> rParamSkipped `I.union` (iff errors_to_skipped (I.fromList x)) )
+  let (rSpecsSkipped1, rParamsSkipped1) = bimap
+       (\x -> rSpecsSkipped  `I.union` (iff errors_to_skipped (I.fromList x)) )
+       (\x -> rParamsSkipped `I.union` (iff errors_to_skipped (I.fromList x)) )
        $ unzip $ errorHashes rErrors
 
   let rsp = rSpecs
-            I.\\ (iff delete_skipped rSpecSkipped1 )
-            I.\\ (iff delete_skipped rParamSkipped1 )
-            I.\\ (iff delete_passing (I.fromList $ passingSpecHashes rPassing))
-            I.\\ (iff (delete_errors && not errors_to_skipped)
-                   (I.fromList $ errorSpecHashes rErrors) )
+        I.\\ iff delete_passing (I.fromList $ passingSpecHashes rPassing)
+        I.\\ iff (delete_errors || errors_to_skipped)
+               (I.fromList $ errorSpecHashes rErrors)
 
   let res = ResultsDB{ rSpecs        = rsp
                      , rErrors       = neg (delete_errors || errors_to_skipped) rErrors
                      , rPassing      = neg delete_passing rPassing
-                     , rSpecSkipped  = neg delete_skipped rSpecSkipped1
-                     , rParamSkipped = neg delete_skipped rParamSkipped1
+                     , rSpecsSkipped  = neg delete_skipped rSpecsSkipped1
+                     , rParamsSkipped = neg delete_skipped rParamsSkipped1
 
                      }
 

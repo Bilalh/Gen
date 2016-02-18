@@ -1,7 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable, DeriveGeneric, ViewPatterns #-}
 module Gen.IO.RunResult where
 
-import Data.Coerce(coerce)
 import Data.HashMap.Strict  (HashMap)
 import Gen.Imports
 import Gen.Instance.Point
@@ -60,11 +59,13 @@ instance ToJSON   RunResult
 
 
 data ResultsDB = ResultsDB{
-      rPassing      :: Mapped (SpecHash,ParamHash) Time
-    , rErrors       :: Mapped (SpecHash, ParamHash, KindI, StatusI) RunResult
-    , rSpecs        :: I.IntSet -- | Hashes of specs that have be run
-    , rSpecSkipped  :: I.IntSet -- | Hashes of the specs or params to skip
-    , rParamSkipped :: I.IntSet -- | Hashes of the specs or params to skip
+      rPassing :: Mapped (SpecHash,ParamHash) Time
+    , rErrors  :: Mapped (SpecHash, ParamHash, KindI, StatusI) RunResult
+    , rSpecs   :: I.IntSet   -- |  SpecHash of rErrors and rPassing for efficent lookup
+
+    -- Hashes of the (spec, param) tuples to skip
+    , rSpecsSkipped  :: I.IntSet
+    , rParamsSkipped :: I.IntSet
     }
   deriving (Eq, Show, Data, Typeable, Generic)
 
@@ -72,8 +73,8 @@ instance Default ResultsDB where
     def = ResultsDB{rPassing      = def
                    ,rErrors       = def
                    ,rSpecs        = def
-                   ,rSpecSkipped  = def
-                   ,rParamSkipped = I.fromList [hashDoc (Nothing :: Maybe Point)]
+                   ,rSpecsSkipped  = def
+                   ,rParamsSkipped = I.fromList [hashDoc (Nothing :: Maybe Point)]
                    }
 
 instance FromJSON ResultsDB
@@ -86,8 +87,8 @@ instance Monoid ResultsDB  where
       ResultsDB{rPassing      = rPassing a      `mappend` rPassing b
                ,rErrors       = rErrors a       `mappend` rErrors b
                ,rSpecs        = rSpecs a        `mappend` rSpecs b
-               ,rSpecSkipped  = rSpecSkipped a  `mappend` rSpecSkipped b
-               ,rParamSkipped = rParamSkipped a `mappend` rParamSkipped b
+               ,rSpecsSkipped  = rSpecsSkipped a  `mappend` rSpecsSkipped b
+               ,rParamsSkipped = rParamsSkipped a `mappend` rParamsSkipped b
                }
 
 newtype Mapped a b = Mapped (HashMap a b)
@@ -96,10 +97,13 @@ newtype Mapped a b = Mapped (HashMap a b)
 instance Default (Mapped a b) where
     def = Mapped $ H.empty
 
-instance (Eq a, Hashable a) => Monoid (Mapped a b) where
+instance (Eq a, Hashable a) => Monoid (Mapped a RunResult) where
     mempty  = def
-    mappend (Mapped a) (Mapped b) = Mapped (H.union a b)
-    mconcat xs = Mapped $ H.unions (coerce xs :: [HashMap a b])
+    mappend (Mapped a) (Mapped b) = Mapped (H.unionWith compRunResult a b)
+
+instance (Eq a, Hashable a) => Monoid (Mapped a Time) where
+    mempty  = def
+    mappend (Mapped a) (Mapped b) = Mapped (H.unionWith compLess a b)
 
 instance (ToJSON a, ToJSON b, Hashable a, Eq a)
     => ToJSON (Mapped a b) where
@@ -126,6 +130,13 @@ viewResultTime (StoredError x) = timeTaken x
 viewResultTime (Passing t)     = t
 
 
+compRunResult :: RunResult -> RunResult  -> RunResult
+compRunResult e1@(viewResultTime -> t1) e2@(viewResultTime -> t2) =
+  if t1 > t2 then e1 else e2
+
+compLess :: forall a. Ord a => a -> a -> a
+compLess t1 t2 =
+  if t1 <= t2 then t1 else t2
 
 -- | Cache the Spec
 storeInDB :: (MonadDB m, MonadIO m) => Spec -> Maybe Point -> RunResult  -> m ()
@@ -133,49 +144,37 @@ storeInDB sp mayPoint r = do
   let specHash  = hashDoc sp
   let paramHash = hashDoc mayPoint
   ndb <- getsDb >>= \db -> case (r,db) of
-    (Passing t, ResultsDB{rPassing=Mapped m, rSpecs} ) ->
+    (Passing t, ResultsDB{rPassing=Mapped m, rSpecs } ) ->
       return $ db{rPassing = Mapped $ H.insertWith max (specHash, paramHash) t m
-                 ,rSpecs   = specHash `I.insert` rSpecs }
+                 ,rSpecs  = specHash `I.insert` rSpecs  }
 
-    (e@(OurError ErrData{..}), ResultsDB{rErrors=Mapped m, rSpecs})-> return $
+    (e@(OurError ErrData{..}), ResultsDB{rErrors=Mapped m, rSpecs })-> return $
       db{rErrors = Mapped $ doError kind status specHash paramHash m e
-        ,rSpecs  = specHash `I.insert` rSpecs }
+        ,rSpecs   = specHash `I.insert` rSpecs  }
 
-    (e@(StoredError ErrData{..}), ResultsDB{rErrors=Mapped m,rSpecs})->return$
+    (e@(StoredError ErrData{..}), ResultsDB{rErrors=Mapped m, rSpecs }) -> return $
       db{rErrors = Mapped $ doError kind status specHash paramHash m e
-        ,rSpecs = specHash `I.insert` rSpecs }
+        ,rSpecs  = specHash `I.insert` rSpecs  }
 
   putsDb ndb
 
   where
-    -- Store extra version to account for any types
+    -- Store extra version to account for Any types
     doError kind status specHash paramHash m e =
-        H.insertWith comp (specHash, paramHash, kind,     status ) e
-      $ H.insertWith comp (specHash, paramHash, KindAny_, status ) e
-      $ H.insertWith comp (specHash, paramHash, kind,     StatusAny_) e
-      $ H.insertWith comp (specHash, paramHash, KindAny_, StatusAny_) e
+        H.insertWith compRunResult (specHash, paramHash, kind,     status ) e
+      $ H.insertWith compRunResult (specHash, paramHash, KindAny_, status ) e
+      $ H.insertWith compRunResult (specHash, paramHash, kind,     StatusAny_) e
+      $ H.insertWith compRunResult (specHash, paramHash, KindAny_, StatusAny_) e
       $ m
 
 
-    comp e1@(viewResultTime -> t1) e2@(viewResultTime -> t2) = if t1 > t2 then e1 else e2
-
-inDB :: (MonadDB m) => Spec -> Maybe Point -> m Bool
-inDB sp mayPoint = do
-  let specHash  = hashDoc sp
-  let paramHash = hashDoc mayPoint
-  getsDb >>= \ResultsDB{rPassing = Mapped m1, rErrors = Mapped m2
-                       ,rSpecSkipped, rParamSkipped} -> do
-   case (specHash, paramHash) `H.lookup` m1 of
-     Just{}  -> return True
-     Nothing ->
-       case any (\(hs,hp,_,_) -> (hs,hp) == (specHash,paramHash)) $  H.keys m2 of
-         True  -> return True
-         False -> checkWithSkipped specHash paramHash rSpecSkipped rParamSkipped
-
 specInDB :: (MonadDB m) => Spec -> m Bool
 specInDB sp =
-  getsDb >>= \ResultsDB{rSpecs} ->
-    return $ hashDoc sp `I.member` rSpecs
+  getsDb >>= \ResultsDB{rSpecs, rSpecsSkipped, rParamsSkipped} -> do
+    b <- checkWithSkipped (hashDoc sp) (hashDoc (Nothing :: Maybe Point))
+                   rSpecsSkipped rParamsSkipped
+    return $   b
+           ||  hashDoc sp `I.member` rSpecs
 
 
 -- | Check if the spec's hash is contained, return the result if it is
@@ -190,9 +189,9 @@ checkDB kind status sp mayPoint= do
   let paramHash = hashDoc mayPoint
 
   getsDb >>= \ResultsDB{ rPassing = Mapped m1, rErrors = Mapped m2
-                       , rSpecSkipped, rParamSkipped } -> do
+                       , rSpecsSkipped, rParamsSkipped } -> do
 
-    shouldBeSkipped <- checkWithSkipped specHash paramHash rSpecSkipped rParamSkipped
+    shouldBeSkipped <- checkWithSkipped specHash paramHash rSpecsSkipped rParamsSkipped
 
     let c2 = case (specHash,paramHash) `H.lookup` m1  of
              c@Just{} -> c
@@ -230,10 +229,10 @@ checkDB kind status sp mayPoint= do
 
 -- | Return true if we should skip the spec or param
 checkWithSkipped :: MonadDB m => I.Key -> I.Key -> I.IntSet -> I.IntSet -> m Bool
-checkWithSkipped specHash paramHash rParamSkipped rSpecSkipped = do
+checkWithSkipped specHash paramHash rParamsSkipped rSpecsSkipped = do
    useS <- useSkipped
-   return $ useS && (  specHash  `I.member` rSpecSkipped
-                    && paramHash `I.member` rParamSkipped
+   return $ useS && (  specHash  `I.member` rSpecsSkipped
+                    && paramHash `I.member` rParamsSkipped
                     )
 
 
@@ -250,13 +249,13 @@ writeDB_ :: MonadIO m => Bool -> Maybe FilePath -> ResultsDB -> m ()
 writeDB_ _ Nothing  _    = return ()
 writeDB_ onlyPassing (Just dir)
     ResultsDB{ rPassing = Mapped m1, rErrors = Mapped m2
-             , rSpecs, rSpecSkipped, rParamSkipped} = do
+             , rSpecs, rSpecsSkipped, rParamsSkipped} = do
   liftIO $ createDirectoryIfMissing True dir
 
   nm2 <- liftIO $ H.traverseWithKey f (if onlyPassing then H.empty else m2)
   liftIO $ writeToJSON (dir </> "db.json")
            (ResultsDB{rPassing=Mapped m1,rErrors=Mapped nm2
-                     ,rSpecs, rSpecSkipped, rParamSkipped})
+                     ,rSpecs, rSpecsSkipped, rParamsSkipped})
 
   where
     f _ (OurError (ErrData{..})) = do
