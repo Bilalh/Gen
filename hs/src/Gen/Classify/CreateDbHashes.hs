@@ -6,16 +6,17 @@ import Gen.IO.Formats
 import Gen.IO.RunResult
 import System.FilePath  (takeExtensions)
 
-import qualified Control.Exception as Exc
-import qualified Data.IntSet       as I
+import qualified Control.Exception   as Exc
+import qualified Data.HashMap.Strict as H
+import qualified Data.IntSet         as I
 
 
-createDbHashesMain :: Bool -> Bool -> Bool
+createDbHashesMain :: Bool -> Bool -> Bool -> Bool
                    -> FilePath -> FilePath
                    -> IO ()
 createDbHashesMain
-  delete_passing delete_errors delete_skipped
-  dir out = do
+  delete_passing delete_errors delete_skipped errors_to_skipped
+    dir out = do
   specHashes  <- filesWithExtension ".essence" dir >>= hashesMay
   paramHashes <- filesWithExtension ".param" dir   >>= hashesMay
   let curSpecs   = I.fromList (catMaybes specHashes)
@@ -26,16 +27,32 @@ createDbHashesMain
   currentDbs :: [ResultsDB] <- catMaybes <$> mapM (readFromJSON) fdbs
   let ResultsDB{..} = mconcat $ newDb : currentDbs
 
+  let resultsSkipped1 =
+        if   errors_to_skipped
+        then resultsSkipped `I.union`  (I.fromList $ errorHashes resultsErrors)
+        else resultsSkipped
+
+
   let rsp = resultsSpecs
-            I.\\ (iff delete_skipped resultsSkipped )
+            I.\\ (iff delete_skipped resultsSkipped1 )
             I.\\ (iff delete_passing (I.fromList $ passingSpecHashes resultsPassing))
-            I.\\ (iff delete_errors  (I.fromList $ errorSpecHashes resultsErrors) )
+            I.\\ (iff (delete_errors && not errors_to_skipped)
+                   (I.fromList $ errorSpecHashes resultsErrors) )
 
   -- TODO actually remove the dirs of the errors
   let res = ResultsDB{ resultsSpecs   = rsp
-                     , resultsSkipped = neg delete_skipped resultsSkipped
-                     , resultsErrors  = neg delete_errors  resultsErrors
+                     , resultsSkipped = neg delete_skipped resultsSkipped1
+                     , resultsErrors  = neg (delete_errors || errors_to_skipped)
+                                             resultsErrors
                      , resultsPassing = neg delete_passing resultsPassing}
+
+  when (delete_errors || errors_to_skipped ) $ do
+    let f (Mapped x) = x
+    let fps = [ specDir | (StoredError ErrData{specDir}) <- H.elems (f resultsErrors) ]
+    forM_ fps $ \fp -> do
+      doesDirectoryExist (out </> fp)  >>= \case
+        False -> return ()
+        True -> removeDirectoryRecursive (out </> fp)
 
   -- putStrLn $ show . vcat $ [ nn "cur"   (groom currentDbs)
   --                          , nn "merged" (groom x)

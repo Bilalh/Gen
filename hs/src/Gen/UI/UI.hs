@@ -212,12 +212,13 @@ data UI
     }
   | Script_CreateDBHashes
     {
-      directory        :: FilePath
-    , output_directory :: Maybe FilePath
-    , delete_passing   :: Bool
-    , delete_errors    :: Bool
-    , delete_skipped   :: Bool
-    , limit_time       :: Maybe Int
+      directory         :: FilePath
+    , output_directory  :: Maybe FilePath
+    , delete_passing    :: Bool
+    , delete_errors     :: Bool
+    , delete_skipped    :: Bool
+    , errors_to_skipped :: Bool
+    , limit_time        :: Maybe Int
     }
   | Script_RemoveDups
     {
@@ -938,7 +939,7 @@ ui  = modes
      , delete_passing   = False   &= name "delete-passing"
                                   &= groupname "Filters"
                                   &= explicit
-                                  &= help "Delete theresultsPassing entry from the resulting db"
+                                  &= help "Delete the resultsPassing entry from the resulting db"
      , delete_errors    = False   &= name "delete-errors"
                                   &= groupname "Filters"
                                   &= explicit
@@ -946,7 +947,11 @@ ui  = modes
      , delete_skipped   = False   &= name "delete-skipped"
                                   &= groupname "Filters"
                                   &= explicit
-                                  &= help "Delete resultsSkipped entry from the resulting db"
+                                  &= help "Delete the resultsSkipped entry from the resulting db"
+     , errors_to_skipped = False  &= name "errors_to_skipped"
+                                  &= groupname "Filters"
+                                  &= explicit
+                                  &= help "Add resultsErrors to the resultsSkipped entry"
      , limit_time       = Nothing &= name "limit-time"
                                   &= explicit
                                   &= help "Time limit in seconds of CPU time of this program"

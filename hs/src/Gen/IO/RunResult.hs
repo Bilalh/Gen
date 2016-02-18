@@ -286,3 +286,7 @@ passingSpecHashes (Mapped m) = map fst . H.keys $ m
 
 errorSpecHashes :: Mapped (SpecHash, ParamHash, KindI, StatusI) RunResult -> [SpecHash]
 errorSpecHashes (Mapped m) = map fst4 . H.keys $ m
+
+errorHashes :: Mapped (SpecHash, ParamHash, KindI, StatusI) RunResult -> [Int]
+errorHashes (Mapped m) = concat [ [a,b] | (a,b,_,_) <- H.keys m ]
+
