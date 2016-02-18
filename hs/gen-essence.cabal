@@ -182,6 +182,7 @@ Library
                      , transformers
                      , uniplate
                      , unordered-containers
+                     , unix
                      , safe
                      , neat-interpolation
                      , temporary
@@ -191,12 +192,7 @@ Library
                      , megaparsec
                      , cassava
                      , vector
-
-
-    if impl(ghc < 7.10)
-        build-depends: unix==2.7.0.1
-    else
-        build-depends: unix
+                     , aeson-pretty
 
    default-extensions:
         NoImplicitPrelude

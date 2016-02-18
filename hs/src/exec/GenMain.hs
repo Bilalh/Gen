@@ -609,7 +609,8 @@ mainWithArgs Script_CreateDBHashes{..} = do
   let out  = fromMaybe (directory </> "db") output_directory
 
   createDirectoryIfMissing True out
-  createDbHashesMain delete_passing delete_errors delete_skipped errors_to_skipped  directory out
+  createDbHashesMain no_add
+    delete_passing delete_errors delete_skipped errors_to_skipped  directory out
 
 
 mainWithArgs Script_RemoveDups{..} = do

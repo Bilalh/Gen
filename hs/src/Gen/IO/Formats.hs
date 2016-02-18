@@ -16,11 +16,12 @@ import System.FilePath                          (takeExtensions)
 import System.Posix                             (getFileStatus)
 import System.Posix.Files                       (fileSize)
 
-import qualified Control.Exception    as Exc
-import qualified Data.Aeson           as A
-import qualified Data.ByteString.Lazy as L
-import qualified Data.Text            as T
-import qualified System.Exit          as Exc
+import qualified Control.Exception        as Exc
+import qualified Data.Aeson               as A
+import qualified Data.Aeson.Encode.Pretty as AA
+import qualified Data.ByteString.Lazy     as L
+import qualified Data.Text                as T
+import qualified System.Exit              as Exc
 
 
 timestamp :: MonadIO m => m Int
@@ -53,7 +54,7 @@ readFromJSONMay fp = do
 
 writeToJSON :: (MonadFail m, MonadIO m, ToJSON a) => FilePath -> a -> m ()
 writeToJSON fp r = do
-  liftIO $ L.writeFile fp (A.encode r)
+  liftIO $ L.writeFile fp (AA.encodePretty r)
 
 replaceExtensions :: FilePath -> FilePath -> FilePath
 replaceExtensions x y = dropExtensions x <.> y

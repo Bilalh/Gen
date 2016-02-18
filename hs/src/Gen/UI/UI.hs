@@ -218,6 +218,7 @@ data UI
     , delete_errors     :: Bool
     , delete_skipped    :: Bool
     , errors_to_skipped :: Bool
+    , no_add            :: Bool
     , limit_time        :: Maybe Int
     }
   | Script_RemoveDups
@@ -939,19 +940,23 @@ ui  = modes
      , delete_passing   = False   &= name "delete-passing"
                                   &= groupname "Filters"
                                   &= explicit
-                                  &= help "Delete the resultsPassing entry from the resulting db"
+                                  &= help "Delete the rPassing entry from the resulting db"
      , delete_errors    = False   &= name "delete-errors"
                                   &= groupname "Filters"
                                   &= explicit
-                                  &= help "Delete the resultsErrors entry from the resulting db"
+                                  &= help "Delete the rErrors entry from the resulting db"
      , delete_skipped   = False   &= name "delete-skipped"
                                   &= groupname "Filters"
                                   &= explicit
-                                  &= help "Delete the resultsSkipped entry from the resulting db"
-     , errors_to_skipped = False  &= name "errors_to_skipped"
+                                  &= help "Delete the rSkipped entry from the resulting db"
+     , errors_to_skipped = False  &= name "errors-to-skipped"
                                   &= groupname "Filters"
                                   &= explicit
-                                  &= help "Add resultsErrors to the resultsSkipped entry"
+                                  &= help "Add rErrors to the rSkipped entry"
+     , no_add            = False  &= name "no-add"
+                                  &= groupname "Filters"
+                                  &= explicit
+                                  &= help "Don't add specs or params, useful for running --errors-to-skipped"
      , limit_time       = Nothing &= name "limit-time"
                                   &= explicit
                                   &= help "Time limit in seconds of CPU time of this program"

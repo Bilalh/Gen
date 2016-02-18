@@ -5,50 +5,56 @@ import Gen.Imports
 import Gen.IO.Formats
 import Gen.IO.RunResult
 import System.FilePath  (takeExtensions)
+import Data.Bifunctor(bimap)
 
 import qualified Control.Exception   as Exc
 import qualified Data.HashMap.Strict as H
 import qualified Data.IntSet         as I
 
 
-createDbHashesMain :: Bool -> Bool -> Bool -> Bool
+createDbHashesMain :: Bool -> Bool -> Bool -> Bool -> Bool
                    -> FilePath -> FilePath
                    -> IO ()
-createDbHashesMain
+createDbHashesMain no_add
   delete_passing delete_errors delete_skipped errors_to_skipped
     dir out = do
-  specHashes  <- filesWithExtension ".essence" dir >>= hashesMay
-  paramHashes <- filesWithExtension ".param" dir   >>= hashesMay
-  let curSpecs   = I.fromList (catMaybes specHashes)
-  let curSkipped = I.fromList (catMaybes paramHashes) `I.union` curSpecs
+  newDb <-
+    if no_add then
+      return def
+    else do
+      specHashes  <- filesWithExtension ".essence" dir >>= hashesMay
+      paramHashes <- filesWithExtension ".param" dir   >>= hashesMay
+      let curSpecs   = I.fromList (catMaybes specHashes)
+      let curParams  = I.fromList (catMaybes paramHashes)
+      return def{rSpecs=curSpecs, rSpecSkipped=curSpecs, rParamSkipped=curParams}
 
   fdbs <- findDBs out
-  let newDb  :: ResultsDB    = def{resultsSkipped=curSkipped, resultsSpecs=curSpecs}
   currentDbs :: [ResultsDB] <- catMaybes <$> mapM (readFromJSON) fdbs
   let ResultsDB{..} = mconcat $ newDb : currentDbs
 
-  let resultsSkipped1 =
-        if   errors_to_skipped
-        then resultsSkipped `I.union`  (I.fromList $ errorHashes resultsErrors)
-        else resultsSkipped
+  let (rSpecSkipped1, rParamSkipped1) = bimap
+       (\x -> rSpecSkipped  `I.union` (iff errors_to_skipped (I.fromList x)) )
+       (\x -> rParamSkipped `I.union` (iff errors_to_skipped (I.fromList x)) )
+       $ unzip $ errorHashes rErrors
 
-
-  let rsp = resultsSpecs
-            I.\\ (iff delete_skipped resultsSkipped1 )
-            I.\\ (iff delete_passing (I.fromList $ passingSpecHashes resultsPassing))
+  let rsp = rSpecs
+            I.\\ (iff delete_skipped rSpecSkipped1 )
+            I.\\ (iff delete_skipped rParamSkipped1 )
+            I.\\ (iff delete_passing (I.fromList $ passingSpecHashes rPassing))
             I.\\ (iff (delete_errors && not errors_to_skipped)
-                   (I.fromList $ errorSpecHashes resultsErrors) )
+                   (I.fromList $ errorSpecHashes rErrors) )
 
-  -- TODO actually remove the dirs of the errors
-  let res = ResultsDB{ resultsSpecs   = rsp
-                     , resultsSkipped = neg delete_skipped resultsSkipped1
-                     , resultsErrors  = neg (delete_errors || errors_to_skipped)
-                                             resultsErrors
-                     , resultsPassing = neg delete_passing resultsPassing}
+  let res = ResultsDB{ rSpecs        = rsp
+                     , rErrors       = neg (delete_errors || errors_to_skipped) rErrors
+                     , rPassing      = neg delete_passing rPassing
+                     , rSpecSkipped  = neg delete_skipped rSpecSkipped1
+                     , rParamSkipped = neg delete_skipped rParamSkipped1
+
+                     }
 
   when (delete_errors || errors_to_skipped ) $ do
     let f (Mapped x) = x
-    let fps = [ specDir | (StoredError ErrData{specDir}) <- H.elems (f resultsErrors) ]
+    let fps = [ specDir | (StoredError ErrData{specDir}) <- H.elems (f rErrors) ]
     forM_ fps $ \fp -> do
       doesDirectoryExist (out </> fp)  >>= \case
         False -> return ()
