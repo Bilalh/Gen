@@ -200,6 +200,9 @@ mainWithArgs u@Essence{..} = do
                  error "Error (--delete_immediately/-X): Specifying (KindAny_,StatusAny_) would delete every generated specification."
             return vals
 
+  putStrLn "(Status,Kind) tuples to discard immediately"
+  print $ renderSized 79 $ vcat $ map pretty (S.toList notUseful)
+
   nullParamGen toolchain_ouput
 
   let config = EC.EssenceConfig
