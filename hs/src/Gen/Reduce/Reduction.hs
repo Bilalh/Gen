@@ -145,10 +145,16 @@ instance (RndGen m,  MonadLog m) =>  Reduce Expr m where
                        , nn "subterms"  (length subs)
                        ]
 
-      x <- reduceChecks e  $  sin ++ onlyUsedGens ++ instantiateGens
-                           ++ gens2 ++ subs ++ res
+      let possible = filter removeEmpty $ sin ++ onlyUsedGens ++ instantiateGens
+                                        ++ gens2 ++ subs ++ res
+
+      x <- reduceChecks e possible
       -- error . show . prettyArr $ x
       return x
+
+      where
+        removeEmpty (EComp _ [] []) = False
+        removeEmpty _               = True
 
 
     single EEmptyGuard  = return []
