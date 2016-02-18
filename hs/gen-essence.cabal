@@ -193,6 +193,7 @@ Library
                      , cassava
                      , vector
                      , aeson-pretty
+                     , parallel-io
 
    default-extensions:
         NoImplicitPrelude
@@ -223,6 +224,10 @@ Library
        -with-rtsopts=-K200M
        -with-rtsopts=-M1G
 
+   ghc-prof-options:
+       -fprof-auto-top
+       -fprof-auto-exported
+
 Executable gen
     default-language : Haskell2010
     hs-source-dirs   : src/exec
@@ -252,10 +257,15 @@ Executable gen
        -- -fno-warn-unused-matches
        -Wall
        ---Werror
+       -threaded
        -rtsopts
        -with-rtsopts=-K200M
        -with-rtsopts=-M1G
+       -with-rtsopts=-N1
 
+   ghc-prof-options:
+       -fprof-auto-top
+       -fprof-auto-exported
 
 test-suite gen-testing
     type             : exitcode-stdio-1.0

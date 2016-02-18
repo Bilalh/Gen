@@ -12,6 +12,7 @@ import Gen.Reduce.FormatResults (formatResults)
 import Gen.Reduce.Random
 import Gen.Reduce.Reduce        (reduceMain)
 import System.FilePath          (takeBaseName)
+import Control.Concurrent.ParallelIO.Global (stopGlobalPool,parallel)
 
 import qualified Gen.Reduce.Data as R
 
@@ -26,9 +27,13 @@ instance Pretty ReduceResult where
 
 reduceErrors :: (MonadState Carry m, MonadIO m, MonadDB m)
              => EssenceConfig -> [ErrData] -> m [ReduceResult]
-reduceErrors ec errs = do
+reduceErrors ec@EssenceConfig{logLevel} errs = do
   args <- mapM (reduceArgs ec) errs
-  results <- mapM (processReduceArgs (logLevel ec)) args
+  results <- liftIO $ do
+    res <- parallel [ processReduceArgs logLevel arg | arg <- args ]
+    stopGlobalPool
+    return res
+
   let (specs,dbs) = unzip results
   let finalDb = mconcat dbs
   putsDb finalDb
@@ -37,22 +42,23 @@ reduceErrors ec errs = do
 reduceError :: (MonadState Carry m, MonadIO m, MonadDB m)
              => EssenceConfig -> ErrData -> m ReduceResult
 reduceError ec err = do
-   args <- reduceArgs ec err
-   (sp,db)  <- processReduceArgs (logLevel ec) args
+   args     <- reduceArgs ec err
+   (sp,db)  <- liftIO $ processReduceArgs (logLevel ec) args
    putsDb db
    return (ReduceResult sp)
 
 
-processReduceArgs :: MonadIO m => LogLevel -> RState -> m (Spec, ResultsDB)
+-- Using IO so I can use parallel from Control.Concurrent.ParallelIO.Global
+processReduceArgs :: LogLevel -> RState -> IO (Spec, ResultsDB)
 processReduceArgs logLevel args = do
-  theSeed <- liftIO $ randomRIO (0,2^(31 :: Int)-1)
+  theSeed <- randomRIO (0,2^(31 :: Int)-1)
   state <- runLoggerPipeIO logLevel $ runRndGen theSeed $ reduceMain False args
-  dir <- liftIO $ formatResults True False state >>= \case
+  dir <- formatResults True False state >>= \case
          (Just x) -> return x
          Nothing  -> return (specDir_ . rconfig $ args)
 
   newDb <- missingToSkipped  (R.resultsDB_  state)
-  sp <- liftIO $ readFromJSON (dir </> "spec.spec.json")
+  sp <- readFromJSON (dir </> "spec.spec.json")
 
   return $ (sp, newDb)
 

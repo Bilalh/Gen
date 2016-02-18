@@ -46,6 +46,7 @@ import System.FilePath              (replaceExtension, replaceFileName, takeBase
 import System.IO                    (hPutStrLn, stderr)
 import System.Timeout               (timeout)
 import Text.Printf                  (printf)
+import GHC.Conc
 
 import qualified Data.Set               as S
 import qualified Gen.Essence.UIData     as EC
@@ -53,7 +54,6 @@ import qualified Gen.Essence.Weightings as Weights
 import qualified Gen.Generalise.Data    as E
 import qualified Gen.IO.Toolchain       as Toolchain
 import qualified Gen.Reduce.Data        as R
-
 
 main :: IO ()
 main = do
@@ -175,6 +175,17 @@ mainWithArgs u@Essence{..} = do
   seed_      <- giveSeed _seed
   cores      <- giveCores u
   givenSpecs <- giveSpec given_dir
+
+  maxCores <- getNumProcessors
+
+  when (cores > maxCores) $
+    docError [nn "CORES used" cores, nn "max cores " maxCores
+             , "the cores used must be the number of processors" ]
+
+  setNumCapabilities cores
+  putStrLn $ "CORES max : " ++ (show maxCores)
+  putStrLn $ "CORES used: " ++ (show cores)
+
 
   ws <- case _weightings of
           Nothing -> def
