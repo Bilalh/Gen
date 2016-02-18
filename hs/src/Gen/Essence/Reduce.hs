@@ -1,5 +1,5 @@
 {-# LANGUAGE RecordWildCards #-}
-module Gen.Essence.Reduce where
+module Gen.Essence.Reduce(reduceErrors,reduceError, ReduceResult(..)) where
 
 import Gen.Essence.Carry
 import Gen.Essence.UIData       (EssenceConfig (..))
@@ -21,16 +21,45 @@ data ReduceResult = ReduceResult
 
 
 instance Pretty ReduceResult where
-    pretty (ReduceResult sp) = "ReduceResult" <+> pretty sp
+    pretty (ReduceResult{..}) = "ReduceResult" <+> pretty finalSpec
 
 
 reduceErrors :: (MonadState Carry m, MonadIO m, MonadDB m)
              => EssenceConfig -> [ErrData] -> m [ReduceResult]
-reduceErrors ec = mapM (reduceError ec)
+reduceErrors ec errs = do
+  args <- mapM (reduceArgs ec) errs
+  results <- mapM (processReduceArgs (logLevel ec)) args
+  let (specs,dbs) = unzip results
+  let finalDb = mconcat dbs
+  putsDb finalDb
+  return [ ReduceResult{finalSpec=sp} | sp <- specs]
 
 reduceError :: (MonadState Carry m, MonadIO m, MonadDB m)
-            => EssenceConfig -> ErrData -> m ReduceResult
-reduceError EssenceConfig{..} ErrData{..}= do
+             => EssenceConfig -> ErrData -> m ReduceResult
+reduceError ec err = do
+   args <- reduceArgs ec err
+   (sp,db)  <- processReduceArgs (logLevel ec) args
+   putsDb db
+   return (ReduceResult sp)
+
+
+processReduceArgs :: MonadIO m => LogLevel -> RState -> m (Spec, ResultsDB)
+processReduceArgs logLevel args = do
+  theSeed <- liftIO $ randomRIO (0,2^(31 :: Int)-1)
+  state <- runLoggerPipeIO logLevel $ runRndGen theSeed $ reduceMain False args
+  dir <- liftIO $ formatResults True False state >>= \case
+         (Just x) -> return x
+         Nothing  -> return (specDir_ . rconfig $ args)
+
+  newDb <- missingToSkipped  (R.resultsDB_  state)
+  sp <- liftIO $ readFromJSON (dir </> "spec.spec.json")
+
+  return $ (sp, newDb)
+
+
+reduceArgs :: (MonadIO m, MonadDB m)
+           => EssenceConfig -> ErrData -> m RState
+reduceArgs EssenceConfig{..} ErrData{..}= do
   db     <- getsDb
   db_dir <- getDbDirectory
 
@@ -59,20 +88,5 @@ reduceError EssenceConfig{..} ErrData{..}= do
              ,mostReducedChoices_  = Just choices
              ,timeLeft_            = total_time_may
              }
-
   liftIO $ doMeta out no_csv binariesDirectory_
-
-  state <- runLoggerPipeIO logLevel $ runRndGen 1 $ reduceMain False args
-  dir <- liftIO $ formatResults True False state >>= \case
-         (Just x) -> return x
-         Nothing  -> return specDir
-
-
-  liftIO $ writeToJSON (outputDirectory_ </> "a.json") (R.resultsDB_  state)
-
-  newDb <- missingToSkipped  (R.resultsDB_  state)
-  putsDb newDb
-  writeDb False
-  sp <- liftIO $ readFromJSON (dir </> "spec.spec.json")
-
-  return $ ReduceResult sp
+  return args
