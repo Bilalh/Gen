@@ -31,12 +31,14 @@ import System.Process              (StdStream (..), createProcess, proc,
                                     waitForProcess)
 import System.Posix.Env(getEnvironment)
 import System.Environment(getExecutablePath)
+import Gen.Helpers.MonadNote
+
 
 import qualified Data.Map as M
 
-logSpec :: Pretty a => MonadIO m => Spec -> Maybe a -> m ()
+logSpec :: Pretty a => MonadNote m => Spec -> Maybe a -> m ()
 logSpec sp mayP = do
-  liftIO $ putStrLn . renderSized 120 . nest 4 . vcat $
+  noteFormat "logSpec" $
              ["Processing", pretty sp, maybe "" (("Param" <+>) . pretty) mayP]
 
 writeModelDef :: MonadIO m => FilePath -> Model -> m FilePath
@@ -47,7 +49,7 @@ writeModelDef dir spec = do
     writeModel PlainEssence (Just name) spec
     return (dir </> "spec.essence")
 
-toolchain :: MonadIO m => ToolchainData -> m (ExitCode, ToolchainResult)
+toolchain :: (MonadIO m, MonadNote m) => ToolchainData -> m (ExitCode, ToolchainResult)
 toolchain ToolchainData{..} = do
   toolchainDir <- liftIO $ getToolchainDir binariesDirectory
 
@@ -63,13 +65,13 @@ toolchain ToolchainData{..} = do
                ++ argsMay "--choices" choicesPath
 
 
-  liftIO . putStrLn $ "Toolchain: " ++ showCommandForUser script args
+  note $ "Toolchain: " <+> pretty (showCommandForUser script args)
   when dryRun $ liftIO exitSuccess
 
   code    <- runCommand script args (outputArg toolchainOutput outputDirectory)
   refineF <- readFromJSONMay $ outputDirectory </> "refine_essence.json"
   solveF  <- readFromJSONMay $ outputDirectory </> "solve_eprime.json"
-  liftIO . putStrLn $ "ToolchainFinished:"
+  note "ToolchainFinished:"
 
   return $ case (refineF, solveF) of
              (Just r, Just s)  -> (code, SolveResult (r,s))

@@ -186,7 +186,7 @@ doCommon ec@EC.EssenceConfig{..} refineType = do
                                 Nothing -> return Nothing
                                 Just x  -> Just <$> readPoint x
 
-                  (_, result) <- toolchain Toolchain.ToolchainData{
+                  (_, result) <- liftIO $ toolchain Toolchain.ToolchainData{
                               Toolchain.essencePath       = essencePath
                             , Toolchain.outputDirectory   = dir
                             , Toolchain.toolchainTime     = perSpecTime_

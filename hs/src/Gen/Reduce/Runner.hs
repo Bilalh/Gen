@@ -13,6 +13,7 @@ import Gen.Reduce.Data
 import Gen.Reduce.Random
 import Gen.Reduce.TypeCheck
 import GHC.Real              (floor)
+import Gen.Helpers.MonadNote
 
 import qualified Data.Map         as M
 import qualified Gen.IO.Toolchain as Toolchain
@@ -56,8 +57,6 @@ timedSpec2 :: (Spec -> Maybe Point ->  RRR (Maybe ErrData, Int) )
            -> (Maybe ErrData -> RRR (Timed a))  -- Time left    (g)
            -> RRR (Timed a)
 timedSpec2 runner sp mp f g= do
-    -- xdb <- getsDb
-    -- liftIO $ putStrLn $ "%DB:" ++ groom xdb
     startTime <- liftIO $ round `fmap` getPOSIXTime
     (res, cpuTimeUsed) <- runner sp mp
     endTime <- liftIO $ round `fmap` getPOSIXTime
@@ -70,7 +69,7 @@ timedSpec2 runner sp mp f g= do
     modify $ \st -> st{timeLeft_ = fmap (\x -> x - timeUsed )  (timeLeft_ st) }
 
     gets timeLeft_ >>= \case
-         Just r   -> liftIO $ putStrLn $  "# " ++  (show (max r 0) ) ++ " seconds left"
+         Just r   -> note $  "#" <+>  (pretty (max r 0) ) <+> "seconds left"
          Nothing  -> return ()
 
     let process (Just a) b | a < b = do
@@ -90,7 +89,7 @@ checkForError sp po = do
 
 
 -- Just means a similar error  still occured
-runSpec :: (MonadDB m, MonadIO m, Applicative m, Functor m, MonadLog m, RndGen m, MonadR m)
+runSpec :: (MonadDB m, MonadIO m, MonadLog m, RndGen m, MonadR m, MonadNote m)
         => Spec
         -> Maybe Point
         -> m (Maybe ErrData, Int)
@@ -105,7 +104,7 @@ runSpec spE mayP=
   in runSpec2 refineWay spE mayP
 
 -- Just means a similar error  still occured
-runSpecCompact :: (MonadDB m, MonadIO m, Applicative m, Functor m, MonadLog m, RndGen m, MonadR m)
+runSpecCompact :: (MonadDB m, MonadIO m, MonadLog m, RndGen m, MonadR m, MonadNote m)
                => Spec
                -> Maybe Point
                -> m (Maybe ErrData, Int)
@@ -121,25 +120,25 @@ runSpecCompact spE mayP=
 
 
 
-runSpec2 :: (MonadDB m, MonadIO m, MonadLog m, RndGen m, MonadR m)
+runSpec2 :: (MonadDB m, MonadIO m, MonadLog m, RndGen m, MonadR m, MonadNote m)
         => (Maybe FilePath -> KindI -> RefineType)
         -> Spec
         -> Maybe Point
         -> m (Maybe ErrData, Int)
 runSpec2 refineWay spE mayP= do
-  liftIO $ logSpec spE mayP
+  logSpec spE mayP
 
   RConfig{..} <- getRconfig
 
   checkDB oErrKind_ oErrStatus_ spE mayP >>= \case
     Just StoredError{} -> rrError "StoredResult in runSpec" []
     Just rr@Passing{} -> do
-      liftIO $ putStrLn "? Using Cached data"
+      note "? Using Cached data"
       showrrError rr
       processPassing spE
       return (Nothing, 0)
     Just rr@(OurError r)  -> do
-      liftIO $  putStrLn "? Using Cached data"
+      note "? Using Cached data"
       showrrError rr
       return $ (Just r, 0)
 
@@ -170,7 +169,7 @@ runSpec2 refineWay spE mayP= do
         Just pa -> do
           let loc = path </> "given.param"
           writePoint pa loc
-          liftIO $ putStrLn $ "? Using Point at " ++ loc
+          note $ "? Using Point at" <+> pretty loc
           return $ Just $ loc
 
 
@@ -333,21 +332,20 @@ runSpec2 refineWay spE mayP= do
                        , pretty tu]
 
 
-showrrError :: (MonadR m, MonadIO m) => RunResult -> m ()
+showrrError :: (MonadR m, MonadIO m, MonadNote m) => RunResult -> m ()
 showrrError x = do
   case x of
-    Passing{}        -> out $ "? Has rrError:" <+> pretty False <+> "(Passing)"
+    Passing{}        -> note $ "? Has rrError:" <+> pretty False <+> "(Passing)"
     (OurError ed)    -> f ed
     (StoredError ed) -> f ed
-  liftIO $ putStrLn "\n"
+  note "\n"
 
   where
-    out = liftIO  . putStrLn . show . pretty
 
     f ErrData{..} = do
       RConfig{..} <- getRconfig
       let (sb,kb) = (statusEqual status oErrStatus_, kindsEqual kind oErrKind_)
-      out . hang ("? Has rrError: " <+> pretty (sb && kb)) 4 . vcat  $ [
+      note $  hang ("? Has rrError: " <+> pretty (sb && kb)) 4 . vcat  $ [
           nn "kind:   "  kind  <+>
             if not kb then "/=" <+> pretty oErrKind_ else ""
         , nn "status: " status <+>

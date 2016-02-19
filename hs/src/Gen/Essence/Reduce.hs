@@ -14,6 +14,7 @@ import Gen.Reduce.Reduce        (reduceMain)
 import System.FilePath          (takeBaseName)
 import Control.Concurrent.ParallelIO.Global (stopGlobalPool,parallel)
 import Gen.Helpers.MonadNote
+import Gen.Essence.Log
 
 import qualified Gen.Reduce.Data as R
 
@@ -53,12 +54,16 @@ reduceError ec err = do
 processReduceArgs :: LogLevel -> RState -> IO (Spec, ResultsDB)
 processReduceArgs logLevel args = do
   theSeed :: Int <- randomRIO (0 ,2^(31 :: Int)-1)
-  (state,lgs) <-  runRndGen theSeed $ runNoteT $ ignoreLogs $ reduceMain False args
-  logsToFile ((outputDir_ . rconfig $ args ) <.> ".logs") lgs
+  ((state,mlogs),lgs) <- runLogT logLevel $ runRndGen theSeed $ runNoteT
+                      $ reduceMain False args
 
-  dir <- formatResults True False state >>= \case
+  (dir, lgs2) <- runNoteT $ formatResults True False state >>= \case
          (Just x) -> return x
          Nothing  -> return (specDir_ . rconfig $ args)
+
+  let logsPath = (outputDir_ . rconfig $ args ) <.> ".logs"
+  putStrLn $ "logs at " ++  logsPath
+  logsToFile logsPath (lgs ++ lgs2 ++ mlogs)
 
   newDb <- missingToSkipped  (R.resultsDB_  state)
   sp <- readFromJSON (dir </> "spec.spec.json")

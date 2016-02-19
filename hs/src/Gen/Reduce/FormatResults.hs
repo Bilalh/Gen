@@ -6,51 +6,51 @@ import Gen.IO.RunResult
 import Gen.Reduce.Data
 import System.Directory (renameDirectory)
 import System.FilePath  (takeFileName)
+import Gen.Helpers.MonadNote
 
-formatResults :: Bool -> Bool -> RState -> IO (Maybe FilePath)
+formatResults :: (MonadIO m, MonadNote m)
+              => Bool -> Bool -> RState -> m (Maybe FilePath)
 formatResults delete_steps delete_others RState{rconfig=RConfig{..},..} = do
 
   res <- case mostReduced_ of
     Just r | (specDir r) /= specDir_ -> do
-      putStrLn . show . vcat $
-                   [ "Renaming "
-                   , pretty (specDir r)
+      noteFormat "Renaming" $
+                   [ pretty (specDir r)
                    , " --> "
                    , pretty finalDir
                    ]
-      renameDirectory  (specDir r) finalDir
+      liftIO $ renameDirectory  (specDir r) finalDir
       return $ Just finalDir
 
     _ -> do
-      putStrLn "No final directory: no reductions produced"
-      createDirectoryIfMissing True finalDir
+      note "No final directory: no reductions produced"
+      liftIO $ createDirectoryIfMissing True finalDir
       return $ Nothing
 
   case otherErrors_ of
     []  -> return ()
-    xs  -> mapM_ classify xs
+    xs  -> liftIO $  mapM_ classify xs
 
-  files <- getDirectoryContents outputDir_
+  files <- liftIO $ getDirectoryContents outputDir_
   let toMove = flip filter files
                  (`notElem` [
                     "others", "final", "zsteps", ".", "..", ".DS_Store"
                   , "zreduce.logs", "versions.csv", "meta.json","_reduced.logs"] )
-  createDirectoryIfMissing True stepsDir
+  liftIO $ createDirectoryIfMissing True stepsDir
 
   forM_ toMove $ \d -> do
-    putStrLn . show . vcat $
-             [ "Renaming "
-             , pretty  (outputDir_ </> d)
+    noteFormat "Renaming" $
+             [ pretty  (outputDir_ </> d)
              , " --> "
              , pretty  (stepsDir </> d)
              ]
-    renameDirectory (outputDir_ </> d) (stepsDir </> d)
+    liftIO $ renameDirectory (outputDir_ </> d) (stepsDir </> d)
 
-  when delete_steps  $ removeDirectoryRecursive stepsDir
+  liftIO $ when delete_steps  $ removeDirectoryRecursive stepsDir
   -- removeDirectoryRecursive crashes when the directory is not there
   -- hack it by creating the directory if it is missing
-  createDirectoryIfMissing True othersDir
-  when delete_others $ removeDirectoryRecursive othersDir
+  liftIO $ createDirectoryIfMissing True othersDir
+  liftIO $ when delete_others $ removeDirectoryRecursive othersDir
 
   return res
 

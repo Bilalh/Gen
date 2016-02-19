@@ -53,7 +53,7 @@ reduceMain check rr = do
                        )
   case errOccurs of
     False -> do
-        liftIO $ putStrLn "Spec has no error with the given settings, not reducing"
+        note $  "Spec has no error with the given settings, not reducing"
         return rr
     True -> do
       (sfin,state) <-  (flip runStateT) rr $
@@ -272,7 +272,7 @@ simplyFinds :: (Spec,  Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
 simplyFinds d@(sp@(Spec ds es obj), mp) = do
   let org = [ ((name,ix),val) | (name, (ix, Findd val)) <- M.toList ds ]
   domsToDo <- doDoms org
-  liftIO $ putStrLn . show . prettyArr $ map prettyArr domsToDo
+  -- liftIO $ putStrLn . show . prettyArr $ map prettyArr domsToDo
   fin <- process1 [ dd |  dd <- domsToDo, dd /= org]
 
   if (timedExtract fin) == [] then
@@ -532,7 +532,7 @@ con tx f (Continue d) = do
     endState <- get
     noteFormat ("@" <+> tx <+> "End") (prettyTimedResult newRes)
     noteFormat ("@" <+> tx <+> "EndState") [pretty endState]
-    liftIO $ putStrLn ""
+    note ""
 
     return newRes
 

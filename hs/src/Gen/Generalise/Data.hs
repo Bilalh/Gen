@@ -5,13 +5,13 @@ import Gen.Imports
 import Gen.Reduce.Data  hiding (RState (..))
 import Gen.IO.RunResult
 import Gen.Reduce.Random
-
+import Gen.Helpers.MonadNote
 
 import qualified Text.PrettyPrint    as Pr
 
-type EEE a = forall m
-  . (MonadIO m, MonadState GState m, RndGen m, MonadR m, MonadDB m, MonadLog m)
-  => m a
+type EEE a = forall m .
+ (MonadIO m, MonadState GState m, RndGen m, MonadR m, MonadDB m, MonadLog m, MonadNote m)
+ => m a
 
 
 data GState = GState
