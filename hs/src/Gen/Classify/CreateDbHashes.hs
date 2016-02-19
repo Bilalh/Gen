@@ -29,29 +29,27 @@ createDbHashesMain no_add
 
   fdbs <- findDBs out
   currentDbs :: [ResultsDB] <- catMaybes <$> mapM (readFromJSON) fdbs
-  let ResultsDB{..} = mconcat $ newDb : currentDbs
+  let con = mconcat $ newDb : currentDbs
 
   let (rSpecsSkipped1, rParamsSkipped1) = bimap
-       (\x -> rSpecsSkipped  `I.union` (iff errors_to_skipped (I.fromList x)) )
-       (\x -> rParamsSkipped `I.union` (iff errors_to_skipped (I.fromList x)) )
-       $ unzip $ errorHashes rErrors
+       (\x -> (rSpecsSkipped con)  `I.union` (iff errors_to_skipped (I.fromList x)) )
+       (\x -> (rParamsSkipped con) `I.union` (iff errors_to_skipped (I.fromList x)) )
+       $ unzip $ errorHashes (rErrors con)
 
-  let rsp = rSpecs
-        I.\\ iff delete_passing (I.fromList $ passingSpecHashes rPassing)
-        I.\\ iff (delete_errors || errors_to_skipped)
-               (I.fromList $ errorSpecHashes rErrors)
+  let r =
+       ResultsDB{ rErrors        = neg (delete_errors || errors_to_skipped) (rErrors con)
+                , rPassing       = neg delete_passing (rPassing con)
+                , rSpecsSkipped  = neg delete_skipped rSpecsSkipped1
+                , rParamsSkipped = neg delete_skipped rParamsSkipped1
+                , rSpecs         = def
+                }
+  let res = r{rSpecs = I.fromList (passingSpecHashes $ rPassing r ) `I.union`
+                       I.fromList (errorSpecHashes   $ rErrors r  ) }
 
-  let res = ResultsDB{ rSpecs        = rsp
-                     , rErrors       = neg (delete_errors || errors_to_skipped) rErrors
-                     , rPassing      = neg delete_passing rPassing
-                     , rSpecsSkipped  = neg delete_skipped rSpecsSkipped1
-                     , rParamsSkipped = neg delete_skipped rParamsSkipped1
-
-                     }
 
   when (delete_errors || errors_to_skipped ) $ do
     let f (Mapped x) = x
-    let fps = [ specDir | (StoredError ErrData{specDir}) <- H.elems (f rErrors) ]
+    let fps = [ specDir | (StoredError ErrData{specDir}) <- H.elems (f (rErrors con)) ]
     forM_ fps $ \fp -> do
       doesDirectoryExist (out </> fp)  >>= \case
         False -> return ()
