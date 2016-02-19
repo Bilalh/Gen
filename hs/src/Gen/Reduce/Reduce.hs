@@ -15,10 +15,12 @@ import Gen.Reduce.Runner
 import Gen.Reduce.UnusedDomains
 import System.FilePath          (takeExtension)
 import Conjure.Language.Name
+import Gen.Helpers.MonadNote
 
 import qualified Data.Map as M
 
-reduceMain :: (MonadIO m, MonadLog m, RndGen m) => Bool -> RState -> m RState
+reduceMain :: (MonadIO m, MonadLog m, RndGen m, MonadNote m)
+           => Bool -> RState -> m RState
 reduceMain check rr = do
   let base = (specDir_ . rconfig) rr
       fp   =  base </> "spec.spec.json"
@@ -85,7 +87,7 @@ reduceMain check rr = do
 
       return (state)
 
-noteMsg :: MonadIO m => Doc -> b -> m b
+noteMsg :: MonadNote m => Doc -> b -> m b
 noteMsg tx s = do
     noteFormat ("@" <+> tx) []
     return s

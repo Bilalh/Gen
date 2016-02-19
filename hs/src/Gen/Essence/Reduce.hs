@@ -13,6 +13,7 @@ import Gen.Reduce.Random
 import Gen.Reduce.Reduce        (reduceMain)
 import System.FilePath          (takeBaseName)
 import Control.Concurrent.ParallelIO.Global (stopGlobalPool,parallel)
+import Gen.Helpers.MonadNote
 
 import qualified Gen.Reduce.Data as R
 
@@ -51,8 +52,10 @@ reduceError ec err = do
 -- Using IO so I can use parallel from Control.Concurrent.ParallelIO.Global
 processReduceArgs :: LogLevel -> RState -> IO (Spec, ResultsDB)
 processReduceArgs logLevel args = do
-  theSeed <- randomRIO (0,2^(31 :: Int)-1)
-  state <- runLoggerPipeIO logLevel $ runRndGen theSeed $ reduceMain False args
+  theSeed :: Int <- randomRIO (0 ,2^(31 :: Int)-1)
+  (state,lgs) <-  runRndGen theSeed $ runNoteT $ ignoreLogs $ reduceMain False args
+  logsToFile ((outputDir_ . rconfig $ args ) <.> ".logs") lgs
+
   dir <- formatResults True False state >>= \case
          (Just x) -> return x
          Nothing  -> return (specDir_ . rconfig $ args)

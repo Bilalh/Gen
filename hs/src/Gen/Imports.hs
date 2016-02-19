@@ -2,7 +2,6 @@ module Gen.Imports
     ( module X
     , docError
     , nn
-    , noteFormat
     , nub2
     , renderSized
     , renderOneLine
@@ -82,9 +81,6 @@ renderSized n = Pr.renderStyle (Pr.style { Pr.lineLength = n }) . pretty
 
 renderOneLine :: Pretty a =>  a -> String
 renderOneLine = Pr.renderStyle Pr.style{Pr.mode=Pr.OneLineMode} . pretty
-
-noteFormat :: MonadIO m => Doc -> [Doc] -> m ()
-noteFormat tx pr = liftIO . putStrLn . renderSized 120 $ hang tx 4 (vcat  pr)
 
 hashDoc :: Pretty a => a -> Int
 hashDoc a =

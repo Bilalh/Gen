@@ -9,6 +9,7 @@ import Gen.IO.RunResult
 import Gen.Reduce.Data       (RConfig (..), addLog)
 import Gen.Reduce.Random
 import Gen.Reduce.Reduction
+import Gen.Helpers.MonadNote
 
 import Data.Generics.Uniplate.Zipper (Zipper, fromZipper, hole, replaceHole,
                                       zipperBi)
@@ -16,7 +17,8 @@ import Data.Generics.Uniplate.Zipper (Zipper, fromZipper, hole, replaceHole,
 import qualified Data.Generics.Uniplate.Zipper as Zipper
 
 
-generaliseMain :: (MonadIO m, MonadLog m, RndGen m) =>  GState -> m GState
+generaliseMain :: (MonadIO m, MonadLog m, RndGen m, MonadNote m)
+               =>  GState -> m GState
 generaliseMain ee = do
   let base = (specDir_ . rconfig) ee
       fp   =  base </> "spec.spec.json"
@@ -26,7 +28,7 @@ generaliseMain ee = do
 
   (sfin,state) <- (flip runStateT) ee $
       return sp
-      >>= (note "ConstraintsWithSingle") generaliseConstraintsWithSingle
+      >>= (noted "ConstraintsWithSingle") generaliseConstraintsWithSingle
       >>= \ret -> get >>= \g -> addLog "FinalState" [pretty g] >> return ret
 
 
@@ -37,7 +39,7 @@ generaliseMain ee = do
   return (state)
 
   where
-  note tx f s = do
+  noted tx f s = do
       noteFormat ("@" <+> tx <+> "Start") []
 
       newSp <- f s

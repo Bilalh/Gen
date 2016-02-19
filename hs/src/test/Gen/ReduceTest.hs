@@ -201,7 +201,7 @@ qc_tests title  =
    , Just $ testProperty "single_depth" $
        \(Limited _ _ (a :: Expr)) ->
            let reduced = limitedRun single a
-               res = map (\rr -> (all (\l -> depthOf l == depthOf rr  )
+               res = map (\rr -> (all (\l -> depthOf l <= depthOf rr  )
                                  $ limitedRun reduce rr)) $ reduced
            in and res
    ]

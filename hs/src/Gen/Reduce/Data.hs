@@ -6,12 +6,13 @@ import Gen.IO.RunResult
 import Gen.IO.Toolchain   (KindI, StatusI, ToolchainOutput (..))
 import Gen.Reduce.Random
 import System.Random.TF
+import Gen.Helpers.MonadNote
 
 import qualified Text.PrettyPrint as Pr
 import qualified Text.PrettyPrint as P
 
 type RRR a = forall m
-  . (MonadIO m, MonadState RState m, RndGen m, MonadR m, MonadDB m, MonadLog m)
+  . (MonadIO m, MonadState RState m, RndGen m, MonadR m, MonadDB m, MonadLog m, MonadNote m)
   => m a
 
 data RConfig = RConfig

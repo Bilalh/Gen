@@ -200,8 +200,9 @@ mainWithArgs u@Essence{..} = do
                  error "Error (--delete_immediately/-X): Specifying (KindAny_,StatusAny_) would delete every generated specification."
             return vals
 
-  putStrLn "(Status,Kind) tuples to discard immediately"
+  putStrLn "(Kind,Status) tuples to discard immediately"
   putStrLn $ renderSized 79 $ vcat $ map pretty (S.toList notUseful)
+  putStrLn ""
 
   nullParamGen toolchain_ouput
 

@@ -110,6 +110,7 @@ Library
                      , Gen.Generalise.Runner
                      , Gen.Helpers.InlineLettings
                      , Gen.Helpers.LineError
+                     , Gen.Helpers.MonadNote
                      , Gen.Helpers.Placeholders
                      , Gen.Helpers.SizeOf
                      , Gen.Helpers.Str
@@ -194,6 +195,7 @@ Library
                      , vector
                      , aeson-pretty
                      , parallel-io
+                     , pipes
 
    default-extensions:
         NoImplicitPrelude
