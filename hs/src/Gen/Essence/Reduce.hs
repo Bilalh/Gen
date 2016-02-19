@@ -12,7 +12,7 @@ import Gen.Reduce.FormatResults (formatResults)
 import Gen.Reduce.Random
 import Gen.Reduce.Reduce        (reduceMain)
 import System.FilePath          (takeBaseName)
-import Control.Concurrent.ParallelIO.Global (stopGlobalPool,parallel)
+import Control.Concurrent.ParallelIO.Global (stopGlobalPool,parallelInterleaved)
 import Gen.Helpers.MonadNote
 import Gen.Essence.Log
 
@@ -32,7 +32,7 @@ reduceErrors :: (MonadState Carry m, MonadIO m, MonadDB m)
 reduceErrors ec@EssenceConfig{logLevel} errs = do
   args <- mapM (reduceArgs ec) errs
   results <- liftIO $ do
-    res <- parallel [ processReduceArgs logLevel arg | arg <- args ]
+    res <- parallelInterleaved [ processReduceArgs logLevel arg | arg <- args ]
     stopGlobalPool
     return res
 
