@@ -217,7 +217,6 @@ mainWithArgs u@Essence{..} = do
                , domainDepth_     = domain_depth
                , expressionDepth_ = expression_depth
 
-               , totalIsRealTime    = not total_is_cpu_time
                , deletePassing_     = not keep_passing
                , binariesDirectory_ = binaries_directory
                , oldConjure_        = old_conjure
@@ -352,8 +351,6 @@ mainWithArgs u@Reduce{..} = do
         [ aerr "spec-directory" (null spec_directory)
         , aerr "-p|--per-spec-time >0" (per_spec_time == 0)
         , aerr "-t|--total-time > 0 if specified" (total_time_may == Just 0)
-        , aerr "-@/--total-is-cpu-time requires -t/--total-time to be specified"
-                   (total_is_cpu_time && total_time_may == Nothing)
         ] ++ fileErr
 
   case errors of
@@ -383,7 +380,6 @@ mainWithArgs u@Reduce{..} = do
                  ,specDir_             = spec_directory
                  ,specTime_            = per_spec_time
                  ,resultsDB_dir        = db_directory
-                 ,totalIsRealTime_     = not total_is_cpu_time
                  ,R.cores_             = cores
                  ,R.binariesDirectory_ = binaries_directory
                  ,R.toolchainOutput_   = toolchain_ouput
@@ -455,7 +451,6 @@ mainWithArgs Generalise{..} = do
                  ,specDir_             = spec_directory
                  ,specTime_            = per_spec_time
                  ,resultsDB_dir        = db_directory
-                 ,totalIsRealTime_     = True
                  ,R.cores_             = cores
                  ,R.binariesDirectory_ = binaries_directory
                  ,R.toolchainOutput_   = toolchain_ouput
@@ -878,7 +873,6 @@ _essenceDebug = do
              , binaries_directory = Nothing
              , old_conjure        = False
              , limit_time         = Nothing
-             , total_is_cpu_time  = False
              , toolchain_ouput    = ToolchainNull_
              , no_csv             = False
              , given_dir          = Nothing
@@ -911,7 +905,6 @@ _givenDebug = do
              , binaries_directory = Nothing
              , old_conjure        = False
              , limit_time         = Nothing
-             , total_is_cpu_time  = False
              , toolchain_ouput    = ToolchainNull_
              , no_csv             = True
              , given_dir          = Just "/Users/bilalh/Desktop/Results/_notable/_new/2015-05-11_01-33_1431308031/_errors/RefineCompact_/RuleApplication_/1431310206_12"
@@ -942,7 +935,7 @@ _reduceDebug = do
        spec_directory = "/Users/bilalh/CS/Thesis/data/reduction_examples/parametrised_from_user/original",
        error_kind = Savilerow_, error_status = StatusAny_,
        error_choices = Nothing, list_kinds = False, list_statuses = False,
-       total_time_may = Nothing, total_is_cpu_time = False,
+       total_time_may = Nothing,
        output_directory = Nothing, _cores = Nothing, _seed = Nothing,
        keep_passing = False, delete_steps = False, delete_others = False,
        toolchain_ouput = ToolchainNull_, binaries_directory = Nothing,

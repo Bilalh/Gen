@@ -21,7 +21,6 @@ data UI
     , expression_depth   :: Int
     , _cores             :: Maybe Int
     , _seed              :: Maybe Int
-    , total_is_cpu_time  :: Bool
 
     , toolchain_ouput    :: ToolchainOutput
     , binaries_directory :: Maybe FilePath
@@ -51,7 +50,6 @@ data UI
     , list_statuses      :: Bool
 
     , total_time_may     :: Maybe Int
-    , total_is_cpu_time  :: Bool
 
     , output_directory   :: Maybe FilePath
     , _cores             :: Maybe Int
@@ -299,11 +297,6 @@ ui  = modes
                                     &= groupname "Other"
                                     &= explicit
                                     &= help "Random Seed to use"
-     , total_is_cpu_time = False    &= name "total-is-cpu-time"
-                                    &= groupname "Other"
-                                    &= explicit
-                                    &= help "The total time is cpu time, not real time "
-
      , binaries_directory = Nothing &= name "bin-dir"
                                     &= groupname "Other"
                                     &= typDir
@@ -419,10 +412,6 @@ ui  = modes
                                      &= groupname "Timing"
                                      &= explicit
                                      &= help "Total time for running specs, if specifed, Otherwise specs are reduced until a fixed point is reached"
-     , total_is_cpu_time = False     &= name "total-is-cpu-time"
-                                     &= groupname "Timing"
-                                     &= explicit
-                                     &= help "The total time is cpu time, not real time "
      , output_directory = def        &= typDir
                                      &= name "output-directory"
                                      &= name "o"

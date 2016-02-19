@@ -58,14 +58,11 @@ timedSpec2 :: (Spec -> Maybe Point ->  RRR (Maybe ErrData, Int) )
            -> RRR (Timed a)
 timedSpec2 runner sp mp f g= do
     startTime <- liftIO $ round `fmap` getPOSIXTime
-    (res, cpuTimeUsed) <- runner sp mp
+    (res, _) <- runner sp mp
     endTime <- liftIO $ round `fmap` getPOSIXTime
     let realTimeUsed = endTime - startTime
 
-    timeUsed <- gets rconfig >>= return . totalIsRealTime_ >>= \case
-                True  -> return realTimeUsed
-                False -> return cpuTimeUsed
-
+    timeUsed <-  return realTimeUsed
     modify $ \st -> st{timeLeft_ = fmap (\x -> x - timeUsed )  (timeLeft_ st) }
 
     gets timeLeft_ >>= \case

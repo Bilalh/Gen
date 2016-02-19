@@ -155,7 +155,7 @@ doCommon ec@EC.EssenceConfig{..} refineType = do
 
 
               essencePath <- writeModelDef dir model
-              (givenResult, givenCPU) <- case hasGivens model of
+              (givenResult, _) <- case hasGivens model of
                 False -> return $ (Right $ Nothing, 0)
                 True -> do
                   liftIO $ withSystemTempDirectory "gen-instance" $ \tmp -> do
@@ -165,7 +165,6 @@ doCommon ec@EC.EssenceConfig{..} refineType = do
                         (\ (_ :: Exc.SomeException) -> return False )
 
                     if not b then
-                      -- FIXME get real cpu time
                       return $ (Left "Some instance gen error", 1)
                     else do
                       m ::  RunMetadata <- liftIO $ readFromJSON (tmp </> "metadata.json")

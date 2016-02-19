@@ -31,7 +31,6 @@ data RConfig = RConfig
     , deletePassing_      :: Bool
     , resultsDB_dir       :: Maybe FilePath
 
-    , totalIsRealTime_    :: Bool
     , alwaysCompact_      :: Bool
     } deriving Show
 
@@ -72,7 +71,6 @@ instance Default RConfig where
           ,toolchainOutput_    = def
           ,deletePassing_      = False
           ,resultsDB_dir       = Nothing
-          ,totalIsRealTime_    = False
           ,alwaysCompact_      = False
           }
 

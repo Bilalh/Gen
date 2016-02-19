@@ -93,7 +93,6 @@ reduceArgs EssenceConfig{..} ErrData{..}= do
                ,R.binariesDirectory_ = binariesDirectory_
                ,R.toolchainOutput_   = toolchainOutput_
                ,R.deletePassing_     = deletePassing_
-               ,totalIsRealTime_     = totalIsRealTime
                ,resultsDB_dir        = db_dir
                ,alwaysCompact_       = False
                }

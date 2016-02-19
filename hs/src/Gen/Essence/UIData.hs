@@ -32,7 +32,6 @@ data EssenceConfig = EssenceConfig
       , cores_           :: Int
       , seed_            :: Int
 
-      , totalIsRealTime    :: Bool
       , deletePassing_     :: Bool
       , binariesDirectory_ :: Maybe Directory
       , oldConjure_        :: Bool
@@ -56,7 +55,6 @@ instance Default EssenceConfig where
       , expressionDepth_   = error "EssenceConfig expressionDepth_ not set"
 
       , mode_ = Solve_
-      , totalIsRealTime    = True
       , deletePassing_     = False
       , binariesDirectory_ = Nothing
       , oldConjure_        = False
