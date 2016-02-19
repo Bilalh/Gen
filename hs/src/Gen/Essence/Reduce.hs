@@ -12,7 +12,7 @@ import Gen.Reduce.FormatResults (formatResults)
 import Gen.Reduce.Random
 import Gen.Reduce.Reduce        (reduceMain)
 import System.FilePath          (takeBaseName)
-import Control.Concurrent.ParallelIO.Global (stopGlobalPool,parallelInterleaved)
+import Control.Concurrent.ParallelIO.Global (parallelInterleaved)
 import Gen.Helpers.MonadNote
 import Gen.Essence.Log
 
