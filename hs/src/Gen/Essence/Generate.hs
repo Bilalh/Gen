@@ -93,12 +93,19 @@ doCommon ec@EC.EssenceConfig{..} refineType = do
     out    = outputDirectory_ </> "_passing"
     errdir = outputDirectory_ </> "_errors"
 
+    nextProcess timeLeft startTime mayGiven= do
+      endTime <- liftIO $  round `fmap` getPOSIXTime
+      let realTime = endTime - startTime
+      process (timeLeft - realTime) (nextElem mayGiven)
+
+
     process :: (Applicative m, MonadIO m, MonadState Carry m, MonadDB m)
           => Int -> Maybe [FilePath] -> m ()
     process timeLeft Nothing  | timeLeft <= 0 = return ()
     process _ (Just [])  = return ()
 
     process timeLeft mayGiven  = do
+      startTime <- liftIO $ round `fmap` getPOSIXTime
       liftIO $ putStrLn $  "& Generation " ++  (show (max timeLeft 0) ) ++ " seconds left"
 
       dom_size  <- liftIO $ (randomRIO (0, domainDepth_)     :: IO Int)
@@ -110,7 +117,7 @@ doCommon ec@EC.EssenceConfig{..} refineType = do
       specInDB sp >>= \case
         True -> do
           liftIO $ putStrLn $ "Not running spec with hash, already tested " ++ (show $ specHash)
-          process (timeLeft) (nextElem mayGiven)
+          nextProcess timeLeft startTime mayGiven
         False -> do
           liftIO $ putStrLn $ "> Processing: " ++ (show $ specHash)
 
@@ -125,7 +132,7 @@ doCommon ec@EC.EssenceConfig{..} refineType = do
                         , pretty x
                         , pretty . groom $ model
                         ]
-                  False -> process timeLeft (nextElem mayGiven)
+                  False -> nextProcess timeLeft startTime mayGiven
 
             Right{} -> do
               num <- liftIO (randomRIO (10,99) :: IO Int)  >>= return . show
@@ -148,8 +155,6 @@ doCommon ec@EC.EssenceConfig{..} refineType = do
 
 
               essencePath <- writeModelDef dir model
-              startTime <- liftIO $ round `fmap` getPOSIXTime
-
               (givenResult, givenCPU) <- case hasGivens model of
                 False -> return $ (Right $ Nothing, 0)
                 True -> do
@@ -177,11 +182,7 @@ doCommon ec@EC.EssenceConfig{..} refineType = do
               case givenResult of
                 Left err -> do
                   liftIO $ putStrLn $ "WARNING: " ++ err
-                  endTime <- liftIO $  round `fmap` getPOSIXTime
-                  let realTime = endTime - startTime
-                  case totalIsRealTime of
-                    False -> process (timeLeft - (floor givenCPU)) (nextElem mayGiven)
-                    True  -> process (timeLeft - realTime) (nextElem mayGiven)
+                  nextProcess timeLeft startTime mayGiven
 
                 Right paramPath -> do
                   mayPoint <- case paramPath of
@@ -232,11 +233,7 @@ doCommon ec@EC.EssenceConfig{..} refineType = do
                   liftIO $ putStrLn $ "> Processed: " ++ (show $ specHash)
                   liftIO $ putStrLn $ ""
 
-                  endTime <- liftIO $  round `fmap` getPOSIXTime
-                  let realTime = endTime - startTime
-                  case totalIsRealTime of
-                    False -> process (timeLeft - (floor (runTime+givenCPU))) (nextElem mayGiven)
-                    True  -> process (timeLeft - realTime) (nextElem mayGiven)
+                  nextProcess timeLeft startTime mayGiven
 
 
 classifyError :: EssenceConfig -> Directory -> Directory
