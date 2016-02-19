@@ -193,7 +193,7 @@ mainWithArgs u@Essence{..} = do
             readFromJSON fp
 
   notUseful <- case delete_immediately of
-          Nothing -> return $ S.fromList $  [(KindAny_, NumberToLarge_), (KindAny_,Timeout_)]
+          Nothing -> return $ S.fromList $  [(KindAny_, NumberToLarge_), (KindAny_,Timeout_), (KindAny_, Success_)]
           Just fp -> do
             vals <- readFromJSON fp
             when ( (KindAny_,StatusAny_) `S.member` vals ) $
