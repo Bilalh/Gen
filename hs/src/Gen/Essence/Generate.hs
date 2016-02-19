@@ -25,6 +25,7 @@ import GHC.Real                        (floor)
 import System.Directory                (copyFile, renameDirectory)
 import System.IO.Temp                  (withSystemTempDirectory)
 import Test.QuickCheck                 (Gen, generate)
+import Control.Concurrent.ParallelIO.Global (stopGlobalPool)
 
 import qualified Control.Exception  as Exc
 import qualified Data.Map           as M
@@ -64,6 +65,7 @@ generateEssence km ec@EC.EssenceConfig{..} = do
             doesDirectoryExist fp >>= \case
             False -> return ()
             True  -> removeDirectoryRecursive fp
+  stopGlobalPool
 
 
 generateWrap :: MonadIO m => Maybe [FilePath] -> Gen (Spec, Doc) -> m (Spec, Doc)

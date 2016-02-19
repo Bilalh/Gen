@@ -33,7 +33,6 @@ reduceErrors ec@EssenceConfig{logLevel} errs = do
   args <- mapM (reduceArgs ec) errs
   results <- liftIO $ do
     res <- parallelInterleaved [ processReduceArgs logLevel arg | arg <- args ]
-    stopGlobalPool
     return res
 
   let (specs,dbs) = unzip results
