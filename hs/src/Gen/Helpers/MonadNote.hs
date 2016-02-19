@@ -1,4 +1,4 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving, UndecidableInstances #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Gen.Helpers.MonadNote  where
 
 import Gen.Imports
