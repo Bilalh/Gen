@@ -401,47 +401,57 @@ instance (RndGen m,  MonadLog m) => Reduce (Domain () Expr) m where
       i <- chooseR (0, 5)
       return $ [EDom $ DomainInt [RangeSingle (ECon $ ConstantInt i)]]
 
-  single (DomainTuple x) = do
+  single d@(DomainTuple x) = do
     xs <- mapM single x
-    return [ EDom $ DomainTuple vs
-           | vs <- take 2 $ transpose . map (map unEDom) $  xs]
+    let res = [ EDom $ DomainTuple vs
+              | vs <- transpose . map (map unEDom) $  xs]
+    reduceChecks (EDom d) res
 
-  single (DomainMatrix x1 x2) = do
+  single d@(DomainMatrix x1 x2) = do
    doms <- single x1 >>= pure . map unEDom
-   inn <- single x2  >>= pure . map unEDom
+   inn  <- single x2 >>= pure . map unEDom
 
-   return . concat . (flip map) (take 2 inn) $ \b ->
-       [ EDom $ DomainMatrix a b | a <- (take 2 doms ++ [x1] ) ]
+   let res = concat . (flip map) inn $ \b ->
+               [ EDom $ DomainMatrix a b | a <- (doms ++ [x1] ) ]
+   reduceChecks (EDom d) res
 
-  single (DomainSet _ _ x3) = do
+  single d@(DomainSet _ _ x3) = do
     inn <- single x3  >>= pure . map unEDom
-    return [ EDom $ DomainSet () def a | a <- take 2 $ inn ]
+    let res =  [ EDom $ DomainSet () def a | a <- inn ]
+    reduceChecks (EDom d) res
 
   -- TODO single MSet attrs
-  single (DomainMSet _ attrs x3) = do
+  single d@(DomainMSet _ attrs x3) = do
     inn <- single x3  >>= pure . map unEDom
-    return $ [ EDom $ DomainMSet () attrs a | a <- take 2 $ inn ]
+    let res = [ EDom $ DomainMSet () attrs a | a <- inn ]
+    reduceChecks (EDom d) res
 
-  single (DomainPartition _ _ x3) = do
+  single d@(DomainPartition _ _ x3) = do
     inn <- single x3  >>= pure . map unEDom
-    return [ EDom $ DomainPartition () def a | a <- take 2 $ inn ]
+    let res =  [ EDom $ DomainPartition () def a | a <- inn ]
+    reduceChecks (EDom d) res
 
-  single (DomainSequence _ _ x3) = do
+  single d@(DomainSequence _ _ x3) = do
     inn <- single x3  >>= pure . map unEDom
-    return [ EDom $ DomainSequence () def a | a <- take 2 $ inn ]
+    let res =  [ EDom $ DomainSequence () def a | a <- inn ]
+    reduceChecks (EDom d) res
 
-  single (DomainFunction _ _ x1 x2) = do
-   aa <- single x1  >>= pure . map unEDom
-   bb <- single x2  >>= pure . map unEDom
+  single d@(DomainFunction _ _ x1 x2) = do
+    aa <- single x1  >>= pure . map unEDom
+    bb <- single x2  >>= pure . map unEDom
 
-   return . concat . (flip map) (take 2 aa ++ [x1]) $ \a ->
-       [ EDom $ DomainFunction () def a b | b <- (take 2 bb ++ [x2] )
-       , x1 /= a || x2 /= b ]
+    let res = concat . (flip map) (aa ++ [x1]) $ \a ->
+                [ EDom $ DomainFunction () def a b | b <- (bb ++ [x2] )
+                , x1 /= a || x2 /= b ]
+    reduceChecks (EDom d) res
 
-  single (DomainRelation _ _ x3)  = do
+
+  single d@(DomainRelation _ _ x3)  = do
     xs <- mapM single x3
-    return [ EDom $ DomainRelation () def vs
-           | vs <- take 2 $ transpose . map (map unEDom) $  xs]
+    let res = [ EDom $ DomainRelation () def vs
+              | vs <- take 2 $ transpose . map (map unEDom) $  xs]
+    reduceChecks (EDom d) res
+
 
   --TODO other types
   single x@(DomainRecord _)             = return [EDom x]
