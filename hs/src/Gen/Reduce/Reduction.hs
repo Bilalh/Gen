@@ -449,7 +449,7 @@ instance (RndGen m,  MonadLog m) => Reduce (Domain () Expr) m where
   single d@(DomainRelation _ _ x3)  = do
     xs <- mapM single x3
     let res = [ EDom $ DomainRelation () def vs
-              | vs <- take 2 $ transpose . map (map unEDom) $  xs]
+              | vs <- transpose . map (map unEDom) $  xs]
     reduceChecks (EDom d) res
 
 
