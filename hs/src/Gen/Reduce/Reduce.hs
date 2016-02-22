@@ -92,13 +92,14 @@ noteMsg tx s = do
     noteFormat ("@" <+> tx) []
     return s
 
+
 -- | The reduction process
 doReductions :: (Spec, Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
 doReductions start =
     return (Continue start)
     >>= con "tryRemoveConstraints" tryRemoveConstraints
     >>= con "loopToFixed"          (loopToFixed False)
-    >>= con "eprimeAsSpec"         eprimeAsSpec
+    -- >>= con "eprimeAsSpec"         eprimeAsSpec
 
 
 loopToFixed :: Bool -> (Spec,  Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
@@ -273,22 +274,25 @@ removeConstraints (Spec ds oes obj,mp) = do
 
 
 simplyFinds:: (Spec,  Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
-simplyFinds d@((Spec ds _ _), _) = simplyDomain d org others
+simplyFinds d@((Spec ds _ _), _) = simplyDomain d org others wrapper
   where
-    org    = [ ((name,ix),val) | (name, (ix, Findd val)) <- M.toList ds ]
-    others = M.filter isGiven ds
+    org     = [ ((name,ix),val) | (name, (ix, Findd val)) <- M.toList ds ]
+    others  = M.filter isGiven ds
+    wrapper = Findd
 
 simplyGivens:: (Spec,  Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
-simplyGivens d@((Spec ds _ _), _) = simplyDomain d org others
+simplyGivens d@((Spec ds _ _), _) = simplyDomain d org others wrapper
   where
-    org    = [ ((name,ix),val) | (name, (ix, Givenn val)) <- M.toList ds ]
-    others = M.filter isFind ds
+    org     = [ ((name,ix),val) | (name, (ix, Givenn val)) <- M.toList ds ]
+    others  = M.filter isFind ds
+    wrapper = Givenn
 
 simplyDomain :: (Spec,  Maybe Point)
              -> [((Text, Int), Domain () Expr)]
              -> M.Map Text (Int, GF)
+             -> (Domain () Expr -> GF)
              -> RRR (Timed (Spec,  Maybe Point))
-simplyDomain d@(sp@(Spec _ es obj), mp) org others= do
+simplyDomain d@(sp@(Spec _ es obj), mp) org others wrapper= do
   domsToDo <- doDoms org
   -- liftIO $ putStrLn . show . prettyArr $ map prettyArr domsToDo
   fin <- process1 [ dd |  dd <- domsToDo, dd /= org]
@@ -301,7 +305,7 @@ simplyDomain d@(sp@(Spec _ es obj), mp) org others= do
   where
   toDoms :: [((Text,Int), Domain () Expr)] -> Domains
   toDoms vals =ensureAFind $  (M.fromList $ map trans vals) `M.union` others
-  trans ((te,ix),dom) = (te, (ix, Findd dom))
+  trans ((te,ix),dom) = (te, (ix, wrapper dom))
 
   doDoms :: [( (Text,Int), Domain () Expr)] -> RRR [[((Text,Int),Domain () Expr)]]
   doDoms [] = docError [ "No domains in reduce:simplyFinds" ]
