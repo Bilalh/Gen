@@ -932,7 +932,8 @@ _reduceDebug = do
 
   let ec = Reduce{per_spec_time = 30,
        -- spec_directory = "/Users/bilalh/CS/Thesis/data/reduction_examples/parametrised_from_user",
-       spec_directory = "/Users/bilalh/CS/Thesis/data/reduction_examples/parametrised_from_user/original",
+       -- spec_directory = "/Users/bilalh/CS/Thesis/data/reduction_examples/parametrised_from_user/original",
+       spec_directory = "/Users/bilalh/CS/Thesis/data/reduction_examples/given_reduce/Current",
        error_kind = Savilerow_, error_status = StatusAny_,
        error_choices = Nothing, list_kinds = False, list_statuses = False,
        total_time_may = Nothing,
