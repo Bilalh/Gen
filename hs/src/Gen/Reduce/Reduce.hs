@@ -1,4 +1,4 @@
-{-# LANGUAGE KindSignatures, Rank2Types, TupleSections #-}
+{-# LANGUAGE KindSignatures, Rank2Types, TupleSections, PatternSynonyms #-}
 module Gen.Reduce.Reduce where
 
 import Conjure.Language.Domain
@@ -110,8 +110,8 @@ loopToFixed start = do
       >>= con "removeConstraints"    removeConstraints
       >>= con "inlineGivens"         inlineGivens
       >>= con "simplyFinds"          simplyFinds
+      >>= con "simplyGivens"         simplyGivens
       >>= con "simplyConstraints"    simplyConstraints
-      -- >>= con "simplyGivens"         simplyGivens
 
   case res of
     (NoTimeLeft end) -> return $ NoTimeLeft end
@@ -268,9 +268,23 @@ removeConstraints (Spec ds oes obj,mp) = do
           g Nothing = process xs
 
 
-simplyFinds :: (Spec,  Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
-simplyFinds d@(sp@(Spec ds es obj), mp) = do
-  let org = [ ((name,ix),val) | (name, (ix, Findd val)) <- M.toList ds ]
+simplyFinds:: (Spec,  Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
+simplyFinds d@((Spec ds _ _), _) = simplyDomain d org others
+  where
+    org    = [ ((name,ix),val) | (name, (ix, Findd val)) <- M.toList ds ]
+    others = M.filter isGiven ds
+
+simplyGivens:: (Spec,  Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
+simplyGivens d@((Spec ds _ _), _) = simplyDomain d org others
+  where
+    org    = [ ((name,ix),val) | (name, (ix, Givenn val)) <- M.toList ds ]
+    others = M.filter isFind ds
+
+simplyDomain :: (Spec,  Maybe Point)
+             -> [((Text, Int), Domain () Expr)]
+             -> M.Map Text (Int, GF)
+             -> RRR (Timed (Spec,  Maybe Point))
+simplyDomain d@(sp@(Spec _ es obj), mp) org others= do
   domsToDo <- doDoms org
   -- liftIO $ putStrLn . show . prettyArr $ map prettyArr domsToDo
   fin <- process1 [ dd |  dd <- domsToDo, dd /= org]
@@ -281,10 +295,8 @@ simplyFinds d@(sp@(Spec ds es obj), mp) = do
       return $ flip fmap fin $ \x -> ( Spec (toDoms x) es obj  , mp)
 
   where
-  givens = M.filter isGiven ds where
-
   toDoms :: [((Text,Int), Domain () Expr)] -> Domains
-  toDoms vals =ensureAFind $  (M.fromList $ map trans vals) `M.union` givens
+  toDoms vals =ensureAFind $  (M.fromList $ map trans vals) `M.union` others
   trans ((te,ix),dom) = (te, (ix, Findd dom))
 
   doDoms :: [( (Text,Int), Domain () Expr)] -> RRR [[((Text,Int),Domain () Expr)]]
