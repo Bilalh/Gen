@@ -97,12 +97,12 @@ doReductions :: (Spec, Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
 doReductions start =
     return (Continue start)
     >>= con "tryRemoveConstraints" tryRemoveConstraints
-    >>= con "loopToFixed"          loopToFixed
+    >>= con "loopToFixed"          (loopToFixed False)
     >>= con "eprimeAsSpec"         eprimeAsSpec
 
 
-loopToFixed :: (Spec,  Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
-loopToFixed start = do
+loopToFixed :: Bool -> (Spec,  Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
+loopToFixed fin start = do
   noteFormat ("@" <+> "loopToFixed") []
   res <-  return (Continue start)
       >>= con "removeObjective"      removeObjective
@@ -116,10 +116,14 @@ loopToFixed start = do
   case res of
     (NoTimeLeft end) -> return $ NoTimeLeft end
     (Continue cur)   -> do
+      -- We allow doing a reduction twice before giving up
       if hash start == hash cur then
+        if fin then
           return $ Continue start
+        else
+          loopToFixed True cur
       else
-          loopToFixed cur
+        loopToFixed fin cur
 
 
 tryRemoveConstraints :: (Spec,  Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
@@ -465,7 +469,7 @@ eprimeAsSpec start@(_,mp) = do
       g sp_p (Just r) = do
         liftIO $ noteFormat "eprimeAsSpec SameError" [pretty r]
         recordResult r
-        loopToFixed sp_p
+        loopToFixed False sp_p
 
 
 ensureAFind :: Domains -> Domains
