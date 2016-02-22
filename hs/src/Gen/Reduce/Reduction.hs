@@ -42,7 +42,7 @@ class (RndGen m,  MonadLog m,  Simpler a a) => Reduce a m where
     mutate  _ = return []
 
     reduceChecks :: a -> [a] -> m [a]
-    reduceChecks _ rs = return rs
+    -- reduceChecks _ rs = return rs
     reduceChecks a rs = do
       return $ filter (\x -> runIdentity $ ignoreLogs $  simpler1 x a) rs
 

@@ -169,19 +169,26 @@ instance Simpler (Domain () Expr) (Domain () Expr) where
 
       x  -> return x
 
+depthThenCount :: forall a a1
+                . (Pretty a, Pretty a1, DepthOf a, DepthOf a1)
+               => a -> a1 -> Domain () Expr -> Domain () Expr
+               -> Ordering
+depthThenCount a2 b2 a3 b3 =
+  case compare (depthOf a2) (depthOf b2) of
+    EQ -> case compare (attrCount a2) (attrCount b2) of
+      EQ -> compareSameDomain a3 b3
+      o -> o
+    o -> o
+
 compareSameDomain :: Domain () Expr -> Domain () Expr -> Ordering
 compareSameDomain (DomainMatrix _ a2)        (DomainMatrix _ b2) =
     compareSameDomain a2 b2
 
 compareSameDomain (DomainSet _ a2 a3)         (DomainSet _ b2 b3) =
-  case compare (attrCount a2) (attrCount b2) of
-    EQ -> compareSameDomain a3 b3
-    x  -> x
+  depthThenCount a2 b2 a3 b3
 
 compareSameDomain (DomainMSet _ a2 a3)        (DomainMSet _ b2 b3) =
-  case compare (attrCount a2) (attrCount b2) of
-    EQ -> compareSameDomain a3 b3
-    x  -> x
+  depthThenCount a2 b2 a3 b3
 
 compareSameDomain (DomainFunction _ a2 a3 a4) (DomainFunction _ b2 b3 b4) =
   case compare (attrCount a2) (attrCount b2) of
@@ -189,29 +196,27 @@ compareSameDomain (DomainFunction _ a2 a3 a4) (DomainFunction _ b2 b3 b4) =
     x  -> x
 
 compareSameDomain (DomainSequence _ a2 a3)    (DomainSequence _ b2 b3) =
-  case compare (attrCount a2) (attrCount b2) of
-    EQ -> compareSameDomain a3 b3
-    x  -> x
-
-compareSameDomain (DomainRelation _ a2 a3)    (DomainRelation _ b2 b3) =
-  case compare (attrCount a2) (attrCount b2) of
-    EQ ->
-      let os = zipWith compareSameDomain a3 b3
-      in combineOrderings os
-    x  -> x
+  depthThenCount a2 b2 a3 b3
 
 compareSameDomain (DomainPartition _ a2 a3)   (DomainPartition _ b2 b3) =
-  case compare (attrCount a2) (attrCount b2) of
-    EQ -> compareSameDomain a3 b3
-    x  -> x
+  depthThenCount a2 b2 a3 b3
 
 compareSameDomain (DomainTuple a)             (DomainTuple b)  =
   let os = zipWith compareSameDomain a b
   in combineOrderings os
 
+compareSameDomain (DomainRelation _ a2 a3)    (DomainRelation _ b2 b3) =
+  case compare (depthOf a2) (depthOf b2) of
+    EQ -> case compare (attrCount a2) (attrCount b2) of
+      EQ -> let os = zipWith compareSameDomain a3 b3
+            in combineOrderings os
+      o -> o
+    o -> o
+
 -- compareSameDomain x@DomainInt{} y@DomainInt{} = docError $ map pretty [x,y]
 
 compareSameDomain _ _ = EQ
+
 
 -- FIXME hackly way of counting the number of attrs
 attrCount :: Pretty a => a -> Int

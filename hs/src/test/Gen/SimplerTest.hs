@@ -101,6 +101,7 @@ tests = testGroup "simpler"
      (DomainBool,  [domainn| set of int |])
    , ([domainn| set of int |], [domainn| set (maxSize 2) of int |] )
    , ([domainn| set (maxSize 2) of int |], [domainn| set (maxSize 2+1) of int |] )
+   , ([domainn| set (maxSize 2) of int |], [domainn| set (maxSize 2**3) of int |] )
    , ([domainn| set (maxSize 2) of int |], [domainn| set (maxSize 2, minSize 4) of int |] )
    , ([domainn| function int --> int |], [domainn| function (size 1) int --> int |] )
    , ([domainn| function (maxSize 1) int --> int |], [domainn| function (minSize 1, injective) int --> int |] )
