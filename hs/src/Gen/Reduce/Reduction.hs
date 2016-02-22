@@ -42,7 +42,7 @@ class (RndGen m,  MonadLog m,  Simpler a a) => Reduce a m where
     mutate  _ = return []
 
     reduceChecks :: a -> [a] -> m [a]
-    -- reduceChecks _ rs = return rs
+    reduceChecks _ rs = return rs
     reduceChecks a rs = do
       return $ filter (\x -> runIdentity $ ignoreLogs $  simpler1 x a) rs
 
@@ -336,15 +336,17 @@ mutate_2d wrap xs = do
     f (es,ei) = [ [ if xi == ei then e else x | (x,xi) <-ixs ]  | e <- es ]
 
 
-getReducedChildren :: (Monad m, Applicative m, RndGen m,  MonadLog m)
-                   => (z -> Expr) -> z -> m ([([Expr], Expr)])
+getReducedChildren :: forall a z m
+                    . ( Monad m, Applicative m, RndGen m,  MonadLog m
+                      , Data a, Reduce a (StateT (WithGen [([a], a)]) m) )
+                   => (z -> a) -> z -> m ([([a], a)])
 getReducedChildren zToExpr lit = do
   start <- withGen_new []
   fin <- flip runStateT start $ descendM fff (zToExpr lit)
   return $ reverse . withGen_val . snd $ fin
   where
-     fff (x :: Expr) = do
-       xs :: [([Expr],Expr)] <- gets withGen_val
+     fff (x :: a) = do
+       xs :: [([a],a)] <- gets withGen_val
        c <- reduce x
        -- let ht = heads_tails c
        let ht = c
@@ -361,7 +363,7 @@ transposeFill ee =
   in  transpose padded
 
 
-replaceChildren :: Data c => c -> [Expr] -> c
+replaceChildren :: (Data c, Data a) => c -> [a] -> c
 replaceChildren lit news = fst . flip runState news $ f1
                            <$> T.mapM fff ch1
    where
@@ -378,15 +380,17 @@ instance (RndGen m,  MonadLog m) => Reduce (Domain () Expr) m where
     let lss = map (replaceChildren li) (transposeFill rLits)
     let res = concatMap (innersExpand reduceLength1) lss
 
-    si   <- single li
-    subs <- subterms li
-    mu   <- mutate li
-    -- return $ mconcat  $
+    si      <- single li
+    subs    <- subterms li
+    mu      <- mutate li
+    r_attrs <- reduceAttr li
+
     reduceChecks li $ mconcat  $
                [ [ x | (EDom x) <- si]
                , res
                , [ x | (EDom x) <- subs]
                , [ x | (EDom x) <- mu]
+               , r_attrs
                ]
 
   single x@DomainAny{}       = return [EDom x]
@@ -468,13 +472,11 @@ instance (RndGen m,  MonadLog m) => Reduce (Domain () Expr) m where
                 , x1 /= a || x2 /= b ]
     reduceChecks (EDom d) res
 
-
   single d@(DomainRelation _ _ x3)  = do
     xs <- mapM single x3
     let res = [ EDom $ DomainRelation () def vs
               | vs <- transpose . map (map unEDom) $  xs]
     reduceChecks (EDom d) res
-
 
   --TODO other types
   single x@(DomainRecord _)             = return [EDom x]
@@ -488,14 +490,62 @@ instance (RndGen m,  MonadLog m) => Reduce (Domain () Expr) m where
   mutate (DomainRelation r _ x3)    = return [EDom $ DomainRelation r def x3 ]
   mutate (DomainPartition r _ x3)   = return [EDom $ DomainPartition r def x3 ]
 
-  -- TODO have to make sure thet the mset attr would be vaild
-  -- mutate (DomainMSet r x2 x3)        = _f
   mutate _ = return []
+
 
 unEDom :: Expr -> Domain () Expr
 unEDom (EDom b) = b
 unEDom b        = lineError $line [ "not an Domain" <+> pretty b]
 
+reduceAttr :: (RndGen m,  MonadLog m)
+           => Domain () Expr -> m [Domain () Expr]
+-- reduceAttr d@(DomainInt  d)               = return []
+-- reduceAttr d@(DomainSet _ d2 d3)          = return []
+
+reduceAttr d@(DomainMSet  _ d2 d3)= do
+  r_attrs <- reduce d2
+  let res = [DomainMSet () a d3 | a <- r_attrs ]
+  reduceChecks d res
+
+-- reduceAttr d@(DomainFunction  _ d2 d3 d4) = return []
+-- reduceAttr d@(DomainSequence  _ d2 d3)    = return []
+-- reduceAttr d@(DomainRelation  _ d2 d3)    = return []
+-- reduceAttr d@(DomainPartition _ d2 d3)    = return []
+reduceAttr _                            = return []
+
+
+instance (RndGen m,  MonadLog m) =>  Reduce (MSetAttr Expr) m where
+  single   _ = lineError $line
+                  ["Single called from Reduce (MSetAttr Expr) m when it should not be"]
+  subterms _ = return []
+
+  reduce x@(MSetAttr x1 x2) = do
+    r_size  <- reduce x1
+    r_occur <- reduce x2
+
+    let attrs =  [ MSetAttr s o | s <- r_size, o <- r_occur  ]
+    reduceChecks x attrs
+
+
+instance (RndGen m,  MonadLog m) =>  Reduce (SizeAttr Expr) m where
+  single   _ = lineError $line
+                  ["Single called from Reduce (SizeAttr Expr) m when it should not be"]
+  subterms _ = return []
+
+  reduce li = do
+    rLits <- getReducedChildren id li
+    let lss = map (replaceChildren li) (transposeFill rLits)
+    reduceChecks li $ lss
+
+instance (RndGen m,  MonadLog m) =>  Reduce (OccurAttr Expr) m where
+  single   _ = lineError $line
+                  ["Single called from Reduce (OccurAttr Expr) m when it should not be"]
+  subterms _ = return []
+
+  reduce li = do
+    rLits <- getReducedChildren id li
+    let lss = map (replaceChildren li) (transposeFill rLits)
+    reduceChecks li $ lss
 
 
 instance (RndGen m,  MonadLog m) =>  Reduce (Op Expr) m where
@@ -849,7 +899,6 @@ __run1 b f ee = do
   else
       return ()
   return res
-
 
 __depths :: forall c' c'1.
             (DepthOf c'1, DepthOf c', Pretty c'1, Pretty c', Ord c') =>

@@ -97,7 +97,7 @@ noteMsg tx s = do
 doReductions :: (Spec, Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
 doReductions start =
     return (Continue start)
-    >>= con "tryRemoveConstraints" tryRemoveConstraints
+    -- >>= con "tryRemoveConstraints" tryRemoveConstraints
     >>= con "loopToFixed"          (loopToFixed False)
     -- >>= con "eprimeAsSpec"         eprimeAsSpec
 
@@ -106,13 +106,13 @@ loopToFixed :: Bool -> (Spec,  Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
 loopToFixed fin start = do
   noteFormat ("@" <+> "loopToFixed") []
   res <-  return (Continue start)
-      >>= con "removeObjective"      removeObjective
-      >>= con "removeUnusedDomains"  removeUnusedDomains
-      >>= con "removeConstraints"    removeConstraints
-      >>= con "inlineGivens"         inlineGivens
-      >>= con "simplyFinds"          simplyFinds
+      -- >>= con "removeObjective"      removeObjective
+      -- >>= con "removeUnusedDomains"  removeUnusedDomains
+      -- >>= con "removeConstraints"    removeConstraints
+      -- >>= con "inlineGivens"         inlineGivens
+      -- >>= con "simplyFinds"          simplyFinds
       >>= con "simplyGivens"         simplyGivens
-      >>= con "simplyConstraints"    simplyConstraints
+      -- >>= con "simplyConstraints"    simplyConstraints
 
   case res of
     (NoTimeLeft end) -> return $ NoTimeLeft end

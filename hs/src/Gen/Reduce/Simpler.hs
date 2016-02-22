@@ -17,6 +17,7 @@ import Gen.Reduce.Inners
 import qualified Data.Foldable as F
 import qualified Data.Text     as T
 
+
 -- True if a1 is simpler then a2
 class (Pretty a, Eq a, Show a, Pretty b, Eq b, Show b
       )
@@ -37,91 +38,82 @@ class (Pretty a, Eq a, Show a, Pretty b, Eq b, Show b
 
   simpler1 a b= simpler a b >>= (return . (== LT))
 
--- compareDepthThenAll a b = return $
---   case compare (depthOf a) (depthOf b) of
---     EQ -> compare (length $ universe a) (length $  universe b)
---     o -> o
-
 
 instance Simpler Expr Expr where
-    simplerImp (EVar a)               (EVar b)      = simplerImp a b
-    simplerImp (EDom a)               (EDom b)      = simplerImp a b
-    simplerImp (ECon a)               (ECon b)      = simplerImp a b
-    simplerImp (ELit a)               (ELit b)      = simplerImp a b
-    simplerImp a@ETyped{}           b@ETyped{}      = return $ compare (depthOf a) (depthOf b)
-    simplerImp (EOp a)                (EOp b)       = simplerImp a b
-    simplerImp (EMetaVar _)           (EMetaVar _)  = return EQ
-    simplerImp EEmptyGuard            EEmptyGuard   = return EQ
+  simplerImp (EVar a)               (EVar b)     = simplerImp a b
+  simplerImp (EDom a)               (EDom b)     = simplerImp a b
+  simplerImp (ECon a)               (ECon b)     = simplerImp a b
+  simplerImp (ELit a)               (ELit b)     = simplerImp a b
+  simplerImp a@ETyped{}           b@ETyped{}     = return $ compare (depthOf a) (depthOf b)
+  simplerImp (EOp a)                (EOp b)      = simplerImp a b
+  simplerImp (EMetaVar _)           (EMetaVar _) = return EQ
+  simplerImp EEmptyGuard            EEmptyGuard  = return EQ
 
 
-    simplerImp (ECon a) (EOp b)  = simplerImp a b
-    simplerImp (EOp a)  (ECon b) = simplerImp a b
+  simplerImp (ECon a) (EOp b)  = simplerImp a b
+  simplerImp (EOp a)  (ECon b) = simplerImp a b
 
-    simplerImp (ELit a) (EOp b)  = simplerImp a b
-    simplerImp (EOp a)  (ELit b) = simplerImp a b
+  simplerImp (ELit a) (EOp b)  = simplerImp a b
+  simplerImp (EOp a)  (ELit b) = simplerImp a b
 
-    simplerImp (ELit a) (ECon b)  = simplerImp a b
-    simplerImp (ECon a) (ELit b)  = simplerImp a b
+  simplerImp (ELit a) (ECon b)  = simplerImp a b
+  simplerImp (ECon a) (ELit b)  = simplerImp a b
 
-    simplerImp a@ETyped{} b  = return $ compare (depthOf a) (depthOf b)
-    simplerImp a b@ETyped{}  = return $ compare (depthOf a) (depthOf b)
+  simplerImp a@ETyped{} b  = return $ compare (depthOf a) (depthOf b)
+  simplerImp a b@ETyped{}  = return $ compare (depthOf a) (depthOf b)
 
-    simplerImp (EVar a) b  = simplerImp a b
-    simplerImp a (EVar b)  = simplerImp a b
+  simplerImp (EVar a) b  = simplerImp a b
+  simplerImp a (EVar b)  = simplerImp a b
 
-    simplerImp x1@(EComp i1 g1 cs1)  x2@(EComp i2 g2 cs2) = do
-      case compare (depthOf x1) (depthOf x2) of
-        EQ -> do
-          let c1Depth = maximum' 0 $ map depthOf cs1
-          let c2Depth = maximum' 0 $ map depthOf cs2
+  simplerImp x1@(EComp i1 g1 cs1)  x2@(EComp i2 g2 cs2) = do
+    case compare (depthOf x1) (depthOf x2) of
+      EQ -> do
+        let c1Depth = maximum' 0 $ map depthOf cs1
+        let c2Depth = maximum' 0 $ map depthOf cs2
 
-          let g1Depth = maximum' 0 $ map depthOf g1
-          let g2Depth = maximum' 0 $ map depthOf g2
+        let g1Depth = maximum' 0 $ map depthOf g1
+        let g2Depth = maximum' 0 $ map depthOf g2
 
-          -- TODO refactor?
-          case compare (length cs1) (length cs2) of
-            EQ -> case compare (length g1) (length g2) of
-              EQ -> case compare (depthOf i1) (depthOf i2) of
-                EQ -> case compare g1Depth g2Depth  of
-                  EQ -> case compare c1Depth c2Depth of
-                    EQ -> simplerParts g1 g2 >>= \case
-                      EQ -> simplerParts cs1 cs2 >>= \case
-                        o -> return o
+        -- TODO refactor?
+        case compare (length cs1) (length cs2) of
+          EQ -> case compare (length g1) (length g2) of
+            EQ -> case compare (depthOf i1) (depthOf i2) of
+              EQ -> case compare g1Depth g2Depth  of
+                EQ -> case compare c1Depth c2Depth of
+                  EQ -> simplerParts g1 g2 >>= \case
+                    EQ -> simplerParts cs1 cs2 >>= \case
                       o -> return o
-                    o  -> return o
+                    o -> return o
                   o  -> return o
                 o  -> return o
               o  -> return o
             o  -> return o
-        o  -> return o
+          o  -> return o
+      o  -> return o
 
-        where
-          simplerParts aa bb = do
-            os <- zipWithM simpler aa bb
-            let la = length (filter (== LT) os)
-            let lb = length (filter (== GT) os)
-            let res = if      la > lb then LT
-                      else if lb > la then GT
-                      else EQ
-            return res
+      where
+        simplerParts aa bb = do
+          os <- zipWithM simpler aa bb
+          return $ combineOrderings os
 
-    simplerImp a@EComp{} b@(ELit AbsLitMatrix{}) =
-      case compare (depthOf a) (depthOf b) of
-        EQ -> return GT
-        o  -> return o
+  simplerImp a@EComp{} b@(ELit AbsLitMatrix{}) =
+    case compare (depthOf a) (depthOf b) of
+      EQ -> return GT
+      o  -> return o
 
-    simplerImp a@EComp{} b = return $ compare (depthOf a) (depthOf b)
-    simplerImp a b@EComp{} = negSimplerImp a b
+  simplerImp a@EComp{} b = return $ compare (depthOf a) (depthOf b)
+  simplerImp a b@EComp{} = negSimplerImp a b
 
-    simplerImp a b = simplerImpError "Expr" a b
+  simplerImp a b = simplerImpError "Expr" a b
+
 
 instance Simpler EGen EGen where
-    simplerImp (GenDom _ x2) (GenDom _ y2) = simplerImp x2 y2
-    simplerImp (GenIn _ x2)  (GenIn _ y2)  = simplerImp x2 y2
+  simplerImp (GenDom _ x2) (GenDom _ y2) = simplerImp x2 y2
+  simplerImp (GenIn _ x2)  (GenIn _ y2)  = simplerImp x2 y2
 
-    -- TODO could this ever happen?
-    simplerImp GenIn{} GenDom{}  = return EQ
-    simplerImp GenDom{} GenIn{}  = return EQ
+  -- TODO could this ever happen?
+  simplerImp GenIn{} GenDom{}  = return EQ
+  simplerImp GenDom{} GenIn{}  = return EQ
 
 
 instance Simpler Type Type where
@@ -205,11 +197,7 @@ compareSameDomain (DomainRelation _ a2 a3)    (DomainRelation _ b2 b3) =
   case compare (attrCount a2) (attrCount b2) of
     EQ ->
       let os = zipWith compareSameDomain a3 b3
-          la = length (filter (== LT) os)
-          lb = length (filter (== GT) os) in
-      if      la > lb then LT
-      else if lb > la then GT
-      else EQ
+      in combineOrderings os
     x  -> x
 
 compareSameDomain (DomainPartition _ a2 a3)   (DomainPartition _ b2 b3) =
@@ -219,11 +207,7 @@ compareSameDomain (DomainPartition _ a2 a3)   (DomainPartition _ b2 b3) =
 
 compareSameDomain (DomainTuple a)             (DomainTuple b)  =
   let os = zipWith compareSameDomain a b
-      la = length (filter (== LT) os)
-      lb = length (filter (== GT) os) in
-  if      la > lb then LT
-  else if lb > la then GT
-  else EQ
+  in combineOrderings os
 
 -- compareSameDomain x@DomainInt{} y@DomainInt{} = docError $ map pretty [x,y]
 
@@ -234,6 +218,62 @@ attrCount :: Pretty a => a -> Int
 attrCount a = case T.split (==',') $  stringToText $ show $  pretty a of
   [x] | T.null (T.strip x) -> 0
   xs  -> length xs
+
+instance (DepthOf c, IntRange c, DepthOf d, IntRange d, Simpler c d)
+    => Simpler (MSetAttr c) (MSetAttr d) where
+  simplerImp (MSetAttr a1 a2) (MSetAttr b1 b2) = do
+    aa <- simplerImp a1 b1
+    bb <- simplerImp a2 b2
+    return $ combineOrderings [aa,bb]
+
+instance (DepthOf c, IntRange c, DepthOf d, IntRange d, Simpler c d)
+    => Simpler (SizeAttr c) (SizeAttr d) where
+  simplerImp a b =
+    case compare (depthOf a) (depthOf b) of
+      EQ -> simplerSub a b
+      o  -> return o
+
+    where
+    simplerSub :: Monad m => SizeAttr c -> SizeAttr d -> m Ordering
+    simplerSub SizeAttr_None SizeAttr_None           = return EQ
+    simplerSub SizeAttr_MinSize{} SizeAttr_MinSize{} = return EQ
+    simplerSub SizeAttr_MaxSize{} SizeAttr_MaxSize{} = return EQ
+    simplerSub SizeAttr_MinSize{} SizeAttr_MaxSize{} = return EQ
+    simplerSub SizeAttr_MaxSize{} SizeAttr_MinSize{} = return EQ
+
+    simplerSub SizeAttr_MinMaxSize{} SizeAttr_MinMaxSize{} = return EQ
+
+    simplerSub SizeAttr_None _         = return LT
+    simplerSub _ SizeAttr_None         = return GT
+
+    simplerSub SizeAttr_Size{} _       = return LT
+    simplerSub _ SizeAttr_Size{}       = return GT
+
+    simplerSub _ SizeAttr_MinMaxSize{} = return LT
+    simplerSub SizeAttr_MinMaxSize{} _ = return GT
+
+
+instance (DepthOf c, IntRange c, DepthOf d, IntRange d, Simpler c d)
+    => Simpler (OccurAttr c) (OccurAttr d) where
+  simplerImp a b =
+    case compare (depthOf a) (depthOf b) of
+      EQ -> simplerSub a b
+      o  -> return o
+
+    where
+    simplerSub :: Monad m => OccurAttr c -> OccurAttr d -> m Ordering
+    simplerSub OccurAttr_None{} OccurAttr_None{}               = return EQ
+    simplerSub OccurAttr_MinOccur{} OccurAttr_MinOccur{}       = return EQ
+    simplerSub OccurAttr_MaxOccur{} OccurAttr_MaxOccur{}       = return EQ
+    simplerSub OccurAttr_MinMaxOccur{} OccurAttr_MinMaxOccur{} = return EQ
+
+    simplerSub OccurAttr_MinOccur{} OccurAttr_MaxOccur{}       = return EQ
+    simplerSub OccurAttr_MaxOccur{} OccurAttr_MinOccur{}       = return EQ
+
+    simplerSub OccurAttr_None{} _        = return LT
+    simplerSub _ OccurAttr_None{}        = return GT
+    simplerSub _ OccurAttr_MinMaxOccur{} = return LT
+    simplerSub OccurAttr_MinMaxOccur{} _ = return GT
 
 
 instance Simpler (Op Expr) (Op Expr) where
@@ -347,3 +387,11 @@ negOrder :: Ordering -> Ordering
 negOrder LT = GT
 negOrder EQ = EQ
 negOrder GT = LT
+
+combineOrderings :: [Ordering] -> Ordering
+combineOrderings ords =
+  let la = length (filter (== LT) ords)
+      lb = length (filter (== GT) ords) in
+  if      la > lb then LT
+  else if lb > la then GT
+  else EQ
