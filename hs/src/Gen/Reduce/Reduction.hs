@@ -417,14 +417,37 @@ instance (RndGen m,  MonadLog m) => Reduce (Domain () Expr) m where
 
   single d@(DomainSet _ _ x3) = do
     inn <- single x3  >>= pure . map unEDom
+
     let res =  [ EDom $ DomainSet () def a | a <- inn ]
     reduceChecks (EDom d) res
 
-  -- TODO single MSet attrs
-  single d@(DomainMSet _ attrs x3) = do
+  single d@(DomainMSet _ (MSetAttr sa oa) x3) = do
     inn <- single x3  >>= pure . map unEDom
-    let res = [ EDom $ DomainMSet () attrs a | a <- inn ]
+    let attrs = catMaybes [doSizeAttr sa, doOccurAtrr oa]
+
+    let res =  concat [ [ EDom $ DomainMSet () a e | a <- attrs  ]
+                      | e <- inn ]
     reduceChecks (EDom d) res
+
+    where
+      doSizeAttr a@SizeAttr_Size{}         = Just (MSetAttr a def)
+      doSizeAttr a@SizeAttr_MaxSize{}      = Just (MSetAttr a def)
+      doSizeAttr (SizeAttr_MinMaxSize _ v) = Just (MSetAttr (SizeAttr_MaxSize v) def)
+      doSizeAttr _                         = Nothing
+
+      doOccurAtrr a@OccurAttr_MaxOccur{}       = Just (MSetAttr def a)
+      doOccurAtrr (OccurAttr_MinMaxOccur  _ v) = Just (MSetAttr def (OccurAttr_MaxOccur v))
+      doOccurAtrr _                            = Nothing
+
+  -- This work not work since the instance might not be vaild
+  -- single d@(DomainMSet _ _ x3) = do
+  --   inn <- single x3  >>= pure . map unEDom
+  --   size  <- chooseR (1, 5) >>= \i -> pure $ (ECon $ ConstantInt i)
+  --   occur <- chooseR (1, 5) >>= \i -> pure $ (ECon $ ConstantInt i)
+  --   let res =  concat [ [ EDom $ DomainMSet () (MSetAttr (SizeAttr_MaxSize size) def) a
+  --                       , EDom $ DomainMSet () (MSetAttr def (OccurAttr_MaxOccur occur)) a
+  --                       ] | a <- inn ]
+  --   reduceChecks (EDom d) res
 
   single d@(DomainPartition _ _ x3) = do
     inn <- single x3  >>= pure . map unEDom
