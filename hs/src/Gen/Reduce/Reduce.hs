@@ -16,6 +16,7 @@ import Gen.Reduce.UnusedDomains
 import System.FilePath          (takeExtension)
 import Conjure.Language.Name
 import Gen.Helpers.MonadNote
+import Gen.Reduce.Point
 
 import qualified Data.Map as M
 
@@ -316,18 +317,32 @@ simplyDomain d@(sp@(Spec _ es obj), mp) org others wrapper= do
             pure $ map (t,) ys
     return $ map (tx,) rx : rs
 
+
+  doSpec :: Spec -> Maybe Point
+          -> (Maybe ErrData -> RRR a)          -- No time left
+          -> (Maybe ErrData -> RRR (Timed a))  -- Time left
+          -> RRR (Timed a)
+  doSpec spec Nothing f g = timedSpec spec Nothing f g
+  doSpec spec jp@Just{} f g  = do
+    noteFormat "mkPoint" [nn "Spec" spec, nn "oldPoint" jp]
+    generatePoint spec >>= \case
+      Nothing -> g Nothing
+      Just p  -> do
+        noteFormat1 "mkPoint" (nn "created" p)
+        timedSpec spec jp f g
+
   process1 :: [[((Text,Int),Domain () Expr)]] -> RRR (Timed [((Text,Int),Domain () Expr)])
 
   process1 []              = return . Continue $ []
   process1 xs | (== []) xs = return . Continue $ []
 
   process1 xs | all (singleElem) xs = do
-    let fixed = map (headNote "process simplyFinds") xs
+    let fixed = map (headNote "process simplyDomains") xs
     let f (Just r) = do
             recordResult r
             return fixed
         f _ = return []
-    timedSpec (Spec (toDoms fixed) es obj) mp f (fmap Continue . f)
+    doSpec (Spec (toDoms fixed) es obj) mp f (fmap Continue . f)
 
   process1 xs = do
     fixed <- next xs
@@ -344,7 +359,7 @@ simplyDomain d@(sp@(Spec _ es obj), mp) org others wrapper= do
 
       g _ = removeNext xs >>= process1
 
-    timedSpec (Spec (toDoms fixed) es obj) mp f g
+    doSpec (Spec (toDoms fixed) es obj) mp f g
 
 
 simplyConstraints :: (Spec,  Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
@@ -533,7 +548,6 @@ recordResult err = do
   modify $ \st -> st{ mostReduced_=Just err
                     , mostReducedChoices_=Just (choices err) }
   return ()
-
 
 
 

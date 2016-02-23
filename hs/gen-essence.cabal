@@ -148,6 +148,7 @@ Library
                      , Gen.Reduce.FormatResults
                      , Gen.Reduce.Inners
                      , Gen.Reduce.Instantiate
+                     , Gen.Reduce.Point
                      , Gen.Reduce.Random
                      , Gen.Reduce.Reduce
                      , Gen.Reduce.Reduction
