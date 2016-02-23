@@ -329,25 +329,30 @@ givensToFinds org@(sp@(Spec ods es obj),(Just point@(Point ps)) ) = do
       f _ val           = val
 
 simplyFinds:: (Spec,  Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
-simplyFinds d@((Spec ds _ _), _) = simplyDomain d org others wrapper
+simplyFinds d@((Spec ds _ _), _) = simplyDomain d org others wrapper doSpec
   where
     org     = [ ((name,ix),val) | (name, (ix, Findd val)) <- M.toList ds ]
     others  = M.filter isGiven ds
     wrapper = Findd
+    doSpec :: SpecRunner
+    doSpec  = timedSpec
 
 simplyGivens:: (Spec,  Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
-simplyGivens d@((Spec ds _ _), _) = simplyDomain d org others wrapper
+simplyGivens d@((Spec ds _ _), _) = simplyDomain d org others wrapper doSpec
   where
     org     = [ ((name,ix),val) | (name, (ix, Givenn val)) <- M.toList ds ]
     others  = M.filter isFind ds
     wrapper = Givenn
+    doSpec :: SpecRunner
+    doSpec  = validateThenRunSpec
 
 simplyDomain :: (Spec,  Maybe Point)
              -> [((Text, Int), Domain () Expr)]
              -> M.Map Text (Int, GF)
              -> (Domain () Expr -> GF)
+             -> SpecRunner
              -> RRR (Timed (Spec,  Maybe Point))
-simplyDomain d@(sp@(Spec _ es obj), mp) org others wrapper= do
+simplyDomain d@(sp@(Spec _ es obj), mp) org others wrapper doSpec = do
   domsToDo <- doDoms org
   -- liftIO $ putStrLn . show . prettyArr $ map prettyArr domsToDo
   fin <- process1 [ dd |  dd <- domsToDo, dd /= org]
@@ -358,6 +363,7 @@ simplyDomain d@(sp@(Spec _ es obj), mp) org others wrapper= do
       return $ flip fmap fin $ \x -> ( Spec (toDoms x) es obj  , mp)
 
   where
+
   toDoms :: [((Text,Int), Domain () Expr)] -> Domains
   toDoms vals =ensureAFind $  (M.fromList $ map trans vals) `M.union` others
   trans ((te,ix),dom) = (te, (ix, wrapper dom))
@@ -371,25 +377,6 @@ simplyDomain d@(sp@(Spec _ es obj), mp) org others wrapper= do
             pure $ map (t,) ys
     return $ map (tx,) rx : rs
 
-
-  doSpec :: Spec -> Maybe Point
-          -> (Maybe ErrData -> RRR a)          -- No time left
-          -> (Maybe ErrData -> RRR (Timed a))  -- Time left
-          -> RRR (Timed a)
-  doSpec spec Nothing f g = timedSpec spec Nothing f g
-  doSpec spec (Just ops) f g  = do
-    pointVaild <- liftIO $ ignoreLogs $ validatePoint1 spec ops
-    case pointVaild of
-      True  ->  do
-        noteFormat "PointVaild" [nn "Spec" spec, nn "point" ops]
-        timedSpec spec (Just ops) f g
-      False -> do
-        noteFormat "PointInvaild" [nn "Spec" spec, nn "point" ops]
-        generatePoint spec >>= \case
-          Nothing -> g Nothing
-          Just p  -> do
-            noteFormat1 "mkPoint" (nn "created" p)
-            timedSpec spec (Just p) f g
 
   process1 :: [[((Text,Int),Domain () Expr)]] -> RRR (Timed [((Text,Int),Domain () Expr)])
 
@@ -611,8 +598,6 @@ recordResult err = do
                     , mostReducedChoices_=Just (choices err) }
   return ()
 
-
-
 -- |  Run the computation if there is time left
 con :: Doc
     -> ( (Spec, Maybe Point) -> RRR (Timed (Spec, Maybe Point) ))
@@ -637,3 +622,25 @@ prettyTimedResult t =
   let (sp,mp ) = timedExtract t
   in [ pretty sp
      , maybe "" (("param" <+>) . pretty) (mp)]
+
+type SpecRunner = forall a
+    .  Spec -> Maybe Point
+    -> (Maybe ErrData -> RRR a)          -- No time left
+    -> (Maybe ErrData -> RRR (Timed a))  -- Time left
+    -> RRR (Timed a)
+
+validateThenRunSpec :: SpecRunner
+validateThenRunSpec spec Nothing f g = timedSpec spec Nothing f g
+validateThenRunSpec spec (Just ops) f g  = do
+  pointVaild <- liftIO $ ignoreLogs $ validatePoint1 spec ops
+  case pointVaild of
+    True  ->  do
+      noteFormat "PointVaild" [nn "Spec" spec, nn "point" ops]
+      timedSpec spec (Just ops) f g
+    False -> do
+      noteFormat "PointInvaild" [nn "Spec" spec, nn "point" ops]
+      generatePoint spec >>= \case
+        Nothing -> g Nothing
+        Just p  -> do
+          noteFormat1 "mkPoint" (nn "created" p)
+          timedSpec spec (Just p) f g
