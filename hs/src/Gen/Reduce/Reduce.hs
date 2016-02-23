@@ -98,22 +98,23 @@ noteMsg tx s = do
 doReductions :: (Spec, Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
 doReductions start =
     return (Continue start)
-    -- >>= con "tryRemoveConstraints" tryRemoveConstraints
+    >>= con "tryRemoveConstraints" tryRemoveConstraints
     >>= con "loopToFixed"          (loopToFixed False)
-    -- >>= con "eprimeAsSpec"         eprimeAsSpec
+    >>= con "eprimeAsSpec"         eprimeAsSpec
 
 
 loopToFixed :: Bool -> (Spec,  Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
 loopToFixed fin start = do
   noteFormat ("@" <+> "loopToFixed") []
   res <-  return (Continue start)
-      -- >>= con "removeObjective"      removeObjective
-      -- >>= con "removeUnusedDomains"  removeUnusedDomains
-      -- >>= con "removeConstraints"    removeConstraints
-      -- >>= con "inlineGivens"         inlineGivens
-      -- >>= con "simplyFinds"          simplyFinds
-      >>= con "simplyGivens"         simplyGivens
-      -- >>= con "simplyConstraints"    simplyConstraints
+      >>= con "removeObjective"      removeObjective
+      >>= con "removeUnusedDomains"  removeUnusedDomains
+      >>= con "removeConstraints"    removeConstraints
+      >>= con "inlineGivens"         inlineGivens
+      >>= con "simplyFinds"          simplyFinds
+      >>= con "givensToFinds"        givensToFinds
+      -- >>= con "simplyGivens"         simplyGivens
+      >>= con "simplyConstraints"    simplyConstraints
 
   case res of
     (NoTimeLeft end) -> return $ NoTimeLeft end
@@ -273,6 +274,59 @@ removeConstraints (Spec ds oes obj,mp) = do
 
           g Nothing = process xs
 
+-- | We reduce a find much easier then a find
+givensToFinds :: (Spec,  Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
+givensToFinds d@(_, Nothing)          = return $ Continue $ d
+givensToFinds d@(_,(Just (Point []))) = return $ Continue $ d
+
+givensToFinds org@(sp@(Spec ods es obj),(Just point@(Point ps)) ) = do
+  let could = unusedDomains sp
+  let unused = [ n | ((Name n), _) <- ps, ( n `elem` could ) ]
+  let unusedGivens = [ n | (Name n,_) <- ps, n `elem` unused ]
+
+  res <- process (choices unusedGivens)
+  forM res $ \x -> case x of
+    Nothing        -> return org
+    Just (fds, fp) -> return $ ((Spec fds es obj), fp)
+
+
+  where
+  ds = "unused" `M.delete` ods
+
+  process :: [(Domains,Point)]-> RRR (Timed (Maybe (Domains, Maybe Point)))
+  process []     = return $ Continue $ Nothing
+  process ((y,p):xs) = timedSpec (Spec y es obj) (Just p) f g
+      where
+
+        f (Just r) = do
+          recordResult r
+          return $ Just (y, Just  p)
+
+        f _  =  return $ Nothing
+
+        g (Just r) = do
+          recordResult r
+          return . Continue . Just $ (y,Just p)
+
+        g _ = process xs
+
+  choices :: [Text] -> [(Domains, Point)]
+  choices ts =
+      -- remove [] and reversing to get largest first
+      -- meaning res would be [ [a], [b], [a,b],  ... ]
+      let ways  = reverse . tail . sortBy (comparing length) . subsequences $ ts
+          parts = map (\wy -> (wy, [ n | n <- ts,  n `elem` ts ])) ways
+      in map convert parts
+
+  convert ::  ([Text], [Text])
+          -> (Domains, Point)
+  convert (toFind,_) =
+    let nds :: Domains = foldr (\k m-> M.adjustWithKey f k m) ds toFind
+    in (nds, coordinateGivens1 nds point)
+
+    where
+      f _ (ix,Givenn d) = (ix,Findd d)
+      f _ val           = val
 
 simplyFinds:: (Spec,  Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
 simplyFinds d@((Spec ds _ _), _) = simplyDomain d org others wrapper
@@ -327,10 +381,10 @@ simplyDomain d@(sp@(Spec _ es obj), mp) org others wrapper= do
     pointVaild <- liftIO $ ignoreLogs $ validatePoint1 spec ops
     case pointVaild of
       True  ->  do
-        noteFormat "PointVaild" [nn "Spec" spec, nn "vaild" ops]
+        noteFormat "PointVaild" [nn "Spec" spec, nn "point" ops]
         timedSpec spec (Just ops) f g
       False -> do
-        noteFormat "mkPoint" [nn "Spec" spec, nn "now invaild" ops]
+        noteFormat "PointInvaild" [nn "Spec" spec, nn "point" ops]
         generatePoint spec >>= \case
           Nothing -> g Nothing
           Just p  -> do
@@ -513,10 +567,12 @@ isFind _             = False
 
 coordinateGivens :: Domains -> Maybe Point -> Maybe Point
 coordinateGivens _ Nothing = Nothing
-coordinateGivens ds (Just p) =
-    let keep = M.filter isGiven ds
-    in Just $ onlyNames (M.keysSet keep) p
+coordinateGivens ds (Just p) = Just $ coordinateGivens1 ds p
 
+coordinateGivens1 :: Domains -> Point -> Point
+coordinateGivens1 ds p =
+    let keep = M.filter isGiven ds
+    in onlyNames (M.keysSet keep) p
 
 
 -- List functions
