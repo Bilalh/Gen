@@ -34,8 +34,8 @@ formatResults delete_steps delete_others RState{rconfig=RConfig{..},..} = do
   files <- liftIO $ getDirectoryContents outputDir_
   let toMove = flip filter files
                  (`notElem` [
-                    "others", "final", "zsteps", ".", "..", ".DS_Store"
-                  , "zreduce.logs", "versions.csv", "meta.json","_reduced.logs"] )
+                    "others", "final", "zsteps", ".", "..", ".DS_Store", "versions.csv"
+                  , "zreduce.logs", "meta.json","_reduced.logs", "_paramGen"] )
   liftIO $ createDirectoryIfMissing True stepsDir
 
   forM_ toMove $ \d -> do

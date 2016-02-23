@@ -323,13 +323,19 @@ simplyDomain d@(sp@(Spec _ es obj), mp) org others wrapper= do
           -> (Maybe ErrData -> RRR (Timed a))  -- Time left
           -> RRR (Timed a)
   doSpec spec Nothing f g = timedSpec spec Nothing f g
-  doSpec spec jp@Just{} f g  = do
-    noteFormat "mkPoint" [nn "Spec" spec, nn "oldPoint" jp]
-    generatePoint spec >>= \case
-      Nothing -> g Nothing
-      Just p  -> do
-        noteFormat1 "mkPoint" (nn "created" p)
-        timedSpec spec jp f g
+  doSpec spec (Just ops) f g  = do
+    pointVaild <- liftIO $ ignoreLogs $ validatePoint1 spec ops
+    case pointVaild of
+      True  ->  do
+        noteFormat "PointVaild" [nn "Spec" spec, nn "vaild" ops]
+        timedSpec spec (Just ops) f g
+      False -> do
+        noteFormat "mkPoint" [nn "Spec" spec, nn "now invaild" ops]
+        generatePoint spec >>= \case
+          Nothing -> g Nothing
+          Just p  -> do
+            noteFormat1 "mkPoint" (nn "created" p)
+            timedSpec spec (Just p) f g
 
   process1 :: [[((Text,Int),Domain () Expr)]] -> RRR (Timed [((Text,Int),Domain () Expr)])
 
