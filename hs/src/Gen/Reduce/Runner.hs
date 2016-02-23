@@ -197,11 +197,13 @@ runSpec2 refineWay spE mayP= do
 
         let
             sameError :: ToolchainResult -> IO (Bool,RunResult)
-            sameError e@(RefineResult SettingI{data_=RefineMap _}) = do
+            sameError (RefineResult SettingI{data_=RefineMap _,successful_=True})  = do
+              return (False, Passing timeTaken)
+
+            sameError e@(RefineResult SettingI{data_=RefineMap _, successful_=False}) = do
               error . show . vcat $ [ "Got back a result with no log following"
                                     , (pretty . groom) e
                                     ]
-
 
             sameError (RefineResult SettingI{successful_=False
                         ,data_=RefineMultiOutput{choices_made,cmd_used=CmdI{..}}})
