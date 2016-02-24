@@ -335,7 +335,7 @@ ui  = modes
                                     &= name "delete-immediately"
                                     &= groupname "Filters"
                                     &= explicit
-                                    &= help "Delete the specs that match the specifed kinds and statuses. The default is [[\"KindAny_\",\"NumberToLarge_\"], [\"KindAny_\",\"Timeout_\"] ] "
+                                    &= help "Delete the specs that match the specified kinds and statuses. The default is [[\"KindAny_\",\"NumberToLarge_\"], [\"KindAny_\",\"Timeout_\"], [\"KindAny_\",\"ConjureUserError_\"], [\"KindAny_\",\"Success_\"],  ] "
      , db_directory      = Nothing  &= name "db-dir"
                                     &= groupname "Other"
                                     &= typDir
