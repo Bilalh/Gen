@@ -19,7 +19,7 @@ data Nsample = Nsample{
 instance A.FromJSON Nsample
 instance A.ToJSON Nsample
 
--- Goodness is 1 = Quailty
+-- Goodness is 1 - Quailty
 type Goodness = Double
 
 
