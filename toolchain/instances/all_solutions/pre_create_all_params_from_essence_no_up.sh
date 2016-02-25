@@ -68,7 +68,7 @@ MSG_SAVILEROW="{savilerow}          $MSG_TEMPLATE"
 
 sr_dir="$(dirname "$(which savilerow)")"
 echoer \
-java -XX:ParallelGCThreads=1 -Xmx"${JAVA_MEMORY:-4G}" -server -ea -jar "$sr_dir/savilerow.jar" \
+java -XX:ParallelGCThreads=1 -Xmx"${JAVA_MEMORY:-4G}" -server -ea -jar "$sr_dir/savilerow.jar" -O0 \
      -in-eprime "$EPRIME" -in-param "$EPRIME_PARAM" -out-minion "$MINION"
 
 
