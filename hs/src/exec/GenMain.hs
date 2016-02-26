@@ -760,7 +760,9 @@ instanceCommon cores Instance_Common{..} = do
 
 filesWithSuffix :: FilePath -> String -> IO [FilePath]
 filesWithSuffix dir ext= do
-    fps <- getDirectoryContents dir `catchError` const (return [])
+    ys <- getDirectoryContents dir
+    let dots i = not ( i == "." || i == ".." )
+    let fps = filter dots ys
     return $ [  dir </> fp  | fp <- fps, takeExtension fp == ext  ]
 
 
