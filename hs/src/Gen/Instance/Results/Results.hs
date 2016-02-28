@@ -39,7 +39,7 @@ import qualified Crypto.Hash as Crypto
 numSetsQuery, numModelsQuery, selectorQuery, compactQuery :: Query
 modelsQuery, paramsQuery :: Query
 
-numSetsQuery = "Select distinct count(*) From ParamQuality"
+numSetsQuery = "Select distinct count(*) From ParamQuality where  quality < 1"
 numModelsQuery = "Select count(eprime) From Eprimes;"
 selectorQuery = [str|
     Select group_concat(D.eprimeId, ", ") as eprimesIds
@@ -90,6 +90,8 @@ showResults outdir = do
     bps      :: [ Only String ]       <- query_ conn paramsQuery
     return (numSets,numModels,groups,compacts,mrows,bps)
 
+  -- docError [ pretty (groom  (numSets,numModels,groups,comp,length mrows,bps) ) ]
+
   let ints :: [[Integer]] = [ mapMaybe (readMay . textToString) $ T.split (== ',') g
                             | Only g <- groups ]
   let sets = [ ConstantAbstract . AbsLitSet $ map (ConstantInt) is  | is <- ints ]
@@ -113,18 +115,25 @@ showResults outdir = do
       , ""
       ]
 
-  (fracs,hOrder) <- hittingSet summary param >>= \case
-    Just (Point [(_,ConstantAbstract (AbsLitSet []))]) -> do
+  -- The if statement is to work around param refinement breaking on empty given sized msets.
+  (fracs,hOrder) <- if numSets == 0 then do
       liftIO $ writeFile (summary </> "hittingSet" ) "NOTHING\n"
       liftIO $ writeFile (summary </> "resultSet" ) "NOTHING\n"
       liftIO $ writeFile (summary </> "resultSet2" ) "NOTHING\n"
       return ([], Nothing)
-    Just (hset@(Point [(_,hval)])) -> do
-      liftIO $ print . pretty $ hset
-      liftIO $ writeFile (summary </> "hittingSet" ) (renderSized 10000 $  pretty hval)
-      findResultingSet db summary hval
-    _ -> do
-      docError [nn  "hittingSet failed on" param]
+    else do
+      hittingSet summary param >>= \case
+       Just (Point [(_,ConstantAbstract (AbsLitSet []))]) -> do
+         liftIO $ writeFile (summary </> "hittingSet" ) "NOTHING\n"
+         liftIO $ writeFile (summary </> "resultSet" ) "NOTHING\n"
+         liftIO $ writeFile (summary </> "resultSet2" ) "NOTHING\n"
+         return ([], Nothing)
+       Just (hset@(Point [(_,hval)])) -> do
+         liftIO $ print . pretty $ hset
+         liftIO $ writeFile (summary </> "hittingSet" ) (renderSized 10000 $  pretty hval)
+         findResultingSet db summary hval
+       _ -> do
+         docError [nn  "hittingSet failed on" param]
 
   meta ::  RunMetadata <- liftIO $ readFromJSON (outdir </> "metadata.json")
   vs <- liftIO $ V.toList <$> decodeCSV (outdir </> "settings.csv")
