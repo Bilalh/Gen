@@ -50,7 +50,6 @@ module Gen.Essence.St
   , addTypeKey
   , noDecisions
   , withMatrixInfo
-  , MatrixInfo(..)
   ) where
 
 import Conjure.Language.Constant
