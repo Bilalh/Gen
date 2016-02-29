@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# LANGUAGE ViewPatterns #-}
 module Gen.Essence.Literal where
 
 import Conjure.Language.Definition
@@ -25,6 +26,7 @@ instance (Generate a, GenInfo a) => Generate (AbstractLiteral a) where
   requires _ (Just ty) = [RAll $ keyList ty]
   requires _ _         = []
 
+
 instance (Generate a, GenInfo a) => Generate (AbstractLiteral a, Type) where
   give GNone = do
     sanityn 1 "Generate AbstractLiteral "
@@ -44,25 +46,27 @@ instance (Generate a, GenInfo a) => Generate (AbstractLiteral a, Type) where
 
     give1 (GType r@(TypeMatrix TypeInt ty)) = do
       let alwaysRegular = True -- Set to False to allow irregular matrixes
-      (numElems:rest) <- case alwaysRegular of
+      ((numElems,idx):rest) <- case alwaysRegular of
         False -> do
           val <- chooseChecked (Proxy :: Proxy a) (0,5)
-          return [val]
-        True  -> gets matrixElems >>= \case
-          [] -> calcSizes r
-          xs -> return xs
+          idx <- intDomainOfSize (fromIntegral val)
+          return [(val,idx)]
+        True  -> gets matrixInfo >>= \case
+          (viewMatrixInfo -> Just (xs@(_:_) )) -> return xs
+          _ -> calcSizes r
 
-      es  <- withMatrixElem rest $ vectorOf3 numElems (dgive (GType ty))
-      idx <- intDomainOfSize (fromIntegral numElems)
+      es  <- withMatrixInfo (mkMatrixInfo rest) $ vectorOf3 numElems (dgive (GType ty))
       -- logStats $line (numElems, r , (vcat . map pretty $ es))
       return (AbsLitMatrix idx es, r)
 
       where
         calcSizes (TypeMatrix _ inn) = do
           cur  <- chooseChecked (Proxy :: Proxy a) (0,5)
+          idx <- intDomainOfSize (fromIntegral cur)
           rest <- calcSizes inn
-          return (cur : rest)
-        calcSizes _                  = return []
+          return ((cur,idx) : rest)
+
+        calcSizes _ = return []
 
     give1 (GType r@(TypeFunction t1 t2)) = do
       numElems <- chooseChecked (Proxy :: Proxy a) (0,5)

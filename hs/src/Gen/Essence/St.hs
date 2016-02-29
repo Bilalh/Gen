@@ -49,7 +49,8 @@ module Gen.Essence.St
   , getWeightsKeyed
   , addTypeKey
   , noDecisions
-  , withMatrixElem
+  , withMatrixInfo
+  , MatrixInfo(..)
   ) where
 
 import Conjure.Language.Constant
@@ -120,7 +121,7 @@ data St = St{
     , newVars_   :: [Var] -- Domains from e.g. forall
     , doms_      :: Domains
     , keyPath_   :: [Key]
-    , matrixElems:: [Int]  -- To ensure matrix are the regular
+    , matrixInfo :: MatrixInfo -- To ensure matrix are the regular
     }
  deriving (Eq,Show)
 
@@ -132,20 +133,20 @@ instance Pretty St where
                   , nn "newVars_"    $ prettyTypeArr newVars_
                   , nn "doms"        $ doms_
                   , nn "varCounter"  $ varCounter
-                  , nn "matrixElems" $ prettyArr matrixElems
+                  , nn "matrixInfo"  $ matrixInfo
                   , nn "keyPath_"    $ prettyArr keyPath_
                   , nn "weighting" (pretty . groom $  weighting)
                   ] )
 
 instance Default St where
   def = St{
-          weighting  = def
-        , depth      = $(neverNote "No depth specified")
-        , newVars_   = def
-        , doms_      = def
-        , varCounter = 1
-        , keyPath_   = def
-        , matrixElems = def
+          weighting   = def
+        , depth       = $(neverNote "No depth specified")
+        , newVars_    = def
+        , doms_       = def
+        , varCounter  = 1
+        , keyPath_    = def
+        , matrixInfo  = def
         }
 
 
@@ -437,26 +438,66 @@ generateTypeFreq _ con n st = do
   tys <- mapM ttypeOf ts
   print .  vcat .  map pretty $ freq tys
 
+-- For insuring the  matrix is regular
+
+data MatrixInfo = M_Constants   [(Int, Domain () Constant)]
+                | M_Exprs       [(Int,Domain () Expr)]
+                | M_Expressions [(Int,Domain () Expression)]
+                | M_None
+                  deriving (Eq, Ord, Show, Data, Typeable, Generic)
+
+instance Default MatrixInfo where
+  def = M_None
+
+instance Pretty MatrixInfo where
+  pretty (M_Constants xs)   = "M_Constants"   <+> (vcat . map pretty $ xs)
+  pretty (M_Exprs xs)       = "M_Exprs"       <+> (vcat . map pretty $ xs)
+  pretty (M_Expressions xs) = "M_Expressions" <+> (vcat . map pretty $ xs)
+  pretty M_None             = "M_None"
+
+withMatrixInfo :: MatrixInfo -> GenSt a -> GenSt a
+withMatrixInfo info f = do
+  old <- gets matrixInfo
+  modify $ \st -> st{ matrixInfo = info }
+  res <- f
+  modify $ \st -> st{ matrixInfo  = old}
+  return res
+
+
 -- | Extra infomation that is required by Generate
 class GenInfo a where
-  wrapConstant :: Constant -> a
-  wrapDomain   :: Domain () a -> a
-  allowEmpty   :: Proxy a -> Bool
+  wrapConstant   :: Constant -> a
+  wrapDomain     :: Domain () a -> a
+  allowEmpty     :: Proxy a -> Bool
+  mkMatrixInfo   :: [(Int,Domain () a)] -> MatrixInfo
+  viewMatrixInfo :: MatrixInfo -> Maybe [(Int, Domain () a)]
 
 instance GenInfo Expr where
   wrapConstant = ECon
-  wrapDomain  =  EDom
+  wrapDomain   = EDom
   allowEmpty _ = True
+  mkMatrixInfo = M_Exprs
+
+  viewMatrixInfo (M_Exprs xs) = Just xs
+  viewMatrixInfo _            = Nothing
 
 instance GenInfo Constant where
   wrapConstant = id
   wrapDomain   = DomainInConstant
   allowEmpty _ = False
+  mkMatrixInfo = M_Constants
+
+  viewMatrixInfo (M_Constants xs) = Just xs
+  viewMatrixInfo _                = Nothing
 
 instance GenInfo Expression where
   wrapConstant = Constant
   wrapDomain   = Domain
   allowEmpty _ = True
+  mkMatrixInfo = M_Expressions
+
+  viewMatrixInfo (M_Expressions xs) = Just xs
+  viewMatrixInfo _                 = Nothing
 
 -- |
 class WrapVar a where
@@ -515,11 +556,3 @@ addTypeKey ty = withKey (getKey ty)
 
 ----------
 
--- For insuring the  matrix is regular
-withMatrixElem :: [Int] -> GenSt a -> GenSt a
-withMatrixElem num f = do
-  old <- gets matrixElems
-  modify $ \st -> st{ matrixElems= num }
-  res <- f
-  modify $ \st -> st{ matrixElems = old}
-  return res
