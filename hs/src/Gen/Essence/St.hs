@@ -49,6 +49,7 @@ module Gen.Essence.St
   , getWeightsKeyed
   , addTypeKey
   , noDecisions
+  , withMatrixElem
   ) where
 
 import Conjure.Language.Constant
@@ -119,6 +120,7 @@ data St = St{
     , newVars_   :: [Var] -- Domains from e.g. forall
     , doms_      :: Domains
     , keyPath_   :: [Key]
+    , matrixElems:: [Int]  -- To ensure matrix are the regular
     }
  deriving (Eq,Show)
 
@@ -130,6 +132,7 @@ instance Pretty St where
                   , nn "newVars_"    $ prettyTypeArr newVars_
                   , nn "doms"        $ doms_
                   , nn "varCounter"  $ varCounter
+                  , nn "matrixElems" $ prettyArr matrixElems
                   , nn "keyPath_"    $ prettyArr keyPath_
                   , nn "weighting" (pretty . groom $  weighting)
                   ] )
@@ -142,6 +145,7 @@ instance Default St where
         , doms_      = def
         , varCounter = 1
         , keyPath_   = def
+        , matrixElems = def
         }
 
 
@@ -508,3 +512,14 @@ withDefKeys (KeyMap ms) =
 addTypeKey :: forall a a1. GetKey a1
            => a1 -> GenSt a -> GenSt a
 addTypeKey ty = withKey (getKey ty)
+
+----------
+
+-- For insuring the  matrix is regular
+withMatrixElem :: [Int] -> GenSt a -> GenSt a
+withMatrixElem num f = do
+  old <- gets matrixElems
+  modify $ \st -> st{ matrixElems= num }
+  res <- f
+  modify $ \st -> st{ matrixElems = old}
+  return res

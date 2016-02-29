@@ -10,7 +10,7 @@
 module Gen.ZGHCI(module X
   , d_boolrel, d_bool_func_set, d_func_size, d_func_size2, d_func_size3
   , aSpec, aExpr, aType, aDom, aBinRel, aIntRanged
-  , the_comp, the_comp_gens
+  , the_comp, the_comp_gens, l_mat
   ) where
 
 import Conjure.Language.Definition    as X
@@ -76,6 +76,11 @@ aIntRanged st a b = do
   runGenerate2 LogNone (give $ GIntRanged a b) st
 
 --Debugging
+
+
+l_mat = (pretty :: AbstractLiteral Constant -> Doc  ) <$>
+   runGenerate2 LogDebugVerbose ( give con ) def{depth=4, weighting=def}
+  where con = GType (TypeMatrix TypeInt (TypeMatrix TypeInt (TypeMatrix TypeInt TypeInt)))
 
 w_boolrel = [(K_TypeAny, 0), (K_TypeBool, 100), (K_TypeEnum, 0),
                   (K_TypeFunction, 0), (K_TypeInt, 0), (K_TypeList, 0),

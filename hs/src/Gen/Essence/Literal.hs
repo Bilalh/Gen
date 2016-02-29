@@ -43,10 +43,26 @@ instance (Generate a, GenInfo a) => Generate (AbstractLiteral a, Type) where
       return $ (AbsLitMSet es, r)
 
     give1 (GType r@(TypeMatrix TypeInt ty)) = do
-      numElems <- chooseChecked (Proxy :: Proxy a) (0,5)
-      es <-  vectorOf3 numElems (dgive (GType ty))
+      let alwaysRegular = True -- Set to False to allow irregular matrixes
+      (numElems:rest) <- case alwaysRegular of
+        False -> do
+          val <- chooseChecked (Proxy :: Proxy a) (0,5)
+          return [val]
+        True  -> gets matrixElems >>= \case
+          [] -> calcSizes r
+          xs -> return xs
+
+      es  <- withMatrixElem rest $ vectorOf3 numElems (dgive (GType ty))
       idx <- intDomainOfSize (fromIntegral numElems)
-      return $ (AbsLitMatrix idx es, r)
+      -- logStats $line (numElems, r , (vcat . map pretty $ es))
+      return (AbsLitMatrix idx es, r)
+
+      where
+        calcSizes (TypeMatrix _ inn) = do
+          cur  <- chooseChecked (Proxy :: Proxy a) (0,5)
+          rest <- calcSizes inn
+          return (cur : rest)
+        calcSizes _                  = return []
 
     give1 (GType r@(TypeFunction t1 t2)) = do
       numElems <- chooseChecked (Proxy :: Proxy a) (0,5)
@@ -87,6 +103,7 @@ instance (Generate a, GenInfo a) => Generate (AbstractLiteral a, Type) where
 
   requires _ (Just ty) = [RAll $ keyList ty]
   requires _ _         = []
+
 
 boundedChecked :: (GenInfo a) => Proxy a -> (Int, Int) -> GenSt a -> GenSt [a]
 boundedChecked proxy tu as = do
