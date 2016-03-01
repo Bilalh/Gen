@@ -242,7 +242,9 @@ java -ea -XX:ParallelGCThreads=1 \\
 	"\$@"                         \\
 	\${SR_ARGS}
 
+code=\$?
 set +x
+exit \$code
 EOF
 
 chmod +x "${newDstDir}/savilerow2.sh"
@@ -407,4 +409,6 @@ function gen_save(){
 
 gen_save
 
+code=$?
 set +x
+exit $code

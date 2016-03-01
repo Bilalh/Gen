@@ -33,9 +33,7 @@ formatResults delete_steps delete_others RState{rconfig=RConfig{..},..} = do
 
   files <- liftIO $ getDirectoryContents outputDir_
   let toMove = flip filter files
-                 (`notElem` [
-                    "others", "final", "zsteps", ".", "..", ".DS_Store", "versions.csv"
-                  , "zreduce.logs", "meta.json","_reduced.logs", "_paramGen"] )
+                 (`notElem` ignore )
   liftIO $ createDirectoryIfMissing True stepsDir
 
   forM_ toMove $ \d -> do
@@ -55,10 +53,15 @@ formatResults delete_steps delete_others RState{rconfig=RConfig{..},..} = do
   return res
 
   where
-
     finalDir  = outputDir_ </> "final"
     othersDir = outputDir_ </> "others"
     stepsDir  = outputDir_ </> "zsteps"
+
+    ignore = [ ".", "..", ".DS_Store"
+             , "final", "others", "zsteps",  "_paramGen"
+             , "versions.csv", "meta.json"
+             , "_reduced.logs", "_note.logs",  "zreduce.logs"
+             ]
 
     classify :: ErrData -> IO ()
     classify r = do
