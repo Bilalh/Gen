@@ -14,6 +14,7 @@ from functools import partial
 from multiprocessing import Pool
 # from pprint import pprint, pformat
 from textwrap import indent
+from pathlib import Path
 
 from .command import K
 
@@ -475,6 +476,7 @@ def classify_error(*, kind, output, returncode):
 
 
 def run_with_timeout(timeout, kind, cmd, *, extra_env, vals):
+    logging.warn("CWD %s", Path.cwd())
     logging.warn("Running %s", " ".join(cmd))
 
     if kind == K.refineCompact or kind == K.refineRandom or kind == K.refineAll:
