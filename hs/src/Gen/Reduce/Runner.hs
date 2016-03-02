@@ -200,7 +200,39 @@ runSpec2 refineWay spE mayP= do
             sameError (RefineResult SettingI{data_=RefineMap _,successful_=True})  = do
               return (False, Passing timeTaken)
 
-            sameError e@(RefineResult SettingI{data_=RefineMap _, successful_=False}) = do
+            -- Can happen when using --always-compact
+            sameError (RefineResult SettingI{data_=RefineMap m, successful_=False})
+              | [("model000000",CmdI{..})] <-  M.toList m
+              = do
+                let ch = path </> "model000000.choices.json"
+                case match (oErrStatus_,oErrKind_) (status_, kind_) of
+                  Just (status, kind) ->
+                    return (True, OurError $ ErrData{ specDir = path
+                                                    , kind
+                                                    , status
+                                                    , choices=ch
+                                                    , timeTaken})
+
+                  Nothing ->
+                    return (False, OurError $ ErrData{ specDir = path
+                                                     , kind    = kind_
+                                                     , status  = status_
+                                                     , choices = ch
+                                                     , timeTaken})
+
+                where
+                  match :: (StatusI, KindI) -> (StatusI, KindI) -> Maybe (StatusI, KindI)
+                  match (StatusAny_,KindAny_) (x,y)   = Just (x, y)
+                  match (StatusAny_, ki)      (x,y)
+                    | kindsEqual ki y               = Just (x,ki)
+                  match (si,ki) (x,y) =
+                    if si == x && kindsEqual ki y  then
+                        Just (si,ki)
+                    else
+                        Nothing
+
+
+            sameError e@(RefineResult SettingI{data_=RefineMap _, successful_=False}) =
               error . show . vcat $ [ "Got back a result with no log following"
                                     , (pretty . groom) e
                                     ]
@@ -226,14 +258,14 @@ runSpec2 refineWay spE mayP= do
                 where
                   match :: (StatusI, KindI) -> (StatusI, KindI) -> Maybe (StatusI, KindI)
                   match (StatusAny_,KindAny_) (x,y)   = Just (x, y)
-                  match (StatusAny_, ki)      (x,_)   = Just (x,ki)
-                  match (si,KindAny_) (s,_) | s /= si = Nothing
-                  match (si,KindAny_) (_,y) = Just (si,y)
+                  match (StatusAny_, ki)      (x,y)
+                    | kindsEqual ki y               = Just (x,ki)
                   match (si,ki) (x,y) =
-                      if si == x && kindsEqual ki y  then
-                          Just (si,ki)
-                      else
-                          Nothing
+                    if si == x && kindsEqual ki y  then
+                        Just (si,ki)
+                    else
+                        Nothing
+
 
 
             sameError (SolveResult (_, SettingI{successful_=False,data_=SolveM ms,outdir_})) = do
