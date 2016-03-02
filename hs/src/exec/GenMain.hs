@@ -395,11 +395,13 @@ mainWithArgs u@Reduce{..} = do
   doMeta out no_csv binaries_directory
 
   (state,logs) <- runNoteT $ runNotePipeIO log_level $ runRndGen seed_ $ reduceMain (not no_check) args
-  let logsPath = out  </> "_note" <.> ".logs"
-  logsToFile logsPath logs
 
   writeDb_ db_only_passing db_directory (resultsDB_  state)
-  void $ formatResults delete_steps delete_others state
+  (_, l2) <- runNoteT $ formatResults delete_steps delete_others state
+  mapM_ (putStrLn . renderSized 79) l2
+
+  let logsPath = out  </> "_note" <.> ".logs"
+  logsToFile logsPath (logs ++ l2)
 
 mainWithArgs Generalise{..} = do
 
