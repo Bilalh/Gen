@@ -35,7 +35,7 @@ instance MonadNote m => MonadNote (StateT st m) where
     note msg  = lift $ note msg
 
 instance Monad m => MonadNote (IdentityT m) where
-    note msg  = return ()
+    note _ = return ()
 
 instance MonadNote m => MonadNote (ExceptT m) where
     note msg  = lift $ note msg
@@ -47,17 +47,18 @@ instance RndGen m => RndGen (NoteT m) where
     getGen   = lift $ getGen
     putGen g = lift $ (putGen g)
 
+data LogField =  NoteField Doc
+              |  LogField  LogLevel Doc
 
-instance MonadNote m => MonadNote (Pipes.Proxy a b () (Either Doc d) m) where
-  note msg = do
-      Pipes.yield (Left msg)
+instance MonadNote m => MonadNote (Pipes.Proxy a b () (Either LogField d) m) where
+  note msg =  Pipes.yield (Left (NoteField msg))
 
-instance RndGen m => RndGen (Pipes.Proxy a b () (Either Doc d) m) where
+instance RndGen m => RndGen (Pipes.Proxy a b () (Either LogField d) m) where
     getGen   = lift $ getGen
     putGen g = lift $ (putGen g)
 
-instance Monad m => MonadLog (Pipes.Proxy a b () (Either (Doc) d) m) where
-  log _ _ = return ()
+instance Monad m => MonadLog (Pipes.Proxy a b () (Either (LogField) d) m) where
+  log l msg = Pipes.yield (Left (LogField l msg))
 
 
 runNoteT :: Monad m => NoteT m a -> m (a, [Doc])
@@ -66,15 +67,15 @@ runNoteT (NoteT ma) = do
   return (a, logs)
 
 runNotePipeIO :: (MonadIO m, MonadNote m)
-              => LogLevel -> Pipes.Producer (Either Doc a) m r -> m r
+              => LogLevel -> Pipes.Producer (Either LogField a) m r -> m r
 runNotePipeIO clvl logger  = Pipes.runEffect $ Pipes.for logger each
   where
-  each (Left msg) = do
+  each (Left (NoteField msg)) = do
     liftIO $ putStrLn $ Pr.renderStyle (Pr.style { Pr.lineLength = 120 }) msg
     lift $ note msg
+  each (Left (LogField lvl msg)) = when (lvl <= clvl)
+    (liftIO $ putStrLn $ Pr.renderStyle (Pr.style { Pr.lineLength = 200 }) msg)
   each _ = return ()
-
-
 
 
 noteFormat :: MonadNote m => Doc -> [Doc] -> m ()
