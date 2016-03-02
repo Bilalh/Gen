@@ -47,6 +47,7 @@ import System.IO                    (hPutStrLn, stderr)
 import System.Timeout               (timeout)
 import Text.Printf                  (printf)
 import GHC.Conc
+import Gen.Helpers.MonadNote
 
 import qualified Data.Set               as S
 import qualified Gen.Essence.UIData     as EC
@@ -393,7 +394,10 @@ mainWithArgs u@Reduce{..} = do
 
   doMeta out no_csv binaries_directory
 
-  state <- runLoggerPipeIO log_level $ runRndGen seed_ $ reduceMain (not no_check) args
+  (state,logs) <- runNoteT $ runNotePipeIO log_level $ runRndGen seed_ $ reduceMain (not no_check) args
+  let logsPath = out  </> "_note" <.> ".logs"
+  logsToFile logsPath logs
+
   writeDb_ db_only_passing db_directory (resultsDB_  state)
   void $ formatResults delete_steps delete_others state
 
@@ -463,7 +467,9 @@ mainWithArgs Generalise{..} = do
 
   doMeta out no_csv binaries_directory
 
-  state <-  runLoggerPipeIO log_level $ runRndGen seed_ $ generaliseMain args
+  (state,logs) <- runNoteT $ runNotePipeIO log_level $ runRndGen seed_ $ generaliseMain args
+  let logsPath = out  </> "_note" <.> ".logs"
+  logsToFile logsPath logs
   writeDb_ False db_directory (E.resultsDB_  state)
 
 

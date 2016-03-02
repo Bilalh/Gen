@@ -1,9 +1,11 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-module Gen.Helpers.MonadNote  where
+module Gen.Helpers.MonadNote where
 
 import Gen.Imports
 import Gen.Reduce.Random
+
 import qualified Pipes
+import qualified Text.PrettyPrint as Pr
 
 class Monad m => MonadNote m where
   note :: Doc -> m ()
@@ -32,14 +34,10 @@ instance MonadNote m => MonadNote (ReaderT st m) where
 instance MonadNote m => MonadNote (StateT st m) where
     note msg  = lift $ note msg
 
-instance MonadNote m => MonadNote (IdentityT m) where
-    note msg  = lift $ note msg
+instance Monad m => MonadNote (IdentityT m) where
+    note msg  = return ()
 
 instance MonadNote m => MonadNote (ExceptT m) where
-    note msg  = lift $ note msg
-
-
-instance MonadNote m => MonadNote (Pipes.Proxy a b c d m) where
     note msg  = lift $ note msg
 
 instance MonadNote m => MonadNote (RndGenM m) where
@@ -50,11 +48,34 @@ instance RndGen m => RndGen (NoteT m) where
     putGen g = lift $ (putGen g)
 
 
+instance MonadNote m => MonadNote (Pipes.Proxy a b () (Either Doc d) m) where
+  note msg = do
+      Pipes.yield (Left msg)
+
+instance RndGen m => RndGen (Pipes.Proxy a b () (Either Doc d) m) where
+    getGen   = lift $ getGen
+    putGen g = lift $ (putGen g)
+
+instance Monad m => MonadLog (Pipes.Proxy a b () (Either (Doc) d) m) where
+  log _ _ = return ()
+
 
 runNoteT :: Monad m => NoteT m a -> m (a, [Doc])
 runNoteT (NoteT ma) = do
   (a, logs) <- runWriterT ma
   return (a, logs)
+
+runNotePipeIO :: (MonadIO m, MonadNote m)
+              => LogLevel -> Pipes.Producer (Either Doc a) m r -> m r
+runNotePipeIO clvl logger  = Pipes.runEffect $ Pipes.for logger each
+  where
+  each (Left msg) = do
+    liftIO $ putStrLn $ Pr.renderStyle (Pr.style { Pr.lineLength = 120 }) msg
+    lift $ note msg
+  each _ = return ()
+
+
+
 
 noteFormat :: MonadNote m => Doc -> [Doc] -> m ()
 noteFormat tx pr = note $ hang tx 4 (vcat  pr)
@@ -70,14 +91,15 @@ logsToFile out lgs = do
    let s = renderSized 120  . vcat $ lgs
    liftIO $ writeFile out s
 
-ff :: MonadNote m => m Int
-ff = do
+
+_ff :: MonadNote m => m Int
+_ff = do
   noteFormat "State" [ ]
   noteFormat "Start" ["sdsdsd" :: Doc]
   return 2
 
-gg :: IO ()
-gg = do
-  (res,lgs) <- runNoteT ff
+_gg :: IO ()
+_gg = do
+  (res,lgs) <- runNoteT _ff
   putStrLn . renderSized 100  . vcat $ lgs
   print res
