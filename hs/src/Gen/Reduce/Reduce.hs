@@ -477,7 +477,7 @@ eprimeAsSpec start@(_,mp) = do
   process _ = do
     gets mostReduced_ >>= \case
       Nothing -> do
-        liftIO $ noteFormat "eprimeAsSpec" ["no mostReduced"]
+        noteFormat "eprimeAsSpec" ["no mostReduced"]
         return (Continue start)
       Just (ErrData{specDir}) -> do
 
@@ -486,15 +486,15 @@ eprimeAsSpec start@(_,mp) = do
           [ele] -> do
             readEprimeAsEssence (specDir </> ele) >>= \case
               Nothing  -> do
-                liftIO $ noteFormat "eprimeAsSpec readEprimeAsEssence"
-                         ["readEprimeAsEssence erred", nn "eprime" ele]
+                noteFormat "eprimeAsSpec readEprimeAsEssence"
+                          ["readEprimeAsEssence erred", nn "eprime" ele]
                 return (Continue start)
               (Just x) -> do
                 may <- runMaybeT $  fromConjure x
                 case may of
                   Nothing -> do
-                    liftIO $ noteFormat "eprimeAsSpec fromConjure"
-                             ["fromConjure erred", nn "val" x]
+                    noteFormat "eprimeAsSpec fromConjure"
+                              ["fromConjure erred", nn "val" x]
                     return (Continue start)
                   (Just eprimeSpec) -> do
                     -- curState <- get
@@ -505,35 +505,35 @@ eprimeAsSpec start@(_,mp) = do
                         mayEParam <- readPointMay paramPath
                         case mayEParam of
                           Nothing -> do
-                            liftIO $ noteFormat "eprimeAsSpec"
-                              [nn "no readable param for " ele]
+                            noteFormat "eprimeAsSpec"
+                                      [nn "no readable param for " ele]
                             return (Continue start)
                           eParam@Just{} ->do
-                            liftIO $ noteFormat "eprimeAsSpec"
-                              [nn "Trying" ele, nn "with" (ele ++ "-param")]
+                            noteFormat "eprimeAsSpec"
+                                      [nn "Trying" ele, nn "with" (ele ++ "-param")]
                             timedCompactSpec eprimeSpec eParam f (g (eprimeSpec, eParam))
 
                       Nothing -> do
-                        liftIO $ noteFormat "eprimeAsSpec"
-                          [nn "Trying "  ele]
+                        noteFormat "eprimeAsSpec"
+                                  [nn "Trying "  ele]
                         timedCompactSpec eprimeSpec Nothing f (g (eprimeSpec, Nothing))
 
           -- TODO handle multiple eprimes
           _  -> do
-            liftIO $ noteFormat "eprimeAsSpec NotDone" ["multiple eprimes not supported"]
+            noteFormat "eprimeAsSpec NotDone" ["multiple eprimes not supported"]
             return (Continue start)
 
     where
       f x = do -- No time to reduce the eprime
-        liftIO $ noteFormat "eprimeAsSpec noTimeLeft" [pretty x]
+        noteFormat "eprimeAsSpec noTimeLeft" [pretty x]
         return $ start
 
       g _ Nothing = do -- No Error occured, should not happen?
-        liftIO $ noteFormat "eprimeAsSpec NoError" []
+        noteFormat "eprimeAsSpec NoError" []
         return $ Continue $ start
 
       g sp_p (Just r) = do
-        liftIO $ noteFormat "eprimeAsSpec SameError" [pretty r]
+        noteFormat "eprimeAsSpec SameError" [pretty r]
         recordResult r
         loopToFixed False sp_p
 
@@ -632,13 +632,13 @@ type SpecRunner = forall a
 validateThenRunSpec :: SpecRunner
 validateThenRunSpec spec Nothing f g = timedSpec spec Nothing f g
 validateThenRunSpec spec (Just ops) f g  = do
-  pointVaild <- liftIO $ ignoreLogs $ validatePoint1 spec ops
+  pointVaild <- liftIO $ ignoreNotes $ validatePoint1 spec ops
   case pointVaild of
     True  ->  do
-      noteFormat "PointVaild" [nn "Spec" spec, nn "point" ops]
+      noteFormat "PointValid" [nn "Spec" spec, nn "point" ops]
       timedSpec spec (Just ops) f g
     False -> do
-      noteFormat "PointInvaild" [nn "Spec" spec, nn "point" ops]
+      noteFormat "PointInvalid" [nn "Spec" spec, nn "point" ops]
       generatePoint spec >>= \case
         Nothing -> g Nothing
         Just p  -> do
