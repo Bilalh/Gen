@@ -47,8 +47,8 @@ class Commands(object):
         if kind in d:
             return d[kind]
         else:
-            print("%s not a vaild kind" % d)
-            sys.exit(6)
+            print("%s not a valid kind" % d)
+            sys.exit(7)
 
     def refine_log_follow(self, kind):
         raise NotImplementedError()
