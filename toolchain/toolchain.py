@@ -194,7 +194,7 @@ if __name__ == "__main__":
                     sys.exit(SKIP_CODE)
 
             old = op.timeout
-            op.timeout = int(min(max(new_timeout * 3, 20), op.timeout))
+            op.timeout = int(min(max(new_timeout * 5, 30), op.timeout))
 
             logger.warn("Timeout changed from %s to %s", old, op.timeout)
 
