@@ -13,6 +13,7 @@ import Gen.IO.Toolchain                         (writeModelDef)
 import Gen.Reduce.Data
 import Gen.Reduce.Random
 import Gen.Helpers.MonadNote
+import Conjure.UserError
 
 import qualified Control.Exception as Exc
 
@@ -92,11 +93,12 @@ validatePoint model (Point parts) = do
   let givens =  pointToModel (Point givensP)
   let finds  =  pointToModel (Point findsP)
 
-  x <- runExceptT $ ignoreLogs $ runNameGen $
+  x <- runExceptT $ runUserErrorT $  ignoreLogs $ runNameGen $
          validateSolution model givens finds
   case x of
-    Left{}  -> return False
-    Right{} -> return True
+    (Right Right{})  -> return True
+    _                -> return False
+
 
   where
     givesNames :: [Name]
