@@ -113,7 +113,7 @@ loopToFixed fin start = do
       >>= con "inlineGivens"         inlineGivens
       >>= con "simplyFinds"          simplyFinds
       >>= con "givensToFinds"        givensToFinds
-      -- >>= con "simplyGivens"         simplyGivens
+      >>= con "simplyGivens"         simplyGivens
       >>= con "simplyConstraints"    simplyConstraints
 
   case res of
@@ -198,7 +198,7 @@ inlineGivens d@((Spec ods es obj), Just (Point ops) ) = do
   res <- process givenSeq
   forM res $ \x -> case x of
     Nothing -> return d
-    Just (fsp, fp) -> return (fsp, Just fp)
+    Just (fsp, fp) -> return (fsp,  emptyPointToNothing (Just fp) )
 
   where
   -- list of points in decressing length  [(a,_),(b,_),(c,)],  [(a,_),(b,_)]
@@ -287,7 +287,7 @@ givensToFinds org@(sp@(Spec ods es obj),(Just point@(Point ps)) ) = do
   res <- process (choices unusedGivens)
   forM res $ \x -> case x of
     Nothing        -> return org
-    Just (fds, fp) -> return $ ((Spec fds es obj), fp)
+    Just (fds, fp) -> return $ ((Spec fds es obj), emptyPointToNothing fp)
 
 
   where
@@ -335,9 +335,18 @@ simplyFinds d@((Spec ds _ _), _) = simplyDomain d org others wrapper doSpec
     others  = M.filter isGiven ds
     wrapper = Findd
     doSpec :: SpecRunner
-    doSpec  = timedSpec
+    doSpec sp mp f g = timedSpec sp mp (f mp) (g mp)
+
+
+type SpecRunner1 = forall a
+    .  Spec -> Maybe Point
+    -> (Maybe Point -> Maybe ErrData -> RRR a)          -- No time left
+    -> (Maybe Point -> Maybe ErrData -> RRR (Timed a))  -- Time left
+    -> RRR (Timed a)
+
 
 simplyGivens:: (Spec,  Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
+simplyGivens d@(_,Nothing) = return $ Continue d
 simplyGivens d@((Spec ds _ _), _) = simplyDomain d org others wrapper doSpec
   where
     org     = [ ((name,ix),val) | (name, (ix, Givenn val)) <- M.toList ds ]
@@ -357,10 +366,9 @@ simplyDomain d@(sp@(Spec _ es obj), mp) org others wrapper doSpec = do
   -- liftIO $ putStrLn . show . prettyArr $ map prettyArr domsToDo
   fin <- process1 [ dd |  dd <- domsToDo, dd /= org]
 
-  if (timedExtract fin) == [] then
-      return $ Continue d
-  else
-      return $ flip fmap fin $ \x -> ( Spec (toDoms x) es obj  , mp)
+  case timedExtract fin of
+    ([],_) -> return $ Continue d
+    _      -> return $ flip fmap fin $ \(x,nPoint) -> (Spec (toDoms x) es obj, nPoint)
 
   where
 
@@ -369,7 +377,7 @@ simplyDomain d@(sp@(Spec _ es obj), mp) org others wrapper doSpec = do
   trans ((te,ix),dom) = (te, (ix, wrapper dom))
 
   doDoms :: [( (Text,Int), Domain () Expr)] -> RRR [[((Text,Int),Domain () Expr)]]
-  doDoms [] = docError [ "No domains in reduce:simplyFinds" ]
+  doDoms [] = docError [ "No domains in reduce:simplyDomain" ]
   doDoms ((tx,x):xs) = do
     rx <- runReduce sp x >>= return . ensureElem x
     rs <- forM xs $ \(t,y) -> do
@@ -378,33 +386,38 @@ simplyDomain d@(sp@(Spec _ es obj), mp) org others wrapper doSpec = do
     return $ map (tx,) rx : rs
 
 
-  process1 :: [[((Text,Int),Domain () Expr)]] -> RRR (Timed [((Text,Int),Domain () Expr)])
+  process1 :: [[((Text,Int),Domain () Expr)]]
+           -> RRR (Timed ([((Text,Int),Domain () Expr)],Maybe Point) )
 
-  process1 []              = return . Continue $ []
-  process1 xs | (== []) xs = return . Continue $ []
+  process1 []              = return . Continue $ ([], mp)
+  process1 xs | (== []) xs = return . Continue $ ([],mp)
 
   process1 xs | all (singleElem) xs = do
     let fixed = map (headNote "process simplyDomains") xs
-    let f (Just r) = do
+    let f newPoint (Just r) = do
             recordResult r
-            return fixed
-        f _ = return []
-    doSpec (Spec (toDoms fixed) es obj) mp f (fmap Continue . f)
+            return (fixed, newPoint)
+        f newPoint _ = return ([], newPoint)
+    let g newPoint res = do
+          x <- f newPoint res
+          return $ Continue $ x
+
+    doSpec (Spec (toDoms fixed) es obj) mp f g
 
   process1 xs = do
     fixed <- next xs
     let
-      f (Just r) = do
+      f newPoint (Just r) = do
         recordResult r
-        return fixed
+        return (fixed,newPoint)
 
-      f _  = return []
+      f newPoint _  = return ([],newPoint)
 
-      g (Just r) = do
+      g newPoint (Just r) = do
         recordResult r
-        return $ Continue  $ fixed
+        return $ Continue  $ (fixed,newPoint)
 
-      g _ = removeNext xs >>= process1
+      g _ _ = removeNext xs >>= process1
 
     doSpec (Spec (toDoms fixed) es obj) mp f g
 
@@ -470,9 +483,10 @@ eprimeAsSpec start@(_,mp) = do
   process config
 
   where
-  process RConfig{..} |  oErrKind_ `notElem` [Savilerow_]
-                      || oErrStatus_ `elem`  [ParseError_] =
+  process RConfig{..}| oErrKind_ `elem` [RefineCompact_, RefineRandom_ , RefineAll_] = do
+    noteFormat "eprimeAsSpec" ["Skipping since this is a refinement error"]
     return (Continue start)
+
 
   process _ = do
     gets mostReduced_ >>= \case
@@ -625,22 +639,30 @@ prettyTimedResult t =
 
 type SpecRunner = forall a
     .  Spec -> Maybe Point
-    -> (Maybe ErrData -> RRR a)          -- No time left
-    -> (Maybe ErrData -> RRR (Timed a))  -- Time left
+    -> (Maybe Point -> Maybe ErrData -> RRR a)          -- No time left
+    -> (Maybe Point -> Maybe ErrData -> RRR (Timed a))  -- Time left
     -> RRR (Timed a)
 
 validateThenRunSpec :: SpecRunner
-validateThenRunSpec spec Nothing f g = timedSpec spec Nothing f g
-validateThenRunSpec spec (Just ops) f g  = do
+validateThenRunSpec spec Nothing f g = timedSpec spec Nothing (f Nothing) (g Nothing)
+validateThenRunSpec spec ojp@(Just ops) f g  = do
   pointVaild <- liftIO $ ignoreNotes $ validatePoint1 spec ops
   case pointVaild of
     True  ->  do
-      noteFormat "PointValid" [nn "Spec" spec, nn "point" ops]
-      timedSpec spec (Just ops) f g
+      noteFormat "PointStillValid" [nn "Spec" spec, nn "point" ops]
+      timedSpec spec ojp (f ojp) (g ojp)
     False -> do
-      noteFormat "PointInvalid" [nn "Spec" spec, nn "point" ops]
+      noteFormat "PointInvalided" [nn "Spec" spec, nn "point" ops]
       generatePoint spec >>= \case
-        Nothing -> g Nothing
+        Nothing -> do
+          noteFormat "mkPointFailed" ["Failed to create a new point", ""]
+          g (Just ops) Nothing
         Just p  -> do
-          noteFormat1 "mkPoint" (nn "created" p)
-          timedSpec spec (Just p) f g
+          noteFormat "mkPoint" [nn "Created" p, ""]
+          let jp = Just p
+          timedSpec spec jp (f jp) (g jp)
+
+
+emptyPointToNothing :: Maybe Point -> Maybe Point
+emptyPointToNothing (Just (Point [])) = Nothing
+emptyPointToNothing xs = xs
