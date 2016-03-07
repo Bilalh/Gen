@@ -38,8 +38,8 @@ import qualified Data.Map as M
 
 logSpec :: Pretty a => MonadNote m => Spec -> Maybe a -> m ()
 logSpec sp mayP = do
-  noteFormat "logSpec" $
-             ["Processing", pretty sp, maybe "" (("Param" <+>) . pretty) mayP]
+  noteFormat "Processing" $
+             [pretty sp, maybe "" (("Param" <+>) . pretty) mayP]
 
 writeModelDef :: MonadIO m => FilePath -> Model -> m FilePath
 writeModelDef dir spec = do
