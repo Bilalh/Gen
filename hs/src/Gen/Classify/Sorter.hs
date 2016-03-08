@@ -2,12 +2,11 @@
 module Gen.Classify.Sorter where
 
 import Data.Data
-import Data.Maybe           (fromJust)
 import Gen.Classify.Meta
 import Gen.Imports
 import Gen.IO.Formats
 import Gen.IO.ToolchainData
-import System.FilePath      (takeDirectory, takeExtensions, takeFileName, takeBaseName)
+import System.FilePath      (takeDirectory, takeFileName, takeBaseName)
 import System.Posix.Files   (createSymbolicLink)
 import System.Directory(canonicalizePath)
 
@@ -37,10 +36,10 @@ sorterMain onlyr = \case
 
 sorter :: Bool -> FilePath -> [FuncType] -> IO ()
 sorter onlyr fp_ types_ = do
-  metaJson <- ffind fp_
-  metaA :: [(FilePath, Maybe SpecMeta)] <- fmap (zip metaJson) $ mapM readFromJSON metaJson
-  let meta :: [(FilePath, SpecMeta)]  = map ( \(a,b) -> (a, fromJust b) )
-                 $ flip filter metaA $ \(_,b) -> isJust b
+  specsPaths <- ffind fp_
+  metaA :: [(FilePath, Maybe SpecMeta)] <- fmap (zip specsPaths) $
+    mapM (\x -> readFromJSONMay (replaceExtensions x "meta.json" ) ) specsPaths
+  let meta :: [(FilePath, Maybe SpecMeta)]  = map ( \(a,b) -> (a, b) ) $ metaA
 
   withStats <- forM meta $ \(fp,m) -> do
     v :: Maybe DirError <- readFromJSONMay (takeDirectory fp </> "dir_error.json" )
@@ -51,17 +50,20 @@ sorter onlyr fp_ types_ = do
   where
   relink (fp, meta, stats) i = do
     let (re,dirName) = case (takeFileName . takeDirectory) fp of
-                    "final" ->  (True, (takeFileName . takeDirectory .takeDirectory) fp)
-                    s       ->  (False,s)
+                    "final" ->  (True, (takeFileName . takeDirectory . takeDirectory) fp)
+                    s       ->  let t = (takeFileName . takeDirectory . takeDirectory) fp
+                                in ("_r-.model" `isInfixOf` t && ".choices" `isSuffixOf` t  ,s)
     when ( (not onlyr) || (onlyr && re) ) $ do
       let dir = dirName ++ "#" ++ zeroPad 4 i
       let linker = doLink dir
 
-      forM_ types_ $ \type_ -> do
-        let newDir = map ("link" </>) (getFunc type_ $ meta)
-        forM newDir $ \d -> do
-          createDirectoryIfMissing True d
-          createSymbolicLink (takeDirectory fp) (d </> dir)
+      case meta of
+        Nothing -> return ()
+        Just m  -> forM_ types_ $ \type_ -> do
+          let newDir = map ("link" </>) (getFunc type_ $ m)
+          forM newDir $ \d -> do
+            createDirectoryIfMissing True d
+            createSymbolicLink (takeDirectory fp) (d </> dir)
 
       linker $ "link" </> "All"
 
@@ -130,7 +132,7 @@ ffind path = do
 
   where
     p fp = do
-      return $ (takeExtensions $ fp)  == ".meta.json"
+      return $ (takeFileName $ fp)  == "spec.essence"
 
 getRecursiveContents :: FilePath -> IO [FilePath]
 getRecursiveContents topdir | takeBaseName topdir == "org" = return []
