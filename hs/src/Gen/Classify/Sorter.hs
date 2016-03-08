@@ -7,7 +7,7 @@ import Gen.Classify.Meta
 import Gen.Imports
 import Gen.IO.Formats
 import Gen.IO.ToolchainData
-import System.FilePath      (takeDirectory, takeExtensions, takeFileName)
+import System.FilePath      (takeDirectory, takeExtensions, takeFileName, takeBaseName)
 import System.Posix.Files   (createSymbolicLink)
 import System.Directory(canonicalizePath)
 
@@ -133,6 +133,7 @@ ffind path = do
       return $ (takeExtensions $ fp)  == ".meta.json"
 
 getRecursiveContents :: FilePath -> IO [FilePath]
+getRecursiveContents topdir | takeBaseName topdir == "org" = return []
 getRecursiveContents topdir = do
   names <- getDirectoryContents topdir
   let properNames = filter (`notElem` [".", ".." ]) names
