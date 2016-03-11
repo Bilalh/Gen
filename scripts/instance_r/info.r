@@ -46,8 +46,13 @@ info=ddply(all, c("essenceClass", "kindClass", "heuristic", "mode","num_models",
 names.essence <- unique(all$essenceClass)
 
 info2 <- info[ ! info$refineGroup  %in%  c("2015-11-06_symlink", "2015-11-25") , ]
-# Ingored
-info3 <- info2[ ! info2$group %in% c(16044, 14016, 12017, 12019, 12020, 12018, 16045, 14023, 14024, 14011), ]
+
+# Ignored because they are old versions, unused settings or unfinished problem classes, or run on differnt server
+
+info.ignored <- c(16044, 14016, 12017, 12019, 12020, 12018, 16045, 14023, 14024, 14011,
+                  12029, 12023,12015, 12028,14010)
+
+info3 <- info2[ ! info2$group %in% info.ignored, ]
 info3 <- info3[ ! info3$essenceClass %in% c("prob055-efpa", "prob028-BIBD", "prob038-steel^2", "prob038-steel^3",
                                             "prob006-GR", "prob010-SGP"), ]
 
