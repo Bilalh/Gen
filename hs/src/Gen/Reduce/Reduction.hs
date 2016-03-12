@@ -42,6 +42,7 @@ class (RndGen m,  MonadLog m,  Simpler a a) => Reduce a m where
     mutate  _ = return []
 
     reduceChecks :: a -> [a] -> m [a]
+    -- TODO Useful for checking if it the simpler check that is the problem
     -- reduceChecks _ rs = return rs
     reduceChecks a rs = do
       return $ filter (\x -> runIdentity $ ignoreLogs $  simpler1 x a) rs
@@ -640,7 +641,8 @@ reduce_op2 f subs = do
       let res_ = [ f vs | vs <- sequence xrs
                 -- , or $ zipWith (\z1 z2 -> runIdentity $ simpler1 z1 z2) vs subs
                 ]
-      let res   = filter (\x -> runIdentity $ ignoreLogs $  simpler1 x (f subs)  ) res_
+      -- let res   = filter (\x -> runIdentity $ ignoreLogs $  simpler1 x (f subs)  ) res_
+      let res   = res_
       addLog "reduce_op2 rs" (map prettyArr rs)
       mapM_ (\xx -> addLog "reduce_op2 xrs" (map pretty xx)  )  xrs
 
