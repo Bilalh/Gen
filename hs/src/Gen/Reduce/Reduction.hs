@@ -569,37 +569,16 @@ instance (RndGen m,  MonadLog m) =>  Reduce (Op Expr) m where
       subterms_op e subs
 
 
-    -- Why are these 4 lines needed?
-    reduce e@[opp| &a + &b |]  = reduce_op2 ( m2t $ \(c,d) ->  [opp| &c + &d |])  [a,b] >>= reduceChecks e
+    -- Treating these binary op instead of  and([ ... ] ) like ops
+    reduce e@[opp| &a + &b |]  = reduce_op2 (m2t  $ \(c,d) ->  [opp| &c + &d |])  [a,b] >>= reduceChecks e
     reduce e@[opp| &a * &b |]  = reduce_op2 (m2t  $ \(c,d) ->  [opp| &c * &d |])  [a,b] >>= reduceChecks e
     reduce e@[opp| &a /\ &b |] = reduce_op2 (m2t  $ \(c,d) ->  [opp| &c /\ &d |]) [a,b] >>= reduceChecks e
     reduce e@[opp| &a \/ &b |] = reduce_op2 (m2t  $ \(c,d) ->  [opp| &c \/ &d |]) [a,b] >>= reduceChecks e
 
-    -- reduce e@MkOpAnd{} = do
-    --   let subs = F.toList e
-    --   res <- reduce_op e subs
-    --   chs <- reduceChecks e res
-    --   addLog "op" [ pretty  e]
-    --   addLog "subs" (map pretty subs)
-    --   addLog "op_res"  (map pretty res)
-    --   addLog "op_chs"  (map pretty chs)
-    --   addLog "lengths" [ nn "res" (length res)
-    --                    , nn "subs" (length subs)
-    --                    , nn "chs"  (length chs)]
-    --   lineError $line [prettyArr chs]
-
     reduce e = do
       let subs = F.toList e
       res <- reduce_op e subs
-      chs <- reduceChecks e res
-      addLog "op" [ pretty  e]
-      addLog "subs" (map pretty subs)
-      addLog "op_res"  (map pretty res)
-      addLog "op_chs"  (map pretty chs)
-      addLog "lengths" [ nn "res" (length res)
-                       , nn "subs" (length subs)
-                       , nn "chs"  (length chs)]
-      return chs
+      reduceChecks e res
 
 
 subterms_op :: forall (m :: * -> *) a t.
