@@ -11,7 +11,6 @@ import Data.Generics.Uniplate.Zipper    (Zipper, fromZipper, hole, replaceHole,
                                          zipperBi)
 import Data.List                        (splitAt)
 import Gen.AST.TH
-import Gen.Helpers.SizeOf
 import Gen.Helpers.TypeOf
 import Gen.Imports
 import Gen.Reduce.Data
@@ -20,6 +19,7 @@ import Gen.Reduce.Random
 import Gen.Reduce.Simpler
 import Gen.Reduce.UnusedDomains
 import Gen.Reduce.Instantiate
+import Safe
 
 import qualified Data.Foldable                 as F
 import qualified Data.Generics.Uniplate.Zipper as Zipper
@@ -90,21 +90,12 @@ instance (RndGen m,  MonadLog m) =>  Reduce Expr m where
       a4 <- mutate e
       reduceChecks x $ a1 ++ a3 ++ (map ELit a2) ++ a4
 
-    reduce x@(EOp e@MkOpAnd{}) = do
-      a1 <- single e
-      a2 <- reduce e
-      a3 <- subterms e
-      res <- reduceChecks x $ a1 ++ a3 ++ (map EOp a2)
-
-      -- lineError $line [prettyArr res]
-      return res
-
     reduce x@(EOp e) = do
       a1 <- single e
       a2 <- reduce e
       a3 <- subterms e
-      reduceChecks x $ a1 ++ a3 ++ (map EOp a2)
-
+      ups <- pushUpwards e
+      reduceChecks x $ a1 ++ a3 ++ (map EOp a2) ++ (map EOp ups)
 
     reduce e@EQuan{} = do
         a1 <- single e
@@ -595,12 +586,8 @@ subterms_op e subs =  do
   return allowed
 
 
-reduce_op :: forall (m :: * -> *). (RndGen m,  MonadLog m)
+reduce_op :: forall (m :: * -> *) . (RndGen m,  MonadLog m)
           => Op Expr -> [Expr] -> m [Op Expr]
--- reduce_op x@MkOpAnd{} subs = do
---   res <- reduce_op2 (replaceOpChildren x) subs
---   lineError $line [prettyArr res]
-
 reduce_op x subs = reduce_op2 (replaceOpChildren x) subs
 
 
@@ -792,15 +779,46 @@ singleLitExpr ty = do
   singleLit $ ty
 
 
+
+-- E.g  (int, rel) = (int,rel)  -->  int = int, rel=rel
+pushUpwards :: Monad m => Op Expr -> m [Op Expr]
+pushUpwards op@(MkOpEq{}) = do
+  let subs :: [Expr]   = F.toList op
+  -- docError [nn "op" op, nn "subs" (prettyArr subs), nn "up" (groom val)]
+  -- error . show $ val
+
+  case upwards subs of
+    [] -> return []
+    xs ->
+      return $ map (replaceOpChildren op) xs
+
+  where
+    upwards :: [Expr] -> [[Expr]]
+    upwards ns@(ELit AbsLitTuple{}:_) = do
+      let inners = [ xs | (ELit (AbsLitTuple xs)) <- ns  ]
+      case minimumMay (map length inners) of
+        Nothing -> []
+        Just m  -> transpose $ filter ((== m) . length) inners
+
+    upwards _ = []
+
+
+pushUpwards _ = return []
+
 replaceOpChildren :: Op Expr -> [Expr] -> Op Expr
 replaceOpChildren op news = fst . flip runState news $ f1 <$> T.mapM fff ch1
    where
      (ch1, f1) = biplate op
      fff _ = do
-       (x:xs) <- get
-       put xs
-       return x
-
+       val <- get
+       case val of
+         (x:xs) -> do
+           put xs
+           return x
+         [] -> lineError $line ["replaceOpChildren empty"
+                               , nn "op" op
+                               , nn "news" (prettyArr news)
+                               ]
 
 reduceList :: forall (m :: * -> *) a
            .  (RndGen m, MonadLog m, Reduce a m, Data a)
@@ -845,10 +863,10 @@ runSingle spe x = do
   addLog "endSingle" []
   return res
 
+
 m2t :: Show a => ((a,a) -> b) -> [a] -> b
 m2t f [a,b] = f (a,b)
 m2t _ x     = error . show . vcat $ ["m2t not two elements", pretty . show $ x ]
-
 
 isLitEmpty :: AbstractLiteral a -> Bool
 isLitEmpty (AbsLitMatrix _ [])  = True
@@ -856,53 +874,14 @@ isLitEmpty (AbsLitPartition xs) = all null xs
 isLitEmpty (AbsLitRelation xs)  = all null xs
 isLitEmpty lit                  = null $ F.toList lit
 
+
 -- For ghci
 
-__run  :: forall t a (t1 :: * -> *).
-         (Pretty a, Foldable t1, Pretty t) =>
-         Bool -> (t -> StateT EState Identity (t1 a)) -> t -> IO (t1 a)
-__run b f ee  = do
-  res <- __run1 b f ee
-  mapM_ (print  . pretty )  res
-  putStrLn "---"
-  putStrLn . show . pretty  $ ee
-  return res
-
-__run1 :: forall t a (t1 :: * -> *).
-         (Foldable t1) => Bool ->
-         (t -> StateT EState Identity (t1 a)) -> t -> IO (t1 a)
-__run1 b f ee = do
-  let spe   :: Spec   = $never
-      state :: EState = newEState  spe
-      (res, _)   = runIdentity $ flip runStateT state $ f ee
-  if b then
-      return ()
-  else
-      return ()
-  return res
-
-__depths :: forall c' c'1.
-            (DepthOf c'1, DepthOf c', Pretty c'1, Pretty c', Ord c') =>
-            (c'1 -> StateT EState Identity [c']) -> c'1 -> IO ()
-__depths f ee = do
-  let spe   :: Spec   = $never
-      state :: EState = newEState spe
-      res             = runIdentity $ flip evalStateT state $ f ee
-  putStrLn . show . pretty . vcat .  map pretty .  sort . map (depthOf &&& id) $  res
-  putStrLn "---"
-  putStrLn . show . pretty . (depthOf &&& id) $ ee
-
+_reduce :: Expr -> IO [Expr]
+_reduce e = do
+  runLoggerPipeIO LogInfo $
+    runRndGen 3 $ runReduce ($never :: Spec) e
 
 _replaceOpChildren_ex :: Op Expr
 _replaceOpChildren_ex = replaceOpChildren
   [opp| 8 ** 3  |]  [  [essencee| 4 |], [essencee| 2 |] ]
-
-
--- instance Pretty [Expr] where
---     pretty = prettyBrackets  . pretty . vcat . map pretty
-
--- instance Pretty [[Expr]] where
---     pretty = prettyBrackets  . pretty . vcat . map pretty
-
--- instance Pretty [Literal] where
---     pretty = prettyBrackets  . pretty . vcat . map pretty
