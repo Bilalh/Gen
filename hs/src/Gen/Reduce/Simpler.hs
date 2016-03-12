@@ -20,6 +20,7 @@ import qualified Data.Text     as T
 
 -- True if a1 is simpler then a2
 class (Pretty a, Eq a, Show a, Pretty b, Eq b, Show b
+      , Data a, Data b
       )
     => Simpler a b where
   simpler  :: (MonadLog m) => a -> b -> m Ordering
@@ -153,8 +154,13 @@ instance (DepthOf c, IntRange c, DepthOf d, IntRange d, Simpler c d)
         x  -> return x
 
     simplerImp a b = case compare (depthOf a) (depthOf b) of
-     EQ -> return $ case ((innersReduce length a), (innersReduce length b)) of
-                      (ca,cb) -> compare ca cb
+     EQ -> case ((innersReduce length a), (innersReduce length b)) of
+             (ca,cb) -> case compare ca cb of
+               EQ -> case compare
+                       (length [ x :: c | x <- universeBi a ])
+                       (length [ x :: c | x <- universeBi b ]) of
+                         r  -> return r
+               x  -> return x
      x  -> return x
 
 
@@ -288,22 +294,25 @@ instance Simpler (Op Expr) (Op Expr) where
                    -- , [lb@EComp{} ] <- F.toList b = simpler la lb
 
     simplerImp a b = case compare (depthOf a) (depthOf b) of
-                       EQ -> do
-                         let x1 = F.toList a
-                         let x2 = F.toList b
-                         case compare (length x1) (length x2) of
-                           EQ -> do
-                             os <-zipWithM simpler x1 x2
-                             let la = length (filter (== LT) os)
-                             let lb = length (filter (== GT) os)
-                             if la > lb then
-                                 return LT
-                             else if lb > la then
-                                 return GT
-                             else
-                                 return EQ
-                           o  -> return o
-                       o  -> return o
+      EQ -> do
+        let x1 = F.toList a
+        let x2 = F.toList b
+        case compare (length x1) (length x2) of
+          EQ -> do
+            os <-zipWithM simpler x1 x2
+            let la = length (filter (== LT) os)
+            let lb = length (filter (== GT) os)
+            if la > lb then
+                return LT
+            else if lb > la then
+                return GT
+            else case compare
+                       (length [ x :: Expr | x <- universeBi a ])
+                       (length [ x :: Expr | x <- universeBi b ]) of
+                         r  -> return r
+
+          o  -> return o
+      o  -> return o
 
 
 

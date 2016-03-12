@@ -58,9 +58,12 @@ tests = testGroup "simpler"
      eq_same [essencee| [false] |]
    , eq_same [essencee| [false; int(1,1,1)] |]
    , eq [essencee| [1,2;int(1,2)] |] [essencee| [5,5;int(5,6)] |]
-   , eq [essencee| [1,2;int(1,2,2,1)] |] [essencee| [1,2;int(1,2)] |]
    ]
 
+  ,testGroup_lt_gt "Matrix differ by element count"
+   [
+    ( [essencee| [1,2;int(1,2)] |], [essencee| [1,2;int(1,2,2,1)] |] )
+   ]
 
   ,testGroup_lt_gt "exprs"
    [
