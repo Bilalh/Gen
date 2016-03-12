@@ -1,1 +1,1 @@
-exclude             = "{$exclude,example_scenarios,__*,unused_code}"
+exclude             = "{$exclude,example_scenarios,__*,unused_code,*.hi}"
