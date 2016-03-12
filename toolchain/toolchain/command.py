@@ -200,3 +200,152 @@ class ConjureNew(Commands):
                             self.validate]
 
         self.log_follow = (K.refineRandom, log_follow_template)
+
+
+# Hack for running *very* old specs with a new version of gen
+class ConjureNewLogFollowCompact(Commands):
+    def __init__(self):
+        super(ConjureNewLogFollowCompact, self).__init__(
+            refine_compact="""
+                conjureNew {essence}
+                    -q f -a c
+                    --output-directory '{outdir}'
+                    --numbering-start  {index}
+                    --limit-time       {itimeout}
+                    --seed             {seed}
+                """,
+            refine_all="""
+                conjureNew             '{essence}'
+                    -q f -a x
+                    --output-directory '{outdir}'
+                    --limit-time        {itimeout}
+                    --seed              {seed}
+                """,
+            refine_random="""
+                conjureNew {essence}
+                    -q f -a r
+                    --output-directory '{outdir}'
+                    --numbering-start  {index}
+                    --limit-time       {itimeout}
+                    --seed             {seed}
+                """,
+            refine_param="""
+                conjureNew refine-param
+                    --eprime        '{eprime}'
+                    --essence-param '{essence_param}'
+                    --eprime-param  '{eprime_param}'
+                """,
+            savilerow="""
+                savilerow2.sh  -mode Normal
+                    -in-eprime                   '{eprime}'
+                    -in-param                    '{eprime_param}'
+                    -out-minion                  '{minion}'
+                    -out-solution                '{eprime_solution}'
+                    -out-info                    '{eprime_info}'
+                    -run-solver
+                    -timelimit                   {mstimeout}
+                    -solver-options '-timelimit {itimeout}'
+                """,
+            translate_up="""
+                conjureNew translate-solution
+                    --eprime           '{eprime}'
+                    --essence-param    '{essence_param}'
+                    --eprime-solution  '{eprime_solution}'
+                    --essence-solution '{essence_solution}'
+                    --limit-time        {itimeout}
+                """,
+            validate="""
+                conjureNew validate-solution
+                             --essence      '{essence}'
+                             --param        '{essence_param}'
+                             --solution     '{essence_solution}'
+                             --limit-time    {itimeout}
+                """)
+
+        log_follow_template = """
+                conjureNew             '{essence}'
+                    -q f -a c
+                    --output-directory '{outdir}'
+                    --limit-time        {itimeout}
+                    --seed              {seed}
+                """
+
+        self.sovlve_cmds = [self.refine_param, self.savilerow, self.translate_up,
+                            self.validate]
+
+        self.log_follow = (K.refineRandom, log_follow_template)
+
+# Hack for running even older specs with a new version of gen
+class ConjureNewLogFollowFirst(Commands):
+    def __init__(self):
+        super(ConjureNewLogFollowFirst, self).__init__(
+            refine_compact="""
+                conjureNew {essence}
+                    -q f -a f
+                    --output-directory '{outdir}'
+                    --numbering-start  {index}
+                    --limit-time       {itimeout}
+                    --seed             {seed}
+                """,
+            refine_all="""
+                conjureNew             '{essence}'
+                    -q f -a x
+                    --output-directory '{outdir}'
+                    --limit-time        {itimeout}
+                    --seed              {seed}
+                """,
+            refine_random="""
+                conjureNew {essence}
+                    -q f -a r
+                    --output-directory '{outdir}'
+                    --numbering-start  {index}
+                    --limit-time       {itimeout}
+                    --seed             {seed}
+                """,
+            refine_param="""
+                conjureNew refine-param
+                    --eprime        '{eprime}'
+                    --essence-param '{essence_param}'
+                    --eprime-param  '{eprime_param}'
+                """,
+            savilerow="""
+                savilerow2.sh  -mode Normal
+                    -in-eprime                   '{eprime}'
+                    -in-param                    '{eprime_param}'
+                    -out-minion                  '{minion}'
+                    -out-solution                '{eprime_solution}'
+                    -out-info                    '{eprime_info}'
+                    -run-solver
+                    -timelimit                   {mstimeout}
+                    -solver-options '-timelimit {itimeout}'
+                """,
+            translate_up="""
+                conjureNew translate-solution
+                    --eprime           '{eprime}'
+                    --essence-param    '{essence_param}'
+                    --eprime-solution  '{eprime_solution}'
+                    --essence-solution '{essence_solution}'
+                    --limit-time        {itimeout}
+                """,
+            validate="""
+                conjureNew validate-solution
+                             --essence      '{essence}'
+                             --param        '{essence_param}'
+                             --solution     '{essence_solution}'
+                             --limit-time    {itimeout}
+                """)
+
+        log_follow_template = """
+                conjureNew             '{essence}'
+                    -q f -a f
+                    --output-directory '{outdir}'
+                    --limit-time        {itimeout}
+                    --seed              {seed}
+                """
+
+        self.sovlve_cmds = [self.refine_param, self.savilerow, self.translate_up,
+                            self.validate]
+
+        self.log_follow = (K.refineRandom, log_follow_template)
+
+

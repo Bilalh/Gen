@@ -137,7 +137,13 @@ if __name__ == "__main__":
         if not which('conjureNew'):
             logger.error('ERROR: conjureNew not in $PATH')
             sys.exit(5)
-        commands = command.ConjureNew()
+
+        if "CONJURE_LOG_FOLLOW_AS_COMPACT" in os.environ:
+            commands = command.ConjureNewLogFollowCompact()
+        elif "CONJURE_LOG_FOLLOW_AS_FIRST" in os.environ:
+            commands = command.ConjureNewLogFollowFirst()
+        else:
+            commands = command.ConjureNew()
 
     else:
         commands = command.ConjureOld()
