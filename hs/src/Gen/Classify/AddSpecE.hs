@@ -10,6 +10,7 @@ import Gen.Imports
 import Gen.IO.Formats
 import System.FilePath                 (takeExtension)
 import Conjure.UI.TypeCheck(typeCheckModel_StandAlone)
+import Conjure.Language.NameResolution   (resolveNames)
 
 import qualified Control.Exception    as Exc
 import qualified Data.Aeson           as A
@@ -28,12 +29,12 @@ addSpecJsons :: Bool -> Bool -> FilePath -> IO ()
 addSpecJsons verbose printSpecs = ffind >=>
   mapM_ (\fp -> do
            when verbose $   putStrLn ("    processing: " ++ fp)
-           catch fp $ addSpecJson printSpecs fp
+           catcher fp $ addSpecJson printSpecs fp
         )
 
   where
-  catch :: FilePath -> IO () -> IO ()
-  catch fp f = Exc.catch f (handler fp)
+  catcher :: FilePath -> IO () -> IO ()
+  catcher fp f = Exc.catch f (handler fp)
 
   handler :: FilePath -> Exc.SomeException -> IO ()
   handler f e= do
@@ -45,8 +46,11 @@ addSpecJson :: Bool -> FilePath -> IO ()
 addSpecJson printSpecs fp = do
   model <- readModelFromFile fp
   -- Not sure why I can't just do case (ignoreLogs . runNameGen . typeCheckModel_StandAlone)
-  start <- ignoreLogs . runNameGen $ typeCheckModel_StandAlone model
-  case (ignoreLogs . runNameGen . typeCheckModel) start of
+  -- start <- ignoreLogs . runNameGen $ typeCheckModel_StandAlone model
+  named <- ignoreLogs  . runNameGen  $  resolveNames model
+  start <- ignoreLogs  . runNameGen  $  typeCheckModel named
+
+  case (ignoreLogs . runNameGen . typeCheckModel_StandAlone) start of
     Left x ->  error . show . vcat $
                 [ "model failed type checking"
                 , pretty fp
@@ -58,6 +62,10 @@ addSpecJson printSpecs fp = do
                 ]
 
     Right{} -> do
+      when printSpecs $ putStrLn "Passed type checking"
+      -- when printSpecs $ print . pretty $  start
+
+
       let inlined = inlineLettings start
       let specE  = fromModel inlined
 
@@ -68,7 +76,7 @@ addSpecJson printSpecs fp = do
                                         , "groom" <+> (pretty . groom $ model)
                                         , "--"  ]
         Right r -> do
-           if printSpecs then
+           when printSpecs $
                putStrLn . show . vcat $ [
                               "Original"
                             , pretty model
@@ -80,8 +88,6 @@ addSpecJson printSpecs fp = do
                             , pretty . groom $ inlined
                             , pretty . groom $ r
                             ]
-           else
-               return ()
            L.writeFile (replaceExtensions fp ".spec.json" ) (A.encode r)
 
 compareSpecs :: Spec -> Model -> IO Bool
