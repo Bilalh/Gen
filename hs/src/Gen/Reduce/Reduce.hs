@@ -338,13 +338,6 @@ simplyFinds d@((Spec ds _ _), _) = simplyDomain d org others wrapper doSpec
     doSpec sp mp f g = timedSpec sp mp (f mp) (g mp)
 
 
-type SpecRunner1 = forall a
-    .  Spec -> Maybe Point
-    -> (Maybe Point -> Maybe ErrData -> RRR a)          -- No time left
-    -> (Maybe Point -> Maybe ErrData -> RRR (Timed a))  -- Time left
-    -> RRR (Timed a)
-
-
 simplyGivens:: (Spec,  Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
 simplyGivens d@(_,Nothing) = return $ Continue d
 simplyGivens d@((Spec ds _ _), _) = simplyDomain d org others wrapper doSpec
