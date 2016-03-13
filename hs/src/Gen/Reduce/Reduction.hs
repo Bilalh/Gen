@@ -779,31 +779,34 @@ singleLitExpr ty = do
   singleLit $ ty
 
 
-
 -- E.g  (int, rel) = (int,rel)  -->  int = int, rel=rel
 pushUpwards :: Monad m => Op Expr -> m [Op Expr]
-pushUpwards op@(MkOpEq{}) = do
-  let subs :: [Expr]   = F.toList op
-  -- docError [nn "op" op, nn "subs" (prettyArr subs), nn "up" (groom val)]
-  -- error . show $ val
-
-  case upwards subs of
-    [] -> return []
-    xs ->
-      return $ map (replaceOpChildren op) xs
+pushUpwards op = case op of
+  MkOpEq{}  -> pushUpwards1
+  MkOpNeq{} -> pushUpwards1
+  _         -> return []
 
   where
+    pushUpwards1 = do
+      let subs :: [Expr]   = F.toList op
+      case upwards subs of
+        [] -> return []
+        -- xs -> error . groom $ xs
+        xs -> return $ map (replaceOpChildren op) xs
+
     upwards :: [Expr] -> [[Expr]]
-    upwards ns@(ELit AbsLitTuple{}:_) = do
-      let inners = [ xs | (ELit (AbsLitTuple xs)) <- ns  ]
-      case minimumMay (map length inners) of
-        Nothing -> []
-        Just m  -> transpose $ filter ((== m) . length) inners
+    upwards l@(ELit AbsLitMatrix{}:_) = fix [ xs | (ELit (AbsLitMatrix _ xs)) <- l]
+    upwards l@(ELit AbsLitTuple{}:_)  = fix [ xs | (ELit (AbsLitTuple xs))    <- l]
+    upwards l@(ELit AbsLitMSet{}:_)   = fix [ xs | (ELit (AbsLitMSet xs))     <- l]
+    upwards l@(ELit AbsLitSet{}:_)    = fix [ xs | (ELit (AbsLitSet xs))      <- l]
 
     upwards _ = []
 
+    fix inners =
+      case minimumMay (map length inners) of
+        Nothing -> []
+        Just m  -> transpose $ map (take m) inners
 
-pushUpwards _ = return []
 
 replaceOpChildren :: Op Expr -> [Expr] -> Op Expr
 replaceOpChildren op news = fst . flip runState news $ f1 <$> T.mapM fff ch1
