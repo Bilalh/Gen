@@ -795,11 +795,12 @@ pushUpwards op = case op of
         xs -> return $ map (replaceOpChildren op) xs
 
     upwards :: [Expr] -> [[Expr]]
-    upwards l@(ELit AbsLitMatrix{}:_) = fix [ xs | (ELit (AbsLitMatrix _ xs)) <- l]
-    upwards l@(ELit AbsLitTuple{}:_)  = fix [ xs | (ELit (AbsLitTuple xs))    <- l]
-    upwards l@(ELit AbsLitMSet{}:_)   = fix [ xs | (ELit (AbsLitMSet xs))     <- l]
-    upwards l@(ELit AbsLitSet{}:_)    = fix [ xs | (ELit (AbsLitSet xs))      <- l]
-
+    upwards l@(ELit AbsLitMatrix{}:_)   = fix [ xs | (ELit (AbsLitMatrix _ xs)) <- l]
+    upwards l@(ELit AbsLitTuple{}:_)    = fix [ xs | (ELit (AbsLitTuple xs))    <- l]
+    upwards l@(ELit AbsLitMSet{}:_)     = fix [ xs | (ELit (AbsLitMSet xs))     <- l]
+    upwards l@(ELit AbsLitSet{}:_)      = fix [ xs | (ELit (AbsLitSet xs))      <- l]
+    upwards l@(ELit AbsLitRelation{}:_) = -- TODO check
+      fix $ [ map (ELit . AbsLitTuple) xs  | (ELit (AbsLitRelation xs)) <- l]
     upwards _ = []
 
     fix inners =
