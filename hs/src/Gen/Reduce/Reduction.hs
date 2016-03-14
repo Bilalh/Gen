@@ -799,16 +799,30 @@ pushUpwards op = case op of
     fix inners = filter ((== (length inners)) . length) $ transpose inners
     -- fix inners = error . groom $ inners
 
-viewContainer :: Expr -> Maybe [Expr]
-viewContainer  (ETyped _ inner)                           = viewContainer inner
-viewContainer  (ECon (TypedConstant c _))                 = viewContainer (ECon c)
-viewContainer  (ELit (AbsLitSet xs))                      = return xs
-viewContainer  (ELit (AbsLitTuple xs))                    = return xs
-viewContainer  (ECon (ConstantAbstract (AbsLitSet xs)))   = return (map ECon xs)
-viewContainer  (ECon (ConstantAbstract (AbsLitMSet xs)))  = return (map ECon xs)
-viewContainer  (ECon (ConstantAbstract (AbsLitTuple xs))) = return (map ECon xs)
+    viewContainer :: Expr -> Maybe [Expr]
+    viewContainer (ETyped _ inner)                              = viewContainer inner
+    viewContainer (ECon (TypedConstant c _))                    = viewContainer (ECon c)
+    viewContainer (ELit (AbsLitSet xs))                         = return xs
+    viewContainer (ELit (AbsLitMSet xs))                        = return xs
+    viewContainer (ELit (AbsLitTuple xs))                       = return xs
+    viewContainer (ELit (AbsLitMatrix _ xs))                    = return xs
+    viewContainer (ECon (ConstantAbstract (AbsLitSet xs)))      = return (map ECon xs)
+    viewContainer (ECon (ConstantAbstract (AbsLitMSet xs)))     = return (map ECon xs)
+    viewContainer (ECon (ConstantAbstract (AbsLitTuple xs)))    = return (map ECon xs)
+    viewContainer (ECon (ConstantAbstract (AbsLitMatrix _ xs))) = return (map ECon xs)
 
-viewContainer _                                          = Nothing
+    viewContainer (ELit (AbsLitRelation xs)) =
+      return $ map (ELit . AbsLitTuple) xs
+    viewContainer (ECon (ConstantAbstract (AbsLitRelation xs))) =
+      return $ map (ECon . ConstantAbstract . AbsLitTuple) xs
+    viewContainer (ELit (AbsLitFunction xs)) =
+      return $ map (\(a,b) -> ELit $ AbsLitTuple [a,b]) xs
+    viewContainer (ECon (ConstantAbstract (AbsLitFunction xs))) =
+      return $ map (\(a,b) -> ECon . ConstantAbstract $ AbsLitTuple [a,b]) xs
+
+
+    viewContainer _ = Nothing
+
 
 
 
