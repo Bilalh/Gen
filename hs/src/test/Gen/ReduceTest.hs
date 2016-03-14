@@ -221,11 +221,7 @@ use_qc xs = xs
 
 
 runner :: forall a t. (t -> StateT EState Identity a) -> t -> a
-runner f ee = do
-  let spe   :: Spec   = $never
-      state :: EState = newEState spe
-      res             = runIdentity $ flip evalStateT state $ f ee
-  res
+runner f ee = runIdentity $ flip evalStateT newEState $ f ee
 
 
 _prop :: Limited Expr -> Bool

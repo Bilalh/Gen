@@ -89,13 +89,9 @@ mkrGen = mkTFGen
 
 
 data EState = EState
-  { spec_  :: Spec
-  }
 
-
-newEState :: Spec ->EState
-newEState sp = do
-  EState{spec_=sp}
+newEState :: EState
+newEState = EState
 
 
 data WithGen a = WithGen { withGen_gen :: TFGen

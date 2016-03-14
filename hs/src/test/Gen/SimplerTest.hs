@@ -366,11 +366,7 @@ qc_tests title _ =
    ]
 
 runner :: forall a t. (t -> StateT EState Identity a) -> t -> a
-runner f ee = do
-  let spe   :: Spec   = $never
-      state :: EState = newEState spe
-      res             = runIdentity $ flip evalStateT state $ f ee
-  res
+runner f ee = runIdentity $ flip evalStateT newEState $ f ee
 
 
 use_qc :: [Maybe a] -> [Maybe a]

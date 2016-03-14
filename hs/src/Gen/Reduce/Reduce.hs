@@ -354,7 +354,7 @@ simplyDomain :: (Spec,  Maybe Point)
              -> (Domain () Expr -> GF)
              -> SpecRunner
              -> RRR (Timed (Spec,  Maybe Point))
-simplyDomain d@(sp@(Spec _ es obj), mp) org others wrapper doSpec = do
+simplyDomain d@(Spec _ es obj, mp) org others wrapper doSpec = do
   domsToDo <- doDoms org
   -- liftIO $ putStrLn . show . prettyArr $ map prettyArr domsToDo
   fin <- process1 [ dd |  dd <- domsToDo, dd /= org]
@@ -372,9 +372,9 @@ simplyDomain d@(sp@(Spec _ es obj), mp) org others wrapper doSpec = do
   doDoms :: [( (Text,Int), Domain () Expr)] -> RRR [[((Text,Int),Domain () Expr)]]
   doDoms [] = docError [ "No domains in reduce:simplyDomain" ]
   doDoms ((tx,x):xs) = do
-    rx <- runReduce sp x >>= return . ensureElem x
+    rx <- runReduce x >>= return . ensureElem x
     rs <- forM xs $ \(t,y) -> do
-            ys <- runReduce sp y >>= return . ensureElem y
+            ys <- runReduce y >>= return . ensureElem y
             pure $ map (t,) ys
     return $ map (tx,) rx : rs
 
@@ -417,7 +417,7 @@ simplyDomain d@(sp@(Spec _ es obj), mp) org others wrapper doSpec = do
 
 simplyConstraints :: (Spec,  Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
 simplyConstraints d@(Spec _ [] _, _)    = return $ Continue $ d
-simplyConstraints d@(sp@(Spec ds es obj), mp) = do
+simplyConstraints d@(Spec ds es obj, mp) = do
   choices <- doConstraints es
   fin     <- process1 choices
 
@@ -432,9 +432,9 @@ simplyConstraints d@(sp@(Spec ds es obj), mp) = do
   doConstraints :: [Expr] -> RRR [[Expr]]
   doConstraints [] = docError [ "No constraints in reduce:simplyConstraints" ]
   doConstraints (x:xs) = do
-    rx <- runReduce sp x >>= return . ensureElem x
+    rx <- runReduce  x >>= return . ensureElem x
     rs <- forM xs $ \y -> do
-            ys <- runReduce sp y >>= return . ensureElem y
+            ys <- runReduce y >>= return . ensureElem y
             pure ys
     return $ rx : rs
 

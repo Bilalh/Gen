@@ -68,9 +68,8 @@ generaliseConstraintsWithSingle :: Spec -> EEE Spec
 generaliseConstraintsWithSingle sp = do
   let (specZipper :: SpecZipper) = fromJustNote "generaliseCons" $ zipperBi sp
   forM_ (allContextsExcept specZipper) $ \ x -> do
-    let pre = fromZipper x
     let ehole =  hole x
-    singles   <- runSingle pre ehole
+    singles   <- runSingle ehole
 
     forM_ singles $ \s -> do
       let whole = fromZipper (replaceHole s x)

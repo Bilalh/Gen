@@ -863,24 +863,23 @@ reduceList as = do
 
 
 runReduce :: (RndGen m, MonadLog m, Reduce a (StateT EState (IdentityT m)) )
-          => Spec -> a -> m [a]
-runReduce spe x = do
+          => a -> m [a]
+runReduce x = do
   addLog "runReduce" []
-  (res,_) <- runIdentityT $ flip runStateT (newEState spe) $ do
+  (res,_) <- runIdentityT $ flip runStateT newEState $ do
                     reduce x
 
   addLog "endReduce" []
   return res
 
 
-runSingle :: forall (m :: * -> *) a.
-    (Reduce a (StateT EState (IdentityT m)), RndGen m, MonadLog m)
- => Spec -> a -> m [Expr]
-runSingle spe x = do
+runSingle :: forall (m :: * -> *) a
+     . (Reduce a (StateT EState (IdentityT m)), RndGen m, MonadLog m)
+    =>  a -> m [Expr]
+runSingle x = do
   addLog "runSingle" []
-  (res,_) <- runIdentityT $ flip runStateT (newEState spe) $ do
+  (res,_) <- runIdentityT $ flip runStateT newEState $ do
                     single x
-
   addLog "endSingle" []
   return res
 
@@ -901,4 +900,4 @@ isLitEmpty lit                  = null $ F.toList lit
 _reduce :: Expr -> IO [Expr]
 _reduce e = do
   runLoggerPipeIO LogInfo $
-    runRndGen 3 $ runReduce ($never :: Spec) e
+    runRndGen 3 $ runReduce  e
