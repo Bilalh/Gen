@@ -70,6 +70,7 @@ data UI
     , from_essence       :: Bool
     , no_check           :: Bool
     , log_level          :: LogLevel
+    , print_state        :: Bool
     }
 
   | Generalise
@@ -95,6 +96,7 @@ data UI
     , db_directory       :: Maybe FilePath
     , from_essence       :: Bool
     , log_level          :: LogLevel
+    , print_state        :: Bool
     }
 
   | Instance_Undirected
@@ -301,7 +303,7 @@ ui  = modes
                                     &= groupname "Other"
                                     &= typDir
                                     &= explicit
-                                    &= help "Directory to prepend to the $PATH before running progams."
+                                    &= help "Directory to prepend to the $PATH before running programs."
      , old_conjure        = False   &= name "old-conjure"
                                     &= groupname "Other"
                                     &= typDir
@@ -399,7 +401,7 @@ ui  = modes
                                      &= groupname "Reduction"
                                      &= explicit
                                      &= help "Just list the statuses then exit"
-     , always_compact    = False     &= name "always-compact"
+     , always_compact   = False      &= name "always-compact"
                                      &= groupname "Reduction"
                                      &= explicit
                                      &= help "Use compact if no choices are specified, cores should be set to 1 in this case. Also useful for specs that take a long time to produce multiple models"
@@ -411,7 +413,7 @@ ui  = modes
                                      &= name "t"
                                      &= groupname "Timing"
                                      &= explicit
-                                     &= help "Total time for running specs, if specifed, Otherwise specs are reduced until a fixed point is reached"
+                                     &= help "Total time for running specs, if specified, Otherwise specs are reduced until a fixed point is reached"
      , output_directory = def        &= typDir
                                      &= name "output-directory"
                                      &= name "o"
@@ -427,7 +429,7 @@ ui  = modes
                                      &= name "c"
                                      &= groupname "Other"
                                      &= explicit
-                                     &= help "Number of cores to use, defualts to 1 unless CORES is set"
+                                     &= help "Number of cores to use, defaults to 1 unless CORES is set"
      , _seed            = def        &= name "seed"
                                      &= groupname "Other"
                                      &= explicit
@@ -436,7 +438,7 @@ ui  = modes
                                      &= groupname "Other"
                                      &= typDir
                                      &= explicit
-                                     &= help "Directory to prepend the $PATH before running progams."
+                                     &= help "Directory to prepend the $PATH before running programs."
      , db_directory       = Nothing  &= name "db-dir"
                                      &= groupname "Other"
                                      &= typDir
@@ -471,7 +473,7 @@ ui  = modes
      , delete_others      = False    &= name "delete-others"
                                      &= groupname "Other"
                                      &= explicit
-                                     &= help "Delete test cases found during reductionwhich have a different error"
+                                     &= help "Delete test cases found during reduction which have a different error"
      , from_essence       = False    &= name "from-essence"
                                      &= groupname "Other"
                                      &= explicit
@@ -480,6 +482,10 @@ ui  = modes
                                      &= groupname "Other"
                                      &= explicit
                                      &= help "Don't check if the error still occurs by running the give specification"
+     , print_state        = True     &= name "print-state"
+                                     &= groupname "Other"
+                                     &= explicit
+                                     &= help "If true print the state after every set of reductions, defaults to true"
      , log_level          = LogDebug &= name "log-level"
                                      &= groupname "Other"
                                      &= explicit
@@ -543,7 +549,7 @@ ui  = modes
                                      &= name "c"
                                      &= groupname "Other"
                                      &= explicit
-                                     &= help "Number of cores to use, defualts to 1 unless CORES is set"
+                                     &= help "Number of cores to use, defaults to 1 unless CORES is set"
      , _seed            = def        &= name "seed"
                                      &= groupname "Other"
                                      &= explicit
@@ -552,7 +558,7 @@ ui  = modes
                                      &= groupname "Other"
                                      &= typDir
                                      &= explicit
-                                     &= help "Directory to prepend the $PATH before running progams."
+                                     &= help "Directory to prepend the $PATH before running programs."
      , db_directory       = Nothing  &= name "db-dir"
                                      &= groupname "Other"
                                      &= typDir
@@ -574,6 +580,10 @@ ui  = modes
                                      &= groupname "Other"
                                      &= explicit
                                      &= help "Convert spec.essence to json (spec.spec.json), automatically for convenience"
+     , print_state        = True     &= name "print-state"
+                                     &= groupname "Other"
+                                     &= explicit
+                                     &= help "If true print the state after every set of reductions, defaults to true"
      , log_level         = LogDebug  &= name "log-level"
                                      &= groupname "Other"
                                      &= explicit
@@ -649,7 +659,7 @@ ui  = modes
                                   &= name "given"
                                   &= groupname "Other"
                                   &= explicit
-                                  &= help "Instead of generating params, act like the .param files in the given dir were the generated specs, the number of .param files much mathc the value give to -i"
+                                  &= help "Instead of generating params, act like the .param files in the given dir were the generated specs, the number of .param files much match the value give to -i"
     , param_gen_time    = 300     &= name "param-generation-time"
                                   &= name "g"
                                   &= groupname "Other"
@@ -720,7 +730,7 @@ ui  = modes
                                   &= name "given"
                                   &= groupname "Other"
                                   &= explicit
-                                  &= help "Instead of generating params, act like the .param files in the given dir were the generated specs, the number of .param files much mathc the value give to -i"
+                                  &= help "Instead of generating params, act like the .param files in the given dir were the generated specs, the number of .param files much match the value give to -i"
     , param_gen_time    = 300     &= name "param-generation-time"
                                   &= name "g"
                                   &= groupname "Other"
@@ -837,7 +847,7 @@ ui  = modes
                            &= help "Only create the .meta.json file from previously created .spec.json"
      , verboseOpt  = False &= name "verbose"
                            &= explicit
-                           &= help "Show more infomation, and info on error if any"
+                           &= help "Show more information, and info on error if any"
 
      , strict_checking = False &= name "strict-type-checking"
                                &= explicit
@@ -961,11 +971,11 @@ ui  = modes
      , dups_kind  = enum [
                   DupRefine &= name "refine"
                             &= explicit
-                            &= groupname "Error Kind (defulat refine)"
+                            &= groupname "Error Kind (default refine)"
                             &= help "Refinement Errors"
                 , DupSolve  &= name "solve"
                             &= explicit
-                            &= groupname "Error Kind (defulat refine)"
+                            &= groupname "Error Kind (default refine)"
                             &= help "All other Errors"
                 ]
      , limit_time  = Nothing &= name "limit-time"
@@ -1020,7 +1030,7 @@ ui  = modes
                             , Refine_Solve_All &= name "refine-solve-all"
                                                &= explicit
                                                &= groupname "Control"
-                                               &= help "Refine, solve and validate the spec while genrating all models"
+                                               &= help "Refine, solve and validate the spec while generating all models"
                             ]
      , dry_run            = False   &= name "dry-run"
                                     &= groupname "Other"
@@ -1040,7 +1050,7 @@ ui  = modes
                                     &= groupname "Other"
                                     &= typDir
                                     &= explicit
-                                    &= help "Directory to prepend the $PATH before running progams."
+                                    &= help "Directory to prepend the $PATH before running programs."
      , old_conjure        = False   &= name "old-conjure"
                                     &= groupname "Other"
                                     &= explicit
@@ -1095,7 +1105,7 @@ ui  = modes
                                        &= explicit
                                        &= help "Logging level, default LogDebug"
      } &= name "script-smac-process"
-       &= help "wrapper script for the SMAC param tunner "
+       &= help "wrapper script for the SMAC param tuner "
 
 
   , Script_UpdateChoices

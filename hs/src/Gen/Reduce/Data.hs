@@ -23,6 +23,7 @@ data RConfig = RConfig
     , specDir_          :: FilePath
     , cores_            :: Int
     , specTime_         :: Int
+    , printState_       :: Bool
 
     -- def Initialised
     , binariesDirectory_ :: Maybe FilePath
@@ -72,6 +73,7 @@ instance Default RConfig where
           ,deletePassing_      = False
           ,resultsDB_dir       = Nothing
           ,alwaysCompact_      = False
+          ,printState_         = True
           }
 
 instance Default RState where

@@ -386,6 +386,7 @@ mainWithArgs u@Reduce{..} = do
                  ,R.toolchainOutput_   = toolchain_ouput
                  ,R.deletePassing_     = not keep_passing
                  ,alwaysCompact_       = always_compact
+                 ,printState_          = print_state
                  }
                 ,resultsDB_           = db
                 ,mostReducedChoices_  = error_choices
@@ -462,6 +463,7 @@ mainWithArgs Generalise{..} = do
                  ,R.toolchainOutput_   = toolchain_ouput
                  ,R.deletePassing_     = not keep_passing
                  ,alwaysCompact_       = False
+                 ,printState_          = print_state
                  }
                 ,E.resultsDB_          = db
                 ,E.choicesToUse_       = error_choices
@@ -953,7 +955,7 @@ _reduceDebug = do
        limit_time = Nothing, always_compact = True, no_csv = False,
        db_directory = Just "db", db_passing_in = Nothing,
        db_only_passing = False, from_essence = True, no_check = True,
-       log_level = LogDebug}
+       log_level = LogDebug,print_state= True}
   limiter (limit_time ec) (mainWithArgs ec)
 
 _instanceDebug :: IO ()

@@ -274,7 +274,7 @@ removeConstraints (Spec ds oes obj,mp) = do
 
           g Nothing = process xs
 
--- | We reduce a find much easier then a find
+-- | We can a given to a find since it is easier to work with
 givensToFinds :: (Spec,  Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
 givensToFinds d@(_, Nothing)          = return $ Continue $ d
 givensToFinds d@(_,(Just (Point []))) = return $ Continue $ d
@@ -619,7 +619,8 @@ con tx f (Continue d) = do
     (newRes) <- f d
     endState <- get
     noteFormat ("@" <+> tx <+> "End") (prettyTimedResult newRes)
-    noteFormat ("@" <+> tx <+> "EndState") [pretty endState]
+    RConfig{printState_} <- gets rconfig
+    when printState_ $ noteFormat ("@" <+> tx <+> "EndState") [pretty endState]
     note ""
 
     return newRes

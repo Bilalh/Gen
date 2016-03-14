@@ -95,6 +95,7 @@ reduceArgs EssenceConfig{..} ErrData{..}= do
                ,R.deletePassing_     = deletePassing_
                ,resultsDB_dir        = db_dir
                ,alwaysCompact_       = False
+               ,printState_          = True
                }
              ,resultsDB_           = db
              ,mostReducedChoices_  = Just choices
