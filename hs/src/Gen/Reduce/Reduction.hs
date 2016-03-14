@@ -1,5 +1,5 @@
 {-# LANGUAGE KindSignatures, MultiParamTypeClasses, PatternGuards, QuasiQuotes,
-             RankNTypes, TupleSections #-}
+             RankNTypes, TupleSections, ViewPatterns #-}
 module Gen.Reduce.Reduction where
 
 import Conjure.Language.AbstractLiteral
@@ -19,7 +19,6 @@ import Gen.Reduce.Random
 import Gen.Reduce.Simpler
 import Gen.Reduce.UnusedDomains
 import Gen.Reduce.Instantiate
-import Safe
 
 import qualified Data.Foldable                 as F
 import qualified Data.Generics.Uniplate.Zipper as Zipper
@@ -604,22 +603,17 @@ reduce_op2 f subs = do
     False -> do
       xrs <- zipWithM giveVals subs rs
 
-      let res_ = [ f vs | vs <- sequence xrs
-                -- , or $ zipWith (\z1 z2 -> runIdentity $ simpler1 z1 z2) vs subs
-                ]
-      -- let res   = filter (\x -> runIdentity $ ignoreLogs $  simpler1 x (f subs)  ) res_
-      let res   = res_
+      let res = [ f vs | vs <- sequence xrs ]
       addLog "reduce_op2 rs" (map prettyArr rs)
       mapM_ (\xx -> addLog "reduce_op2 xrs" (map pretty xx)  )  xrs
 
       addLog "reduce_op2 res" (map pretty res)
       addLog "reduce_op2 lengths"
-             [ nn "res_" (length res_)
-             , nn "res"  (length res)
+             [ nn "res"  (length res)
              , nn "rs"   (length rs)
              , nn "xrs"   (length xrs)
              ]
-      return res_
+      return res
 
   where
   giveVals :: (RndGen m, MonadLog m)
@@ -780,7 +774,7 @@ singleLitExpr ty = do
 
 
 -- E.g  (int, rel) = (int,rel)  -->  int = int, rel=rel
-pushUpwards :: Monad m => Op Expr -> m [Op Expr]
+pushUpwards :: (Monad m) => Op Expr -> m [Op Expr]
 pushUpwards op = case op of
   MkOpEq{}  -> pushUpwards1
   MkOpNeq{} -> pushUpwards1
@@ -791,22 +785,31 @@ pushUpwards op = case op of
       let subs :: [Expr]   = F.toList op
       case upwards subs of
         [] -> return []
-        -- xs -> error . groom $ xs
         xs -> return $ map (replaceOpChildren op) xs
 
     upwards :: [Expr] -> [[Expr]]
-    upwards l@(ELit AbsLitMatrix{}:_)   = fix [ xs | (ELit (AbsLitMatrix _ xs)) <- l]
-    upwards l@(ELit AbsLitTuple{}:_)    = fix [ xs | (ELit (AbsLitTuple xs))    <- l]
-    upwards l@(ELit AbsLitMSet{}:_)     = fix [ xs | (ELit (AbsLitMSet xs))     <- l]
-    upwards l@(ELit AbsLitSet{}:_)      = fix [ xs | (ELit (AbsLitSet xs))      <- l]
-    upwards l@(ELit AbsLitRelation{}:_) = -- TODO check
-      fix $ [ map (ELit . AbsLitTuple) xs  | (ELit (AbsLitRelation xs)) <- l]
+    upwards (map viewContainer  -> mxs) | Just xs <- vaild mxs = fix xs
     upwards _ = []
 
-    fix inners =
-      case minimumMay (map length inners) of
-        Nothing -> []
-        Just m  -> transpose $ map (take m) inners
+    vaild mxs | xs <- catMaybes mxs, length xs == length mxs = Just xs
+    vaild _ = Nothing
+
+    -- | Ensure the results is the right length the op
+    -- |  e.g [ [1,2,3], [4,5] ]   [ [1,4] , [2,5] ]
+    fix inners = filter ((== (length inners)) . length) $ transpose inners
+    -- fix inners = error . groom $ inners
+
+viewContainer :: Expr -> Maybe [Expr]
+viewContainer  (ETyped _ inner)                           = viewContainer inner
+viewContainer  (ECon (TypedConstant c _))                 = viewContainer (ECon c)
+viewContainer  (ELit (AbsLitSet xs))                      = return xs
+viewContainer  (ELit (AbsLitTuple xs))                    = return xs
+viewContainer  (ECon (ConstantAbstract (AbsLitSet xs)))   = return (map ECon xs)
+viewContainer  (ECon (ConstantAbstract (AbsLitMSet xs)))  = return (map ECon xs)
+viewContainer  (ECon (ConstantAbstract (AbsLitTuple xs))) = return (map ECon xs)
+
+viewContainer _                                          = Nothing
+
 
 
 replaceOpChildren :: Op Expr -> [Expr] -> Op Expr
@@ -885,7 +888,3 @@ _reduce :: Expr -> IO [Expr]
 _reduce e = do
   runLoggerPipeIO LogInfo $
     runRndGen 3 $ runReduce ($never :: Spec) e
-
-_replaceOpChildren_ex :: Op Expr
-_replaceOpChildren_ex = replaceOpChildren
-  [opp| 8 ** 3  |]  [  [essencee| 4 |], [essencee| 2 |] ]

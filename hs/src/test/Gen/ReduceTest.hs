@@ -78,6 +78,8 @@ gen_exprs =
     , [essencee| preImage(function(true --> true), false) |]
     , [essencee| toInt(toInt(true) in mset(-5, 4)) = 9 |]
     , [essencee| [true; int(2..2)] = [true, true, false; int(5..6, 7..7)] |]
+    , [essencee| mset(false, false) = mset(true, false) |]
+    , [essencee| [true; int(2..2)] = [true, true, false; int(5..6, 7..7)] |]
     ]
 
 

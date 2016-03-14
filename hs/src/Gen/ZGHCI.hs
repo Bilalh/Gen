@@ -10,7 +10,7 @@
 module Gen.ZGHCI(module X
   , d_boolrel, d_bool_func_set, d_func_size, d_func_size2, d_func_size3
   , aSpec, aExpr, aType, aDom, aBinRel, aIntRanged
-  , the_comp, the_comp_gens, l_mat
+  , the_comp, the_comp_gens, l_mat, the_opp, the_oppe
   ) where
 
 import Conjure.Language.Definition    as X
@@ -177,3 +177,14 @@ the_comp_gens = [GenDom (Single (Name "m1"))
                                             (ECon (ConstantInt 1))])
                                       [ECon (ConstantInt 4)]))
                                 (EVar (Var "q5" TypeInt)))))])]
+
+
+the_oppe = EOp the_opp
+the_opp  = (MkOpEq
+             (OpEq
+                (ELit
+                   (AbsLitMSet
+                      [ECon (ConstantBool False), ECon (ConstantBool False)]))
+                (ECon
+                   (ConstantAbstract
+                      (AbsLitMSet [ConstantBool True, ConstantBool False])))))
