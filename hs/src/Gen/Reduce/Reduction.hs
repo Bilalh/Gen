@@ -396,6 +396,7 @@ instance (RndGen m,  MonadLog m) => Reduce (Domain () Expr) m where
       i <- chooseR (0, 5)
       return $ [EDom $ DomainInt [RangeSingle (ECon $ ConstantInt i)]]
 
+
   single d@(DomainTuple x) = do
     xs <- mapM single x
     let res = [ EDom $ DomainTuple vs
@@ -480,6 +481,24 @@ instance (RndGen m,  MonadLog m) => Reduce (Domain () Expr) m where
   mutate (DomainSequence r _ x3)    = return [EDom $ DomainSequence r def x3 ]
   mutate (DomainRelation r _ x3)    = return [EDom $ DomainRelation r def x3 ]
   mutate (DomainPartition r _ x3)   = return [EDom $ DomainPartition r def x3 ]
+
+  mutate (DomainInt ranges) = do
+    let possible = nub2 $ concat $ catMaybes allRanges
+    x <- oneofR possible
+    return $ [EDom $ DomainInt [RangeSingle x]]
+
+    where
+      allRanges :: [Maybe [Expr]]
+      allRanges =
+          [ vals
+          | r <- ranges
+          , let vals = case r of
+                  RangeSingle (x) -> return [x]
+                  RangeLowerBounded x -> return [x]
+                  RangeUpperBounded x -> return [x]
+                  RangeBounded l u -> return [l,u]
+                  _ -> Nothing
+          ]
 
   mutate _ = return []
 
@@ -897,7 +916,12 @@ isLitEmpty lit                  = null $ F.toList lit
 
 -- For ghci
 
-_reduce :: Expr -> IO [Expr]
-_reduce e = do
+_rexpr :: Expr -> IO [Expr]
+_rexpr e = do
+  runLoggerPipeIO LogInfo $
+    runRndGen 3 $ runReduce  e
+
+_rdom :: Domain () Expr -> IO [Domain () Expr]
+_rdom e = do
   runLoggerPipeIO LogInfo $
     runRndGen 3 $ runReduce  e

@@ -168,12 +168,17 @@ instance Simpler (Domain () Expr) (Domain () Expr) where
   simplerImp a b =
     case compare (depthOf a) (depthOf b) of
       EQ -> case compare
-            (length [ x :: Domain () Expr | x <- universe a ])
-            (length [ x :: Domain () Expr | x <- universe b ]) of
-              EQ -> return $ compareSameDomain a b
-              x  -> return x
-
-      x  -> return x
+        (length [ x :: Domain () Expr | x <- universe a ])
+        (length [ x :: Domain () Expr | x <- universe b ]) of
+          EQ -> case compareSameDomain a b of
+            EQ -> case compare
+              (length [ x :: Expr | x <- universeBi a ])
+              (length [ x :: Expr | x <- universeBi b ]) of
+                EQ -> return EQ
+                x  -> return x
+            x -> return x
+          x -> return x
+      x -> return x
 
 depthThenCount :: forall a a1
                 . (Pretty a, Pretty a1, DepthOf a, DepthOf a1)
