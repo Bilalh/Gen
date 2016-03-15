@@ -6,8 +6,8 @@ import Conjure.Language.Definition
 import Conjure.Language.Domain
 import Conjure.Language.Pretty     (prettyList)
 import Conjure.Process.Enumerate
-import Conjure.UI.IO               (EssenceFileMode (PlainEssence),
-                                    readModelFromFile, writeModel)
+import Conjure.UI                  (OutputFormat( Plain ))
+import Conjure.UI.IO               (readModelFromFile, writeModel)
 import Crypto.Hash
 import Data.List                   (iterate)
 import Gen.Imports                 hiding (hash)
@@ -84,7 +84,7 @@ writePoint (Point ps) fp = do
             |  (label,con) <- ps ]
   let m :: Model = def{mStatements=sts}
   liftIO $ createDirectoryIfMissing True (takeDirectory fp)
-  liftIO $ writeModel PlainEssence (Just fp) m
+  liftIO $ writeModel 120 Plain (Just fp) m
 
 
 pointToModel :: Point -> Model

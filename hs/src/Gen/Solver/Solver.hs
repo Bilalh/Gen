@@ -4,6 +4,7 @@ module Gen.Solver.Solver(solver,solverMain, SolverArgs(..), Solution) where
 import Conjure.Language.Definition
 import Conjure.Language.Instantiate
 import Conjure.Language.NameResolution (resolveNames)
+import Conjure.UI
 import Conjure.UI.IO
 import Conjure.UserError               (MonadUserError)
 import Gen.Helpers.InlineLettings
@@ -37,7 +38,7 @@ solverMain SolverArgs{..} = do
     (Just solution) -> do
       liftIO $ putStrLn $ "Solution @ " ++ solutionPath
       liftIO $ when printSolution $ print . pretty $ solution
-      writeModel PlainEssence (Just solutionPath) solution
+      writeModel 120 Plain (Just solutionPath) solution
 
 
 solver :: (MonadFail m, MonadLog m, MonadUserError m, EnumerateDomain m)

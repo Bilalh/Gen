@@ -26,6 +26,7 @@ module Gen.Instance.RaceRunner(
 import Conjure.Language
 import Conjure.Language.Expression.DomainSizeOf (domainSizeOf)
 import Conjure.Language.NameResolution          (resolveNames)
+import Conjure.UI                               (OutputFormat( Plain ))
 import Conjure.UI.IO
 import Conjure.UI.TypeCheck
 import Data.List                                (foldl1')
@@ -364,7 +365,7 @@ createParamEssence1 mEssencePath mVarInfo mOutputDir customParamEssence = do
                          >>= runNameGen . typeCheckModel_StandAlone
                          >>= runNameGen . resolveNames
           paramSpec <- liftIO $ createParamSpecification model mVarInfo
-          writeModel PlainEssence (Just $ paramEssenceFp) paramSpec
+          writeModel 120 Plain (Just $ paramEssenceFp) paramSpec
 
   liftIO $ doesFileExist eprimeFp >>= \case
     True  -> return ()
