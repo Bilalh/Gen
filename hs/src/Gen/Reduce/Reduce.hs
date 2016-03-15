@@ -471,7 +471,7 @@ simplyConstraints d@(Spec ds es obj, mp) = do
 
 -- | Try treating the eprime as a essence spec, and see if still has an error
 eprimeAsSpec :: (Spec,  Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
-eprimeAsSpec start@(_,mp) = do
+eprimeAsSpec start@(nsp,mp) = do
   config <- gets rconfig
   process config
 
@@ -484,10 +484,26 @@ eprimeAsSpec start@(_,mp) = do
   process _ = do
     gets mostReduced_ >>= \case
       Nothing -> do
-        noteFormat "eprimeAsSpec" ["no mostReduced"]
-        return (Continue start)
-      Just (ErrData{specDir}) -> do
+        noteFormat1 "eprimeAsSpec" "No most reduced refine original spec first"
+        originalInDb >>= \case
+          Just Passing{}  -> return (Continue start)
+          Just StoredError{} -> rrError "StoredResult in runSpec" []
+          Just (OurError (ErrData{specDir})) -> processRefinement specDir
+          Nothing -> do
+            ((errData,_),_) <-  get >>= \rr -> (flip runStateT) rr (return nsp
+                                    >>=  (flip checkForError) mp
+                                    )
+            case errData of
+              Nothing               -> return (Continue start)
+              Just ErrData{specDir} -> do
+                res <- processRefinement specDir
+                liftIO $ removeDirectoryRecursive (specDir)
+                return res
 
+      Just ErrData{specDir} -> processRefinement specDir
+
+    where
+      processRefinement specDir = do
         files <- liftIO $  getDirectoryContents  specDir
         case [ h | h <- files, takeExtension h == ".eprime" ] of
           [ele] -> do
@@ -530,7 +546,6 @@ eprimeAsSpec start@(_,mp) = do
             noteFormat "eprimeAsSpec NotDone" ["multiple eprimes not supported"]
             return (Continue start)
 
-    where
       f x = do -- No time to reduce the eprime
         noteFormat "eprimeAsSpec noTimeLeft" [pretty x]
         return $ start
@@ -543,6 +558,13 @@ eprimeAsSpec start@(_,mp) = do
         noteFormat "eprimeAsSpec SameError" [pretty r]
         recordResult r
         loopToFixed False sp_p
+
+
+      originalInDb :: (MonadDB m, MonadState RState m, MonadIO m)
+                   => m (Maybe RunResult)
+      originalInDb = do
+        RConfig{oErrKind_, oErrStatus_} <- gets rconfig
+        checkDB oErrKind_ oErrStatus_ nsp mp
 
 
 ensureAFind :: Domains -> Domains
