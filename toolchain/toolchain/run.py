@@ -377,7 +377,7 @@ def classify_error(*, kind, output, returncode):
         and 'ERROR: Does not evaluate to true.' in output:
             return Status.whereFalseNeqTrue
         if 'Could not run Minion: java.io.FileNotFoundException: .MINIONSOLS' in output \
-        and ('Sub-process exited with error code:139' in output or 'Sub-process exited with error code:139' in output):
+        and ('Sub-process exited with error code:137' in output or 'Sub-process exited with error code:139' in output):
             return Status.noMinionSols
         if 'Exception in thread' in output:
             return Status.javaException
