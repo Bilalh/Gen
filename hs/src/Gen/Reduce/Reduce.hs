@@ -35,9 +35,12 @@ reduceMain check rr = do
     False -> return Nothing
     True  -> return (Just paramFp_)
 
-  (sp,startParam) <-  liftIO $ deEnum sp_ paramFp
-  liftIO $ checkForParamIfNeeded sp startParam
+  (sp,startParam') <-  liftIO $ deEnum sp_ paramFp
+  liftIO $ checkForParamIfNeeded sp startParam'
   -- noteFormat "Starting with" [pretty sp, pretty startParam]
+  let startParam = case startParam' of
+        Just (Point []) -> Nothing
+        x               -> x
 
 
   (errOccurs,_) <- case check of
@@ -370,7 +373,9 @@ simplyDomain d@(Spec _ es obj, mp) org others wrapper doSpec = do
   trans ((te,ix),dom) = (te, (ix, wrapper dom))
 
   doDoms :: [( (Text,Int), Domain () Expr)] -> RRR [[((Text,Int),Domain () Expr)]]
-  doDoms [] = docError [ "No domains in reduce:simplyDomain" ]
+  doDoms [] = docError [ "No domains in reduce:simplyDomain"
+                       , nn "spec" d
+                       ]
   doDoms ((tx,x):xs) = do
     rx <- runReduce x >>= return . ensureElem x
     rs <- forM xs $ \(t,y) -> do
