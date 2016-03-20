@@ -127,6 +127,7 @@ data StatusI =
   | ConjureOtherUserError_
   | JvmMemory_
   | WhereFalseNeqTrue_
+  | NoMinionSols_
     deriving (Show, Eq, Enum, Generic, Typeable, Data, Read, Ord)
 
 instance Hashable StatusI
