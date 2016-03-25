@@ -16,6 +16,7 @@ import System.FilePath          (takeBaseName)
 import Control.Concurrent.ParallelIO.Global (parallelInterleaved)
 import Gen.Helpers.MonadNote
 import Gen.Essence.Log
+import qualified Gen.Generalise.Data    as G
 
 import qualified Gen.Reduce.Data as R
 
@@ -32,6 +33,7 @@ reduceErrors :: (MonadState Carry m, MonadIO m, MonadDB m)
              => EssenceConfig -> [ErrData] -> m [ReduceResult]
 reduceErrors ec@EssenceConfig{logLevel} errs = do
   args <- mapM (reduceArgs ec) errs
+
   results <- liftIO $ do
     res <- parallelInterleaved [ processReduceArgs logLevel arg | arg <- args ]
     return res
@@ -101,6 +103,41 @@ reduceArgs EssenceConfig{..} ErrData{..}= do
              ,resultsDB_           = db
              ,mostReducedChoices_  = Just choices
              ,timeLeft_            = total_time_may
+             }
+  liftIO $ doMeta out no_csv binariesDirectory_
+  return args
+
+generaliseArgs :: (MonadIO m, MonadDB m)
+           => EssenceConfig -> ErrData -> m G.GState
+generaliseArgs EssenceConfig{..} ErrData{..}= do
+  db     <- getsDb
+  db_dir <- getDbDirectory
+
+  let per_spec_time  = round (fromIntegral perSpecTime_ * 1.5 :: Double) :: Int
+      no_csv         = False
+      total_time_may = reduceAsWell_
+      out            = specDir ++ "_g-" ++ (replaceExtensions "" $ takeBaseName choices)
+
+  let args = G.GState{ rconfig =
+               RConfig
+               {oErrKind_            = kind
+               ,oErrStatus_          = status
+               ,oErrChoices_         = Just choices
+               ,outputDir_           = out
+               ,specDir_             = specDir
+               ,R.cores_             = 1
+               ,specTime_            = per_spec_time
+               ,R.binariesDirectory_ = binariesDirectory_
+               ,R.toolchainOutput_   = ToolchainNull_
+               ,R.deletePassing_     = deletePassing_
+               ,resultsDB_dir        = db_dir
+               ,alwaysCompact_       = False
+               ,printState_          = True
+               }
+             ,resultsDB_           = db
+             ,G.choicesToUse_      = Just choices
+             ,G.otherErrors_       = []
+             ,G.passingTrees       = []
              }
   liftIO $ doMeta out no_csv binariesDirectory_
   return args
