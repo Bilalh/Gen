@@ -10,6 +10,7 @@ import Gen.Reduce.Data       (RConfig (..), addLog)
 import Gen.Reduce.Random
 import Gen.Reduce.Reduction
 import Gen.Helpers.MonadNote
+import Gen.Essence.Id
 
 import Data.Generics.Uniplate.Zipper (Zipper, fromZipper, hole, replaceHole,
                                       zipperBi)

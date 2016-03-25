@@ -6,6 +6,8 @@ import Gen.Reduce.Data  hiding (RState (..))
 import Gen.IO.RunResult
 import Gen.Reduce.Random
 import Gen.Helpers.MonadNote
+import Gen.Essence.Id
+import Gen.Essence.Data.Key
 
 import qualified Text.PrettyPrint    as Pr
 
@@ -19,6 +21,7 @@ data GState = GState
     , choicesToUse_      :: Maybe FilePath
     , otherErrors_       :: [ErrData]
     , resultsDB_         :: ResultsDB
+    , passingTrees       :: [KTree Key]
     } deriving (Show)
 
 
@@ -35,6 +38,7 @@ instance Default GState where
     def =  GState{rconfig       = def
                  ,otherErrors_  = []
                  ,resultsDB_    = def
+                 ,passingTrees  = []
                  ,choicesToUse_ = error "set mostReducedChoices_=oErrChoices_"
                  }
 
@@ -50,4 +54,6 @@ instance(Monad m, MonadIO m) => MonadR (StateT GState m) where
   getRconfig          = gets rconfig
   processOtherError r = modify $ \st -> st{otherErrors_ =r : otherErrors_ st }
   getChoicesToUse     = gets choicesToUse_
-  processPassing    _ = return ()
+  processPassing sp   = do
+    let tree = keyTree sp
+    modify $ \st -> st{passingTrees = tree : passingTrees st }
