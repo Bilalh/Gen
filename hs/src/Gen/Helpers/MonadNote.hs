@@ -1,6 +1,9 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Gen.Helpers.MonadNote where
 
+-- This is mainly used in reduction, to save a nicely
+-- formatted file of reductions that were tried.
+
 import Gen.Imports
 import Gen.Reduce.Random
 
