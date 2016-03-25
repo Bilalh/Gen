@@ -208,7 +208,6 @@ doCommon ec@EC.EssenceConfig{..} refineType = do
                   mapM_ (\x -> storeInDB sp mayPoint (OurError x)) rdata
                   writeDb False
 
-                  -- FIXME --total-is-cpu-time should take account of reduction cpu time
                   case rdata of
                     [] ->  do
                       storeInDB sp mayPoint (Passing $ truncate runTime)
