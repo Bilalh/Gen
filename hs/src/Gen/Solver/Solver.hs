@@ -4,7 +4,7 @@ module Gen.Solver.Solver(solver,solverMain, SolverArgs(..), Solution) where
 import Conjure.Language.Definition
 import Conjure.Language.Instantiate
 import Conjure.Language.NameResolution (resolveNames)
-import Conjure.UI
+import Conjure.UI(OutputFormat(Plain))
 import Conjure.UI.IO
 import Conjure.UserError               (MonadUserError)
 import Gen.Helpers.InlineLettings
