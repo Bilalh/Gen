@@ -16,8 +16,11 @@ adjust :: (MonadState Carry m, MonadIO m) => ReduceResult -> m ()
 adjust ReduceResult{..} = do
   let tree = keyTree finalSpec
   let keys = F.toList tree
+  let fromPassing = concatMap F.toList fTrees
+  let toDecrease = keys \\ fromPassing
+
   (KeyMap ws) <- gets cWeighting
-  let newWeights = foldl' doWeighting ws keys
+  let newWeights = foldl' doWeighting ws toDecrease
 
   modify $ \st -> st{cWeighting=KeyMap newWeights}
   return ()
