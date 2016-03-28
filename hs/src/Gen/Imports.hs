@@ -104,7 +104,7 @@ import Data.Foldable    as X (Foldable, all, and, any, concat, fold, foldMap, fo
 import Data.Set         as X (Set)
 import Data.Traversable as X (Traversable, forM, mapM, sequence)
 
-import Data.Proxy as X (Proxy (..))
+import Data.Proxy  as X (Proxy (..))
 import Debug.Trace as X (trace)
 
 
@@ -115,12 +115,12 @@ import System.Directory   as X (createDirectoryIfMissing, doesDirectoryExist,
                                 removeDirectoryRecursive, removeFile)
 import System.Environment as X (getArgs)
 import System.FilePath    as X ((</>))
-import System.FilePath as X (dropExtension, dropExtensions, (<.>))
-import System.IO       as X (FilePath, IO, getLine, print, putStr, putStrLn,
-                             writeFile)
+import System.FilePath    as X (dropExtension, dropExtensions, (<.>))
+import System.IO          as X (FilePath, IO, getLine, print, putStr, putStrLn,
+                                writeFile)
 
 -- groom
-import Text.Groom      as X (groom)
+import Text.Groom as X (groom)
 
 -- safe
 import Safe as X (at, atMay, atNote, fromJustNote, headNote, readMay, readNote)
@@ -155,8 +155,8 @@ import Gen.Helpers.Placeholders as X
 
 import qualified Data.Map.Strict  as M
 import qualified Data.Set         as S
+import qualified Data.Text        as T
 import qualified Text.PrettyPrint as Pr
-import qualified Data.Text    as T
 
 
 type Depth     = Int
