@@ -6,6 +6,7 @@ import Data.Csv                         (DefaultOrdered, FromNamedRecord,
                                          ToNamedRecord, decodeByName,
                                          encodeDefaultOrderedByName)
 import Data.List                        (break)
+import Data.List.Split                  (splitOn)
 import Data.Map                         (Map)
 import Database.SQLite.Simple
 import Database.SQLite.Simple.FromField ()
@@ -13,28 +14,28 @@ import Database.SQLite.Simple.FromRow   ()
 import Gen.Helpers.Str
 import Gen.Imports                      hiding (group)
 import Gen.Instance.Data
-import Gen.Instance.Results.ModeMeta
 import Gen.Instance.Point
 import Gen.Instance.RaceRunner          (conjureCompact, runSolve, script_lookup1)
-import Gen.IO.Formats                   (readFromJSON, readFromJSONMay,getFullPath)
+import Gen.Instance.Results.ModeMeta
+import Gen.IO.Formats                   (getFullPath, readFromJSON, readFromJSONMay)
 import Gen.IO.Toolchain                 (runCommand')
 import System.Exit                      (ExitCode (ExitSuccess))
-import System.IO                        (readFile)
 import System.FilePath                  (takeDirectory)
+import System.IO                        (readFile)
 
-import qualified Data.ByteString.Lazy     as BL
-import qualified Data.ByteString.Char8 as C
-import qualified Data.IntSet              as I
-import qualified Data.Map                 as M
-import qualified Data.Set                 as Set
-import qualified Data.Text                as T
-import qualified Data.Vector              as V
+import qualified Crypto.Hash                      as Crypto
+import qualified Data.ByteString.Char8            as C
+import qualified Data.ByteString.Lazy             as BL
+import qualified Data.IntSet                      as I
+import qualified Data.Map                         as M
+import qualified Data.Set                         as Set
+import qualified Data.Text                        as T
+import qualified Data.Vector                      as V
 import qualified Gen.Instance.Results.ModelInfo   as MI
 import qualified Gen.Instance.Results.ModelRow    as MR
 import qualified Gen.Instance.Results.SettingsIn  as IN
 import qualified Gen.Instance.Results.SettingsOut as OUT
 import qualified Gen.Instance.Results.Versions    as S
-import qualified Crypto.Hash as Crypto
 
 numSetsQuery, numModelsQuery, selectorQuery, compactQuery :: Query
 modelsQuery, paramsQuery :: Query

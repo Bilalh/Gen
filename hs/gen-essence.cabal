@@ -197,6 +197,9 @@ Library
                      , aeson-pretty
                      , parallel-io
                      , pipes
+                     , integer-gmp
+                     , data-default
+                     , split
 
    default-extensions:
         NoImplicitPrelude
