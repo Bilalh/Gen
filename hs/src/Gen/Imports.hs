@@ -27,11 +27,11 @@ module Gen.Imports
 
 -- Conjure instances and functions
 import Conjure.Prelude as X (ExceptT (..), LogLevel (..), MonadFail (..),
-                             MonadLog (..), allNats, getAllFiles,
+                             MonadLog (..), allNats, concatMapM, getAllFiles,
                              getAllFilesWithSuffix, ignoreLogs, jsonOptions,
                              logDebug, logDebugVerbose, logInfo, logWarn, padRight,
-                             pairWithContents, runLoggerPipeIO, sh, stringToText,
-                             textToString,concatMapM,setRandomSeed,sortOn)
+                             pairWithContents, runLoggerPipeIO, setRandomSeed, sh,
+                             sortOn, stringToText, textToString)
 
 -- basic data types
 import Data.Bool   as X (Bool (..), not, otherwise, (&&), (||))
@@ -84,18 +84,18 @@ import Data.Data     as X (Data, Typeable)
 import Data.Default  as X (Default, def)
 import Data.Either   as X (Either (..), either, lefts, partitionEithers, rights)
 import Data.Function as X (const, flip, id, on, ($), (.))
-import Data.List     as X (concatMap, drop, dropWhile, elem, elemIndex, filter,
-                           findIndex, foldl, foldr, foldr1, genericIndex,
-                           genericLength, genericTake, group, groupBy, head, init,
-                           inits, intercalate, intersect, intersperse, isInfixOf,
+import Data.List     as X (concatMap, drop, dropWhile, elem, filter, findIndex,
+                           foldl, foldr, foldr1, genericIndex, genericLength,
+                           genericTake, group, groupBy, head, init, inits,
+                           intercalate, intersect, intersperse, isInfixOf,
                            isPrefixOf, isSuffixOf, last, length, lines, lookup, map,
-                           minimumBy, notElem, nub, nubBy, null, partition, product,
-                           repeat, replicate, reverse, sort, sortBy, span,
-                           stripPrefix, subsequences, sum, tail, tails, take,
-                           takeWhile, transpose, unlines, unwords, unzip, unzip3,
-                           words, zip, zip3, zipWith, (++), (\\))
-import Data.Maybe    as X (Maybe (..), catMaybes, fromMaybe, isJust, isNothing,
-                           listToMaybe, mapMaybe, maybe, maybeToList)
+                           minimumBy, notElem, nub, null, partition, product, repeat,
+                           replicate, reverse, sort, sortBy, span, stripPrefix,
+                           subsequences, sum, tail, tails, take, takeWhile,
+                           transpose, unlines, unwords, unzip, unzip3, words, zip,
+                           zip3, zipWith, (++), (\\))
+import Data.Maybe    as X (Maybe (..), catMaybes, fromMaybe, isJust, listToMaybe,
+                           mapMaybe, maybe, maybeToList)
 import Data.Monoid   as X (Any (..), Monoid, mappend, mconcat, mempty)
 import Data.Tuple    as X (curry, fst, snd, swap, uncurry)
 
@@ -104,10 +104,23 @@ import Data.Foldable    as X (Foldable, all, and, any, concat, fold, foldMap, fo
 import Data.Set         as X (Set)
 import Data.Traversable as X (Traversable, forM, mapM, sequence)
 
-import qualified Data.Text    as T
-import qualified Data.Text.IO as T
+import Data.Proxy as X (Proxy (..))
+import Debug.Trace as X (trace)
+
 
 import System.Random as X (StdGen, mkStdGen, randomRIO, setStdGen)
+
+import System.Directory   as X (createDirectoryIfMissing, doesDirectoryExist,
+                                doesFileExist, getDirectoryContents,
+                                removeDirectoryRecursive, removeFile)
+import System.Environment as X (getArgs)
+import System.FilePath    as X ((</>))
+import System.FilePath as X (dropExtension, dropExtensions, (<.>))
+import System.IO       as X (FilePath, IO, getLine, print, putStr, putStrLn,
+                             writeFile)
+
+-- groom
+import Text.Groom      as X (groom)
 
 -- safe
 import Safe as X (at, atMay, atNote, fromJustNote, headNote, readMay, readNote)
@@ -129,22 +142,6 @@ import Data.Generics.Uniplate.Data as X (children, childrenBi, descend, descendB
                                          transformBi, transformBiM, transformM,
                                          uniplate, universe, universeBi)
 
-import System.Directory   as X (createDirectoryIfMissing, doesDirectoryExist,
-                                doesFileExist, getDirectoryContents,
-                                removeDirectoryRecursive,removeFile)
-import System.Environment as X (getArgs)
-import System.FilePath    as X ((</>))
-
-import Debug.Trace as X (trace)
-
-import System.FilePath as X (dropExtension, dropExtensions, (<.>))
-import System.IO       as X (FilePath, IO, getLine, print, putStr, putStrLn,
-                             writeFile)
-import Text.Groom      as X (groom)
-
-
-import Data.Proxy as X (Proxy (..))
-
 import Conjure.Language.AbstractLiteral as X (AbstractLiteral)
 import Conjure.Language.Constant        as X (Constant)
 import Conjure.Language.Definition      as X (Expression)
@@ -159,6 +156,8 @@ import Gen.Helpers.Placeholders as X
 import qualified Data.Map.Strict  as M
 import qualified Data.Set         as S
 import qualified Text.PrettyPrint as Pr
+import qualified Data.Text    as T
+
 
 type Depth     = Int
 type SpecHash  = Int
