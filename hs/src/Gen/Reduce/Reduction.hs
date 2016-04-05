@@ -501,6 +501,8 @@ instance (RndGen m,  MonadLog m) => Reduce (Domain () Expr) m where
 
   mutate _ = return []
 
+--TODO reducing individual range
+
 
 unEDom :: Expr -> Domain () Expr
 unEDom (EDom b) = b
