@@ -170,9 +170,8 @@ removeUnusedDomains d@(sp@(Spec ods es obj), mp) = do
     where
     choices :: Domains -> [Text] -> [Domains]
     choices ds ts =
-        -- remove [] and reversing to get largest first
-        -- meaning res would be [ [a], [b], [a,b],  ... ]
-        let ways = reverse . tail . sortBy (comparing length) . subsequences $ ts
+        -- res would be [ [], [a], [b], [a,b],  ... ]
+        let ways = orderedSubsequences ts
             res = fmap (\wy -> M.filterWithKey (\k _ -> k `notElem` wy) ds ) ways
         in res
 
@@ -204,8 +203,7 @@ inlineGivens d@((Spec ods es obj), Just (Point ops) ) = do
     Just (fsp, fp) -> return (fsp,  emptyPointToNothing (Just fp) )
 
   where
-  -- list of points in decressing length  [(a,_),(b,_),(c,)],  [(a,_),(b,_)]
-  givenSeq = reverse . tail . sortBy (comparing length) . subsequences $ ops
+  givenSeq = orderedSubsequences ops
 
   process :: [[(Name,Constant)]] -> RRR (Timed (Maybe (Spec, Point)))
   process []     = return $ Continue $ Nothing
@@ -257,6 +255,7 @@ removeConstraints (Spec ds oes obj,mp) = do
 
     choices :: [Expr] -> [[Expr]]
     choices ts =
+        -- TODO try using orderedSubsequences
         let ways = sortBy (comparing length) . (init . subsequences) $ ts
         in  ways
 
@@ -315,9 +314,8 @@ givensToFinds org@(sp@(Spec ods es obj),(Just point@(Point ps)) ) = do
 
   choices :: [Text] -> [(Domains, Point)]
   choices ts =
-      -- remove [] and reversing to get largest first
-      -- meaning res would be [ [a], [b], [a,b],  ... ]
-      let ways  = reverse . tail . sortBy (comparing length) . subsequences $ ts
+      -- res would be [ [], [a], [b], [a,b],  ... ]
+      let ways  = orderedSubsequences $ ts
           parts = map (\wy -> (wy, [ n | n <- ts,  n `elem` ts ])) ways
       in map convert parts
 
@@ -600,8 +598,9 @@ coordinateGivens1 ds p =
 
 -- | list of elements in decreasing length [(a,_),(b,_),(c,_)], ..., [(a,_),(b,_) ... ]
 -- | If length > 10 return sequences with one element removed and individual elements
+orderedSubsequences :: [a] -> [[a]]
 orderedSubsequences es | len <- length es, len >= 7 =
-   let rm1 = [ [ e | (e,i) <- zip [1..len] [1..], i /= j   ] | j <- [1..len] ]
+   let rm1 = [ [ e | (e,i) <- zip es [1..], i /= j   ] | j <- [1..len] ]
    in  es : rm1 ++ (map (:[]) es )
 
 orderedSubsequences es = reverse . sortBy (comparing length) . nonEmptySubsequences $ es
