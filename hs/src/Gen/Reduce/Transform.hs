@@ -27,21 +27,23 @@ deEnum sp paramFp = do
 
   no_enums  <- ignoreLogs $ removeEnumsFromModel m
   named     <- ignoreLogs . runNameGen $  resolveNames no_enums
-  namedSpec <- fromConjure named
 
   case paramFp of
-    Nothing -> return (namedSpec, Nothing)
+    Nothing -> do
+      namedSpec <- fromConjure named
+      return (namedSpec, Nothing)
     Just fp -> do
       param <- readModelFromFile fp
-      fixed  <- ignoreLogs $  removeEnumsFromParam named param
-      let (Point xs) = modelToPoint fixed
+      (fixedModel,fixedParam)  <- ignoreLogs $  removeEnumsFromParam named param
+      let (Point xs) = modelToPoint fixedParam
 
       let enums_sizes = [ nm | Declaration (FindOrGiven Given nm@(Name t) _)
                             <- mStatements named
                              , "_EnumSize" `T.isSuffixOf` t ]
       let point = Point (map (forEnums enums_sizes) xs)
 
-      return (namedSpec, Just point)
+      finalSpec <- fromConjure fixedModel
+      return (finalSpec, Just point)
 
   where
     forEnums :: [Name] -> (Name,Constant) -> (Name,Constant)
