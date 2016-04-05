@@ -598,6 +598,19 @@ coordinateGivens1 ds p =
 
 -- List functions
 
+-- | list of elements in decreasing length [(a,_),(b,_),(c,_)], ..., [(a,_),(b,_) ... ]
+-- | If length > 10 return sequences with one element removed and individual elements
+orderedSubsequences es | len <- length es, len >= 7 =
+   let rm1 = [ [ e | (e,i) <- zip [1..len] [1..], i /= j   ] | j <- [1..len] ]
+   in  es : rm1 ++ (map (:[]) es )
+
+orderedSubsequences es = reverse . sortBy (comparing length) . nonEmptySubsequences $ es
+  where
+    nonEmptySubsequences         :: [a] -> [[a]]
+    nonEmptySubsequences []      =  []
+    nonEmptySubsequences (x:xs)  =  [x] : foldr f [] (nonEmptySubsequences xs)
+      where f ys r = ys : (x : ys) : r
+
 -- | Fix the next Elem
 next :: [[x]] -> RRR [x]
 next esR = return $ map pickFirst esR
