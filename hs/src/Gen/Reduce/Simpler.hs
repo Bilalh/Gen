@@ -330,7 +330,7 @@ instance Simpler (Op Expr) (Op Expr) where
         let x2 = F.toList b
         case compare (length x1) (length x2) of
           EQ -> do
-            os <-zipWithM simpler x1 x2
+            os <- zipWithM simpler x1 x2
             let la = length (filter (== LT) os)
             let lb = length (filter (== GT) os)
             if la > lb then

@@ -40,13 +40,19 @@ class (ReduceSettings m, RndGen m,  MonadLog m,  Simpler a a) => Reduce a m wher
 
     mutate  _ = return []
 
-    reduceChecks :: a -> [a] -> m [a]
+    reduceChecks :: (Hashable a, Ord a) => a -> [a] -> m [a]
     reduceChecks a rs = do
-      return $ filter (\x -> runIdentity $ ignoreLogs $  simpler1 x a) rs
+      let vals = filter (/=a) $  nub2 rs
+      let allowed = filter (\x -> runIdentity $ ignoreLogs $  simpler1 x a) vals
+      -- addLog2 "SimplerCheck" [nn "Reducing from" a,  prettyArr (allowed)]
+      return $ allowed
 
-    -- TODO Useful for checking if it the simpler check that is the problem
+    -- -- Useful for checking if it the simpler check is the problem
     -- reduceChecks :: (Hashable a, Ord a) => a -> [a] -> m [a]
-    -- reduceChecks _ rs = return $ nub2 rs
+    -- reduceChecks e rs = do
+    --   let vals = filter (/=e) $  nub2 rs
+    --   -- addLog2 "noSimplerCheck" [nn "Reducing from" e,  prettyArr vals]
+    --   return $ vals
 
 
 instance (ReduceSettings m, RndGen m,  MonadLog m) =>  Reduce Type m where
@@ -103,12 +109,10 @@ instance (ReduceSettings m, RndGen m,  MonadLog m) =>  Reduce Expr m where
         reduceChecks e $ a1 ++ a3
 
     reduce e@(EComp inner gens cons) = do
-      sin     <- single e
-      subs    <- subterms e
-      r_cons  <- reduceList cons
-      r_inner <- reduce inner
-      let res = concat [  [EComp i gens cs | cs <- [] : r_cons ]
-                       |  i <- r_inner  ]
+      sin_e  <- single e
+      sin_in <- single inner
+
+      let cons2 = reverse $ drop 1 $ orderedSubsequences cons
 
       let unusedNames   = unusedGenerators e
       let onlyUsedGens_ = usedGeneratorsChoices gens unusedNames
@@ -119,22 +123,24 @@ instance (ReduceSettings m, RndGen m,  MonadLog m) =>  Reduce Expr m where
           r_gens3 = transposeFill r_gens2
       let gens2   = [ EComp inner g cons |  g <- r_gens3  ]
 
+      subs    <- subterms e
+      r_cons  <- reduceList cons
+      r_inner <- reduce inner
 
       let possible = map convertEmpty $ concat
                       [ []
-                      , sin
+                      , sin_e
+                      , [ EComp inner gens cs | cs <- cons2  ]
+                      , [ EComp i gens cons | i <- sin_in  ]
                       , onlyUsedGens
                       , instantiateGenerators e
                       , gens2
                       , subs
-                      , res
+                      , [ EComp inner gens cs | cs <- r_cons ]
+                      , [ EComp i gens cons | i <- r_inner   ]
                       ]
 
       x <- reduceChecks e possible
-      addLog "Result for" [pretty e]
-      addLog "After" ( map pretty x)
-      addLog "Result for (End)" [pretty e]
-
       return x
 
       where
@@ -928,6 +934,20 @@ isLitEmpty (AbsLitMatrix _ [])  = True
 isLitEmpty (AbsLitPartition xs) = all null xs
 isLitEmpty (AbsLitRelation xs)  = all null xs
 isLitEmpty lit                  = null $ F.toList lit
+
+-- | list of elements in decreasing length [(a,_),(b,_),(c,_)], ..., [(a,_),(b,_) ... ]
+-- | If length > 10 return sequences with one element removed and individual elements
+orderedSubsequences :: [a] -> [[a]]
+orderedSubsequences es | len <- length es, len >= 7 =
+   let rm1 = [ [ e | (e,i) <- zip es [1..], i /= j   ] | j <- [1..len] ]
+   in  es : rm1 ++ (map (:[]) es )
+
+orderedSubsequences es = reverse . sortBy (comparing length) . nonEmptySubsequences $ es
+  where
+    nonEmptySubsequences         :: [a] -> [[a]]
+    nonEmptySubsequences []      =  []
+    nonEmptySubsequences (x:xs)  =  [x] : foldr f [] (nonEmptySubsequences xs)
+      where f ys r = ys : (x : ys) : r
 
 
 -- For ghci
