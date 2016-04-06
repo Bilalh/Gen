@@ -43,7 +43,7 @@ instance NeedsType (Domain () a)
 instance NeedsType (AbstractLiteral a) where needsType _ = False
 instance NeedsType Type                where needsType _ = False
 
--- FIXME update tests
+-- FIXME Terrible hack
 
 instance MonadLog Identity where
     log _ _ = return ()

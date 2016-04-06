@@ -242,6 +242,32 @@ instance (DepthOf c, IntRange c, DepthOf d, IntRange d, Simpler c d)
     bb <- simplerImp a2 b2
     return $ combineOrderings [aa,bb]
 
+instance (DepthOf c, IntRange c, Simpler c c)
+    => Simpler (Range c) (Range c) where
+  simplerImp a b =
+    case compare (depthOf a) (depthOf b) of
+      EQ -> simplerSub a b >>= \case
+                -- EQ -> case compare
+                --   (length [ x :: Expr | x <- universeBi a ])
+                --   (length [ x :: Expr | x <- universeBi b ]) of
+                --     EQ -> return EQ
+                --     o  -> return o
+                o  -> return o
+      o  -> return o
+
+    where
+    simplerSub RangeOpen{} _    = return LT
+    simplerSub _ RangeOpen{}    = return GT
+    simplerSub (RangeBounded a1 a2) (RangeBounded b1 b2) =
+      combineOrderings <$> zipWithM simpler [a1, a2] [b1, b2]
+
+    simplerSub _ RangeBounded{} = return LT
+    simplerSub RangeBounded{} _ = return GT
+    simplerSub RangeSingle{} _  = return LT
+    simplerSub _ RangeSingle{}  = return GT
+    simplerSub _ _              = return EQ
+
+
 instance (DepthOf c, IntRange c, DepthOf d, IntRange d, Simpler c d)
     => Simpler (SizeAttr c) (SizeAttr d) where
   simplerImp a b =

@@ -12,7 +12,7 @@ import Gen.Essence.Data.Key
 import qualified Text.PrettyPrint    as Pr
 
 type EEE a = forall m .
- (MonadIO m, MonadState GState m, RndGen m, MonadR m, MonadDB m, MonadLog m, MonadNote m)
+ (MonadIO m, ReduceSettings m, MonadState GState m, RndGen m, MonadR m, MonadDB m, MonadLog m, MonadNote m)
  => m a
 
 

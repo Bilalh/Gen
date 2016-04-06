@@ -25,7 +25,7 @@ import qualified Data.Generics.Uniplate.Zipper as Zipper
 import qualified Data.Traversable              as T
 
 
-class (RndGen m,  MonadLog m,  Simpler a a) => Reduce a m where
+class (ReduceSettings m, RndGen m,  MonadLog m,  Simpler a a) => Reduce a m where
     reduce   :: a -> m [a]    -- list of smaller exprs
     single   :: a -> m [Expr] -- smallest literal e.g  [true, false] for  a /\ b
 
@@ -48,12 +48,12 @@ class (RndGen m,  MonadLog m,  Simpler a a) => Reduce a m where
 
 
 
-instance (RndGen m,  MonadLog m) =>  Reduce Type m where
+instance (ReduceSettings m, RndGen m,  MonadLog m) =>  Reduce Type m where
     reduce _   = return []
     single _   = $(neverNote "Reduce Type m ~ single called ")
     subterms _ = return []
 
-instance (RndGen m,  MonadLog m) =>  Reduce Expr m where
+instance (ReduceSettings m, RndGen m,  MonadLog m) =>  Reduce Expr m where
 
     reduce EEmptyGuard       = return []
     reduce EMetaVar{}        = return []
@@ -194,7 +194,7 @@ instance (RndGen m,  MonadLog m) =>  Reduce Expr m where
       return $ [ EComp inners gens c | c <- l_cs ]
 
 
-instance (RndGen m,  MonadLog m) =>  Reduce EGen m where
+instance (ReduceSettings m, RndGen m,  MonadLog m) =>  Reduce EGen m where
   single   _  = lineError $line ["Single called from Reduce EGen m when it should not be"]
   subterms _  = return []
 
@@ -210,7 +210,7 @@ instance (RndGen m,  MonadLog m) =>  Reduce EGen m where
 
 -- Making Reduce (AbsLiteral c) is a lot of work
 -- so a basic version for Reduce (AbsLiteral Constant)
-instance (RndGen m,  MonadLog m) =>  Reduce Constant m where
+instance (ReduceSettings m, RndGen m,  MonadLog m) =>  Reduce Constant m where
     single t = ttypeOf t >>= singleLitExpr
 
     subterms (ConstantAbstract AbsLitTuple{}) = return []
@@ -235,7 +235,7 @@ instance (RndGen m,  MonadLog m) =>  Reduce Constant m where
     mutate _ = return []
 
 
-instance (RndGen m,  MonadLog m) =>  Reduce (AbstractLiteral Expr) m where
+instance (ReduceSettings m, RndGen m,  MonadLog m) =>  Reduce (AbstractLiteral Expr) m where
     single t   = ttypeOf t >>= singleLitExpr
 
     subterms AbsLitTuple{} = return []
@@ -328,7 +328,9 @@ mutate_2d wrap xs = do
 
 getReducedChildren :: forall a z m
                     . ( Monad m, Applicative m, RndGen m,  MonadLog m
-                      , Data a, Reduce a (StateT (WithGen [([a], a)]) m) )
+                      , Data a, Reduce a (StateT (WithGen [([a], a)]) m)
+                      , ReduceSettings m
+                      )
                    => (z -> a) -> z -> m ([([a], a)])
 getReducedChildren zToExpr lit = do
   start <- withGen_new []
@@ -364,7 +366,7 @@ replaceChildren lit news = fst . flip runState news $ f1
       return x
 
 
-instance (RndGen m,  MonadLog m) => Reduce (Domain () Expr) m where
+instance (ReduceSettings m, RndGen m,  MonadLog m) =>  Reduce (Domain () Expr) m where
   reduce li = do
     rLits <- getReducedChildren (EDom) li
     let lss = map (replaceChildren li) (transposeFill rLits)
@@ -374,6 +376,12 @@ instance (RndGen m,  MonadLog m) => Reduce (Domain () Expr) m where
     subs    <- subterms li
     mu      <- mutate li
     r_attrs <- reduceAttr li
+    r_ints  <- reduceInt li
+
+    expensive <- doExpensiveReductions >>= \case
+      False -> return []
+      True  -> return [r_ints]
+
 
     reduceChecks li $ mconcat  $
                [ [ x | (EDom x) <- si]
@@ -381,7 +389,7 @@ instance (RndGen m,  MonadLog m) => Reduce (Domain () Expr) m where
                , [ x | (EDom x) <- subs]
                , [ x | (EDom x) <- mu]
                , r_attrs
-               ]
+               ] ++ expensive
 
   single x@DomainAny{}       = return [EDom x]
   single x@DomainBool        = return [EDom x]
@@ -508,7 +516,26 @@ unEDom :: Expr -> Domain () Expr
 unEDom (EDom b) = b
 unEDom b        = lineError $line [ "not an Domain" <+> pretty b]
 
-reduceAttr :: (RndGen m,  MonadLog m)
+reduceInt :: (ReduceSettings m, RndGen m,  MonadLog m)
+           => Domain () Expr -> m [Domain () Expr]
+reduceInt (DomainInt xs) = do
+  rs <- reduceList xs
+  return $ map DomainInt rs
+
+reduceInt _ = return []
+
+instance (ReduceSettings m, RndGen m,  MonadLog m) =>  Reduce (Range Expr) m where
+  single   _ = lineError $line
+                  ["Single called from Reduce (Range Expr) m when it should not be"]
+  subterms _ = return []
+
+  reduce li = do
+    rLits <- getReducedChildren id li
+    let lss = map (replaceChildren li) (transposeFill rLits)
+    reduceChecks li $ lss
+
+
+reduceAttr :: (ReduceSettings m, RndGen m,  MonadLog m)
            => Domain () Expr -> m [Domain () Expr]
 -- reduceAttr d@(DomainInt  d)               = return []
 -- reduceAttr d@(DomainSet _ d2 d3)          = return []
@@ -525,7 +552,7 @@ reduceAttr d@(DomainMSet  _ d2 d3)= do
 reduceAttr _                            = return []
 
 
-instance (RndGen m,  MonadLog m) =>  Reduce (MSetAttr Expr) m where
+instance (ReduceSettings m, RndGen m,  MonadLog m) =>  Reduce (MSetAttr Expr) m where
   single   _ = lineError $line
                   ["Single called from Reduce (MSetAttr Expr) m when it should not be"]
   subterms _ = return []
@@ -538,7 +565,7 @@ instance (RndGen m,  MonadLog m) =>  Reduce (MSetAttr Expr) m where
     reduceChecks x attrs
 
 
-instance (RndGen m,  MonadLog m) =>  Reduce (SizeAttr Expr) m where
+instance (ReduceSettings m, RndGen m,  MonadLog m) =>  Reduce (SizeAttr Expr) m where
   single   _ = lineError $line
                   ["Single called from Reduce (SizeAttr Expr) m when it should not be"]
   subterms _ = return []
@@ -548,7 +575,7 @@ instance (RndGen m,  MonadLog m) =>  Reduce (SizeAttr Expr) m where
     let lss = map (replaceChildren li) (transposeFill rLits)
     reduceChecks li $ lss
 
-instance (RndGen m,  MonadLog m) =>  Reduce (OccurAttr Expr) m where
+instance (ReduceSettings m, RndGen m,  MonadLog m) =>  Reduce (OccurAttr Expr) m where
   single   _ = lineError $line
                   ["Single called from Reduce (OccurAttr Expr) m when it should not be"]
   subterms _ = return []
@@ -559,7 +586,7 @@ instance (RndGen m,  MonadLog m) =>  Reduce (OccurAttr Expr) m where
     reduceChecks li $ lss
 
 
-instance (RndGen m,  MonadLog m) =>  Reduce (Op Expr) m where
+instance (ReduceSettings m, RndGen m,  MonadLog m) =>  Reduce (Op Expr) m where
 
     single o = ttypeOf o >>= singleLitExpr
 
@@ -605,12 +632,12 @@ subterms_op e subs =  do
   return allowed
 
 
-reduce_op :: forall (m :: * -> *) . (RndGen m,  MonadLog m)
+reduce_op :: forall (m :: * -> *) . (ReduceSettings m, RndGen m,  MonadLog m)
           => Op Expr -> [Expr] -> m [Op Expr]
 reduce_op x subs = reduce_op2 (replaceOpChildren x) subs
 
 
-reduce_op2 :: forall (m :: * -> *). (RndGen m,  MonadLog m)
+reduce_op2 :: forall (m :: * -> *). (ReduceSettings m, RndGen m,  MonadLog m)
            => ([Expr] -> Op Expr) -> [Expr] -> m [Op Expr]
 reduce_op2 f subs = do
   rs <- mapM reduceAdd subs
@@ -651,7 +678,7 @@ reduce_op2 f subs = do
 
 
 
--- | Return the  sub sequence of the elements
+-- | Return the   initial segments of the elements
 -- was Return the two shortest & two longest sub sequence of the elements
 reduceLength :: Eq a =>  [a] -> [[a]]
 -- reduceLength xs =  heads_tails . init $ inits xs
@@ -882,24 +909,21 @@ reduceList as = do
       allSiblings z = z : maybe [] allSiblings (Zipper.right z)
 
 
-runReduce :: (RndGen m, MonadLog m, Reduce a (StateT EState (IdentityT m)) )
+runReduce :: (RndGen m, MonadLog m, Reduce a m )
           => a -> m [a]
 runReduce x = do
   addLog "runReduce" []
-  (res,_) <- runIdentityT $ flip runStateT newEState $ do
-                    reduce x
+  res <- reduce x
 
   addLog "endReduce" []
   return res
 
-
 runSingle :: forall (m :: * -> *) a
-     . (Reduce a (StateT EState (IdentityT m)), RndGen m, MonadLog m)
+     . (Reduce a m, RndGen m, MonadLog m)
     =>  a -> m [Expr]
 runSingle x = do
   addLog "runSingle" []
-  (res,_) <- runIdentityT $ flip runStateT newEState $ do
-                    single x
+  res <- single x
   addLog "endSingle" []
   return res
 
@@ -920,9 +944,9 @@ isLitEmpty lit                  = null $ F.toList lit
 _rexpr :: Expr -> IO [Expr]
 _rexpr e = do
   runLoggerPipeIO LogInfo $
-    runRndGen 3 $ runReduce  e
+    runRndGen 3 $ runIdentityT $ runReduce e
 
 _rdom :: Domain () Expr -> IO [Domain () Expr]
 _rdom e = do
   runLoggerPipeIO LogInfo $
-    runRndGen 3 $ runReduce  e
+    runRndGen 3 $ runIdentityT $ runReduce e

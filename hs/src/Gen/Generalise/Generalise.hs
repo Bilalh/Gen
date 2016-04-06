@@ -26,7 +26,7 @@ generaliseMain ee = do
   sp :: Spec <- liftIO $ readFromJSON fp
   noteFormat "Starting with" [pretty sp]
 
-  (sfin,state) <- (flip runStateT) ee $
+  (sfin,state) <- runIdentityT $  (flip runStateT) ee $
       return sp
       >>= (noted "ConstraintsWithSingle") generaliseConstraintsWithSingle
       >>= \ret -> get >>= \g -> addLog "FinalState" [pretty g] >> return ret

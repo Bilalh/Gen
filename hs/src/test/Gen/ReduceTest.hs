@@ -4,7 +4,7 @@ module Gen.ReduceTest ( tests ) where
 import Gen.AST.TH
 import Gen.Imports
 import Gen.TestPrelude
-import Gen.Reduce.Data
+import Gen.Reduce.Data()
 import Gen.Reduce.Reduction as R
 import Gen.Reduce.Simpler
 import Gen.Helpers.SizeOf
@@ -167,7 +167,7 @@ instance (Pretty a, Show a, DepthOf a, GetKey a) => Show (Limited a)   where
            f _         = "Nothing"
 
 
-instance (Generate a, Reduce a (StateT EState Identity), Simpler a a, DepthOf a, GetKey a, NeedsType a)
+instance (Generate a, Reduce a (Identity), Simpler a a, DepthOf a, GetKey a, NeedsType a)
     => Arbitrary (Limited a) where
   arbitrary = sized $ \s -> do
     let allowed =  LogFollow
@@ -212,7 +212,7 @@ qc_tests title  =
 
 
 -- To make sure the test finish quickly
-limitedRun :: forall a t. (t -> StateT EState Identity [a]) -> t -> [a]
+limitedRun :: forall a t. (t -> Identity [a]) -> t -> [a]
 limitedRun f a = take 200 $ runner f a
 
 use_qc :: [Maybe a] -> [Maybe a]
@@ -220,8 +220,8 @@ use_qc :: [Maybe a] -> [Maybe a]
 use_qc xs = xs
 
 
-runner :: forall a t. (t -> StateT EState Identity a) -> t -> a
-runner f ee = runIdentity $ flip evalStateT newEState $ f ee
+runner :: forall a t. (t -> Identity a) -> t -> a
+runner f ee = runIdentity  $ f ee
 
 
 _prop :: Limited Expr -> Bool

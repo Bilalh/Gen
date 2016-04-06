@@ -45,7 +45,7 @@ reduceMain check rr = do
 
   (errOccurs,_) <- case check of
                  False -> return (True, rr)
-                 True -> (flip runStateT) rr (return sp
+                 True -> (flip runReduceSettings) rr (return sp
                            >>= noteMsg "Checking if error still occurs"
                            >>=  (flip checkForError) (startParam)
                            >>= \case
@@ -55,12 +55,13 @@ reduceMain check rr = do
 
                                   _ -> return False
                        )
+
   case errOccurs of
     False -> do
         note $  "Spec has no error with the given settings, not reducing"
         return rr
     True -> do
-      (sfin,state) <-  (flip runStateT) rr $
+      (sfin,state) <-  (flip runReduceSettings) rr $
           return (sp, startParam)
           >>= doReductions
           >>= \ret -> get >>= \g -> addLog "FinalState" [pretty g] >> return ret
@@ -108,7 +109,6 @@ doReductions start =
 
 loopToFixed :: Bool -> (Spec,  Maybe Point) -> RRR (Timed (Spec,  Maybe Point))
 loopToFixed fin start = do
-  noteFormat ("@" <+> "loopToFixed") []
   res <-  return (Continue start)
       >>= con "removeObjective"      removeObjective
       >>= con "removeUnusedDomains"  removeUnusedDomains
@@ -122,12 +122,17 @@ loopToFixed fin start = do
   case res of
     (NoTimeLeft end) -> return $ NoTimeLeft end
     (Continue cur)   -> do
+      de <- doExpensiveReductions
       -- We allow doing a reduction twice before giving up
       if hash start == hash cur then
-        if fin then
-          return $ Continue start
-        else
-          loopToFixed True cur
+        case (fin, de) of
+          (False,_)    -> loopToFixed True cur
+          (True,True)  -> return $ Continue start
+          (True,False) -> do
+            modify $ \st -> st{expensiveReductions_=True}
+            note "! Enabling ExpensiveReductions"
+            loopToFixed True cur
+
       else
         loopToFixed fin cur
 
@@ -593,6 +598,10 @@ coordinateGivens1 ds p =
     let keep = M.filter isGiven ds
     in onlyNames (M.keysSet keep) p
 
+emptyPointToNothing :: Maybe Point -> Maybe Point
+emptyPointToNothing (Just (Point [])) = Nothing
+emptyPointToNothing xs = xs
+
 
 -- List functions
 
@@ -694,8 +703,3 @@ validateThenRunSpec spec ojp@(Just ops) f g  = do
           noteFormat "mkPoint" [nn "Created" p, ""]
           let jp = Just p
           timedSpec spec jp (f jp) (g jp)
-
-
-emptyPointToNothing :: Maybe Point -> Maybe Point
-emptyPointToNothing (Just (Point [])) = Nothing
-emptyPointToNothing xs = xs
