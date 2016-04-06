@@ -247,11 +247,11 @@ instance (DepthOf c, IntRange c, Simpler c c)
   simplerImp a b =
     case compare (depthOf a) (depthOf b) of
       EQ -> simplerSub a b >>= \case
-                -- EQ -> case compare
-                --   (length [ x :: Expr | x <- universeBi a ])
-                --   (length [ x :: Expr | x <- universeBi b ]) of
-                --     EQ -> return EQ
-                --     o  -> return o
+                EQ -> case compare
+                  (length [ x :: Expr | x <- universeBi a ])
+                  (length [ x :: Expr | x <- universeBi b ]) of
+                    EQ -> return EQ
+                    o  -> return o
                 o  -> return o
       o  -> return o
 

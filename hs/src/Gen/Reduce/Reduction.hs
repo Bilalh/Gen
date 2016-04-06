@@ -41,11 +41,12 @@ class (ReduceSettings m, RndGen m,  MonadLog m,  Simpler a a) => Reduce a m wher
     mutate  _ = return []
 
     reduceChecks :: a -> [a] -> m [a]
-    -- TODO Useful for checking if it the simpler check that is the problem
-    -- reduceChecks _ rs = return rs
     reduceChecks a rs = do
       return $ filter (\x -> runIdentity $ ignoreLogs $  simpler1 x a) rs
 
+    -- TODO Useful for checking if it the simpler check that is the problem
+    -- reduceChecks :: (Hashable a, Ord a) => a -> [a] -> m [a]
+    -- reduceChecks _ rs = return $ nub2 rs
 
 
 instance (ReduceSettings m, RndGen m,  MonadLog m) =>  Reduce Type m where
@@ -106,8 +107,7 @@ instance (ReduceSettings m, RndGen m,  MonadLog m) =>  Reduce Expr m where
       subs    <- subterms e
       r_cons  <- reduceList cons
       r_inner <- reduce inner
-      let res = concat [  if null r_cons then [EComp i gens []]
-                          else [EComp i gens cs | cs <- [] : r_cons ]
+      let res = concat [  [EComp i gens cs | cs <- [] : r_cons ]
                        |  i <- r_inner  ]
 
       let unusedNames   = unusedGenerators e
@@ -118,7 +118,6 @@ instance (ReduceSettings m, RndGen m,  MonadLog m) =>  Reduce Expr m where
       let r_gens2 = zip r_gens gens
           r_gens3 = transposeFill r_gens2
       let gens2   = [ EComp inner g cons |  g <- r_gens3  ]
-      -- error . show $ prettyArr gens2
 
       let instantiateGens = instantiateGenerators e
 
@@ -136,10 +135,21 @@ instance (ReduceSettings m, RndGen m,  MonadLog m) =>  Reduce Expr m where
                        , nn "subterms"  (length subs)
                        ]
 
-      let possible = map convertEmpty $ sin ++ onlyUsedGens ++ instantiateGens
-                                        ++ gens2 ++ subs ++ res
+      let possible = map convertEmpty $ concat
+                      [ []
+                      , sin
+                      , onlyUsedGens
+                      , instantiateGens
+                      , gens2
+                      , subs
+                      , res
+                      ]
 
       x <- reduceChecks e possible
+      -- addLog2 "Result for" [pretty e]
+      -- addLog2 "After" ( map pretty x)
+      -- addLog2 "Result for (End)" [pretty e]
+
       return x
 
       where

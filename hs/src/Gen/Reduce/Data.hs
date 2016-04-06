@@ -94,14 +94,12 @@ mkrGen :: Int -> TFGen
 mkrGen = mkTFGen
 
 
-data WithGen a = WithGen { withGen_gen :: TFGen
-                         , withGen_val :: a
+data WithGen a = WithGen { withGen_val :: a
                          }
 
-withGen_new :: RndGen m => a -> m (WithGen a)
+withGen_new :: Monad m => a -> m (WithGen a)
 withGen_new a = do
-  g <- getGen
-  return $ WithGen{withGen_gen=g, withGen_val = a}
+  return $ WithGen{withGen_val = a}
 
 withGen_put :: forall (m :: * -> *) t.
                MonadState (WithGen t) m =>
