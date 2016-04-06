@@ -131,9 +131,9 @@ instance (ReduceSettings m, RndGen m,  MonadLog m) =>  Reduce Expr m where
                       ]
 
       x <- reduceChecks e possible
-      -- addLog2 "Result for" [pretty e]
-      -- addLog2 "After" ( map pretty x)
-      -- addLog2 "Result for (End)" [pretty e]
+      addLog "Result for" [pretty e]
+      addLog "After" ( map pretty x)
+      addLog "Result for (End)" [pretty e]
 
       return x
 
@@ -632,6 +632,7 @@ reduce_op2 :: forall (m :: * -> *). (ReduceSettings m, RndGen m,  MonadLog m)
 reduce_op2 f subs = do
   rs <- mapM reduceAdd subs
 
+  addLog $line [pretty $ EOp $  f subs]
   addLog "reduce_op2 subs" (map pretty subs)
   mapM_ (\xx -> addLog "rs#" (map pretty xx)  )  rs
 

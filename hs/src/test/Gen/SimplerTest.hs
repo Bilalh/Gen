@@ -109,6 +109,8 @@ tests = testGroup "simpler"
    , ([domainn| function int --> int |], [domainn| function (size 1) int --> int |] )
    , ([domainn| function (maxSize 1) int --> int |], [domainn| function (minSize 1, injective) int --> int |] )
    , ([domainn| int([4, 7, 5; int(1..3)][8])  |],  [domainn| int([1, 9, 2; int(1..3)][3]..[4, 7, 5; int(1..3)][8]) |] )
+   , ([domainn| int([2; int(1..3)][3]..[4, 7, 5; int(1..3)][8]) |], [domainn| int([1, 9, 2; int(1..3)][3]..[4, 7, 5; int(1..3)][8]) |] )
+
    ]
 
    ,testGroup "Domains eq"
