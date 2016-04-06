@@ -119,27 +119,12 @@ instance (ReduceSettings m, RndGen m,  MonadLog m) =>  Reduce Expr m where
           r_gens3 = transposeFill r_gens2
       let gens2   = [ EComp inner g cons |  g <- r_gens3  ]
 
-      let instantiateGens = instantiateGenerators e
-
-      addLog  $line [ ]
-      addLog "reduce EComp" [pretty e]
-      addLog "single" (map pretty sin)
-      addLog "subterms" (map pretty subs)
-      addLog "r_cons" (map prettyArr r_cons)
-      addLog "r_inner" (map pretty r_inner)
-      addLog "r_res" (map pretty res)
-      addLog "r_lengths" [ nn "res"  (length res)
-                       , nn "r_cons"  (length r_cons)
-                       , nn "r_inner"  (length r_inner)
-                       , nn "single"  (length sin)
-                       , nn "subterms"  (length subs)
-                       ]
 
       let possible = map convertEmpty $ concat
                       [ []
                       , sin
                       , onlyUsedGens
-                      , instantiateGens
+                      , instantiateGenerators e
                       , gens2
                       , subs
                       , res
@@ -275,11 +260,6 @@ instance (ReduceSettings m, RndGen m,  MonadLog m) =>  Reduce (AbstractLiteral E
       let fixed = map fixReduced fixedOthers
       let fixed_i = zip fixed [0..]
       let expanded =  map (expand ixs)  fixed_i
-
-      addLog "given" (map pretty xs)
-      addLog "reductions" (map pretty reductions)
-      addLog "fixedOthers" (map pretty fixedOthers)
-      addLog "fixed" (map pretty fixed)
 
       return $ concatMap (map (ELit . AbsLitFunction)) expanded
 
