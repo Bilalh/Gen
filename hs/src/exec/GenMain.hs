@@ -948,17 +948,18 @@ _reduceDebug = do
   let ec = Reduce{per_spec_time = 30,
        -- spec_directory = "/Users/bilalh/CS/Thesis/data/reduction_examples/parametrised_from_user",
        -- spec_directory = "/Users/bilalh/CS/Thesis/data/reduction_examples/parametrised_from_user/original",
-       spec_directory = "/Users/bilalh/CS/Thesis/data/reduction_examples/given_reduce/First",
+       -- spec_directory = "/Users/bilalh/CS/Thesis/data/reduction_examples/given_reduce/First",
+       spec_directory = "/Users/bilalh/CS/Thesis/data/reduction_examples/parametrised_from_user2a",
        error_kind = Savilerow_, error_status = StatusAny_,
        error_choices = Nothing, list_kinds = False, list_statuses = False,
        total_time_may = Nothing,
-       output_directory = Nothing, _cores = Nothing, _seed = Nothing,
+       output_directory = Nothing, _cores = Nothing, _seed = (Just 123553),
        keep_passing = False, delete_steps = False, delete_others = False,
        toolchain_ouput = ToolchainNull_, binaries_directory = Nothing,
        limit_time = Nothing, always_compact = True, no_csv = False,
        db_directory = Just "db", db_passing_in = Nothing,
        db_only_passing = False, from_essence = True, no_check = True,
-       log_level = LogDebug,print_state= True}
+       log_level = LogDebug,print_state= False}
   limiter (limit_time ec) (mainWithArgs ec)
 
 _instanceDebug :: IO ()
