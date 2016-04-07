@@ -54,7 +54,7 @@ findCompact compactFP dir = do
 hashModel :: MonadIO m => FilePath -> m (Digest MD5)
 hashModel fp = do
   pair <- liftIO $ pairWithContents fp
-  m <- liftIO $ readModel stripComments pair
+  m <- liftIO $ readModel (Just stripComments) pair
   let normalised = normaliseQuantifiedVariables m
   let encoded = C.pack $ renderNormal normalised
   return $ hash encoded
