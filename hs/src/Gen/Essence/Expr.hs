@@ -101,6 +101,13 @@ instance Generate Expr where
   requires _ _       = []
 
 
+-- FIXME Having these Instances is a bad idea
+instance Pretty [Expr] where
+    pretty = Pr.brackets  . prettyArr
+
+instance Pretty [EGen] where
+    pretty = Pr.brackets  . prettyArr
+
 instance Generate ListComp where
   give (GType (TypeMatrix TypeInt a)) = do
     gen_num <- choose3 (1,2)
@@ -182,9 +189,3 @@ instance Generate LVar where
   possible _ _ = return False
   requires _ _ = []
 
--- FIXME Having these Instances is a bad idea
-instance Pretty [Expr] where
-    pretty = Pr.brackets  . prettyArr
-
-instance Pretty [EGen] where
-    pretty = Pr.brackets  . prettyArr
