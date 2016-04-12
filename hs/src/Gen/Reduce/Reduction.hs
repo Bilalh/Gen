@@ -394,6 +394,7 @@ instance (ReduceSettings m, RndGen m,  MonadLog m) =>  Reduce (Domain () Expr) m
   single x@DomainOp{}        = return [EDom x]
   single x@DomainReference{} = return [EDom x]
   single x@DomainMetaVar{}   = return [EDom x]
+  single x@DomainIntE{}      = return [EDom x] -- Not idea for what DomainIntE is
 
   single DomainInt{} = do
       i <- chooseR (0, 5)
@@ -598,8 +599,20 @@ instance (ReduceSettings m, RndGen m,  MonadLog m) =>  Reduce (Op Expr) m where
     subterms e@[opp| &a \/ &b |] = subterms_op e [a,b]
 
     subterms e  =  do
-      let subs = F.toList e
-      subterms_op e subs
+      subs <- subterms_op e (F.toList e)
+      subs_op_matrixes <- do_op_matixes e
+      return (subs ++ subs_op_matrixes)
+
+      where
+      do_op_matixes (MkOpAnd (OpAnd (ELit (AbsLitMatrix (DomainInt{}) xs )))) =
+        subterms_op e xs
+      do_op_matixes (MkOpOr (OpOr (ELit (AbsLitMatrix (DomainInt{}) xs )))) =
+        subterms_op e xs
+      do_op_matixes (MkOpSum (OpSum (ELit (AbsLitMatrix (DomainInt{}) xs )))) =
+        subterms_op e xs
+      do_op_matixes (MkOpProduct (OpProduct (ELit (AbsLitMatrix (DomainInt{}) xs )))) =
+        subterms_op e xs
+      do_op_matixes _ = return []
 
 
     -- Treating these binary op instead of  and([ ... ] ) like ops
