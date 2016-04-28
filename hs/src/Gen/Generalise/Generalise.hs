@@ -10,6 +10,8 @@ import Gen.Reduce.Data       (RConfig (..), addLog)
 import Gen.Reduce.Random
 import Gen.Reduce.Reduction
 import Gen.Helpers.MonadNote
+import Gen.Instance.Point
+import Gen.Reduce.Transform   (deEnum)
 
 import Data.Generics.Uniplate.Zipper (Zipper, fromZipper, hole, replaceHole,
                                       zipperBi)
@@ -23,11 +25,23 @@ generaliseMain ee = do
   let base = (specDir_ . rconfig) ee
       fp   =  base </> "spec.spec.json"
 
-  sp :: Spec <- liftIO $ readFromJSON fp
-  noteFormat "Starting with" [pretty sp]
+  sp_ <- liftIO $ readFromJSON fp
+
+  -- Remove quantification and enums
+  let paramFp_ = base </> "given.param"
+  paramFp <- liftIO $ doesFileExist paramFp_  >>= \case
+    False -> return Nothing
+    True  -> return (Just paramFp_)
+
+  (sp,startParam') <-  liftIO $ deEnum sp_ paramFp
+  liftIO $ checkForParamIfNeeded sp startParam'
+  let startParam = case startParam' of
+        Just (Point []) -> Nothing
+        x               -> x
+  noteFormat "Starting with" [pretty sp, pretty startParam]
 
   (sfin,state) <- runIdentityT $  (flip runStateT) ee $
-      return sp
+      return (sp, startParam)
       >>= (noted "ConstraintsWithSingle") generaliseConstraintsWithSingle
       >>= \ret -> get >>= \g -> addLog "FinalState" [pretty g] >> return ret
 
@@ -64,8 +78,8 @@ allContextsExcept z0 = concatMap subtreeOf (allSiblings z0)
             _      -> maybe [] allContextsExcept (Zipper.down z)
 
 
-generaliseConstraintsWithSingle :: Spec -> EEE Spec
-generaliseConstraintsWithSingle sp = do
+generaliseConstraintsWithSingle :: (Spec, Maybe Point)  -> EEE Spec
+generaliseConstraintsWithSingle (sp,mayP) = do
   let (specZipper :: SpecZipper) = fromJustNote "generaliseCons" $ zipperBi sp
   forM_ (allContextsExcept specZipper) $ \ x -> do
     let ehole =  hole x
@@ -74,7 +88,7 @@ generaliseConstraintsWithSingle sp = do
     forM_ singles $ \s -> do
       let whole = fromZipper (replaceHole s x)
       -- liftIO $ print . pretty $ whole
-      runSpec2 whole
+      runSpec2 whole mayP
 
     return ()
 
