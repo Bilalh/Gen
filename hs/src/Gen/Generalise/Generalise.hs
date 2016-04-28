@@ -12,6 +12,7 @@ import Gen.Reduce.Reduction
 import Gen.Helpers.MonadNote
 import Gen.Instance.Point
 import Gen.Reduce.Transform   (deEnum)
+import Gen.Reduce.Point
 
 import Data.Generics.Uniplate.Zipper (Zipper, fromZipper, hole, replaceHole,
                                       zipperBi)
@@ -43,11 +44,12 @@ generaliseMain ee = do
   (sfin,state) <- runIdentityT $  (flip runStateT) ee $
       return (sp, startParam)
       >>= (noted "ConstraintsWithSingle") generaliseConstraintsWithSingle
+      >>= (noted "NewInstances")          generaliseNewInstances
       >>= \ret -> get >>= \g -> addLog "FinalState" [pretty g] >> return ret
 
 
   noteFormat "State" [pretty state]
-  noteFormat "Start" [pretty sp]
+  noteFormat "Start" [pretty  (sp,startParam)]
   noteFormat "Final" [pretty sfin]
 
   return (state)
@@ -60,6 +62,32 @@ generaliseMain ee = do
       noteFormat ("@" <+> tx <+> "End") [pretty newSp]
 
       return newSp
+
+
+generaliseNewInstances :: (Spec, Maybe Point)  -> EEE (Spec, Maybe Point)
+generaliseNewInstances x@(_,Nothing) = return x
+generaliseNewInstances x@(spec,_) = do
+  mayPoints <- replicateM 5 $ generatePoint spec
+  let points :: [Point] = catMaybes mayPoints
+  mapM_ (\p -> runSpec2 spec (Just p)) points
+  return x
+
+
+generaliseConstraintsWithSingle :: (Spec, Maybe Point)  -> EEE (Spec, Maybe Point)
+generaliseConstraintsWithSingle (sp,mayP) = do
+  let (specZipper :: SpecZipper) = fromJustNote "generaliseCons" $ zipperBi sp
+  forM_ (allContextsExcept specZipper) $ \ x -> do
+    let ehole =  hole x
+    singles   <- runSingle ehole
+
+    forM_ singles $ \s -> do
+      let whole = fromZipper (replaceHole s x)
+      -- liftIO $ print . pretty $ whole
+      runSpec2 whole mayP
+
+    return ()
+
+  return (sp, mayP)
 
 
 type SpecZipper = Zipper Spec Expr
@@ -76,23 +104,6 @@ allContextsExcept z0 = concatMap subtreeOf (allSiblings z0)
             EVar{}   -> []     -- don't go through a Reference
             ETyped{} -> []     -- don't go through a Typed
             _      -> maybe [] allContextsExcept (Zipper.down z)
-
-
-generaliseConstraintsWithSingle :: (Spec, Maybe Point)  -> EEE Spec
-generaliseConstraintsWithSingle (sp,mayP) = do
-  let (specZipper :: SpecZipper) = fromJustNote "generaliseCons" $ zipperBi sp
-  forM_ (allContextsExcept specZipper) $ \ x -> do
-    let ehole =  hole x
-    singles   <- runSingle ehole
-
-    forM_ singles $ \s -> do
-      let whole = fromZipper (replaceHole s x)
-      -- liftIO $ print . pretty $ whole
-      runSpec2 whole mayP
-
-    return ()
-
-  return sp
 
 
 recordResult :: ErrData -> EEE ()

@@ -20,9 +20,11 @@ import qualified Control.Exception as Exc
 -- FIXME this could be done better
 
 -- | Generates a new point for a spec if possible
-generatePoint :: Spec -> RRR (Maybe Point)
+generatePoint :: (MonadIO m, RndGen m, MonadR m)
+              => Spec
+              -> m (Maybe Point)
 generatePoint spec = do
-  RState{rconfig=RConfig{outputDir_}} <- get
+  RConfig{outputDir_} <- getRconfig
   ts  <- timestamp >>= return . show
   num :: Int <- chooseR (10 :: Int ,99)
   let uname  =  (ts ++ "_" ++ (show num) )
