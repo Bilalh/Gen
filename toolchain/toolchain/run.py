@@ -476,6 +476,14 @@ def classify_error(*, kind, output, returncode):
         if 'This should never happen' in output:
             return Status.conjureShouldNeverHappen
 
+        if kind in kind_conjure and returncode > 1:
+            if 'expecting expression' in output:
+                if 'undefined' in output:
+                    return Status.parseErrorUndefined
+            if 'Shunting Yard failed' in output:
+                return Status.parseError
+            return Status.conjureUserError
+
     return Status.errorUnknown
 
 
@@ -620,13 +628,13 @@ def run_conjure_with_choices(timeout, kind, cmd, *, extra_env, vals):
 
     output = "".join(lines)
 
-    if code != 0:
-        finished = False
-        status = classify_error(kind=kind, output=output, returncode=code)
-
     if "Timed out" in output:
         status = Status.timeout
         finished = False
+
+    if code != 0:
+        finished = False
+        status = classify_error(kind=kind, output=output, returncode=code)
 
     return (Results(rcode=code,
                     cpu_time=cputime_taken,
