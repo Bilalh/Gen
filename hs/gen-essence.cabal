@@ -190,7 +190,7 @@ Library
                      , temporary
                      , sqlite-simple
                      , shelly
-                     , cryptohash
+                     , cryptonite
                      , megaparsec
                      , cassava
                      , vector
