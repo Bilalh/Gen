@@ -55,7 +55,7 @@ readFromJSONMay fp = do
 writeToJSON :: (MonadFail m, MonadIO m, ToJSON a) => FilePath -> a -> m ()
 writeToJSON fp r = do
   liftIO $ L.writeFile fp (AA.encodePretty'
-    AA.Config{ AA.confIndent = (AA.Spaces 4), AA.confCompare = compare}  r)
+    AA.defConfig{ AA.confIndent = (AA.Spaces 4), AA.confCompare = compare}  r)
 
 replaceExtensions :: FilePath -> FilePath -> FilePath
 replaceExtensions x y = dropExtensions x <.> y
