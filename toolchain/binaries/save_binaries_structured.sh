@@ -123,15 +123,29 @@ mkdir -p "${cbase}"
 
 conjureNewPath="$(which conjure)"
 
-conjureNew_version="$(conjure --version | egrep -o 'Version: \w+' | egrep -o ': \w+' | egrep -o '\w+')"
+conjureNew_version="$(conjureNew --version | egrep -o 'Repository version [0-9a-z]+' \
+	| sed 's/Repository version //')"
 
-vd="$(conjure --version | egrep -o '201[0-9]-[0-9][0-9]-[0-9][0-9] [0-9]+:[0-9]+ [+-][0-9]+')"
-
-if (sw_vers &>/dev/null); then
-	conjureNew_date="$(date -jf '%Y-%m-%e %H:%M %z' "${vd}" '+%F_%s')"
+if [ -n "${conjureNew_version}" ]; then
+	vd="$(conjureNew --version | egrep -o '20[1-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9]+:[0-9]+:[0-9]+ [+-][0-9]+')"
+	if (sw_vers &>/dev/null); then
+		conjureNew_date="$(date -jf '%Y-%m-%e %H:%M:%S %z' "${vd}" '+%F_%s')"
+	else
+		conjureNew_date="$(date --date="${vd}" '+%F_%s')"
+	fi
+	conjure_from_git=1
 else
-	conjureNew_date="$(date --date="${vd}" '+%F_%s')"
+	# Conjure `new` pre-git, the date format was changed on 2016-04-29 on 4c172ad
+	conjureNew_version="$(conjure --version | egrep -o 'Version: \w+' | egrep -o ': \w+' | egrep -o '\w+')"
+	vd="$(conjure --version | egrep -o '201[0-9]-[0-9][0-9]-[0-9][0-9] [0-9]+:[0-9]+ [+-][0-9]+')"
+
+	if (sw_vers &>/dev/null); then
+		conjureNew_date="$(date -jf '%Y-%m-%e %H:%M %z' "${vd}" '+%F_%s')"
+	else
+		conjureNew_date="$(date --date="${vd}" '+%F_%s')"
+	fi
 fi
+
 
 newDstDir="${cbase}/hash/${conjureNew_version}/${host_type}"
 mkdir -p "${newDstDir}"
@@ -140,6 +154,7 @@ cp "${conjureNewPath}" "${newDstDir}/conjure"
 
 pushd "${newDstDir}"
 ln -sf conjure conjureNew
+[[ "${conjure_from_git:-}" = 1 && ! -f "conjure_from_git.txt" ]] && touch "conjure_from_git.txt"
 
 ln -fs "../../../../../${tbase_}" date
 echo  "../../../../../${tbase_}" >> dates
@@ -156,7 +171,13 @@ popd
 pushd "${tbase}"
 ln -sf "../../../versions/conjureNew/hash/${conjureNew_version}/${host_type}/conjure" conjure
 ln -sf "../../../versions/conjureNew/hash/${conjureNew_version}/${host_type}/conjure" conjureNew
-echo "conjureNew,hg,${conjureNew_version},${conjureNew_date},${rest_line}" >> data.csv
+if [  "${conjure_from_git:-}" = 1 ]; then
+	echo "conjureNew,git,${conjureNew_version},${conjureNew_date},${rest_line}" >> data.csv
+else
+	echo "conjureNew,hg,${conjureNew_version},${conjureNew_date},${rest_line}" >> data.csv
+fi
+
+
 
 popd
 

@@ -53,18 +53,35 @@ rest_line="$(uname),$(whoami),${host_type},$(hostname)"
 
 
 
-## Conjure
-conjureNew_version="$(conjure --version | egrep -o 'Version: \w+' | egrep -o ': \w+' | egrep -o '\w+')"
+conjureNew_version="$(conjureNew --version | egrep -o 'Repository version [0-9a-z]+' \
+	| sed 's/Repository version //')"
 
-vd="$(conjure --version | egrep -o '201[0-9]-[0-9][0-9]-[0-9][0-9] [0-9]+:[0-9]+ [+-][0-9]+')"
-
-if (sw_vers &>/dev/null); then
-	conjureNew_date="$(date -jf '%Y-%m-%e %H:%M %z' "${vd}" '+%F_%s')"
+if [ -n "${conjureNew_version}" ]; then
+	vd="$(conjureNew --version | egrep -o '20[1-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9]+:[0-9]+:[0-9]+ [+-][0-9]+')"
+	if (sw_vers &>/dev/null); then
+		conjureNew_date="$(date -jf '%Y-%m-%e %H:%M:%S %z' "${vd}" '+%F_%s')"
+	else
+		conjureNew_date="$(date --date="${vd}" '+%F_%s')"
+	fi
+	echo "conjureNew,git,${conjureNew_version},${conjureNew_date},${rest_line}" >> "${base}/${csv_name}"
 else
-	conjureNew_date="$(date --date="${vd}" '+%F_%s')"
-fi
+	# Conjure `new` pre-git, the date format was changed on 2016-04-29 on 4c172ad
+	# Commit before that was c3baac0 2016-04-29
+	# https://bitbucket.org/stacs_cp/conjure-private/commits/c3baac01e538334a93f5f0dec4c878a12e88ac8d
+	# Problem what do if we use an old version from git, I not sure that would even work?
+	conjureNew_version="$(conjure --version | egrep -o 'Version: \w+' | egrep -o ': \w+' | egrep -o '\w+')"
 
-echo "conjureNew,hg,${conjureNew_version},${conjureNew_date},${rest_line}" >> "${base}/${csv_name}"
+	vd="$(conjure --version | egrep -o '201[0-9]-[0-9][0-9]-[0-9][0-9] [0-9]+:[0-9]+ [+-][0-9]+')"
+
+	if (sw_vers &>/dev/null); then
+		conjureNew_date="$(date -jf '%Y-%m-%e %H:%M %z' "${vd}" '+%F_%s')"
+	else
+		conjureNew_date="$(date --date="${vd}" '+%F_%s')"
+	fi
+
+	echo "conjureNew,hg,${conjureNew_version},${conjureNew_date},${rest_line}" >> "${base}/${csv_name}"
+
+fi
 
 
 ## conjureOld
