@@ -424,17 +424,13 @@ def classify_error(*, kind, output, returncode):
         if 'getReprFromAnswer unErr' in output:
             return Status.logFollowing
 
-        if 'Conjure is exiting due to user errors.' in output:
-            if 'expecting expression' in output:
-                if 'undefined' in output:
-                    return Status.parseErrorUndefined
-            if 'Shunting Yard failed' in output:
-                return Status.parseError
-            return Status.conjureUserError
+        if 'Exception: <<timeout>>' in output:
+            return Status.timeout
+        if 'Error: Timed out. Total CPU time used by Conjure' in output:
+            return Status.timeout
 
         if 'Shunting Yard failed' in output:
             return Status.parseError
-
         if 'Cannot fully evaluate' in output:
             return Status.cannotEvaluate
         if 'not a homoType' in output:
@@ -463,20 +459,27 @@ def classify_error(*, kind, output, returncode):
             return Status.outOfBoundsIndexing
         if 'Category checking' in output:
             return Status.categoryChecking
+        if 'e2c, not a constant' in output:
+            return Status.notAConstant
+        if 'domainUnions' in output or 'Domain.domainUnion' in output:
+            return Status.domainUnion
+        if 'This should never happen' in output:
+            return Status.conjureShouldNeverHappen
+
+        if 'Conjure is exiting due to user errors.' in output:
+            if 'expecting expression' in output:
+                if 'undefined' in output:
+                    return Status.parseErrorUndefined
+            if 'Shunting Yard failed' in output:
+                return Status.parseError
+            return Status.conjureUserError
+
         if 'conjureNew: user error' in output:
             return Status.conjureOtherUserError
         if 'conjure: user error' in output:
             return Status.conjureOtherUserError
 
-        if 'e2c, not a constant' in output:
-            return Status.notAConstant
-        if 'domainUnions' in output or 'Domain.domainUnion' in output:
-            return Status.domainUnion
-
-        if 'This should never happen' in output:
-            return Status.conjureShouldNeverHappen
-
-        if kind in kind_conjure and returncode > 1:
+        if returncode > 1:
             if 'expecting expression' in output:
                 if 'undefined' in output:
                     return Status.parseErrorUndefined
